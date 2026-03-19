@@ -9,6 +9,10 @@ mono-app 与微服务并存的 Maven 多模块结构说明。
 - base package: com.github.thundax.bacon
 - version: 0.0.1-SNAPSHOT
 - java: 17
+- spring-boot: 3.5.11
+- spring-cloud: 2025.0.1
+- spring-cloud-alibaba: 2025.0.0.0
+- commons-lang3: 3.20.0
 
 ## 总览结构图
 ```text
@@ -447,6 +451,62 @@ bacon-biz/bacon-<domain>/
   - 配置样例
   - 数据库初始化脚本或链接说明
 - 注册中心、网关、认证服务的端口和服务名统一约定
+
+## 工程级依赖与插件归属
+
+### 父 POM 统一管理
+- 以下依赖或插件在根父 `pom.xml` 中统一声明版本、依赖管理或插件管理：
+  - `flatten-maven-plugin`
+  - `maven-checkstyle-plugin`
+  - `lombok`
+- 这些属于工程构建和代码治理能力，不进入业务模块职责划分。
+
+### 公共模块归属
+- `bacon-common-core`
+  - `hutool`
+- `bacon-common-mysql`
+  - `mybatis-plus`
+- `bacon-common-swagger`
+  - `springdoc`
+
+### Starter / 运行时治理层归属
+- 以下依赖统一在 starter 层接入和配置：
+  - `nacos`
+  - `jasypt`
+  - `spring-boot-starter-actuator`
+  - `spring-boot-admin-starter-client`
+- 这些能力属于运行时配置、服务注册、配置管理、可观测性和运维治理，不进入 `api`、`application`、`domain` 的业务设计。
+
+### 使用约束
+- `lombok`
+  - 可用于 `interfaces.dto`、`interfaces.vo`、`api.dto`、`application.command`、`application.query`、`infra.persistence.dataobject`
+  - `domain` 中谨慎使用，不建议领域实体直接使用 `@Data`
+- `hutool`
+  - 用于通用工具能力，优先放在 `bacon-common-core`
+  - `domain` 中避免重度依赖，尽量保持纯 Java
+- `mybatis-plus`
+  - 由 `bacon-common-mysql` 统一封装分页、通用字段填充、基础配置
+  - 业务域 `infra.persistence` 只保留 mapper、dataobject、repositoryimpl 等实现
+- `springdoc`
+  - 由 `bacon-common-swagger` 统一封装分组、鉴权头、文档开关
+  - 各 starter 按需启用，不在业务模块内重复配置
+- `nacos`
+  - 由 starter 统一接入服务注册与配置中心
+  - 统一约定服务名、`namespace`、`group`、`dataId`
+- `jasypt`
+  - 用于加密配置项，例如数据库密码、Nacos 密钥、第三方密钥
+  - 不进入业务域对象与业务逻辑
+- `spring-boot-starter-actuator`
+  - 由 starter 统一暴露健康检查、指标、探针
+  - management 端口、路径、暴露端点和鉴权策略统一配置
+- `spring-boot-admin-starter-client`
+  - 由 starter 统一配置 admin server 地址、实例名、metadata、鉴权信息
+  - 业务代码不得依赖 admin client API
+
+### 禁止事项补充
+- 禁止在业务域模块中重复声明上述工程级依赖的版本。
+- 禁止在 `domain` 中直接依赖 `nacos`、`jasypt`、`actuator`、`spring-boot-admin`。
+- 禁止在各业务模块内各自维护一套 `springdoc`、`mybatis-plus`、`checkstyle` 配置。
 
 ## 测试与治理约定
 

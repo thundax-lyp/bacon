@@ -86,7 +86,7 @@ bacon
 │   ├── bacon-common-core/           # 异常 / 枚举 / 常量 / 工具
 │   ├── bacon-common-web/            # 统一返回 / 全局异常 / Web 拦截
 │   ├── bacon-common-mysql/          # MySQL / MyBatis-Plus 基础封装
-│   ├── bacon-common-cache/          # Redis / Caffeine 封装
+│   ├── bacon-common-cache/          # JetCache / Redis / Caffeine 基础封装
 │   ├── bacon-common-mq/             # MQ 封装
 │   ├── bacon-common-oss/            # 对象存储封装
 │   ├── bacon-common-feign/          # Feign 封装
@@ -219,7 +219,6 @@ bacon-biz/bacon-order
     └── com.github.thundax.bacon.order.infra
         ├── persistence
         │   ├── mapper
-        │   ├── dao
         │   ├── dataobject
         │   └── repositoryimpl
         ├── rpc
@@ -231,8 +230,8 @@ bacon-biz/bacon-order
 ## 分层职责
 
 ### interfaces
-- 面向外部接入协议层，承载 HTTP、消息消费等入口适配。
-- 对外暴露 HTTP 接口、MQ consumer。
+- 面向统一接入协议层，承载 HTTP、消息消费以及服务提供方的 provider 入口适配。
+- 对外暴露 HTTP 接口、MQ consumer，并承载服务提供方的 provider 入口。
 - 负责接收请求、参数校验、协议适配、返回值组装。
 - 可以依赖 `application`，不能直接访问 `domain repository` 或 `infra mapper`。
 
@@ -311,7 +310,6 @@ common      -> 被各层依赖
 - 本地实现放在被调用方，作为 `api.facade` 的本地适配实现，例如 `UserReadFacadeLocalImpl`。
 - 远程调用实现放在调用方的 `infra.rpc` 或公共 `common-feign` 扩展中，例如 `UserReadFacadeRemoteImpl`。
 - 业务编排始终写在 `application`，不要写进 Feign client。
-- `VO` 只用于 interfaces 出参，`Command` 只用于 application 入参，不参与跨域调用。
 
 ## Mono-App 约定
 
@@ -370,8 +368,8 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
 ### 服务提供方暴露模型
 - 微服务中的服务提供方负责暴露可远程访问的 provider 入口，但 provider 只是传输适配层，不承载业务编排。
-- 推荐由服务提供方在 `interfaces` 中提供内部调用入口，例如 internal controller 或 RPC provider adapter。
-- provider 接口的入参与出参应与 `api.facade` / `api.dto` 对齐，避免再定义一套独立契约。
+- 项目选择不拆分 external / internal provider，统一由 `interfaces` 承载 provider 入口。
+- provider 接口必须与 `api.facade` / `api.dto` 对齐，统一使用一套 API 契约，不再额外定义第二套内部服务接口。
 - provider 内部调用本域 `application`，不允许直接调用 `domain.repository` 或 `infra.persistence`。
 
 ### 独立 Starter 装配规则
@@ -414,6 +412,13 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - 微服务 starter 禁止引入其他业务域的本地 `facade` 实现。
 - 禁止把跨域写操作默认设计成同步 RPC 链路。
 - 不允许跨域直接引用对方 `infra`、`controller`、`application.service` 实现类。
+- 禁止在业务域模块中重复声明工程级依赖版本。
+- 禁止在 `domain` 中直接依赖 `nacos`、`jasypt`、`actuator`、`spring-boot-admin`。
+- 禁止在各业务模块内各自维护一套 `springdoc`、`mybatis-plus`、`checkstyle` 配置。
+- 禁止在同一模块内同时把 Hutool `StrUtil` 和 Apache `StringUtils` 作为常规字符串工具混用。
+- 禁止在 `jetcache` 之外再抽象一套通用缓存门面。
+- 禁止在 `mybatis-plus + mapper + repositoryimpl` 之外再叠加通用 DAO 框架。
+- 禁止在网关模块中继续使用 Spring Cloud 2025 已废弃的旧 gateway starter 名称。
 
 ## 模块创建清单
 
@@ -516,15 +521,6 @@ bacon-biz/bacon-<domain>/
 - 网关
   - `bacon-gateway` 直接使用 Spring Cloud 2025 对应的新 gateway starter 名称
   - 不再引入已废弃的旧 gateway starter 名称
-
-### 禁止事项补充
-- 禁止在业务域模块中重复声明上述工程级依赖的版本。
-- 禁止在 `domain` 中直接依赖 `nacos`、`jasypt`、`actuator`、`spring-boot-admin`。
-- 禁止在各业务模块内各自维护一套 `springdoc`、`mybatis-plus`、`checkstyle` 配置。
-- 禁止在同一模块内同时把 Hutool `StrUtil` 和 Apache `StringUtils` 作为常规字符串工具混用。
-- 禁止在 `jetcache` 之外再抽象一套通用缓存门面。
-- 禁止在 `mybatis-plus + mapper + repositoryimpl` 之外再叠加通用 DAO 框架。
-- 禁止在网关模块中继续使用 Spring Cloud 2025 已废弃的旧 gateway starter 名称。
 
 ## 测试与治理约定
 

@@ -153,6 +153,8 @@ order-application
    ↓
 UserReadFacade
    ↓
+UserReadFacadeLocalImpl
+   ↓
 user-application
 ```
 
@@ -162,12 +164,14 @@ order-application
    ↓
 UserReadFacade
    ↓
+UserReadFacadeRemoteImpl
+   ↓
 RPC Client / Feign
    ↓
 user-service
 ```
 
-关键点是：业务代码依赖 Facade 接口，不直接依赖对方实现。这样单体和微服务才能平滑切换。
+关键点是：业务代码依赖 Facade 接口，不直接依赖对方实现。同一个 `facade` 接口在单体和微服务下应存在两个不同的 Bean 实现，通过运行模式完成装配切换。
 
 ## 一个业务域内部的标准结构
 
@@ -293,16 +297,104 @@ common      -> 被各层依赖
 
 ### 调用原则
 - 调用方依赖被调用方暴露的 `api.facade` 接口，不直接依赖其 `service`、`repository`、`mapper`。
-- 单体模式下，由被调用方提供 `facade` 的本地实现，内部转调本域 `application`。
-- 微服务模式下，由调用方在 `infra.rpc` 中提供 `facade` 的远程实现，内部通过 Feign / RPC client 调目标服务。
+- 单体模式下，由被调用方提供 `facade` 的本地实现 Bean，内部转调本域 `application`。
+- 微服务模式下，由调用方在 `infra.rpc` 中提供 `facade` 的远程实现 Bean，内部通过 Feign / RPC client 调目标服务。
+- 同一个 `facade` 接口在容器中只能有一个生效 Bean，避免本地实现和远程实现同时注入。
 
 ### 推荐放置方式
 - 对外读写能力抽象放在 `<domain>-api` 模块的 `api.facade`。
 - 跨域 DTO 放在 `<domain>-api` 模块的 `api.dto`。
-- 本地实现放在被调用方，作为 `api.facade` 的适配实现。
-- 远程调用实现放在调用方的 `infra.rpc` 或公共 `common-feign` 扩展中。
+- 本地实现放在被调用方，作为 `api.facade` 的本地适配实现，例如 `UserReadFacadeLocalImpl`。
+- 远程调用实现放在调用方的 `infra.rpc` 或公共 `common-feign` 扩展中，例如 `UserReadFacadeRemoteImpl`。
 - 业务编排始终写在 `application`，不要写进 Feign client。
 - `VO` 只用于 interfaces 出参，`Command` 只用于 application 入参，不参与跨域调用。
+
+## Mono-App 约定
+
+### 运行模式
+- `mono-app` 中，各业务域运行在同一个 JVM 中，但仍保持业务边界不变。
+- `bacon-boot` 负责统一装配多个业务域，并选择 `facade` 的本地实现 Bean。
+- 即使在同一进程内，也不因为“调用方便”而绕过 `api.facade`。
+
+### Facade 双 Bean 设计
+- 每个跨域 `facade` 接口都应预留两种实现：
+  - 本地实现 Bean：`<FacadeName>LocalImpl`
+  - 远程实现 Bean：`<FacadeName>RemoteImpl`
+- `mono-app` 模式只启用 `LocalImpl`。
+- 微服务模式只启用 `RemoteImpl`。
+- 两种实现必须实现同一个 `api.facade` 接口，对 `application` 层保持透明。
+
+### Spring 装配规范
+- 统一使用运行模式配置项控制 Bean 生效，例如：`bacon.runtime.mode=mono` 或 `bacon.runtime.mode=micro`。
+- `LocalImpl` 使用条件装配，仅在 `mono` 模式生效。
+- `RemoteImpl` 使用条件装配，仅在 `micro` 模式生效。
+- 不允许通过 `@Primary`、字段名注入、手工排除扫描等方式“碰运气”解决冲突，必须通过显式条件装配保证容器内只有一个实现。
+- 建议统一使用 `@ConditionalOnProperty` 或等价的自定义条件注解，例如：
+
+```java
+@Component
+@ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono")
+public class UserReadFacadeLocalImpl implements UserReadFacade {
+}
+```
+
+```java
+@Component
+@ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
+public class UserReadFacadeRemoteImpl implements UserReadFacade {
+}
+```
+
+- 如果项目后续需要统一治理，可进一步封装为：
+  - `@ConditionalOnMonoApp`
+  - `@ConditionalOnMicroservice`
+- 所有 `facade` 实现都应遵循同一套装配规则，不能某些域用配置切换，某些域靠代码硬编码。
+
+### 单体装配规则
+- `bacon-boot` 启动时默认装配各域的本地 `facade` 实现。
+- `infra.rpc` 中的远程 `facade` 实现、Feign Client、远程专用配置在 `mono-app` 模式下默认禁用。
+- MQ consumer、定时任务、RPC provider 等需要根据运行模式和服务职责决定是否启用，不能因为模块被引入就自动全部生效。
+- 单体模式下跨域调用路径应固定为：
+  - `caller-application -> callee-api.facade -> callee LocalImpl -> callee-application`
+
+### 单体事务约定
+- 跨域编排由发起方 `application` 负责，不能跨域共享 `repository` 或 `mapper`。
+- 单体模式下如果多个域在同一个本地事务中协作，事务边界仍定义在发起方 `application`。
+- 是否允许跨域事务应谨慎控制，优先保证领域边界，再考虑事务便利性。
+
+## 微服务约定
+
+### 服务提供方暴露模型
+- 微服务中的服务提供方负责暴露可远程访问的 provider 入口，但 provider 只是传输适配层，不承载业务编排。
+- 推荐由服务提供方在 `interfaces` 中提供内部调用入口，例如 internal controller 或 RPC provider adapter。
+- provider 接口的入参与出参应与 `api.facade` / `api.dto` 对齐，避免再定义一套独立契约。
+- provider 内部调用本域 `application`，不允许直接调用 `domain.repository` 或 `infra.persistence`。
+
+### 独立 Starter 装配规则
+- `bacon-order-starter` 只装配：
+  - `bacon-order-api`
+  - `bacon-order-interfaces`
+  - `bacon-order-application`
+  - `bacon-order-domain`
+  - `bacon-order-infra`
+  - `bacon-common-*`
+  - 当前服务需要的外部 `api` 模块与对应 `RemoteImpl`
+- `bacon-order-starter` 不装配其他业务域的本地 `facade` 实现。
+- 非 `bacon-boot` 的独立服务原则上只拥有本域业务实现，跨域能力通过外部 `api + RemoteImpl` 获取。
+- 各 starter 必须显式声明自身运行模式，不能在微服务 starter 中复用单体装配逻辑。
+
+### 同步与异步调用边界
+- 查询类跨域调用优先使用同步 `facade`。
+- 写操作、状态变更、长链路编排优先考虑事件驱动、消息通知或最终一致性方案。
+- 不要把所有跨域写操作都设计成同步 RPC，否则服务边界会退化为远程单体。
+- 如果必须同步写入跨域服务，需要明确调用原因、失败补偿和超时策略。
+
+### 服务治理约定
+- 服务注册名保持统一命名，例如 `bacon-order-service`、`bacon-upms-service`。
+- 配置中心需统一约定 `namespace`、`group`、`dataId` 命名规则。
+- Feign / RPC client 需统一超时、重试、熔断、日志追踪策略，避免各服务各自配置。
+- `api.dto` 作为跨服务契约对象，需要关注兼容性，新增字段优先向后兼容，避免破坏性变更。
+- `bacon-common-feign`、`bacon-common-security` 作为微服务基础能力模块使用；`bacon-common-seata` 仅在确有分布式事务需求时启用，不视为默认标配。
 
 ## 禁止事项
 
@@ -313,6 +405,10 @@ common      -> 被各层依赖
 - `interfaces` 禁止定义跨域调用契约。
 - `api` 禁止放 `VO`、`Command`、Controller DTO、领域实体。
 - `starter` 禁止沉淀业务规则和业务状态。
+- 即使在 `mono-app` 中，也禁止因为同 JVM 部署而直接依赖其他业务域的 `application` 实现、`repository`、`mapper`。
+- 禁止同时激活同一个 `facade` 接口的本地实现和远程实现。
+- 微服务 starter 禁止引入其他业务域的本地 `facade` 实现。
+- 禁止把跨域写操作默认设计成同步 RPC 链路。
 - 不允许跨域直接引用对方 `infra`、`controller`、`application.service` 实现类。
 
 ## 模块创建清单
@@ -340,6 +436,9 @@ bacon-biz/bacon-<domain>/
 
 至少需要补齐以下内容，否则结构完整但工程无法启动：
 
+- 统一运行模式配置，例如：
+  - `bacon.runtime.mode=mono`
+  - `bacon.runtime.mode=micro`
 - 每个 starter 模块提供独立 `application.yml`
 - 环境差异配置通过 profile 或配置中心管理
 - `deploy/` 下为每个可部署服务提供：

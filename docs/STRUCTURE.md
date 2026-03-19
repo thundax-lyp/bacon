@@ -51,7 +51,7 @@ bacon
 │   ├── bacon-order/
 │   │   ├── pom.xml
 │   │   ├── bacon-order-api/         # 跨域调用契约：facade / dto
-│   │   ├── bacon-order-interfaces/  # controller / http dto / vo
+│   │   ├── bacon-order-interfaces/  # controller / provider / http dto / vo
 │   │   ├── bacon-order-application/ # app service / command / query
 │   │   ├── bacon-order-domain/      # entity / domain service / repository 接口
 │   │   └── bacon-order-infra/       # mapper / repository impl / rpc client / cache
@@ -191,6 +191,7 @@ bacon-biz/bacon-order
 ├── bacon-order-interfaces
 │   └── com.github.thundax.bacon.order.interfaces
 │       ├── controller
+│       ├── provider
 │       ├── dto
 │       ├── vo
 │       ├── assembler
@@ -233,6 +234,7 @@ bacon-biz/bacon-order
 - 面向统一接入协议层，承载 HTTP、消息消费以及服务提供方的 provider 入口适配。
 - 对外暴露 HTTP 接口、MQ consumer，并承载服务提供方的 provider 入口。
 - 负责接收请求、参数校验、协议适配、返回值组装。
+- provider 只是 `api.facade` 的传输适配入口，不额外定义第二套业务契约。
 - 可以依赖 `application`，不能直接访问 `domain repository` 或 `infra mapper`。
 
 ### api
@@ -273,6 +275,7 @@ bacon-biz/bacon-order
 - `facade` 放在 `api.facade`，不再放在 `interfaces`
 - `Command` 用于应用层入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
 - `interfaces.dto` / `interfaces.vo` 只服务接入层，不参与跨域调用
+- provider 接口默认直接复用 `api.dto`，不再单独定义 provider DTO
 - HTTP DTO、跨域 DTO、领域对象默认不复用，避免协议层和领域层互相污染
 - 枚举、异常码、通用常量优先沉淀到 `bacon-common-core`，业务私有的留在各自域内。
 
@@ -309,6 +312,7 @@ common      -> 被各层依赖
 - 跨域 DTO 放在 `<domain>-api` 模块的 `api.dto`。
 - 本地实现放在被调用方，作为 `api.facade` 的本地适配实现，例如 `UserReadFacadeLocalImpl`。
 - 远程调用实现放在调用方的 `infra.rpc` 或公共 `common-feign` 扩展中，例如 `UserReadFacadeRemoteImpl`。
+- 服务提供方的 provider 入口放在 `interfaces.provider` 或 `interfaces.controller`，但必须直接对齐 `api.facade`。
 - 业务编排始终写在 `application`，不要写进 Feign client。
 
 ## Mono-App 约定
@@ -405,6 +409,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - `application` 禁止直接操作 `Mapper`、`DAO`、`FeignClient`。
 - `interfaces` 禁止直接编写数据库访问逻辑。
 - `interfaces` 禁止定义跨域调用契约。
+- `interfaces` 禁止再单独定义 provider DTO 或第二套内部服务契约。
 - `api` 禁止放 `VO`、`Command`、Controller DTO、领域实体。
 - `starter` 禁止沉淀业务规则和业务状态。
 - 即使在 `mono-app` 中，也禁止因为同 JVM 部署而直接依赖其他业务域的 `application` 实现、`repository`、`mapper`。
@@ -437,7 +442,7 @@ bacon-biz/bacon-<domain>/
 建议同时补齐以下基础内容：
 - 四层模块各自的 `pom.xml`
 - 标准包结构
-- 一个最小闭环示例：controller -> application -> domain -> repository
+- 一个最小闭环示例：controller/provider -> application -> domain -> repository
 - 启动模块中的依赖装配
 - `deploy/bacon-<domain>/` 下的配置样例和 Dockerfile
 
@@ -535,7 +540,7 @@ bacon-biz/bacon-<domain>/
 2. 在 `api` 中定义 facade 和跨域 dto。
 3. 在 `domain` 中定义实体、聚合、仓储接口和领域服务。
 4. 在 `application` 中定义 command、query、service、executor。
-5. 在 `interfaces` 中定义 controller、http dto、vo。
+5. 在 `interfaces` 中定义 controller、provider、http dto、vo。
 6. 在 `infra` 中实现 repository、mapper、rpc、cache。
 7. 在对应 starter 中引入相关模块并完成装配。
 8. 在 `deploy` 中补齐配置样例和镜像脚本。

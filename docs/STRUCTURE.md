@@ -466,6 +466,8 @@ bacon-biz/bacon-<domain>/
   - `hutool`
 - `bacon-common-mysql`
   - `mybatis-plus`
+- `bacon-common-cache`
+  - `jetcache`
 - `bacon-common-swagger`
   - `springdoc`
 
@@ -484,9 +486,18 @@ bacon-biz/bacon-<domain>/
 - `hutool`
   - 用于通用工具能力，优先放在 `bacon-common-core`
   - `domain` 中避免重度依赖，尽量保持纯 Java
+  - 字符串处理不作为默认首选，优先使用 `org.apache.commons.lang3.StringUtils`
+- `commons-lang3`
+  - 作为基础字符串与对象工具库统一使用
+  - 默认使用 `org.apache.commons.lang3.StringUtils`
+  - 不建议与 Hutool 的字符串工具在同一模块内混用
 - `mybatis-plus`
   - 由 `bacon-common-mysql` 统一封装分页、通用字段填充、基础配置
   - 业务域 `infra.persistence` 只保留 mapper、dataobject、repositoryimpl 等实现
+  - 持久化统一主实现采用 `mybatis-plus + mapper + repositoryimpl`，不再叠加 DAO 基础框架
+- `jetcache`
+  - 由 `bacon-common-cache` 统一封装缓存配置、key 规范、过期策略和序列化策略
+  - 缓存统一主实现采用 `jetcache`，不再额外封装一套通用缓存门面
 - `springdoc`
   - 由 `bacon-common-swagger` 统一封装分组、鉴权头、文档开关
   - 各 starter 按需启用，不在业务模块内重复配置
@@ -502,11 +513,18 @@ bacon-biz/bacon-<domain>/
 - `spring-boot-admin-starter-client`
   - 由 starter 统一配置 admin server 地址、实例名、metadata、鉴权信息
   - 业务代码不得依赖 admin client API
+- 网关
+  - `bacon-gateway` 直接使用 Spring Cloud 2025 对应的新 gateway starter 名称
+  - 不再引入已废弃的旧 gateway starter 名称
 
 ### 禁止事项补充
 - 禁止在业务域模块中重复声明上述工程级依赖的版本。
 - 禁止在 `domain` 中直接依赖 `nacos`、`jasypt`、`actuator`、`spring-boot-admin`。
 - 禁止在各业务模块内各自维护一套 `springdoc`、`mybatis-plus`、`checkstyle` 配置。
+- 禁止在同一模块内同时把 Hutool `StrUtil` 和 Apache `StringUtils` 作为常规字符串工具混用。
+- 禁止在 `jetcache` 之外再抽象一套通用缓存门面。
+- 禁止在 `mybatis-plus + mapper + repositoryimpl` 之外再叠加通用 DAO 框架。
+- 禁止在网关模块中继续使用 Spring Cloud 2025 已废弃的旧 gateway starter 名称。
 
 ## 测试与治理约定
 

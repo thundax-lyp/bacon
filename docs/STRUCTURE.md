@@ -46,13 +46,15 @@ bacon
 │   ├── pom.xml
 │   ├── bacon-order/
 │   │   ├── pom.xml
-│   │   ├── bacon-order-interfaces/  # controller / facade / dto / vo
+│   │   ├── bacon-order-api/         # 跨域调用契约：facade / dto
+│   │   ├── bacon-order-interfaces/  # controller / http dto / vo
 │   │   ├── bacon-order-application/ # app service / command / query
 │   │   ├── bacon-order-domain/      # entity / domain service / repository 接口
 │   │   └── bacon-order-infra/       # mapper / repository impl / rpc client / cache
 │   │
 │   ├── bacon-upms/
 │   │   ├── pom.xml
+│   │   ├── bacon-upms-api/
 │   │   ├── bacon-upms-interfaces/
 │   │   ├── bacon-upms-application/
 │   │   ├── bacon-upms-domain/
@@ -60,6 +62,7 @@ bacon
 │   │
 │   ├── bacon-inventory/
 │   │   ├── pom.xml
+│   │   ├── bacon-inventory-api/
 │   │   ├── bacon-inventory-interfaces/
 │   │   ├── bacon-inventory-application/
 │   │   ├── bacon-inventory-domain/
@@ -67,6 +70,7 @@ bacon
 │   │
 │   └── bacon-payment/
 │       ├── pom.xml
+│       ├── bacon-payment-api/
 │       ├── bacon-payment-interfaces/
 │       ├── bacon-payment-application/
 │       ├── bacon-payment-domain/
@@ -105,11 +109,13 @@ bacon
 ### 单体装配
 ```text
 bacon-boot
+├── depends on bacon-order-api
 ├── depends on bacon-order-interfaces
 ├── depends on bacon-order-application
 ├── depends on bacon-order-domain
 ├── depends on bacon-order-infra
 │
+├── depends on bacon-upms-api
 ├── depends on bacon-upms-interfaces
 ├── depends on bacon-upms-application
 ├── depends on bacon-upms-domain
@@ -169,10 +175,14 @@ user-service
 
 ```text
 bacon-biz/bacon-order
+├── bacon-order-api
+│   └── com.github.thundax.bacon.order.api
+│       ├── facade
+│       └── dto
+│
 ├── bacon-order-interfaces
 │   └── com.github.thundax.bacon.order.interfaces
 │       ├── controller
-│       ├── facade
 │       ├── dto
 │       ├── vo
 │       ├── assembler
@@ -213,14 +223,21 @@ bacon-biz/bacon-order
 ## 分层职责
 
 ### interfaces
-- 对外暴露 HTTP、MQ consumer、开放 Facade 接口。
+- 面向外部接入协议层，承载 HTTP、消息消费等入口适配。
+- 对外暴露 HTTP 接口、MQ consumer。
 - 负责接收请求、参数校验、协议适配、返回值组装。
 - 可以依赖 `application`，不能直接访问 `domain repository` 或 `infra mapper`。
+
+### api
+- 面向内部跨域调用契约层，承载业务域之间稳定的调用边界。
+- 负责定义跨业务域调用契约，只放 `facade` 和跨域 `dto`。
+- 只表达稳定的业务能力，不承载 HTTP 语义，也不暴露领域实体。
+- 可被其他业务域的 `application` 或 `infra.rpc` 依赖。
 
 ### application
 - 负责用例编排、事务边界、权限校验、幂等控制、跨域协调。
 - 只表达业务动作，不关心数据库、RPC、缓存具体实现。
-- 可以依赖 `domain` 和外部 Facade 抽象，不能直接依赖其他域的 infra 实现。
+- 可以依赖 `domain` 和外部 `api.facade` 抽象，不能直接依赖其他域的 infra 实现。
 
 ### domain
 - 负责核心业务规则、聚合、一致性约束、领域服务、仓储接口定义。
@@ -239,12 +256,17 @@ bacon-biz/bacon-order
 
 ## 对象约定
 
-- Request DTO / Response DTO / VO 放在 `interfaces`
+- HTTP Request DTO / Response DTO 放在 `interfaces.dto`
+- 页面展示或接口返回对象放在 `interfaces.vo`
+- 跨域调用 DTO 放在 `api.dto`，只用于业务域之间调用
 - Command / Query 放在 `application`
 - Entity / Aggregate / ValueObject 放在 `domain`
 - DO / PO / DataObject / Mapper 放在 `infra.persistence`
 - `Assembler` 优先放在调用方所在层，用于本层对象转换。
-- 对外 RPC DTO 与 HTTP DTO 不复用时，分别放在 `interfaces.dto` 和 `infra.rpc`。
+- `facade` 放在 `api.facade`，不再放在 `interfaces`
+- `Command` 用于应用层入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
+- `interfaces.dto` / `interfaces.vo` 只服务接入层，不参与跨域调用
+- HTTP DTO、跨域 DTO、领域对象默认不复用，避免协议层和领域层互相污染
 - 枚举、异常码、通用常量优先沉淀到 `bacon-common-core`，业务私有的留在各自域内。
 
 ## Maven 依赖方向
@@ -252,30 +274,35 @@ bacon-biz/bacon-order
 必须单向依赖，不能反过来。
 
 ```text
+api         -> 无业务实现依赖
 interfaces  -> application
-application -> domain
-infra       -> domain
-app/starter -> interfaces + application + domain + infra
+application -> domain + 外部 api
+infra       -> domain + 外部 api
+app/starter -> api + interfaces + application + domain + infra
 common      -> 被各层依赖
 ```
 
 说明：
 - `domain` 定义仓储接口。
 - `infra` 实现这些接口。
+- `api` 只定义契约，不依赖 `application`、`domain`、`infra` 实现。
 - `interfaces` 不得直接依赖 `infra`。
 - 一个业务域原则上不得直接依赖另一个业务域的 `application` 实现。
 
 ## 跨域调用约定
 
 ### 调用原则
-- 调用方依赖被调用方暴露的 `facade` 接口，不直接依赖其 `service`、`repository`、`mapper`。
-- 单体模式下，Facade 可以由本地 Bean 直接实现。
-- 微服务模式下，Facade 可以由 Feign / RPC client 实现。
+- 调用方依赖被调用方暴露的 `api.facade` 接口，不直接依赖其 `service`、`repository`、`mapper`。
+- 单体模式下，由被调用方提供 `facade` 的本地实现，内部转调本域 `application`。
+- 微服务模式下，由调用方在 `infra.rpc` 中提供 `facade` 的远程实现，内部通过 Feign / RPC client 调目标服务。
 
 ### 推荐放置方式
-- 对外读写能力抽象放在 `interfaces.facade`。
+- 对外读写能力抽象放在 `<domain>-api` 模块的 `api.facade`。
+- 跨域 DTO 放在 `<domain>-api` 模块的 `api.dto`。
+- 本地实现放在被调用方，作为 `api.facade` 的适配实现。
 - 远程调用实现放在调用方的 `infra.rpc` 或公共 `common-feign` 扩展中。
 - 业务编排始终写在 `application`，不要写进 Feign client。
+- `VO` 只用于 interfaces 出参，`Command` 只用于 application 入参，不参与跨域调用。
 
 ## 禁止事项
 
@@ -283,6 +310,8 @@ common      -> 被各层依赖
 - `domain` 禁止出现 `@RestController`、`@Service`、`@Mapper`、`@TableName` 等面向基础设施的注解。
 - `application` 禁止直接操作 `Mapper`、`DAO`、`FeignClient`。
 - `interfaces` 禁止直接编写数据库访问逻辑。
+- `interfaces` 禁止定义跨域调用契约。
+- `api` 禁止放 `VO`、`Command`、Controller DTO、领域实体。
 - `starter` 禁止沉淀业务规则和业务状态。
 - 不允许跨域直接引用对方 `infra`、`controller`、`application.service` 实现类。
 
@@ -293,6 +322,7 @@ common      -> 被各层依赖
 ```text
 bacon-biz/bacon-<domain>/
 ├── pom.xml
+├── bacon-<domain>-api
 ├── bacon-<domain>-interfaces
 ├── bacon-<domain>-application
 ├── bacon-<domain>-domain
@@ -329,10 +359,11 @@ bacon-biz/bacon-<domain>/
 ## 新增业务域的标准步骤
 
 1. 在 `bacon-biz` 下创建领域聚合模块和四层子模块。
-2. 在 `domain` 中定义实体、聚合、仓储接口和领域服务。
-3. 在 `application` 中定义 command、query、service、executor。
-4. 在 `interfaces` 中定义 controller、dto、vo、facade。
-5. 在 `infra` 中实现 repository、mapper、rpc、cache。
-6. 在对应 starter 中引入四层模块并完成装配。
-7. 在 `deploy` 中补齐配置样例和镜像脚本。
-8. 先跑通一个最小业务闭环，再逐步扩展。
+2. 在 `api` 中定义 facade 和跨域 dto。
+3. 在 `domain` 中定义实体、聚合、仓储接口和领域服务。
+4. 在 `application` 中定义 command、query、service、executor。
+5. 在 `interfaces` 中定义 controller、http dto、vo。
+6. 在 `infra` 中实现 repository、mapper、rpc、cache。
+7. 在对应 starter 中引入相关模块并完成装配。
+8. 在 `deploy` 中补齐配置样例和镜像脚本。
+9. 先跑通一个最小业务闭环，再逐步扩展。

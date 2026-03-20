@@ -5,6 +5,12 @@ spring:
     admin:
       client:
         enabled: false
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
 
 bacon:
   runtime:
@@ -14,4 +20,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus

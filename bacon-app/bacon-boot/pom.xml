@@ -16,6 +16,56 @@
     <dependencies>
         <dependency>
             <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-auth-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-auth-interfaces</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-auth-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-auth-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-auth-infra</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-upms-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-upms-interfaces</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-upms-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-upms-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-upms-infra</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
             <artifactId>bacon-order-api</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -41,7 +91,62 @@
         </dependency>
         <dependency>
             <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-inventory-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-inventory-interfaces</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-inventory-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-inventory-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-inventory-infra</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-payment-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-payment-interfaces</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-payment-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-payment-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-payment-infra</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
             <artifactId>bacon-common-swagger</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-common-feign</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -57,6 +162,14 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.ulisesbocchio</groupId>

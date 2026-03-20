@@ -5,9 +5,11 @@ import com.github.thundax.bacon.order.application.service.OrderPaymentResultAppl
 import com.github.thundax.bacon.order.application.service.OrderTimeoutApplicationService;
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class OrderCommandFacadeLocalImpl implements OrderCommandFacade {
 
     private final OrderPaymentResultApplicationService orderPaymentResultApplicationService;

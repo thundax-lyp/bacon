@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: bacon-order-service
+  boot:
+    admin:
+      client:
+        enabled: false
+
+bacon:
+  runtime:
+    mode: micro
+  remote:
+    order-base-url: http://localhost:8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

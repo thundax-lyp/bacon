@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.github.thundax</groupId>
+        <artifactId>bacon</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>bacon-common</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>bacon-common-bom</module>
+        <module>bacon-common-core</module>
+        <module>bacon-common-web</module>
+        <module>bacon-common-mysql</module>
+        <module>bacon-common-cache</module>
+        <module>bacon-common-mq</module>
+        <module>bacon-common-oss</module>
+        <module>bacon-common-feign</module>
+        <module>bacon-common-seata</module>
+        <module>bacon-common-security</module>
+        <module>bacon-common-swagger</module>
+        <module>bacon-common-test</module>
+    </modules>
+</project>

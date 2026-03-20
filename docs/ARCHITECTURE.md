@@ -1,4 +1,4 @@
-# Bacon项目结构
+# Bacon系统架构
 
 mono-app 与微服务并存的 Maven 多模块结构说明。
 
@@ -324,8 +324,8 @@ common      -> 被各层依赖
 
 ### Facade 双 Bean 设计
 - 每个跨域 `facade` 接口都应预留两种实现：
-  - 本地实现 Bean：`<FacadeName>LocalImpl`
-  - 远程实现 Bean：`<FacadeName>RemoteImpl`
+    - 本地实现 Bean：`<FacadeName>LocalImpl`
+    - 远程实现 Bean：`<FacadeName>RemoteImpl`
 - `mono-app` 模式只启用 `LocalImpl`。
 - 微服务模式只启用 `RemoteImpl`。
 - 两种实现必须实现同一个 `api.facade` 接口，对 `application` 层保持透明。
@@ -352,8 +352,8 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 ```
 
 - 如果项目后续需要统一治理，可进一步封装为：
-  - `@ConditionalOnMonoApp`
-  - `@ConditionalOnMicroservice`
+    - `@ConditionalOnMonoApp`
+    - `@ConditionalOnMicroservice`
 - 所有 `facade` 实现都应遵循同一套装配规则，不能某些域用配置切换，某些域靠代码硬编码。
 
 ### 单体装配规则
@@ -361,7 +361,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - `infra.rpc` 中的远程 `facade` 实现、Feign Client、远程专用配置在 `mono-app` 模式下默认禁用。
 - MQ consumer、定时任务、RPC provider 等需要根据运行模式和服务职责决定是否启用，不能因为模块被引入就自动全部生效。
 - 单体模式下跨域调用路径应固定为：
-  - `caller-application -> callee-api.facade -> callee LocalImpl -> callee-application`
+    - `caller-application -> callee-api.facade -> callee LocalImpl -> callee-application`
 
 ### 单体事务约定
 - 跨域编排由发起方 `application` 负责，不能跨域共享 `repository` 或 `mapper`。
@@ -378,13 +378,13 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
 ### 独立 Starter 装配规则
 - `bacon-order-starter` 只装配：
-  - `bacon-order-api`
-  - `bacon-order-interfaces`
-  - `bacon-order-application`
-  - `bacon-order-domain`
-  - `bacon-order-infra`
-  - `bacon-common-*`
-  - 当前服务需要的外部 `api` 模块与对应 `RemoteImpl`
+    - `bacon-order-api`
+    - `bacon-order-interfaces`
+    - `bacon-order-application`
+    - `bacon-order-domain`
+    - `bacon-order-infra`
+    - `bacon-common-*`
+    - 当前服务需要的外部 `api` 模块与对应 `RemoteImpl`
 - `bacon-order-starter` 不装配其他业务域的本地 `facade` 实现。
 - 非 `bacon-boot` 的独立服务原则上只拥有本域业务实现，跨域能力通过外部 `api + RemoteImpl` 获取。
 - 各 starter 必须显式声明自身运行模式，不能在微服务 starter 中复用单体装配逻辑。
@@ -451,81 +451,81 @@ bacon-biz/bacon-<domain>/
 至少需要补齐以下内容，否则结构完整但工程无法启动：
 
 - 统一运行模式配置，例如：
-  - `bacon.runtime.mode=mono`
-  - `bacon.runtime.mode=micro`
+    - `bacon.runtime.mode=mono`
+    - `bacon.runtime.mode=micro`
 - 每个 starter 模块提供独立 `application.yml`
 - 环境差异配置通过 profile 或配置中心管理
 - `deploy/` 下为每个可部署服务提供：
-  - `Dockerfile`
-  - 启动脚本
-  - 配置样例
-  - 数据库初始化脚本或链接说明
+    - `Dockerfile`
+    - 启动脚本
+    - 配置样例
+    - 数据库初始化脚本或链接说明
 - 注册中心、网关、认证服务的端口和服务名统一约定
 
 ## 工程级依赖与插件归属
 
 ### 父 POM 统一管理
 - 以下依赖或插件在根父 `pom.xml` 中统一声明版本、依赖管理或插件管理：
-  - `flatten-maven-plugin`
-  - `maven-checkstyle-plugin`
-  - `lombok`
+    - `flatten-maven-plugin`
+    - `maven-checkstyle-plugin`
+    - `lombok`
 - 这些属于工程构建和代码治理能力，不进入业务模块职责划分。
 
 ### 公共模块归属
 - `bacon-common-core`
-  - `hutool`
+    - `hutool`
 - `bacon-common-mysql`
-  - `mybatis-plus`
+    - `mybatis-plus`
 - `bacon-common-cache`
-  - `jetcache`
+    - `jetcache`
 - `bacon-common-swagger`
-  - `springdoc`
+    - `springdoc`
 
 ### Starter / 运行时治理层归属
 - 以下依赖统一在 starter 层接入和配置：
-  - `nacos`
-  - `jasypt`
-  - `spring-boot-starter-actuator`
-  - `spring-boot-admin-starter-client`
+    - `nacos`
+    - `jasypt`
+    - `spring-boot-starter-actuator`
+    - `spring-boot-admin-starter-client`
 - 这些能力属于运行时配置、服务注册、配置管理、可观测性和运维治理，不进入 `api`、`application`、`domain` 的业务设计。
 
 ### 使用约束
 - `lombok`
-  - 可用于 `interfaces.dto`、`interfaces.vo`、`api.dto`、`application.command`、`application.query`、`infra.persistence.dataobject`
-  - `domain` 中谨慎使用，不建议领域实体直接使用 `@Data`
+    - 可用于 `interfaces.dto`、`interfaces.vo`、`api.dto`、`application.command`、`application.query`、`infra.persistence.dataobject`
+    - `domain` 中谨慎使用，不建议领域实体直接使用 `@Data`
 - `hutool`
-  - 用于通用工具能力，优先放在 `bacon-common-core`
-  - `domain` 中避免重度依赖，尽量保持纯 Java
-  - 字符串处理不作为默认首选，优先使用 `org.apache.commons.lang3.StringUtils`
+    - 用于通用工具能力，优先放在 `bacon-common-core`
+    - `domain` 中避免重度依赖，尽量保持纯 Java
+    - 字符串处理不作为默认首选，优先使用 `org.apache.commons.lang3.StringUtils`
 - `commons-lang3`
-  - 作为基础字符串与对象工具库统一使用
-  - 默认使用 `org.apache.commons.lang3.StringUtils`
-  - 不建议与 Hutool 的字符串工具在同一模块内混用
+    - 作为基础字符串与对象工具库统一使用
+    - 默认使用 `org.apache.commons.lang3.StringUtils`
+    - 不建议与 Hutool 的字符串工具在同一模块内混用
 - `mybatis-plus`
-  - 由 `bacon-common-mysql` 统一封装分页、通用字段填充、基础配置
-  - 业务域 `infra.persistence` 只保留 mapper、dataobject、repositoryimpl 等实现
-  - 持久化统一主实现采用 `mybatis-plus + mapper + repositoryimpl`，不再叠加 DAO 基础框架
+    - 由 `bacon-common-mysql` 统一封装分页、通用字段填充、基础配置
+    - 业务域 `infra.persistence` 只保留 mapper、dataobject、repositoryimpl 等实现
+    - 持久化统一主实现采用 `mybatis-plus + mapper + repositoryimpl`，不再叠加 DAO 基础框架
 - `jetcache`
-  - 由 `bacon-common-cache` 统一封装缓存配置、key 规范、过期策略和序列化策略
-  - 缓存统一主实现采用 `jetcache`，不再额外封装一套通用缓存门面
+    - 由 `bacon-common-cache` 统一封装缓存配置、key 规范、过期策略和序列化策略
+    - 缓存统一主实现采用 `jetcache`，不再额外封装一套通用缓存门面
 - `springdoc`
-  - 由 `bacon-common-swagger` 统一封装分组、鉴权头、文档开关
-  - 各 starter 按需启用，不在业务模块内重复配置
+    - 由 `bacon-common-swagger` 统一封装分组、鉴权头、文档开关
+    - 各 starter 按需启用，不在业务模块内重复配置
 - `nacos`
-  - 由 starter 统一接入服务注册与配置中心
-  - 统一约定服务名、`namespace`、`group`、`dataId`
+    - 由 starter 统一接入服务注册与配置中心
+    - 统一约定服务名、`namespace`、`group`、`dataId`
 - `jasypt`
-  - 用于加密配置项，例如数据库密码、Nacos 密钥、第三方密钥
-  - 不进入业务域对象与业务逻辑
+    - 用于加密配置项，例如数据库密码、Nacos 密钥、第三方密钥
+    - 不进入业务域对象与业务逻辑
 - `spring-boot-starter-actuator`
-  - 由 starter 统一暴露健康检查、指标、探针
-  - management 端口、路径、暴露端点和鉴权策略统一配置
+    - 由 starter 统一暴露健康检查、指标、探针
+    - management 端口、路径、暴露端点和鉴权策略统一配置
 - `spring-boot-admin-starter-client`
-  - 由 starter 统一配置 admin server 地址、实例名、metadata、鉴权信息
-  - 业务代码不得依赖 admin client API
+    - 由 starter 统一配置 admin server 地址、实例名、metadata、鉴权信息
+    - 业务代码不得依赖 admin client API
 - 网关
-  - `bacon-gateway` 直接使用 Spring Cloud 2025 对应的新 gateway starter 名称
-  - 不再引入已废弃的旧 gateway starter 名称
+    - `bacon-gateway` 直接使用 Spring Cloud 2025 对应的新 gateway starter 名称
+    - 不再引入已废弃的旧 gateway starter 名称
 
 ## 测试与治理约定
 

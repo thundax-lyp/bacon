@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: bacon-auth-service
+
+bacon:
+  runtime:
+    mode: micro

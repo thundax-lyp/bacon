@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: bacon-upms-service
+
+bacon:
+  runtime:
+    mode: micro

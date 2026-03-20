@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: bacon-boot
+  boot:
+    admin:
+      client:
+        enabled: false
+
+bacon:
+  runtime:
+    mode: mono
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

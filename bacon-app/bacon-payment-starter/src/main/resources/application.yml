@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: bacon-payment-service
+
+bacon:
+  runtime:
+    mode: micro
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

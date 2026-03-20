@@ -82,6 +82,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `Auth` 不得依赖 `UPMS` 内部实现
 - `Auth` 不得在 `token payload` 中保存权限数据
 - `Auth` 认证成功后必须通过 `UserIdentity` 定位唯一 `User`
+- `Auth` 读取 `User`、`UserIdentity`、`Tenant` 状态时，只能通过 `UserReadFacade`
 - `Auth` 认证成功后如需权限数据，只能通过 `PermissionReadFacade` 读取
 - `UPMS` 触发的用户停用、用户删除、管理员初始化密码、管理员重置密码、管理员修改密码、租户停用，必须通过 `Auth` 暴露的会话失效契约触发即时失效
 - 单体模式使用本地 `Facade` 实现
@@ -103,8 +104,8 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 `TokenVerifyFacade` 固定方法：
 
-- `verifyAccessToken(accessToken)`，返回固定 `DTO`
-- `getSessionContext(sessionId)`，返回固定 `DTO`
+- `verifyAccessToken(accessToken)`，返回固定 `SessionValidationResponse`
+- `getSessionContext(sessionId)`，返回固定 `CurrentSessionResponse`
 
 `verifyAccessToken` 返回值至少包含：
 
@@ -131,7 +132,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 `OAuthClientReadFacade` 固定方法：
 
-- `getClientByClientId(clientId)`，返回固定 `DTO`
+- `getClientByClientId(clientId)`，返回固定 `OAuthClientDTO`
 
 `getClientByClientId` 返回值至少包含：
 
@@ -247,6 +248,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `UserLoginResponse` 至少包含 `accessToken`、`refreshToken`、`tokenType`、`expiresIn`、`sessionId`、`userId`、`tenantId`
 - `UserLoginResponse.needChangePassword` 只在账号密码登录场景返回
 - `UserTokenRefreshResponse` 至少包含 `accessToken`、`refreshToken`、`tokenType`、`expiresIn`、`sessionId`
+- `OAuthClientDTO` 至少包含 `clientId`、`clientName`、`grantTypes`、`scopes`、`redirectUris`、`enabled`
 - `OAuth2TokenResponse` 至少包含 `access_token`、`token_type`、`expires_in`、`refresh_token`、`scope`
 - `OAuth2IntrospectionResponse` 至少包含 `active`、`client_id`、`scope`、`sub`、`tenant_id`、`exp`
 - `OAuth2UserinfoResponse` 至少包含 `sub`、`tenant_id`
@@ -254,7 +256,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `SessionValidationResponse` 至少包含 `valid`、`tenantId`、`userId`、`sessionId`、`identityType`、`expireAt`
 - `CurrentSessionResponse` 至少包含 `sessionId`、`tenantId`、`userId`、`identityType`、`loginType`、`sessionStatus`、`issuedAt`、`lastAccessTime`、`expireAt`
 
-固定字段：
+## 5.4 Fixed Fields
 
 - `AuthSession` 至少包含 `id`、`sessionId`、`tenantId`、`userId`、`identityId`、`identityType`、`sessionStatus`、`loginType`、`issuedAt`、`lastAccessTime`、`expireAt`、`logoutAt`、`invalidateReason`
 - `AccessTokenClaims` 至少包含 `sub`、`sessionId`、`tenantId`、`userId`、`identityId`、`identityType`、`iat`、`exp`、`iss`
@@ -266,7 +268,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `OAuthConsent` 至少包含 `clientId`、`tenantId`、`userId`、`grantedScopes`、`grantedAt`
 - `AuthAuditLog` 至少包含 `id`、`tenantId`、`userId`、`identityId`、`identityType`、`sessionId`、`clientId`、`actionType`、`resultStatus`、`failureReason`、`requestIp`、`userAgent`、`occurredAt`
 
-唯一性约束：
+## 5.5 Uniqueness And Index Rules
 
 - `AuthSession.sessionId` 全局唯一
 - `RefreshTokenSession.refreshTokenHash` 全局唯一
@@ -276,8 +278,6 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `OAuthAccessToken.tokenHash` 全局唯一
 - `OAuthRefreshToken.tokenId` 全局唯一
 - `OAuthRefreshToken.tokenHash` 全局唯一
-
-查询索引：
 
 - `AuthSession` 必须建立 `(tenantId, userId, sessionStatus)` 索引
 - `RefreshTokenSession` 必须建立 `(sessionId, tokenStatus)` 索引

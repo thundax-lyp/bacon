@@ -61,6 +61,7 @@ Order 是 Bacon 的统一订单业务域。
 
 - `UPMS` 负责下单用户身份、租户和权限信息
 - `Order` 只通过 `bacon-upms-api` 读取用户和租户相关信息
+- `Order` 读取用户和租户状态时，只能通过 `UserReadFacade`
 
 ### 3.5 Cross-Domain Rule
 

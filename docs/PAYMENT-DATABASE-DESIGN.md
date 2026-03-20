@@ -2,24 +2,25 @@
 
 ## 1. Purpose
 
-本文档定义 `Payment` 的数据结构与数据库设计。  
-目标是让 AI 可直接据此生成表结构、实体、`Mapper`、`Repository` 和查询实现。  
-本文档只保留数据库设计所需的稳定信息，不重复业务需求文档中的冗余描述。
-本文档必须遵守 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md)。
-如与工程级数据库规范冲突，以 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md) 为准。
+本文档定义 `Payment` 业务域的数据库设计。  
+目标是让 AI 和工程师可直接据此生成 `DDL`、`DataObject`、`Mapper`、`Repository`、支付回调持久化和支付查询实现。  
+本文档只定义 `Payment` 自有的持久化对象、字段、索引、回调记录边界和查询模型，不重复业务需求文档中的流程描述。  
+本文档必须遵守 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md)。如与工程级数据库规范冲突，以 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md) 为准。
 
 ## 2. Scope
 
-当前范围覆盖：
+当前范围覆盖以下持久化对象：
 
 - `PaymentOrder`
 - `PaymentCallbackRecord`
 - `PaymentAuditLog`
 
-不覆盖：
+当前范围不建表的对象：
 
 - `PaymentChannelPayload`
-- 退款、分账、对账相关表
+- 退款相关表
+- 分账相关表
+- 对账相关表
 
 ## 3. Database Rules
 
@@ -31,17 +32,13 @@
 - 主键字段统一使用 `bigint`
 - 金额字段统一使用 `decimal(18,2)`
 - 枚举字段统一使用 `varchar`
-
-## 3.1 Common Field Rules
-
 - 支付主表使用 `created_at`、`updated_at`
-- 回调记录表和审计表使用领域时间字段，不额外重复声明通用时间字段
-- `Payment` 当前范围内不引入逻辑删除字段
+- 回调记录表和审计表使用领域时间字段，不额外增加 `created_at`、`updated_at`
+- 当前范围不使用逻辑删除字段
 
 ## 4. Naming Rules
 
-- 表名固定格式使用 `bacon_${domain}_${model}`
-- `Payment` 表名统一使用 `bacon_payment_` 前缀
+- 表名前缀固定使用 `bacon_payment_`
 - 主键列统一命名为 `id`
 - 租户隔离列统一命名为 `tenant_id`
 - 审计发生时间统一命名为 `occurred_at`
@@ -49,12 +46,14 @@
 
 ## 5. Enum Storage Rules
 
+### 5.1 Fixed Enums
+
 - `payment_status`: `CREATED`、`PAYING`、`PAID`、`FAILED`、`CLOSED`
 - `channel_code`: `MOCK`
 - `close_result`: `SUCCESS`、`FAILED`
 - `close_reason`: `USER_CANCELLED`、`SYSTEM_CANCELLED`、`TIMEOUT_CLOSED`
 
-## 5.1 Length Rules
+### 5.2 Fixed Length Rules
 
 - `tenant_id`: `varchar(64)`
 - `payment_no`: `varchar(64)`
@@ -79,22 +78,31 @@
 
 ### 7.1 `bacon_payment_order`
 
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化支付主聚合
+- 承载支付状态、金额和过期时间
+
+字段定义：
+
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `payment_no` | `varchar(64)` | N | 支付业务键 |
-| `order_no` | `varchar(64)` | N | 订单业务键 |
+| `payment_no` | `varchar(64)` | N | 支付业务键，全局唯一 |
+| `order_no` | `varchar(64)` | N | 订单业务键，全局唯一 |
 | `user_id` | `bigint` | N | 用户主键 |
-| `channel_code` | `varchar(32)` | N | 渠道编码 |
-| `payment_status` | `varchar(16)` | N | 支付状态 |
+| `channel_code` | `varchar(32)` | N | 渠道编码，取值见 `channel_code` |
+| `payment_status` | `varchar(16)` | N | 支付状态，取值见 `payment_status` |
 | `amount` | `decimal(18,2)` | N | 应付金额 |
 | `paid_amount` | `decimal(18,2)` | Y | 实付金额 |
 | `subject` | `varchar(255)` | N | 支付主题 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 | `expired_at` | `datetime(3)` | N | 过期时间 |
-| `paid_at` | `datetime(3)` | Y | 支付时间 |
+| `paid_at` | `datetime(3)` | Y | 支付完成时间 |
 | `closed_at` | `datetime(3)` | Y | 关闭时间 |
 
 索引与约束：
@@ -107,11 +115,20 @@
 
 ### 7.2 `bacon_payment_callback_record`
 
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化渠道原始回调记录
+- 作为支付回调幂等和回调摘要的来源
+
+字段定义：
+
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `payment_no` | `varchar(64)` | N | 支付业务键 |
+| `payment_no` | `varchar(64)` | N | 支付业务键，关联 `bacon_payment_order.payment_no` |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `channel_code` | `varchar(32)` | N | 渠道编码 |
 | `channel_transaction_no` | `varchar(128)` | N | 渠道交易号 |
@@ -127,6 +144,15 @@
 
 ### 7.3 `bacon_payment_audit_log`
 
+表类型：`Audit Log Table`
+
+用途：
+
+- 记录支付单创建、回调处理、支付关闭相关审计事件
+- 只追加，不更新历史记录
+
+字段定义：
+
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
@@ -137,7 +163,7 @@
 | `after_status` | `varchar(16)` | Y | 变更后状态 |
 | `operator_type` | `varchar(32)` | Y | 操作人类型 |
 | `operator_id` | `bigint` | Y | 操作人标识 |
-| `occurred_at` | `datetime(3)` | N | 发生时间 |
+| `occurred_at` | `datetime(3)` | N | 事件发生时间 |
 
 索引与约束：
 
@@ -147,10 +173,7 @@
 
 ## 8. Relationship Rules
 
-- `bacon_payment_callback_record.payment_no -> bacon_payment_order.payment_no`
-
-固定约束：
-
+- `bacon_payment_callback_record.payment_no` 关联 `bacon_payment_order.payment_no`
 - 当前设计不强制数据库外键
 - `PaymentChannelPayload` 是返回模型，不单独建表
 - `PaymentDetailDTO.callbackSummary` 由最近一次有效 `PaymentCallbackRecord.raw_payload` 摘要组装
@@ -160,21 +183,18 @@
 - `PaymentOrder.payment_no` 全局唯一
 - `PaymentOrder.order_no` 全局唯一
 - `PaymentCallbackRecord(tenant_id, channel_code, channel_transaction_no)` 唯一
+- `amount`、`paid_amount` 固定使用两位小数
 - `raw_payload` 固定保存渠道原始回调，不在读模型中原样返回
+- 支付回调按 `(tenant_id, channel_code, channel_transaction_no)` 幂等
+- `PAID`、`FAILED`、`CLOSED` 后不得重新进入 `PAYING`
 - `PaymentCreateResultDTO`、`PaymentCloseResultDTO` 是命令返回模型，不单独建表
 
 ## 10. Query Model Rules
 
-- 支付详情查询主表为 `bacon_payment_order + bacon_payment_callback_record`
-- 支付状态查询主表为 `bacon_payment_order`
-- 审计查询主表为 `bacon_payment_audit_log`
+- 支付详情查询主表固定为 `bacon_payment_order + bacon_payment_callback_record`
+- 支付状态查询主表固定为 `bacon_payment_order`
+- 审计查询主表固定为 `bacon_payment_audit_log`
 
-## 11. DDL Generation Notes
-
-- `amount`、`paid_amount` 固定两位小数
-- 支付回调按 `(tenant_id, channel_code, channel_transaction_no)` 幂等
-- `PAID`、`FAILED`、`CLOSED` 后不得重新进入 `PAYING`
-
-## 12. Open Items
+## 11. Open Items
 
 无

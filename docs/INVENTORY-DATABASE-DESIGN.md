@@ -2,15 +2,14 @@
 
 ## 1. Purpose
 
-本文档定义 `Inventory` 的数据结构与数据库设计。  
-目标是让 AI 可直接据此生成表结构、实体、`Mapper`、`Repository` 和查询实现。  
-本文档只保留数据库设计所需的稳定信息，不重复业务需求文档中的冗余描述。
-本文档必须遵守 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md)。
-如与工程级数据库规范冲突，以 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md) 为准。
+本文档定义 `Inventory` 业务域的数据库设计。  
+目标是让 AI 和工程师可直接据此生成 `DDL`、`DataObject`、`Mapper`、`Repository`、库存查询和库存命令持久化实现。  
+本文档只定义 `Inventory` 自有的持久化对象、字段、索引、流水规则和查询模型，不重复业务需求文档中的流程描述。  
+本文档必须遵守 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md)。如与工程级数据库规范冲突，以 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md) 为准。
 
 ## 2. Scope
 
-当前范围覆盖：
+当前范围覆盖以下持久化对象：
 
 - `Inventory`
 - `InventoryReservation`
@@ -18,10 +17,13 @@
 - `InventoryLedger`
 - `InventoryAuditLog`
 
-不覆盖：
+当前范围不建表的对象：
 
 - 多仓分配表
-- 批次、序列号、采购、调拨相关表
+- 批次表
+- 序列号表
+- 采购相关表
+- 调拨相关表
 
 ## 3. Database Rules
 
@@ -34,29 +36,27 @@
 - 数量字段统一使用 `int`
 - 枚举字段统一使用 `varchar`
 - 当前范围固定单仓模型
-
-## 3.1 Common Field Rules
-
 - 库存主数据表统一包含 `created_at`、`created_by`、`updated_at`、`updated_by`
-- 预占表、预占明细表、流水表、审计表不强制引入 `created_by`、`updated_by`
-- `Inventory` 当前范围内不引入逻辑删除字段
+- 预占表、预占明细表、流水表、审计表不强制增加 `created_by`、`updated_by`
+- 当前范围不使用逻辑删除字段
 
 ## 4. Naming Rules
 
-- 表名固定格式使用 `bacon_${domain}_${model}`
-- `Inventory` 表名统一使用 `bacon_inventory_` 前缀
+- 表名前缀固定使用 `bacon_inventory_`
 - 主键列统一命名为 `id`
 - 租户隔离列统一命名为 `tenant_id`
 - 审计发生时间统一命名为 `occurred_at`
 
 ## 5. Enum Storage Rules
 
+### 5.1 Fixed Enums
+
 - `status`: `ENABLED`、`DISABLED`
 - `reservation_status`: `CREATED`、`RESERVED`、`RELEASED`、`DEDUCTED`、`FAILED`
 - `ledger_type`: `RESERVE`、`RELEASE`、`DEDUCT`
 - `release_reason`: `USER_CANCELLED`、`SYSTEM_CANCELLED`、`PAYMENT_CREATE_FAILED`、`PAYMENT_FAILED`、`TIMEOUT_CLOSED`
 
-## 5.1 Length Rules
+### 5.2 Fixed Length Rules
 
 - `tenant_id`: `varchar(64)`
 - `reservation_no`: `varchar(64)`
@@ -81,16 +81,25 @@
 
 ### 7.1 `bacon_inventory_inventory`
 
+表类型：`Master Table`
+
+用途：
+
+- 持久化库存主数据
+- 承载现存量、预占量、可售量和库存状态
+
+字段定义：
+
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `sku_id` | `bigint` | N | SKU 主键 |
-| `warehouse_id` | `varchar(64)` | N | 仓库标识 |
+| `warehouse_id` | `varchar(64)` | N | 仓库标识，当前固定为默认仓 |
 | `on_hand_quantity` | `int` | N | 现存量 |
 | `reserved_quantity` | `int` | N | 预占量 |
 | `available_quantity` | `int` | N | 可售量 |
-| `status` | `varchar(16)` | N | 库存状态 |
+| `status` | `varchar(16)` | N | 库存状态，取值见 `status` |
 | `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `updated_by` | `bigint` | Y | 更新人用户主键 |
@@ -104,16 +113,25 @@
 
 ### 7.2 `bacon_inventory_reservation`
 
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化订单维度的库存预占单
+- 以 `order_no` 作为幂等业务键
+
+字段定义：
+
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `reservation_no` | `varchar(64)` | N | 预占单号 |
-| `order_no` | `varchar(64)` | N | 订单号 |
-| `reservation_status` | `varchar(16)` | N | 预占状态 |
+| `reservation_no` | `varchar(64)` | N | 预占单号，全局唯一 |
+| `order_no` | `varchar(64)` | N | 订单号，同租户唯一 |
+| `reservation_status` | `varchar(16)` | N | 预占状态，取值见 `reservation_status` |
 | `warehouse_id` | `varchar(64)` | N | 仓库标识 |
 | `failure_reason` | `varchar(255)` | Y | 失败原因 |
-| `release_reason` | `varchar(64)` | Y | 释放原因 |
+| `release_reason` | `varchar(64)` | Y | 释放原因，取值见 `release_reason` |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `released_at` | `datetime(3)` | Y | 释放时间 |
 | `deducted_at` | `datetime(3)` | Y | 扣减时间 |
@@ -126,11 +144,19 @@
 
 ### 7.3 `bacon_inventory_reservation_item`
 
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化库存预占单明细
+
+字段定义：
+
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `reservation_no` | `varchar(64)` | N | 预占单号 |
+| `reservation_no` | `varchar(64)` | N | 预占单号，关联 `bacon_inventory_reservation.reservation_no` |
 | `sku_id` | `bigint` | N | SKU 主键 |
 | `quantity` | `int` | N | 预占数量 |
 
@@ -141,6 +167,15 @@
 
 ### 7.4 `bacon_inventory_ledger`
 
+表类型：`Ledger Table`
+
+用途：
+
+- 记录库存预占、释放、扣减流水
+- 只追加，不更新历史记录
+
+字段定义：
+
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
@@ -149,7 +184,7 @@
 | `reservation_no` | `varchar(64)` | N | 预占单号 |
 | `sku_id` | `bigint` | N | SKU 主键 |
 | `warehouse_id` | `varchar(64)` | N | 仓库标识 |
-| `ledger_type` | `varchar(16)` | N | 流水类型 |
+| `ledger_type` | `varchar(16)` | N | 流水类型，取值见 `ledger_type` |
 | `quantity` | `int` | N | 变更数量 |
 | `occurred_at` | `datetime(3)` | N | 发生时间 |
 
@@ -160,6 +195,15 @@
 
 ### 7.5 `bacon_inventory_audit_log`
 
+表类型：`Audit Log Table`
+
+用途：
+
+- 记录库存主数据变更、库存预占、释放、扣减相关审计事件
+- 只追加，不更新历史记录
+
+字段定义：
+
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
@@ -169,7 +213,7 @@
 | `action_type` | `varchar(64)` | N | 操作类型 |
 | `operator_type` | `varchar(32)` | Y | 操作人类型 |
 | `operator_id` | `bigint` | Y | 操作人标识 |
-| `occurred_at` | `datetime(3)` | N | 发生时间 |
+| `occurred_at` | `datetime(3)` | N | 事件发生时间 |
 
 索引与约束：
 
@@ -180,37 +224,31 @@
 
 ## 8. Relationship Rules
 
-- `bacon_inventory_reservation_item.reservation_no -> bacon_inventory_reservation.reservation_no`
-- `bacon_inventory_ledger.reservation_no -> bacon_inventory_reservation.reservation_no`
-
-固定约束：
-
+- `bacon_inventory_reservation_item.reservation_no` 关联 `bacon_inventory_reservation.reservation_no`
+- `bacon_inventory_ledger.reservation_no` 关联 `bacon_inventory_reservation.reservation_no`
 - 当前设计不强制数据库外键
-- `Inventory` 当前范围固定 `(tenant_id, sku_id)` 唯一
-- `warehouse_id` 固定为单仓默认仓标识
+- 当前范围固定 `(tenant_id, sku_id)` 唯一，`warehouse_id` 固定为单仓默认仓标识
 
 ## 9. Persistence Rules
 
-- `Inventory` 当前范围必须保证 `(tenant_id, sku_id)` 唯一
-- `InventoryReservation` 当前范围必须保证 `(tenant_id, order_no)` 唯一
-- `InventoryReservationItem` 当前范围必须保证 `(tenant_id, reservation_no, sku_id)` 唯一
+- `Inventory` 必须保证 `(tenant_id, sku_id)` 唯一
+- `InventoryReservation` 必须保证 `(tenant_id, order_no)` 唯一
+- `InventoryReservationItem` 必须保证 `(tenant_id, reservation_no, sku_id)` 唯一
 - `available_quantity` 必须始终等于 `on_hand_quantity - reserved_quantity`
+- 任意时刻不得出现负库存
+- 预占、释放、扣减都以 `order_no` 为幂等键
+- `releaseReservedStock` 和 `deductReservedStock` 只允许基于已存在预占单执行语义判断
 - `InventoryStockDTO` 是读模型，不单独建表
-- `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表与明细表组装，不单独建表
+- `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表
+- 预占单和库存流水不做逻辑删除
 
 ## 10. Query Model Rules
 
-- 可售库存查询主表为 `bacon_inventory_inventory`
-- 预占单详情查询主表为 `bacon_inventory_reservation + bacon_inventory_reservation_item`
-- 库存流水查询主表为 `bacon_inventory_ledger`
-- 审计查询主表为 `bacon_inventory_audit_log`
+- 可售库存查询主表固定为 `bacon_inventory_inventory`
+- 预占单详情查询主表固定为 `bacon_inventory_reservation + bacon_inventory_reservation_item`
+- 库存流水查询主表固定为 `bacon_inventory_ledger`
+- 审计查询主表固定为 `bacon_inventory_audit_log`
 
-## 11. DDL Generation Notes
-
-- 任何时候不得出现负库存
-- 预占、释放、扣减都以 `order_no` 为幂等键
-- 预占单和库存流水不做逻辑删除
-
-## 12. Open Items
+## 11. Open Items
 
 无

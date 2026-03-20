@@ -257,6 +257,7 @@ bacon-biz/bacon-order
 - 负责持久化、RPC 客户端、缓存、消息发送、三方适配。
 - 实现 `domain.repository` 中定义的接口。
 - 可以依赖数据库、中间件、SDK，但不能反向让 `domain` 依赖这些技术细节。
+- 业务审计日志的持久化实现固定放在各业务域 `infra`。
 
 ### starter/app
 - 负责 Bean 装配、组件扫描、配置加载、运行入口。
@@ -461,6 +462,32 @@ bacon-biz/bacon-<domain>/
     - 配置样例
     - 数据库初始化脚本或链接说明
 - 注册中心、网关、认证服务的端口和服务名统一约定
+
+## 数据库命名约定
+
+- 表名固定格式使用 `bacon_${domain}_${model}`
+- 各业务域表名前缀固定如下：
+    - `Auth` 使用 `bacon_auth_`
+    - `UPMS` 使用 `bacon_upms_`
+    - `Order` 使用 `bacon_order_`
+    - `Inventory` 使用 `bacon_inventory_`
+    - `Payment` 使用 `bacon_payment_`
+- 关系表在 `model` 后缀中显式体现关系语义，例如 `*_user_role_rel`
+- 审计日志表统一使用 `*_audit_log`
+- 表名不得省略 `bacon_` 系统前缀
+- 新增业务域时，必须同步确定该业务域的数据库前缀并保持与模块名一致
+- 数据结构设计文档、DDL、`DataObject`、`Mapper` XML、缓存来源说明中的表名必须保持一致
+
+## 日志归属约定
+
+- 业务审计日志属于业务域基础设施能力，固定落在各业务域 `infra`
+- `application` 负责定义记录时机、记录内容和失败处理策略
+- `domain` 负责提供业务语义与状态变化，不直接依赖日志框架或审计落库实现
+- `interfaces` 可补充请求来源、客户端 `ip`、`userAgent` 等接入层上下文，但不直接承担审计日志持久化
+- `starter/app` 负责技术日志、访问日志、链路追踪、日志级别、日志格式和日志输出配置
+- 业务域不得把审计日志实现放入 `api`、`application`、`domain`、`starter`
+- 通用日志配置放在工程级配置或启动模块，不在业务域内重复维护一套日志框架配置
+- 审计日志写入失败不得影响主业务提交结果，具体降级策略由各业务域 `application + infra` 实现
 
 ## 工程级依赖与插件归属
 

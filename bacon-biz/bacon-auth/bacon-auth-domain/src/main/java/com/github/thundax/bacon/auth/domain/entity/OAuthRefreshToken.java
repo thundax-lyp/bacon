@@ -1,7 +1,9 @@
-package com.github.thundax.bacon.auth.domain.model.entity;
+package com.github.thundax.bacon.auth.domain.entity;
 
 import java.time.Instant;
+import lombok.Getter;
 
+@Getter
 public class OAuthRefreshToken {
 
     private final String tokenId;
@@ -33,41 +35,5 @@ public class OAuthRefreshToken {
 
     public void revoke() {
         this.tokenStatus = "REVOKED";
-    }
-
-    public String getTokenId() {
-        return tokenId;
-    }
-
-    public String getTokenHash() {
-        return tokenHash;
-    }
-
-    public String getAccessTokenId() {
-        return accessTokenId;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public Instant getIssuedAt() {
-        return issuedAt;
-    }
-
-    public Instant getExpireAt() {
-        return expireAt;
-    }
-
-    public String getTokenStatus() {
-        return tokenStatus;
     }
 }

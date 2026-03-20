@@ -1,4 +1,14 @@
 package com.github.thundax.bacon.auth.interfaces.dto;
 
-public record PasswordLoginRequest(String account, String password) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class PasswordLoginRequest {
+
+    private String account;
+    private String password;
 }

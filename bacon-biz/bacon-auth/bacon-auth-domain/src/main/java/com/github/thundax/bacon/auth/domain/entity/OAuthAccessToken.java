@@ -1,8 +1,10 @@
-package com.github.thundax.bacon.auth.domain.model.entity;
+package com.github.thundax.bacon.auth.domain.entity;
 
 import java.time.Instant;
 import java.util.Set;
+import lombok.Getter;
 
+@Getter
 public class OAuthAccessToken {
 
     private final String tokenId;
@@ -30,41 +32,5 @@ public class OAuthAccessToken {
 
     public void revoke() {
         this.tokenStatus = "REVOKED";
-    }
-
-    public String getTokenId() {
-        return tokenId;
-    }
-
-    public String getTokenHash() {
-        return tokenHash;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public Set<String> getScopes() {
-        return scopes;
-    }
-
-    public Instant getIssuedAt() {
-        return issuedAt;
-    }
-
-    public Instant getExpireAt() {
-        return expireAt;
-    }
-
-    public String getTokenStatus() {
-        return tokenStatus;
     }
 }

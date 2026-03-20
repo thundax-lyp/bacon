@@ -27,7 +27,7 @@ public class PasswordApplicationService {
             throw new IllegalArgumentException("New password must differ from old password");
         }
         CurrentSessionResponse currentSession = sessionApplicationService.currentSession(accessToken);
-        sessionApplicationService.invalidateUserSessions(currentSession.tenantId(), currentSession.userId(),
+        sessionApplicationService.invalidateUserSessions(currentSession.getTenantId(), currentSession.getUserId(),
                 "SELF_PASSWORD_CHANGED");
     }
 }

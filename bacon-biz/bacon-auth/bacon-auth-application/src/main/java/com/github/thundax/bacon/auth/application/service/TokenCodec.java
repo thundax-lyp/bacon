@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.application.service;
 
-import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
+import com.github.thundax.bacon.auth.domain.entity.AuthSession;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

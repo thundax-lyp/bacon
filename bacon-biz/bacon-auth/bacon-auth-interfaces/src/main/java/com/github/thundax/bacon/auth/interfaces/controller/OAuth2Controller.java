@@ -40,7 +40,7 @@ public class OAuth2Controller {
 
     @PostMapping("/authorize/decision")
     public AuthorizationDecisionResult decide(@RequestBody OAuth2DecisionRequest request) {
-        return oAuth2AuthorizationApplicationService.decide(request.authorizationRequestId(), request.decision());
+        return oAuth2AuthorizationApplicationService.decide(request.getAuthorizationRequestId(), request.getDecision());
     }
 
     @PostMapping("/token")

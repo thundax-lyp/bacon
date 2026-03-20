@@ -1,9 +1,17 @@
 package com.github.thundax.bacon.auth.api.dto;
 
-public record UserTokenRefreshResponse(
-        String accessToken,
-        String refreshToken,
-        String tokenType,
-        long expiresIn,
-        String sessionId) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserTokenRefreshResponse {
+
+    private String accessToken;
+    private String refreshToken;
+    private String tokenType;
+    private long expiresIn;
+    private String sessionId;
 }

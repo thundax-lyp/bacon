@@ -1,4 +1,13 @@
 package com.github.thundax.bacon.auth.interfaces.dto;
 
-public record TokenRefreshRequest(String refreshToken) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TokenRefreshRequest {
+
+    private String refreshToken;
 }

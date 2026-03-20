@@ -1,4 +1,15 @@
 package com.github.thundax.bacon.auth.api.dto;
 
-public record OAuth2UserinfoResponse(String sub, String tenant_id, String name) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class OAuth2UserinfoResponse {
+
+    private String sub;
+    private String tenant_id;
+    private String name;
 }

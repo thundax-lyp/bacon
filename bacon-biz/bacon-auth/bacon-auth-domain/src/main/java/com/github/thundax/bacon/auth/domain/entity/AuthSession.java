@@ -1,7 +1,9 @@
-package com.github.thundax.bacon.auth.domain.model.entity;
+package com.github.thundax.bacon.auth.domain.entity;
 
 import java.time.Instant;
+import lombok.Getter;
 
+@Getter
 public class AuthSession {
 
     private final Long id;
@@ -49,57 +51,5 @@ public class AuthSession {
 
     public void expire() {
         this.sessionStatus = "EXPIRED";
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public String getIdentityId() {
-        return identityId;
-    }
-
-    public String getIdentityType() {
-        return identityType;
-    }
-
-    public String getLoginType() {
-        return loginType;
-    }
-
-    public Instant getIssuedAt() {
-        return issuedAt;
-    }
-
-    public Instant getLastAccessTime() {
-        return lastAccessTime;
-    }
-
-    public Instant getExpireAt() {
-        return expireAt;
-    }
-
-    public Instant getLogoutAt() {
-        return logoutAt;
-    }
-
-    public String getInvalidateReason() {
-        return invalidateReason;
-    }
-
-    public String getSessionStatus() {
-        return sessionStatus;
     }
 }

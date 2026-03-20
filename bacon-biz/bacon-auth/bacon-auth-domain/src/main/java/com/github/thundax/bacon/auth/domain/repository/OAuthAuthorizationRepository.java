@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.domain.repository;
 
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
+import com.github.thundax.bacon.auth.domain.entity.OAuthAccessToken;
+import com.github.thundax.bacon.auth.domain.entity.OAuthAuthorizationRequest;
+import com.github.thundax.bacon.auth.domain.entity.OAuthRefreshToken;
 import java.util.Optional;
 
 public interface OAuthAuthorizationRepository {

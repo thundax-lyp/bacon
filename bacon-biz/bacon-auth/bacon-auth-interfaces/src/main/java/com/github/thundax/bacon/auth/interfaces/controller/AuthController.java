@@ -41,17 +41,17 @@ public class AuthController {
 
     @PostMapping("/login/password")
     public UserLoginResponse passwordLogin(@RequestBody PasswordLoginRequest request) {
-        return loginApplicationService.loginByPassword(request.account(), request.password());
+        return loginApplicationService.loginByPassword(request.getAccount(), request.getPassword());
     }
 
     @PostMapping("/login/sms")
     public UserLoginResponse smsLogin(@RequestBody SmsLoginRequest request) {
-        return loginApplicationService.loginBySms(request.phone(), request.smsCaptcha());
+        return loginApplicationService.loginBySms(request.getPhone(), request.getSmsCaptcha());
     }
 
     @PostMapping("/login/wecom")
     public UserLoginResponse wecomLogin(@RequestBody WecomLoginRequest request) {
-        return loginApplicationService.loginByWecom(request.code());
+        return loginApplicationService.loginByWecom(request.getCode());
     }
 
     @GetMapping("/login/github/callback")
@@ -61,7 +61,7 @@ public class AuthController {
 
     @PostMapping("/token/refresh")
     public UserTokenRefreshResponse refresh(@RequestBody TokenRefreshRequest request) {
-        return tokenApplicationService.refresh(request.refreshToken());
+        return tokenApplicationService.refresh(request.getRefreshToken());
     }
 
     @PostMapping("/logout")
@@ -73,7 +73,7 @@ public class AuthController {
     public void changePassword(@RequestHeader("Authorization") String authorization,
                                @RequestBody PasswordChangeRequest request) {
         passwordApplicationService.changePassword(extractBearerToken(authorization),
-                request.oldPassword(), request.newPassword());
+                request.getOldPassword(), request.getNewPassword());
     }
 
     @GetMapping("/session/current")

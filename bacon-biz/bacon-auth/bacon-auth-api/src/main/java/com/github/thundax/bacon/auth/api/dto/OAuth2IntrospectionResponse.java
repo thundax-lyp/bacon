@@ -1,10 +1,18 @@
 package com.github.thundax.bacon.auth.api.dto;
 
-public record OAuth2IntrospectionResponse(
-        boolean active,
-        String client_id,
-        String scope,
-        String sub,
-        String tenant_id,
-        long exp) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class OAuth2IntrospectionResponse {
+
+    private boolean active;
+    private String client_id;
+    private String scope;
+    private String sub;
+    private String tenant_id;
+    private long exp;
 }

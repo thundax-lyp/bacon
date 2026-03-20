@@ -1,4 +1,14 @@
 package com.github.thundax.bacon.auth.interfaces.dto;
 
-public record OAuth2DecisionRequest(String authorizationRequestId, String decision) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class OAuth2DecisionRequest {
+
+    private String authorizationRequestId;
+    private String decision;
 }

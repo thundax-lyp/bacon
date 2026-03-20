@@ -3,10 +3,10 @@ package com.github.thundax.bacon.auth.application.service;
 import com.github.thundax.bacon.auth.api.dto.OAuth2IntrospectionResponse;
 import com.github.thundax.bacon.auth.api.dto.OAuth2TokenResponse;
 import com.github.thundax.bacon.auth.api.dto.OAuth2UserinfoResponse;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
+import com.github.thundax.bacon.auth.domain.entity.OAuthAccessToken;
+import com.github.thundax.bacon.auth.domain.entity.OAuthAuthorizationRequest;
+import com.github.thundax.bacon.auth.domain.entity.OAuthClient;
+import com.github.thundax.bacon.auth.domain.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
 import java.time.Instant;
@@ -39,26 +39,26 @@ public class OAuth2AuthorizationApplicationService {
     public AuthorizationView authorize(String accessToken, String clientId, String redirectUri, String scope, String state,
                                        String codeChallenge, String codeChallengeMethod) {
         OAuthClient client = loadClient(clientId);
-        if (!client.redirectUris().contains(redirectUri)) {
+        if (!client.getRedirectUris().contains(redirectUri)) {
             throw new IllegalArgumentException("Redirect uri invalid");
         }
         Set<String> scopes = splitScopes(scope);
-        if (!client.scopes().containsAll(scopes)) {
+        if (!client.getScopes().containsAll(scopes)) {
             throw new IllegalArgumentException("Scope invalid");
         }
 
         Long tenantId = 1001L;
         Long userId = 2001L;
         if (accessToken != null && !accessToken.isBlank()) {
-            tenantId = sessionApplicationService.currentSession(accessToken).tenantId();
-            userId = sessionApplicationService.currentSession(accessToken).userId();
+            tenantId = sessionApplicationService.currentSession(accessToken).getTenantId();
+            userId = sessionApplicationService.currentSession(accessToken).getUserId();
         }
 
         String authorizationRequestId = UUID.randomUUID().toString();
         oAuthAuthorizationRepository.saveAuthorizationRequest(new OAuthAuthorizationRequest(
                 authorizationRequestId, clientId, redirectUri, scopes, state, codeChallenge, codeChallengeMethod,
                 tenantId, userId, Instant.now().plusSeconds(300)));
-        return new AuthorizationView(authorizationRequestId, client.clientId(), client.clientName(), scope, state);
+        return new AuthorizationView(authorizationRequestId, client.getClientId(), client.getClientName(), scope, state);
     }
 
     public AuthorizationDecisionResult decide(String authorizationRequestId, String decision) {
@@ -130,29 +130,29 @@ public class OAuth2AuthorizationApplicationService {
         Instant now = Instant.now();
         String accessTokenValue = tokenCodec.randomToken();
         String accessTokenId = tokenCodec.sha256(accessTokenValue);
-        OAuthAccessToken accessToken = new OAuthAccessToken(accessTokenId, accessTokenId, client.clientId(), tenantId,
-                userId, scopes, now, now.plusSeconds(client.accessTokenTtlSeconds()));
+        OAuthAccessToken accessToken = new OAuthAccessToken(accessTokenId, accessTokenId, client.getClientId(), tenantId,
+                userId, scopes, now, now.plusSeconds(client.getAccessTokenTtlSeconds()));
         oAuthAuthorizationRepository.saveAccessToken(accessToken);
 
         String refreshTokenValue = tokenCodec.randomToken();
         String refreshTokenHash = tokenCodec.sha256(refreshTokenValue);
         OAuthRefreshToken refreshToken = new OAuthRefreshToken(refreshTokenHash, refreshTokenHash, accessTokenId,
-                client.clientId(), tenantId, userId, now, now.plusSeconds(client.refreshTokenTtlSeconds()));
+                client.getClientId(), tenantId, userId, now, now.plusSeconds(client.getRefreshTokenTtlSeconds()));
         oAuthAuthorizationRepository.saveOAuthRefreshToken(refreshToken);
 
-        return new OAuth2TokenResponse(accessTokenValue, "Bearer", client.accessTokenTtlSeconds(),
+        return new OAuth2TokenResponse(accessTokenValue, "Bearer", client.getAccessTokenTtlSeconds(),
                 refreshTokenValue, String.join(" ", scopes));
     }
 
     private OAuthClient loadClient(String clientId) {
         return oAuthClientRepository.findByClientId(clientId)
-                .filter(OAuthClient::enabled)
+                .filter(OAuthClient::isEnabled)
                 .orElseThrow(() -> new IllegalArgumentException("OAuth client invalid"));
     }
 
     private OAuthClient validateClient(String clientId, String clientSecret) {
         OAuthClient client = loadClient(clientId);
-        if (!client.clientSecret().equals(clientSecret)) {
+        if (!client.getClientSecret().equals(clientSecret)) {
             throw new IllegalArgumentException("OAuth client secret invalid");
         }
         return client;
@@ -167,14 +167,24 @@ public class OAuth2AuthorizationApplicationService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public record AuthorizationView(
-            String authorizationRequestId,
-            String clientId,
-            String clientName,
-            String scope,
-            String state) {
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class AuthorizationView {
+
+        private String authorizationRequestId;
+        private String clientId;
+        private String clientName;
+        private String scope;
+        private String state;
     }
 
-    public record AuthorizationDecisionResult(String redirectUri, String authorizationCode) {
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class AuthorizationDecisionResult {
+
+        private String redirectUri;
+        private String authorizationCode;
     }
 }

@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.application.service;
 
 import com.github.thundax.bacon.auth.api.dto.UserLoginResponse;
-import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
-import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
+import com.github.thundax.bacon.auth.domain.entity.AuthSession;
+import com.github.thundax.bacon.auth.domain.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

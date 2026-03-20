@@ -1,8 +1,10 @@
-package com.github.thundax.bacon.auth.domain.model.entity;
+package com.github.thundax.bacon.auth.domain.entity;
 
 import java.time.Instant;
 import java.util.Set;
+import lombok.Getter;
 
+@Getter
 public class OAuthAuthorizationRequest {
 
     private final String authorizationRequestId;
@@ -34,49 +36,5 @@ public class OAuthAuthorizationRequest {
 
     public void markUsed() {
         this.used = true;
-    }
-
-    public String getAuthorizationRequestId() {
-        return authorizationRequestId;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public String getRedirectUri() {
-        return redirectUri;
-    }
-
-    public Set<String> getScopes() {
-        return scopes;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public String getCodeChallenge() {
-        return codeChallenge;
-    }
-
-    public String getCodeChallengeMethod() {
-        return codeChallengeMethod;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public Instant getExpireAt() {
-        return expireAt;
-    }
-
-    public boolean isUsed() {
-        return used;
     }
 }

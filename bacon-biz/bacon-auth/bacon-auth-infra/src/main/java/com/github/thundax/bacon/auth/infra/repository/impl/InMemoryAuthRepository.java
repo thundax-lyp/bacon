@@ -1,11 +1,11 @@
-package com.github.thundax.bacon.auth.infra.repositoryimpl;
+package com.github.thundax.bacon.auth.infra.repository.impl;
 
-import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
-import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
-import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
+import com.github.thundax.bacon.auth.domain.entity.AuthSession;
+import com.github.thundax.bacon.auth.domain.entity.OAuthAccessToken;
+import com.github.thundax.bacon.auth.domain.entity.OAuthAuthorizationRequest;
+import com.github.thundax.bacon.auth.domain.entity.OAuthClient;
+import com.github.thundax.bacon.auth.domain.entity.OAuthRefreshToken;
+import com.github.thundax.bacon.auth.domain.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
@@ -34,7 +34,7 @@ public class InMemoryAuthRepository implements AuthSessionRepository, OAuthClien
                 "CONFIDENTIAL", Set.of("authorization_code", "refresh_token"), Set.of("openid", "profile"),
                 Set.of("http://localhost:3000/callback"), 1800L, 2592000L, true,
                 "dev@bacon.local", "demo", now, now);
-        clients.put(demoClient.clientId(), demoClient);
+        clients.put(demoClient.getClientId(), demoClient);
     }
 
     @Override

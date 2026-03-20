@@ -1,9 +1,17 @@
 package com.github.thundax.bacon.auth.api.dto;
 
-public record OAuth2TokenResponse(
-        String access_token,
-        String token_type,
-        long expires_in,
-        String refresh_token,
-        String scope) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class OAuth2TokenResponse {
+
+    private String access_token;
+    private String token_type;
+    private long expires_in;
+    private String refresh_token;
+    private String scope;
 }

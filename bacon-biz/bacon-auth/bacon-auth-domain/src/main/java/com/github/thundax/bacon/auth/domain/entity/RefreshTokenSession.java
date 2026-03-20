@@ -1,7 +1,9 @@
-package com.github.thundax.bacon.auth.domain.model.entity;
+package com.github.thundax.bacon.auth.domain.entity;
 
 import java.time.Instant;
+import lombok.Getter;
 
+@Getter
 public class RefreshTokenSession {
 
     private final String sessionId;
@@ -30,29 +32,5 @@ public class RefreshTokenSession {
 
     public void expire() {
         this.tokenStatus = "EXPIRED";
-    }
-
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public String getRefreshTokenHash() {
-        return refreshTokenHash;
-    }
-
-    public Instant getIssuedAt() {
-        return issuedAt;
-    }
-
-    public Instant getExpireAt() {
-        return expireAt;
-    }
-
-    public String getTokenStatus() {
-        return tokenStatus;
-    }
-
-    public Instant getUsedAt() {
-        return usedAt;
     }
 }

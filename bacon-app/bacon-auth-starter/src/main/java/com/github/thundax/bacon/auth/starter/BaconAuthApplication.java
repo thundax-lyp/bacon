@@ -1,8 +1,10 @@
 package com.github.thundax.bacon.auth.starter;
 
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+@EnableFeignClients(basePackages = "com.github.thundax.bacon")
 @SpringBootApplication(scanBasePackages = "com.github.thundax.bacon")
 public class BaconAuthApplication {
 

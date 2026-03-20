@@ -75,11 +75,11 @@ Inventory 是 Bacon 的统一库存业务域。
 
 `InventoryReadFacade` 固定方法：
 
-- `getAvailableStock(tenantId, skuId)`，返回固定 `DTO`
-- `batchGetAvailableStock(tenantId, skuIds)`，返回 `List<DTO>`
-- `getReservationByOrderNo(tenantId, orderNo)`，返回固定 `DTO`
+- `getAvailableStock(tenantId, skuId)`，返回固定 `InventoryStockDTO`
+- `batchGetAvailableStock(tenantId, skuIds)`，返回 `List<InventoryStockDTO>`
+- `getReservationByOrderNo(tenantId, orderNo)`，返回固定 `InventoryReservationDTO`
 
-`InventoryReadFacade` 返回值至少包含：
+`InventoryStockDTO` 至少包含：
 
 - `tenantId`
 - `skuId`
@@ -88,21 +88,43 @@ Inventory 是 Bacon 的统一库存业务域。
 - `reservedQuantity`
 - `availableQuantity`
 - `status`
+- `updatedAt`
 
-`InventoryCommandFacade` 固定方法：
-
-- `reserveStock(tenantId, orderNo, items)`，返回固定 `DTO`
-- `releaseReservedStock(tenantId, orderNo, reason)`，返回固定 `DTO`
-- `deductReservedStock(tenantId, orderNo)`，返回固定 `DTO`
-
-`InventoryCommandFacade` 返回值至少包含：
+`InventoryReservationDTO` 至少包含：
 
 - `tenantId`
 - `orderNo`
 - `reservationNo`
 - `reservationStatus`
 - `warehouseId`
-- `reason`
+- `items`
+- `failureReason`
+- `releaseReason`
+- `createdAt`
+- `releasedAt`
+- `deductedAt`
+
+`InventoryReservationItemDTO` 至少包含：
+
+- `skuId`
+- `quantity`
+
+`InventoryCommandFacade` 固定方法：
+
+- `reserveStock(tenantId, orderNo, items)`，返回固定 `InventoryReservationResultDTO`
+- `releaseReservedStock(tenantId, orderNo, reason)`，返回固定 `InventoryReservationResultDTO`
+- `deductReservedStock(tenantId, orderNo)`，返回固定 `InventoryReservationResultDTO`
+
+`InventoryReservationResultDTO` 至少包含：
+
+- `tenantId`
+- `orderNo`
+- `reservationNo`
+- `reservationStatus`
+- `inventoryStatus`
+- `warehouseId`
+- `failureReason`
+- `releaseReason`
 
 ### 4.2 `bacon-inventory-interfaces`
 
@@ -154,6 +176,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - `status` 固定为 `ENABLED`、`DISABLED`
 - `reservationStatus` 固定为 `CREATED`、`RESERVED`、`RELEASED`、`DEDUCTED`、`FAILED`
 - `ledgerType` 固定为 `RESERVE`、`RELEASE`、`DEDUCT`
+- `releaseReason` 固定为 `USER_CANCELLED`、`SYSTEM_CANCELLED`、`PAYMENT_CREATE_FAILED`、`PAYMENT_FAILED`、`TIMEOUT_CLOSED`
 
 ## 5.2 Terminology
 
@@ -161,20 +184,35 @@ Inventory 是 Bacon 的统一库存业务域。
 - `InventoryReservation` 是订单维度的库存预占单
 - `InventoryReservationItem` 是库存预占单明细
 - `InventoryLedger` 是按订单和 SKU 记录的库存变更流水
+- `InventoryStockDTO` 是库存主数据读模型
+- `InventoryReservationDTO` 是库存预占单读模型
+- `InventoryReservationResultDTO` 是库存命令返回模型
 - `可售库存` 指当前可继续预占的数量，固定等于 `onHandQuantity - reservedQuantity`
 
 ## 5.3 Fixed Fields
 
 - `Inventory` 至少包含 `id`、`tenantId`、`skuId`、`warehouseId`、`onHandQuantity`、`reservedQuantity`、`availableQuantity`、`status`、`updatedAt`
-- `InventoryReservation` 至少包含 `id`、`tenantId`、`reservationNo`、`orderNo`、`reservationStatus`、`warehouseId`、`reason`、`createdAt`、`releasedAt`、`deductedAt`
+- `InventoryReservation` 至少包含 `id`、`tenantId`、`reservationNo`、`orderNo`、`reservationStatus`、`warehouseId`、`failureReason`、`releaseReason`、`createdAt`、`releasedAt`、`deductedAt`
 - `InventoryReservationItem` 至少包含 `id`、`tenantId`、`reservationNo`、`skuId`、`quantity`
 - `InventoryLedger` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`skuId`、`warehouseId`、`ledgerType`、`quantity`、`occurredAt`
 - `InventoryAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`
 
-## 5.4 Uniqueness And Index Rules
+固定约束：
+
+- `InventoryReservationDTO.items` 由 `InventoryReservationItem` 组装
+- `InventoryReservationResultDTO.inventoryStatus` 必须遵守 `6.4 InventoryStatus Mapping Rule`
+
+## 5.4 Fixed Request Contracts
+
+- `ReserveStockRequest` 至少包含 `tenantId`、`orderNo`、`items`
+- `ReserveStockRequest.items` 至少包含 `skuId`、`quantity`
+- `ReleaseReservedStockRequest` 至少包含 `tenantId`、`orderNo`、`reason`
+- `DeductReservedStockRequest` 至少包含 `tenantId`、`orderNo`
+
+## 5.5 Uniqueness And Index Rules
 
 - `Inventory.id` 全局唯一
-- `Inventory` 必须保证 `(tenantId, skuId, warehouseId)` 唯一
+- 当前范围 `Inventory` 必须保证 `(tenantId, skuId)` 唯一
 - `InventoryReservation.id` 全局唯一
 - `InventoryReservation.reservationNo` 全局唯一
 - `InventoryReservation` 必须保证 `(tenantId, orderNo)` 唯一
@@ -188,6 +226,8 @@ Inventory 是 Bacon 的统一库存业务域。
 
 ### 6.1 Quantity Rule
 
+- 当前范围固定单仓模型，同一 `tenantId + skuId` 只允许一条 `Inventory` 记录
+- `warehouseId` 必须使用系统固定默认仓标识
 - `onHandQuantity` 不得小于 `0`
 - `reservedQuantity` 不得小于 `0`
 - `availableQuantity` 不得小于 `0`
@@ -205,7 +245,34 @@ Inventory 是 Bacon 的统一库存业务域。
 - 已扣减预占不得再次释放
 - 任一明细预占失败时，整单预占必须失败
 
-### 6.3 Status Rule
+### 6.3 Reservation Presence Rule
+
+- 未成功创建预占单时，`releaseReservedStock` 不得修改库存数量，并必须返回幂等成功结果；此时 `reservationStatus` 必须为 `FAILED`，`inventoryStatus` 必须为 `FAILED`
+- 未成功创建预占单时，`deductReservedStock` 不得修改库存数量，并必须返回失败结果；此时 `reservationStatus` 必须为 `FAILED`，`inventoryStatus` 必须为 `FAILED`
+- `releaseReservedStock` 仅允许对 `reservationStatus=RESERVED` 的预占单执行实际释放
+- `deductReservedStock` 仅允许对 `reservationStatus=RESERVED` 的预占单执行实际扣减
+
+### 6.4 InventoryStatus Mapping Rule
+
+- `reservationStatus=CREATED` 时，返回给 `Order` 的 `inventoryStatus` 必须为 `RESERVING`
+- `reservationStatus=RESERVED` 时，返回给 `Order` 的 `inventoryStatus` 必须为 `RESERVED`
+- `reservationStatus=RELEASED` 时，返回给 `Order` 的 `inventoryStatus` 必须为 `RELEASED`
+- `reservationStatus=DEDUCTED` 时，返回给 `Order` 的 `inventoryStatus` 必须为 `DEDUCTED`
+- `reservationStatus=FAILED` 时，返回给 `Order` 的 `inventoryStatus` 必须为 `FAILED`
+
+### 6.5 Release Reason Rule
+
+- `releaseReservedStock.reason` 必须使用固定枚举 `USER_CANCELLED`、`SYSTEM_CANCELLED`、`PAYMENT_CREATE_FAILED`、`PAYMENT_FAILED`、`TIMEOUT_CLOSED`
+- `Inventory.releaseReason` 不得写入固定枚举之外的新值
+
+### 6.6 Reservation Result Nullability Rule
+
+- 预占成功时，`InventoryReservationResultDTO.failureReason` 和 `releaseReason` 必须为空
+- 预占失败时，`InventoryReservationResultDTO.failureReason` 必须有值，`releaseReason` 必须为空
+- 释放成功时，`InventoryReservationResultDTO.releaseReason` 必须有值，`failureReason` 必须为空
+- 扣减成功时，`InventoryReservationResultDTO.failureReason` 和 `releaseReason` 必须为空
+
+### 6.7 Status Rule
 
 - `Inventory.status=DISABLED` 的库存主数据不得参与预占
 - 库存预占请求进入处理后，`reservationStatus` 必须先进入 `CREATED`
@@ -214,7 +281,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - 释放成功后，`reservationStatus` 必须进入 `RELEASED`
 - 扣减成功后，`reservationStatus` 必须进入 `DEDUCTED`
 
-### 6.4 Idempotency Rule
+### 6.8 Idempotency Rule
 
 - `reserveStock` 按 `orderNo` 幂等
 - `releaseReservedStock` 按 `orderNo` 幂等
@@ -236,17 +303,16 @@ Inventory 是 Bacon 的统一库存业务域。
 - 为订单预占库存
 - 返回预占结果和预占单号
 
-补充约束：
+固定约束：
 
-- 预占请求至少包含 `orderNo`、`items`
-- `items` 至少包含 `skuId`、`quantity`
+- 请求字段遵守 `5.4 Fixed Request Contracts`
 - 预占失败时必须返回明确原因
 
 ### 7.3 Stock Release
 
 - 释放订单预占库存
 
-补充约束：
+固定约束：
 
 - 释放操作必须幂等
 - 仅 `reservationStatus=RESERVED` 的预占单允许释放
@@ -255,7 +321,7 @@ Inventory 是 Bacon 的统一库存业务域。
 
 - 扣减已预占库存
 
-补充约束：
+固定约束：
 
 - 扣减操作必须幂等
 - 仅 `reservationStatus=RESERVED` 的预占单允许扣减
@@ -264,7 +330,7 @@ Inventory 是 Bacon 的统一库存业务域。
 
 - 为 `Order` 提供可售库存和预占单只读查询
 
-补充约束：
+固定约束：
 
 - 跨域接口只读
 - `DTO` 契约必须稳定

@@ -87,9 +87,9 @@ Order 是 Bacon 的统一订单业务域。
 
 `OrderReadFacade` 固定方法：
 
-- `getById(tenantId, orderId)`，返回固定 `DTO`
-- `getByOrderNo(tenantId, orderNo)`，返回固定 `DTO`
-- `pageOrders(query)`，返回固定分页结果
+- `getById(tenantId, orderId)`，返回固定 `OrderDetailDTO`
+- `getByOrderNo(tenantId, orderNo)`，返回固定 `OrderDetailDTO`
+- `pageOrders(query)`，返回固定分页结果，记录项使用 `OrderSummaryDTO`
 
 `pageOrders(query)` 的 `query` 至少包含：
 
@@ -111,7 +111,7 @@ Order 是 Bacon 的统一订单业务域。
 - `pageNo`
 - `pageSize`
 
-`OrderReadFacade` 返回值至少包含：
+`OrderSummaryDTO` 至少包含：
 
 - `id`
 - `tenantId`
@@ -120,6 +120,8 @@ Order 是 Bacon 的统一订单业务域。
 - `orderStatus`
 - `payStatus`
 - `inventoryStatus`
+- `paymentNo`
+- `reservationNo`
 - `currencyCode`
 - `totalAmount`
 - `payableAmount`
@@ -128,10 +130,19 @@ Order 是 Bacon 的统一订单业务域。
 - `createdAt`
 - `expiredAt`
 
+`OrderDetailDTO` 至少包含：
+
+- 全部 `OrderSummaryDTO` 字段
+- `items`
+- `paymentSnapshot`
+- `inventorySnapshot`
+- `paidAt`
+- `closedAt`
+
 `OrderCommandFacade` 固定方法：
 
 - `markPaid(tenantId, orderNo, paymentNo, channelCode, paidAmount, paidTime)`
-- `markPaymentFailed(tenantId, orderNo, paymentNo, reason, failedTime)`
+- `markPaymentFailed(tenantId, orderNo, paymentNo, reason, channelStatus, failedTime)`
 - `closeExpiredOrder(tenantId, orderNo, reason)`
 
 固定约束：
@@ -153,7 +164,7 @@ Order 是 Bacon 的统一订单业务域。
 - `POST /orders`
 - `GET /orders/{orderId}`
 - `GET /orders`
-- `POST /orders/{orderId}/cancel`
+- `POST /orders/{orderNo}/cancel`
 
 ### 4.3 `bacon-order-application`
 
@@ -195,11 +206,20 @@ Order 是 Bacon 的统一订单业务域。
 - `orderStatus` 固定为 `CREATED`、`RESERVING_STOCK`、`PENDING_PAYMENT`、`PAID`、`CANCELLED`、`CLOSED`
 - `payStatus` 固定为 `UNPAID`、`PAYING`、`PAID`、`FAILED`、`CLOSED`
 - `inventoryStatus` 固定为 `UNRESERVED`、`RESERVING`、`RESERVED`、`RELEASED`、`DEDUCTED`、`FAILED`
+- `cancelReason` 固定为 `USER_CANCELLED`、`SYSTEM_CANCELLED`
+- `closeReason` 固定为 `INVENTORY_RESERVE_FAILED`、`PAYMENT_CREATE_FAILED`、`PAYMENT_FAILED`、`TIMEOUT_CLOSED`
 
 ## 5.2 Terminology
 
+- `orderNo` 是订单唯一业务键，用于跨域调用、幂等控制和外部查询
+- `orderId` 是订单数据库唯一键，只用于本域持久化和站内主键定位
 - `Order` 是订单主聚合
 - `OrderItem` 是订单明细
+- `OrderAmount` 是订单金额值对象，承载 `totalAmount` 和 `payableAmount`
+- `OrderSnapshot` 是订单详情聚合快照，包含主单、明细、支付快照和库存快照
+- `OrderDetailDTO` 与 `OrderSnapshot` 字段一致
+- `Create Order` 指创建订单、库存预占、支付单创建组成的完整下单链路
+- `Payment Result Handling` 指 `Payment` 通过 `OrderCommandFacade` 回传支付结果后的订单侧处理
 - `OrderPaymentSnapshot` 是订单侧支付快照，不替代 `PaymentOrder`
 - `OrderInventorySnapshot` 是订单侧库存快照，不替代 `InventoryReservation`
 - `订单取消` 指业务取消，不等于逻辑删除
@@ -209,11 +229,25 @@ Order 是 Bacon 的统一订单业务域。
 
 - `Order` 至少包含 `id`、`tenantId`、`orderNo`、`userId`、`orderStatus`、`payStatus`、`inventoryStatus`、`currencyCode`、`totalAmount`、`payableAmount`、`remark`、`cancelReason`、`closeReason`、`createdAt`、`expiredAt`、`paidAt`、`closedAt`
 - `OrderItem` 至少包含 `id`、`tenantId`、`orderId`、`skuId`、`skuName`、`quantity`、`salePrice`、`lineAmount`
-- `OrderPaymentSnapshot` 至少包含 `orderId`、`paymentNo`、`channelCode`、`payStatus`、`paidAmount`、`paidTime`、`failureReason`
+- `OrderAmount` 至少包含 `totalAmount`、`payableAmount`、`currencyCode`
+- `OrderSnapshot` 至少包含 `order`、`items`、`paymentSnapshot`、`inventorySnapshot`
+- `OrderPaymentSnapshot` 至少包含 `orderId`、`paymentNo`、`channelCode`、`payStatus`、`paidAmount`、`paidTime`、`failureReason`、`channelStatus`
 - `OrderInventorySnapshot` 至少包含 `orderId`、`reservationNo`、`inventoryStatus`、`warehouseId`、`failureReason`
 - `OrderAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
 
-## 5.4 Uniqueness And Index Rules
+固定约束：
+
+- `OrderSummaryDTO.paymentNo` 来自 `OrderPaymentSnapshot.paymentNo`
+- `OrderSummaryDTO.reservationNo` 来自 `OrderInventorySnapshot.reservationNo`
+
+## 5.4 Fixed Request Contracts
+
+- `CreateOrderRequest` 至少包含 `tenantId`、`orderNo`、`userId`、`currencyCode`、`channelCode`、`items`、`remark`
+- `CreateOrderRequest.items` 至少包含 `skuId`、`skuName`、`quantity`、`salePrice`
+- `CancelOrderRequest` 至少包含 `tenantId`、`orderNo`、`reason`、`operatorType`、`operatorId`
+- `OrderPageQuery` 至少包含 `tenantId`、`userId`、`orderNo`、`orderStatus`、`payStatus`、`inventoryStatus`、`createdAtFrom`、`createdAtTo`、`pageNo`、`pageSize`
+
+## 5.5 Uniqueness And Index Rules
 
 - `Order.id` 全局唯一
 - `Order.orderNo` 全局唯一
@@ -232,6 +266,8 @@ Order 是 Bacon 的统一订单业务域。
 - `Order` 必须带 `tenantId`
 - `Order` 必须带 `userId`
 - 不允许跨租户访问订单
+- `orderNo` 是跨域调用唯一业务键
+- `orderId` 不得用于跨域 `Facade` 入参与幂等键
 
 ### 6.2 Amount Rule
 
@@ -256,7 +292,19 @@ Order 是 Bacon 的统一订单业务域。
 - 订单超时关闭后，`orderStatus` 必须进入 `CLOSED`，`payStatus` 必须进入 `CLOSED`
 - `PAID`、`CANCELLED`、`CLOSED` 订单不得重新进入可支付状态
 
-### 6.4 Cross-Domain Coordination Rule
+### 6.4 Terminal Reason Rule
+
+- `orderStatus=CANCELLED` 时，`cancelReason` 必须有值
+- 用户主动取消时，`cancelReason` 必须固定为 `USER_CANCELLED`
+- 系统自动取消时，`cancelReason` 必须固定为 `SYSTEM_CANCELLED`
+- `orderStatus=CLOSED` 时，`closeReason` 必须有值
+- 库存预占失败关闭时，`closeReason` 必须固定为 `INVENTORY_RESERVE_FAILED`
+- 支付单创建失败关闭时，`closeReason` 必须固定为 `PAYMENT_CREATE_FAILED`
+- 支付失败关闭时，`closeReason` 必须固定为 `PAYMENT_FAILED`
+- 超时关闭时，`closeReason` 必须固定为 `TIMEOUT_CLOSED`
+- 正常支付完成的订单不得写入 `cancelReason` 或 `closeReason`
+
+### 6.5 Cross-Domain Coordination Rule
 
 - `Order` 创建完成后，必须立即调用 `InventoryCommandFacade.reserveStock`
 - 只有库存预占成功，`Order` 才能调用 `PaymentCommandFacade.createPayment`
@@ -264,12 +312,13 @@ Order 是 Bacon 的统一订单业务域。
 - 支付单创建失败时，`Order` 必须调用 `InventoryCommandFacade.releaseReservedStock`
 - 订单取消时，如库存已预占且未扣减，必须调用 `InventoryCommandFacade.releaseReservedStock`
 - 订单取消时，如支付单已创建且未支付，必须调用 `PaymentCommandFacade.closePayment`
+- 未创建支付单时，取消和超时关闭不得调用 `PaymentCommandFacade.closePayment`，并视为支付关闭步骤已完成
 - 支付失败时，如库存已预占且未扣减，`Order` 必须调用 `InventoryCommandFacade.releaseReservedStock`
 - 支付成功后，`Order` 必须调用 `InventoryCommandFacade.deductReservedStock`
-- 库存扣减失败不得回滚已确认的支付成功；`Order` 必须保留 `inventoryStatus=RESERVED` 并进入重试机制，直到扣减成功
+- 库存扣减失败不得回滚已确认的支付成功
 - `Payment` 只允许通过 `OrderCommandFacade` 通知支付结果，不允许直接修改 `Order` 表
 
-### 6.5 Idempotency Rule
+### 6.6 Idempotency Rule
 
 - 创建订单按 `orderNo` 幂等
 - 取消订单按 `orderNo` 幂等
@@ -279,7 +328,21 @@ Order 是 Bacon 的统一订单业务域。
 - 同一订单只允许绑定一个 `paymentNo`
 - 同一订单只允许绑定一个 `reservationNo`
 
-### 6.6 Delete Strategy
+### 6.7 Retry Rule
+
+- `PaymentCommandFacade.closePayment` 返回失败时，`Order` 不得直接进入 `CANCELLED` 或 `CLOSED` 终态，必须保留原状态并进入重试机制，直到支付关闭成功
+- 库存扣减失败时，`Order` 不得回滚已确认的支付成功，必须保留 `inventoryStatus=RESERVED` 并进入重试机制，直到扣减成功
+- 重试机制属于 `Order` 内部实现能力，不改变跨域 `Facade` 契约
+
+### 6.8 Snapshot Nullability Rule
+
+- 未成功创建支付单前，`paymentNo` 允许为空，`paymentSnapshot` 必须为空
+- 未成功创建库存预占前，`reservationNo` 允许为空，`inventorySnapshot` 必须为空
+- 库存预占失败后，`inventorySnapshot` 必须保留失败结果摘要
+- 支付单创建失败后，`paymentSnapshot` 允许为空
+- 支付失败后，`paymentSnapshot` 必须保留失败结果摘要
+
+### 6.9 Delete Strategy
 
 - 订单和订单明细不支持物理删除
 - 已关闭和已取消订单默认可查询
@@ -294,10 +357,9 @@ Order 是 Bacon 的统一订单业务域。
 - 发起库存预占
 - 在库存预占成功后发起支付单创建
 
-补充约束：
+固定约束：
 
-- 创建请求至少包含 `orderNo`、`userId`、`items`、`currencyCode`
-- `items` 至少包含 `skuId`、`skuName`、`quantity`、`salePrice`
+- 请求字段遵守 `5.4 Fixed Request Contracts`
 - 订单必须至少包含一个 `OrderItem`
 - 若库存预占失败，创建结果必须明确返回失败原因，且不得创建支付单
 - 若支付单创建失败，必须关闭订单并释放已预占库存
@@ -308,9 +370,11 @@ Order 是 Bacon 的统一订单业务域。
 - 分页查询订单列表
 - 查询订单当前状态
 
-补充约束：
+固定约束：
 
-- 列表查询至少支持按 `orderNo`、`userId`、`orderStatus`、`payStatus`、创建时间范围过滤
+- 详情查询通过 `getById(tenantId, orderId)` 或 `getByOrderNo(tenantId, orderNo)` 执行
+- 列表查询请求遵守 `OrderPageQuery`
+- 分页结果字段遵守 `4.1 bacon-order-api`
 
 ### 7.3 Cancel Order
 
@@ -318,8 +382,9 @@ Order 是 Bacon 的统一订单业务域。
 - 订单取消后释放已预占库存
 - 订单取消后关闭未完成支付
 
-补充约束：
+固定约束：
 
+- 请求字段遵守 `5.4 Fixed Request Contracts`
 - 已支付订单不得取消
 - 已取消订单重复取消不得产生脏数据
 - 已关闭订单重复取消不得改变终态
@@ -330,7 +395,7 @@ Order 是 Bacon 的统一订单业务域。
 - 关闭后释放已预占库存
 - 关闭后关闭未完成支付单
 
-补充约束：
+固定约束：
 
 - 仅 `PENDING_PAYMENT` 且 `expiredAt` 已到达的订单允许超时关闭
 - 超时关闭和手动取消必须复用同一状态约束
@@ -342,18 +407,19 @@ Order 是 Bacon 的统一订单业务域。
 - 更新订单支付快照和订单状态
 - 在支付成功后触发库存扣减
 
-补充约束：
+固定约束：
 
 - 支付结果处理必须幂等
 - `paidAmount` 必须等于 `payableAmount`
 - 未找到订单或 `paymentNo` 不匹配时必须拒绝处理
+- 支付失败结果至少包含 `reason`、`channelStatus`、`failedTime`
 - 支付失败处理后，必须释放已预占且未扣减库存
 
 ### 7.6 Read Capability
 
 - 为其他业务域提供订单只读查询
 
-补充约束：
+固定约束：
 
 - 跨域接口只读
 - `DTO` 契约必须稳定
@@ -420,8 +486,9 @@ Order 是 Bacon 的统一订单业务域。
 1. 用户或系统发起取消
 2. `Order` 校验订单当前状态
 3. `Order` 调用 `PaymentCommandFacade.closePayment`
-4. `Order` 调用 `InventoryCommandFacade.releaseReservedStock`
-5. `Order` 更新 `orderStatus=CANCELLED`、`payStatus=CLOSED`、`inventoryStatus=RELEASED`
+4. `Payment` 返回关闭成功
+5. `Order` 调用 `InventoryCommandFacade.releaseReservedStock`
+6. `Order` 更新 `orderStatus=CANCELLED`、`payStatus=CLOSED`、`inventoryStatus=RELEASED`
 
 ## 9. Non-Functional Requirements
 

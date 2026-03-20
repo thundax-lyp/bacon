@@ -73,10 +73,10 @@ Payment 是 Bacon 的统一支付业务域。
 
 `PaymentReadFacade` 固定方法：
 
-- `getByPaymentNo(tenantId, paymentNo)`，返回固定 `DTO`
-- `getByOrderNo(tenantId, orderNo)`，返回固定 `DTO`
+- `getByPaymentNo(tenantId, paymentNo)`，返回固定 `PaymentDetailDTO`
+- `getByOrderNo(tenantId, orderNo)`，返回固定 `PaymentDetailDTO`
 
-`PaymentReadFacade` 返回值至少包含：
+`PaymentSummaryDTO` 至少包含：
 
 - `tenantId`
 - `paymentNo`
@@ -90,12 +90,25 @@ Payment 是 Bacon 的统一支付业务域。
 - `expiredAt`
 - `paidAt`
 
+`PaymentDetailDTO` 至少包含：
+
+- 全部 `PaymentSummaryDTO` 字段
+- `subject`
+- `closedAt`
+- `channelTransactionNo`
+- `channelStatus`
+
 `PaymentCommandFacade` 固定方法：
 
-- `createPayment(tenantId, orderNo, userId, amount, channelCode, subject, expiredAt)`，返回固定 `DTO`
-- `closePayment(tenantId, paymentNo, reason)`，返回固定 `DTO`
+- `createPayment(tenantId, orderNo, userId, amount, channelCode, subject, expiredAt)`，返回固定 `PaymentCreateResultDTO`
+- `closePayment(tenantId, paymentNo, reason)`，返回固定 `PaymentCloseResultDTO`
 
-`PaymentCommandFacade` 返回值至少包含：
+固定约束：
+
+- 支付成功回调后，`Payment` 调用 `OrderCommandFacade.markPaid(tenantId, orderNo, paymentNo, channelCode, paidAmount, paidTime)`
+- 支付失败回调后，`Payment` 调用 `OrderCommandFacade.markPaymentFailed(tenantId, orderNo, paymentNo, reason, channelStatus, failedTime)`
+
+`PaymentCreateResultDTO` 至少包含：
 
 - `tenantId`
 - `paymentNo`
@@ -104,6 +117,15 @@ Payment 是 Bacon 的统一支付业务域。
 - `paymentStatus`
 - `payPayload`
 - `expiredAt`
+
+`PaymentCloseResultDTO` 至少包含：
+
+- `tenantId`
+- `paymentNo`
+- `orderNo`
+- `paymentStatus`
+- `closeResult`
+- `reason`
 
 ### 4.2 `bacon-payment-interfaces`
 
@@ -153,12 +175,18 @@ Payment 是 Bacon 的统一支付业务域。
 
 - `paymentStatus` 固定为 `CREATED`、`PAYING`、`PAID`、`FAILED`、`CLOSED`
 - `channelCode` 当前固定为 `MOCK`
+- `closeResult` 固定为 `SUCCESS`、`FAILED`
+- `closeReason` 固定为 `USER_CANCELLED`、`SYSTEM_CANCELLED`、`TIMEOUT_CLOSED`
 
 ## 5.2 Terminology
 
 - `PaymentOrder` 是支付主聚合
 - `PaymentChannelPayload` 是返回给客户端的渠道支付参数
 - `PaymentCallbackRecord` 是渠道原始回调记录
+- `PaymentSummaryDTO` 是支付摘要读模型
+- `PaymentDetailDTO` 是支付详情读模型
+- `PaymentCreateResultDTO` 是创建支付单命令返回模型
+- `PaymentCloseResultDTO` 是关闭支付单命令返回模型
 - `支付关闭` 指未完成支付单进入不可继续支付的终态
 
 ## 5.3 Fixed Fields
@@ -168,7 +196,18 @@ Payment 是 Bacon 的统一支付业务域。
 - `PaymentCallbackRecord` 至少包含 `id`、`tenantId`、`paymentNo`、`orderNo`、`channelCode`、`channelTransactionNo`、`channelStatus`、`rawPayload`、`receivedAt`
 - `PaymentAuditLog` 至少包含 `id`、`tenantId`、`paymentNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
 
-## 5.4 Uniqueness And Index Rules
+固定约束：
+
+- `PaymentDetailDTO` 字段由 `PaymentOrder` 和最近一次有效 `PaymentCallbackRecord` 组装
+- `PaymentCloseResultDTO.closeResult=SUCCESS` 时，`paymentStatus` 必须为 `CLOSED`
+- `PaymentCloseResultDTO.closeResult=FAILED` 时，`paymentStatus` 不得变更为 `CLOSED`
+
+## 5.4 Fixed Request Contracts
+
+- `CreatePaymentRequest` 至少包含 `tenantId`、`orderNo`、`userId`、`amount`、`channelCode`、`subject`、`expiredAt`
+- `ClosePaymentRequest` 至少包含 `tenantId`、`paymentNo`、`reason`
+
+## 5.5 Uniqueness And Index Rules
 
 - `PaymentOrder.id` 全局唯一
 - `PaymentOrder.paymentNo` 全局唯一
@@ -204,7 +243,17 @@ Payment 是 Bacon 的统一支付业务域。
 - 支付失败后，`Payment` 必须调用 `OrderCommandFacade.markPaymentFailed`
 - `Payment` 不得在回调处理中直接修改订单表
 
-### 6.4 Idempotency Rule
+### 6.4 Payment Presence Rule
+
+- 未创建支付单时，不得调用 `closePayment`
+- `closePayment` 仅允许对已存在的 `PaymentOrder` 执行
+
+### 6.5 Close Reason Rule
+
+- `closePayment.reason` 必须使用固定枚举 `USER_CANCELLED`、`SYSTEM_CANCELLED`、`TIMEOUT_CLOSED`
+- `Payment` 不得写入固定枚举之外的新关闭原因值
+
+### 6.6 Idempotency Rule
 
 - `createPayment` 按 `orderNo` 幂等
 - `closePayment` 按 `paymentNo` 幂等
@@ -219,9 +268,9 @@ Payment 是 Bacon 的统一支付业务域。
 - 生成支付发起参数
 - 返回支付单号和支付参数
 
-补充约束：
+固定约束：
 
-- 创建请求至少包含 `tenantId`、`orderNo`、`userId`、`amount`、`channelCode`、`subject`、`expiredAt`
+- 请求字段遵守 `5.4 Fixed Request Contracts`
 - 仅允许为 `Order` 已确认库存预占成功的订单创建支付单
 
 ### 7.2 Payment Callback
@@ -230,7 +279,7 @@ Payment 是 Bacon 的统一支付业务域。
 - 更新支付状态
 - 回传订单支付结果
 
-补充约束：
+固定约束：
 
 - 成功回调不得重复改变已支付结果
 - 失败回调不得覆盖已支付结果
@@ -239,8 +288,9 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 关闭未完成支付单
 
-补充约束：
+固定约束：
 
+- 请求字段遵守 `5.4 Fixed Request Contracts`
 - 已支付支付单不得关闭
 - 重复关闭不得产生脏数据
 
@@ -248,7 +298,7 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 为 `Order` 提供支付状态只读查询
 
-补充约束：
+固定约束：
 
 - 跨域接口只读
 - `DTO` 契约必须稳定

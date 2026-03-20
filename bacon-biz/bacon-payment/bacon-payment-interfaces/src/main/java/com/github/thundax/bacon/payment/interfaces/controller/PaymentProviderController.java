@@ -3,8 +3,9 @@ package com.github.thundax.bacon.payment.interfaces.controller;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
-import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
-import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
+import com.github.thundax.bacon.payment.application.service.PaymentApplicationService;
+import com.github.thundax.bacon.payment.application.service.PaymentCloseApplicationService;
+import com.github.thundax.bacon.payment.application.service.PaymentQueryService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,22 +19,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/providers/payment")
 public class PaymentProviderController {
 
-    private final PaymentReadFacade paymentReadFacade;
-    private final PaymentCommandFacade paymentCommandFacade;
+    private final PaymentQueryService paymentQueryService;
+    private final PaymentApplicationService paymentApplicationService;
+    private final PaymentCloseApplicationService paymentCloseApplicationService;
 
-    public PaymentProviderController(PaymentReadFacade paymentReadFacade, PaymentCommandFacade paymentCommandFacade) {
-        this.paymentReadFacade = paymentReadFacade;
-        this.paymentCommandFacade = paymentCommandFacade;
+    public PaymentProviderController(PaymentQueryService paymentQueryService,
+                                     PaymentApplicationService paymentApplicationService,
+                                     PaymentCloseApplicationService paymentCloseApplicationService) {
+        this.paymentQueryService = paymentQueryService;
+        this.paymentApplicationService = paymentApplicationService;
+        this.paymentCloseApplicationService = paymentCloseApplicationService;
     }
 
     @GetMapping("/{paymentNo}")
     public PaymentDetailDTO getByPaymentNo(@RequestParam("tenantId") Long tenantId, @PathVariable String paymentNo) {
-        return paymentReadFacade.getByPaymentNo(tenantId, paymentNo);
+        return paymentQueryService.getByPaymentNo(tenantId, paymentNo);
     }
 
     @GetMapping
     public PaymentDetailDTO getByOrderNo(@RequestParam("tenantId") Long tenantId, @RequestParam("orderNo") String orderNo) {
-        return paymentReadFacade.getByOrderNo(tenantId, orderNo);
+        return paymentQueryService.getByOrderNo(tenantId, orderNo);
     }
 
     @PostMapping("/create")
@@ -44,13 +49,13 @@ public class PaymentProviderController {
                                                 @RequestParam("channelCode") String channelCode,
                                                 @RequestParam("subject") String subject,
                                                 @RequestParam("expiredAt") Instant expiredAt) {
-        return paymentCommandFacade.createPayment(tenantId, orderNo, userId, amount, channelCode, subject, expiredAt);
+        return paymentApplicationService.createPayment(tenantId, orderNo, userId, amount, channelCode, subject, expiredAt);
     }
 
     @PostMapping("/close")
     public PaymentCloseResultDTO closePayment(@RequestParam("tenantId") Long tenantId,
                                               @RequestParam("paymentNo") String paymentNo,
                                               @RequestParam("reason") String reason) {
-        return paymentCommandFacade.closePayment(tenantId, paymentNo, reason);
+        return paymentCloseApplicationService.closePayment(tenantId, paymentNo, reason);
     }
 }

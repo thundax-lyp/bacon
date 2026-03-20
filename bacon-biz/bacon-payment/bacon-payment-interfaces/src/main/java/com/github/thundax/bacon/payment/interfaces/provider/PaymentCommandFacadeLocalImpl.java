@@ -7,9 +7,11 @@ import com.github.thundax.bacon.payment.application.service.PaymentApplicationSe
 import com.github.thundax.bacon.payment.application.service.PaymentCloseApplicationService;
 import java.math.BigDecimal;
 import java.time.Instant;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class PaymentCommandFacadeLocalImpl implements PaymentCommandFacade {
 
     private final PaymentApplicationService paymentApplicationService;

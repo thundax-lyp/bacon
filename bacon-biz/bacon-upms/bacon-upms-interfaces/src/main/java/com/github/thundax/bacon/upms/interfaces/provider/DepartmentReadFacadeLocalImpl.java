@@ -5,9 +5,11 @@ import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;
 import com.github.thundax.bacon.upms.application.service.DepartmentApplicationService;
 import java.util.List;
 import java.util.Set;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class DepartmentReadFacadeLocalImpl implements DepartmentReadFacade {
 
     private final DepartmentApplicationService departmentApplicationService;

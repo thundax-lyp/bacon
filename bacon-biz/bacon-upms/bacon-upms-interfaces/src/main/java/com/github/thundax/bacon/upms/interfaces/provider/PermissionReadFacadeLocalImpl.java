@@ -6,9 +6,11 @@ import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
 import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
 import java.util.List;
 import java.util.Set;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class PermissionReadFacadeLocalImpl implements PermissionReadFacade {
 
     private final PermissionQueryService permissionQueryService;

@@ -1,7 +1,19 @@
 spring:
   application:
     name: bacon-upms-service
+  boot:
+    admin:
+      client:
+        enabled: false
 
 bacon:
   runtime:
     mode: micro
+  remote:
+    auth-base-url: http://localhost:8083
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

@@ -10,4 +10,26 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>bacon-payment-application</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-payment-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-payment-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>

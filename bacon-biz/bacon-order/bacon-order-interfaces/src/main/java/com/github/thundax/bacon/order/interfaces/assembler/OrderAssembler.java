@@ -15,6 +15,6 @@ public final class OrderAssembler {
     }
 
     public static OrderVO toVO(OrderSummaryDTO summaryDTO) {
-        return new OrderVO(summaryDTO.id(), summaryDTO.orderNo(), summaryDTO.customerName());
+        return new OrderVO(summaryDTO.getId(), summaryDTO.getOrderNo(), String.valueOf(summaryDTO.getUserId()));
     }
 }

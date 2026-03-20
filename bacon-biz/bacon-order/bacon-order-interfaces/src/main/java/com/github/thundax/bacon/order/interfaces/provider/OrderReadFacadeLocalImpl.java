@@ -1,9 +1,10 @@
 package com.github.thundax.bacon.order.interfaces.provider;
 
-import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
+import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
+import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
+import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.facade.OrderReadFacade;
-import com.github.thundax.bacon.order.application.query.GetOrderQuery;
-import com.github.thundax.bacon.order.application.service.OrderApplicationService;
+import com.github.thundax.bacon.order.application.service.OrderQueryService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -11,14 +12,24 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono")
 public class OrderReadFacadeLocalImpl implements OrderReadFacade {
 
-    private final OrderApplicationService orderApplicationService;
+    private final OrderQueryService orderQueryService;
 
-    public OrderReadFacadeLocalImpl(OrderApplicationService orderApplicationService) {
-        this.orderApplicationService = orderApplicationService;
+    public OrderReadFacadeLocalImpl(OrderQueryService orderQueryService) {
+        this.orderQueryService = orderQueryService;
     }
 
     @Override
-    public OrderSummaryDTO getById(Long orderId) {
-        return orderApplicationService.get(new GetOrderQuery(orderId));
+    public OrderDetailDTO getById(Long tenantId, Long orderId) {
+        return orderQueryService.getById(tenantId, orderId);
+    }
+
+    @Override
+    public OrderDetailDTO getByOrderNo(Long tenantId, String orderNo) {
+        return orderQueryService.getByOrderNo(tenantId, orderNo);
+    }
+
+    @Override
+    public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
+        return orderQueryService.pageOrders(query);
     }
 }

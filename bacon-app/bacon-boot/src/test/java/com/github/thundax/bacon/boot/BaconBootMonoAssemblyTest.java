@@ -38,7 +38,13 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "bacon.runtime.mode=mono",
                 "spring.cloud.nacos.discovery.enabled=false",
                 "spring.cloud.nacos.config.enabled=false",
-                "spring.boot.admin.client.enabled=false"
+                "spring.boot.admin.client.enabled=false",
+                "spring.main.lazy-initialization=true",
+                "spring.autoconfigure.exclude="
+                        + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
+                        + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"
+                        + "org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration,"
+                        + "com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration"
         })
 class BaconBootMonoAssemblyTest extends BaconSpringBootTest {
 

@@ -47,6 +47,14 @@
 - 所有跨租户数据表必须包含 `tenant_id`
 - 所有查询高频索引必须把 `tenant_id` 放在联合索引前缀
 
+## 3.1 Common Field Rules
+
+- 后台维护的主数据表和配置表统一包含 `created_at`、`created_by`、`updated_at`、`updated_by`
+- 支持逻辑删除的主数据表统一包含 `deleted`
+- 运行态表、关系表、流水表、审计表不强制引入 `created_by`、`updated_by`
+- 关系表保持最小必要字段，不增加 `created_at`、`updated_at`
+- 使用 `issued_at`、`occurred_at`、`received_at`、`granted_at`、`released_at`、`deducted_at` 等领域时间字段的表，不再额外重复声明通用时间字段
+
 ## 4. Naming Rules
 
 - 表名固定格式使用 `bacon_${domain}_${model}`
@@ -126,7 +134,9 @@
 | `code` | `varchar(64)` | N | 租户编码 |
 | `name` | `varchar(128)` | N | 租户名称 |
 | `status` | `varchar(16)` | N | `ENABLED` / `DISABLED` |
+| `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人用户主键 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -149,7 +159,9 @@
 | `need_change_password` | `tinyint(1)` | N | 首次登录是否必须改密 |
 | `status` | `varchar(16)` | N | `ENABLED` / `DISABLED` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
+| `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人用户主键 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -168,7 +180,9 @@
 | `identity_type` | `varchar(16)` | N | 登录标识类型 |
 | `identity_value` | `varchar(255)` | N | 登录标识值 |
 | `enabled` | `tinyint(1)` | N | 是否可用于认证 |
+| `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人用户主键 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -189,7 +203,9 @@
 | `leader_user_id` | `bigint` | Y | 负责人用户主键 |
 | `status` | `varchar(16)` | N | `ENABLED` / `DISABLED` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
+| `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人用户主键 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -209,7 +225,9 @@
 | `sort` | `int` | N | 排序值，越小越靠前 |
 | `status` | `varchar(16)` | N | `ENABLED` / `DISABLED` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
+| `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人用户主键 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -230,7 +248,9 @@
 | `status` | `varchar(16)` | N | `ENABLED` / `DISABLED` |
 | `built_in` | `tinyint(1)` | N | 是否内置 |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
+| `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人用户主键 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -257,7 +277,9 @@
 | `permission_code` | `varchar(128)` | N | 全局唯一权限编码 |
 | `built_in` | `tinyint(1)` | N | 是否内置 |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
+| `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人用户主键 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -282,7 +304,9 @@
 | `permission_code` | `varchar(128)` | N | 全局唯一权限编码 |
 | `built_in` | `tinyint(1)` | N | 是否内置 |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
+| `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人用户主键 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -301,8 +325,6 @@
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `user_id` | `bigint` | N | 用户主键 |
 | `role_id` | `bigint` | N | 角色主键 |
-| `created_at` | `datetime(3)` | N | 创建时间 |
-
 索引与约束：
 
 - `pk(id)`
@@ -318,8 +340,6 @@
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `user_id` | `bigint` | N | 用户主键 |
 | `post_id` | `bigint` | N | 岗位主键 |
-| `created_at` | `datetime(3)` | N | 创建时间 |
-
 索引与约束：
 
 - `pk(id)`
@@ -335,8 +355,6 @@
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `role_id` | `bigint` | N | 角色主键 |
 | `menu_id` | `bigint` | N | 菜单主键 |
-| `created_at` | `datetime(3)` | N | 创建时间 |
-
 索引与约束：
 
 - `pk(id)`
@@ -352,8 +370,6 @@
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `role_id` | `bigint` | N | 角色主键 |
 | `resource_id` | `bigint` | N | 资源主键 |
-| `created_at` | `datetime(3)` | N | 创建时间 |
-
 索引与约束：
 
 - `pk(id)`
@@ -369,7 +385,9 @@
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `role_id` | `bigint` | N | 角色主键 |
 | `data_scope_type` | `varchar(32)` | N | 数据范围类型 |
+| `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人用户主键 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -386,8 +404,6 @@
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `role_id` | `bigint` | N | 角色主键 |
 | `department_id` | `bigint` | N | 部门主键 |
-| `created_at` | `datetime(3)` | N | 创建时间 |
-
 索引与约束：
 
 - `pk(id)`

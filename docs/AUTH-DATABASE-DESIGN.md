@@ -5,6 +5,8 @@
 本文档定义 `Auth` 的数据结构与数据库设计。  
 目标是让 AI 可直接据此生成表结构、实体、`Mapper`、`Repository` 和查询实现。  
 本文档只保留数据库设计所需的稳定信息，不重复业务需求文档中的冗余描述。
+本文档必须遵守 [DATABASE-REQUIREMENTS.md](DATABASE-REQUIREMENTS.md)。
+如与工程级数据库规范冲突，以 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md) 为准。
 
 ## 2. Scope
 

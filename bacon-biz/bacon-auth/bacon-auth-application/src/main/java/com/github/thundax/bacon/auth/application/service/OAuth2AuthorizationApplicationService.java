@@ -1,0 +1,180 @@
+package com.github.thundax.bacon.auth.application.service;
+
+import com.github.thundax.bacon.auth.api.dto.OAuth2IntrospectionResponse;
+import com.github.thundax.bacon.auth.api.dto.OAuth2TokenResponse;
+import com.github.thundax.bacon.auth.api.dto.OAuth2UserinfoResponse;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
+import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
+import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+
+@Service
+public class OAuth2AuthorizationApplicationService {
+
+    private final OAuthClientRepository oAuthClientRepository;
+    private final OAuthAuthorizationRepository oAuthAuthorizationRepository;
+    private final SessionApplicationService sessionApplicationService;
+    private final TokenCodec tokenCodec;
+
+    public OAuth2AuthorizationApplicationService(OAuthClientRepository oAuthClientRepository,
+                                                 OAuthAuthorizationRepository oAuthAuthorizationRepository,
+                                                 SessionApplicationService sessionApplicationService,
+                                                 TokenCodec tokenCodec) {
+        this.oAuthClientRepository = oAuthClientRepository;
+        this.oAuthAuthorizationRepository = oAuthAuthorizationRepository;
+        this.sessionApplicationService = sessionApplicationService;
+        this.tokenCodec = tokenCodec;
+    }
+
+    public AuthorizationView authorize(String accessToken, String clientId, String redirectUri, String scope, String state,
+                                       String codeChallenge, String codeChallengeMethod) {
+        OAuthClient client = loadClient(clientId);
+        if (!client.redirectUris().contains(redirectUri)) {
+            throw new IllegalArgumentException("Redirect uri invalid");
+        }
+        Set<String> scopes = splitScopes(scope);
+        if (!client.scopes().containsAll(scopes)) {
+            throw new IllegalArgumentException("Scope invalid");
+        }
+
+        Long tenantId = 1001L;
+        Long userId = 2001L;
+        if (accessToken != null && !accessToken.isBlank()) {
+            tenantId = sessionApplicationService.currentSession(accessToken).tenantId();
+            userId = sessionApplicationService.currentSession(accessToken).userId();
+        }
+
+        String authorizationRequestId = UUID.randomUUID().toString();
+        oAuthAuthorizationRepository.saveAuthorizationRequest(new OAuthAuthorizationRequest(
+                authorizationRequestId, clientId, redirectUri, scopes, state, codeChallenge, codeChallengeMethod,
+                tenantId, userId, Instant.now().plusSeconds(300)));
+        return new AuthorizationView(authorizationRequestId, client.clientId(), client.clientName(), scope, state);
+    }
+
+    public AuthorizationDecisionResult decide(String authorizationRequestId, String decision) {
+        OAuthAuthorizationRequest authorizationRequest = oAuthAuthorizationRepository.findAuthorizationRequestById(authorizationRequestId)
+                .filter(request -> !request.isUsed())
+                .filter(request -> request.getExpireAt().isAfter(Instant.now()))
+                .orElseThrow(() -> new IllegalArgumentException("Authorization request invalid"));
+        authorizationRequest.markUsed();
+        if ("REJECT".equalsIgnoreCase(decision)) {
+            return new AuthorizationDecisionResult(authorizationRequest.getRedirectUri()
+                    + "?error=access_denied&state=" + authorizationRequest.getState(), null);
+        }
+
+        String authorizationCode = tokenCodec.randomToken();
+        oAuthAuthorizationRepository.saveAuthorizationCode(authorizationCode, authorizationRequest);
+        return new AuthorizationDecisionResult(authorizationRequest.getRedirectUri()
+                + "?code=" + authorizationCode + "&state=" + authorizationRequest.getState(), authorizationCode);
+    }
+
+    public OAuth2TokenResponse token(String grantType, String code, String redirectUri, String clientId,
+                                     String clientSecret, String codeVerifier, String refreshToken) {
+        OAuthClient client = validateClient(clientId, clientSecret);
+        if ("authorization_code".equals(grantType)) {
+            OAuthAuthorizationRequest request = oAuthAuthorizationRepository.findAuthorizationRequestByCode(code)
+                    .orElseThrow(() -> new IllegalArgumentException("Authorization code invalid"));
+            if (!request.getRedirectUri().equals(redirectUri)) {
+                throw new IllegalArgumentException("Redirect uri invalid");
+            }
+            return issueOAuthTokens(client, request.getTenantId(), request.getUserId(), request.getScopes());
+        }
+        if ("refresh_token".equals(grantType)) {
+            OAuthRefreshToken currentRefreshToken = oAuthAuthorizationRepository.findOAuthRefreshTokenByHash(tokenCodec.sha256(refreshToken))
+                    .filter(token -> "ACTIVE".equals(token.getTokenStatus()))
+                    .orElseThrow(() -> new IllegalArgumentException("OAuth refresh token invalid"));
+            currentRefreshToken.markUsed();
+            Optional<OAuthAccessToken> accessToken = oAuthAuthorizationRepository.findAccessTokenByHash(currentRefreshToken.getAccessTokenId());
+            Set<String> scopes = accessToken.map(OAuthAccessToken::getScopes).orElseGet(LinkedHashSet::new);
+            return issueOAuthTokens(client, currentRefreshToken.getTenantId(), currentRefreshToken.getUserId(), scopes);
+        }
+        throw new IllegalArgumentException("Grant type unsupported");
+    }
+
+    public OAuth2IntrospectionResponse introspect(String token, String clientId, String clientSecret) {
+        validateClient(clientId, clientSecret);
+        return oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(token))
+                .filter(accessToken -> "ACTIVE".equals(accessToken.getTokenStatus()))
+                .filter(accessToken -> accessToken.getExpireAt().isAfter(Instant.now()))
+                .map(accessToken -> new OAuth2IntrospectionResponse(true, accessToken.getClientId(),
+                        String.join(" ", accessToken.getScopes()), String.valueOf(accessToken.getUserId()),
+                        String.valueOf(accessToken.getTenantId()), accessToken.getExpireAt().getEpochSecond()))
+                .orElse(new OAuth2IntrospectionResponse(false, clientId, "", "", "", 0L));
+    }
+
+    public void revoke(String token, String clientId, String clientSecret) {
+        validateClient(clientId, clientSecret);
+        oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(token)).ifPresent(OAuthAccessToken::revoke);
+        oAuthAuthorizationRepository.findOAuthRefreshTokenByHash(tokenCodec.sha256(token)).ifPresent(OAuthRefreshToken::revoke);
+    }
+
+    public OAuth2UserinfoResponse userinfo(String accessToken) {
+        OAuthAccessToken token = oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(accessToken))
+                .filter(current -> "ACTIVE".equals(current.getTokenStatus()))
+                .orElseThrow(() -> new IllegalArgumentException("OAuth access token invalid"));
+        String name = token.getScopes().contains("profile") ? "demo-user-" + token.getUserId() : null;
+        return new OAuth2UserinfoResponse(String.valueOf(token.getUserId()), String.valueOf(token.getTenantId()), name);
+    }
+
+    private OAuth2TokenResponse issueOAuthTokens(OAuthClient client, Long tenantId, Long userId, Set<String> scopes) {
+        Instant now = Instant.now();
+        String accessTokenValue = tokenCodec.randomToken();
+        String accessTokenId = tokenCodec.sha256(accessTokenValue);
+        OAuthAccessToken accessToken = new OAuthAccessToken(accessTokenId, accessTokenId, client.clientId(), tenantId,
+                userId, scopes, now, now.plusSeconds(client.accessTokenTtlSeconds()));
+        oAuthAuthorizationRepository.saveAccessToken(accessToken);
+
+        String refreshTokenValue = tokenCodec.randomToken();
+        String refreshTokenHash = tokenCodec.sha256(refreshTokenValue);
+        OAuthRefreshToken refreshToken = new OAuthRefreshToken(refreshTokenHash, refreshTokenHash, accessTokenId,
+                client.clientId(), tenantId, userId, now, now.plusSeconds(client.refreshTokenTtlSeconds()));
+        oAuthAuthorizationRepository.saveOAuthRefreshToken(refreshToken);
+
+        return new OAuth2TokenResponse(accessTokenValue, "Bearer", client.accessTokenTtlSeconds(),
+                refreshTokenValue, String.join(" ", scopes));
+    }
+
+    private OAuthClient loadClient(String clientId) {
+        return oAuthClientRepository.findByClientId(clientId)
+                .filter(OAuthClient::enabled)
+                .orElseThrow(() -> new IllegalArgumentException("OAuth client invalid"));
+    }
+
+    private OAuthClient validateClient(String clientId, String clientSecret) {
+        OAuthClient client = loadClient(clientId);
+        if (!client.clientSecret().equals(clientSecret)) {
+            throw new IllegalArgumentException("OAuth client secret invalid");
+        }
+        return client;
+    }
+
+    private Set<String> splitScopes(String scope) {
+        if (scope == null || scope.isBlank()) {
+            return new LinkedHashSet<>();
+        }
+        return Arrays.stream(scope.trim().split("\\s+"))
+                .filter(value -> !value.isBlank())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    public record AuthorizationView(
+            String authorizationRequestId,
+            String clientId,
+            String clientName,
+            String scope,
+            String state) {
+    }
+
+    public record AuthorizationDecisionResult(String redirectUri, String authorizationCode) {
+    }
+}

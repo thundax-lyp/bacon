@@ -1,5 +1,8 @@
 # Repository Guidelines
 
+**Notice**
+- read docs/ARCHITECTURE.md first
+
 ## Project Structure & Module Organization
 This repository is a Maven multi-module Java 17 project rooted at `pom.xml`.
 

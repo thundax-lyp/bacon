@@ -1,0 +1,315 @@
+# INVENTORY REQUIREMENTS
+
+## 1. Purpose
+
+Inventory 是 Bacon 的统一库存业务域。  
+本文档定义 Inventory 模块的需求边界、实现约束和稳定契约。  
+本文档是后续设计、任务拆解、实现和测试的唯一基线。  
+当前范围内全部功能属于同一交付范围，不做分期交付。
+
+## 2. Scope
+
+### 2.1 In Scope
+
+- 库存主数据管理
+- 可售库存查询
+- 库存预占
+- 库存释放
+- 库存扣减
+- 库存预占单查询
+- 库存流水记录
+- 库存只读跨域查询
+- 库存审计日志
+
+### 2.2 Out Of Scope
+
+- 采购入库
+- 调拨
+- 批次管理
+- 序列号管理
+- 盘点
+- 多仓分单
+
+## 3. Bounded Context
+
+### 3.1 Inventory
+
+- `Inventory` 负责库存主数据、现存量、预占量、可售量和库存预占单
+- `Inventory` 负责保证任何时候不得出现负库存
+- `Inventory` 负责为 `Order` 提供同步库存预占、释放、扣减能力
+- `Inventory` 不负责订单状态持久化
+- `Inventory` 不负责支付状态持久化
+
+### 3.2 Order
+
+- `Order` 负责下单编排和订单状态流转
+- `Order` 通过 `Inventory` 发起库存预占、释放、扣减
+- `Inventory` 不向 `Order` 反向回调结果，结果由同步命令直接返回
+
+### 3.3 Payment
+
+- `Payment` 不直接调用 `Inventory`
+- 支付成功后的库存扣减由 `Order` 触发
+
+### 3.4 Cross-Domain Rule
+
+- `Inventory` 对外只暴露 `bacon-inventory-api`
+- `Inventory` 不得依赖 `Order`、`Payment` 的内部实现
+- 库存预占、释放、扣减必须通过稳定 `Facade` 暴露
+- 库存预占、释放、扣减必须使用同步请求-响应模型
+- 单体模式使用本地 `Facade` 实现
+- 微服务模式使用远程 `Facade` 实现，并保持同一契约
+
+## 4. Module Mapping
+
+### 4.1 `bacon-inventory-api`
+
+- 跨域 `Facade`
+- `DTO`
+- 对外共享枚举
+
+固定接口：
+
+- `InventoryReadFacade`
+- `InventoryCommandFacade`
+
+`InventoryReadFacade` 固定方法：
+
+- `getAvailableStock(tenantId, skuId)`，返回固定 `DTO`
+- `batchGetAvailableStock(tenantId, skuIds)`，返回 `List<DTO>`
+- `getReservationByOrderNo(tenantId, orderNo)`，返回固定 `DTO`
+
+`InventoryReadFacade` 返回值至少包含：
+
+- `tenantId`
+- `skuId`
+- `warehouseId`
+- `onHandQuantity`
+- `reservedQuantity`
+- `availableQuantity`
+- `status`
+
+`InventoryCommandFacade` 固定方法：
+
+- `reserveStock(tenantId, orderNo, items)`，返回固定 `DTO`
+- `releaseReservedStock(tenantId, orderNo, reason)`，返回固定 `DTO`
+- `deductReservedStock(tenantId, orderNo)`，返回固定 `DTO`
+
+`InventoryCommandFacade` 返回值至少包含：
+
+- `tenantId`
+- `orderNo`
+- `reservationNo`
+- `reservationStatus`
+- `warehouseId`
+- `reason`
+
+### 4.2 `bacon-inventory-interfaces`
+
+- `Controller`
+- 请求 `DTO`
+- 响应 `VO`
+- `Assembler`
+- 对外适配端点
+
+固定端点：
+
+- `GET /inventories/{skuId}`
+- `GET /inventories`
+- `GET /inventory-reservations/{orderNo}`
+
+### 4.3 `bacon-inventory-application`
+
+固定服务：
+
+- `InventoryApplicationService`
+- `InventoryQueryService`
+- `InventoryReservationApplicationService`
+- `InventoryReleaseApplicationService`
+- `InventoryDeductionApplicationService`
+
+### 4.4 `bacon-inventory-domain`
+
+- 聚合、实体、值对象
+- 领域服务
+- `Repository` 接口
+- 领域规则和不变量
+
+### 4.5 `bacon-inventory-infra`
+
+- `MyBatis-Plus Mapper`
+- `Repository` 实现
+- 审计日志持久化
+
+## 5. Core Domain Objects
+
+- `Inventory`
+- `InventoryReservation`
+- `InventoryReservationItem`
+- `InventoryLedger`
+- `InventoryAuditLog`
+
+## 5.1 Fixed Enums
+
+- `status` 固定为 `ENABLED`、`DISABLED`
+- `reservationStatus` 固定为 `CREATED`、`RESERVED`、`RELEASED`、`DEDUCTED`、`FAILED`
+- `ledgerType` 固定为 `RESERVE`、`RELEASE`、`DEDUCT`
+
+## 5.2 Terminology
+
+- `Inventory` 是库存主数据对象
+- `InventoryReservation` 是订单维度的库存预占单
+- `InventoryReservationItem` 是库存预占单明细
+- `InventoryLedger` 是按订单和 SKU 记录的库存变更流水
+- `可售库存` 指当前可继续预占的数量，固定等于 `onHandQuantity - reservedQuantity`
+
+## 5.3 Fixed Fields
+
+- `Inventory` 至少包含 `id`、`tenantId`、`skuId`、`warehouseId`、`onHandQuantity`、`reservedQuantity`、`availableQuantity`、`status`、`updatedAt`
+- `InventoryReservation` 至少包含 `id`、`tenantId`、`reservationNo`、`orderNo`、`reservationStatus`、`warehouseId`、`reason`、`createdAt`、`releasedAt`、`deductedAt`
+- `InventoryReservationItem` 至少包含 `id`、`tenantId`、`reservationNo`、`skuId`、`quantity`
+- `InventoryLedger` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`skuId`、`warehouseId`、`ledgerType`、`quantity`、`occurredAt`
+- `InventoryAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`
+
+## 5.4 Uniqueness And Index Rules
+
+- `Inventory.id` 全局唯一
+- `Inventory` 必须保证 `(tenantId, skuId, warehouseId)` 唯一
+- `InventoryReservation.id` 全局唯一
+- `InventoryReservation.reservationNo` 全局唯一
+- `InventoryReservation` 必须保证 `(tenantId, orderNo)` 唯一
+- `InventoryReservationItem.id` 全局唯一
+- `InventoryReservationItem` 必须保证 `(tenantId, reservationNo, skuId)` 唯一
+- `InventoryLedger.id` 全局唯一
+- `InventoryLedger` 必须建立 `(tenantId, orderNo, ledgerType)` 索引
+- `Inventory` 必须建立 `(tenantId, skuId)` 索引
+
+## 6. Global Constraints
+
+### 6.1 Quantity Rule
+
+- `onHandQuantity` 不得小于 `0`
+- `reservedQuantity` 不得小于 `0`
+- `availableQuantity` 不得小于 `0`
+- `availableQuantity` 必须始终等于 `onHandQuantity - reservedQuantity`
+- 预占成功后，必须增加 `reservedQuantity`
+- 释放成功后，必须减少 `reservedQuantity`
+- 扣减成功后，必须同时减少 `onHandQuantity` 和 `reservedQuantity`
+
+### 6.2 Reservation Rule
+
+- 同一 `orderNo` 只能存在一个库存预占单
+- 库存预占必须按 `orderNo` 幂等
+- 释放和扣减必须基于已成功预占单执行
+- 已释放预占不得再次扣减
+- 已扣减预占不得再次释放
+- 任一明细预占失败时，整单预占必须失败
+
+### 6.3 Status Rule
+
+- `Inventory.status=DISABLED` 的库存主数据不得参与预占
+- 库存预占请求进入处理后，`reservationStatus` 必须先进入 `CREATED`
+- 全部明细预占成功后，`reservationStatus` 必须进入 `RESERVED`
+- 预占失败后，`reservationStatus` 必须进入 `FAILED`
+- 释放成功后，`reservationStatus` 必须进入 `RELEASED`
+- 扣减成功后，`reservationStatus` 必须进入 `DEDUCTED`
+
+### 6.4 Idempotency Rule
+
+- `reserveStock` 按 `orderNo` 幂等
+- `releaseReservedStock` 按 `orderNo` 幂等
+- `deductReservedStock` 按 `orderNo` 幂等
+- 同一 `orderNo` 重复调用 `reserveStock` 时，若已成功预占，必须返回同一 `reservationNo`
+- 同一 `orderNo` 重复调用 `releaseReservedStock` 时，若已释放，必须返回成功且不得重复回补库存
+- 同一 `orderNo` 重复调用 `deductReservedStock` 时，若已扣减，必须返回成功且不得重复扣减库存
+
+## 7. Functional Requirements
+
+### 7.1 Inventory Management
+
+- 维护库存主数据
+- 查询库存详情
+- 查询可售库存
+
+### 7.2 Stock Reservation
+
+- 为订单预占库存
+- 返回预占结果和预占单号
+
+补充约束：
+
+- 预占请求至少包含 `orderNo`、`items`
+- `items` 至少包含 `skuId`、`quantity`
+- 预占失败时必须返回明确原因
+
+### 7.3 Stock Release
+
+- 释放订单预占库存
+
+补充约束：
+
+- 释放操作必须幂等
+- 仅 `reservationStatus=RESERVED` 的预占单允许释放
+
+### 7.4 Stock Deduction
+
+- 扣减已预占库存
+
+补充约束：
+
+- 扣减操作必须幂等
+- 仅 `reservationStatus=RESERVED` 的预占单允许扣减
+
+### 7.5 Read Capability
+
+- 为 `Order` 提供可售库存和预占单只读查询
+
+补充约束：
+
+- 跨域接口只读
+- `DTO` 契约必须稳定
+
+### 7.6 Audit Log
+
+- 记录预占
+- 记录释放
+- 记录扣减
+
+## 8. Key Flows
+
+### 8.1 Reserve Stock
+
+1. `Order` 发起库存预占
+2. `Inventory` 校验库存主数据状态和可售库存
+3. `Inventory` 生成 `InventoryReservation`
+4. `Inventory` 增加 `reservedQuantity`
+5. `Inventory` 返回 `reservationNo` 和预占结果
+
+### 8.2 Release Stock
+
+1. `Order` 发起库存释放
+2. `Inventory` 校验预占单状态
+3. `Inventory` 减少 `reservedQuantity`
+4. `Inventory` 更新 `reservationStatus=RELEASED`
+
+### 8.3 Deduct Stock
+
+1. `Order` 在支付成功后发起库存扣减
+2. `Inventory` 校验预占单状态
+3. `Inventory` 减少 `onHandQuantity` 和 `reservedQuantity`
+4. `Inventory` 更新 `reservationStatus=DEDUCTED`
+
+## 9. Non-Functional Requirements
+
+| ID | Category | Requirement |
+|----|----------|-------------|
+| NFR-001 | Consistency | 预占、释放、扣减必须幂等 |
+| NFR-002 | Inventory Safety | 任何时候不得出现负库存 |
+| NFR-003 | Architecture | 必须同时支持单体和微服务装配 |
+| NFR-004 | Compatibility | `Facade + DTO` 契约必须同时支持本地和远程实现 |
+| NFR-005 | Auditability | 审计日志必须持久化、可检索、可追溯 |
+
+## 10. Open Items
+
+- 是否支持多仓优先级分配未确认
+- 库存初始化和补货来源未确认

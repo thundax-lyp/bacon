@@ -1,0 +1,305 @@
+# PAYMENT REQUIREMENTS
+
+## 1. Purpose
+
+Payment 是 Bacon 的统一支付业务域。  
+本文档定义 Payment 模块的需求边界、实现约束和稳定契约。  
+本文档是后续设计、任务拆解、实现和测试的唯一基线。  
+当前范围内全部功能属于同一交付范围，不做分期交付。
+
+## 2. Scope
+
+### 2.1 In Scope
+
+- 支付单创建
+- 支付单详情查询
+- 支付发起参数生成
+- 支付渠道回调处理
+- 支付关闭
+- 支付状态查询
+- 支付只读跨域查询
+- 支付审计日志
+
+### 2.2 Out Of Scope
+
+- 退款
+- 分账
+- 提现
+- 多币种
+- 钱包余额
+- 对账结算
+
+## 3. Bounded Context
+
+### 3.1 Payment
+
+- `Payment` 负责支付单、支付渠道适配和支付渠道回调处理
+- `Payment` 负责产出稳定支付结果并回传给 `Order`
+- `Payment` 不负责订单主数据维护
+- `Payment` 不负责库存扣减
+
+### 3.2 Order
+
+- `Order` 负责订单状态流转
+- `Order` 通过 `Payment` 创建支付单和关闭支付单
+- `Payment` 只通过 `OrderCommandFacade` 回传支付成功和支付失败结果
+
+### 3.3 Inventory
+
+- `Inventory` 不直接调用 `Payment`
+- 支付成功后的库存扣减由 `Order` 负责触发
+
+### 3.4 Cross-Domain Rule
+
+- `Payment` 只能依赖 `bacon-order-api`
+- `Payment` 不得依赖其他业务域内部实现
+- 支付结果必须通过稳定 `Facade` 回传 `Order`
+- `Payment` 不得直接修改 `Order` 表
+- 单体模式使用本地 `Facade` 实现
+- 微服务模式使用远程 `Facade` 实现，并保持同一契约
+
+## 4. Module Mapping
+
+### 4.1 `bacon-payment-api`
+
+- 跨域 `Facade`
+- `DTO`
+- 对外共享枚举
+
+固定接口：
+
+- `PaymentReadFacade`
+- `PaymentCommandFacade`
+
+`PaymentReadFacade` 固定方法：
+
+- `getByPaymentNo(tenantId, paymentNo)`，返回固定 `DTO`
+- `getByOrderNo(tenantId, orderNo)`，返回固定 `DTO`
+
+`PaymentReadFacade` 返回值至少包含：
+
+- `tenantId`
+- `paymentNo`
+- `orderNo`
+- `userId`
+- `channelCode`
+- `paymentStatus`
+- `amount`
+- `paidAmount`
+- `createdAt`
+- `expiredAt`
+- `paidAt`
+
+`PaymentCommandFacade` 固定方法：
+
+- `createPayment(tenantId, orderNo, userId, amount, channelCode, subject, expiredAt)`，返回固定 `DTO`
+- `closePayment(tenantId, paymentNo, reason)`，返回固定 `DTO`
+
+`PaymentCommandFacade` 返回值至少包含：
+
+- `tenantId`
+- `paymentNo`
+- `orderNo`
+- `channelCode`
+- `paymentStatus`
+- `payPayload`
+- `expiredAt`
+
+### 4.2 `bacon-payment-interfaces`
+
+- `Controller`
+- 请求 `DTO`
+- 响应 `VO`
+- `Assembler`
+- 对外适配端点
+
+固定端点：
+
+- `GET /payments/{paymentNo}`
+- `GET /payments`
+- `POST /payments/callback/{channelCode}`
+
+### 4.3 `bacon-payment-application`
+
+固定服务：
+
+- `PaymentApplicationService`
+- `PaymentQueryService`
+- `PaymentCallbackApplicationService`
+- `PaymentCloseApplicationService`
+
+### 4.4 `bacon-payment-domain`
+
+- 聚合、实体、值对象
+- 领域服务
+- `Repository` 接口
+- 领域规则和不变量
+
+### 4.5 `bacon-payment-infra`
+
+- `MyBatis-Plus Mapper`
+- `Repository` 实现
+- 渠道适配器
+- 审计日志持久化
+
+## 5. Core Domain Objects
+
+- `PaymentOrder`
+- `PaymentChannelPayload`
+- `PaymentCallbackRecord`
+- `PaymentAuditLog`
+
+## 5.1 Fixed Enums
+
+- `paymentStatus` 固定为 `CREATED`、`PAYING`、`PAID`、`FAILED`、`CLOSED`
+- `channelCode` 当前固定为 `MOCK`
+
+## 5.2 Terminology
+
+- `PaymentOrder` 是支付主聚合
+- `PaymentChannelPayload` 是返回给客户端的渠道支付参数
+- `PaymentCallbackRecord` 是渠道原始回调记录
+- `支付关闭` 指未完成支付单进入不可继续支付的终态
+
+## 5.3 Fixed Fields
+
+- `PaymentOrder` 至少包含 `id`、`tenantId`、`paymentNo`、`orderNo`、`userId`、`channelCode`、`paymentStatus`、`amount`、`paidAmount`、`subject`、`expiredAt`、`createdAt`、`paidAt`、`closedAt`
+- `PaymentChannelPayload` 至少包含 `paymentNo`、`channelCode`、`payUrl`
+- `PaymentCallbackRecord` 至少包含 `id`、`tenantId`、`paymentNo`、`orderNo`、`channelCode`、`channelTransactionNo`、`channelStatus`、`rawPayload`、`receivedAt`
+- `PaymentAuditLog` 至少包含 `id`、`tenantId`、`paymentNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
+
+## 5.4 Uniqueness And Index Rules
+
+- `PaymentOrder.id` 全局唯一
+- `PaymentOrder.paymentNo` 全局唯一
+- `PaymentOrder.orderNo` 全局唯一
+- `PaymentCallbackRecord.id` 全局唯一
+- `PaymentCallbackRecord` 必须保证 `(tenantId, channelCode, channelTransactionNo)` 唯一
+- `PaymentOrder` 必须建立 `(tenantId, userId, createdAt)` 索引
+- `PaymentOrder` 必须建立 `(tenantId, paymentStatus, expiredAt)` 索引
+
+## 6. Global Constraints
+
+### 6.1 Amount Rule
+
+- `amount` 必须大于 `0`
+- `paidAmount` 在支付成功时必须大于 `0`
+- 支付成功时，`paidAmount` 必须等于支付单 `amount`
+
+### 6.2 Status Rule
+
+- 支付单创建成功后，初始 `paymentStatus` 必须进入 `CREATED`
+- 支付发起参数生成后，`paymentStatus` 必须进入 `PAYING`
+- 支付成功后，`paymentStatus` 必须进入 `PAID`
+- 支付失败后，`paymentStatus` 必须进入 `FAILED`
+- 支付关闭后，`paymentStatus` 必须进入 `CLOSED`
+- `PAID`、`FAILED`、`CLOSED` 支付单不得重新进入 `PAYING`
+
+### 6.3 Callback Rule
+
+- 支付回调处理必须幂等
+- 未知支付单回调必须拒绝
+- 回调结果必须保留原始渠道状态摘要
+- 支付成功后，`Payment` 必须调用 `OrderCommandFacade.markPaid`
+- 支付失败后，`Payment` 必须调用 `OrderCommandFacade.markPaymentFailed`
+- `Payment` 不得在回调处理中直接修改订单表
+
+### 6.4 Idempotency Rule
+
+- `createPayment` 按 `orderNo` 幂等
+- `closePayment` 按 `paymentNo` 幂等
+- 渠道回调按 `(channelCode, channelTransactionNo)` 幂等
+- 同一 `orderNo` 在当前范围内只能存在一个 `PaymentOrder`
+
+## 7. Functional Requirements
+
+### 7.1 Create Payment
+
+- 创建支付单
+- 生成支付发起参数
+- 返回支付单号和支付参数
+
+补充约束：
+
+- 创建请求至少包含 `tenantId`、`orderNo`、`userId`、`amount`、`channelCode`、`subject`、`expiredAt`
+- 仅允许为 `Order` 已确认库存预占成功的订单创建支付单
+
+### 7.2 Payment Callback
+
+- 接收支付渠道回调
+- 更新支付状态
+- 回传订单支付结果
+
+补充约束：
+
+- 成功回调不得重复改变已支付结果
+- 失败回调不得覆盖已支付结果
+
+### 7.3 Close Payment
+
+- 关闭未完成支付单
+
+补充约束：
+
+- 已支付支付单不得关闭
+- 重复关闭不得产生脏数据
+
+### 7.4 Read Capability
+
+- 为 `Order` 提供支付状态只读查询
+
+补充约束：
+
+- 跨域接口只读
+- `DTO` 契约必须稳定
+
+### 7.5 Audit Log
+
+- 记录支付单创建
+- 记录支付回调
+- 记录支付关闭
+
+## 8. Key Flows
+
+### 8.1 Create Payment
+
+1. `Order` 发起支付单创建
+2. `Payment` 校验 `orderNo` 唯一性和金额有效性
+3. `Payment` 创建 `PaymentOrder`
+4. `Payment` 生成渠道支付参数
+5. `Payment` 返回支付单号和支付参数
+
+### 8.2 Payment Callback Success
+
+1. 渠道回调支付成功
+2. `Payment` 按渠道交易号执行幂等校验
+3. `Payment` 更新 `paymentStatus=PAID`
+4. `Payment` 调用 `OrderCommandFacade.markPaid`
+
+### 8.3 Payment Callback Failure
+
+1. 渠道回调支付失败
+2. `Payment` 按渠道交易号执行幂等校验
+3. `Payment` 更新 `paymentStatus=FAILED`
+4. `Payment` 调用 `OrderCommandFacade.markPaymentFailed`
+
+### 8.4 Close Payment
+
+1. `Order` 发起支付关闭
+2. `Payment` 校验支付状态
+3. `Payment` 更新 `paymentStatus=CLOSED`
+
+## 9. Non-Functional Requirements
+
+| ID | Category | Requirement |
+|----|----------|-------------|
+| NFR-001 | Consistency | 支付创建、回调处理、关闭必须幂等 |
+| NFR-002 | Architecture | 必须同时支持单体和微服务装配 |
+| NFR-003 | Compatibility | `Facade + DTO` 契约必须同时支持本地和远程实现 |
+| NFR-004 | Auditability | 审计日志必须持久化、可检索、可追溯 |
+
+## 10. Open Items
+
+- 首批支付渠道范围未确认
+- 支付超时关闭时长未确认
+- 渠道签名校验规则未确认

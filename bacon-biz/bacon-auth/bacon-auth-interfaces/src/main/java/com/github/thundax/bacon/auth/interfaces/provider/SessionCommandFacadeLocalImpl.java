@@ -2,9 +2,11 @@ package com.github.thundax.bacon.auth.interfaces.provider;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.auth.application.service.SessionApplicationService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class SessionCommandFacadeLocalImpl implements SessionCommandFacade {
 
     private final SessionApplicationService sessionApplicationService;

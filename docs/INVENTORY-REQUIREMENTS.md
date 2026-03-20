@@ -125,6 +125,8 @@ Inventory 是 Bacon 的统一库存业务域。
 - `warehouseId`
 - `failureReason`
 - `releaseReason`
+- `releasedAt`
+- `deductedAt`
 
 ### 4.2 `bacon-inventory-interfaces`
 
@@ -199,8 +201,11 @@ Inventory 是 Bacon 的统一库存业务域。
 
 固定约束：
 
+- `InventoryStockDTO` 字段由 `Inventory` 组装
 - `InventoryReservationDTO.items` 由 `InventoryReservationItem` 组装
+- `InventoryReservationDTO` 字段由 `InventoryReservation` 和 `InventoryReservationItem` 组装
 - `InventoryReservationResultDTO.inventoryStatus` 必须遵守 `6.4 InventoryStatus Mapping Rule`
+- `InventoryReservationResultDTO` 字段由命令处理后的 `InventoryReservation` 组装
 
 ## 5.4 Fixed Request Contracts
 
@@ -270,6 +275,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - 预占成功时，`InventoryReservationResultDTO.failureReason` 和 `releaseReason` 必须为空
 - 预占失败时，`InventoryReservationResultDTO.failureReason` 必须有值，`releaseReason` 必须为空
 - 释放成功时，`InventoryReservationResultDTO.releaseReason` 必须有值，`failureReason` 必须为空
+- 释放成功时，`InventoryReservationResultDTO.inventoryStatus` 必须为 `RELEASED`
 - 扣减成功时，`InventoryReservationResultDTO.failureReason` 和 `releaseReason` 必须为空
 
 ### 6.7 Status Rule
@@ -334,6 +340,9 @@ Inventory 是 Bacon 的统一库存业务域。
 
 - 跨域接口只读
 - `DTO` 契约必须稳定
+- `Order` 跨域读取只依赖库存状态和关键关联字段
+- `InventoryStockDTO` 主要用于跨域库存状态读取
+- `InventoryReservationDTO` 主要用于后台排障和详情查询
 
 ### 7.6 Audit Log
 

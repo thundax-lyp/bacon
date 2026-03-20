@@ -97,6 +97,7 @@ Payment 是 Bacon 的统一支付业务域。
 - `closedAt`
 - `channelTransactionNo`
 - `channelStatus`
+- `callbackSummary`
 
 `PaymentCommandFacade` 固定方法：
 
@@ -117,6 +118,7 @@ Payment 是 Bacon 的统一支付业务域。
 - `paymentStatus`
 - `payPayload`
 - `expiredAt`
+- `failureReason`
 
 `PaymentCloseResultDTO` 至少包含：
 
@@ -125,7 +127,8 @@ Payment 是 Bacon 的统一支付业务域。
 - `orderNo`
 - `paymentStatus`
 - `closeResult`
-- `reason`
+- `closeReason`
+- `failureReason`
 
 ### 4.2 `bacon-payment-interfaces`
 
@@ -183,7 +186,7 @@ Payment 是 Bacon 的统一支付业务域。
 - `PaymentOrder` 是支付主聚合
 - `PaymentChannelPayload` 是返回给客户端的渠道支付参数
 - `PaymentCallbackRecord` 是渠道原始回调记录
-- `PaymentSummaryDTO` 是支付摘要读模型
+- `PaymentSummaryDTO` 是支付摘要字段集合
 - `PaymentDetailDTO` 是支付详情读模型
 - `PaymentCreateResultDTO` 是创建支付单命令返回模型
 - `PaymentCloseResultDTO` 是关闭支付单命令返回模型
@@ -198,14 +201,31 @@ Payment 是 Bacon 的统一支付业务域。
 
 固定约束：
 
+- `PaymentSummaryDTO` 字段由 `PaymentOrder` 组装
 - `PaymentDetailDTO` 字段由 `PaymentOrder` 和最近一次有效 `PaymentCallbackRecord` 组装
+- `PaymentDetailDTO.callbackSummary` 来自最近一次有效 `PaymentCallbackRecord.rawPayload` 的摘要结果
+- `PaymentDetailDTO` 不返回 `rawPayload` 原文
+- `PaymentCreateResultDTO` 字段由创建后的 `PaymentOrder` 和 `PaymentChannelPayload` 组装
+- `PaymentCreateResultDTO.paymentStatus=PAYING` 时，`paymentNo`、`payPayload`、`expiredAt` 必须有值
+- `PaymentCreateResultDTO.paymentStatus` 不为 `PAYING` 时，`paymentNo`、`payPayload`、`expiredAt` 允许为空
 - `PaymentCloseResultDTO.closeResult=SUCCESS` 时，`paymentStatus` 必须为 `CLOSED`
 - `PaymentCloseResultDTO.closeResult=FAILED` 时，`paymentStatus` 不得变更为 `CLOSED`
+- `PaymentCreateResultDTO.paymentStatus=PAYING` 时，`failureReason` 必须为空
+- `PaymentCreateResultDTO.paymentStatus` 不为 `PAYING` 时，`paymentStatus` 必须固定为 `FAILED`
+- `PaymentCreateResultDTO.paymentStatus` 不为 `PAYING` 时，`failureReason` 必须有值
+- `PaymentCloseResultDTO.closeResult=SUCCESS` 时，`failureReason` 必须为空
+- `PaymentCloseResultDTO.closeReason` 必须等于关闭请求原因
+- `PaymentCloseResultDTO.closeResult=FAILED` 时，`failureReason` 必须有值
+- `PaymentCloseResultDTO.closeResult=FAILED` 时，`closeReason` 仍必须等于关闭请求原因
 
 ## 5.4 Fixed Request Contracts
 
 - `CreatePaymentRequest` 至少包含 `tenantId`、`orderNo`、`userId`、`amount`、`channelCode`、`subject`、`expiredAt`
 - `ClosePaymentRequest` 至少包含 `tenantId`、`paymentNo`、`reason`
+
+固定约束：
+
+- `ClosePaymentRequest.reason` 的值域遵守 `6.5 Close Reason Rule`
 
 ## 5.5 Uniqueness And Index Rules
 
@@ -252,6 +272,7 @@ Payment 是 Bacon 的统一支付业务域。
 
 - `closePayment.reason` 必须使用固定枚举 `USER_CANCELLED`、`SYSTEM_CANCELLED`、`TIMEOUT_CLOSED`
 - `Payment` 不得写入固定枚举之外的新关闭原因值
+- `closePayment` 只用于订单取消和订单超时关闭，不用于支付失败或支付单创建失败场景
 
 ### 6.6 Idempotency Rule
 
@@ -272,6 +293,7 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 请求字段遵守 `5.4 Fixed Request Contracts`
 - 仅允许为 `Order` 已确认库存预占成功的订单创建支付单
+- 创建失败时，必须通过 `PaymentCreateResultDTO.failureReason` 返回明确失败原因
 
 ### 7.2 Payment Callback
 
@@ -302,6 +324,10 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 跨域接口只读
 - `DTO` 契约必须稳定
+- `Order` 跨域读取只依赖支付状态和关键关联字段
+- 当前 `PaymentReadFacade` 的两个查询方法统一返回 `PaymentDetailDTO`
+- `PaymentSummaryDTO` 用于定义详情模型中的摘要字段集合，不单独作为当前固定接口返回模型
+- `PaymentDetailDTO` 主要用于后台排障和详情查询
 
 ### 7.5 Audit Log
 
@@ -338,6 +364,7 @@ Payment 是 Bacon 的统一支付业务域。
 1. `Order` 发起支付关闭
 2. `Payment` 校验支付状态
 3. `Payment` 更新 `paymentStatus=CLOSED`
+4. `Payment` 返回 `PaymentCloseResultDTO`
 
 ## 9. Non-Functional Requirements
 

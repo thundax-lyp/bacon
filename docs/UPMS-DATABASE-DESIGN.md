@@ -69,6 +69,32 @@
 - `menu_type`: `DIRECTORY`、`MENU`、`BUTTON`
 - `resource_type`: `API`、`RPC`、`EVENT`
 
+## 5.1 Length Rules
+
+- `tenant_id`: `varchar(64)`
+- `code`: `varchar(64)`
+- `account`: `varchar(64)`
+- `phone`: `varchar(32)`
+- `name` 固定长度如下：
+    - `Tenant.name`: `varchar(128)`
+    - `Department.name`: `varchar(128)`
+    - `Post.name`: `varchar(128)`
+    - `Role.name`: `varchar(128)`
+    - `Menu.name`: `varchar(128)`
+    - `Resource.name`: `varchar(128)`
+- `route_path`: `varchar(255)`
+- `component_name`: `varchar(255)`
+- `icon`: `varchar(128)`
+- `permission_code`: `varchar(128)`
+- `module`: `varchar(64)`
+- `path`: `varchar(255)`
+- `method`: `varchar(16)`
+- `object_type`: `varchar(64)`
+- `object_id`: `varchar(64)`
+- `action_type`: `varchar(64)`
+- `request_source`: `varchar(64)`
+- `result_status`: `varchar(32)`
+
 ## 6. Table Mapping
 
 | Domain Object | Table |
@@ -390,6 +416,105 @@
 - `idx_object(object_type, object_id)`
 - `idx_operator(operator_id, occurred_at)`
 
+固定值域：
+
+- `object_type` 固定使用：
+    - `USER`
+    - `TENANT`
+    - `DEPARTMENT`
+    - `POST`
+    - `ROLE`
+    - `MENU`
+    - `RESOURCE`
+    - `USER_ROLE_RELATION`
+    - `ROLE_MENU_RELATION`
+    - `ROLE_RESOURCE_RELATION`
+    - `DATA_PERMISSION_RULE`
+    - `PASSWORD_MANAGEMENT`
+    - `USER_IMPORT`
+    - `USER_EXPORT`
+- `result_status` 固定使用：
+    - `SUCCESS`
+    - `FAILED`
+- `request_source` 当前固定使用：
+    - `ADMIN_WEB`
+    - `SYSTEM_JOB`
+    - `INTERNAL_API`
+    - `IMPORT_TASK`
+    - `EXPORT_TASK`
+
+操作类型：
+
+- `User` 使用 `CREATE`、`UPDATE`、`ENABLE`、`DISABLE`、`DELETE`
+- `Tenant` 使用 `CREATE`、`UPDATE`、`ENABLE`、`DISABLE`
+- `Department` 使用 `CREATE`、`UPDATE`、`DISABLE`
+- `Post` 使用 `CREATE`、`UPDATE`、`DISABLE`、`SORT`
+- `Role` 使用 `CREATE`、`UPDATE`、`ENABLE`、`DISABLE`、`DELETE`
+- `Menu` 使用 `CREATE`、`UPDATE`、`ENABLE`、`DISABLE`
+- `Resource` 使用 `CREATE`、`UPDATE`、`ENABLE`、`DISABLE`
+- `UserRoleRelation` 使用 `ASSIGN`
+- `RoleMenuRelation` 使用 `ASSIGN`
+- `RoleResourceRelation` 使用 `ASSIGN`
+- `DataPermissionRule` 使用 `CONFIGURE`
+- `PasswordManagement` 使用 `INIT_PASSWORD`、`RESET_PASSWORD`、`CHANGE_PASSWORD`
+- `UserImport` 使用 `IMPORT`
+- `UserExport` 使用 `EXPORT`
+
+摘要规则：
+
+- `before_summary` 和 `after_summary` 只保存审计所需摘要，不保存完整业务对象
+- `before_summary` 和 `after_summary` 的字段名固定使用英文
+- 密码相关操作的摘要中不得出现明文密码、密码哈希、临时密码
+- 手机号、邮箱、证件号等敏感字段写入摘要时必须脱敏
+- `before_summary` 与 `after_summary` 至少保留关键标识、状态字段、关联对象变化摘要
+- 关系对象操作的摘要应保留关联主键集合或单次变更对象
+- `FAILED` 日志必须包含失败原因摘要，失败原因写入 `after_summary.failureReason`
+
+推荐摘要字段：
+
+- `User`: `id`、`account`、`name`、`phoneMasked`、`departmentId`、`status`、`deleted`
+- `Tenant`: `tenantId`、`code`、`name`、`status`
+- `Department`: `id`、`code`、`name`、`parentId`、`leaderUserId`、`status`
+- `Post`: `id`、`code`、`name`、`sort`、`status`
+- `Role`: `id`、`code`、`name`、`roleType`、`dataScopeType`、`status`、`builtIn`
+- `Menu`: `id`、`name`、`menuType`、`parentId`、`visible`、`status`、`permissionCode`
+- `Resource`: `id`、`code`、`name`、`resourceType`、`module`、`path`、`method`、`status`、`permissionCode`
+- `UserRoleRelation`: `userId`、`roleIds`
+- `RoleMenuRelation`: `roleId`、`menuIds`
+- `RoleResourceRelation`: `roleId`、`resourceIds`
+- `DataPermissionRule`: `roleId`、`dataScopeType`、`departmentIds`
+- `PasswordManagement`: `userId`、`passwordAction`、`sessionInvalidationTriggered`
+- `UserImport`: `successCount`、`failedCount`、`failureRows`
+- `UserExport`: `exportCount`、`queryScope`
+
+`failureRows` 约束：
+
+- `failureRows` 固定存放于 `after_summary.failureRows`
+- `failureRows` 固定为 JSON 数组
+- 每个元素固定包含 `rowNo`、`account`、`reason`
+- `failureRows` 最多保留前 `100` 条失败记录
+- 单条 `reason` 最长保留 `256` 个字符
+- 超过 `100` 条失败记录时，额外数量写入 `after_summary.remainingFailureCount`
+- 导入审计摘要不保存整行原始导入数据
+
+写入与查询规则：
+
+- 主数据新增、修改、启停、删除后必须写审计日志
+- 授权关系变更后必须写审计日志
+- 密码管理操作后必须写审计日志
+- 用户导入导出后必须写审计日志
+- 查询接口不得写审计日志
+- 批量操作允许写一条聚合审计日志，但 `object_type` 和 `action_type` 必须稳定
+- 默认查询排序固定为 `occurred_at desc, id desc`
+- 查询结果只返回摘要，不返回敏感原文
+
+实现约定：
+
+- `DataObject` 固定命名为 `UpmsAuditLogDO`
+- `Mapper` 固定命名为 `UpmsAuditLogMapper`
+- `Repository` 固定命名为 `UpmsAuditLogRepositoryImpl`
+- `before_summary` 与 `after_summary` 使用 JSON 类型处理器
+
 ## 8. Relationship Rules
 
 - `bacon_upms_user.department_id -> bacon_upms_department.id`
@@ -450,5 +575,4 @@
 
 ## 13. Open Items
 
-- `Tenant.name`、`Department.name`、`Role.name`、`Menu.name`、`Resource.name` 的最大长度未在需求文档明确，当前按通用管理后台长度设计
-- `request_source`、`result_status`、`object_type`、`action_type` 的固定值域未在需求文档完全展开，当前作为稳定字符串字段处理
+无

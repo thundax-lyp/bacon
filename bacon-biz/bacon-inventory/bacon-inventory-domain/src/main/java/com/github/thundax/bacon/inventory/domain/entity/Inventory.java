@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.inventory.domain.entity;
 
-import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.time.Instant;
 
 @Getter
 @AllArgsConstructor

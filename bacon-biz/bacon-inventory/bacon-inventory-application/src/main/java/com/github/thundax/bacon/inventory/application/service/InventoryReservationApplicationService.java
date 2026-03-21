@@ -5,11 +5,12 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import org.springframework.stereotype.Service;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
-import org.springframework.stereotype.Service;
 
 @Service
 public class InventoryReservationApplicationService {

@@ -3,13 +3,14 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import org.springframework.stereotype.Repository;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class InMemoryInventoryRepository implements InventoryRepository {

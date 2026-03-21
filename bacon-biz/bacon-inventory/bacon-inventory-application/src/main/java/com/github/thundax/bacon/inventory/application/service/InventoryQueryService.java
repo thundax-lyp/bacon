@@ -6,9 +6,10 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Set;
-import org.springframework.stereotype.Service;
 
 @Service
 public class InventoryQueryService {

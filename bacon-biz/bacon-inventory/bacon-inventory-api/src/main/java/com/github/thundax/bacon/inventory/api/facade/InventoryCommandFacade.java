@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.api.facade;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+
 import java.util.List;
 
 public interface InventoryCommandFacade {

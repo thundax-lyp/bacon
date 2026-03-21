@@ -3,8 +3,9 @@ package com.github.thundax.bacon.inventory.application.service;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
-import java.time.Instant;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 @Service
 public class InventoryReleaseApplicationService {

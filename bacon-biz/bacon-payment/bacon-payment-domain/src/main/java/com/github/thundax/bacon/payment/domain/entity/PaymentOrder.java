@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.payment.domain.entity;
 
+import lombok.Getter;
+
 import java.math.BigDecimal;
 import java.time.Instant;
-import lombok.Getter;
 
 @Getter
 public class PaymentOrder {

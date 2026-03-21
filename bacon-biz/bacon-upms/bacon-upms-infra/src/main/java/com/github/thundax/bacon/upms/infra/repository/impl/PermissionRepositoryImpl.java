@@ -2,9 +2,10 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.entity.Menu;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Set;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class PermissionRepositoryImpl implements PermissionRepository {

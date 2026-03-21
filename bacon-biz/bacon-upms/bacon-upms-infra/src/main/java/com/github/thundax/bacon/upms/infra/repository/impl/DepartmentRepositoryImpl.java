@@ -2,10 +2,11 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.entity.Department;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class DepartmentRepositoryImpl implements DepartmentRepository {

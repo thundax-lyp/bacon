@@ -1,16 +1,12 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.upms.domain.entity.Department;
-import com.github.thundax.bacon.upms.domain.entity.Menu;
-import com.github.thundax.bacon.upms.domain.entity.Role;
-import com.github.thundax.bacon.upms.domain.entity.Tenant;
-import com.github.thundax.bacon.upms.domain.entity.User;
-import com.github.thundax.bacon.upms.domain.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.entity.*;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.stereotype.Component;
 
 @Component
 public class InMemoryUpmsStore {

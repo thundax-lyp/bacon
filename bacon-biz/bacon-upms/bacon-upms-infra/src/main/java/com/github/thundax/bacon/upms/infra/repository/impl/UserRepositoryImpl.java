@@ -4,8 +4,9 @@ import com.github.thundax.bacon.upms.domain.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.entity.User;
 import com.github.thundax.bacon.upms.domain.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
-import java.util.Optional;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {

@@ -2,9 +2,10 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.entity.Role;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class RoleRepositoryImpl implements RoleRepository {

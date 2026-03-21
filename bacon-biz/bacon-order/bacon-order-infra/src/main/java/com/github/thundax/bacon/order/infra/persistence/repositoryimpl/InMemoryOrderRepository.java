@@ -2,11 +2,12 @@ package com.github.thundax.bacon.order.infra.persistence.repositoryimpl;
 
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class InMemoryOrderRepository implements OrderRepository {

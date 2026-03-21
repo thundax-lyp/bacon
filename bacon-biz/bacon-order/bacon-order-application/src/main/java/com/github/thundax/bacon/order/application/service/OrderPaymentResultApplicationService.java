@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.order.application.service;
 
+import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.time.Instant;
-import org.springframework.stereotype.Service;
 
 @Service
 public class OrderPaymentResultApplicationService {

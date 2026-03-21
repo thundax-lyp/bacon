@@ -1,12 +1,13 @@
 package com.github.thundax.bacon.order.infra.rpc;
 
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
-import java.math.BigDecimal;
-import java.time.Instant;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+
+import java.math.BigDecimal;
+import java.time.Instant;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")

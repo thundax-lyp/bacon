@@ -3,9 +3,10 @@ package com.github.thundax.bacon.upms.interfaces.provider;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
 import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
-import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)

@@ -1,23 +1,14 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
-import com.github.thundax.bacon.upms.api.dto.RoleDTO;
-import com.github.thundax.bacon.upms.api.dto.TenantDTO;
-import com.github.thundax.bacon.upms.api.dto.UserDTO;
-import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
-import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
-import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
+import com.github.thundax.bacon.upms.api.dto.*;
 import com.github.thundax.bacon.upms.application.service.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
 import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
 import com.github.thundax.bacon.upms.application.service.UserApplicationService;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Set;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/providers/upms")

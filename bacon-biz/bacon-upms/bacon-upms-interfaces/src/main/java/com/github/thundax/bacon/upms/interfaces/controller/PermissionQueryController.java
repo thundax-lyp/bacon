@@ -3,12 +3,13 @@ package com.github.thundax.bacon.upms.interfaces.controller;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
-import java.util.List;
-import java.util.Set;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/upms/permissions")

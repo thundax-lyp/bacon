@@ -3,10 +3,11 @@ package com.github.thundax.bacon.upms.interfaces.provider;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;
 import com.github.thundax.bacon.upms.application.service.DepartmentApplicationService;
-import java.util.List;
-import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Set;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)

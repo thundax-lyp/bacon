@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.api.facade;
 
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
+
 import java.util.List;
 
 public interface RoleReadFacade {

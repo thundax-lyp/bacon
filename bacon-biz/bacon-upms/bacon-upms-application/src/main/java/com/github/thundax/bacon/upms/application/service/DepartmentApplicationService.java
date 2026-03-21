@@ -3,9 +3,10 @@ package com.github.thundax.bacon.upms.application.service;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.domain.entity.Department;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Set;
-import org.springframework.stereotype.Service;
 
 @Service
 public class DepartmentApplicationService {

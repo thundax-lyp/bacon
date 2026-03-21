@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.api.facade;
 
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
+
 import java.util.List;
 import java.util.Set;
 

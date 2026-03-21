@@ -3,8 +3,9 @@ package com.github.thundax.bacon.upms.application.service;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.domain.entity.Role;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
-import java.util.List;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class RoleApplicationService {

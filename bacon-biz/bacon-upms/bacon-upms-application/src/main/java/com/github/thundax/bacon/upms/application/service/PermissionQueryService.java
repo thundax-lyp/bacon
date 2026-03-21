@@ -3,9 +3,10 @@ package com.github.thundax.bacon.upms.application.service;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Set;
-import org.springframework.stereotype.Service;
 
 @Service
 public class PermissionQueryService {

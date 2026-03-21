@@ -1,9 +1,10 @@
 package com.github.thundax.bacon.upms.api.dto;
 
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Set;
 
 @Data
 @NoArgsConstructor

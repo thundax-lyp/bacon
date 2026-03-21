@@ -2,8 +2,9 @@ package com.github.thundax.bacon.upms.application.service;
 
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.entity.Menu;
-import java.util.List;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class MenuApplicationService {

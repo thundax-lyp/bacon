@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.auth.application.service;
 
 import com.github.thundax.bacon.auth.domain.entity.AuthSession;
+import org.springframework.stereotype.Component;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -8,7 +10,6 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.stereotype.Component;
 
 @Component
 public class TokenCodec {

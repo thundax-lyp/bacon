@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.auth.domain.entity;
 
+import lombok.Getter;
+
 import java.time.Instant;
 import java.util.Set;
-import lombok.Getter;
 
 @Getter
 public class OAuthAccessToken {

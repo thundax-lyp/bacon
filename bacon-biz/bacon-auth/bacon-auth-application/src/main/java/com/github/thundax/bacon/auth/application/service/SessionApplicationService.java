@@ -3,9 +3,10 @@ package com.github.thundax.bacon.auth.application.service;
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
 import com.github.thundax.bacon.auth.domain.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
+import org.springframework.stereotype.Service;
+
 import java.time.Instant;
 import java.util.List;
-import org.springframework.stereotype.Service;
 
 @Service
 public class SessionApplicationService {

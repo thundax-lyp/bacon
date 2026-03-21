@@ -3,9 +3,10 @@ package com.github.thundax.bacon.auth.infra.repository.impl;
 import com.github.thundax.bacon.auth.domain.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class AuthSessionRepositoryImpl implements AuthSessionRepository {

@@ -1,7 +1,8 @@
 package com.github.thundax.bacon.auth.domain.entity;
 
-import java.time.Instant;
 import lombok.Getter;
+
+import java.time.Instant;
 
 @Getter
 public class OAuthRefreshToken {

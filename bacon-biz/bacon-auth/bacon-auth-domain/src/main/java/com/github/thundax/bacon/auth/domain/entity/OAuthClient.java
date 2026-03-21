@@ -1,9 +1,10 @@
 package com.github.thundax.bacon.auth.domain.entity;
 
-import java.time.Instant;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.time.Instant;
+import java.util.Set;
 
 @Getter
 @AllArgsConstructor

@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.auth.application.service;
 
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
-import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
+
+import java.util.regex.Pattern;
 
 @Service
 public class PasswordApplicationService {

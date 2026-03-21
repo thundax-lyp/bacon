@@ -6,10 +6,11 @@ import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshResponse;
 import com.github.thundax.bacon.auth.domain.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
+import org.springframework.stereotype.Service;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
-import org.springframework.stereotype.Service;
 
 @Service
 public class TokenApplicationService {

@@ -4,8 +4,9 @@ import com.github.thundax.bacon.auth.domain.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.entity.OAuthAuthorizationRequest;
 import com.github.thundax.bacon.auth.domain.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
-import java.util.Optional;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public class OAuthAuthorizationRepositoryImpl implements OAuthAuthorizationRepository {

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
 import com.github.thundax.bacon.upms.domain.entity.Department;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;

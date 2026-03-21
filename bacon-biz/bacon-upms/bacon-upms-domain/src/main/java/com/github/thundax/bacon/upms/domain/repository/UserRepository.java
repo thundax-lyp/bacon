@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.domain.repository;
 import com.github.thundax.bacon.upms.domain.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.entity.User;
 import com.github.thundax.bacon.upms.domain.entity.UserIdentity;
+
 import java.util.Optional;
 
 public interface UserRepository {

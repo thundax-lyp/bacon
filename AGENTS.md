@@ -40,6 +40,9 @@ Name test classes `*Test` for unit coverage and `*IT` for broader integration sc
 ## Commit & Pull Request Guidelines
 Current git history is mostly `init`, so there is no strong existing convention to preserve. Prefer short imperative commit messages such as `order: add create command validation`.
 
+- Every file modification must be followed by a git commit before ending the task.
+- Every commit message must include a clear summary of what changed; when needed, add a commit body that explains the work, scope, and verification.
+
 For pull requests, include:
 - a brief problem/solution summary
 - affected modules, for example `bacon-order-domain`

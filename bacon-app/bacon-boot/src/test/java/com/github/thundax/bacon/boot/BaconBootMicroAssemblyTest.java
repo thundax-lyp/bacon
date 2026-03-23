@@ -6,6 +6,8 @@ import com.github.thundax.bacon.auth.api.facade.TokenVerifyFacade;
 import com.github.thundax.bacon.auth.infra.rpc.OAuthClientReadFacadeRemoteImpl;
 import com.github.thundax.bacon.auth.infra.rpc.SessionCommandFacadeRemoteImpl;
 import com.github.thundax.bacon.auth.infra.rpc.TokenVerifyFacadeRemoteImpl;
+import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
+import com.github.thundax.bacon.common.security.context.SpringContextCurrentUserProvider;
 import com.github.thundax.bacon.common.test.BaconSpringBootTest;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
@@ -92,6 +94,9 @@ class BaconBootMicroAssemblyTest extends BaconSpringBootTest {
     @Autowired
     private PaymentCommandFacade paymentCommandFacade;
 
+    @Autowired
+    private CurrentUserProvider currentUserProvider;
+
     @Test
     void shouldWireRemoteFacadeImplementationsInMicroMode() {
         assertThat(tokenVerifyFacade).isInstanceOf(TokenVerifyFacadeRemoteImpl.class);
@@ -107,5 +112,6 @@ class BaconBootMicroAssemblyTest extends BaconSpringBootTest {
         assertThat(inventoryCommandFacade).isInstanceOf(InventoryCommandFacadeRemoteImpl.class);
         assertThat(paymentReadFacade).isInstanceOf(PaymentReadFacadeRemoteImpl.class);
         assertThat(paymentCommandFacade).isInstanceOf(PaymentCommandFacadeRemoteImpl.class);
+        assertThat(currentUserProvider).isInstanceOf(SpringContextCurrentUserProvider.class);
     }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.auth.interfaces.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,7 +8,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "企微登录请求")
 public class WecomLoginRequest {
 
+    @Schema(description = "企微授权码", example = "wecom-auth-code")
     private String code;
 }

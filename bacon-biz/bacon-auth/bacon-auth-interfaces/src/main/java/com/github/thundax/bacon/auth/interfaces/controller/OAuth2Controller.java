@@ -7,11 +7,14 @@ import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationAppl
 import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationDecisionResult;
 import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationView;
 import com.github.thundax.bacon.auth.interfaces.dto.OAuth2DecisionRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/oauth2")
+@Tag(name = "OAuth2", description = "OAuth2 授权协议接口")
 public class OAuth2Controller {
 
     private final OAuth2AuthorizationApplicationService oAuth2AuthorizationApplicationService;
@@ -20,6 +23,7 @@ public class OAuth2Controller {
         this.oAuth2AuthorizationApplicationService = oAuth2AuthorizationApplicationService;
     }
 
+    @Operation(summary = "发起 OAuth2 授权")
     @GetMapping("/authorize")
     public AuthorizationView authorize(@RequestHeader(value = "Authorization", required = false) String authorization,
                                        @RequestParam("client_id") String clientId,
@@ -32,11 +36,13 @@ public class OAuth2Controller {
                 scope, state, codeChallenge, codeChallengeMethod);
     }
 
+    @Operation(summary = "提交 OAuth2 授权决策")
     @PostMapping("/authorize/decision")
     public AuthorizationDecisionResult decide(@RequestBody OAuth2DecisionRequest request) {
         return oAuth2AuthorizationApplicationService.decide(request.getAuthorizationRequestId(), request.getDecision());
     }
 
+    @Operation(summary = "换取 OAuth2 访问令牌")
     @PostMapping("/token")
     public OAuth2TokenResponse token(@RequestParam MultiValueMap<String, String> request) {
         return oAuth2AuthorizationApplicationService.token(request.getFirst("grant_type"), request.getFirst("code"),
@@ -44,6 +50,7 @@ public class OAuth2Controller {
                 request.getFirst("code_verifier"), request.getFirst("refresh_token"));
     }
 
+    @Operation(summary = "校验 OAuth2 令牌")
     @PostMapping("/introspect")
     public OAuth2IntrospectionResponse introspect(@RequestParam("token") String token,
                                                   @RequestParam("client_id") String clientId,
@@ -51,6 +58,7 @@ public class OAuth2Controller {
         return oAuth2AuthorizationApplicationService.introspect(token, clientId, clientSecret);
     }
 
+    @Operation(summary = "撤销 OAuth2 令牌")
     @PostMapping("/revoke")
     public void revoke(@RequestParam("token") String token,
                        @RequestParam("client_id") String clientId,
@@ -58,6 +66,7 @@ public class OAuth2Controller {
         oAuth2AuthorizationApplicationService.revoke(token, clientId, clientSecret);
     }
 
+    @Operation(summary = "获取 OAuth2 用户信息")
     @GetMapping("/userinfo")
     public OAuth2UserinfoResponse userinfo(@RequestHeader("Authorization") String authorization) {
         return oAuth2AuthorizationApplicationService.userinfo(extractBearerToken(authorization));

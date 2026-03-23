@@ -26,6 +26,7 @@
 - `DataPermissionRule`
 - `RoleDataScopeRelation`
 - `UpmsAuditLog`
+- `UpmsSysLog`
 
 当前范围不建表的对象：
 
@@ -50,6 +51,7 @@
 - 支持逻辑删除的主数据表统一包含 `deleted`
 - 关系表保持最小必要字段，不增加 `created_at`、`updated_at`
 - 审计表使用 `occurred_at`，不使用逻辑删除
+- 访问日志表使用 `occurred_at`，不使用逻辑删除
 - 当前设计不单独引入 `version` 字段
 
 ## 4. Naming Rules
@@ -76,6 +78,8 @@
 - `audit_object_type`: `USER`、`TENANT`、`DEPARTMENT`、`POST`、`ROLE`、`MENU`、`RESOURCE`、`USER_ROLE_RELATION`、`ROLE_MENU_RELATION`、`ROLE_RESOURCE_RELATION`、`DATA_PERMISSION_RULE`、`PASSWORD_MANAGEMENT`、`USER_IMPORT`、`USER_EXPORT`
 - `audit_result_status`: `SUCCESS`、`FAILED`
 - `request_source`: `ADMIN_WEB`、`SYSTEM_JOB`、`INTERNAL_API`、`IMPORT_TASK`、`EXPORT_TASK`
+- `sys_log_event_type`: `LOGIN`、`LOGOUT`、`CREATE`、`UPDATE`、`DELETE`、`QUERY`、`EXPORT`、`IMPORT`、`GRANT`、`REVOKE`、`OTHER`
+- `sys_log_result`: `SUCCESS`、`FAILURE`
 
 ### 5.2 Fixed Length Rules
 
@@ -103,6 +107,14 @@
 - `result_status`: `varchar(32)`
 - `identity_value`: `varchar(255)`
 - `password_hash`: `varchar(255)`
+- `trace_id`: `varchar(64)`
+- `request_id`: `varchar(64)`
+- `client_ip`: `varchar(64)`
+- `request_uri`: `varchar(255)`
+- `http_method`: `varchar(16)`
+- `controller_class_name`: `varchar(255)`
+- `controller_method_name`: `varchar(128)`
+- `error_message`: `varchar(1000)`
 
 ## 6. Table Mapping
 
@@ -123,6 +135,7 @@
 | `DataPermissionRule` | `bacon_upms_data_permission_rule` |
 | `RoleDataScopeRelation` | `bacon_upms_role_data_scope_rel` |
 | `UpmsAuditLog` | `bacon_upms_audit_log` |
+| `UpmsSysLog` | `bacon_upms_sys_log` |
 
 ## 7. Table Design
 
@@ -616,6 +629,58 @@
 - `USER_IMPORT`: `successCount`、`failedCount`、`failureRows`
 - `USER_EXPORT`: `exportCount`、`queryScope`
 
+### 7.16 `bacon_upms_sys_log`
+
+表类型：`Access Log Table`
+
+用途：
+
+- 记录带有 `@SysLog` 标记的 `Controller` 访问事件
+- 承接来自 `common-log` 切面发送到 MQ 的访问日志消息
+- 为运维排障、接口回溯、访问链路检索提供统一查询来源
+- 与业务审计日志分离，不承载业务前后镜像摘要
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `tenant_id` | `varchar(64)` | Y | 租户业务键 |
+| `trace_id` | `varchar(64)` | N | 链路标识 |
+| `request_id` | `varchar(64)` | N | 请求标识 |
+| `module` | `varchar(64)` | N | 模块标识 |
+| `action` | `varchar(128)` | N | 操作描述 |
+| `event_type` | `varchar(32)` | N | 事件类型，取值见 `sys_log_event_type` |
+| `result` | `varchar(32)` | N | 执行结果，取值见 `sys_log_result` |
+| `operator_id` | `bigint` | Y | 操作人用户主键 |
+| `operator_name` | `varchar(64)` | Y | 操作人名称 |
+| `client_ip` | `varchar(64)` | Y | 客户端IP |
+| `request_uri` | `varchar(255)` | Y | 请求URI |
+| `http_method` | `varchar(16)` | Y | HTTP方法 |
+| `controller_class_name` | `varchar(255)` | Y | 控制器类名 |
+| `controller_method_name` | `varchar(128)` | Y | 控制器方法名 |
+| `cost_ms` | `bigint` | Y | 访问耗时毫秒 |
+| `error_message` | `varchar(1000)` | Y | 失败原因摘要 |
+| `occurred_at` | `datetime(3)` | N | 事件发生时间 |
+| `created_at` | `datetime(3)` | N | 创建时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `idx_tenant_occurred(tenant_id, occurred_at)`
+- `idx_trace_id(trace_id)`
+- `idx_request_id(request_id)`
+
+固定说明：
+
+- 本表是访问日志表，不保存业务对象变更前后摘要
+- `error_message` 只保存异常摘要，不保存堆栈全文
+- `operator_name` 允许为空，不能作为唯一身份依据
+- 默认查询排序固定为 `occurred_at desc, id desc`
+- 日志文件与数据库表保存同一条消费结果，但数据库查询以本表为准
+- 主键生成策略由应用统一控制，数据库侧不依赖自增语义
+- 业务模块不得直接写本表，必须通过 `@SysLog -> aspect -> MQ -> UPMS consumer` 链路落库
+
 ## 8. Relationship Rules
 
 - `bacon_upms_user.department_id` 关联 `bacon_upms_department.id`
@@ -635,6 +700,8 @@
 - 当前设计不强制数据库外键
 - 关联一致性由应用层和领域层保证
 - 所有跨表写入必须校验 `tenant_id` 一致性
+- `bacon_upms_sys_log.operator_id` 可关联 `bacon_upms_user.id`
+- 当前设计不强制 `bacon_upms_sys_log.operator_id` 建立数据库外键
 
 ## 9. Persistence Rules
 
@@ -652,6 +719,8 @@
 - `status = DISABLED` 的 `Department`、`Post` 不得再绑定新的 `User`
 - `Tenant.status = DISABLED` 或 `User.status = DISABLED` 时，认证态即时失效由跨域调用 `bacon-auth-api` 触发，不在 `UPMS` 库内额外建表承载
 - 主键生成策略由应用统一控制，数据库侧不依赖自增语义
+- `bacon_upms_sys_log` 只允许追加写入，不允许更新历史记录
+- `bacon_upms_sys_log.trace_id`、`bacon_upms_sys_log.request_id` 不要求全局唯一，但必须支持高频检索
 
 ## 10. Query Model Rules
 
@@ -662,6 +731,7 @@
 - 权限码查询主表固定为 `bacon_upms_menu + bacon_upms_resource + 关联关系表`
 - 数据权限查询主表固定为 `bacon_upms_role + bacon_upms_data_permission_rule + bacon_upms_role_data_scope_rel + bacon_upms_user_role_rel`
 - 审计查询主表固定为 `bacon_upms_audit_log`
+- 访问日志查询主表固定为 `bacon_upms_sys_log`
 - 高频读模型由 `Mapper` 查询组装，不新增冗余快照表
 
 ## 11. Cache Mapping Rules

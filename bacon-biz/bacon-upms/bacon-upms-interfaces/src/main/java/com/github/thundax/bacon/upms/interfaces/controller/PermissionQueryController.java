@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.log.LogEventType;
+import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
@@ -23,6 +25,7 @@ public class PermissionQueryController {
     }
 
     @HasPermission("sys:permission:view")
+    @SysLog(module = "UPMS", action = "查询用户菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/menus")
     public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") Long tenantId,
                                                  @RequestParam("userId") Long userId) {
@@ -30,6 +33,7 @@ public class PermissionQueryController {
     }
 
     @HasPermission("sys:permission:view")
+    @SysLog(module = "UPMS", action = "查询用户权限码", eventType = LogEventType.QUERY)
     @GetMapping("/codes")
     public Set<String> getUserPermissionCodes(@RequestParam("tenantId") Long tenantId,
                                               @RequestParam("userId") Long userId) {
@@ -37,6 +41,7 @@ public class PermissionQueryController {
     }
 
     @HasPermission("sys:permission:view")
+    @SysLog(module = "UPMS", action = "查询用户数据范围", eventType = LogEventType.QUERY)
     @GetMapping("/data-scope")
     public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") Long tenantId,
                                              @RequestParam("userId") Long userId) {

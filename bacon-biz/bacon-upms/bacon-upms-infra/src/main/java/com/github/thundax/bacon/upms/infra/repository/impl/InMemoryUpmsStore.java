@@ -22,6 +22,7 @@ public class InMemoryUpmsStore {
     private final Map<String, Set<Long>> userDepartmentScopes = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> userScopeTypes = new ConcurrentHashMap<>();
     private final Map<String, Boolean> userAllAccess = new ConcurrentHashMap<>();
+    private final Map<Long, SysLogRecord> sysLogs = new ConcurrentHashMap<>();
 
     public InMemoryUpmsStore() {
         Tenant tenant = new Tenant(1L, 1001L, "tenant-demo", "Demo Tenant", "ENABLED");
@@ -93,6 +94,10 @@ public class InMemoryUpmsStore {
 
     public Map<String, Boolean> getUserAllAccess() {
         return userAllAccess;
+    }
+
+    public Map<Long, SysLogRecord> getSysLogs() {
+        return sysLogs;
     }
 
     public static String userKey(Long tenantId, Long userId) {

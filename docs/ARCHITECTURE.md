@@ -84,6 +84,7 @@ bacon
 │   ├── pom.xml
 │   ├── bacon-common-bom/            # 统一版本管理
 │   ├── bacon-common-core/           # 异常 / 枚举 / 常量 / 工具
+│   ├── bacon-common-log/            # 日志字段 / 事件类型 / 日志基础定义
 │   ├── bacon-common-web/            # 统一返回 / 全局异常 / Web 拦截
 │   ├── bacon-common-mysql/          # MySQL / MyBatis-Plus 基础封装
 │   ├── bacon-common-cache/          # JetCache / Redis / Caffeine 基础封装

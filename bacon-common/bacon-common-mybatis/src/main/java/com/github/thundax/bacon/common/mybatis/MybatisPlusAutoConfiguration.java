@@ -7,7 +7,7 @@ import com.github.thundax.bacon.common.mybatis.handler.IntegerArrayTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.LongArrayTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.StringArrayTypeHandler;
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
-import com.github.thundax.bacon.common.security.context.DefaultCurrentUserProvider;
+import com.github.thundax.bacon.common.security.context.SpringContextCurrentUserProvider;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.mybatis.spring.boot.autoconfigure.ConfigurationCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -34,7 +34,7 @@ public class MybatisPlusAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public CurrentUserProvider currentUserProvider() {
-        return new DefaultCurrentUserProvider();
+        return new SpringContextCurrentUserProvider();
     }
 
     @Bean

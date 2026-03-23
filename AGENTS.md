@@ -38,7 +38,7 @@ Place tests under `src/test/java`, mirroring production packages. Use `spring-bo
 Name test classes `*Test` for unit coverage and `*IT` for broader integration scenarios. Add tests for application services, domain services, and controller contracts when behavior changes.
 
 ## Commit & Pull Request Guidelines
-Current git history is mostly `init`, so there is no strong existing convention to preserve. Prefer short imperative commit messages such as `order: add create command validation`.
+Commit messages must use the format `Type(domain): 中文说明`, for example `Feat(boot): 初始化工程` or `Test(boot): 测试单例`.
 
 - Every file modification must be followed by a git commit before ending the task.
 - Every commit message must include a clear summary of what changed; when needed, add a commit body that explains the work, scope, and verification.

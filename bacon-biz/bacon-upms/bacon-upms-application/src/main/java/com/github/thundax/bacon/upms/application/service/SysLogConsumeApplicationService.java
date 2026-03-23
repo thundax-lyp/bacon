@@ -5,6 +5,8 @@ import com.github.thundax.bacon.upms.domain.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
 
+import static java.lang.Long.parseLong;
+
 @Service
 public class SysLogConsumeApplicationService {
 
@@ -29,8 +31,6 @@ public class SysLogConsumeApplicationService {
                 sysLogDTO.getClientIp(),
                 sysLogDTO.getRequestUri(),
                 sysLogDTO.getHttpMethod(),
-                sysLogDTO.getControllerClassName(),
-                sysLogDTO.getControllerMethodName(),
                 sysLogDTO.getCostMs(),
                 sysLogDTO.getErrorMessage(),
                 sysLogDTO.getOccurredAt()

@@ -26,8 +26,6 @@ public class SysLogDTO {
     private final String clientIp;
     private final String requestUri;
     private final String httpMethod;
-    private final String controllerClassName;
-    private final String controllerMethodName;
     private final long costMs;
     private final String errorMessage;
     private final Instant occurredAt;

@@ -52,8 +52,6 @@ public class SysLogAspect {
 
     private SysLogDTO buildMessage(ProceedingJoinPoint joinPoint, SysLog sysLog, long startTime,
                                    Throwable throwable) {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = requestAttributes instanceof ServletRequestAttributes servletRequestAttributes
                 ? servletRequestAttributes.getRequest() : null;
@@ -81,8 +79,6 @@ public class SysLogAspect {
                 clientIp,
                 requestUri,
                 httpMethod,
-                joinPoint.getTarget().getClass().getName(),
-                method.getName(),
                 costMs,
                 throwable == null ? null : throwable.getMessage(),
                 Instant.now()

@@ -6,12 +6,12 @@ import com.github.thundax.bacon.common.mq.BaconMqProperties;
 import com.github.thundax.bacon.common.mq.BaconMqSender;
 import com.github.thundax.bacon.common.mq.BaconMqType;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Component
+@Primary
 @ConditionalOnBean(BaconMqSender.class)
-@ConditionalOnMissingBean(SysLogMessageProducer.class)
 public class MqSysLogMessageProducer implements SysLogMessageProducer {
 
     private final BaconMqSender baconMqSender;

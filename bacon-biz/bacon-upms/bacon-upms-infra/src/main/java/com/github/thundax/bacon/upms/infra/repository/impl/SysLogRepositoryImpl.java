@@ -42,8 +42,6 @@ public class SysLogRepositoryImpl implements SysLogRepository {
                 sysLogRecord.getClientIp(),
                 sysLogRecord.getRequestUri(),
                 sysLogRecord.getHttpMethod(),
-                sysLogRecord.getControllerClassName(),
-                sysLogRecord.getControllerMethodName(),
                 sysLogRecord.getCostMs(),
                 sysLogRecord.getErrorMessage(),
                 sysLogRecord.getOccurredAt()
@@ -85,8 +83,6 @@ public class SysLogRepositoryImpl implements SysLogRepository {
                 nullSafe(sysLogRecord.getClientIp()),
                 nullSafe(sysLogRecord.getRequestUri()),
                 nullSafe(sysLogRecord.getHttpMethod()),
-                nullSafe(sysLogRecord.getControllerClassName()),
-                nullSafe(sysLogRecord.getControllerMethodName()),
                 nullSafe(sysLogRecord.getCostMs()),
                 nullSafe(sysLogRecord.getErrorMessage()),
                 sysLogRecord.getOccurredAt() == null ? "" : FORMATTER.format(sysLogRecord.getOccurredAt())

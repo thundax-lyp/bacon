@@ -8,7 +8,9 @@ public class BaconMqSysLogProperties {
     private String topic = "bacon-sys-log";
     private String tag = "sys-log";
     private String exchange = "bacon.sys.log.exchange";
+    private String queue = "bacon.sys.log.queue";
     private String routingKey = "bacon.sys.log";
+    private String consumerGroup = "bacon-upms-sys-log-group";
 
     public String getTopic() {
         return topic;
@@ -40,5 +42,21 @@ public class BaconMqSysLogProperties {
 
     public void setRoutingKey(String routingKey) {
         this.routingKey = routingKey;
+    }
+
+    public String getQueue() {
+        return queue;
+    }
+
+    public void setQueue(String queue) {
+        this.queue = queue;
+    }
+
+    public String getConsumerGroup() {
+        return consumerGroup;
+    }
+
+    public void setConsumerGroup(String consumerGroup) {
+        this.consumerGroup = consumerGroup;
     }
 }

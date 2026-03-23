@@ -22,8 +22,6 @@ public class SysLogRecord {
     private String clientIp;
     private String requestUri;
     private String httpMethod;
-    private String controllerClassName;
-    private String controllerMethodName;
     private Long costMs;
     private String errorMessage;
     private Instant occurredAt;

@@ -15,7 +15,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
 
     private final RestClient restClient;
 
-    public OrderReadFacadeRemoteImpl(@Value("${bacon.remote.order-base-url:http://localhost:8081}") String baseUrl) {
+    public OrderReadFacadeRemoteImpl(@Value("${bacon.remote.order-base-url:http://localhost:8083}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

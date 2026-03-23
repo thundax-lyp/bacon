@@ -10,12 +10,15 @@ import com.github.thundax.bacon.order.application.service.OrderQueryService;
 import com.github.thundax.bacon.order.interfaces.assembler.OrderAssembler;
 import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
 import com.github.thundax.bacon.order.interfaces.vo.OrderVO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 
 @RestController
 @RequestMapping("/api/orders")
+@Tag(name = "Order", description = "订单接口")
 public class OrderController {
 
     private final OrderApplicationService orderApplicationService;
@@ -29,12 +32,14 @@ public class OrderController {
         this.orderCancelApplicationService = orderCancelApplicationService;
     }
 
+    @Operation(summary = "创建订单")
     @HasPermission("order:order:create")
     @PostMapping
     public OrderVO create(@RequestBody CreateOrderRequest request) {
         return OrderAssembler.toVO(orderApplicationService.create(OrderAssembler.toCommand(request)));
     }
 
+    @Operation(summary = "按 ID 查询订单")
     @HasPermission("order:order:view")
     @GetMapping("/{orderId}")
     public OrderDetailDTO getById(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
@@ -42,6 +47,7 @@ public class OrderController {
         return orderQueryService.getById(tenantId, orderId);
     }
 
+    @Operation(summary = "分页查询订单")
     @HasPermission("order:order:view")
     @GetMapping
     public OrderPageResultDTO pageOrders(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
@@ -51,6 +57,7 @@ public class OrderController {
                 (Instant) null, (Instant) null, 1, 20));
     }
 
+    @Operation(summary = "取消订单")
     @HasPermission("order:order:cancel")
     @PostMapping("/{orderNo}/cancel")
     public void cancel(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId, @PathVariable String orderNo) {

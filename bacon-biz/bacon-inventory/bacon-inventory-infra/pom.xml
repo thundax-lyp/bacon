@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.thundax</groupId>
-            <artifactId>bacon-common-mysql</artifactId>
+            <artifactId>bacon-common-mybatis</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

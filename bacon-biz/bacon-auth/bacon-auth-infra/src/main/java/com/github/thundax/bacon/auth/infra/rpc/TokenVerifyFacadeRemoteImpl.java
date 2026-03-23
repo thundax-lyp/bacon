@@ -14,7 +14,7 @@ public class TokenVerifyFacadeRemoteImpl implements TokenVerifyFacade {
 
     private final RestClient restClient;
 
-    public TokenVerifyFacadeRemoteImpl(@Value("${bacon.remote.auth-base-url:http://localhost:8083}") String baseUrl) {
+    public TokenVerifyFacadeRemoteImpl(@Value("${bacon.remote.auth-base-url:http://localhost:8081}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

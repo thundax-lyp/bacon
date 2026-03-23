@@ -23,7 +23,10 @@ public class InMemoryAuthStore {
         Instant now = Instant.now();
         OAuthClient demoClient = new OAuthClient(1L, "demo-client", "demo-secret", "Demo OAuth Client",
                 "CONFIDENTIAL", Set.of("authorization_code", "refresh_token"), Set.of("openid", "profile"),
-                Set.of("http://localhost:3000/callback"), 1800L, 2592000L, true,
+                Set.of(
+                        "http://localhost:3000/callback",
+                        "http://localhost:8080/api/swagger-ui/oauth2-redirect.html"
+                ), 1800L, 2592000L, true,
                 "dev@bacon.local", "demo", now, now);
         clients.put(demoClient.getClientId(), demoClient);
     }

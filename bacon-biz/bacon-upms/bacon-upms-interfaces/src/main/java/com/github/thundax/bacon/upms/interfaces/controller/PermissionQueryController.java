@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
@@ -21,18 +22,21 @@ public class PermissionQueryController {
         this.permissionQueryService = permissionQueryService;
     }
 
+    @HasPermission("sys:permission:view")
     @GetMapping("/menus")
     public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") Long tenantId,
                                                  @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserMenuTree(tenantId, userId);
     }
 
+    @HasPermission("sys:permission:view")
     @GetMapping("/codes")
     public Set<String> getUserPermissionCodes(@RequestParam("tenantId") Long tenantId,
                                               @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserPermissionCodes(tenantId, userId);
     }
 
+    @HasPermission("sys:permission:view")
     @GetMapping("/data-scope")
     public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") Long tenantId,
                                              @RequestParam("userId") Long userId) {

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +17,13 @@ public class RoleQueryController {
         this.roleApplicationService = roleApplicationService;
     }
 
+    @HasPermission("sys:role:view")
     @GetMapping("/{roleId}")
     public RoleDTO getRoleById(@RequestParam("tenantId") Long tenantId, @PathVariable Long roleId) {
         return roleApplicationService.getRoleById(tenantId, roleId);
     }
 
+    @HasPermission("sys:role:view")
     @GetMapping
     public List<RoleDTO> getRolesByUserId(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
         return roleApplicationService.getRolesByUserId(tenantId, userId);

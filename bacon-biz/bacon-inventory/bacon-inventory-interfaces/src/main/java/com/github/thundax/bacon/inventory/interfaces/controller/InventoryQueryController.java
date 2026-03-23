@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
+import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.service.InventoryQueryService;
@@ -18,17 +19,20 @@ public class InventoryQueryController {
         this.inventoryQueryService = inventoryQueryService;
     }
 
+    @HasPermission("inventory:stock:view")
     @GetMapping("/inventories/{skuId}")
     public InventoryStockDTO getInventory(@RequestParam("tenantId") Long tenantId, @PathVariable Long skuId) {
         return inventoryQueryService.getAvailableStock(tenantId, skuId);
     }
 
+    @HasPermission("inventory:stock:view")
     @GetMapping("/inventories")
     public List<InventoryStockDTO> listInventories(@RequestParam("tenantId") Long tenantId,
                                                    @RequestParam("skuIds") Set<Long> skuIds) {
         return inventoryQueryService.batchGetAvailableStock(tenantId, skuIds);
     }
 
+    @HasPermission("inventory:reservation:view")
     @GetMapping("/inventory-reservations/{orderNo}")
     public InventoryReservationDTO getReservation(@RequestParam("tenantId") Long tenantId, @PathVariable String orderNo) {
         return inventoryQueryService.getReservationByOrderNo(tenantId, orderNo);

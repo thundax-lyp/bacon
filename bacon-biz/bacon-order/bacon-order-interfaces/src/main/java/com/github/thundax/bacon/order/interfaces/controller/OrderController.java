@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.interfaces.controller;
 
+import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -28,17 +29,20 @@ public class OrderController {
         this.orderCancelApplicationService = orderCancelApplicationService;
     }
 
+    @HasPermission("order:order:create")
     @PostMapping
     public OrderVO create(@RequestBody CreateOrderRequest request) {
         return OrderAssembler.toVO(orderApplicationService.create(OrderAssembler.toCommand(request)));
     }
 
+    @HasPermission("order:order:view")
     @GetMapping("/{orderId}")
     public OrderDetailDTO getById(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
                                   @PathVariable Long orderId) {
         return orderQueryService.getById(tenantId, orderId);
     }
 
+    @HasPermission("order:order:view")
     @GetMapping
     public OrderPageResultDTO pageOrders(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
                                          @RequestParam(value = "userId", required = false) Long userId,
@@ -47,6 +51,7 @@ public class OrderController {
                 (Instant) null, (Instant) null, 1, 20));
     }
 
+    @HasPermission("order:order:cancel")
     @PostMapping("/{orderNo}/cancel")
     public void cancel(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId, @PathVariable String orderNo) {
         orderCancelApplicationService.cancel(tenantId, orderNo);

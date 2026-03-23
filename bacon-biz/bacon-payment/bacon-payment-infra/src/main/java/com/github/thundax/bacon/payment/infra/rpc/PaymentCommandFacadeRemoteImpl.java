@@ -17,7 +17,7 @@ public class PaymentCommandFacadeRemoteImpl implements PaymentCommandFacade {
 
     private final RestClient restClient;
 
-    public PaymentCommandFacadeRemoteImpl(@Value("${bacon.remote.payment-base-url:http://localhost:8085}") String baseUrl) {
+    public PaymentCommandFacadeRemoteImpl(@Value("${bacon.remote.payment-base-url:http://localhost:8085/api}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

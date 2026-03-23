@@ -19,7 +19,7 @@
         <module>bacon-common-core</module>
         <module>bacon-common-log</module>
         <module>bacon-common-web</module>
-        <module>bacon-common-mysql</module>
+        <module>bacon-common-mybatis</module>
         <module>bacon-common-cache</module>
         <module>bacon-common-mq</module>
         <module>bacon-common-oss</module>

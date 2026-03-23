@@ -42,6 +42,11 @@
                 <artifactId>bacon-common-log</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.github.thundax</groupId>
+                <artifactId>bacon-common-mybatis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

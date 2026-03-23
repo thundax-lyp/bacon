@@ -55,7 +55,7 @@ public class OpenApiAutoConfiguration {
 
         String runtimeMode = environment.getProperty("bacon.runtime.mode", "mono");
         if ("micro".equalsIgnoreCase(runtimeMode)) {
-            String authBaseUrl = environment.getProperty("bacon.remote.auth-base-url", "http://localhost:8081");
+            String authBaseUrl = environment.getProperty("bacon.remote.auth-base-url", "http://localhost:8081/api");
             return joinUrl(authBaseUrl, path);
         }
 

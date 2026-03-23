@@ -33,7 +33,7 @@ public class MybatisPlusAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public CurrentUserProvider currentUserProvider() {
+    public CurrentUserProvider mybatisFallbackCurrentUserProvider() {
         return new SpringContextCurrentUserProvider();
     }
 

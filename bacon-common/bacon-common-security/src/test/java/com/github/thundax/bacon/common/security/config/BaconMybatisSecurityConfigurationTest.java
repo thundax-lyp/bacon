@@ -35,8 +35,10 @@ class BaconMybatisSecurityConfigurationTest {
                 .withPropertyValues("bacon.runtime.mode=mono")
                 .run(context -> {
                     CurrentUserProvider currentUserProvider = context.getBean(CurrentUserProvider.class);
+                    MonoCurrentUserProvider monoCurrentUserProvider = context.getBean(MonoCurrentUserProvider.class);
 
                     assertThat(currentUserProvider).isInstanceOf(MonoCurrentUserProvider.class);
+                    assertThat(monoCurrentUserProvider).isSameAs(currentUserProvider);
                     assertThat(currentUserProvider.currentUserId()).isEqualTo("mono-user");
                 });
     }
@@ -48,8 +50,11 @@ class BaconMybatisSecurityConfigurationTest {
                 .withUserConfiguration(MicroResolverConfiguration.class)
                 .run(context -> {
                     CurrentUserProvider currentUserProvider = context.getBean(CurrentUserProvider.class);
+                    SpringContextCurrentUserProvider springContextCurrentUserProvider =
+                            context.getBean(SpringContextCurrentUserProvider.class);
 
                     assertThat(currentUserProvider).isInstanceOf(SpringContextCurrentUserProvider.class);
+                    assertThat(springContextCurrentUserProvider).isSameAs(currentUserProvider);
                 });
     }
 

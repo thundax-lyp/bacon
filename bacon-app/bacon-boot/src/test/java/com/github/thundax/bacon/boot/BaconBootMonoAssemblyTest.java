@@ -6,6 +6,8 @@ import com.github.thundax.bacon.auth.api.facade.TokenVerifyFacade;
 import com.github.thundax.bacon.auth.interfaces.provider.OAuthClientReadFacadeLocalImpl;
 import com.github.thundax.bacon.auth.interfaces.provider.SessionCommandFacadeLocalImpl;
 import com.github.thundax.bacon.auth.interfaces.provider.TokenVerifyFacadeLocalImpl;
+import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
+import com.github.thundax.bacon.common.security.context.MonoCurrentUserProvider;
 import com.github.thundax.bacon.common.test.BaconSpringBootTest;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
@@ -87,6 +89,9 @@ class BaconBootMonoAssemblyTest extends BaconSpringBootTest {
     @Autowired
     private PaymentCommandFacade paymentCommandFacade;
 
+    @Autowired
+    private CurrentUserProvider currentUserProvider;
+
     @Test
     void shouldWireLocalFacadeImplementationsInMonoMode() {
         assertThat(tokenVerifyFacade).isInstanceOf(TokenVerifyFacadeLocalImpl.class);
@@ -102,5 +107,6 @@ class BaconBootMonoAssemblyTest extends BaconSpringBootTest {
         assertThat(inventoryCommandFacade).isInstanceOf(InventoryCommandFacadeLocalImpl.class);
         assertThat(paymentReadFacade).isInstanceOf(PaymentReadFacadeLocalImpl.class);
         assertThat(paymentCommandFacade).isInstanceOf(PaymentCommandFacadeLocalImpl.class);
+        assertThat(currentUserProvider).isInstanceOf(MonoCurrentUserProvider.class);
     }
 }

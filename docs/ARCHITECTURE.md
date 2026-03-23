@@ -88,7 +88,7 @@ bacon
 │   ├── bacon-common-web/            # 统一返回 / 全局异常 / Web 拦截
 │   ├── bacon-common-mysql/          # MySQL / MyBatis-Plus 基础封装
 │   ├── bacon-common-cache/          # JetCache / Redis / Caffeine 基础封装
-│   ├── bacon-common-mq/             # MQ 封装
+│   ├── bacon-common-mq/             # MQ 封装，按配置切换 RocketMQ / RabbitMQ / Kafka
 │   ├── bacon-common-oss/            # 对象存储封装
 │   ├── bacon-common-feign/          # Feign 封装
 │   ├── bacon-common-seata/          # Seata 封装

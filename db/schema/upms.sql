@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_tenant` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_tenant_id` (`tenant_id`),
     UNIQUE KEY `uk_code` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
     `id` bigint NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_account` (`account`),
     KEY `idx_tenant_department_status` (`tenant_id`, `department_id`, `status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
     `id` bigint NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_identity` (`identity_type`, `identity_value`),
     KEY `idx_tenant_user` (`tenant_id`, `user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_department` (
     `id` bigint NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_department` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_code` (`code`),
     KEY `idx_tenant_parent_status` (`tenant_id`, `parent_id`, `status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_post` (
     `id` bigint NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_post` (
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_code` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_role` (
     `id` bigint NOT NULL,
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_code` (`code`),
     KEY `idx_tenant_role_type_status` (`tenant_id`, `role_type`, `status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_menu` (
     `id` bigint NOT NULL,
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_menu` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_permission_code` (`permission_code`),
     KEY `idx_tenant_parent_status_visible` (`tenant_id`, `parent_id`, `status`, `visible`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_resource` (
     `id` bigint NOT NULL,
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_resource` (
     UNIQUE KEY `uk_path_method` (`path`, `method`),
     UNIQUE KEY `uk_permission_code` (`permission_code`),
     KEY `idx_tenant_resource_type_status` (`tenant_id`, `resource_type`, `status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_role_rel` (
     `id` bigint NOT NULL,
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_role_rel` (
     UNIQUE KEY `uk_user_role` (`tenant_id`, `user_id`, `role_id`),
     KEY `idx_tenant_user` (`tenant_id`, `user_id`),
     KEY `idx_tenant_role` (`tenant_id`, `role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_post_rel` (
     `id` bigint NOT NULL,
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_post_rel` (
     UNIQUE KEY `uk_user_post` (`tenant_id`, `user_id`, `post_id`),
     KEY `idx_tenant_user` (`tenant_id`, `user_id`),
     KEY `idx_tenant_post` (`tenant_id`, `post_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_role_menu_rel` (
     `id` bigint NOT NULL,
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_menu_rel` (
     UNIQUE KEY `uk_role_menu` (`tenant_id`, `role_id`, `menu_id`),
     KEY `idx_tenant_role` (`tenant_id`, `role_id`),
     KEY `idx_tenant_menu` (`tenant_id`, `menu_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_role_resource_rel` (
     `id` bigint NOT NULL,
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_resource_rel` (
     UNIQUE KEY `uk_role_resource` (`tenant_id`, `role_id`, `resource_id`),
     KEY `idx_tenant_role` (`tenant_id`, `role_id`),
     KEY `idx_tenant_resource` (`tenant_id`, `resource_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_data_permission_rule` (
     `id` bigint NOT NULL,
@@ -206,7 +206,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_data_permission_rule` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role` (`tenant_id`, `role_id`),
     KEY `idx_tenant_role` (`tenant_id`, `role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_role_data_scope_rel` (
     `id` bigint NOT NULL,
@@ -215,7 +215,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_data_scope_rel` (
     `department_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_department` (`tenant_id`, `role_id`, `department_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_audit_log` (
     `id` bigint NOT NULL,
@@ -233,4 +233,28 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_audit_log` (
     KEY `idx_tenant_occurred` (`tenant_id`, `occurred_at`),
     KEY `idx_object` (`object_type`, `object_id`),
     KEY `idx_operator` (`operator_id`, `occurred_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `bacon_upms_sys_log` (
+    `id` bigint NOT NULL,
+    `tenant_id` varchar(64) DEFAULT NULL,
+    `trace_id` varchar(64) NOT NULL,
+    `request_id` varchar(64) NOT NULL,
+    `module` varchar(64) NOT NULL,
+    `action` varchar(128) NOT NULL,
+    `event_type` varchar(32) NOT NULL,
+    `result` varchar(32) NOT NULL,
+    `operator_id` bigint DEFAULT NULL,
+    `operator_name` varchar(64) DEFAULT NULL,
+    `client_ip` varchar(64) DEFAULT NULL,
+    `request_uri` varchar(255) DEFAULT NULL,
+    `http_method` varchar(16) DEFAULT NULL,
+    `cost_ms` bigint DEFAULT NULL,
+    `error_message` varchar(1000) DEFAULT NULL,
+    `occurred_at` datetime(3) NOT NULL,
+    `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (`id`),
+    KEY `idx_sys_log_tenant_id` (`tenant_id`),
+    KEY `idx_sys_log_trace_id` (`trace_id`),
+    KEY `idx_sys_log_occurred_at` (`occurred_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

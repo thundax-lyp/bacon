@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `bacon_auth_session` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_session_id` (`session_id`),
     KEY `idx_tenant_user_status` (`tenant_id`, `user_id`, `session_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_auth_refresh_token_session` (
     `id` bigint NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `bacon_auth_refresh_token_session` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_refresh_token_hash` (`refresh_token_hash`),
     KEY `idx_session_status` (`session_id`, `token_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_client` (
     `id` bigint NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_client` (
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_client_id` (`client_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_authorization_code` (
     `id` bigint NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_authorization_code` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_authorization_code` (`authorization_code`),
     KEY `idx_client_user_expire` (`client_id`, `user_id`, `expire_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_access_token` (
     `id` bigint NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_access_token` (
     UNIQUE KEY `uk_token_id` (`token_id`),
     UNIQUE KEY `uk_token_hash` (`token_hash`),
     KEY `idx_client_user_status` (`client_id`, `user_id`, `token_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_refresh_token` (
     `id` bigint NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_refresh_token` (
     UNIQUE KEY `uk_token_id` (`token_id`),
     UNIQUE KEY `uk_token_hash` (`token_hash`),
     KEY `idx_client_user_status` (`client_id`, `user_id`, `token_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_consent` (
     `id` bigint NOT NULL,
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `bacon_auth_oauth_consent` (
     `granted_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_client_user` (`client_id`, `tenant_id`, `user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_auth_audit_log` (
     `id` bigint NOT NULL,
@@ -133,4 +133,4 @@ CREATE TABLE IF NOT EXISTS `bacon_auth_audit_log` (
     KEY `idx_tenant_occurred` (`tenant_id`, `occurred_at`),
     KEY `idx_user_occurred` (`user_id`, `occurred_at`),
     KEY `idx_client_occurred` (`client_id`, `occurred_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

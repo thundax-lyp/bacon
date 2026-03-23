@@ -112,8 +112,6 @@
 - `client_ip`: `varchar(64)`
 - `request_uri`: `varchar(255)`
 - `http_method`: `varchar(16)`
-- `controller_class_name`: `varchar(255)`
-- `controller_method_name`: `varchar(128)`
 - `error_message`: `varchar(1000)`
 
 ## 6. Table Mapping
@@ -657,8 +655,6 @@
 | `client_ip` | `varchar(64)` | Y | 客户端IP |
 | `request_uri` | `varchar(255)` | Y | 请求URI |
 | `http_method` | `varchar(16)` | Y | HTTP方法 |
-| `controller_class_name` | `varchar(255)` | Y | 控制器类名 |
-| `controller_method_name` | `varchar(128)` | Y | 控制器方法名 |
 | `cost_ms` | `bigint` | Y | 访问耗时毫秒 |
 | `error_message` | `varchar(1000)` | Y | 失败原因摘要 |
 | `occurred_at` | `datetime(3)` | N | 事件发生时间 |

@@ -5,12 +5,15 @@ import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.service.DepartmentApplicationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
 
 @RestController
 @RequestMapping("/upms/departments")
+@Tag(name = "UPMS Department", description = "部门查询接口")
 public class DepartmentQueryController {
 
     private final DepartmentApplicationService departmentApplicationService;
@@ -19,6 +22,7 @@ public class DepartmentQueryController {
         this.departmentApplicationService = departmentApplicationService;
     }
 
+    @Operation(summary = "按部门 ID 查询部门")
     @HasPermission("sys:department:view")
     @SysLog(module = "UPMS", action = "查询部门详情", eventType = LogEventType.QUERY)
     @GetMapping("/{departmentId}")
@@ -26,6 +30,7 @@ public class DepartmentQueryController {
         return departmentApplicationService.getDepartmentById(tenantId, departmentId);
     }
 
+    @Operation(summary = "按部门编码查询部门")
     @HasPermission("sys:department:view")
     @SysLog(module = "UPMS", action = "按编码查询部门", eventType = LogEventType.QUERY)
     @GetMapping("/code/{departmentCode}")
@@ -34,6 +39,7 @@ public class DepartmentQueryController {
         return departmentApplicationService.getDepartmentByCode(tenantId, departmentCode);
     }
 
+    @Operation(summary = "批量查询部门")
     @HasPermission("sys:department:view")
     @SysLog(module = "UPMS", action = "批量查询部门", eventType = LogEventType.QUERY)
     @GetMapping

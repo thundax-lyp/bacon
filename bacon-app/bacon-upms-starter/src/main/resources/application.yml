@@ -1,5 +1,7 @@
 server:
   port: ${BACON_SERVER_PORT:8082}
+  servlet:
+    context-path: /api
 
 spring:
   application:
@@ -13,7 +15,7 @@ bacon:
   runtime:
     mode: micro
   remote:
-    auth-base-url: ${BACON_REMOTE_AUTH_BASE_URL:http://localhost:8081}
+    auth-base-url: ${BACON_REMOTE_AUTH_BASE_URL:http://localhost:8081/api}
 
 management:
   endpoints:

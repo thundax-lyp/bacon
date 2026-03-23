@@ -5,6 +5,8 @@ import com.github.thundax.bacon.upms.application.service.DepartmentApplicationSe
 import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
 import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
 import com.github.thundax.bacon.upms.application.service.UserApplicationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,6 +14,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/providers/upms")
+@Tag(name = "UPMS Provider", description = "UPMS 域内部 Provider 接口")
 public class UpmsProviderController {
 
     private final UserApplicationService userApplicationService;
@@ -29,11 +32,13 @@ public class UpmsProviderController {
         this.permissionQueryService = permissionQueryService;
     }
 
+    @Operation(summary = "按用户 ID 查询用户")
     @GetMapping("/users/{userId}")
     public UserDTO getUserById(@RequestParam("tenantId") Long tenantId, @PathVariable Long userId) {
         return userApplicationService.getUserById(tenantId, userId);
     }
 
+    @Operation(summary = "按身份标识查询用户身份")
     @GetMapping("/user-identities")
     public UserIdentityDTO getUserIdentity(@RequestParam("tenantId") Long tenantId,
                                            @RequestParam("identityType") String identityType,
@@ -41,47 +46,56 @@ public class UpmsProviderController {
         return userApplicationService.getUserIdentity(tenantId, identityType, identityValue);
     }
 
+    @Operation(summary = "按租户 ID 查询租户")
     @GetMapping("/tenants/{tenantId}")
     public TenantDTO getTenant(@PathVariable Long tenantId) {
         return userApplicationService.getTenantByTenantId(tenantId);
     }
 
+    @Operation(summary = "按部门 ID 查询部门")
     @GetMapping("/departments/{departmentId}")
     public DepartmentDTO getDepartmentById(@RequestParam("tenantId") Long tenantId, @PathVariable Long departmentId) {
         return departmentApplicationService.getDepartmentById(tenantId, departmentId);
     }
 
+    @Operation(summary = "按部门编码查询部门")
     @GetMapping("/departments/code/{departmentCode}")
     public DepartmentDTO getDepartmentByCode(@RequestParam("tenantId") Long tenantId, @PathVariable String departmentCode) {
         return departmentApplicationService.getDepartmentByCode(tenantId, departmentCode);
     }
 
+    @Operation(summary = "批量查询部门")
     @GetMapping("/departments")
     public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("tenantId") Long tenantId,
                                                     @RequestParam("departmentIds") Set<Long> departmentIds) {
         return departmentApplicationService.listDepartmentsByIds(tenantId, departmentIds);
     }
 
+    @Operation(summary = "按角色 ID 查询角色")
     @GetMapping("/roles/{roleId}")
     public RoleDTO getRoleById(@RequestParam("tenantId") Long tenantId, @PathVariable Long roleId) {
         return roleApplicationService.getRoleById(tenantId, roleId);
     }
 
+    @Operation(summary = "查询用户角色列表")
     @GetMapping("/roles")
     public List<RoleDTO> getRolesByUserId(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
         return roleApplicationService.getRolesByUserId(tenantId, userId);
     }
 
+    @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
     public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserMenuTree(tenantId, userId);
     }
 
+    @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
     public Set<String> getUserPermissionCodes(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserPermissionCodes(tenantId, userId);
     }
 
+    @Operation(summary = "查询用户数据权限范围")
     @GetMapping("/permissions/data-scope")
     public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserDataScope(tenantId, userId);

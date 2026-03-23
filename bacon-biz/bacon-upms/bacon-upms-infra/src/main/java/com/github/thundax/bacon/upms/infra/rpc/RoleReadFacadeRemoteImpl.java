@@ -19,7 +19,7 @@ public class RoleReadFacadeRemoteImpl implements RoleReadFacade {
 
     private final RestClient restClient;
 
-    public RoleReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://localhost:8082}") String baseUrl) {
+    public RoleReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://localhost:8082/api}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

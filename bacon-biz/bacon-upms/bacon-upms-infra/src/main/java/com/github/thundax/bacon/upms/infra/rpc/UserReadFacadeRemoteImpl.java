@@ -15,7 +15,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
     private final RestClient restClient;
 
-    public UserReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://localhost:8082}") String baseUrl) {
+    public UserReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://localhost:8082/api}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

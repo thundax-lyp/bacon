@@ -12,7 +12,7 @@ public class SessionCommandFacadeRemoteImpl implements SessionCommandFacade {
 
     private final RestClient restClient;
 
-    public SessionCommandFacadeRemoteImpl(@Value("${bacon.remote.auth-base-url:http://localhost:8081}") String baseUrl) {
+    public SessionCommandFacadeRemoteImpl(@Value("${bacon.remote.auth-base-url:http://localhost:8081/api}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

@@ -13,7 +13,7 @@ public class OAuthClientReadFacadeRemoteImpl implements OAuthClientReadFacade {
 
     private final RestClient restClient;
 
-    public OAuthClientReadFacadeRemoteImpl(@Value("${bacon.remote.auth-base-url:http://localhost:8081}") String baseUrl) {
+    public OAuthClientReadFacadeRemoteImpl(@Value("${bacon.remote.auth-base-url:http://localhost:8081/api}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

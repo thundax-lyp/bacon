@@ -39,7 +39,7 @@
 - 数据库固定使用 `MySQL 8.x`
 - 存储引擎固定使用 `InnoDB`
 - 字符集固定使用 `utf8mb4`
-- 排序规则固定使用 `utf8mb4_0900_ai_ci`
+- 排序规则使用数据库默认值
 - 时间字段统一使用 `datetime(3)`
 - 主键字段统一使用 `bigint`
 - 布尔字段统一使用 `tinyint(1)`
@@ -47,7 +47,7 @@
 - `UPMS` 不涉及金额字段
 - 所有跨租户数据表必须包含 `tenant_id`
 - 所有高频查询联合索引优先让 `tenant_id` 位于前缀
-- 主数据表统一包含 `created_at`、`created_by`、`updated_at`、`updated_by`
+- 主数据表统一包含 `created_by`、`created_at`、`updated_by`、`updated_at`
 - 支持逻辑删除的主数据表统一包含 `deleted`
 - 关系表保持最小必要字段，不增加 `created_at`、`updated_at`
 - 审计表使用 `occurred_at`，不使用逻辑删除
@@ -155,9 +155,9 @@
 | `code` | `varchar(64)` | N | 租户编码，全局唯一 |
 | `name` | `varchar(128)` | N | 租户名称 |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -189,9 +189,9 @@
 | `need_change_password` | `tinyint(1)` | N | 首次登录是否必须改密 |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -219,9 +219,9 @@
 | `identity_type` | `varchar(16)` | N | 标识类型，取值见 `identity_type` |
 | `identity_value` | `varchar(255)` | N | 标识值 |
 | `enabled` | `tinyint(1)` | N | 是否可用于认证 |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -251,9 +251,9 @@
 | `leader_user_id` | `bigint` | Y | 负责人用户主键 |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -281,9 +281,9 @@
 | `sort` | `int` | N | 排序值，越小越靠前 |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -313,9 +313,9 @@
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `built_in` | `tinyint(1)` | N | 是否内置 |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -351,9 +351,9 @@
 | `permission_code` | `varchar(128)` | N | 权限编码，全局唯一 |
 | `built_in` | `tinyint(1)` | N | 是否内置 |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -386,9 +386,9 @@
 | `permission_code` | `varchar(128)` | N | 权限编码，全局唯一 |
 | `built_in` | `tinyint(1)` | N | 是否内置 |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -512,9 +512,9 @@
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `role_id` | `bigint` | N | 角色主键 |
 | `data_scope_type` | `varchar(32)` | N | 数据范围类型，取值见 `data_scope_type` |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -658,7 +658,10 @@
 | `cost_ms` | `bigint` | Y | 访问耗时毫秒 |
 | `error_message` | `varchar(1000)` | Y | 失败原因摘要 |
 | `occurred_at` | `datetime(3)` | N | 事件发生时间 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
 

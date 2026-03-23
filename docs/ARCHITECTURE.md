@@ -86,7 +86,7 @@ bacon
 │   ├── bacon-common-core/           # 异常 / 枚举 / 常量 / 工具
 │   ├── bacon-common-log/            # 日志字段 / 事件类型 / 日志基础定义
 │   ├── bacon-common-web/            # 统一返回 / 全局异常 / Web 拦截
-│   ├── bacon-common-mysql/          # MySQL / MyBatis-Plus 基础封装
+│   ├── bacon-common-mybatis/        # MyBatis / MyBatis-Plus 基础封装
 │   ├── bacon-common-cache/          # JetCache / Redis / Caffeine 基础封装
 │   ├── bacon-common-mq/             # MQ 封装，按配置切换 RocketMQ / RabbitMQ / Kafka
 │   ├── bacon-common-oss/            # 对象存储封装
@@ -502,7 +502,7 @@ bacon-biz/bacon-<domain>/
 ### 公共模块归属
 - `bacon-common-core`
     - `hutool`
-- `bacon-common-mysql`
+- `bacon-common-mybatis`
     - `mybatis-plus`
 - `bacon-common-cache`
     - `jetcache`
@@ -530,7 +530,7 @@ bacon-biz/bacon-<domain>/
     - 默认使用 `org.apache.commons.lang3.StringUtils`
     - 不建议与 Hutool 的字符串工具在同一模块内混用
 - `mybatis-plus`
-    - 由 `bacon-common-mysql` 统一封装分页、通用字段填充、基础配置
+    - 由 `bacon-common-mybatis` 统一封装分页、通用字段填充、基础配置
     - 业务域 `infra.persistence` 只保留 mapper、dataobject、repositoryimpl 等实现
     - 持久化统一主实现采用 `mybatis-plus + mapper + repositoryimpl`，不再叠加 DAO 基础框架
 - `jetcache`

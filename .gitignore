@@ -25,3 +25,6 @@ hs_err_pid*
 replay_pid*
 /.idea/
 /bacon-app/bacon-boot/.env.dev
+
+# macOS Finder metadata
+.DS_Store

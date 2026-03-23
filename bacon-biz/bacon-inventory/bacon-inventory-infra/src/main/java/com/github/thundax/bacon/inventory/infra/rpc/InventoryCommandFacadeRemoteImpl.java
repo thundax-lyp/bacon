@@ -16,7 +16,7 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
 
     private final RestClient restClient;
 
-    public InventoryCommandFacadeRemoteImpl(@Value("${bacon.remote.inventory-base-url:http://localhost:8085}") String baseUrl) {
+    public InventoryCommandFacadeRemoteImpl(@Value("${bacon.remote.inventory-base-url:http://localhost:8084}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

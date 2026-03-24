@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -23,6 +24,10 @@ import org.springframework.context.event.EventListener;
 public class SwaggerConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(SwaggerConfiguration.class);
+    private static final String FRONTEND_GROUP = "frontend";
+    private static final String INNER_GROUP = "inner";
+    private static final String CONTROLLER_PACKAGE_SEGMENT = ".interfaces.controller";
+    private static final String PROVIDER_PACKAGE_SEGMENT = ".interfaces.provider";
 
     @Bean
     public OpenAPI baconOpenApi(Environment environment, SwaggerProperties swaggerProperties) {
@@ -55,6 +60,22 @@ public class SwaggerConfiguration {
                 .addSecurityItem(new SecurityRequirement().addList("oauth2"));
     }
 
+    @Bean
+    public GroupedOpenApi frontendOpenApi() {
+        return GroupedOpenApi.builder()
+                .group(FRONTEND_GROUP)
+                .addOpenApiMethodFilter(method -> hasPackageSegment(method.getDeclaringClass(), CONTROLLER_PACKAGE_SEGMENT))
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi innerOpenApi() {
+        return GroupedOpenApi.builder()
+                .group(INNER_GROUP)
+                .addOpenApiMethodFilter(method -> hasPackageSegment(method.getDeclaringClass(), PROVIDER_PACKAGE_SEGMENT))
+                .build();
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
     public void logSwaggerEndpoints(ApplicationReadyEvent event) {
@@ -62,9 +83,13 @@ public class SwaggerConfiguration {
         String baseUrl = buildBaseUrl(environment);
         String swaggerUiUrl = joinUrl(baseUrl, "/swagger-ui/index.html");
         String apiDocsUrl = joinUrl(baseUrl, "/v3/api-docs");
+        String frontendDocsUrl = joinUrl(baseUrl, "/v3/api-docs/" + FRONTEND_GROUP);
+        String innerDocsUrl = joinUrl(baseUrl, "/v3/api-docs/" + INNER_GROUP);
 
         log.info("Swagger UI: {}", swaggerUiUrl);
         log.info("OpenAPI Docs: {}", apiDocsUrl);
+        log.info("Frontend Docs: {}", frontendDocsUrl);
+        log.info("Inner Docs: {}", innerDocsUrl);
     }
 
     private String resolveUrl(Environment environment, String explicitUrl, String path) {
@@ -109,5 +134,10 @@ public class SwaggerConfiguration {
 
         String contextPath = environment.getProperty("server.servlet.context-path", "");
         return scheme + "://" + host + ":" + port + contextPath;
+    }
+
+    private boolean hasPackageSegment(Class<?> declaringClass, String packageSegment) {
+        Package declaringPackage = declaringClass.getPackage();
+        return declaringPackage != null && declaringPackage.getName().contains(packageSegment);
     }
 }

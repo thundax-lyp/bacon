@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.interfaces.provider;
+package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;

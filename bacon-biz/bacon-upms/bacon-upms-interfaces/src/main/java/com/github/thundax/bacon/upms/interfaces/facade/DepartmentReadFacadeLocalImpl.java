@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.interfaces.provider;
+package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;

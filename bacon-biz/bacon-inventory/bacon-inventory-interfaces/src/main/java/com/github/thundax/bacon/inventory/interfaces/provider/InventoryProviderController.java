@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.interfaces.controller;
+package com.github.thundax.bacon.inventory.interfaces.provider;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;

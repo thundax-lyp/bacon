@@ -314,7 +314,7 @@ common      -> 被各层依赖
 - 跨域 DTO 放在 `<domain>-api` 模块的 `api.dto`。
 - 本地实现放在被调用方，作为 `api.facade` 的本地适配实现，例如 `UserReadFacadeLocalImpl`。
 - 远程调用实现放在调用方的 `infra.rpc` 或公共 `common-feign` 扩展中，例如 `UserReadFacadeRemoteImpl`。
-- 服务提供方的 provider 入口放在 `interfaces.provider` 或 `interfaces.controller`，但必须直接对齐 `api.facade`。
+- 服务提供方的 provider 入口固定放在 `interfaces.provider`，本地 `Facade` 适配实现固定放在 `interfaces.facade`，但都必须直接对齐 `api.facade`。
 - 业务编排始终写在 `application`，不要写进 Feign client。
 
 ## Mono-App 约定

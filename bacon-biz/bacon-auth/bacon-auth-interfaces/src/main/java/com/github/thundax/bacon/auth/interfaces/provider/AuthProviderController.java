@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.interfaces.controller;
+package com.github.thundax.bacon.auth.interfaces.provider;
 
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
 import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;

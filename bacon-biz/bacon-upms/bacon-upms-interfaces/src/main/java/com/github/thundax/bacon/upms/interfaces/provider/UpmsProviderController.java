@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.interfaces.controller;
+package com.github.thundax.bacon.upms.interfaces.provider;
 
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;

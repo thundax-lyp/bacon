@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.auth.application.service;
 
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
@@ -12,9 +13,12 @@ public class PasswordApplicationService {
             Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
 
     private final SessionApplicationService sessionApplicationService;
+    private final UserPasswordFacade userPasswordFacade;
 
-    public PasswordApplicationService(SessionApplicationService sessionApplicationService) {
+    public PasswordApplicationService(SessionApplicationService sessionApplicationService,
+                                      UserPasswordFacade userPasswordFacade) {
         this.sessionApplicationService = sessionApplicationService;
+        this.userPasswordFacade = userPasswordFacade;
     }
 
     public void changePassword(String accessToken, String oldPassword, String newPassword) {
@@ -28,6 +32,7 @@ public class PasswordApplicationService {
             throw new IllegalArgumentException("New password must differ from old password");
         }
         CurrentSessionDTO currentSession = sessionApplicationService.currentSession(accessToken);
+        userPasswordFacade.changePassword(currentSession.getTenantId(), currentSession.getUserId(), oldPassword, newPassword);
         sessionApplicationService.invalidateUserSessions(currentSession.getTenantId(), currentSession.getUserId(),
                 "SELF_PASSWORD_CHANGED");
     }

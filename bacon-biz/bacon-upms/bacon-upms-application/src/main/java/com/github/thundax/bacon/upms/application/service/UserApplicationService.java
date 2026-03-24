@@ -17,6 +17,7 @@ import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,14 +30,17 @@ public class UserApplicationService {
     private final RoleRepository roleRepository;
     private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
+    private final PasswordEncoder passwordEncoder;
 
     public UserApplicationService(UserRepository userRepository, RoleRepository roleRepository,
                                   TenantRepository tenantRepository,
-                                  SessionCommandFacade sessionCommandFacade) {
+                                  SessionCommandFacade sessionCommandFacade,
+                                  PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public UserDTO getUserById(Long tenantId, Long userId) {
@@ -128,6 +132,16 @@ public class UserApplicationService {
         User user = userRepository.updatePassword(tenantId, userId, normalize(newPassword));
         sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_PASSWORD_RESET");
         return toDto(user);
+    }
+
+    public void changePassword(Long tenantId, Long userId, String oldPassword, String newPassword) {
+        User user = requireUser(tenantId, userId);
+        validateRequired(oldPassword, "oldPassword");
+        validateRequired(newPassword, "newPassword");
+        if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("Old password invalid");
+        }
+        userRepository.updatePassword(tenantId, userId, normalize(newPassword));
     }
 
     public List<RoleDTO> assignRoles(Long tenantId, Long userId, List<Long> roleIds) {

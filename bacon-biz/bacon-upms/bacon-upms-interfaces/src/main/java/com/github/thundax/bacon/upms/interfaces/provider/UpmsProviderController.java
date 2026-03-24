@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
+import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
 import com.github.thundax.bacon.upms.application.service.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
 import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,6 +65,14 @@ public class UpmsProviderController {
                                                          @RequestParam("identityType") String identityType,
                                                          @RequestParam("identityValue") String identityValue) {
         return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
+    }
+
+    @Operation(summary = "当前用户修改密码")
+    @PostMapping("/users/{userId}/password/change")
+    public void changePassword(@RequestParam("tenantId") Long tenantId,
+                               @PathVariable Long userId,
+                               @RequestBody UserPasswordChangeDTO request) {
+        userApplicationService.changePassword(tenantId, userId, request.getOldPassword(), request.getNewPassword());
     }
 
     @Operation(summary = "按租户 ID 查询租户")

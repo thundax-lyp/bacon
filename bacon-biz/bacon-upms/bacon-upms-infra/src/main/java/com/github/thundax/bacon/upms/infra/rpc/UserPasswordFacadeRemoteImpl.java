@@ -1,0 +1,28 @@
+package com.github.thundax.bacon.upms.infra.rpc;
+
+import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
+import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+
+@Component
+@ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
+public class UserPasswordFacadeRemoteImpl implements UserPasswordFacade {
+
+    private final RestClient restClient;
+
+    public UserPasswordFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
+        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+    }
+
+    @Override
+    public void changePassword(Long tenantId, Long userId, String oldPassword, String newPassword) {
+        restClient.post()
+                .uri("/providers/upms/users/{userId}/password/change?tenantId={tenantId}", userId, tenantId)
+                .body(new UserPasswordChangeDTO(oldPassword, newPassword))
+                .retrieve()
+                .toBodilessEntity();
+    }
+}

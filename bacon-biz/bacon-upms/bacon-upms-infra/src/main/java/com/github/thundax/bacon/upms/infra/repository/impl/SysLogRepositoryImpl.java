@@ -2,15 +2,17 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
-import org.springframework.stereotype.Repository;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class SysLogRepositoryImpl implements SysLogRepository {
@@ -67,6 +69,38 @@ public class SysLogRepositoryImpl implements SysLogRepository {
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to write sys log file", ex);
         }
+    }
+
+    @Override
+    public Optional<SysLogRecord> findById(Long logId) {
+        return Optional.ofNullable(inMemoryUpmsStore.getSysLogs().get(logId));
+    }
+
+    @Override
+    public List<SysLogRecord> pageLogs(String tenantId, String module, String eventType, String result,
+                                       String operatorName, int pageNo, int pageSize) {
+        return filteredLogs(tenantId, module, eventType, result, operatorName).stream()
+                .skip((long) (pageNo - 1) * pageSize)
+                .limit(pageSize)
+                .toList();
+    }
+
+    @Override
+    public long countLogs(String tenantId, String module, String eventType, String result, String operatorName) {
+        return filteredLogs(tenantId, module, eventType, result, operatorName).size();
+    }
+
+    private List<SysLogRecord> filteredLogs(String tenantId, String module, String eventType, String result,
+                                            String operatorName) {
+        return inMemoryUpmsStore.getSysLogs().values().stream()
+                .filter(record -> tenantId == null || tenantId.equals(record.getTenantId()))
+                .filter(record -> module == null || module.equalsIgnoreCase(record.getModule()))
+                .filter(record -> eventType == null || eventType.equalsIgnoreCase(record.getEventType()))
+                .filter(record -> result == null || result.equalsIgnoreCase(record.getResult()))
+                .filter(record -> operatorName == null || (record.getOperatorName() != null
+                        && record.getOperatorName().contains(operatorName)))
+                .sorted(Comparator.comparing(SysLogRecord::getId).reversed())
+                .toList();
     }
 
     private String formatLine(SysLogRecord sysLogRecord) {

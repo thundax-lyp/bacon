@@ -5,7 +5,7 @@
 本文档定义 `Inventory` 业务域的数据库设计。  
 目标是让 AI 和工程师可直接据此生成 `DDL`、`DataObject`、`Mapper`、`Repository`、库存查询和库存命令持久化实现。  
 本文档只定义 `Inventory` 自有的持久化对象、字段、索引、流水规则和查询模型，不重复业务需求文档中的流程描述。  
-本文档必须遵守 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md)。如与工程级数据库规范冲突，以 [DATABASE-REQUIREMENTS.md](./DATABASE-REQUIREMENTS.md) 为准。
+本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](./DATABASE-RULES.md) 为准。
 
 ## 2. Scope
 

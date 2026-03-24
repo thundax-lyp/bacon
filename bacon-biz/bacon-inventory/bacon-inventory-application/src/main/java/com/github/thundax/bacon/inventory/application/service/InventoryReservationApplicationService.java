@@ -20,9 +20,12 @@ public class InventoryReservationApplicationService {
 
     private final AtomicLong idGenerator = new AtomicLong(1L);
     private final InventoryRepository inventoryRepository;
+    private final InventoryOperationLogService inventoryOperationLogService;
 
-    public InventoryReservationApplicationService(InventoryRepository inventoryRepository) {
+    public InventoryReservationApplicationService(InventoryRepository inventoryRepository,
+                                                  InventoryOperationLogService inventoryOperationLogService) {
         this.inventoryRepository = inventoryRepository;
+        this.inventoryOperationLogService = inventoryOperationLogService;
     }
 
     public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
@@ -45,6 +48,7 @@ public class InventoryReservationApplicationService {
         if (failureReason != null) {
             reservation.fail(failureReason);
             inventoryRepository.saveReservation(reservation);
+            inventoryOperationLogService.recordReserveFailed(reservation, Instant.now());
             return InventoryReservationResultMapper.fromReservation(reservation);
         }
 
@@ -56,6 +60,7 @@ public class InventoryReservationApplicationService {
         }
         reservation.reserve();
         inventoryRepository.saveReservation(reservation);
+        inventoryOperationLogService.recordReserveSuccess(reservation, operatedAt);
         return InventoryReservationResultMapper.fromReservation(reservation);
     }
 

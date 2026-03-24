@@ -11,9 +11,12 @@ import java.time.Instant;
 public class InventoryDeductionApplicationService {
 
     private final InventoryRepository inventoryRepository;
+    private final InventoryOperationLogService inventoryOperationLogService;
 
-    public InventoryDeductionApplicationService(InventoryRepository inventoryRepository) {
+    public InventoryDeductionApplicationService(InventoryRepository inventoryRepository,
+                                               InventoryOperationLogService inventoryOperationLogService) {
         this.inventoryRepository = inventoryRepository;
+        this.inventoryOperationLogService = inventoryOperationLogService;
     }
 
     public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
@@ -31,6 +34,7 @@ public class InventoryDeductionApplicationService {
                 .deduct(item.getQuantity(), deductedAt));
         reservation.deduct(deductedAt);
         inventoryRepository.saveReservation(reservation);
+        inventoryOperationLogService.recordDeductSuccess(reservation, deductedAt);
         return InventoryReservationResultMapper.fromReservation(reservation);
     }
 }

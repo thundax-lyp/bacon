@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.provider;
 
+import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -51,6 +53,20 @@ public class InventoryProviderController {
     public InventoryReservationDTO getReservation(@RequestParam("tenantId") Long tenantId,
                                                   @PathVariable String orderNo) {
         return inventoryQueryService.getReservationByOrderNo(tenantId, orderNo);
+    }
+
+    @Operation(summary = "按订单号查询库存流水")
+    @GetMapping("/ledgers")
+    public List<InventoryLedgerDTO> listLedgers(@RequestParam("tenantId") Long tenantId,
+                                                @RequestParam("orderNo") String orderNo) {
+        return inventoryQueryService.listLedgersByOrderNo(tenantId, orderNo);
+    }
+
+    @Operation(summary = "按订单号查询库存审计日志")
+    @GetMapping("/audit-logs")
+    public List<InventoryAuditLogDTO> listAuditLogs(@RequestParam("tenantId") Long tenantId,
+                                                    @RequestParam("orderNo") String orderNo) {
+        return inventoryQueryService.listAuditLogsByOrderNo(tenantId, orderNo);
     }
 
     @Operation(summary = "预占库存")

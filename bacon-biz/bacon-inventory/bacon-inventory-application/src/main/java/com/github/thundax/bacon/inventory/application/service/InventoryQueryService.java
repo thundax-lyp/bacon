@@ -1,9 +1,13 @@
 package com.github.thundax.bacon.inventory.application.service;
 
+import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
 import org.springframework.stereotype.Service;
@@ -35,6 +39,18 @@ public class InventoryQueryService {
         return toReservationDto(reservation);
     }
 
+    public List<InventoryLedgerDTO> listLedgersByOrderNo(Long tenantId, String orderNo) {
+        return inventoryRepository.findLedgers(tenantId, orderNo).stream()
+                .map(this::toLedgerDto)
+                .toList();
+    }
+
+    public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(Long tenantId, String orderNo) {
+        return inventoryRepository.findAuditLogs(tenantId, orderNo).stream()
+                .map(this::toAuditLogDto)
+                .toList();
+    }
+
     InventoryReservationDTO toReservationDto(InventoryReservation reservation) {
         return new InventoryReservationDTO(reservation.getTenantId(), reservation.getOrderNo(), reservation.getReservationNo(),
                 reservation.getReservationStatus(), reservation.getWarehouseId(),
@@ -49,5 +65,17 @@ public class InventoryQueryService {
         return new InventoryStockDTO(inventory.getTenantId(), inventory.getSkuId(), inventory.getWarehouseId(),
                 inventory.getOnHandQuantity(), inventory.getReservedQuantity(), inventory.getAvailableQuantity(),
                 inventory.getStatus(), inventory.getUpdatedAt());
+    }
+
+    private InventoryLedgerDTO toLedgerDto(InventoryLedger ledger) {
+        return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantId(), ledger.getOrderNo(),
+                ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
+                ledger.getQuantity(), ledger.getOccurredAt());
+    }
+
+    private InventoryAuditLogDTO toAuditLogDto(InventoryAuditLog auditLog) {
+        return new InventoryAuditLogDTO(auditLog.getId(), auditLog.getTenantId(), auditLog.getOrderNo(),
+                auditLog.getReservationNo(), auditLog.getActionType(), auditLog.getOperatorType(),
+                auditLog.getOperatorId(), auditLog.getOccurredAt());
     }
 }

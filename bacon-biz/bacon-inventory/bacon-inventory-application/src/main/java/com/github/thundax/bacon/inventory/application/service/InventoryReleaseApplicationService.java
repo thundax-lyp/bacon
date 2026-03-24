@@ -7,13 +7,16 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 
-@Service
-public class InventoryReleaseApplicationService {
+    @Service
+    public class InventoryReleaseApplicationService {
 
     private final InventoryRepository inventoryRepository;
+    private final InventoryOperationLogService inventoryOperationLogService;
 
-    public InventoryReleaseApplicationService(InventoryRepository inventoryRepository) {
+    public InventoryReleaseApplicationService(InventoryRepository inventoryRepository,
+                                             InventoryOperationLogService inventoryOperationLogService) {
         this.inventoryRepository = inventoryRepository;
+        this.inventoryOperationLogService = inventoryOperationLogService;
     }
 
     public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
@@ -31,6 +34,7 @@ public class InventoryReleaseApplicationService {
                 .release(item.getQuantity(), releasedAt));
         reservation.release(reason, releasedAt);
         inventoryRepository.saveReservation(reservation);
+        inventoryOperationLogService.recordReleaseSuccess(reservation, releasedAt);
         return InventoryReservationResultMapper.fromReservation(reservation);
     }
 }

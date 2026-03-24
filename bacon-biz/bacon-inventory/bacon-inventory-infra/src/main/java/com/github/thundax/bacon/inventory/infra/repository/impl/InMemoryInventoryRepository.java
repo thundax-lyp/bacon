@@ -1,11 +1,14 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,6 +20,8 @@ public class InMemoryInventoryRepository implements InventoryRepository {
 
     private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
     private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();
+    private final Map<String, List<InventoryLedger>> ledgers = new ConcurrentHashMap<>();
+    private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
 
     public InMemoryInventoryRepository() {
         inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100, "ENABLED", Instant.now()));
@@ -45,6 +50,28 @@ public class InMemoryInventoryRepository implements InventoryRepository {
     @Override
     public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
         return Optional.ofNullable(reservations.get(reservationKey(tenantId, orderNo)));
+    }
+
+    @Override
+    public void saveLedger(InventoryLedger ledger) {
+        ledgers.computeIfAbsent(reservationKey(ledger.getTenantId(), ledger.getOrderNo()), key -> new ArrayList<>())
+                .add(ledger);
+    }
+
+    @Override
+    public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
+        return List.copyOf(ledgers.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
+    }
+
+    @Override
+    public void saveAuditLog(InventoryAuditLog auditLog) {
+        auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantId(), auditLog.getOrderNo()), key -> new ArrayList<>())
+                .add(auditLog);
+    }
+
+    @Override
+    public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+        return List.copyOf(auditLogs.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
     }
 
     private static String key(Long tenantId, Long skuId) {

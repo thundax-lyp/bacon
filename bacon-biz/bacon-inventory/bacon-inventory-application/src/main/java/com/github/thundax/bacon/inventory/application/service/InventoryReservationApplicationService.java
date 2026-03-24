@@ -7,11 +7,11 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
+import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,13 +22,16 @@ public class InventoryReservationApplicationService {
     private final InventoryStockRepository inventoryStockRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryOperationLogService inventoryOperationLogService;
+    private final InventoryReservationNoGenerator inventoryReservationNoGenerator;
 
     public InventoryReservationApplicationService(InventoryStockRepository inventoryStockRepository,
                                                   InventoryReservationRepository inventoryReservationRepository,
-                                                  InventoryOperationLogService inventoryOperationLogService) {
+                                                  InventoryOperationLogService inventoryOperationLogService,
+                                                  InventoryReservationNoGenerator inventoryReservationNoGenerator) {
         this.inventoryStockRepository = inventoryStockRepository;
         this.inventoryReservationRepository = inventoryReservationRepository;
         this.inventoryOperationLogService = inventoryOperationLogService;
+        this.inventoryReservationNoGenerator = inventoryReservationNoGenerator;
     }
 
     @Transactional
@@ -39,7 +42,7 @@ public class InventoryReservationApplicationService {
     }
 
     private InventoryReservationResultDTO createReservation(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
-        String reservationNo = "RSV-" + UUID.randomUUID().toString().substring(0, 8);
+        String reservationNo = inventoryReservationNoGenerator.nextReservationNo();
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
         List<InventoryReservationItem> reservationItems = normalizedItems.stream()
                 .map(item -> new InventoryReservationItem(null, tenantId, reservationNo,

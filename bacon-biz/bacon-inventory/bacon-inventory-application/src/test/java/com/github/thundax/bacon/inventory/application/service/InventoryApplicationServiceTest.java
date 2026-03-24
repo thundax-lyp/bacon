@@ -10,6 +10,7 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
+import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +24,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class InventoryApplicationServiceTest {
 
+    private static final InventoryReservationNoGenerator RESERVATION_NO_GENERATOR =
+            new SequenceInventoryReservationNoGenerator();
+
     @Test
     void reserveStockShouldBeIdempotentAndUpdateAvailableQuantity() {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
         InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(repository, repository, operationLogService),
+                new InventoryReservationApplicationService(repository, repository, operationLogService,
+                        RESERVATION_NO_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
@@ -55,7 +60,8 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
         InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(repository, repository, operationLogService),
+                new InventoryReservationApplicationService(repository, repository, operationLogService,
+                        RESERVATION_NO_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
@@ -79,7 +85,8 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
         InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(repository, repository, operationLogService),
+                new InventoryReservationApplicationService(repository, repository, operationLogService,
+                        RESERVATION_NO_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
@@ -104,7 +111,8 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
         InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(repository, repository, operationLogService),
+                new InventoryReservationApplicationService(repository, repository, operationLogService,
+                        RESERVATION_NO_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
@@ -223,6 +231,16 @@ class InventoryApplicationServiceTest {
 
         private static String reservationKey(Long tenantId, String orderNo) {
             return tenantId + ":" + orderNo;
+        }
+    }
+
+    private static final class SequenceInventoryReservationNoGenerator implements InventoryReservationNoGenerator {
+
+        private long value = 1000L;
+
+        @Override
+        public String nextReservationNo() {
+            return "RSV-" + value++;
         }
     }
 }

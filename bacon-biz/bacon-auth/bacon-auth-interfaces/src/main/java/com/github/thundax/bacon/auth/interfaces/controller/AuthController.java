@@ -16,6 +16,7 @@ import com.github.thundax.bacon.auth.interfaces.dto.SmsLoginRequest;
 import com.github.thundax.bacon.auth.interfaces.dto.TokenRefreshRequest;
 import com.github.thundax.bacon.auth.interfaces.dto.WecomLoginRequest;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,20 +56,20 @@ public class AuthController {
 
     @Operation(summary = "账号密码登录")
     @PostMapping("/login/password")
-    public UserLoginResponse passwordLogin(@RequestBody PasswordLoginRequest request) {
+    public UserLoginResponse passwordLogin(@Valid @RequestBody PasswordLoginRequest request) {
         return loginApplicationService.loginByPassword(new PasswordLoginCommand(request.getTenantId(), request.getAccount(),
                 request.getPassword(), request.getRsaKeyId(), request.getCaptchaKey(), request.getCaptchaCode()));
     }
 
     @Operation(summary = "短信登录")
     @PostMapping("/login/sms")
-    public UserLoginResponse smsLogin(@RequestBody SmsLoginRequest request) {
+    public UserLoginResponse smsLogin(@Valid @RequestBody SmsLoginRequest request) {
         return loginApplicationService.loginBySms(request.getPhone(), request.getSmsCaptcha());
     }
 
     @Operation(summary = "企微登录")
     @PostMapping("/login/wecom")
-    public UserLoginResponse wecomLogin(@RequestBody WecomLoginRequest request) {
+    public UserLoginResponse wecomLogin(@Valid @RequestBody WecomLoginRequest request) {
         return loginApplicationService.loginByWecom(request.getCode());
     }
 
@@ -80,7 +81,7 @@ public class AuthController {
 
     @Operation(summary = "刷新访问令牌")
     @PostMapping("/token/refresh")
-    public UserTokenRefreshResponse refresh(@RequestBody TokenRefreshRequest request) {
+    public UserTokenRefreshResponse refresh(@Valid @RequestBody TokenRefreshRequest request) {
         return tokenApplicationService.refresh(request.getRefreshToken());
     }
 
@@ -93,7 +94,7 @@ public class AuthController {
     @Operation(summary = "修改当前用户密码")
     @PostMapping("/password/change")
     public void changePassword(@RequestHeader("Authorization") String authorization,
-                               @RequestBody PasswordChangeRequest request) {
+                               @Valid @RequestBody PasswordChangeRequest request) {
         passwordApplicationService.changePassword(extractBearerToken(authorization),
                 request.getOldPassword(), request.getNewPassword());
     }

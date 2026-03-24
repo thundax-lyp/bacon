@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: bacon-mono-boot
+  main:
+    banner-mode: off
   datasource:
     url: ${BACON_DB_URL:jdbc:mysql://127.0.0.1:3306/bacon_sample?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
     username: ${BACON_DB_USERNAME:}

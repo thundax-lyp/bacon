@@ -30,6 +30,10 @@ rocketmq:
   producer:
     group: ${BACON_ROCKETMQ_PRODUCER_GROUP:bacon-mono-boot-producer}
 
+mybatis-plus:
+  global-config:
+    banner: false
+
 bacon:
   mq:
     enabled: ${BACON_MQ_ENABLED:true}

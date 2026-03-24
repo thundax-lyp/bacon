@@ -18,21 +18,20 @@ spring:
       database: ${BACON_REDIS_DATABASE:0}
       password: ${BACON_REDIS_PASSWORD:}
       timeout: ${BACON_REDIS_TIMEOUT:5s}
-  rabbitmq:
-    host: ${BACON_RABBITMQ_HOST:127.0.0.1}
-    port: ${BACON_RABBITMQ_PORT:5672}
-    username: ${BACON_RABBITMQ_USERNAME:guest}
-    password: ${BACON_RABBITMQ_PASSWORD:}
-    virtual-host: ${BACON_RABBITMQ_VHOST:/}
   boot:
     admin:
       client:
         enabled: false
 
+rocketmq:
+  name-server: ${BACON_ROCKETMQ_NAME_SERVER:127.0.0.1:9876}
+  producer:
+    group: ${BACON_ROCKETMQ_PRODUCER_GROUP:bacon-boot-producer}
+
 bacon:
   mq:
     enabled: ${BACON_MQ_ENABLED:true}
-    type: ${BACON_MQ_TYPE:RABBITMQ}
+    type: ${BACON_MQ_TYPE:ROCKETMQ}
   runtime:
     mode: mono
 

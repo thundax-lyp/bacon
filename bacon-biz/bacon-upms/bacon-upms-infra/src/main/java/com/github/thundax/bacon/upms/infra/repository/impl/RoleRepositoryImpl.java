@@ -55,9 +55,10 @@ public class RoleRepositoryImpl implements RoleRepository {
     public Role updateStatus(Long tenantId, Long roleId, String status) {
         Role currentRole = findRoleById(tenantId, roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
-        Role updatedRole = new Role(currentRole.getId(), currentRole.getCreatedBy(), currentRole.getCreatedAt(),
-                currentRole.getUpdatedBy(), currentRole.getUpdatedAt(), currentRole.getTenantId(), currentRole.getCode(),
-                currentRole.getName(), currentRole.getRoleType(), currentRole.getDataScopeType(), status);
+        Role updatedRole = new Role(currentRole.getId(), currentRole.getCreatedBy(),
+                currentRole.getCreatedAt(), currentRole.getUpdatedBy(), currentRole.getUpdatedAt(),
+                currentRole.getTenantId(), currentRole.getCode(), currentRole.getName(),
+                currentRole.getRoleType(), currentRole.getDataScopeType(), status);
         upmsStore.getRoles().put(InMemoryUpmsStore.roleKey(tenantId, roleId), updatedRole);
         return updatedRole;
     }

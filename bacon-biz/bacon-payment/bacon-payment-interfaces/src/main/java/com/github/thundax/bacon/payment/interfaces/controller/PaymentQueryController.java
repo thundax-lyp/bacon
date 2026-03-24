@@ -6,7 +6,11 @@ import com.github.thundax.bacon.payment.application.service.PaymentQueryService;
 import com.github.thundax.bacon.payment.interfaces.response.PaymentDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @WrappedApiController
@@ -23,7 +27,8 @@ public class PaymentQueryController {
     @Operation(summary = "按支付单号查询支付单")
     @HasPermission("payment:payment:view")
     @GetMapping("/{paymentNo}")
-    public PaymentDetailResponse getByPaymentNo(@RequestParam("tenantId") Long tenantId, @PathVariable String paymentNo) {
+    public PaymentDetailResponse getByPaymentNo(@RequestParam("tenantId") Long tenantId,
+                                                @PathVariable String paymentNo) {
         return PaymentDetailResponse.from(paymentQueryService.getByPaymentNo(tenantId, paymentNo));
     }
 

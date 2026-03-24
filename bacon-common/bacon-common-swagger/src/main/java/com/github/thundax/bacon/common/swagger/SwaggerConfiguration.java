@@ -64,7 +64,9 @@ public class SwaggerConfiguration {
     public GroupedOpenApi frontendOpenApi() {
         return GroupedOpenApi.builder()
                 .group(FRONTEND_GROUP)
-                .addOpenApiMethodFilter(method -> hasPackageSegment(method.getDeclaringClass(), CONTROLLER_PACKAGE_SEGMENT))
+                .addOpenApiMethodFilter(
+                        method -> hasPackageSegment(method.getDeclaringClass(), CONTROLLER_PACKAGE_SEGMENT)
+                )
                 .build();
     }
 
@@ -72,7 +74,9 @@ public class SwaggerConfiguration {
     public GroupedOpenApi innerOpenApi() {
         return GroupedOpenApi.builder()
                 .group(INNER_GROUP)
-                .addOpenApiMethodFilter(method -> hasPackageSegment(method.getDeclaringClass(), PROVIDER_PACKAGE_SEGMENT))
+                .addOpenApiMethodFilter(
+                        method -> hasPackageSegment(method.getDeclaringClass(), PROVIDER_PACKAGE_SEGMENT)
+                )
                 .build();
     }
 

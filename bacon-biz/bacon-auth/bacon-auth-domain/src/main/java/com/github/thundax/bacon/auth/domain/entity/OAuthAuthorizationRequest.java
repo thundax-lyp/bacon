@@ -20,9 +20,9 @@ public class OAuthAuthorizationRequest {
     private final Instant expireAt;
     private boolean used;
 
-    public OAuthAuthorizationRequest(String authorizationRequestId, String clientId, String redirectUri, Set<String> scopes,
-                                     String state, String codeChallenge, String codeChallengeMethod, Long tenantId,
-                                     Long userId, Instant expireAt) {
+    public OAuthAuthorizationRequest(String authorizationRequestId, String clientId, String redirectUri,
+                                     Set<String> scopes, String state, String codeChallenge,
+                                     String codeChallengeMethod, Long tenantId, Long userId, Instant expireAt) {
         this.authorizationRequestId = authorizationRequestId;
         this.clientId = clientId;
         this.redirectUri = redirectUri;

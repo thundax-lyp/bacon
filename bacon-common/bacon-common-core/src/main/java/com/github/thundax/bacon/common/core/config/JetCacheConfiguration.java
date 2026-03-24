@@ -37,12 +37,18 @@ public class JetCacheConfiguration {
         globalCacheConfig.setPenetrationProtect(true);
         globalCacheConfig.setEnableMethodCache(true);
         globalCacheConfig.setStatIntervalMinutes(DEFAULT_STAT_INTERVAL_MINUTES);
-        globalCacheConfig.setLocalCacheBuilders(Map.of(DEFAULT_AREA, LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
-                .limit(DEFAULT_LOCAL_LIMIT)
-                .expireAfterWrite(DEFAULT_EXPIRE_SECONDS, TimeUnit.SECONDS)));
-        globalCacheConfig.setRemoteCacheBuilders(Map.of(DEFAULT_AREA, LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
-                .limit(DEFAULT_LOCAL_LIMIT)
-                .expireAfterWrite(DEFAULT_EXPIRE_SECONDS, TimeUnit.SECONDS)));
+        globalCacheConfig.setLocalCacheBuilders(Map.of(
+                DEFAULT_AREA,
+                LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
+                        .limit(DEFAULT_LOCAL_LIMIT)
+                        .expireAfterWrite(DEFAULT_EXPIRE_SECONDS, TimeUnit.SECONDS)
+        ));
+        globalCacheConfig.setRemoteCacheBuilders(Map.of(
+                DEFAULT_AREA,
+                LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
+                        .limit(DEFAULT_LOCAL_LIMIT)
+                        .expireAfterWrite(DEFAULT_EXPIRE_SECONDS, TimeUnit.SECONDS)
+        ));
         return globalCacheConfig;
     }
 

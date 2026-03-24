@@ -18,8 +18,8 @@ public class OAuthAccessToken {
     private final Instant expireAt;
     private String tokenStatus;
 
-    public OAuthAccessToken(String tokenId, String tokenHash, String clientId, Long tenantId, Long userId, Set<String> scopes,
-                            Instant issuedAt, Instant expireAt) {
+    public OAuthAccessToken(String tokenId, String tokenHash, String clientId, Long tenantId, Long userId,
+                            Set<String> scopes, Instant issuedAt, Instant expireAt) {
         this.tokenId = tokenId;
         this.tokenHash = tokenHash;
         this.clientId = clientId;

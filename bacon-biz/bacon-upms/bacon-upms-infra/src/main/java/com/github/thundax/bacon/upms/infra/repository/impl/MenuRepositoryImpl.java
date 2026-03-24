@@ -56,7 +56,9 @@ public class MenuRepositoryImpl implements MenuRepository {
     @Override
     public void deleteMenu(Long tenantId, Long menuId) {
         upmsStore.getMenus().remove(InMemoryUpmsStore.menuKey(tenantId, menuId));
-        upmsStore.getRoleMenus().replaceAll((key, menuIds) -> menuIds.stream().filter(id -> !id.equals(menuId)).collect(java.util.stream.Collectors.toSet()));
+        upmsStore.getRoleMenus().replaceAll((key, menuIds) -> menuIds.stream()
+                .filter(id -> !id.equals(menuId))
+                .collect(java.util.stream.Collectors.toSet()));
     }
 
     @Override

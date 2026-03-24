@@ -50,7 +50,9 @@ public class CacheVerificationCodeService implements VerificationCodeService {
         if (length <= 0) {
             throw new BadRequestException("Verification code length must be greater than zero");
         }
-        LineCaptcha captcha = createLineCaptcha(length, DEFAULT_CAPTCHA_WIDTH, DEFAULT_CAPTCHA_HEIGHT, DEFAULT_INTERFERE_COUNT);
+        LineCaptcha captcha = createLineCaptcha(
+                length, DEFAULT_CAPTCHA_WIDTH, DEFAULT_CAPTCHA_HEIGHT, DEFAULT_INTERFERE_COUNT
+        );
         String code = captcha.getCode();
         saveCode(scene, target, code, ttl);
         return code;
@@ -130,7 +132,9 @@ public class CacheVerificationCodeService implements VerificationCodeService {
         if (length <= 0) {
             throw new BadRequestException("Verification code length must be greater than zero");
         }
-        LineCaptcha captcha = CaptchaUtil.createLineCaptcha(width, height, new RandomGenerator(NUMBERS, length), interfereCount);
+        LineCaptcha captcha = CaptchaUtil.createLineCaptcha(
+                width, height, new RandomGenerator(NUMBERS, length), interfereCount
+        );
         captcha.createCode();
         return captcha;
     }

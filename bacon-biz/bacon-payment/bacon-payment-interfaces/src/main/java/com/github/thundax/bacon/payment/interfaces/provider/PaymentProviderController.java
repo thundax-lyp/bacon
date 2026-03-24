@@ -8,7 +8,12 @@ import com.github.thundax.bacon.payment.application.service.PaymentCloseApplicat
 import com.github.thundax.bacon.payment.application.service.PaymentQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -32,13 +37,15 @@ public class PaymentProviderController {
 
     @Operation(summary = "按支付单号查询支付单")
     @GetMapping("/{paymentNo}")
-    public PaymentDetailDTO getByPaymentNo(@RequestParam("tenantId") Long tenantId, @PathVariable String paymentNo) {
+    public PaymentDetailDTO getByPaymentNo(@RequestParam("tenantId") Long tenantId,
+                                           @PathVariable String paymentNo) {
         return paymentQueryService.getByPaymentNo(tenantId, paymentNo);
     }
 
     @Operation(summary = "按订单号查询支付单")
     @GetMapping
-    public PaymentDetailDTO getByOrderNo(@RequestParam("tenantId") Long tenantId, @RequestParam("orderNo") String orderNo) {
+    public PaymentDetailDTO getByOrderNo(@RequestParam("tenantId") Long tenantId,
+                                         @RequestParam("orderNo") String orderNo) {
         return paymentQueryService.getByOrderNo(tenantId, orderNo);
     }
 
@@ -51,7 +58,8 @@ public class PaymentProviderController {
                                                 @RequestParam("channelCode") String channelCode,
                                                 @RequestParam("subject") String subject,
                                                 @RequestParam("expiredAt") Instant expiredAt) {
-        return paymentApplicationService.createPayment(tenantId, orderNo, userId, amount, channelCode, subject, expiredAt);
+        return paymentApplicationService.createPayment(tenantId, orderNo, userId, amount,
+                channelCode, subject, expiredAt);
     }
 
     @Operation(summary = "关闭支付单")

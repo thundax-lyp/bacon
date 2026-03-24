@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.common.cache;
+package com.github.thundax.bacon.common.core.config;
 
 import com.alicp.jetcache.anno.config.EnableCreateCacheAnnotation;
 import com.alicp.jetcache.anno.config.EnableMethodCache;
@@ -7,6 +7,9 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * 创建 JetCache 配置，用于统一启用方法缓存能力并设置全局缓存默认参数。
+ */
 @Configuration(proxyBeanMethods = false)
 @EnableMethodCache(basePackages = "com.github.thundax.bacon")
 @EnableCreateCacheAnnotation
@@ -15,6 +18,9 @@ public class JetCacheConfiguration {
     private static final String BASE_PACKAGE = "com.github.thundax.bacon";
     private static final int DEFAULT_STAT_INTERVAL_MINUTES = 15;
 
+    /**
+     * 创建 BeanPostProcessor，用于在 JetCache 全局配置初始化后补充项目级默认参数。
+     */
     @Bean
     public BeanPostProcessor jetCacheGlobalConfigBeanPostProcessor() {
         return new BeanPostProcessor() {

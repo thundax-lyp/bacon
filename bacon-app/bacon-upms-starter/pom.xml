@@ -44,11 +44,6 @@
         </dependency>
         <dependency>
             <groupId>com.github.thundax</groupId>
-            <artifactId>bacon-common-cache</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.thundax</groupId>
             <artifactId>bacon-common-security</artifactId>
             <version>${project.version}</version>
         </dependency>

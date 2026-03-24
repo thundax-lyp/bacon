@@ -42,11 +42,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.thundax</groupId>
-            <artifactId>bacon-common-cache</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>

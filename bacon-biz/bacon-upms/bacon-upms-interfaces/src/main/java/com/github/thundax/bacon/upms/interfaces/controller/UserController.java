@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.application.service.UserApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.UserCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserImportItem;
+import com.github.thundax.bacon.upms.interfaces.dto.UserIdentityQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserPasswordInitRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserPasswordResetRequest;
@@ -85,10 +86,9 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "查询用户身份", eventType = LogEventType.QUERY)
     @GetMapping("/identity")
-    public UserIdentityResponse getUserIdentity(@RequestParam("tenantId") Long tenantId,
-                                                @RequestParam("identityType") String identityType,
-                                                @RequestParam("identityValue") String identityValue) {
-        return UserIdentityResponse.from(userApplicationService.getUserIdentity(tenantId, identityType, identityValue));
+    public UserIdentityResponse getUserIdentity(@ModelAttribute UserIdentityQueryRequest request) {
+        return UserIdentityResponse.from(userApplicationService.getUserIdentity(request.getTenantId(),
+                request.getIdentityType(), request.getIdentityValue()));
     }
 
     @Operation(summary = "启用或停用用户")
@@ -150,12 +150,9 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "导出用户", eventType = LogEventType.EXPORT)
     @GetMapping("/export")
-    public List<UserResponse> exportUsers(@RequestParam("tenantId") Long tenantId,
-                                          @RequestParam(value = "account", required = false) String account,
-                                          @RequestParam(value = "name", required = false) String name,
-                                          @RequestParam(value = "phone", required = false) String phone,
-                                          @RequestParam(value = "status", required = false) String status) {
-        return userApplicationService.exportUsers(new UserPageQueryDTO(tenantId, account, name, phone, status, 1, Integer.MAX_VALUE))
+    public List<UserResponse> exportUsers(@ModelAttribute UserPageRequest request) {
+        return userApplicationService.exportUsers(new UserPageQueryDTO(request.getTenantId(), request.getAccount(),
+                request.getName(), request.getPhone(), request.getStatus(), 1, Integer.MAX_VALUE))
                 .stream()
                 .map(UserResponse::from)
                 .toList();

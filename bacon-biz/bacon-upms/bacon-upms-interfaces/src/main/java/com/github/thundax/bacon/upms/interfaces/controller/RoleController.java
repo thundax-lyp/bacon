@@ -13,6 +13,7 @@ import com.github.thundax.bacon.upms.interfaces.dto.RolePageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleResourceAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.dto.UserRoleQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RolePageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,9 +83,8 @@ public class RoleController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询用户角色", eventType = LogEventType.QUERY)
     @GetMapping
-    public List<RoleResponse> getRolesByUserId(@RequestParam("tenantId") Long tenantId,
-                                               @RequestParam("userId") Long userId) {
-        return roleApplicationService.getRolesByUserId(tenantId, userId).stream()
+    public List<RoleResponse> getRolesByUserId(@ModelAttribute UserRoleQueryRequest request) {
+        return roleApplicationService.getRolesByUserId(request.getTenantId(), request.getUserId()).stream()
                 .map(RoleResponse::from)
                 .toList();
     }

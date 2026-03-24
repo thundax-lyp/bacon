@@ -1,10 +1,13 @@
 package com.github.thundax.bacon.common.core.service.impl;
 
-import cn.hutool.core.util.RandomUtil;
+import cn.hutool.captcha.CaptchaUtil;
+import cn.hutool.captcha.LineCaptcha;
+import cn.hutool.captcha.generator.RandomGenerator;
 import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.CreateCache;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.service.VerificationCodeImage;
 import com.github.thundax.bacon.common.core.service.VerificationCodeService;
 import java.time.Duration;
 import java.util.Objects;
@@ -21,6 +24,10 @@ public class CacheVerificationCodeService implements VerificationCodeService {
     private static final int DEFAULT_CODE_LENGTH = 6;
     private static final Duration DEFAULT_TTL = Duration.ofMinutes(5);
     private static final String CACHE_NAME = "verificationCode:";
+    private static final String NUMBERS = "0123456789";
+    private static final int DEFAULT_CAPTCHA_WIDTH = 160;
+    private static final int DEFAULT_CAPTCHA_HEIGHT = 48;
+    private static final int DEFAULT_INTERFERE_COUNT = 40;
 
     @CreateCache(name = CACHE_NAME, cacheType = CacheType.REMOTE, expire = 300, timeUnit = TimeUnit.SECONDS)
     private Cache<String, String> verificationCodeCache;
@@ -35,9 +42,30 @@ public class CacheVerificationCodeService implements VerificationCodeService {
         if (length <= 0) {
             throw new BadRequestException("Verification code length must be greater than zero");
         }
-        String code = RandomUtil.randomNumbers(length);
+        LineCaptcha captcha = createLineCaptcha(length, DEFAULT_CAPTCHA_WIDTH, DEFAULT_CAPTCHA_HEIGHT, DEFAULT_INTERFERE_COUNT);
+        String code = captcha.getCode();
         saveCode(scene, target, code, ttl);
         return code;
+    }
+
+    @Override
+    public VerificationCodeImage generateImageCode(String scene, String target) {
+        return generateImageCode(scene, target, DEFAULT_CAPTCHA_WIDTH, DEFAULT_CAPTCHA_HEIGHT,
+                DEFAULT_CODE_LENGTH, DEFAULT_INTERFERE_COUNT, DEFAULT_TTL);
+    }
+
+    @Override
+    public VerificationCodeImage generateImageCode(String scene, String target, int width, int height, int length,
+                                                   int interfereCount, Duration ttl) {
+        if (width <= 0 || height <= 0) {
+            throw new BadRequestException("Verification code image size must be greater than zero");
+        }
+        if (interfereCount < 0) {
+            throw new BadRequestException("Verification code interfere count must not be negative");
+        }
+        LineCaptcha captcha = createLineCaptcha(length, width, height, interfereCount);
+        saveCode(scene, target, captcha.getCode(), ttl);
+        return new VerificationCodeImage(captcha.getCode(), captcha.getImageBase64Data());
     }
 
     @Override
@@ -88,5 +116,14 @@ public class CacheVerificationCodeService implements VerificationCodeService {
 
     private String buildKey(String scene, String target) {
         return scene + ":" + target;
+    }
+
+    private LineCaptcha createLineCaptcha(int length, int width, int height, int interfereCount) {
+        if (length <= 0) {
+            throw new BadRequestException("Verification code length must be greater than zero");
+        }
+        LineCaptcha captcha = CaptchaUtil.createLineCaptcha(width, height, new RandomGenerator(NUMBERS, length), interfereCount);
+        captcha.createCode();
+        return captcha;
     }
 }

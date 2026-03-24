@@ -7,6 +7,7 @@ import com.github.thundax.bacon.auth.application.dto.PasswordLoginChallengeResul
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.service.RsaCryptoService;
 import com.github.thundax.bacon.common.core.service.RsaKeyPair;
+import com.github.thundax.bacon.common.core.service.VerificationCodeImage;
 import com.github.thundax.bacon.common.core.service.VerificationCodeService;
 import java.time.Duration;
 import java.util.UUID;
@@ -36,10 +37,11 @@ public class LoginSecurityApplicationService {
     public PasswordLoginChallengeResult issuePasswordLoginChallenge() {
         String captchaKey = UUID.randomUUID().toString();
         String rsaKeyId = UUID.randomUUID().toString();
-        String captchaCode = verificationCodeService.generateCode(LOGIN_PASSWORD_CAPTCHA_SCENE, captchaKey, 6, CHALLENGE_TTL);
+        VerificationCodeImage captchaImage = verificationCodeService.generateImageCode(
+                LOGIN_PASSWORD_CAPTCHA_SCENE, captchaKey, 160, 48, 6, 40, CHALLENGE_TTL);
         RsaKeyPair rsaKeyPair = rsaCryptoService.generateKeyPair();
         loginPasswordPrivateKeyCache.put(rsaKeyId, rsaKeyPair.getPrivateKey(), CHALLENGE_TTL.toSeconds(), TimeUnit.SECONDS);
-        return new PasswordLoginChallengeResult(captchaKey, captchaCode, CHALLENGE_TTL.toSeconds(),
+        return new PasswordLoginChallengeResult(captchaKey, captchaImage.getImageBase64Data(), CHALLENGE_TTL.toSeconds(),
                 rsaKeyId, rsaKeyPair.getPublicKey(), CHALLENGE_TTL.toSeconds());
     }
 

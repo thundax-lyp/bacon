@@ -11,6 +11,11 @@ public interface VerificationCodeService {
 
     String generateCode(String scene, String target, int length, Duration ttl);
 
+    VerificationCodeImage generateImageCode(String scene, String target);
+
+    VerificationCodeImage generateImageCode(String scene, String target, int width, int height, int length,
+                                            int interfereCount, Duration ttl);
+
     void saveCode(String scene, String target, String code, Duration ttl);
 
     boolean verifyCode(String scene, String target, String code);

@@ -6,12 +6,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.service.VerificationCodeImage;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class CacheVerificationCodeServiceTest {
+
+    static {
+        System.setProperty("java.awt.headless", "true");
+    }
 
     private final CacheVerificationCodeService verificationCodeService = new CacheVerificationCodeService();
 
@@ -63,7 +68,18 @@ class CacheVerificationCodeServiceTest {
                 .isInstanceOf(BadRequestException.class);
         assertThatThrownBy(() -> verificationCodeService.generateCode("sms", "13800138000", 0, Duration.ofMinutes(5)))
                 .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> verificationCodeService.generateImageCode("sms", "13800138000", 0, 48, 4, 10,
+                Duration.ofMinutes(5))).isInstanceOf(BadRequestException.class);
         assertThatThrownBy(() -> verificationCodeService.saveCode("sms", "13800138000", "123456", Duration.ZERO))
                 .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    void shouldGenerateImageVerificationCode() {
+        VerificationCodeImage image = verificationCodeService.generateImageCode("login", "captcha-key");
+
+        assertThat(image.getCode()).hasSize(6).containsOnlyDigits();
+        assertThat(image.getImageBase64Data()).startsWith("data:image/png;base64,");
+        assertThat(verificationCodeService.verifyCode("login", "captcha-key", image.getCode())).isTrue();
     }
 }

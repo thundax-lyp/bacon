@@ -47,7 +47,7 @@ public class AuthController {
     @PostMapping("/login/password/challenge")
     public PasswordLoginChallengeResponse passwordLoginChallenge() {
         PasswordLoginChallengeResult result = loginApplicationService.issuePasswordLoginChallenge();
-        return new PasswordLoginChallengeResponse(result.getCaptchaKey(), result.getCaptchaCode(),
+        return new PasswordLoginChallengeResponse(result.getCaptchaKey(), result.getCaptchaImageBase64(),
                 result.getCaptchaExpiresIn(), result.getRsaKeyId(), result.getRsaPublicKey(), result.getRsaExpiresIn());
     }
 

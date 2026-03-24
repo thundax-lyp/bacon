@@ -14,8 +14,8 @@ public class PasswordLoginChallengeResponse {
     @Schema(description = "验证码键")
     private String captchaKey;
 
-    @Schema(description = "验证码内容")
-    private String captchaCode;
+    @Schema(description = "验证码图片 Base64 Data URI")
+    private String captchaImageBase64;
 
     @Schema(description = "验证码有效期，单位秒")
     private long captchaExpiresIn;

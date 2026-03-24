@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class PasswordLoginChallengeResult {
 
     private String captchaKey;
-    private String captchaCode;
+    private String captchaImageBase64;
     private long captchaExpiresIn;
     private String rsaKeyId;
     private String rsaPublicKey;

@@ -91,7 +91,7 @@
 `PasswordLoginChallengeResponse`
 
 - `captchaKey`
-- `captchaCode`
+- `captchaImageBase64`
 - `captchaExpiresIn`
 - `rsaKeyId`
 - `rsaPublicKey`
@@ -99,8 +99,8 @@
 
 说明：
 
-- 当前实现为后端联调与演示阶段，直接返回 `captchaCode`
-- 后续接入图形验证码时，保留 `captchaKey` 语义，替换 `captchaCode` 的展示方式
+- 当前实现固定返回 Hutool `LineCaptcha` 的图片 `Base64 Data URI`
+- 前端负责渲染 `captchaImageBase64` 并提交用户输入的 `captchaCode`
 
 `UserLoginCredentialDTO`
 
@@ -196,7 +196,7 @@
 2. `Auth` 生成验证码并写入 `VerificationCodeService`
 3. `Auth` 生成 `RSA` 密钥对
 4. `Auth` 将私钥写入缓存
-5. `Auth` 返回 `captchaKey`、`captchaCode`、`rsaKeyId`、`rsaPublicKey`
+5. `Auth` 返回 `captchaKey`、`captchaImageBase64`、`rsaKeyId`、`rsaPublicKey`
 
 ### 8.2 用户/密码登录
 

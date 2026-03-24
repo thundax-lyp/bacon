@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.common.core.config;
 
+import cn.hutool.core.date.DatePattern;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -14,7 +15,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,16 +22,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class JacksonConfiguration {
 
-    private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
-    private static final String DATE_PATTERN = "yyyy-MM-dd";
-    private static final String TIME_PATTERN = "HH:mm:ss";
-
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_PATTERN);
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(TIME_PATTERN);
-
         return builder -> builder
                 .serializationInclusion(JsonInclude.Include.NON_NULL)
                 .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -40,14 +32,14 @@ public class JacksonConfiguration {
                 .serializerByType(Long.TYPE, ToStringSerializer.instance)
                 .serializerByType(BigInteger.class, ToStringSerializer.instance)
                 .serializers(
-                        new LocalDateTimeSerializer(dateTimeFormatter),
-                        new LocalDateSerializer(dateFormatter),
-                        new LocalTimeSerializer(timeFormatter)
+                        new LocalDateTimeSerializer(DatePattern.NORM_DATETIME_FORMATTER),
+                        new LocalDateSerializer(DatePattern.NORM_DATE_FORMATTER),
+                        new LocalTimeSerializer(DatePattern.NORM_TIME_FORMATTER)
                 )
                 .deserializers(
-                        new LocalDateTimeDeserializer(dateTimeFormatter),
-                        new LocalDateDeserializer(dateFormatter),
-                        new LocalTimeDeserializer(timeFormatter)
+                        new LocalDateTimeDeserializer(DatePattern.NORM_DATETIME_FORMATTER),
+                        new LocalDateDeserializer(DatePattern.NORM_DATE_FORMATTER),
+                        new LocalTimeDeserializer(DatePattern.NORM_TIME_FORMATTER)
                 );
     }
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 class RestTemplateConfigurationTest {
@@ -16,5 +17,13 @@ class RestTemplateConfigurationTest {
 
         assertThat(restTemplate).isNotNull();
         assertThat(restTemplate.getRequestFactory()).isNotNull();
+    }
+
+    @Test
+    void shouldCreateRestClientBuilder() {
+        RestClient.Builder restClientBuilder = restTemplateConfiguration.restClientBuilder();
+
+        assertThat(restClientBuilder).isNotNull();
+        assertThat(restClientBuilder.build()).isNotNull();
     }
 }

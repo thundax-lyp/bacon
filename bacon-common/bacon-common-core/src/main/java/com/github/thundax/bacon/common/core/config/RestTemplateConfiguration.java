@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -28,5 +30,22 @@ public class RestTemplateConfiguration {
                 .setConnectTimeout(CONNECT_TIMEOUT)
                 .setReadTimeout(READ_TIMEOUT)
                 .build();
+    }
+
+    /**
+     * 创建 RestClient.Builder Bean，供业务代码基于统一的默认超时配置构建声明式 HTTP 客户端。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RestClient.Builder restClientBuilder() {
+        return RestClient.builder()
+                .requestFactory(createRequestFactory());
+    }
+
+    private SimpleClientHttpRequestFactory createRequestFactory() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(CONNECT_TIMEOUT);
+        requestFactory.setReadTimeout(READ_TIMEOUT);
+        return requestFactory;
     }
 }

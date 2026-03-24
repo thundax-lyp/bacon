@@ -3,14 +3,26 @@ package com.github.thundax.bacon.auth.interfaces.controller;
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
 import com.github.thundax.bacon.auth.api.dto.UserLoginResponse;
 import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshResponse;
+import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
+import com.github.thundax.bacon.auth.application.dto.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.application.service.LoginApplicationService;
 import com.github.thundax.bacon.auth.application.service.PasswordApplicationService;
 import com.github.thundax.bacon.auth.application.service.SessionApplicationService;
 import com.github.thundax.bacon.auth.application.service.TokenApplicationService;
-import com.github.thundax.bacon.auth.interfaces.dto.*;
+import com.github.thundax.bacon.auth.interfaces.dto.PasswordChangeRequest;
+import com.github.thundax.bacon.auth.interfaces.dto.PasswordLoginChallengeResponse;
+import com.github.thundax.bacon.auth.interfaces.dto.PasswordLoginRequest;
+import com.github.thundax.bacon.auth.interfaces.dto.SmsLoginRequest;
+import com.github.thundax.bacon.auth.interfaces.dto.TokenRefreshRequest;
+import com.github.thundax.bacon.auth.interfaces.dto.WecomLoginRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Tag(name = "Auth", description = "认证与会话接口")
@@ -31,10 +43,19 @@ public class AuthController {
         this.passwordApplicationService = passwordApplicationService;
     }
 
+    @Operation(summary = "获取账号密码登录挑战")
+    @PostMapping("/login/password/challenge")
+    public PasswordLoginChallengeResponse passwordLoginChallenge() {
+        PasswordLoginChallengeResult result = loginApplicationService.issuePasswordLoginChallenge();
+        return new PasswordLoginChallengeResponse(result.getCaptchaKey(), result.getCaptchaCode(),
+                result.getCaptchaExpiresIn(), result.getRsaKeyId(), result.getRsaPublicKey(), result.getRsaExpiresIn());
+    }
+
     @Operation(summary = "账号密码登录")
     @PostMapping("/login/password")
     public UserLoginResponse passwordLogin(@RequestBody PasswordLoginRequest request) {
-        return loginApplicationService.loginByPassword(request.getAccount(), request.getPassword());
+        return loginApplicationService.loginByPassword(new PasswordLoginCommand(request.getTenantId(), request.getAccount(),
+                request.getPassword(), request.getRsaKeyId(), request.getCaptchaKey(), request.getCaptchaCode()));
     }
 
     @Operation(summary = "短信登录")

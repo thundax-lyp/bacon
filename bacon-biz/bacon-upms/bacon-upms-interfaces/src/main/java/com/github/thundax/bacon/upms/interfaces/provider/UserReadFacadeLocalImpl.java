@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.interfaces.provider;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
+import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
 import com.github.thundax.bacon.upms.application.service.UserApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,6 +27,11 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     @Override
     public UserIdentityDTO getUserIdentity(Long tenantId, String identityType, String identityValue) {
         return userApplicationService.getUserIdentity(tenantId, identityType, identityValue);
+    }
+
+    @Override
+    public UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue) {
+        return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
     }
 
     @Override

@@ -16,17 +16,18 @@ public class User {
     private String account;
     private String name;
     private String phone;
+    private String passwordHash;
     private Long departmentId;
     private String status;
     private boolean deleted;
 
-    public User(Long id, Long tenantId, String account, String name, String phone,
+    public User(Long id, Long tenantId, String account, String name, String phone, String passwordHash,
                 Long departmentId, String status, boolean deleted) {
-        this(id, null, null, null, null, tenantId, account, name, phone, departmentId, status, deleted);
+        this(id, null, null, null, null, tenantId, account, name, phone, passwordHash, departmentId, status, deleted);
     }
 
     public User(Long id, String createdBy, LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt,
-                Long tenantId, String account, String name, String phone, Long departmentId,
+                Long tenantId, String account, String name, String phone, String passwordHash, Long departmentId,
                 String status, boolean deleted) {
         this.id = id;
         this.createdBy = createdBy;
@@ -37,6 +38,7 @@ public class User {
         this.account = account;
         this.name = name;
         this.phone = phone;
+        this.passwordHash = passwordHash;
         this.departmentId = departmentId;
         this.status = status;
         this.deleted = deleted;

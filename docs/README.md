@@ -45,6 +45,10 @@
   - 用途：认证、会话、OAuth2、认证审计的业务边界与固定契约。
   - 何时加载：涉及登录、令牌、会话、OAuth2、认证审计时。
 
+- [`AUTH-LOGIN-DESIGN.md`](./AUTH-LOGIN-DESIGN.md)
+  - 用途：账号密码登录中的验证码、RSA 传输、跨域凭据读取与 mono/micro 双模式实现设计。
+  - 何时加载：涉及账号密码登录设计或实现时。
+
 - [`UPMS-REQUIREMENTS.md`](./UPMS-REQUIREMENTS.md)
   - 用途：用户、租户、组织、角色、菜单、资源、数据权限的业务边界与固定契约。
   - 何时加载：涉及用户、权限、组织、导入导出、UPMS 审计时。

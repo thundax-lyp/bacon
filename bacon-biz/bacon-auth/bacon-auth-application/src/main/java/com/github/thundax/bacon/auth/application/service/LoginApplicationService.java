@@ -1,10 +1,16 @@
 package com.github.thundax.bacon.auth.application.service;
 
 import com.github.thundax.bacon.auth.api.dto.UserLoginResponse;
+import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
+import com.github.thundax.bacon.auth.application.dto.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.domain.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
+import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -21,16 +27,35 @@ public class LoginApplicationService {
     private final AuthSessionRepository authSessionRepository;
     private final TokenCodec tokenCodec;
     private final AuthAuditApplicationService authAuditApplicationService;
+    private final LoginSecurityApplicationService loginSecurityApplicationService;
+    private final UserReadFacade userReadFacade;
+    private final PasswordEncoder passwordEncoder;
 
     public LoginApplicationService(AuthSessionRepository authSessionRepository, TokenCodec tokenCodec,
-                                   AuthAuditApplicationService authAuditApplicationService) {
+                                   AuthAuditApplicationService authAuditApplicationService,
+                                   LoginSecurityApplicationService loginSecurityApplicationService,
+                                   UserReadFacade userReadFacade,
+                                   PasswordEncoder passwordEncoder) {
         this.authSessionRepository = authSessionRepository;
         this.tokenCodec = tokenCodec;
         this.authAuditApplicationService = authAuditApplicationService;
+        this.loginSecurityApplicationService = loginSecurityApplicationService;
+        this.userReadFacade = userReadFacade;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public UserLoginResponse loginByPassword(String account, String password) {
-        return createLoginSession(1001L, 2001L, account, "ACCOUNT", "PASSWORD", false);
+    public PasswordLoginChallengeResult issuePasswordLoginChallenge() {
+        return loginSecurityApplicationService.issuePasswordLoginChallenge();
+    }
+
+    public UserLoginResponse loginByPassword(PasswordLoginCommand command) {
+        Long tenantId = command.getTenantId() == null ? 1001L : command.getTenantId();
+        loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
+        String plainPassword = loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
+        UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(tenantId, "ACCOUNT", command.getAccount());
+        validatePasswordLoginCredential(credential, plainPassword);
+        return createLoginSession(credential.getTenantId(), credential.getUserId(), credential.getIdentityValue(),
+                credential.getIdentityType(), "PASSWORD", false);
     }
 
     public UserLoginResponse loginBySms(String phone, String smsCaptcha) {
@@ -43,6 +68,24 @@ public class LoginApplicationService {
 
     public UserLoginResponse loginByGithub(String code) {
         return createLoginSession(1001L, 2004L, code, "GITHUB", "GITHUB", null);
+    }
+
+    private void validatePasswordLoginCredential(UserLoginCredentialDTO credential, String plainPassword) {
+        if (credential == null) {
+            throw new BadRequestException("Invalid account or password");
+        }
+        if (!credential.isIdentityEnabled()) {
+            throw new BadRequestException("Current account is disabled");
+        }
+        if (credential.isDeleted()) {
+            throw new BadRequestException("Current account has been deleted");
+        }
+        if (!"ENABLED".equalsIgnoreCase(credential.getStatus())) {
+            throw new BadRequestException("Current user is not enabled");
+        }
+        if (!passwordEncoder.matches(plainPassword, credential.getPasswordHash())) {
+            throw new BadRequestException("Invalid account or password");
+        }
     }
 
     private UserLoginResponse createLoginSession(Long tenantId, Long userId, String identitySeed, String identityType,

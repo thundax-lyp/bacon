@@ -1,12 +1,18 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.upms.domain.entity.*;
-import org.springframework.stereotype.Component;
-
+import com.github.thundax.bacon.upms.domain.entity.Department;
+import com.github.thundax.bacon.upms.domain.entity.Menu;
+import com.github.thundax.bacon.upms.domain.entity.Role;
+import com.github.thundax.bacon.upms.domain.entity.SysLogRecord;
+import com.github.thundax.bacon.upms.domain.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.entity.User;
+import com.github.thundax.bacon.upms.domain.entity.UserIdentity;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 @Component
 public class InMemoryUpmsStore {
@@ -24,7 +30,7 @@ public class InMemoryUpmsStore {
     private final Map<String, Boolean> userAllAccess = new ConcurrentHashMap<>();
     private final Map<Long, SysLogRecord> sysLogs = new ConcurrentHashMap<>();
 
-    public InMemoryUpmsStore() {
+    public InMemoryUpmsStore(PasswordEncoder passwordEncoder) {
         Tenant tenant = new Tenant(1L, 1001L, "tenant-demo", "Demo Tenant", "ENABLED");
         tenants.put(tenant.getTenantId(), tenant);
 
@@ -32,7 +38,8 @@ public class InMemoryUpmsStore {
         departments.put(departmentKey(rootDepartment.getTenantId(), rootDepartment.getId()), rootDepartment);
         departments.put(departmentCodeKey(rootDepartment.getTenantId(), rootDepartment.getCode()), rootDepartment);
 
-        User admin = new User(2001L, 1001L, "admin", "System Admin", "13800000000", 10L, "ENABLED", false);
+        User admin = new User(2001L, 1001L, "admin", "System Admin", "13800000000",
+                passwordEncoder.encode("123456"), 10L, "ENABLED", false);
         users.put(userKey(admin.getTenantId(), admin.getId()), admin);
 
         UserIdentity accountIdentity = new UserIdentity(3001L, 1001L, 2001L, "ACCOUNT", "admin", true);

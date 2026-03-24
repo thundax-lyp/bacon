@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.rpc;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
+import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,6 +35,15 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
                         tenantId, identityType, identityValue)
                 .retrieve()
                 .body(UserIdentityDTO.class);
+    }
+
+    @Override
+    public UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue) {
+        return restClient.get()
+                .uri("/providers/upms/user-credentials?tenantId={tenantId}&identityType={identityType}&identityValue={identityValue}",
+                        tenantId, identityType, identityValue)
+                .retrieve()
+                .body(UserLoginCredentialDTO.class);
     }
 
     @Override

@@ -9,11 +9,14 @@ import com.github.thundax.bacon.auth.domain.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
 @Service
 public class OAuth2AuthorizationApplicationService {

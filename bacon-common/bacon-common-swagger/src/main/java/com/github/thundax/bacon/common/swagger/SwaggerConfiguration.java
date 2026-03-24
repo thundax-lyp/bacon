@@ -9,7 +9,6 @@ import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.models.GroupedOpenApi;
-import org.springdoc.core.properties.SwaggerUiConfigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -75,14 +74,6 @@ public class SwaggerConfiguration {
                 .group(INNER_GROUP)
                 .addOpenApiMethodFilter(method -> hasPackageSegment(method.getDeclaringClass(), PROVIDER_PACKAGE_SEGMENT))
                 .build();
-    }
-
-    @Bean
-    public SwaggerUiConfigProperties swaggerUiConfigProperties() {
-        SwaggerUiConfigProperties properties = new SwaggerUiConfigProperties();
-        properties.setTagsSorter("alpha");
-        properties.setOperationsSorter("alpha");
-        return properties;
     }
 
     @EventListener(ApplicationReadyEvent.class)

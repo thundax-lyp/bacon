@@ -3,7 +3,6 @@ package com.github.thundax.bacon.inventory.interfaces.controller;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.application.service.InventoryQueryService;
-import com.github.thundax.bacon.inventory.interfaces.assembler.InventoryAssembler;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryBatchQueryRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryTenantScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryStockResponse;
@@ -37,7 +36,7 @@ public class InventoryController {
     @GetMapping("/{skuId}")
     public InventoryStockResponse getInventory(@PathVariable @Positive Long skuId,
                                                @Valid @ModelAttribute InventoryTenantScopedRequest request) {
-        return InventoryAssembler.toStockResponse(
+        return InventoryStockResponse.from(
                 inventoryQueryService.getAvailableStock(request.getTenantId(), skuId)
         );
     }
@@ -47,7 +46,7 @@ public class InventoryController {
     @GetMapping
     public List<InventoryStockResponse> listInventories(@Valid @ModelAttribute InventoryBatchQueryRequest request) {
         return inventoryQueryService.batchGetAvailableStock(request.getTenantId(), request.getSkuIds()).stream()
-                .map(InventoryAssembler::toStockResponse)
+                .map(InventoryStockResponse::from)
                 .toList();
     }
 }

@@ -2,6 +2,8 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.entity.Department;
 import com.github.thundax.bacon.upms.domain.entity.Menu;
+import com.github.thundax.bacon.upms.domain.entity.Post;
+import com.github.thundax.bacon.upms.domain.entity.Resource;
 import com.github.thundax.bacon.upms.domain.entity.Role;
 import com.github.thundax.bacon.upms.domain.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.entity.Tenant;
@@ -25,6 +27,8 @@ public class InMemoryUpmsStore {
     private final Map<String, Role> roles = new ConcurrentHashMap<>();
     private final Map<String, List<Role>> userRoles = new ConcurrentHashMap<>();
     private final Map<String, Menu> menus = new ConcurrentHashMap<>();
+    private final Map<String, Post> posts = new ConcurrentHashMap<>();
+    private final Map<String, Resource> resources = new ConcurrentHashMap<>();
     private final Map<String, Set<Long>> roleMenus = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> roleResources = new ConcurrentHashMap<>();
     private final Map<String, String> roleDataScopeTypes = new ConcurrentHashMap<>();
@@ -41,6 +45,8 @@ public class InMemoryUpmsStore {
     private final AtomicLong departmentIdSequence = new AtomicLong(11L);
     private final AtomicLong tenantIdSequence = new AtomicLong(1002L);
     private final AtomicLong menuIdSequence = new AtomicLong(5003L);
+    private final AtomicLong postIdSequence = new AtomicLong(6002L);
+    private final AtomicLong resourceIdSequence = new AtomicLong(7002L);
 
     public InMemoryUpmsStore(PasswordEncoder passwordEncoder) {
         Tenant tenant = new Tenant(1L, 1001L, "tenant-demo", "Demo Tenant", "ENABLED");
@@ -70,6 +76,14 @@ public class InMemoryUpmsStore {
                 "upms:user:view", List.of(button));
         menus.put(menuKey(menu.getTenantId(), menu.getId()), menu);
         menus.put(menuKey(button.getTenantId(), button.getId()), button);
+
+        Post adminPost = new Post(6001L, 1001L, "ADMIN_POST", "Administrator Post", 10L, "ENABLED");
+        posts.put(postKey(adminPost.getTenantId(), adminPost.getId()), adminPost);
+
+        Resource userViewResource = new Resource(7001L, 1001L, "upms:user:view", "View User", "API",
+                "GET", "/upms/users/**", "ENABLED");
+        resources.put(resourceKey(userViewResource.getTenantId(), userViewResource.getId()), userViewResource);
+
         userMenus.put(userKey(1001L, 2001L), List.of(menu));
         userPermissions.put(userKey(1001L, 2001L), Set.of("upms:user:view", "upms:user:save"));
         userDepartmentScopes.put(userKey(1001L, 2001L), Set.of(10L));
@@ -107,6 +121,14 @@ public class InMemoryUpmsStore {
 
     public Map<String, Set<Long>> getRoleMenus() {
         return roleMenus;
+    }
+
+    public Map<String, Post> getPosts() {
+        return posts;
+    }
+
+    public Map<String, Resource> getResources() {
+        return resources;
     }
 
     public Map<String, Set<String>> getRoleResources() {
@@ -169,6 +191,14 @@ public class InMemoryUpmsStore {
         return menuIdSequence.getAndIncrement();
     }
 
+    public long nextPostId() {
+        return postIdSequence.getAndIncrement();
+    }
+
+    public long nextResourceId() {
+        return resourceIdSequence.getAndIncrement();
+    }
+
     public static String userKey(Long tenantId, Long userId) {
         return tenantId + ":" + userId;
     }
@@ -191,5 +221,13 @@ public class InMemoryUpmsStore {
 
     public static String menuKey(Long tenantId, Long menuId) {
         return tenantId + ":" + menuId;
+    }
+
+    public static String postKey(Long tenantId, Long postId) {
+        return tenantId + ":" + postId;
+    }
+
+    public static String resourceKey(Long tenantId, Long resourceId) {
+        return tenantId + ":" + resourceId;
     }
 }

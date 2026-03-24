@@ -7,6 +7,7 @@ import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationAppl
 import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationDecisionResult;
 import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationView;
 import com.github.thundax.bacon.auth.interfaces.dto.OAuth2DecisionRequest;
+import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.util.MultiValueMap;
@@ -38,7 +39,7 @@ public class OAuth2Controller {
                                        @RequestParam(value = "state", required = false) String state,
                                        @RequestParam(value = "code_challenge", required = false) String codeChallenge,
                                        @RequestParam(value = "code_challenge_method", required = false) String codeChallengeMethod) {
-        return oAuth2AuthorizationApplicationService.authorize(extractBearerToken(authorization), clientId, redirectUri,
+        return oAuth2AuthorizationApplicationService.authorize(BearerTokenUtils.extractToken(authorization), clientId, redirectUri,
                 scope, state, codeChallenge, codeChallengeMethod);
     }
 
@@ -75,12 +76,6 @@ public class OAuth2Controller {
     @Operation(summary = "获取 OAuth2 用户信息")
     @GetMapping("/userinfo")
     public OAuth2UserinfoDTO userinfo(@RequestHeader("Authorization") String authorization) {
-        return oAuth2AuthorizationApplicationService.userinfo(extractBearerToken(authorization));
-    }
-
-    private String extractBearerToken(String authorization) {
-        return authorization != null && authorization.startsWith("Bearer ")
-                ? authorization.substring("Bearer ".length())
-                : authorization;
+        return oAuth2AuthorizationApplicationService.userinfo(BearerTokenUtils.extractToken(authorization));
     }
 }

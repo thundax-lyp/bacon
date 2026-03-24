@@ -16,6 +16,7 @@ import com.github.thundax.bacon.auth.interfaces.dto.SmsLoginRequest;
 import com.github.thundax.bacon.auth.interfaces.dto.TokenRefreshRequest;
 import com.github.thundax.bacon.auth.interfaces.dto.WecomLoginRequest;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -88,26 +89,20 @@ public class AuthController {
     @Operation(summary = "退出登录")
     @PostMapping("/logout")
     public void logout(@RequestHeader("Authorization") String authorization) {
-        sessionApplicationService.logout(extractBearerToken(authorization));
+        sessionApplicationService.logout(BearerTokenUtils.extractToken(authorization));
     }
 
     @Operation(summary = "修改当前用户密码")
     @PostMapping("/password/change")
     public void changePassword(@RequestHeader("Authorization") String authorization,
                                @Valid @RequestBody PasswordChangeRequest request) {
-        passwordApplicationService.changePassword(extractBearerToken(authorization),
+        passwordApplicationService.changePassword(BearerTokenUtils.extractToken(authorization),
                 request.getOldPassword(), request.getNewPassword());
     }
 
     @Operation(summary = "获取当前会话信息")
     @GetMapping("/session/current")
     public CurrentSessionDTO currentSession(@RequestHeader("Authorization") String authorization) {
-        return sessionApplicationService.currentSession(extractBearerToken(authorization));
-    }
-
-    private String extractBearerToken(String authorization) {
-        return authorization != null && authorization.startsWith("Bearer ")
-                ? authorization.substring("Bearer ".length())
-                : authorization;
+        return sessionApplicationService.currentSession(BearerTokenUtils.extractToken(authorization));
     }
 }

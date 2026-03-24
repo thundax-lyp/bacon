@@ -19,9 +19,15 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * 创建全局 Jackson 定制器，用于统一 JSON 序列化与反序列化规则。
+ */
 @Configuration
 public class JacksonConfiguration {
 
+    /**
+     * 创建 Jackson2ObjectMapperBuilderCustomizer，统一 Long、大整数和 Java 时间类型的 JSON 处理方式。
+     */
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
         return builder -> builder

@@ -1,8 +1,7 @@
 package com.github.thundax.bacon.auth.application.service;
 
 import com.alicp.jetcache.Cache;
-import com.alicp.jetcache.anno.CacheType;
-import com.alicp.jetcache.anno.CreateCache;
+import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
 import com.github.thundax.bacon.auth.application.dto.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.service.RsaCryptoService;
@@ -20,10 +19,12 @@ public class LoginSecurityApplicationService {
 
     private static final String LOGIN_PASSWORD_CAPTCHA_SCENE = "LOGIN_PASSWORD_CAPTCHA";
     private static final Duration CHALLENGE_TTL = Duration.ofMinutes(5);
-    private static final String PRIVATE_KEY_CACHE_NAME = "loginPasswordPrivateKey:";
+    private static final int DEFAULT_CACHE_LIMIT = 10_000;
 
-    @CreateCache(name = PRIVATE_KEY_CACHE_NAME, cacheType = CacheType.REMOTE, expire = 300, timeUnit = TimeUnit.SECONDS)
-    private Cache<String, String> loginPasswordPrivateKeyCache;
+    private final Cache<String, String> loginPasswordPrivateKeyCache = LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
+            .limit(DEFAULT_CACHE_LIMIT)
+            .expireAfterWrite(CHALLENGE_TTL.toSeconds(), TimeUnit.SECONDS)
+            .buildCache();
 
     private final VerificationCodeService verificationCodeService;
     private final RsaCryptoService rsaCryptoService;

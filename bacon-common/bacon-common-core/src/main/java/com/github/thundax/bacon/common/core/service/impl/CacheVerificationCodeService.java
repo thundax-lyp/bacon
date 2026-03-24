@@ -4,8 +4,7 @@ import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
 import com.alicp.jetcache.Cache;
-import com.alicp.jetcache.anno.CacheType;
-import com.alicp.jetcache.anno.CreateCache;
+import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.service.VerificationCodeImage;
 import com.github.thundax.bacon.common.core.service.VerificationCodeService;
@@ -26,9 +25,20 @@ public class CacheVerificationCodeService implements VerificationCodeService {
     private static final int DEFAULT_CAPTCHA_WIDTH = 160;
     private static final int DEFAULT_CAPTCHA_HEIGHT = 48;
     private static final int DEFAULT_INTERFERE_COUNT = 40;
+    private static final int DEFAULT_CACHE_LIMIT = 10_000;
 
-    @CreateCache(name = CACHE_NAME, cacheType = CacheType.REMOTE, expire = 300, timeUnit = TimeUnit.SECONDS)
-    private Cache<String, String> verificationCodeCache;
+    private final Cache<String, String> verificationCodeCache;
+
+    public CacheVerificationCodeService() {
+        this(LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
+                .limit(DEFAULT_CACHE_LIMIT)
+                .expireAfterWrite(DEFAULT_TTL.toSeconds(), TimeUnit.SECONDS)
+                .buildCache());
+    }
+
+    CacheVerificationCodeService(Cache<String, String> verificationCodeCache) {
+        this.verificationCodeCache = verificationCodeCache;
+    }
 
     @Override
     public String generateCode(String scene, String target) {

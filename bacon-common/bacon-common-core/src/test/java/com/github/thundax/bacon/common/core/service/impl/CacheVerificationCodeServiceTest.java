@@ -18,7 +18,7 @@ class CacheVerificationCodeServiceTest {
         System.setProperty("java.awt.headless", "true");
     }
 
-    private final CacheVerificationCodeService verificationCodeService = new CacheVerificationCodeService();
+    private CacheVerificationCodeService verificationCodeService;
 
     @BeforeEach
     void setUp() {
@@ -26,7 +26,7 @@ class CacheVerificationCodeServiceTest {
                 .limit(100)
                 .expireAfterWrite(10, java.util.concurrent.TimeUnit.MINUTES)
                 .buildCache();
-        ReflectionTestUtils.setField(verificationCodeService, "verificationCodeCache", cache);
+        verificationCodeService = new CacheVerificationCodeService(cache);
     }
 
     @Test

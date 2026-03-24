@@ -53,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "bacon.remote.inventory-base-url=http://127.0.0.1:18085",
                 "bacon.remote.payment-base-url=http://127.0.0.1:18086"
         })
-class BaconBootMicroAssemblyTest extends BaconSpringBootTest {
+class BaconMonoBootMicroAssemblyTest extends BaconSpringBootTest {
 
     @Autowired
     private TokenVerifyFacade tokenVerifyFacade;

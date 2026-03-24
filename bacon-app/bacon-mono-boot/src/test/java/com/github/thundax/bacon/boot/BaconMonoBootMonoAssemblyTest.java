@@ -48,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
                         + "org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration,"
                         + "com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration"
         })
-class BaconBootMonoAssemblyTest extends BaconSpringBootTest {
+class BaconMonoBootMonoAssemblyTest extends BaconSpringBootTest {
 
     @Autowired
     private TokenVerifyFacade tokenVerifyFacade;

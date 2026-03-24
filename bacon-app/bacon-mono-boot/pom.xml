@@ -11,7 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>bacon-boot</artifactId>
+    <artifactId>bacon-mono-boot</artifactId>
 
     <dependencies>
         <dependency>

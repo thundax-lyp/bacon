@@ -22,7 +22,7 @@ bacon
 │
 ├── bacon-app/                       # 启动与装配层
 │   ├── pom.xml
-│   ├── bacon-boot/                  # 单体启动模块
+│   ├── bacon-mono-boot/             # 单体启动模块
 │   │   ├── pom.xml
 │   │   └── src/main/java/.../BaconApplication.java
 │   │
@@ -97,7 +97,7 @@ bacon
 │   └── bacon-common-test/           # 测试基类 / 测试工具
 │
 └── deploy/                          # 部署脚本、Docker、配置样例
-    ├── bacon-boot/
+    ├── bacon-mono-boot/
     ├── bacon-register/
     ├── bacon-gateway/
     ├── bacon-auth/
@@ -113,7 +113,7 @@ bacon
 
 ### 单体装配
 ```text
-bacon-boot
+bacon-mono-boot
 ├── depends on bacon-order-api
 ├── depends on bacon-order-interfaces
 ├── depends on bacon-order-application
@@ -131,7 +131,7 @@ bacon-boot
 └── depends on bacon-common/*
 ```
 
-也就是：`bacon-boot = order + upms + inventory + payment + common`
+也就是：`bacon-mono-boot = order + upms + inventory + payment + common`
 
 ### 单体和微服务共存时的调用关系
 
@@ -321,7 +321,7 @@ common      -> 被各层依赖
 
 ### 运行模式
 - `mono-app` 中，各业务域运行在同一个 JVM 中，但仍保持业务边界不变。
-- `bacon-boot` 负责统一装配多个业务域，并选择 `facade` 的本地实现 Bean。
+- `bacon-mono-boot` 负责统一装配多个业务域，并选择 `facade` 的本地实现 Bean。
 - 即使在同一进程内，也不因为“调用方便”而绕过 `api.facade`。
 
 ### Facade 双 Bean 设计
@@ -359,7 +359,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - 所有 `facade` 实现都应遵循同一套装配规则，不能某些域用配置切换，某些域靠代码硬编码。
 
 ### 单体装配规则
-- `bacon-boot` 启动时默认装配各域的本地 `facade` 实现。
+- `bacon-mono-boot` 启动时默认装配各域的本地 `facade` 实现。
 - `infra.rpc` 中的远程 `facade` 实现、Feign Client、远程专用配置在 `mono-app` 模式下默认禁用。
 - MQ consumer、定时任务、RPC provider 等需要根据运行模式和服务职责决定是否启用，不能因为模块被引入就自动全部生效。
 - 单体模式下跨域调用路径应固定为：
@@ -388,7 +388,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
     - `bacon-common-*`
     - 当前服务需要的外部 `api` 模块与对应 `RemoteImpl`
 - `bacon-order-starter` 不装配其他业务域的本地 `facade` 实现。
-- 非 `bacon-boot` 的独立服务原则上只拥有本域业务实现，跨域能力通过外部 `api + RemoteImpl` 获取。
+- 非 `bacon-mono-boot` 的独立服务原则上只拥有本域业务实现，跨域能力通过外部 `api + RemoteImpl` 获取。
 - 各 starter 必须显式声明自身运行模式，不能在微服务 starter 中复用单体装配逻辑。
 
 ### 同步与异步调用边界

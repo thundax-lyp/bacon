@@ -50,12 +50,12 @@ bacon
 mvn clean verify
 mvn test
 mvn checkstyle:check
-mvn -pl bacon-app/bacon-boot spring-boot:run
+mvn -pl bacon-app/bacon-mono-boot spring-boot:run
 ```
 
 ## 运行模式
 
-- 单体模式：使用 `bacon-app/bacon-boot`
+- 单体模式：使用 `bacon-app/bacon-mono-boot`
 - 微服务模式：按业务域分别启动 `bacon-auth-starter`、`bacon-upms-starter`、`bacon-order-starter`、`bacon-inventory-starter`、`bacon-payment-starter`
 
 业务代码保持统一分层：

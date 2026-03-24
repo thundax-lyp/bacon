@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: bacon-boot
+    name: bacon-mono-boot
   datasource:
     url: ${BACON_DB_URL:jdbc:mysql://127.0.0.1:3306/bacon_sample?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
     username: ${BACON_DB_USERNAME:}
@@ -26,7 +26,7 @@ spring:
 rocketmq:
   name-server: ${BACON_ROCKETMQ_NAME_SERVER:127.0.0.1:9876}
   producer:
-    group: ${BACON_ROCKETMQ_PRODUCER_GROUP:bacon-boot-producer}
+    group: ${BACON_ROCKETMQ_PRODUCER_GROUP:bacon-mono-boot-producer}
 
 bacon:
   mq:

@@ -24,7 +24,7 @@
     </dependencies>
 
     <modules>
-        <module>bacon-boot</module>
+        <module>bacon-mono-boot</module>
         <module>bacon-order-starter</module>
         <module>bacon-inventory-starter</module>
         <module>bacon-payment-starter</module>

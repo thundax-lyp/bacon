@@ -5,7 +5,8 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,18 +19,21 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class InventoryReservationApplicationService {
 
-    private final InventoryRepository inventoryRepository;
+    private final InventoryStockRepository inventoryStockRepository;
+    private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryOperationLogService inventoryOperationLogService;
 
-    public InventoryReservationApplicationService(InventoryRepository inventoryRepository,
+    public InventoryReservationApplicationService(InventoryStockRepository inventoryStockRepository,
+                                                  InventoryReservationRepository inventoryReservationRepository,
                                                   InventoryOperationLogService inventoryOperationLogService) {
-        this.inventoryRepository = inventoryRepository;
+        this.inventoryStockRepository = inventoryStockRepository;
+        this.inventoryReservationRepository = inventoryReservationRepository;
         this.inventoryOperationLogService = inventoryOperationLogService;
     }
 
     @Transactional
     public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
-        return inventoryRepository.findReservation(tenantId, orderNo)
+        return inventoryReservationRepository.findReservation(tenantId, orderNo)
                 .map(InventoryReservationResultMapper::fromReservation)
                 .orElseGet(() -> createReservation(tenantId, orderNo, items));
     }
@@ -63,13 +67,13 @@ public class InventoryReservationApplicationService {
             return InventoryReservationResultMapper.fromReservation(reservation);
         }
         for (InventoryReservationItem item : reservationItems) {
-            Inventory inventory = inventoryRepository.findInventory(tenantId, item.getSkuId())
+            Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
                     .orElseThrow(() -> new IllegalStateException("Inventory not found: " + item.getSkuId()));
             inventory.reserve(item.getQuantity(), operatedAt);
-            inventoryRepository.saveInventory(inventory);
+            inventoryStockRepository.saveInventory(inventory);
         }
         reservation.reserve();
-        reservation = inventoryRepository.saveReservation(reservation);
+        reservation = inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(reservation, operatedAt);
         return InventoryReservationResultMapper.fromReservation(reservation);
     }
@@ -96,7 +100,7 @@ public class InventoryReservationApplicationService {
                 return "INVALID_ITEM";
             }
             try {
-                Inventory inventory = inventoryRepository.findInventory(tenantId, item.getSkuId())
+                Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
                         .orElseThrow(() -> new IllegalArgumentException("INVENTORY_NOT_FOUND:" + item.getSkuId()));
                 inventory.ensureReservable(item.getQuantity());
             } catch (RuntimeException ex) {
@@ -108,14 +112,14 @@ public class InventoryReservationApplicationService {
 
     private InventoryReservation saveReservationWithIdempotentFallback(InventoryReservation reservation) {
         try {
-            return inventoryRepository.saveReservation(reservation);
+            return inventoryReservationRepository.saveReservation(reservation);
         } catch (DuplicateKeyException ex) {
-            return inventoryRepository.findReservation(reservation.getTenantId(), reservation.getOrderNo())
+            return inventoryReservationRepository.findReservation(reservation.getTenantId(), reservation.getOrderNo())
                     .orElseThrow(() -> ex);
         }
     }
 
     private InventoryReservation tryFindExistingReservation(Long tenantId, String orderNo) {
-        return inventoryRepository.findReservation(tenantId, orderNo).orElse(null);
+        return inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
     }
 }

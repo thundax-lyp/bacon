@@ -162,14 +162,14 @@ Inventory 是 Bacon 的统一库存业务域。
 
 - 聚合、实体、值对象
 - 领域服务
-- `Repository` 接口
+- 按职责拆分的 `Repository` 接口
 - 领域规则和不变量
 
 ### 4.5 `bacon-inventory-infra`
 
 - `MyBatis-Plus Mapper`
 - `DO`
-- `Repository` 实现
+- 按职责拆分的 `Repository` 实现
 - 无数据源场景的内存 `Repository` fallback
 - 审计日志持久化
 

@@ -7,7 +7,9 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +28,11 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
         InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(repository, operationLogService),
-                new InventoryReleaseApplicationService(repository, operationLogService),
-                new InventoryDeductionApplicationService(repository, operationLogService)
+                new InventoryReservationApplicationService(repository, repository, operationLogService),
+                new InventoryReleaseApplicationService(repository, repository, operationLogService),
+                new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository);
+        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository);
 
         InventoryReservationResultDTO first = service.reserveStock(1001L, "ORDER-1",
                 List.of(new InventoryReservationItemDTO(101L, 10)));
@@ -53,11 +55,11 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
         InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(repository, operationLogService),
-                new InventoryReleaseApplicationService(repository, operationLogService),
-                new InventoryDeductionApplicationService(repository, operationLogService)
+                new InventoryReservationApplicationService(repository, repository, operationLogService),
+                new InventoryReleaseApplicationService(repository, repository, operationLogService),
+                new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository);
+        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository);
 
         InventoryReservationResultDTO result = service.reserveStock(1001L, "ORDER-2",
                 List.of(new InventoryReservationItemDTO(101L, 1000)));
@@ -77,11 +79,11 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
         InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(repository, operationLogService),
-                new InventoryReleaseApplicationService(repository, operationLogService),
-                new InventoryDeductionApplicationService(repository, operationLogService)
+                new InventoryReservationApplicationService(repository, repository, operationLogService),
+                new InventoryReleaseApplicationService(repository, repository, operationLogService),
+                new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository);
+        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository);
 
         service.reserveStock(1001L, "ORDER-3", List.of(new InventoryReservationItemDTO(101L, 5)));
         InventoryReservationResultDTO firstRelease = service.releaseReservedStock(1001L, "ORDER-3", "USER_CANCELLED");
@@ -102,11 +104,11 @@ class InventoryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
         InventoryApplicationService service = new InventoryApplicationService(
-                new InventoryReservationApplicationService(repository, operationLogService),
-                new InventoryReleaseApplicationService(repository, operationLogService),
-                new InventoryDeductionApplicationService(repository, operationLogService)
+                new InventoryReservationApplicationService(repository, repository, operationLogService),
+                new InventoryReleaseApplicationService(repository, repository, operationLogService),
+                new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository);
+        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository);
 
         service.reserveStock(1001L, "ORDER-4", List.of(new InventoryReservationItemDTO(101L, 7)));
         InventoryReservationResultDTO firstDeduct = service.deductReservedStock(1001L, "ORDER-4");
@@ -123,7 +125,8 @@ class InventoryApplicationServiceTest {
                 queryService.listLedgersByOrderNo(1001L, "ORDER-4").get(1).getLedgerType());
     }
 
-    private static final class TestInventoryRepository implements InventoryRepository {
+    private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,
+            InventoryLogRepository {
 
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
         private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();

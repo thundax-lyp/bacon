@@ -6,7 +6,9 @@ import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +23,8 @@ class InventoryQueryServiceTest {
 
     @Test
     void pageInventoriesShouldFilterAndPaginate() {
-        InventoryQueryService service = new InventoryQueryService(new TestInventoryRepository());
+        TestInventoryRepository repository = new TestInventoryRepository();
+        InventoryQueryService service = new InventoryQueryService(repository, repository, repository);
 
         InventoryPageResultDTO result = service.pageInventories(new InventoryPageQueryDTO(1001L, null,
                 Inventory.STATUS_ENABLED, 1, 2));
@@ -34,7 +37,8 @@ class InventoryQueryServiceTest {
 
     @Test
     void pageInventoriesShouldUseDefaultPagingValues() {
-        InventoryQueryService service = new InventoryQueryService(new TestInventoryRepository());
+        TestInventoryRepository repository = new TestInventoryRepository();
+        InventoryQueryService service = new InventoryQueryService(repository, repository, repository);
 
         InventoryPageResultDTO result = service.pageInventories(new InventoryPageQueryDTO(1001L, 104L,
                 null, 0, 0));
@@ -45,7 +49,8 @@ class InventoryQueryServiceTest {
         assertEquals(20, result.getPageSize());
     }
 
-    private static final class TestInventoryRepository implements InventoryRepository {
+    private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,
+            InventoryLogRepository {
 
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 

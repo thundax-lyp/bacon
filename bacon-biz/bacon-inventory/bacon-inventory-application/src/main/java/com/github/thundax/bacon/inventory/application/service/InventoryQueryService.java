@@ -11,7 +11,9 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,47 +23,53 @@ import java.util.Set;
 @Service
 public class InventoryQueryService {
 
-    private final InventoryRepository inventoryRepository;
+    private final InventoryStockRepository inventoryStockRepository;
+    private final InventoryReservationRepository inventoryReservationRepository;
+    private final InventoryLogRepository inventoryLogRepository;
 
-    public InventoryQueryService(InventoryRepository inventoryRepository) {
-        this.inventoryRepository = inventoryRepository;
+    public InventoryQueryService(InventoryStockRepository inventoryStockRepository,
+                                 InventoryReservationRepository inventoryReservationRepository,
+                                 InventoryLogRepository inventoryLogRepository) {
+        this.inventoryStockRepository = inventoryStockRepository;
+        this.inventoryReservationRepository = inventoryReservationRepository;
+        this.inventoryLogRepository = inventoryLogRepository;
     }
 
     public InventoryStockDTO getAvailableStock(Long tenantId, Long skuId) {
-        return toStockDto(inventoryRepository.findInventory(tenantId, skuId)
+        return toStockDto(inventoryStockRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new IllegalArgumentException("Inventory not found: " + skuId)));
     }
 
     public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
-        return inventoryRepository.findInventories(tenantId, skuIds).stream().map(this::toStockDto).toList();
+        return inventoryStockRepository.findInventories(tenantId, skuIds).stream().map(this::toStockDto).toList();
     }
 
     public InventoryPageResultDTO pageInventories(InventoryPageQueryDTO query) {
         int pageNo = normalizePageNo(query.getPageNo());
         int pageSize = normalizePageSize(query.getPageSize());
         String normalizedStatus = normalizeStatus(query.getStatus());
-        List<InventoryStockDTO> records = inventoryRepository
+        List<InventoryStockDTO> records = inventoryStockRepository
                 .pageInventories(query.getTenantId(), query.getSkuId(), normalizedStatus, pageNo, pageSize).stream()
                 .map(this::toStockDto)
                 .toList();
-        long total = inventoryRepository.countInventories(query.getTenantId(), query.getSkuId(), normalizedStatus);
+        long total = inventoryStockRepository.countInventories(query.getTenantId(), query.getSkuId(), normalizedStatus);
         return new InventoryPageResultDTO(records, total, pageNo, pageSize);
     }
 
     public InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo) {
-        InventoryReservation reservation = inventoryRepository.findReservation(tenantId, orderNo)
+        InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + orderNo));
         return toReservationDto(reservation);
     }
 
     public List<InventoryLedgerDTO> listLedgersByOrderNo(Long tenantId, String orderNo) {
-        return inventoryRepository.findLedgers(tenantId, orderNo).stream()
+        return inventoryLogRepository.findLedgers(tenantId, orderNo).stream()
                 .map(this::toLedgerDto)
                 .toList();
     }
 
     public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(Long tenantId, String orderNo) {
-        return inventoryRepository.findAuditLogs(tenantId, orderNo).stream()
+        return inventoryLogRepository.findAuditLogs(tenantId, orderNo).stream()
                 .map(this::toAuditLogDto)
                 .toList();
     }

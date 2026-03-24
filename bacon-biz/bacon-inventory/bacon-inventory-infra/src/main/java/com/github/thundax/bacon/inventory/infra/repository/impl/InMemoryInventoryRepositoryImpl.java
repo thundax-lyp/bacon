@@ -5,7 +5,9 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Repository;
@@ -21,8 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Repository
-@ConditionalOnMissingBean(InventoryRepository.class)
-public class InMemoryInventoryRepositoryImpl implements InventoryRepository {
+@ConditionalOnMissingBean({InventoryStockRepository.class, InventoryReservationRepository.class, InventoryLogRepository.class})
+public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository, InventoryReservationRepository,
+        InventoryLogRepository {
 
     private final AtomicLong inventoryIdGenerator = new AtomicLong(1000L);
     private final AtomicLong reservationIdGenerator = new AtomicLong(1000L);

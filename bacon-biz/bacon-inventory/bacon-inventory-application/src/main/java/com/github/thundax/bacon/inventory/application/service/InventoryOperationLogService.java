@@ -4,7 +4,7 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +16,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 public class InventoryOperationLogService {
 
-    private final InventoryRepository inventoryRepository;
+    private final InventoryLogRepository inventoryLogRepository;
 
-    public InventoryOperationLogService(InventoryRepository inventoryRepository) {
-        this.inventoryRepository = inventoryRepository;
+    public InventoryOperationLogService(InventoryLogRepository inventoryLogRepository) {
+        this.inventoryLogRepository = inventoryLogRepository;
     }
 
     public void recordReserveSuccess(InventoryReservation reservation, Instant occurredAt) {
@@ -44,7 +44,7 @@ public class InventoryOperationLogService {
     private void recordLedgerBatch(InventoryReservation reservation, List<InventoryReservationItem> items,
                                    String ledgerType, Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(),
+            inventoryLogRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(),
                     reservation.getOrderNo(), reservation.getReservationNo(), item.getSkuId(),
                     reservation.getWarehouseId(), ledgerType, item.getQuantity(), occurredAt));
         }
@@ -66,7 +66,7 @@ public class InventoryOperationLogService {
 
     private void saveAuditSafely(InventoryReservation reservation, String actionType, Instant occurredAt) {
         try {
-            inventoryRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
+            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
                 reservation.getOrderNo(), reservation.getReservationNo(), actionType,
                 InventoryAuditLog.OPERATOR_TYPE_SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
         } catch (RuntimeException ex) {

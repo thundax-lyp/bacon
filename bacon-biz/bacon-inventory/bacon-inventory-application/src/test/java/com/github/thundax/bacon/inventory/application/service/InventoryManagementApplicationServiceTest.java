@@ -5,7 +5,9 @@ import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +45,8 @@ class InventoryManagementApplicationServiceTest {
         assertEquals(Inventory.STATUS_DISABLED, repository.findInventory(1001L, 101L).orElseThrow().getStatus());
     }
 
-    private static final class TestInventoryRepository implements InventoryRepository {
+    private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,
+            InventoryLogRepository {
 
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 

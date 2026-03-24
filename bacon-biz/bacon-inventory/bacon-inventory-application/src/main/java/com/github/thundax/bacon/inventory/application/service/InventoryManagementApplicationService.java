@@ -2,7 +2,7 @@ package com.github.thundax.bacon.inventory.application.service;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class InventoryManagementApplicationService {
 
-    private final InventoryRepository inventoryRepository;
+    private final InventoryStockRepository inventoryRepository;
 
-    public InventoryManagementApplicationService(InventoryRepository inventoryRepository) {
+    public InventoryManagementApplicationService(InventoryStockRepository inventoryRepository) {
         this.inventoryRepository = inventoryRepository;
     }
 

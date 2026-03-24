@@ -6,7 +6,9 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryLedgerDO;
@@ -29,7 +31,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository
 @ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
-public class InventoryRepositoryImpl implements InventoryRepository {
+public class InventoryRepositoryImpl implements InventoryStockRepository, InventoryReservationRepository, InventoryLogRepository {
 
     private final InventoryMapper inventoryMapper;
     private final InventoryReservationMapper reservationMapper;

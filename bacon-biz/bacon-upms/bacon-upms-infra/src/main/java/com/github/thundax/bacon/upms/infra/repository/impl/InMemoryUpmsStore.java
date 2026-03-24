@@ -24,6 +24,7 @@ public class InMemoryUpmsStore {
     private final Map<String, Department> departments = new ConcurrentHashMap<>();
     private final Map<String, Role> roles = new ConcurrentHashMap<>();
     private final Map<String, List<Role>> userRoles = new ConcurrentHashMap<>();
+    private final Map<String, Menu> menus = new ConcurrentHashMap<>();
     private final Map<String, Set<Long>> roleMenus = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> roleResources = new ConcurrentHashMap<>();
     private final Map<String, String> roleDataScopeTypes = new ConcurrentHashMap<>();
@@ -39,6 +40,7 @@ public class InMemoryUpmsStore {
     private final AtomicLong roleIdSequence = new AtomicLong(4002L);
     private final AtomicLong departmentIdSequence = new AtomicLong(11L);
     private final AtomicLong tenantIdSequence = new AtomicLong(1002L);
+    private final AtomicLong menuIdSequence = new AtomicLong(5003L);
 
     public InMemoryUpmsStore(PasswordEncoder passwordEncoder) {
         Tenant tenant = new Tenant(1L, 1001L, "tenant-demo", "Demo Tenant", "ENABLED");
@@ -66,6 +68,8 @@ public class InMemoryUpmsStore {
         Menu button = new Menu(5002L, 1001L, "BUTTON", "Save Button", 5001L, "", "", "", 2, "upms:user:save", List.of());
         Menu menu = new Menu(5001L, 1001L, "MENU", "User Management", 0L, "/users", "UserPage", "users", 1,
                 "upms:user:view", List.of(button));
+        menus.put(menuKey(menu.getTenantId(), menu.getId()), menu);
+        menus.put(menuKey(button.getTenantId(), button.getId()), button);
         userMenus.put(userKey(1001L, 2001L), List.of(menu));
         userPermissions.put(userKey(1001L, 2001L), Set.of("upms:user:view", "upms:user:save"));
         userDepartmentScopes.put(userKey(1001L, 2001L), Set.of(10L));
@@ -95,6 +99,10 @@ public class InMemoryUpmsStore {
 
     public Map<String, List<Role>> getUserRoles() {
         return userRoles;
+    }
+
+    public Map<String, Menu> getMenus() {
+        return menus;
     }
 
     public Map<String, Set<Long>> getRoleMenus() {
@@ -157,6 +165,10 @@ public class InMemoryUpmsStore {
         return tenantIdSequence.getAndIncrement();
     }
 
+    public long nextMenuId() {
+        return menuIdSequence.getAndIncrement();
+    }
+
     public static String userKey(Long tenantId, Long userId) {
         return tenantId + ":" + userId;
     }
@@ -175,5 +187,9 @@ public class InMemoryUpmsStore {
 
     public static String roleKey(Long tenantId, Long roleId) {
         return tenantId + ":" + roleId;
+    }
+
+    public static String menuKey(Long tenantId, Long menuId) {
+        return tenantId + ":" + menuId;
     }
 }

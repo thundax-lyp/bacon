@@ -7,6 +7,8 @@ import java.util.Set;
 
 public interface PermissionRepository {
 
+    List<Menu> listMenus(Long tenantId);
+
     List<Menu> getUserMenuTree(Long tenantId, Long userId);
 
     Set<String> getUserPermissionCodes(Long tenantId, Long userId);

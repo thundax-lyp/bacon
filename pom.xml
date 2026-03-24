@@ -33,6 +33,7 @@
         <jasypt.version>3.0.5</jasypt.version>
         <spring-boot-admin.version>3.5.6</spring-boot-admin.version>
         <rocketmq-spring-boot.version>2.3.3</rocketmq-spring-boot.version>
+        <tinyid.version>0.1.0-SNAPSHOT</tinyid.version>
         <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>

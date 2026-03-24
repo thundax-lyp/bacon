@@ -33,6 +33,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.xiaoju.uemc.tinyid</groupId>
+            <artifactId>tinyid-client</artifactId>
+            <version>${tinyid.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>

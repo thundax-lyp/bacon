@@ -12,6 +12,7 @@ import com.github.thundax.bacon.upms.domain.entity.Role;
 import com.github.thundax.bacon.upms.domain.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.entity.User;
 import com.github.thundax.bacon.upms.domain.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,13 @@ public class UserApplicationService {
     private static final String DEFAULT_PASSWORD = "123456";
 
     private final UserRepository userRepository;
+    private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
 
-    public UserApplicationService(UserRepository userRepository, SessionCommandFacade sessionCommandFacade) {
+    public UserApplicationService(UserRepository userRepository, TenantRepository tenantRepository,
+                                  SessionCommandFacade sessionCommandFacade) {
         this.userRepository = userRepository;
+        this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
     }
 
@@ -52,7 +56,7 @@ public class UserApplicationService {
     }
 
     public TenantDTO getTenantByTenantId(Long tenantId) {
-        Tenant tenant = userRepository.findTenantByTenantId(tenantId)
+        Tenant tenant = tenantRepository.findTenantByTenantId(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
         return new TenantDTO(tenant.getId(), tenant.getTenantId(), tenant.getCode(), tenant.getName(), tenant.getStatus());
     }

@@ -24,6 +24,10 @@ public class InMemoryUpmsStore {
     private final Map<String, Department> departments = new ConcurrentHashMap<>();
     private final Map<String, Role> roles = new ConcurrentHashMap<>();
     private final Map<String, List<Role>> userRoles = new ConcurrentHashMap<>();
+    private final Map<String, Set<Long>> roleMenus = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> roleResources = new ConcurrentHashMap<>();
+    private final Map<String, String> roleDataScopeTypes = new ConcurrentHashMap<>();
+    private final Map<String, Set<Long>> roleDataScopeDepartments = new ConcurrentHashMap<>();
     private final Map<String, List<Menu>> userMenus = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> userPermissions = new ConcurrentHashMap<>();
     private final Map<String, Set<Long>> userDepartmentScopes = new ConcurrentHashMap<>();
@@ -32,6 +36,7 @@ public class InMemoryUpmsStore {
     private final Map<Long, SysLogRecord> sysLogs = new ConcurrentHashMap<>();
     private final AtomicLong userIdSequence = new AtomicLong(2002L);
     private final AtomicLong userIdentityIdSequence = new AtomicLong(3002L);
+    private final AtomicLong roleIdSequence = new AtomicLong(4002L);
 
     public InMemoryUpmsStore(PasswordEncoder passwordEncoder) {
         Tenant tenant = new Tenant(1L, 1001L, "tenant-demo", "Demo Tenant", "ENABLED");
@@ -51,6 +56,10 @@ public class InMemoryUpmsStore {
         Role adminRole = new Role(4001L, 1001L, "ADMIN", "Administrator", "SYSTEM_ROLE", "ALL", "ENABLED");
         roles.put(roleKey(adminRole.getTenantId(), adminRole.getId()), adminRole);
         userRoles.put(userKey(1001L, 2001L), List.of(adminRole));
+        roleMenus.put(roleKey(1001L, 4001L), Set.of(5001L, 5002L));
+        roleResources.put(roleKey(1001L, 4001L), Set.of("upms:user:view", "upms:user:save"));
+        roleDataScopeTypes.put(roleKey(1001L, 4001L), "ALL");
+        roleDataScopeDepartments.put(roleKey(1001L, 4001L), Set.of(10L));
 
         Menu button = new Menu(5002L, 1001L, "BUTTON", "Save Button", 5001L, "", "", "", 2, "upms:user:save", List.of());
         Menu menu = new Menu(5001L, 1001L, "MENU", "User Management", 0L, "/users", "UserPage", "users", 1,
@@ -86,6 +95,22 @@ public class InMemoryUpmsStore {
         return userRoles;
     }
 
+    public Map<String, Set<Long>> getRoleMenus() {
+        return roleMenus;
+    }
+
+    public Map<String, Set<String>> getRoleResources() {
+        return roleResources;
+    }
+
+    public Map<String, String> getRoleDataScopeTypes() {
+        return roleDataScopeTypes;
+    }
+
+    public Map<String, Set<Long>> getRoleDataScopeDepartments() {
+        return roleDataScopeDepartments;
+    }
+
     public Map<String, List<Menu>> getUserMenus() {
         return userMenus;
     }
@@ -116,6 +141,10 @@ public class InMemoryUpmsStore {
 
     public long nextUserIdentityId() {
         return userIdentityIdSequence.getAndIncrement();
+    }
+
+    public long nextRoleId() {
+        return roleIdSequence.getAndIncrement();
     }
 
     public static String userKey(Long tenantId, Long userId) {

@@ -98,6 +98,7 @@
 | `reserved_quantity` | `int` | N | 预占量 |
 | `available_quantity` | `int` | N | 可售量 |
 | `status` | `varchar(16)` | N | 库存状态，取值见 `status` |
+| `version` | `bigint` | N | 乐观锁版本号 |
 | `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `updated_by` | `bigint` | Y | 更新人用户主键 |
@@ -234,10 +235,13 @@
 - `InventoryReservationItem` 必须保证 `(tenant_id, reservation_no, sku_id)` 唯一
 - `available_quantity` 必须始终等于 `on_hand_quantity - reserved_quantity`
 - 任意时刻不得出现负库存
+- `Inventory.version` 用于乐观锁控制，库存写入必须带版本条件更新
 - 正式持久化实现优先使用 `MyBatis-Plus BaseMapper + DataObject`
 - 在未装配 `DataSource` / `SqlSessionFactory` 的启动或测试场景下，可退回内存 `Repository` 实现
 - 预占、释放、扣减都以 `order_no` 为幂等键
 - `releaseReservedStock` 和 `deductReservedStock` 只允许基于已存在预占单执行语义判断
+- 库存数量变更必须显式更新 `bacon_inventory_inventory`，不得依赖运行时对象引用副作用
+- `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的命令写入应运行在同一事务中
 - `InventoryStockDTO` 是读模型，不单独建表
 - `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表
 - 预占单和库存流水不做逻辑删除

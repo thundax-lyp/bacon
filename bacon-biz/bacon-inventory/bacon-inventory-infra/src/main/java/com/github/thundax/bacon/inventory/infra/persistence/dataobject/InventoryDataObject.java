@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,6 +31,8 @@ public class InventoryDataObject {
     @TableField("available_quantity")
     private Integer availableQuantity;
     private String status;
+    @Version
+    private Long version;
     @TableField("created_by")
     private Long createdBy;
     @TableField("created_at")

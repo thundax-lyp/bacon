@@ -20,6 +20,7 @@ public class Inventory {
     private Integer reservedQuantity;
     private Integer availableQuantity;
     private String status;
+    private Long version;
     private Instant updatedAt;
 
     public static Inventory create(Long id, Long tenantId, Long skuId, Integer onHandQuantity, String status, Instant createdAt) {
@@ -31,7 +32,7 @@ public class Inventory {
         }
         String normalizedStatus = normalizeStatus(status);
         return new Inventory(id, tenantId, skuId, DEFAULT_WAREHOUSE_ID, onHandQuantity, 0, onHandQuantity,
-                normalizedStatus, createdAt);
+                normalizedStatus, 0L, createdAt);
     }
 
     public void reserve(int quantity, Instant operatedAt) {
@@ -73,6 +74,10 @@ public class Inventory {
     public void updateStatus(String targetStatus, Instant operatedAt) {
         this.status = normalizeStatus(targetStatus);
         this.updatedAt = operatedAt;
+    }
+
+    public void markPersisted(Long persistedVersion) {
+        this.version = persistedVersion;
     }
 
     private void ensureEnabled() {

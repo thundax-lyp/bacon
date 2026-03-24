@@ -6,14 +6,14 @@ import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InventoryReservationApplicationService {
@@ -28,6 +28,7 @@ public class InventoryReservationApplicationService {
         this.inventoryOperationLogService = inventoryOperationLogService;
     }
 
+    @Transactional
     public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
         return inventoryRepository.findReservation(tenantId, orderNo)
                 .map(InventoryReservationResultMapper::fromReservation)
@@ -57,6 +58,7 @@ public class InventoryReservationApplicationService {
             Inventory inventory = inventoryRepository.findInventory(tenantId, item.getSkuId())
                     .orElseThrow(() -> new IllegalStateException("Inventory not found: " + item.getSkuId()));
             inventory.reserve(item.getQuantity(), operatedAt);
+            inventoryRepository.saveInventory(inventory);
         }
         reservation.reserve();
         inventoryRepository.saveReservation(reservation);

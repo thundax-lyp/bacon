@@ -28,8 +28,8 @@ public class InMemoryInventoryRepository implements InventoryRepository {
     private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
 
     public InMemoryInventoryRepository() {
-        inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100, "ENABLED", Instant.now()));
-        inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, 1L, 50, 0, 50, "ENABLED", Instant.now()));
+        inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100, "ENABLED", 0L, Instant.now()));
+        inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, 1L, 50, 0, 50, "ENABLED", 0L, Instant.now()));
         log.info("Using in-memory inventory repository");
     }
 
@@ -56,6 +56,8 @@ public class InMemoryInventoryRepository implements InventoryRepository {
 
     @Override
     public Inventory saveInventory(Inventory inventory) {
+        Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
+        inventory.markPersisted(version);
         inventories.put(key(inventory.getTenantId(), inventory.getSkuId()), inventory);
         return inventory;
     }

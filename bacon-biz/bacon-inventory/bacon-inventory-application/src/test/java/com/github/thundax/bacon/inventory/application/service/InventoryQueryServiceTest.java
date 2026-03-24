@@ -51,13 +51,13 @@ class InventoryQueryServiceTest {
 
         private TestInventoryRepository() {
             inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100,
-                    Inventory.STATUS_ENABLED, Instant.now()));
+                    Inventory.STATUS_ENABLED, 0L, Instant.now()));
             inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, 1L, 80, 0, 80,
-                    Inventory.STATUS_DISABLED, Instant.now()));
+                    Inventory.STATUS_DISABLED, 0L, Instant.now()));
             inventories.put(key(1001L, 103L), new Inventory(3L, 1001L, 103L, 1L, 60, 0, 60,
-                    Inventory.STATUS_ENABLED, Instant.now()));
+                    Inventory.STATUS_ENABLED, 0L, Instant.now()));
             inventories.put(key(1001L, 104L), new Inventory(4L, 1001L, 104L, 1L, 40, 0, 40,
-                    Inventory.STATUS_ENABLED, Instant.now()));
+                    Inventory.STATUS_ENABLED, 0L, Instant.now()));
         }
 
         @Override
@@ -82,6 +82,8 @@ class InventoryQueryServiceTest {
 
         @Override
         public Inventory saveInventory(Inventory inventory) {
+            Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
+            inventory.markPersisted(version);
             inventories.put(key(inventory.getTenantId(), inventory.getSkuId()), inventory);
             return inventory;
         }

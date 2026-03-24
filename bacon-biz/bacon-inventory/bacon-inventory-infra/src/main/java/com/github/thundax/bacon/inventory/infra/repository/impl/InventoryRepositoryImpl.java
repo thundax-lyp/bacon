@@ -88,7 +88,9 @@ public class InventoryRepositoryImpl implements InventoryRepository {
         if (dataObject.getId() == null) {
             inventoryMapper.insert(dataObject);
         } else {
-            inventoryMapper.updateById(dataObject);
+            if (inventoryMapper.updateById(dataObject) == 0) {
+                throw new IllegalStateException("INVENTORY_CONCURRENT_MODIFIED:" + inventory.getSkuId());
+            }
         }
         return toDomain(dataObject);
     }
@@ -163,13 +165,15 @@ public class InventoryRepositoryImpl implements InventoryRepository {
     private Inventory toDomain(InventoryDataObject dataObject) {
         return new Inventory(dataObject.getId(), dataObject.getTenantId(), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getOnHandQuantity(), dataObject.getReservedQuantity(), dataObject.getAvailableQuantity(),
-                dataObject.getStatus(), dataObject.getUpdatedAt() == null ? dataObject.getCreatedAt() : dataObject.getUpdatedAt());
+                dataObject.getStatus(), dataObject.getVersion(),
+                dataObject.getUpdatedAt() == null ? dataObject.getCreatedAt() : dataObject.getUpdatedAt());
     }
 
     private InventoryDataObject toDataObject(Inventory inventory) {
         return new InventoryDataObject(inventory.getId(), inventory.getTenantId(), inventory.getSkuId(),
                 inventory.getWarehouseId(), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
-                inventory.getAvailableQuantity(), inventory.getStatus(), null, inventory.getUpdatedAt(), null,
+                inventory.getAvailableQuantity(), inventory.getStatus(), inventory.getVersion(), null,
+                inventory.getUpdatedAt(), null,
                 inventory.getUpdatedAt());
     }
 

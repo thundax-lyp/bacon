@@ -6,6 +6,7 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InventoryManagementApplicationService {
@@ -17,6 +18,7 @@ public class InventoryManagementApplicationService {
         this.inventoryRepository = inventoryRepository;
     }
 
+    @Transactional
     public InventoryStockDTO createInventory(Long tenantId, Long skuId, Integer onHandQuantity, String status) {
         inventoryRepository.findInventory(tenantId, skuId).ifPresent(inventory -> {
             throw new IllegalArgumentException("INVENTORY_ALREADY_EXISTS:" + skuId);
@@ -26,6 +28,7 @@ public class InventoryManagementApplicationService {
         return toStockDto(inventoryRepository.saveInventory(inventory));
     }
 
+    @Transactional
     public InventoryStockDTO updateInventoryStatus(Long tenantId, Long skuId, String status) {
         Inventory inventory = inventoryRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new IllegalArgumentException("Inventory not found: " + skuId));

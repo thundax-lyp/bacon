@@ -234,6 +234,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - `InventoryLedger.id` 全局唯一
 - `InventoryLedger` 必须建立 `(tenantId, orderNo, ledgerType)` 索引
 - `Inventory` 必须建立 `(tenantId, skuId)` 索引
+- `Inventory` 必须具备版本控制字段，用于并发写入冲突检测
 
 ## 6. Global Constraints
 
@@ -248,6 +249,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - 预占成功后，必须增加 `reservedQuantity`
 - 释放成功后，必须减少 `reservedQuantity`
 - 扣减成功后，必须同时减少 `onHandQuantity` 和 `reservedQuantity`
+- 库存数量写入必须显式持久化，不得依赖内存对象引用副作用
 
 ### 6.2 Reservation Rule
 
@@ -303,6 +305,14 @@ Inventory 是 Bacon 的统一库存业务域。
 - 同一 `orderNo` 重复调用 `reserveStock` 时，若已成功预占，必须返回同一 `reservationNo`
 - 同一 `orderNo` 重复调用 `releaseReservedStock` 时，若已释放，必须返回成功且不得重复回补库存
 - 同一 `orderNo` 重复调用 `deductReservedStock` 时，若已扣减，必须返回成功且不得重复扣减库存
+
+### 6.9 Transaction And Concurrency Rule
+
+- `reserveStock`、`releaseReservedStock`、`deductReservedStock` 必须在明确事务边界内执行
+- 单次库存命令必须保证 `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的写入原子性
+- 正式持久化实现必须对 `Inventory` 写入启用乐观锁或等价并发控制
+- 并发写冲突时，不得静默覆盖库存数量，必须返回明确失败或抛出可识别异常
+- 审计日志写入失败不得破坏库存主业务提交结果
 
 ## 7. Functional Requirements
 

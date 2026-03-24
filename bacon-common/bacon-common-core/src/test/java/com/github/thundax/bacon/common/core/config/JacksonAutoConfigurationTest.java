@@ -9,14 +9,14 @@ import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
-class JacksonConfigurationTest {
+class JacksonAutoConfigurationTest {
 
-    private final JacksonConfiguration jacksonConfiguration = new JacksonConfiguration();
+    private final JacksonAutoConfiguration jacksonAutoConfiguration = new JacksonAutoConfiguration();
 
     @Test
     void shouldSerializeLongAsStringAndFormatJavaTimeTypes() throws Exception {
         Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.json();
-        jacksonConfiguration.jackson2ObjectMapperBuilderCustomizer().customize(builder);
+        jacksonAutoConfiguration.jackson2ObjectMapperBuilderCustomizer().customize(builder);
         ObjectMapper objectMapper = builder.build();
 
         DemoPayload payload = new DemoPayload(

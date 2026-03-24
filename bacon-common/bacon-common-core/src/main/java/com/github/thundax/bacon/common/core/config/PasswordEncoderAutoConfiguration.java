@@ -1,16 +1,16 @@
 package com.github.thundax.bacon.common.core.config;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * 创建全局 PasswordEncoder Bean，统一提供 BCrypt 密码哈希与验密能力。
  */
-@Configuration(proxyBeanMethods = false)
-public class PasswordEncoderConfiguration {
+@AutoConfiguration
+public class PasswordEncoderAutoConfiguration {
 
     private static final int BCRYPT_STRENGTH = 12;
 

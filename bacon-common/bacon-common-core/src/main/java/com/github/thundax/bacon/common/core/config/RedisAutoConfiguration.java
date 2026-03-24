@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.common.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -13,9 +13,9 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 /**
  * 创建 RedisTemplate 配置，统一 Redis 的 key 与 value 序列化策略。
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @ConditionalOnClass(RedisTemplate.class)
-public class RedisConfiguration {
+public class RedisAutoConfiguration {
 
     /**
      * 创建 RedisTemplate<String, Object>，用于在项目中以字符串 key 和 JSON value 的方式访问 Redis。

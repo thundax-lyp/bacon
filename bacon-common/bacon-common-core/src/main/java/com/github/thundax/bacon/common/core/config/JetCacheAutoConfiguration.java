@@ -6,18 +6,18 @@ import com.alicp.jetcache.anno.support.GlobalCacheConfig;
 import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * 创建 JetCache 配置，用于统一启用方法缓存能力并设置全局缓存默认参数。
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @EnableMethodCache(basePackages = "com.github.thundax.bacon")
 @EnableCreateCacheAnnotation
-public class JetCacheConfiguration {
+public class JetCacheAutoConfiguration {
 
     private static final String BASE_PACKAGE = "com.github.thundax.bacon";
     private static final String DEFAULT_AREA = "default";

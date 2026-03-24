@@ -12,15 +12,15 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import java.math.BigInteger;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * 创建全局 Jackson 定制器，用于统一 JSON 序列化与反序列化规则。
  */
-@Configuration
-public class JacksonConfiguration {
+@AutoConfiguration
+public class JacksonAutoConfiguration {
 
     /**
      * 创建 Jackson2ObjectMapperBuilderCustomizer，统一 Long、大整数和 Java 时间类型的 JSON 处理方式。

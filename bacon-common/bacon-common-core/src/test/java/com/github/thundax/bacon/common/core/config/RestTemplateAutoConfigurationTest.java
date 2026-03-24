@@ -9,16 +9,16 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
-class RestTemplateConfigurationTest {
+class RestTemplateAutoConfigurationTest {
 
-    private final RestTemplateConfiguration restTemplateConfiguration = new RestTemplateConfiguration();
+    private final RestTemplateAutoConfiguration restTemplateAutoConfiguration = new RestTemplateAutoConfiguration();
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(RestTemplateConfiguration.class))
+            .withConfiguration(AutoConfigurations.of(RestTemplateAutoConfiguration.class))
             .withBean(RestTemplateBuilder.class, RestTemplateBuilder::new);
 
     @Test
     void shouldCreateRestTemplateWithDefaultTimeouts() {
-        RestTemplate restTemplate = restTemplateConfiguration.restTemplate(new RestTemplateBuilder());
+        RestTemplate restTemplate = restTemplateAutoConfiguration.restTemplate(new RestTemplateBuilder());
 
         assertThat(restTemplate).isNotNull();
         assertThat(restTemplate.getRequestFactory()).isNotNull();
@@ -26,7 +26,7 @@ class RestTemplateConfigurationTest {
 
     @Test
     void shouldCreateRestClientBuilder() {
-        RestClient.Builder restClientBuilder = restTemplateConfiguration.restClientBuilder();
+        RestClient.Builder restClientBuilder = restTemplateAutoConfiguration.restClientBuilder();
 
         assertThat(restClientBuilder).isNotNull();
         assertThat(restClientBuilder.build()).isNotNull();

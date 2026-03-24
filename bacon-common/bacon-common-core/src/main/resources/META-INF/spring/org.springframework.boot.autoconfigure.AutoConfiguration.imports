@@ -1,0 +1,6 @@
+com.github.thundax.bacon.common.core.config.JacksonAutoConfiguration
+com.github.thundax.bacon.common.core.config.JetCacheAutoConfiguration
+com.github.thundax.bacon.common.core.config.PasswordEncoderAutoConfiguration
+com.github.thundax.bacon.common.core.config.RedisAutoConfiguration
+com.github.thundax.bacon.common.core.config.RestTemplateAutoConfiguration
+com.github.thundax.bacon.common.core.config.VerificationCodeAutoConfiguration

@@ -11,10 +11,10 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
-class RedisConfigurationTest {
+class RedisAutoConfigurationTest {
 
-    private final RedisConfiguration redisConfiguration = new RedisConfiguration();
-    private final JacksonConfiguration jacksonConfiguration = new JacksonConfiguration();
+    private final RedisAutoConfiguration redisAutoConfiguration = new RedisAutoConfiguration();
+    private final JacksonAutoConfiguration jacksonAutoConfiguration = new JacksonAutoConfiguration();
 
     @Test
     void shouldConfigureRedisTemplateWithStringAndJsonSerializers() {
@@ -22,7 +22,7 @@ class RedisConfigurationTest {
         ObjectMapper objectMapper = createObjectMapper();
 
         RedisTemplate<String, Object> redisTemplate =
-                redisConfiguration.redisTemplate(redisConnectionFactory, objectMapper);
+                redisAutoConfiguration.redisTemplate(redisConnectionFactory, objectMapper);
 
         assertThat(redisTemplate.getConnectionFactory()).isSameAs(redisConnectionFactory);
         assertThat(redisTemplate.getKeySerializer()).isInstanceOf(StringRedisSerializer.class);
@@ -34,7 +34,7 @@ class RedisConfigurationTest {
 
     private ObjectMapper createObjectMapper() {
         Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.json();
-        jacksonConfiguration.jackson2ObjectMapperBuilderCustomizer().customize(builder);
+        jacksonAutoConfiguration.jackson2ObjectMapperBuilderCustomizer().customize(builder);
         return builder.build();
     }
 

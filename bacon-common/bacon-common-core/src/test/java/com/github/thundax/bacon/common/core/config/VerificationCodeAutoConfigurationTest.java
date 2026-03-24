@@ -6,13 +6,13 @@ import com.github.thundax.bacon.common.core.service.impl.CacheVerificationCodeSe
 import com.github.thundax.bacon.common.core.service.VerificationCodeService;
 import org.junit.jupiter.api.Test;
 
-class VerificationCodeConfigurationTest {
+class VerificationCodeAutoConfigurationTest {
 
-    private final VerificationCodeConfiguration verificationCodeConfiguration = new VerificationCodeConfiguration();
+    private final VerificationCodeAutoConfiguration verificationCodeAutoConfiguration = new VerificationCodeAutoConfiguration();
 
     @Test
     void shouldCreateVerificationCodeServiceBean() {
-        VerificationCodeService verificationCodeService = verificationCodeConfiguration.verificationCodeService();
+        VerificationCodeService verificationCodeService = verificationCodeAutoConfiguration.verificationCodeService();
 
         assertThat(verificationCodeService).isInstanceOf(CacheVerificationCodeService.class);
     }

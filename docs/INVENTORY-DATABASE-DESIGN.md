@@ -242,6 +242,7 @@
 - `releaseReservedStock` 和 `deductReservedStock` 只允许基于已存在预占单执行语义判断
 - 库存数量变更必须显式更新 `bacon_inventory_inventory`，不得依赖运行时对象引用副作用
 - `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的命令写入应运行在同一事务中
+- `InventoryAuditLog` 优先在主事务提交后以 best effort 方式记录，失败只告警不回滚主业务
 - `InventoryStockDTO` 是读模型，不单独建表
 - `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表
 - 预占单和库存流水不做逻辑删除

@@ -312,7 +312,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - 单次库存命令必须保证 `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的写入原子性
 - 正式持久化实现必须对 `Inventory` 写入启用乐观锁或等价并发控制
 - 并发写冲突时，不得静默覆盖库存数量，必须返回明确失败或抛出可识别异常
-- 审计日志写入失败不得破坏库存主业务提交结果
+- 审计日志写入失败不得破坏库存主业务提交结果，优先采用提交后异步/延后记录
 
 ## 7. Functional Requirements
 

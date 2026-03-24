@@ -36,7 +36,9 @@
         <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -119,6 +121,9 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
+                        <jdkToolchain>
+                            <version>${java.version}</version>
+                        </jdkToolchain>
                         <release>${maven.compiler.release}</release>
                         <annotationProcessorPaths>
                             <path>
@@ -131,8 +136,28 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-toolchains-plugin</artifactId>
+                    <version>${maven-toolchains-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <jdkToolchain>
+                            <version>${java.version}</version>
+                        </jdkToolchain>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven-failsafe-plugin.version}</version>
+                    <configuration>
+                        <jdkToolchain>
+                            <version>${java.version}</version>
+                        </jdkToolchain>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
@@ -154,8 +179,30 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>select-jdk17-toolchain</id>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                        <configuration>
+                            <toolchains>
+                                <jdk>
+                                    <version>${java.version}</version>
+                                </jdk>
+                            </toolchains>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <jdkToolchain>
+                        <version>${java.version}</version>
+                    </jdkToolchain>
                     <release>${maven.compiler.release}</release>
                     <annotationProcessorPaths>
                         <path>
@@ -164,6 +211,24 @@
                             <version>1.18.42</version>
                         </path>
                     </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <jdkToolchain>
+                        <version>${java.version}</version>
+                    </jdkToolchain>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <jdkToolchain>
+                        <version>${java.version}</version>
+                    </jdkToolchain>
                 </configuration>
             </plugin>
             <plugin>

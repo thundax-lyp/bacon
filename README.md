@@ -53,6 +53,14 @@ mvn checkstyle:check
 mvn -pl bacon-app/bacon-mono-boot spring-boot:run
 ```
 
+## JDK 约定
+
+- 日常开发可以使用 JDK 19
+- Maven 编译、单元测试、集成测试统一使用 JDK 17
+- 根 `pom.xml` 已通过 Maven Toolchains 固定要求 JDK 17
+
+首次配置时，将 [` .mvn/toolchains.example.xml`](/Volumes/storage/workspace/bacon/.mvn/toolchains.example.xml) 复制为 `~/.m2/toolchains.xml`，并将其中的 `jdkHome` 改为本机实际安装路径。
+
 ## 运行模式
 
 - 单体模式：使用 `bacon-app/bacon-mono-boot`

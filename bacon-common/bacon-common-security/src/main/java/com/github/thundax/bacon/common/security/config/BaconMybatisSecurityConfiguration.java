@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.common.security.config;
 
-import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
 import com.github.thundax.bacon.common.security.context.CurrentUserResolver;
 import com.github.thundax.bacon.common.security.context.MonoCurrentUserProvider;
 import com.github.thundax.bacon.common.security.context.SecurityContextCurrentUserResolver;

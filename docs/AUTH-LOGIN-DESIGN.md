@@ -41,7 +41,7 @@
 
 - `bacon-common/bacon-common-core`
   - `RsaCryptoService`
-  - `PasswordEncoderConfiguration`
+  - `PasswordEncoderAutoConfiguration`
   - `VerificationCodeService`
 - `bacon-biz/bacon-upms/bacon-upms-api`
   - `UserReadFacade#getUserLoginCredential`

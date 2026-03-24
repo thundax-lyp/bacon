@@ -12,4 +12,12 @@
     </parent>
 
     <artifactId>bacon-common-seata</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+            <version>2.2.8.RELEASE</version>
+        </dependency>
+    </dependencies>
 </project>

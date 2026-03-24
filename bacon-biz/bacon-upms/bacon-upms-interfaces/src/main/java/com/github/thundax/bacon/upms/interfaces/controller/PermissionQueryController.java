@@ -4,9 +4,9 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
-import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
+import com.github.thundax.bacon.upms.interfaces.response.UserDataScopeResponse;
+import com.github.thundax.bacon.upms.interfaces.response.UserMenuTreeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,9 +33,11 @@ public class PermissionQueryController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/menus")
-    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") Long tenantId,
-                                                 @RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserMenuTree(tenantId, userId);
+    public List<UserMenuTreeResponse> getUserMenuTree(@RequestParam("tenantId") Long tenantId,
+                                                      @RequestParam("userId") Long userId) {
+        return permissionQueryService.getUserMenuTree(tenantId, userId).stream()
+                .map(UserMenuTreeResponse::from)
+                .toList();
     }
 
     @Operation(summary = "查询用户权限码")
@@ -51,8 +53,8 @@ public class PermissionQueryController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户数据范围", eventType = LogEventType.QUERY)
     @GetMapping("/data-scope")
-    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") Long tenantId,
-                                             @RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserDataScope(tenantId, userId);
+    public UserDataScopeResponse getUserDataScope(@RequestParam("tenantId") Long tenantId,
+                                                  @RequestParam("userId") Long userId) {
+        return UserDataScopeResponse.from(permissionQueryService.getUserDataScope(tenantId, userId));
     }
 }

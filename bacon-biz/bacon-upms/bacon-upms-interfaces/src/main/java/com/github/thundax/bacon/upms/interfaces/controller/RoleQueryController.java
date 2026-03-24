@@ -4,8 +4,8 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
+import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
@@ -31,15 +31,18 @@ public class RoleQueryController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询角色详情", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}")
-    public RoleDTO getRoleById(@RequestParam("tenantId") Long tenantId, @PathVariable Long roleId) {
-        return roleApplicationService.getRoleById(tenantId, roleId);
+    public RoleResponse getRoleById(@RequestParam("tenantId") Long tenantId, @PathVariable Long roleId) {
+        return RoleResponse.from(roleApplicationService.getRoleById(tenantId, roleId));
     }
 
     @Operation(summary = "查询用户角色列表")
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询用户角色", eventType = LogEventType.QUERY)
     @GetMapping
-    public List<RoleDTO> getRolesByUserId(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
-        return roleApplicationService.getRolesByUserId(tenantId, userId);
+    public List<RoleResponse> getRolesByUserId(@RequestParam("tenantId") Long tenantId,
+                                               @RequestParam("userId") Long userId) {
+        return roleApplicationService.getRolesByUserId(tenantId, userId).stream()
+                .map(RoleResponse::from)
+                .toList();
     }
 }

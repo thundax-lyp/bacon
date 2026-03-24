@@ -2,7 +2,7 @@ package com.github.thundax.bacon.auth.application.service;
 
 import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
-import com.github.thundax.bacon.auth.application.dto.PasswordLoginChallengeResult;
+import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.service.RsaCryptoService;
 import com.github.thundax.bacon.common.core.service.RsaKeyPair;

@@ -9,7 +9,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CurrentSessionResponse {
+public class CurrentSessionDTO {
 
     private String sessionId;
     private Long tenantId;

@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.auth.interfaces.controller;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
-import com.github.thundax.bacon.auth.api.dto.UserLoginResponse;
-import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshResponse;
+import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.api.dto.UserLoginDTO;
+import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshDTO;
 import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
-import com.github.thundax.bacon.auth.application.dto.PasswordLoginChallengeResult;
+import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.application.service.LoginApplicationService;
 import com.github.thundax.bacon.auth.application.service.PasswordApplicationService;
 import com.github.thundax.bacon.auth.application.service.SessionApplicationService;
@@ -56,32 +56,32 @@ public class AuthController {
 
     @Operation(summary = "账号密码登录")
     @PostMapping("/login/password")
-    public UserLoginResponse passwordLogin(@Valid @RequestBody PasswordLoginRequest request) {
+    public UserLoginDTO passwordLogin(@Valid @RequestBody PasswordLoginRequest request) {
         return loginApplicationService.loginByPassword(new PasswordLoginCommand(request.getTenantId(), request.getAccount(),
                 request.getPassword(), request.getRsaKeyId(), request.getCaptchaKey(), request.getCaptchaCode()));
     }
 
     @Operation(summary = "短信登录")
     @PostMapping("/login/sms")
-    public UserLoginResponse smsLogin(@Valid @RequestBody SmsLoginRequest request) {
+    public UserLoginDTO smsLogin(@Valid @RequestBody SmsLoginRequest request) {
         return loginApplicationService.loginBySms(request.getPhone(), request.getSmsCaptcha());
     }
 
     @Operation(summary = "企微登录")
     @PostMapping("/login/wecom")
-    public UserLoginResponse wecomLogin(@Valid @RequestBody WecomLoginRequest request) {
+    public UserLoginDTO wecomLogin(@Valid @RequestBody WecomLoginRequest request) {
         return loginApplicationService.loginByWecom(request.getCode());
     }
 
     @Operation(summary = "GitHub 登录回调")
     @GetMapping("/login/github/callback")
-    public UserLoginResponse githubLogin(@RequestParam("code") String code) {
+    public UserLoginDTO githubLogin(@RequestParam("code") String code) {
         return loginApplicationService.loginByGithub(code);
     }
 
     @Operation(summary = "刷新访问令牌")
     @PostMapping("/token/refresh")
-    public UserTokenRefreshResponse refresh(@Valid @RequestBody TokenRefreshRequest request) {
+    public UserTokenRefreshDTO refresh(@Valid @RequestBody TokenRefreshRequest request) {
         return tokenApplicationService.refresh(request.getRefreshToken());
     }
 
@@ -101,7 +101,7 @@ public class AuthController {
 
     @Operation(summary = "获取当前会话信息")
     @GetMapping("/session/current")
-    public CurrentSessionResponse currentSession(@RequestHeader("Authorization") String authorization) {
+    public CurrentSessionDTO currentSession(@RequestHeader("Authorization") String authorization) {
         return sessionApplicationService.currentSession(extractBearerToken(authorization));
     }
 

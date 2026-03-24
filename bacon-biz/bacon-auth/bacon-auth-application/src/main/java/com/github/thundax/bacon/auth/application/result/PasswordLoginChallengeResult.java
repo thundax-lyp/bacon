@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.application.dto;
+package com.github.thundax.bacon.auth.application.result;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

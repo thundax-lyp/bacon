@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.application.service;
 
-import com.github.thundax.bacon.auth.api.dto.UserLoginResponse;
+import com.github.thundax.bacon.auth.api.dto.UserLoginDTO;
 import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
-import com.github.thundax.bacon.auth.application.dto.PasswordLoginChallengeResult;
+import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.domain.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
@@ -48,7 +48,7 @@ public class LoginApplicationService {
         return loginSecurityApplicationService.issuePasswordLoginChallenge();
     }
 
-    public UserLoginResponse loginByPassword(PasswordLoginCommand command) {
+    public UserLoginDTO loginByPassword(PasswordLoginCommand command) {
         Long tenantId = command.getTenantId() == null ? 1001L : command.getTenantId();
         loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
         String plainPassword = loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
@@ -58,15 +58,15 @@ public class LoginApplicationService {
                 credential.getIdentityType(), "PASSWORD", false);
     }
 
-    public UserLoginResponse loginBySms(String phone, String smsCaptcha) {
+    public UserLoginDTO loginBySms(String phone, String smsCaptcha) {
         return createLoginSession(1001L, 2002L, phone, "PHONE", "SMS", null);
     }
 
-    public UserLoginResponse loginByWecom(String code) {
+    public UserLoginDTO loginByWecom(String code) {
         return createLoginSession(1001L, 2003L, code, "WECOM", "WECOM", null);
     }
 
-    public UserLoginResponse loginByGithub(String code) {
+    public UserLoginDTO loginByGithub(String code) {
         return createLoginSession(1001L, 2004L, code, "GITHUB", "GITHUB", null);
     }
 
@@ -88,7 +88,7 @@ public class LoginApplicationService {
         }
     }
 
-    private UserLoginResponse createLoginSession(Long tenantId, Long userId, String identitySeed, String identityType,
+    private UserLoginDTO createLoginSession(Long tenantId, Long userId, String identitySeed, String identityType,
                                                  String loginType, Boolean needChangePassword) {
         Instant now = Instant.now();
         String sessionId = UUID.randomUUID().toString();
@@ -103,7 +103,7 @@ public class LoginApplicationService {
                         now.plus(REFRESH_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS)));
 
         authAuditApplicationService.record("LOGIN_" + loginType, "SUCCESS", sessionId);
-        return new UserLoginResponse(accessToken, refreshToken, "Bearer", ACCESS_TOKEN_TTL_SECONDS, sessionId,
+        return new UserLoginDTO(accessToken, refreshToken, "Bearer", ACCESS_TOKEN_TTL_SECONDS, sessionId,
                 userId, tenantId, needChangePassword);
     }
 }

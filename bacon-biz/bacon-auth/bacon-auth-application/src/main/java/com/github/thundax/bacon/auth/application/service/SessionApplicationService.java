@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.application.service;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
+import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.domain.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class SessionApplicationService {
         this.authAuditApplicationService = authAuditApplicationService;
     }
 
-    public CurrentSessionResponse currentSession(String accessToken) {
+    public CurrentSessionDTO currentSession(String accessToken) {
         String sessionId = tokenCodec.parseSessionId(accessToken)
                 .orElseThrow(() -> new IllegalArgumentException("Access token invalid"));
         return tokenApplicationService.getSessionContext(sessionId);

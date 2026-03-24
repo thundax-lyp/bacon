@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.application.service;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
-import com.github.thundax.bacon.auth.api.dto.SessionValidationResponse;
-import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshResponse;
+import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
+import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshDTO;
 import com.github.thundax.bacon.auth.domain.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
@@ -29,7 +29,7 @@ public class TokenApplicationService {
         this.authAuditApplicationService = authAuditApplicationService;
     }
 
-    public UserTokenRefreshResponse refresh(String refreshToken) {
+    public UserTokenRefreshDTO refresh(String refreshToken) {
         RefreshTokenSession refreshTokenSession = authSessionRepository.findRefreshTokenByHash(tokenCodec.sha256(refreshToken))
                 .filter(token -> "ACTIVE".equals(token.getTokenStatus()))
                 .filter(token -> token.getExpireAt().isAfter(Instant.now()))
@@ -47,31 +47,31 @@ public class TokenApplicationService {
                 tokenCodec.sha256(newRefreshToken), Instant.now(),
                 Instant.now().plus(REFRESH_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS)));
         authAuditApplicationService.record("TOKEN_REFRESH", "SUCCESS", authSession.getSessionId());
-        return new UserTokenRefreshResponse(newAccessToken, newRefreshToken, "Bearer",
+        return new UserTokenRefreshDTO(newAccessToken, newRefreshToken, "Bearer",
                 ACCESS_TOKEN_TTL_SECONDS, authSession.getSessionId());
     }
 
-    public SessionValidationResponse verifyAccessToken(String accessToken) {
+    public SessionValidationDTO verifyAccessToken(String accessToken) {
         Optional<String> sessionId = tokenCodec.parseSessionId(accessToken);
         if (sessionId.isEmpty()) {
-            return new SessionValidationResponse(false, null, null, null, null, null, null);
+            return new SessionValidationDTO(false, null, null, null, null, null, null);
         }
         return authSessionRepository.findSessionBySessionId(sessionId.get())
                 .filter(session -> "ACTIVE".equals(session.getSessionStatus()))
                 .filter(session -> session.getExpireAt().isAfter(Instant.now()))
                 .map(session -> {
                     session.touch(Instant.now());
-                    return new SessionValidationResponse(true, session.getTenantId(), session.getUserId(),
+                    return new SessionValidationDTO(true, session.getTenantId(), session.getUserId(),
                             session.getSessionId(), session.getIdentityId(), session.getIdentityType(),
                             session.getExpireAt());
                 })
-                .orElseGet(() -> new SessionValidationResponse(false, null, null, sessionId.get(), null, null, null));
+                .orElseGet(() -> new SessionValidationDTO(false, null, null, sessionId.get(), null, null, null));
     }
 
-    public CurrentSessionResponse getSessionContext(String sessionId) {
+    public CurrentSessionDTO getSessionContext(String sessionId) {
         AuthSession authSession = authSessionRepository.findSessionBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
-        return new CurrentSessionResponse(authSession.getSessionId(), authSession.getTenantId(), authSession.getUserId(),
+        return new CurrentSessionDTO(authSession.getSessionId(), authSession.getTenantId(), authSession.getUserId(),
                 authSession.getIdentityType(), authSession.getLoginType(), authSession.getSessionStatus(),
                 authSession.getIssuedAt(), authSession.getLastAccessTime(), authSession.getExpireAt());
     }

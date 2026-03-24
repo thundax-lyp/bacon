@@ -9,7 +9,7 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionValidationResponse {
+public class SessionValidationDTO {
 
     private boolean valid;
     private Long tenantId;

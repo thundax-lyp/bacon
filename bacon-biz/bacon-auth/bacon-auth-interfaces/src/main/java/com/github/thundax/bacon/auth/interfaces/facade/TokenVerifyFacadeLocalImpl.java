@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.auth.interfaces.facade;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
-import com.github.thundax.bacon.auth.api.dto.SessionValidationResponse;
+import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.api.facade.TokenVerifyFacade;
 import com.github.thundax.bacon.auth.application.service.TokenApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,12 +18,12 @@ public class TokenVerifyFacadeLocalImpl implements TokenVerifyFacade {
     }
 
     @Override
-    public SessionValidationResponse verifyAccessToken(String accessToken) {
+    public SessionValidationDTO verifyAccessToken(String accessToken) {
         return tokenApplicationService.verifyAccessToken(accessToken);
     }
 
     @Override
-    public CurrentSessionResponse getSessionContext(String sessionId) {
+    public CurrentSessionDTO getSessionContext(String sessionId) {
         return tokenApplicationService.getSessionContext(sessionId);
     }
 }

@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.interfaces.controller;
 
-import com.github.thundax.bacon.auth.api.dto.OAuth2IntrospectionResponse;
-import com.github.thundax.bacon.auth.api.dto.OAuth2TokenResponse;
-import com.github.thundax.bacon.auth.api.dto.OAuth2UserinfoResponse;
+import com.github.thundax.bacon.auth.api.dto.OAuth2IntrospectionDTO;
+import com.github.thundax.bacon.auth.api.dto.OAuth2TokenDTO;
+import com.github.thundax.bacon.auth.api.dto.OAuth2UserinfoDTO;
 import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService;
 import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationDecisionResult;
 import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationView;
@@ -50,7 +50,7 @@ public class OAuth2Controller {
 
     @Operation(summary = "换取 OAuth2 访问令牌")
     @PostMapping("/token")
-    public OAuth2TokenResponse token(@RequestParam MultiValueMap<String, String> request) {
+    public OAuth2TokenDTO token(@RequestParam MultiValueMap<String, String> request) {
         return oAuth2AuthorizationApplicationService.token(request.getFirst("grant_type"), request.getFirst("code"),
                 request.getFirst("redirect_uri"), request.getFirst("client_id"), request.getFirst("client_secret"),
                 request.getFirst("code_verifier"), request.getFirst("refresh_token"));
@@ -58,7 +58,7 @@ public class OAuth2Controller {
 
     @Operation(summary = "校验 OAuth2 令牌")
     @PostMapping("/introspect")
-    public OAuth2IntrospectionResponse introspect(@RequestParam("token") String token,
+    public OAuth2IntrospectionDTO introspect(@RequestParam("token") String token,
                                                   @RequestParam("client_id") String clientId,
                                                   @RequestParam("client_secret") String clientSecret) {
         return oAuth2AuthorizationApplicationService.introspect(token, clientId, clientSecret);
@@ -74,7 +74,7 @@ public class OAuth2Controller {
 
     @Operation(summary = "获取 OAuth2 用户信息")
     @GetMapping("/userinfo")
-    public OAuth2UserinfoResponse userinfo(@RequestHeader("Authorization") String authorization) {
+    public OAuth2UserinfoDTO userinfo(@RequestHeader("Authorization") String authorization) {
         return oAuth2AuthorizationApplicationService.userinfo(extractBearerToken(authorization));
     }
 

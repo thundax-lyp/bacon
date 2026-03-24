@@ -7,9 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OAuth2UserinfoResponse {
+public class OAuth2TokenDTO {
 
-    private String sub;
-    private String tenant_id;
-    private String name;
+    private String access_token;
+    private String token_type;
+    private long expires_in;
+    private String refresh_token;
+    private String scope;
 }

@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.application.service;
 
-import com.github.thundax.bacon.auth.api.dto.OAuth2IntrospectionResponse;
-import com.github.thundax.bacon.auth.api.dto.OAuth2TokenResponse;
-import com.github.thundax.bacon.auth.api.dto.OAuth2UserinfoResponse;
+import com.github.thundax.bacon.auth.api.dto.OAuth2IntrospectionDTO;
+import com.github.thundax.bacon.auth.api.dto.OAuth2TokenDTO;
+import com.github.thundax.bacon.auth.api.dto.OAuth2UserinfoDTO;
 import com.github.thundax.bacon.auth.domain.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.entity.OAuthAuthorizationRequest;
 import com.github.thundax.bacon.auth.domain.entity.OAuthClient;
@@ -78,7 +78,7 @@ public class OAuth2AuthorizationApplicationService {
                 + "?code=" + authorizationCode + "&state=" + authorizationRequest.getState(), authorizationCode);
     }
 
-    public OAuth2TokenResponse token(String grantType, String code, String redirectUri, String clientId,
+    public OAuth2TokenDTO token(String grantType, String code, String redirectUri, String clientId,
                                      String clientSecret, String codeVerifier, String refreshToken) {
         OAuthClient client = validateClient(clientId, clientSecret);
         if ("authorization_code".equals(grantType)) {
@@ -101,15 +101,15 @@ public class OAuth2AuthorizationApplicationService {
         throw new IllegalArgumentException("Grant type unsupported");
     }
 
-    public OAuth2IntrospectionResponse introspect(String token, String clientId, String clientSecret) {
+    public OAuth2IntrospectionDTO introspect(String token, String clientId, String clientSecret) {
         validateClient(clientId, clientSecret);
         return oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(token))
                 .filter(accessToken -> "ACTIVE".equals(accessToken.getTokenStatus()))
                 .filter(accessToken -> accessToken.getExpireAt().isAfter(Instant.now()))
-                .map(accessToken -> new OAuth2IntrospectionResponse(true, accessToken.getClientId(),
+                .map(accessToken -> new OAuth2IntrospectionDTO(true, accessToken.getClientId(),
                         String.join(" ", accessToken.getScopes()), String.valueOf(accessToken.getUserId()),
                         String.valueOf(accessToken.getTenantId()), accessToken.getExpireAt().getEpochSecond()))
-                .orElse(new OAuth2IntrospectionResponse(false, clientId, "", "", "", 0L));
+                .orElse(new OAuth2IntrospectionDTO(false, clientId, "", "", "", 0L));
     }
 
     public void revoke(String token, String clientId, String clientSecret) {
@@ -118,15 +118,15 @@ public class OAuth2AuthorizationApplicationService {
         oAuthAuthorizationRepository.findOAuthRefreshTokenByHash(tokenCodec.sha256(token)).ifPresent(OAuthRefreshToken::revoke);
     }
 
-    public OAuth2UserinfoResponse userinfo(String accessToken) {
+    public OAuth2UserinfoDTO userinfo(String accessToken) {
         OAuthAccessToken token = oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(accessToken))
                 .filter(current -> "ACTIVE".equals(current.getTokenStatus()))
                 .orElseThrow(() -> new IllegalArgumentException("OAuth access token invalid"));
         String name = token.getScopes().contains("profile") ? "demo-user-" + token.getUserId() : null;
-        return new OAuth2UserinfoResponse(String.valueOf(token.getUserId()), String.valueOf(token.getTenantId()), name);
+        return new OAuth2UserinfoDTO(String.valueOf(token.getUserId()), String.valueOf(token.getTenantId()), name);
     }
 
-    private OAuth2TokenResponse issueOAuthTokens(OAuthClient client, Long tenantId, Long userId, Set<String> scopes) {
+    private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, Long tenantId, Long userId, Set<String> scopes) {
         Instant now = Instant.now();
         String accessTokenValue = tokenCodec.randomToken();
         String accessTokenId = tokenCodec.sha256(accessTokenValue);
@@ -140,7 +140,7 @@ public class OAuth2AuthorizationApplicationService {
                 client.getClientId(), tenantId, userId, now, now.plusSeconds(client.getRefreshTokenTtlSeconds()));
         oAuthAuthorizationRepository.saveOAuthRefreshToken(refreshToken);
 
-        return new OAuth2TokenResponse(accessTokenValue, "Bearer", client.getAccessTokenTtlSeconds(),
+        return new OAuth2TokenDTO(accessTokenValue, "Bearer", client.getAccessTokenTtlSeconds(),
                 refreshTokenValue, String.join(" ", scopes));
     }
 

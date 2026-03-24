@@ -7,11 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OAuth2TokenResponse {
+public class OAuth2IntrospectionDTO {
 
-    private String access_token;
-    private String token_type;
-    private long expires_in;
-    private String refresh_token;
+    private boolean active;
+    private String client_id;
     private String scope;
+    private String sub;
+    private String tenant_id;
+    private long exp;
 }

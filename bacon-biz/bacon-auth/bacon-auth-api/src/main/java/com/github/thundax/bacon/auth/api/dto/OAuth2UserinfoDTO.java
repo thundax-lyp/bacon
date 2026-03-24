@@ -7,12 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OAuth2IntrospectionResponse {
+public class OAuth2UserinfoDTO {
 
-    private boolean active;
-    private String client_id;
-    private String scope;
     private String sub;
     private String tenant_id;
-    private long exp;
+    private String name;
 }

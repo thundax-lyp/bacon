@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.interfaces.provider;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
+import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
-import com.github.thundax.bacon.auth.api.dto.SessionValidationResponse;
+import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.application.service.OAuth2ClientApplicationService;
 import com.github.thundax.bacon.auth.application.service.SessionApplicationService;
 import com.github.thundax.bacon.auth.application.service.TokenApplicationService;
@@ -34,13 +34,13 @@ public class AuthProviderController {
 
     @Operation(summary = "校验访问令牌")
     @GetMapping("/tokens/verify")
-    public SessionValidationResponse verify(@RequestParam("accessToken") String accessToken) {
+    public SessionValidationDTO verify(@RequestParam("accessToken") String accessToken) {
         return tokenApplicationService.verifyAccessToken(accessToken);
     }
 
     @Operation(summary = "获取会话上下文")
     @GetMapping("/sessions/{sessionId}")
-    public CurrentSessionResponse currentSession(@PathVariable String sessionId) {
+    public CurrentSessionDTO currentSession(@PathVariable String sessionId) {
         return tokenApplicationService.getSessionContext(sessionId);
     }
 

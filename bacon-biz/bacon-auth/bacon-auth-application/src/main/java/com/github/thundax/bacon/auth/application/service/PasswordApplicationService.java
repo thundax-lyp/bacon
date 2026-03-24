@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.application.service;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionResponse;
+import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Pattern;
@@ -27,7 +27,7 @@ public class PasswordApplicationService {
         if (newPassword.equals(oldPassword)) {
             throw new IllegalArgumentException("New password must differ from old password");
         }
-        CurrentSessionResponse currentSession = sessionApplicationService.currentSession(accessToken);
+        CurrentSessionDTO currentSession = sessionApplicationService.currentSession(accessToken);
         sessionApplicationService.invalidateUserSessions(currentSession.getTenantId(), currentSession.getUserId(),
                 "SELF_PASSWORD_CHANGED");
     }

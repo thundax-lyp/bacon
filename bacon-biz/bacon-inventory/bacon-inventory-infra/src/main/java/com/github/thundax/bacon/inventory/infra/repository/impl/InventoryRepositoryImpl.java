@@ -7,11 +7,11 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
-import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDataObject;
-import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryDataObject;
-import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryLedgerDataObject;
-import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationDataObject;
-import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationItemDataObject;
+import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;
+import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryDO;
+import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryLedgerDO;
+import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationDO;
+import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationItemDO;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditLogMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryLedgerMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryMapper;
@@ -52,17 +52,17 @@ public class InventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
-        return Optional.ofNullable(inventoryMapper.selectOne(Wrappers.<InventoryDataObject>lambdaQuery()
-                .eq(InventoryDataObject::getTenantId, tenantId)
-                .eq(InventoryDataObject::getSkuId, skuId)))
+        return Optional.ofNullable(inventoryMapper.selectOne(Wrappers.<InventoryDO>lambdaQuery()
+                .eq(InventoryDO::getTenantId, tenantId)
+                .eq(InventoryDO::getSkuId, skuId)))
                 .map(this::toDomain);
     }
 
     @Override
     public List<Inventory> findInventories(Long tenantId) {
-        return inventoryMapper.selectList(Wrappers.<InventoryDataObject>lambdaQuery()
-                        .eq(InventoryDataObject::getTenantId, tenantId)
-                        .orderByAsc(InventoryDataObject::getSkuId))
+        return inventoryMapper.selectList(Wrappers.<InventoryDO>lambdaQuery()
+                        .eq(InventoryDO::getTenantId, tenantId)
+                        .orderByAsc(InventoryDO::getSkuId))
                 .stream()
                 .map(this::toDomain)
                 .toList();
@@ -73,10 +73,10 @@ public class InventoryRepositoryImpl implements InventoryRepository {
         if (skuIds == null || skuIds.isEmpty()) {
             return List.of();
         }
-        return inventoryMapper.selectList(Wrappers.<InventoryDataObject>lambdaQuery()
-                        .eq(InventoryDataObject::getTenantId, tenantId)
-                        .in(InventoryDataObject::getSkuId, skuIds)
-                        .orderByAsc(InventoryDataObject::getSkuId))
+        return inventoryMapper.selectList(Wrappers.<InventoryDO>lambdaQuery()
+                        .eq(InventoryDO::getTenantId, tenantId)
+                        .in(InventoryDO::getSkuId, skuIds)
+                        .orderByAsc(InventoryDO::getSkuId))
                 .stream()
                 .map(this::toDomain)
                 .toList();
@@ -84,7 +84,7 @@ public class InventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public Inventory saveInventory(Inventory inventory) {
-        InventoryDataObject dataObject = toDataObject(inventory);
+        InventoryDO dataObject = toDataObject(inventory);
         if (dataObject.getId() == null) {
             inventoryMapper.insert(dataObject);
         } else {
@@ -97,10 +97,10 @@ public class InventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public InventoryReservation saveReservation(InventoryReservation reservation) {
-        InventoryReservationDataObject reservationDataObject = toDataObject(reservation);
+        InventoryReservationDO reservationDataObject = toDataObject(reservation);
         if (reservationDataObject.getId() == null) {
             reservationMapper.insert(reservationDataObject);
-            List<InventoryReservationItemDataObject> itemDataObjects = reservation.getItems().stream()
+            List<InventoryReservationItemDO> itemDataObjects = reservation.getItems().stream()
                     .map(item -> toDataObject(item, reservation.getTenantId(), reservation.getReservationNo()))
                     .toList();
             itemDataObjects.forEach(reservationItemMapper::insert);
@@ -112,18 +112,18 @@ public class InventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
-        InventoryReservationDataObject reservation = reservationMapper.selectOne(
-                Wrappers.<InventoryReservationDataObject>lambdaQuery()
-                        .eq(InventoryReservationDataObject::getTenantId, tenantId)
-                        .eq(InventoryReservationDataObject::getOrderNo, orderNo));
+        InventoryReservationDO reservation = reservationMapper.selectOne(
+                Wrappers.<InventoryReservationDO>lambdaQuery()
+                        .eq(InventoryReservationDO::getTenantId, tenantId)
+                        .eq(InventoryReservationDO::getOrderNo, orderNo));
         if (reservation == null) {
             return Optional.empty();
         }
         List<InventoryReservationItem> items = reservationItemMapper.selectList(
-                        Wrappers.<InventoryReservationItemDataObject>lambdaQuery()
-                                .eq(InventoryReservationItemDataObject::getTenantId, tenantId)
-                                .eq(InventoryReservationItemDataObject::getReservationNo, reservation.getReservationNo())
-                                .orderByAsc(InventoryReservationItemDataObject::getSkuId))
+                        Wrappers.<InventoryReservationItemDO>lambdaQuery()
+                                .eq(InventoryReservationItemDO::getTenantId, tenantId)
+                                .eq(InventoryReservationItemDO::getReservationNo, reservation.getReservationNo())
+                                .orderByAsc(InventoryReservationItemDO::getSkuId))
                 .stream()
                 .map(this::toDomain)
                 .toList();
@@ -137,10 +137,10 @@ public class InventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
-        return ledgerMapper.selectList(Wrappers.<InventoryLedgerDataObject>lambdaQuery()
-                        .eq(InventoryLedgerDataObject::getTenantId, tenantId)
-                        .eq(InventoryLedgerDataObject::getOrderNo, orderNo)
-                        .orderByAsc(InventoryLedgerDataObject::getOccurredAt, InventoryLedgerDataObject::getId))
+        return ledgerMapper.selectList(Wrappers.<InventoryLedgerDO>lambdaQuery()
+                        .eq(InventoryLedgerDO::getTenantId, tenantId)
+                        .eq(InventoryLedgerDO::getOrderNo, orderNo)
+                        .orderByAsc(InventoryLedgerDO::getOccurredAt, InventoryLedgerDO::getId))
                 .stream()
                 .map(this::toDomain)
                 .toList();
@@ -153,31 +153,31 @@ public class InventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
-        return auditLogMapper.selectList(Wrappers.<InventoryAuditLogDataObject>lambdaQuery()
-                        .eq(InventoryAuditLogDataObject::getTenantId, tenantId)
-                        .eq(InventoryAuditLogDataObject::getOrderNo, orderNo)
-                        .orderByAsc(InventoryAuditLogDataObject::getOccurredAt, InventoryAuditLogDataObject::getId))
+        return auditLogMapper.selectList(Wrappers.<InventoryAuditLogDO>lambdaQuery()
+                        .eq(InventoryAuditLogDO::getTenantId, tenantId)
+                        .eq(InventoryAuditLogDO::getOrderNo, orderNo)
+                        .orderByAsc(InventoryAuditLogDO::getOccurredAt, InventoryAuditLogDO::getId))
                 .stream()
                 .map(this::toDomain)
                 .toList();
     }
 
-    private Inventory toDomain(InventoryDataObject dataObject) {
+    private Inventory toDomain(InventoryDO dataObject) {
         return new Inventory(dataObject.getId(), dataObject.getTenantId(), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getOnHandQuantity(), dataObject.getReservedQuantity(), dataObject.getAvailableQuantity(),
                 dataObject.getStatus(), dataObject.getVersion(),
                 dataObject.getUpdatedAt() == null ? dataObject.getCreatedAt() : dataObject.getUpdatedAt());
     }
 
-    private InventoryDataObject toDataObject(Inventory inventory) {
-        return new InventoryDataObject(inventory.getId(), inventory.getTenantId(), inventory.getSkuId(),
+    private InventoryDO toDataObject(Inventory inventory) {
+        return new InventoryDO(inventory.getId(), inventory.getTenantId(), inventory.getSkuId(),
                 inventory.getWarehouseId(), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
                 inventory.getAvailableQuantity(), inventory.getStatus(), inventory.getVersion(), null,
                 inventory.getUpdatedAt(), null,
                 inventory.getUpdatedAt());
     }
 
-    private InventoryReservation toDomain(InventoryReservationDataObject reservation, List<InventoryReservationItem> items) {
+    private InventoryReservation toDomain(InventoryReservationDO reservation, List<InventoryReservationItem> items) {
         InventoryReservation domain = new InventoryReservation(reservation.getId(), reservation.getTenantId(),
                 reservation.getReservationNo(), reservation.getOrderNo(), reservation.getWarehouseId(),
                 reservation.getCreatedAt(), items);
@@ -205,42 +205,42 @@ public class InventoryRepositoryImpl implements InventoryRepository {
         };
     }
 
-    private InventoryReservationItem toDomain(InventoryReservationItemDataObject item) {
+    private InventoryReservationItem toDomain(InventoryReservationItemDO item) {
         return new InventoryReservationItem(item.getId(), item.getTenantId(), item.getReservationNo(), item.getSkuId(),
                 item.getQuantity());
     }
 
-    private InventoryReservationDataObject toDataObject(InventoryReservation reservation) {
-        return new InventoryReservationDataObject(reservation.getId(), reservation.getTenantId(),
+    private InventoryReservationDO toDataObject(InventoryReservation reservation) {
+        return new InventoryReservationDO(reservation.getId(), reservation.getTenantId(),
                 reservation.getReservationNo(), reservation.getOrderNo(), reservation.getReservationStatus(),
                 reservation.getWarehouseId(), reservation.getFailureReason(), reservation.getReleaseReason(),
                 reservation.getCreatedAt(), reservation.getReleasedAt(), reservation.getDeductedAt());
     }
 
-    private InventoryReservationItemDataObject toDataObject(InventoryReservationItem item, Long tenantId, String reservationNo) {
-        return new InventoryReservationItemDataObject(item.getId(), tenantId, reservationNo, item.getSkuId(), item.getQuantity());
+    private InventoryReservationItemDO toDataObject(InventoryReservationItem item, Long tenantId, String reservationNo) {
+        return new InventoryReservationItemDO(item.getId(), tenantId, reservationNo, item.getSkuId(), item.getQuantity());
     }
 
-    private InventoryLedger toDomain(InventoryLedgerDataObject dataObject) {
+    private InventoryLedger toDomain(InventoryLedgerDO dataObject) {
         return new InventoryLedger(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getLedgerType(), dataObject.getQuantity(), dataObject.getOccurredAt());
     }
 
-    private InventoryLedgerDataObject toDataObject(InventoryLedger ledger) {
-        return new InventoryLedgerDataObject(ledger.getId(), ledger.getTenantId(), ledger.getOrderNo(),
+    private InventoryLedgerDO toDataObject(InventoryLedger ledger) {
+        return new InventoryLedgerDO(ledger.getId(), ledger.getTenantId(), ledger.getOrderNo(),
                 ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
 
-    private InventoryAuditLog toDomain(InventoryAuditLogDataObject dataObject) {
+    private InventoryAuditLog toDomain(InventoryAuditLogDO dataObject) {
         return new InventoryAuditLog(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getActionType(), dataObject.getOperatorType(),
                 dataObject.getOperatorId(), dataObject.getOccurredAt());
     }
 
-    private InventoryAuditLogDataObject toDataObject(InventoryAuditLog auditLog) {
-        return new InventoryAuditLogDataObject(auditLog.getId(), auditLog.getTenantId(), auditLog.getOrderNo(),
+    private InventoryAuditLogDO toDataObject(InventoryAuditLog auditLog) {
+        return new InventoryAuditLogDO(auditLog.getId(), auditLog.getTenantId(), auditLog.getOrderNo(),
                 auditLog.getReservationNo(), auditLog.getActionType(), auditLog.getOperatorType(),
                 auditLog.getOperatorId(), auditLog.getOccurredAt());
     }

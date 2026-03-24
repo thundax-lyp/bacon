@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_inventory_reservation")
-public class InventoryReservationDataObject {
+public class InventoryReservationDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;

@@ -11,6 +11,7 @@ import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,7 +48,7 @@ public class OAuth2Controller {
 
     @Operation(summary = "提交 OAuth2 授权决策")
     @PostMapping("/authorize/decision")
-    public AuthorizationDecisionResult decide(@RequestBody OAuth2DecisionRequest request) {
+    public AuthorizationDecisionResult decide(@Valid @RequestBody OAuth2DecisionRequest request) {
         return oAuth2AuthorizationApplicationService.decide(request.getAuthorizationRequestId(), request.getDecision());
     }
 

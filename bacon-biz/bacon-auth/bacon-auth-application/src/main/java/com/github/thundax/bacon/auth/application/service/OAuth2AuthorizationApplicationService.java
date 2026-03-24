@@ -66,6 +66,9 @@ public class OAuth2AuthorizationApplicationService {
                 .filter(request -> !request.isUsed())
                 .filter(request -> request.getExpireAt().isAfter(Instant.now()))
                 .orElseThrow(() -> new IllegalArgumentException("Authorization request invalid"));
+        if (!"APPROVE".equalsIgnoreCase(decision) && !"REJECT".equalsIgnoreCase(decision)) {
+            throw new IllegalArgumentException("Decision invalid");
+        }
         authorizationRequest.markUsed();
         if ("REJECT".equalsIgnoreCase(decision)) {
             return new AuthorizationDecisionResult(authorizationRequest.getRedirectUri()

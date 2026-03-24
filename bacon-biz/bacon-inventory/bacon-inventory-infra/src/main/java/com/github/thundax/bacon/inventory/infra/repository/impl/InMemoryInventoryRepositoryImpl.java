@@ -20,14 +20,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Repository
 @ConditionalOnMissingBean(InventoryRepository.class)
-public class InMemoryInventoryRepository implements InventoryRepository {
+public class InMemoryInventoryRepositoryImpl implements InventoryRepository {
 
     private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
     private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryLedger>> ledgers = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
 
-    public InMemoryInventoryRepository() {
+    public InMemoryInventoryRepositoryImpl() {
         inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100, "ENABLED", 0L, Instant.now()));
         inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, 1L, 50, 0, 50, "ENABLED", 0L, Instant.now()));
         log.info("Using in-memory inventory repository");

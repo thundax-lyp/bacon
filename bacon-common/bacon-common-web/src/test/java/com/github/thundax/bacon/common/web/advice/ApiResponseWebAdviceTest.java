@@ -8,9 +8,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -63,6 +67,35 @@ class ApiResponseWebAdviceTest {
                 .andExpect(jsonPath("$.message").value("bad request"));
     }
 
+    @Test
+    void shouldConvertMissingRequestParameterToApiResponse() throws Exception {
+        mockMvc.perform(get("/wrapped/missing-param"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Missing required parameter: requiredParam"));
+    }
+
+    @Test
+    void shouldConvertTypeMismatchToApiResponse() throws Exception {
+        mockMvc.perform(get("/wrapped/type-mismatch").param("count", "abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Invalid parameter: count"));
+    }
+
+    @Test
+    void shouldConvertUnreadableBodyToApiResponse() throws Exception {
+        mockMvc.perform(post("/wrapped/body")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Request body is invalid or unreadable"));
+    }
+
     @WrappedApiController
     @RestController
     static class WrappedTestController {
@@ -80,6 +113,21 @@ class ApiResponseWebAdviceTest {
         String badRequest() {
             throw new BadRequestException("bad request");
         }
+
+        @GetMapping("/wrapped/missing-param")
+        String missingParam(@RequestParam("requiredParam") String requiredParam) {
+            return requiredParam;
+        }
+
+        @GetMapping("/wrapped/type-mismatch")
+        int typeMismatch(@RequestParam("count") int count) {
+            return count;
+        }
+
+        @PostMapping("/wrapped/body")
+        RequestBodyValue body(@RequestBody RequestBodyValue body) {
+            return body;
+        }
     }
 
     @RestController
@@ -89,5 +137,8 @@ class ApiResponseWebAdviceTest {
         String value() {
             return "value";
         }
+    }
+
+    record RequestBodyValue(String value) {
     }
 }

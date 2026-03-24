@@ -11,9 +11,14 @@ import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * 为业务控制器统一转换领域异常和常见参数异常。
@@ -33,6 +38,35 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleIllegalArgument(IllegalArgumentException exception) {
         return ApiResponse.fail("BAD_REQUEST", exception.getMessage());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMissingServletRequestParameter(MissingServletRequestParameterException exception) {
+        return ApiResponse.fail("BAD_REQUEST",
+                "Missing required parameter: " + exception.getParameterName());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException exception) {
+        return ApiResponse.fail("BAD_REQUEST", "Invalid parameter: " + exception.getName());
+    }
+
+    @ExceptionHandler(BindException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleBindException(BindException exception) {
+        FieldError fieldError = exception.getBindingResult().getFieldError();
+        if (fieldError != null) {
+            return ApiResponse.fail("BAD_REQUEST", fieldError.getField() + ": " + fieldError.getDefaultMessage());
+        }
+        return ApiResponse.fail("BAD_REQUEST", "Request binding failed");
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleHttpMessageNotReadable(HttpMessageNotReadableException exception) {
+        return ApiResponse.fail("BAD_REQUEST", "Request body is invalid or unreadable");
     }
 
     @ExceptionHandler(UnauthorizedException.class)

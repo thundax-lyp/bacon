@@ -5,6 +5,8 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -15,7 +17,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Repository
+@ConditionalOnMissingBean(InventoryRepository.class)
 public class InMemoryInventoryRepository implements InventoryRepository {
 
     private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
@@ -26,6 +30,7 @@ public class InMemoryInventoryRepository implements InventoryRepository {
     public InMemoryInventoryRepository() {
         inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100, "ENABLED", Instant.now()));
         inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, 1L, 50, 0, 50, "ENABLED", Instant.now()));
+        log.info("Using in-memory inventory repository");
     }
 
     @Override

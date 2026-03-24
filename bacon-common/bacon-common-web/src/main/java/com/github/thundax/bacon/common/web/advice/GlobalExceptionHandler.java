@@ -8,8 +8,7 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.exception.UnauthorizedException;
 import com.github.thundax.bacon.common.web.ApiResponse;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -26,9 +25,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
  * 为业务控制器统一转换领域异常和常见参数异常。
  */
 @RestControllerAdvice(annotations = WrappedApiController.class)
+@Slf4j
 public class GlobalExceptionHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

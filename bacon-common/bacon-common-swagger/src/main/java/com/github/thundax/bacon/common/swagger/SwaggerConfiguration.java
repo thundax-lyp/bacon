@@ -8,9 +8,8 @@ import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.models.GroupedOpenApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,9 +20,9 @@ import org.springframework.context.event.EventListener;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SwaggerProperties.class)
+@Slf4j
 public class SwaggerConfiguration {
 
-    private static final Logger log = LoggerFactory.getLogger(SwaggerConfiguration.class);
     private static final String FRONTEND_GROUP = "frontend";
     private static final String INNER_GROUP = "inner";
     private static final String CONTROLLER_PACKAGE_SEGMENT = ".interfaces.controller";

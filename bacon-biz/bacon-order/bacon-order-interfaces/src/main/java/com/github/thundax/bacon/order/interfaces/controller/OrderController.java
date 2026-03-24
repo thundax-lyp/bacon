@@ -6,7 +6,6 @@ import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.application.service.OrderApplicationService;
 import com.github.thundax.bacon.order.application.service.OrderCancelApplicationService;
 import com.github.thundax.bacon.order.application.service.OrderQueryService;
-import com.github.thundax.bacon.order.interfaces.assembler.OrderAssembler;
 import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
 import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderPageResponse;
@@ -44,7 +43,7 @@ public class OrderController {
     @HasPermission("order:order:create")
     @PostMapping
     public OrderSummaryResponse create(@RequestBody CreateOrderRequest request) {
-        return OrderAssembler.toResponse(orderApplicationService.create(OrderAssembler.toCommand(request)));
+        return OrderSummaryResponse.from(orderApplicationService.create(request.toCommand()));
     }
 
     @Operation(summary = "按 ID 查询订单")

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 
 @RestController
+@WrappedApiController
 @RequestMapping("/api/orders")
 @Tag(name = "Order", description = "订单接口")
 public class OrderController {

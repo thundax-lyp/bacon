@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.service.PaymentQueryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@WrappedApiController
 @RequestMapping("/payments")
 @Tag(name = "Payment", description = "支付查询接口")
 public class PaymentQueryController {

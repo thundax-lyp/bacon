@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.interfaces.controller;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.service.DepartmentApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@WrappedApiController
 @RequestMapping("/upms/departments")
 @Tag(name = "UPMS Department", description = "部门查询接口")
 public class DepartmentQueryController {

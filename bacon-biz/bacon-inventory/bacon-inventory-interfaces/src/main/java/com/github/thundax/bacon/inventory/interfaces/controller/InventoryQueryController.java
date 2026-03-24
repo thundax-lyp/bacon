@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.service.InventoryQueryService;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
+@WrappedApiController
 @RequestMapping
 @Tag(name = "Inventory", description = "库存查询接口")
 public class InventoryQueryController {

@@ -15,6 +15,7 @@ import com.github.thundax.bacon.auth.interfaces.dto.PasswordLoginRequest;
 import com.github.thundax.bacon.auth.interfaces.dto.SmsLoginRequest;
 import com.github.thundax.bacon.auth.interfaces.dto.TokenRefreshRequest;
 import com.github.thundax.bacon.auth.interfaces.dto.WecomLoginRequest;
+import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@WrappedApiController
 @Tag(name = "Auth", description = "认证与会话接口")
 public class AuthController {
 

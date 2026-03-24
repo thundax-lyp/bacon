@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.interfaces.controller;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
+@WrappedApiController
 @RequestMapping("/upms/permissions")
 @Tag(name = "UPMS Permission", description = "权限查询接口")
 public class PermissionQueryController {

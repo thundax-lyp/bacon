@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.interfaces.controller;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@WrappedApiController
 @RequestMapping("/upms/users")
 @Tag(name = "UPMS User", description = "用户查询接口")
 public class UserQueryController {

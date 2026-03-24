@@ -15,7 +15,7 @@ import org.springframework.core.env.Environment;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SwaggerProperties.class)
-public class OpenApiAutoConfiguration {
+public class SwaggerConfiguration {
 
     @Bean
     public OpenAPI baconOpenApi(Environment environment, SwaggerProperties swaggerProperties) {

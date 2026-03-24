@@ -3,7 +3,7 @@ package com.github.thundax.bacon.order.interfaces.assembler;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
-import com.github.thundax.bacon.order.interfaces.vo.OrderVO;
+import com.github.thundax.bacon.order.interfaces.response.OrderSummaryResponse;
 
 public final class OrderAssembler {
 
@@ -14,7 +14,7 @@ public final class OrderAssembler {
         return new CreateOrderCommand(request.orderNo(), request.customerName());
     }
 
-    public static OrderVO toVO(OrderSummaryDTO summaryDTO) {
-        return new OrderVO(summaryDTO.getId(), summaryDTO.getOrderNo(), String.valueOf(summaryDTO.getUserId()));
+    public static OrderSummaryResponse toResponse(OrderSummaryDTO summaryDTO) {
+        return OrderSummaryResponse.from(summaryDTO);
     }
 }

@@ -2,15 +2,15 @@ package com.github.thundax.bacon.order.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.application.service.OrderApplicationService;
 import com.github.thundax.bacon.order.application.service.OrderCancelApplicationService;
 import com.github.thundax.bacon.order.application.service.OrderQueryService;
 import com.github.thundax.bacon.order.interfaces.assembler.OrderAssembler;
 import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
-import com.github.thundax.bacon.order.interfaces.vo.OrderVO;
+import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
+import com.github.thundax.bacon.order.interfaces.response.OrderPageResponse;
+import com.github.thundax.bacon.order.interfaces.response.OrderSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -37,26 +37,26 @@ public class OrderController {
     @Operation(summary = "创建订单")
     @HasPermission("order:order:create")
     @PostMapping
-    public OrderVO create(@RequestBody CreateOrderRequest request) {
-        return OrderAssembler.toVO(orderApplicationService.create(OrderAssembler.toCommand(request)));
+    public OrderSummaryResponse create(@RequestBody CreateOrderRequest request) {
+        return OrderAssembler.toResponse(orderApplicationService.create(OrderAssembler.toCommand(request)));
     }
 
     @Operation(summary = "按 ID 查询订单")
     @HasPermission("order:order:view")
     @GetMapping("/{orderId}")
-    public OrderDetailDTO getById(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
-                                  @PathVariable Long orderId) {
-        return orderQueryService.getById(tenantId, orderId);
+    public OrderDetailResponse getById(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
+                                       @PathVariable Long orderId) {
+        return OrderDetailResponse.from(orderQueryService.getById(tenantId, orderId));
     }
 
     @Operation(summary = "分页查询订单")
     @HasPermission("order:order:view")
     @GetMapping
-    public OrderPageResultDTO pageOrders(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
-                                         @RequestParam(value = "userId", required = false) Long userId,
-                                         @RequestParam(value = "orderNo", required = false) String orderNo) {
-        return orderQueryService.pageOrders(new OrderPageQueryDTO(tenantId, userId, orderNo, null, null, null,
-                (Instant) null, (Instant) null, 1, 20));
+    public OrderPageResponse pageOrders(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
+                                        @RequestParam(value = "userId", required = false) Long userId,
+                                        @RequestParam(value = "orderNo", required = false) String orderNo) {
+        return OrderPageResponse.from(orderQueryService.pageOrders(new OrderPageQueryDTO(tenantId, userId, orderNo,
+                null, null, null, (Instant) null, (Instant) null, 1, 20)));
     }
 
     @Operation(summary = "取消订单")

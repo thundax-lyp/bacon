@@ -42,20 +42,18 @@ class ApiResponseWebAdviceTest {
     void shouldWrapAnnotatedControllerResponse() throws Exception {
         mockMvc.perform(get("/wrapped/value"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("OK"))
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data").value("value"))
-                .andExpect(jsonPath("$.message").value("OK"));
+                .andExpect(jsonPath("$.message").value("success"));
     }
 
     @Test
     void shouldWrapAnnotatedControllerVoidResponse() throws Exception {
         mockMvc.perform(get("/wrapped/void"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.code").value("OK"))
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data").doesNotExist())
-                .andExpect(jsonPath("$.message").value("OK"));
+                .andExpect(jsonPath("$.message").value("success"));
     }
 
     @Test
@@ -70,7 +68,6 @@ class ApiResponseWebAdviceTest {
     void shouldConvertAnnotatedControllerExceptionToApiResponse() throws Exception {
         mockMvc.perform(get("/wrapped/bad-request"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
                 .andExpect(jsonPath("$.message").value("bad request"));
     }
@@ -79,7 +76,6 @@ class ApiResponseWebAdviceTest {
     void shouldConvertMissingRequestParameterToApiResponse() throws Exception {
         mockMvc.perform(get("/wrapped/missing-param"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
                 .andExpect(jsonPath("$.message").value("Missing required parameter: requiredParam"));
     }
@@ -88,7 +84,6 @@ class ApiResponseWebAdviceTest {
     void shouldConvertTypeMismatchToApiResponse() throws Exception {
         mockMvc.perform(get("/wrapped/type-mismatch").param("count", "abc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
                 .andExpect(jsonPath("$.message").value("Invalid parameter: count"));
     }
@@ -99,7 +94,6 @@ class ApiResponseWebAdviceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
                 .andExpect(jsonPath("$.message").value("Request body is invalid or unreadable"));
     }
@@ -110,7 +104,6 @@ class ApiResponseWebAdviceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"value\":\"\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
                 .andExpect(jsonPath("$.message").value("value: must not be blank"));
     }

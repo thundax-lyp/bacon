@@ -13,12 +13,10 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
 
 /**
  * 基于 JetCache 的验证码服务，适用于短信、邮件、图形验证码等短时一次性验证码场景。
  */
-@Service
 public class CacheVerificationCodeService implements VerificationCodeService {
 
     private static final int DEFAULT_CODE_LENGTH = 6;

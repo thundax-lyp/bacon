@@ -14,12 +14,10 @@ import com.github.thundax.bacon.upms.interfaces.dto.RoleResourceAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
-import com.github.thundax.bacon.upms.interfaces.dto.UserRoleQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RolePageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
 import java.util.Set;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,16 +75,6 @@ public class RoleController {
     @GetMapping("/{roleId}")
     public RoleResponse getRoleById(@PathVariable Long roleId, @ModelAttribute TenantScopedRequest request) {
         return RoleResponse.from(roleApplicationService.getRoleById(request.getTenantId(), roleId));
-    }
-
-    @Operation(summary = "查询用户角色列表")
-    @HasPermission("sys:role:view")
-    @SysLog(module = "UPMS", action = "查询用户角色", eventType = LogEventType.QUERY)
-    @GetMapping
-    public List<RoleResponse> getRolesByUserId(@ModelAttribute UserRoleQueryRequest request) {
-        return roleApplicationService.getRolesByUserId(request.getTenantId(), request.getUserId()).stream()
-                .map(RoleResponse::from)
-                .toList();
     }
 
     @Operation(summary = "启用或停用角色")

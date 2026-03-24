@@ -134,6 +134,16 @@ public class UserController {
                 .toList();
     }
 
+    @Operation(summary = "查询用户角色列表")
+    @HasPermission("sys:role:view")
+    @SysLog(module = "UPMS", action = "查询用户角色", eventType = LogEventType.QUERY)
+    @GetMapping("/{userId}/roles")
+    public List<RoleResponse> getRolesByUserId(@PathVariable Long userId, @ModelAttribute TenantScopedRequest request) {
+        return userApplicationService.getRolesByUserId(request.getTenantId(), userId).stream()
+                .map(RoleResponse::from)
+                .toList();
+    }
+
     @Operation(summary = "导入用户")
     @HasPermission("sys:user:create")
     @SysLog(module = "UPMS", action = "导入用户", eventType = LogEventType.IMPORT)

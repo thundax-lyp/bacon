@@ -13,6 +13,7 @@ import com.github.thundax.bacon.upms.domain.entity.Role;
 import com.github.thundax.bacon.upms.domain.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.entity.User;
 import com.github.thundax.bacon.upms.domain.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import java.util.List;
@@ -25,12 +26,15 @@ public class UserApplicationService {
     private static final String DEFAULT_PASSWORD = "123456";
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
 
-    public UserApplicationService(UserRepository userRepository, TenantRepository tenantRepository,
+    public UserApplicationService(UserRepository userRepository, RoleRepository roleRepository,
+                                  TenantRepository tenantRepository,
                                   SessionCommandFacade sessionCommandFacade) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
     }
@@ -129,6 +133,11 @@ public class UserApplicationService {
     public List<RoleDTO> assignRoles(Long tenantId, Long userId, List<Long> roleIds) {
         requireUser(tenantId, userId);
         return userRepository.assignRoles(tenantId, userId, roleIds).stream().map(this::toRoleDto).toList();
+    }
+
+    public List<RoleDTO> getRolesByUserId(Long tenantId, Long userId) {
+        requireUser(tenantId, userId);
+        return roleRepository.findRolesByUserId(tenantId, userId).stream().map(this::toRoleDto).toList();
     }
 
     public List<UserDTO> importUsers(Long tenantId, List<UserImportCommand> commands) {

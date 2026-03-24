@@ -15,7 +15,7 @@ import java.time.Instant;
 
 @RestController
 @RequestMapping("/providers/payment")
-@Tag(name = "Payment Provider", description = "Payment 域内部 Provider 接口")
+@Tag(name = "Inner-Payment-Management", description = "Payment 域内部 Provider 接口")
 public class PaymentProviderController {
 
     private final PaymentQueryService paymentQueryService;

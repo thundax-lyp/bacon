@@ -15,7 +15,7 @@ import java.util.Set;
 @RestController
 @WrappedApiController
 @RequestMapping
-@Tag(name = "Inventory", description = "库存查询接口")
+@Tag(name = "Inventory-Query", description = "库存查询接口")
 public class InventoryQueryController {
 
     private final InventoryQueryService inventoryQueryService;

@@ -20,7 +20,7 @@ import java.util.Set;
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/permissions")
-@Tag(name = "UPMS Permission", description = "权限查询接口")
+@Tag(name = "UPMS-Permission", description = "权限查询接口")
 public class PermissionQueryController {
 
     private final PermissionQueryService permissionQueryService;

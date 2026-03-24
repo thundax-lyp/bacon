@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/payments/callback")
-@Tag(name = "Payment Callback", description = "支付回调接口")
+@Tag(name = "Payment-Callback", description = "支付回调接口")
 public class PaymentCallbackController {
 
     private final PaymentCallbackApplicationService paymentCallbackApplicationService;

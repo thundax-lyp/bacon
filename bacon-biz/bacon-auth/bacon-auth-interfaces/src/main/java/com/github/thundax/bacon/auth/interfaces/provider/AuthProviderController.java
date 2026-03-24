@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/providers/auth")
-@Tag(name = "Auth Provider", description = "Auth 域内部 Provider 接口")
+@Tag(name = "Inner-Auth-Management", description = "Auth 域内部 Provider 接口")
 public class AuthProviderController {
 
     private final TokenApplicationService tokenApplicationService;

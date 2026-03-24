@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/users")
-@Tag(name = "UPMS User", description = "用户查询接口")
+@Tag(name = "UPMS-User", description = "用户查询接口")
 public class UserQueryController {
 
     private final UserApplicationService userApplicationService;

@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @WrappedApiController
-@Tag(name = "Auth", description = "认证与会话接口")
+@Tag(name = "Auth-Management", description = "认证、登录、令牌与会话接口")
 public class AuthController {
 
     private final LoginApplicationService loginApplicationService;

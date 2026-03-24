@@ -20,7 +20,7 @@ import java.time.Instant;
 @RestController
 @WrappedApiController
 @RequestMapping("/api/orders")
-@Tag(name = "Order", description = "订单接口")
+@Tag(name = "Order-Management", description = "订单创建、查询与取消接口")
 public class OrderController {
 
     private final OrderApplicationService orderApplicationService;

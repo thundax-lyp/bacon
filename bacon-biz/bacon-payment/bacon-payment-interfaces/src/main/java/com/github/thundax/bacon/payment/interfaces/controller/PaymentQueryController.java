@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @WrappedApiController
 @RequestMapping("/payments")
-@Tag(name = "Payment", description = "支付查询接口")
+@Tag(name = "Payment-Query", description = "支付查询接口")
 public class PaymentQueryController {
 
     private final PaymentQueryService paymentQueryService;

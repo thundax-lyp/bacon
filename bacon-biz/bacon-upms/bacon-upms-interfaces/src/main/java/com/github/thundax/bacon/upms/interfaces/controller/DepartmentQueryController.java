@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/departments")
-@Tag(name = "UPMS Department", description = "部门查询接口")
+@Tag(name = "UPMS-Department", description = "部门查询接口")
 public class DepartmentQueryController {
 
     private final DepartmentApplicationService departmentApplicationService;

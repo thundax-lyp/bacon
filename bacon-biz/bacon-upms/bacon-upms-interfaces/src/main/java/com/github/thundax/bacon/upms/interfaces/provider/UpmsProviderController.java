@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/providers/upms")
-@Tag(name = "UPMS Provider", description = "UPMS 域内部 Provider 接口")
+@Tag(name = "Inner-UPMS-Management", description = "UPMS 域内部 Provider 接口")
 public class UpmsProviderController {
 
     private final UserApplicationService userApplicationService;

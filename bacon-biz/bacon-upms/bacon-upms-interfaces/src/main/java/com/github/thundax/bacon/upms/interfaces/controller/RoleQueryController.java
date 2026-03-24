@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @WrappedApiController
 @RequestMapping("/upms/roles")
-@Tag(name = "UPMS Role", description = "角色查询接口")
+@Tag(name = "UPMS-Role", description = "角色查询接口")
 public class RoleQueryController {
 
     private final RoleApplicationService roleApplicationService;

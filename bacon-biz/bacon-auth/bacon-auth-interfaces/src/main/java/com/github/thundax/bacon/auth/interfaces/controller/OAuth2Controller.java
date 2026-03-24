@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/oauth2")
-@Tag(name = "OAuth2", description = "OAuth2 授权协议接口")
+@Tag(name = "Auth-OAuth2", description = "OAuth2 授权协议接口")
 public class OAuth2Controller {
 
     private final OAuth2AuthorizationApplicationService oAuth2AuthorizationApplicationService;

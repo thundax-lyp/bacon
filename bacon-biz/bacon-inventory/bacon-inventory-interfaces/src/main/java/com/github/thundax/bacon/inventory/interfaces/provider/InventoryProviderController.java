@@ -15,7 +15,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/providers/inventory")
-@Tag(name = "Inventory Provider", description = "Inventory 域内部 Provider 接口")
+@Tag(name = "Inner-Inventory-Management", description = "Inventory 域内部 Provider 接口")
 public class InventoryProviderController {
 
     private final InventoryQueryService inventoryQueryService;

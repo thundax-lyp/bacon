@@ -12,6 +12,8 @@ public interface InventoryRepository {
 
     Optional<Inventory> findInventory(Long tenantId, Long skuId);
 
+    List<Inventory> findInventories(Long tenantId);
+
     List<Inventory> findInventories(Long tenantId, Set<Long> skuIds);
 
     Inventory saveInventory(Inventory inventory);

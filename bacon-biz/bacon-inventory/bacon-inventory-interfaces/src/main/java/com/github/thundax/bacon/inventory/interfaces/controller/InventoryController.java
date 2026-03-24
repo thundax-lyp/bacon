@@ -2,12 +2,15 @@ package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.inventory.api.dto.InventoryPageQueryDTO;
 import com.github.thundax.bacon.inventory.application.service.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.application.service.InventoryQueryService;
 import com.github.thundax.bacon.inventory.interfaces.dto.CreateInventoryRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryBatchQueryRequest;
+import com.github.thundax.bacon.inventory.interfaces.dto.InventoryPageRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryStatusUpdateRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryTenantScopedRequest;
+import com.github.thundax.bacon.inventory.interfaces.response.InventoryPageResponse;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryStockResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -65,6 +68,15 @@ public class InventoryController {
         return inventoryQueryService.batchGetAvailableStock(request.getTenantId(), request.getSkuIds()).stream()
                 .map(InventoryStockResponse::from)
                 .toList();
+    }
+
+    @Operation(summary = "分页查询库存主数据")
+    @HasPermission("inventory:stock:view")
+    @GetMapping("/page")
+    public InventoryPageResponse pageInventories(@Valid @ModelAttribute InventoryPageRequest request) {
+        return InventoryPageResponse.from(inventoryQueryService.pageInventories(new InventoryPageQueryDTO(
+                request.getTenantId(), request.getSkuId(), request.getStatus(), request.getPageNo(),
+                request.getPageSize())));
     }
 
     @Operation(summary = "修改库存状态")

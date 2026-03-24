@@ -141,6 +141,13 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
+        public List<Inventory> findInventories(Long tenantId) {
+            return inventories.values().stream()
+                    .filter(inventory -> inventory.getTenantId().equals(tenantId))
+                    .toList();
+        }
+
+        @Override
         public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
             return skuIds.stream()
                     .map(skuId -> inventories.get(key(tenantId, skuId)))

@@ -2,6 +2,8 @@ package com.github.thundax.bacon.inventory.application.service;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryPageQueryDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
@@ -13,6 +15,7 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @Service
@@ -31,6 +34,20 @@ public class InventoryQueryService {
 
     public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
         return inventoryRepository.findInventories(tenantId, skuIds).stream().map(this::toStockDto).toList();
+    }
+
+    public InventoryPageResultDTO pageInventories(InventoryPageQueryDTO query) {
+        int pageNo = normalizePageNo(query.getPageNo());
+        int pageSize = normalizePageSize(query.getPageSize());
+        String normalizedStatus = normalizeStatus(query.getStatus());
+        List<InventoryStockDTO> filtered = inventoryRepository.findInventories(query.getTenantId()).stream()
+                .filter(inventory -> query.getSkuId() == null || inventory.getSkuId().equals(query.getSkuId()))
+                .filter(inventory -> normalizedStatus == null || normalizedStatus.equals(inventory.getStatus()))
+                .map(this::toStockDto)
+                .toList();
+        int fromIndex = Math.min((pageNo - 1) * pageSize, filtered.size());
+        int toIndex = Math.min(fromIndex + pageSize, filtered.size());
+        return new InventoryPageResultDTO(filtered.subList(fromIndex, toIndex), filtered.size(), pageNo, pageSize);
     }
 
     public InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo) {
@@ -77,5 +94,20 @@ public class InventoryQueryService {
         return new InventoryAuditLogDTO(auditLog.getId(), auditLog.getTenantId(), auditLog.getOrderNo(),
                 auditLog.getReservationNo(), auditLog.getActionType(), auditLog.getOperatorType(),
                 auditLog.getOperatorId(), auditLog.getOccurredAt());
+    }
+
+    private int normalizePageNo(Integer pageNo) {
+        return pageNo == null || pageNo < 1 ? 1 : pageNo;
+    }
+
+    private int normalizePageSize(Integer pageSize) {
+        return pageSize == null || pageSize < 1 ? 20 : pageSize;
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        return status.trim().toUpperCase(Locale.ROOT);
     }
 }

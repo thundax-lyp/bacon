@@ -1,54 +1,73 @@
 # Repository Guidelines
 
-**Notice**
-- read docs/ARCHITECTURE.md first
+## Basic Rules
 
-## Project Structure & Module Organization
+- Read `docs/README.md` first.
+- Follow `docs/README.md` to load only the minimum required docs.
+- Read `docs/ARCHITECTURE.md` before implementation work.
+- Prefer the simplest workable solution.
+- Do not add configuration, abstraction, directory levels, or code unless necessary.
+
+## Project Structure
+
 This repository is a Maven multi-module Java 17 project rooted at `pom.xml`.
 
-- `bacon-app/`: runnable Spring Boot entrypoints such as `bacon-mono-boot`, `bacon-gateway`, `bacon-register`, and service starters.
-- `bacon-biz/`: business domains split by bounded context, for example `bacon-order`, `bacon-upms`, `bacon-inventory`, and `bacon-payment`.
-- `bacon-common/`: shared platform modules such as `bacon-common-web`, `bacon-common-security`, and `bacon-common-test`.
-- `docs/ARCHITECTURE.md`: module boundaries and mono-app vs microservice assembly notes.
+- `bacon-app/`: runnable entry modules such as `bacon-mono-boot`, `bacon-gateway`, `bacon-register`, and service starters.
+- `bacon-biz/`: business domains such as `bacon-order`, `bacon-upms`, `bacon-inventory`, and `bacon-payment`.
+- `bacon-common/`: shared platform modules.
+- `docs/`: architecture, requirements, database, and documentation rules.
 
-Within each domain, keep the existing layer pattern: `*-api`, `*-interfaces`, `*-application`, `*-domain`, `*-infra`.
+Within each business domain, keep the existing layer split:
+- `*-api`
+- `*-interfaces`
+- `*-application`
+- `*-domain`
+- `*-infra`
 
-## Build, Test, and Development Commands
-- `mvn clean verify`: full multi-module build with tests.
-- `mvn test`: run unit and integration tests across the repo.
-- `mvn checkstyle:check`: run the repository Checkstyle rules from `checkstyle.xml`.
-- `mvn -pl bacon-app/bacon-mono-boot spring-boot:run`: run the monolith entrypoint locally.
-- `mvn -pl bacon-app/bacon-gateway spring-boot:run`: run the gateway only.
+## Build And Run
 
-Run commands from the repository root unless you are intentionally targeting one module with `-pl`.
+Run commands from the repository root unless you intentionally target a module with `-pl`.
 
-## Coding Style & Naming Conventions
-Use 4-space indentation for Java, XML, and YAML. Follow the base package `com.github.thundax.bacon`.
+- `mvn clean verify`
+- `mvn test`
+- `mvn checkstyle:check`
+- `mvn -pl bacon-app/bacon-mono-boot spring-boot:run`
+- `mvn -pl bacon-app/bacon-gateway spring-boot:run`
 
+## Coding Rules
+
+- Use 4-space indentation for Java, XML, and YAML.
+- Base package: `com.github.thundax.bacon`
 - Class names: `PascalCase`
-- methods and fields: `camelCase`
-- constants: `UPPER_SNAKE_CASE`
-- module names: `bacon-<scope>` or `bacon-<domain>-<layer>`
+- Methods and fields: `camelCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Module names: `bacon-<scope>` or `bacon-<domain>-<layer>`
 
-Checkstyle currently enforces filename/type matching, no unused imports, no wildcard imports, and braces on control blocks. Keep controllers in `interfaces`, orchestration in `application`, core business rules in `domain`, and persistence/RPC code in `infra`.
+Layer responsibilities:
+- `interfaces.controller`: external business HTTP endpoints
+- `interfaces.provider`: internal provider HTTP endpoints
+- `interfaces.facade`: local facade adapter implementations
+- `application`: orchestration and use-case logic
+- `domain`: business rules and repository contracts
+- `infra`: persistence, RPC, cache, MQ, and external integration
 
-- Prefer the simplest workable solution.
-- Do not add configuration, abstraction, directory levels, or code when it is not necessary.
+## Testing
 
-## Testing Guidelines
-Place tests under `src/test/java`, mirroring production packages. Use `spring-boot-starter-test`; shared test support belongs in `bacon-common/bacon-common-test`.
+- Put tests under `src/test/java`, mirroring production packages.
+- Use `spring-boot-starter-test`.
+- Shared test support belongs in `bacon-common/bacon-common-test`.
+- Test class names use `*Test`; broader integration scenarios use `*IT`.
+- Add or update tests when behavior changes.
 
-Name test classes `*Test` for unit coverage and `*IT` for broader integration scenarios. Add tests for application services, domain services, and controller contracts when behavior changes.
+## Commits
 
-## Commit & Pull Request Guidelines
-Commit messages must use the format `Type(domain): 中文说明`, for example `Feat(boot): 初始化工程` or `Test(boot): 测试单例`.
+Every file modification must be followed by a git commit before ending the task.
 
-- Every file modification must be followed by a git commit before ending the task.
-- Every commit message must include a clear summary of what changed; when needed, add a commit body that explains the work, scope, and verification.
+Commit message format:
+- `Type(domain): 中文说明`
 
-For pull requests, include:
-- a brief problem/solution summary
-- affected modules, for example `bacon-order-domain`
-- linked issue or task ID when available
-- request/response examples or screenshots for API/UI changes
-- confirmation that `mvn clean verify` and `mvn checkstyle:check` passed
+Examples:
+- `Feat(boot): 初始化工程`
+- `Test(boot): 测试单例`
+
+Each commit should clearly describe the change. Add a body when scope or verification needs explanation.

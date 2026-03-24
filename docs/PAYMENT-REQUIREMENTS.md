@@ -248,9 +248,6 @@ Payment 是 Bacon 的统一支付业务域。
 ### 6.1.1 Numbering Rule
 
 - `paymentNo` 必须由 `Payment` 模块内部生成
-- `Payment` 的业务单号客户端固定使用 `tinyid-client`
-- `Payment` 发号模式固定使用本地缓存号段
-- `paymentNo` 生成职责固定放在 `infra` 层
 - `paymentNo` 生成失败时，创建支付单必须直接失败，不得降级为本地临时发号
 
 ### 6.2 Status Rule

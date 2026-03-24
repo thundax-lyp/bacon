@@ -257,9 +257,6 @@ Inventory 是 Bacon 的统一库存业务域。
 ### 6.1.1 Numbering Rule
 
 - `reservationNo` 必须由 `Inventory` 模块内部生成
-- `Inventory` 的业务单号客户端固定使用 `tinyid-client`
-- `Inventory` 发号模式固定使用本地缓存号段
-- `reservationNo` 生成职责固定放在 `infra` 层
 - `reservationNo` 生成失败时，库存预占必须直接失败，不得降级为本地临时发号
 
 ### 6.2 Reservation Rule

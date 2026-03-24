@@ -289,9 +289,6 @@ Order 是 Bacon 的统一订单业务域。
 ### 6.1.1 Numbering Rule
 
 - `orderNo` 必须由 `Order` 模块内部生成，外部请求不得自带订单号
-- `Order` 的业务单号客户端固定使用 `tinyid-client`
-- `Order` 发号模式固定使用本地缓存号段
-- `orderNo` 生成职责固定放在 `infra` 层
 - `orderNo` 生成失败时，创建订单必须直接失败，不得降级为本地临时发号
 
 ### 6.2 Amount Rule

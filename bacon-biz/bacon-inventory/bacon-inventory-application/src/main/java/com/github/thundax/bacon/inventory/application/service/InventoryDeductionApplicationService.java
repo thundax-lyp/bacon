@@ -17,12 +17,20 @@ public class InventoryDeductionApplicationService {
     }
 
     public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
-        InventoryReservation reservation = inventoryRepository.findReservation(tenantId, orderNo)
-                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + orderNo));
-        reservation.deduct(Instant.now());
-        return new InventoryReservationResultDTO(tenantId, orderNo, reservation.getReservationNo(),
-                reservation.getReservationStatus(), "DEDUCTED", reservation.getWarehouseId(),
-                reservation.getFailureReason(), reservation.getReleaseReason(), reservation.getReleasedAt(),
-                reservation.getDeductedAt());
+        InventoryReservation reservation = inventoryRepository.findReservation(tenantId, orderNo).orElse(null);
+        if (reservation == null) {
+            return InventoryReservationResultMapper.failed(tenantId, orderNo, "RESERVATION_NOT_FOUND");
+        }
+        if (!reservation.isReserved()) {
+            return InventoryReservationResultMapper.fromReservation(reservation);
+        }
+
+        Instant deductedAt = Instant.now();
+        reservation.getItems().forEach(item -> inventoryRepository.findInventory(tenantId, item.getSkuId())
+                .orElseThrow(() -> new IllegalStateException("Inventory not found: " + item.getSkuId()))
+                .deduct(item.getQuantity(), deductedAt));
+        reservation.deduct(deductedAt);
+        inventoryRepository.saveReservation(reservation);
+        return InventoryReservationResultMapper.fromReservation(reservation);
     }
 }

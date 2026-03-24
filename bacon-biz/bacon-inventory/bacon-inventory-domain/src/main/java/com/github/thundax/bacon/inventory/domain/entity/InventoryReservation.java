@@ -4,9 +4,24 @@ import lombok.Getter;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 public class InventoryReservation {
+
+    public static final String STATUS_CREATED = "CREATED";
+    public static final String STATUS_RESERVED = "RESERVED";
+    public static final String STATUS_RELEASED = "RELEASED";
+    public static final String STATUS_DEDUCTED = "DEDUCTED";
+    public static final String STATUS_FAILED = "FAILED";
+
+    private static final Set<String> RELEASE_REASONS = Set.of(
+            "USER_CANCELLED",
+            "SYSTEM_CANCELLED",
+            "PAYMENT_CREATE_FAILED",
+            "PAYMENT_FAILED",
+            "TIMEOUT_CLOSED"
+    );
 
     private final Long id;
     private final Long tenantId;
@@ -30,26 +45,55 @@ public class InventoryReservation {
         this.warehouseId = warehouseId;
         this.createdAt = createdAt;
         this.items = items;
-        this.reservationStatus = "CREATED";
+        this.reservationStatus = STATUS_CREATED;
     }
 
     public void reserve() {
-        this.reservationStatus = "RESERVED";
+        ensureStatus(STATUS_CREATED);
+        this.reservationStatus = STATUS_RESERVED;
     }
 
     public void fail(String reason) {
-        this.reservationStatus = "FAILED";
+        ensureStatus(STATUS_CREATED);
+        this.reservationStatus = STATUS_FAILED;
         this.failureReason = reason;
     }
 
     public void release(String reason, Instant releasedTime) {
-        this.reservationStatus = "RELEASED";
+        ensureStatus(STATUS_RESERVED);
+        if (!RELEASE_REASONS.contains(reason)) {
+            throw new IllegalArgumentException("INVALID_RELEASE_REASON:" + reason);
+        }
+        this.reservationStatus = STATUS_RELEASED;
         this.releaseReason = reason;
         this.releasedAt = releasedTime;
     }
 
     public void deduct(Instant deductedTime) {
-        this.reservationStatus = "DEDUCTED";
+        ensureStatus(STATUS_RESERVED);
+        this.reservationStatus = STATUS_DEDUCTED;
         this.deductedAt = deductedTime;
+    }
+
+    public boolean isReserved() {
+        return STATUS_RESERVED.equals(reservationStatus);
+    }
+
+    public boolean isReleased() {
+        return STATUS_RELEASED.equals(reservationStatus);
+    }
+
+    public boolean isDeducted() {
+        return STATUS_DEDUCTED.equals(reservationStatus);
+    }
+
+    public boolean isFailed() {
+        return STATUS_FAILED.equals(reservationStatus);
+    }
+
+    private void ensureStatus(String expectedStatus) {
+        if (!expectedStatus.equals(reservationStatus)) {
+            throw new IllegalStateException("INVALID_RESERVATION_STATUS:" + reservationStatus);
+        }
     }
 }

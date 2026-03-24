@@ -17,11 +17,20 @@ public class InventoryReleaseApplicationService {
     }
 
     public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        InventoryReservation reservation = inventoryRepository.findReservation(tenantId, orderNo)
-                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + orderNo));
-        reservation.release(reason, Instant.now());
-        return new InventoryReservationResultDTO(tenantId, orderNo, reservation.getReservationNo(),
-                reservation.getReservationStatus(), "RELEASED", reservation.getWarehouseId(),
-                reservation.getFailureReason(), reservation.getReleaseReason(), reservation.getReleasedAt(), null);
+        InventoryReservation reservation = inventoryRepository.findReservation(tenantId, orderNo).orElse(null);
+        if (reservation == null) {
+            return InventoryReservationResultMapper.failed(tenantId, orderNo, "RESERVATION_NOT_FOUND");
+        }
+        if (!reservation.isReserved()) {
+            return InventoryReservationResultMapper.fromReservation(reservation);
+        }
+
+        Instant releasedAt = Instant.now();
+        reservation.getItems().forEach(item -> inventoryRepository.findInventory(tenantId, item.getSkuId())
+                .orElseThrow(() -> new IllegalStateException("Inventory not found: " + item.getSkuId()))
+                .release(item.getQuantity(), releasedAt));
+        reservation.release(reason, releasedAt);
+        inventoryRepository.saveReservation(reservation);
+        return InventoryReservationResultMapper.fromReservation(reservation);
     }
 }

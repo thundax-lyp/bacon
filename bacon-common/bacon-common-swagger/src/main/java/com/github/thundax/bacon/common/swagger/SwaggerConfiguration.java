@@ -8,14 +8,21 @@ import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.env.Environment;
+import org.springframework.context.event.EventListener;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SwaggerProperties.class)
 public class SwaggerConfiguration {
+
+    private static final Logger log = LoggerFactory.getLogger(SwaggerConfiguration.class);
 
     @Bean
     public OpenAPI baconOpenApi(Environment environment, SwaggerProperties swaggerProperties) {
@@ -48,6 +55,18 @@ public class SwaggerConfiguration {
                 .addSecurityItem(new SecurityRequirement().addList("oauth2"));
     }
 
+    @EventListener(ApplicationReadyEvent.class)
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    public void logSwaggerEndpoints(ApplicationReadyEvent event) {
+        Environment environment = event.getApplicationContext().getEnvironment();
+        String baseUrl = buildBaseUrl(environment);
+        String swaggerUiUrl = joinUrl(baseUrl, "/swagger-ui/index.html");
+        String apiDocsUrl = joinUrl(baseUrl, "/v3/api-docs");
+
+        log.info("Swagger UI: {}", swaggerUiUrl);
+        log.info("OpenAPI Docs: {}", apiDocsUrl);
+    }
+
     private String resolveUrl(Environment environment, String explicitUrl, String path) {
         if (explicitUrl != null && !explicitUrl.isBlank()) {
             return explicitUrl;
@@ -74,5 +93,21 @@ public class SwaggerConfiguration {
             return normalizedBase + "/" + normalizedPath;
         }
         return normalizedBase + normalizedPath;
+    }
+
+    private String buildBaseUrl(Environment environment) {
+        String scheme = Boolean.parseBoolean(environment.getProperty("server.ssl.enabled", "false")) ? "https" : "http";
+        String host = environment.getProperty("server.address");
+        if (host == null || host.isBlank() || "0.0.0.0".equals(host)) {
+            host = "127.0.0.1";
+        }
+
+        String port = environment.getProperty("local.server.port");
+        if (port == null || port.isBlank()) {
+            port = environment.getProperty("server.port", "8080");
+        }
+
+        String contextPath = environment.getProperty("server.servlet.context-path", "");
+        return scheme + "://" + host + ":" + port + contextPath;
     }
 }

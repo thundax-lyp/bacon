@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,8 @@ public class InMemoryUpmsStore {
     private final Map<String, Set<String>> userScopeTypes = new ConcurrentHashMap<>();
     private final Map<String, Boolean> userAllAccess = new ConcurrentHashMap<>();
     private final Map<Long, SysLogRecord> sysLogs = new ConcurrentHashMap<>();
+    private final AtomicLong userIdSequence = new AtomicLong(2002L);
+    private final AtomicLong userIdentityIdSequence = new AtomicLong(3002L);
 
     public InMemoryUpmsStore(PasswordEncoder passwordEncoder) {
         Tenant tenant = new Tenant(1L, 1001L, "tenant-demo", "Demo Tenant", "ENABLED");
@@ -105,6 +108,14 @@ public class InMemoryUpmsStore {
 
     public Map<Long, SysLogRecord> getSysLogs() {
         return sysLogs;
+    }
+
+    public long nextUserId() {
+        return userIdSequence.getAndIncrement();
+    }
+
+    public long nextUserIdentityId() {
+        return userIdentityIdSequence.getAndIncrement();
     }
 
     public static String userKey(Long tenantId, Long userId) {

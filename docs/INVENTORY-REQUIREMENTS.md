@@ -133,21 +133,27 @@ Inventory 是 Bacon 的统一库存业务域。
 - `Controller`
 - 请求 `DTO`
 - 响应 `VO`
-- `Assembler`
 - 对外适配端点
 
 固定端点：
 
+- `POST /inventories`
 - `GET /inventories/{skuId}`
 - `GET /inventories`
+- `GET /inventories/page`
+- `PUT /inventories/{skuId}/status`
 - `GET /inventory-reservations/{orderNo}`
+- `GET /inventory-ledgers`
+- `GET /inventory-audit-logs`
 
 ### 4.3 `bacon-inventory-application`
 
 固定服务：
 
 - `InventoryApplicationService`
+- `InventoryManagementApplicationService`
 - `InventoryQueryService`
+- `InventoryOperationLogService`
 - `InventoryReservationApplicationService`
 - `InventoryReleaseApplicationService`
 - `InventoryDeductionApplicationService`
@@ -162,7 +168,9 @@ Inventory 是 Bacon 的统一库存业务域。
 ### 4.5 `bacon-inventory-infra`
 
 - `MyBatis-Plus Mapper`
+- `DataObject`
 - `Repository` 实现
+- 无数据源场景的内存 `Repository` fallback
 - 审计日志持久化
 
 ## 5. Core Domain Objects

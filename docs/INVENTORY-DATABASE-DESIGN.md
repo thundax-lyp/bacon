@@ -3,7 +3,7 @@
 ## 1. Purpose
 
 本文档定义 `Inventory` 业务域的数据库设计。  
-目标是让 AI 和工程师可直接据此生成 `DDL`、`DataObject`、`Mapper`、`Repository`、库存查询和库存命令持久化实现。  
+目标是让 AI 和工程师可直接据此生成 `DDL`、`MyBatis-Plus DataObject`、`Mapper`、`Repository`、库存查询和库存命令持久化实现。  
 本文档只定义 `Inventory` 自有的持久化对象、字段、索引、流水规则和查询模型，不重复业务需求文档中的流程描述。  
 本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](./DATABASE-RULES.md) 为准。
 
@@ -58,10 +58,8 @@
 
 ### 5.2 Fixed Length Rules
 
-- `tenant_id`: `varchar(64)`
 - `reservation_no`: `varchar(64)`
 - `order_no`: `varchar(64)`
-- `warehouse_id`: `varchar(64)`
 - `failure_reason`: `varchar(255)`
 - `release_reason`: `varchar(64)`
 - `action_type`: `varchar(64)`
@@ -93,9 +91,9 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `sku_id` | `bigint` | N | SKU 主键 |
-| `warehouse_id` | `varchar(64)` | N | 仓库标识，当前固定为默认仓 |
+| `warehouse_id` | `bigint` | N | 仓库标识，当前固定为默认仓 |
 | `on_hand_quantity` | `int` | N | 现存量 |
 | `reserved_quantity` | `int` | N | 预占量 |
 | `available_quantity` | `int` | N | 可售量 |
@@ -125,11 +123,11 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `reservation_no` | `varchar(64)` | N | 预占单号，全局唯一 |
 | `order_no` | `varchar(64)` | N | 订单号，同租户唯一 |
 | `reservation_status` | `varchar(16)` | N | 预占状态，取值见 `reservation_status` |
-| `warehouse_id` | `varchar(64)` | N | 仓库标识 |
+| `warehouse_id` | `bigint` | N | 仓库标识 |
 | `failure_reason` | `varchar(255)` | Y | 失败原因 |
 | `release_reason` | `varchar(64)` | Y | 释放原因，取值见 `release_reason` |
 | `created_at` | `datetime(3)` | N | 创建时间 |
@@ -155,7 +153,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `reservation_no` | `varchar(64)` | N | 预占单号，关联 `bacon_inventory_reservation.reservation_no` |
 | `sku_id` | `bigint` | N | SKU 主键 |
 | `quantity` | `int` | N | 预占数量 |
@@ -179,11 +177,11 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单号 |
 | `reservation_no` | `varchar(64)` | N | 预占单号 |
 | `sku_id` | `bigint` | N | SKU 主键 |
-| `warehouse_id` | `varchar(64)` | N | 仓库标识 |
+| `warehouse_id` | `bigint` | N | 仓库标识 |
 | `ledger_type` | `varchar(16)` | N | 流水类型，取值见 `ledger_type` |
 | `quantity` | `int` | N | 变更数量 |
 | `occurred_at` | `datetime(3)` | N | 发生时间 |
@@ -207,7 +205,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | Y | 订单号 |
 | `reservation_no` | `varchar(64)` | Y | 预占单号 |
 | `action_type` | `varchar(64)` | N | 操作类型 |
@@ -236,6 +234,8 @@
 - `InventoryReservationItem` 必须保证 `(tenant_id, reservation_no, sku_id)` 唯一
 - `available_quantity` 必须始终等于 `on_hand_quantity - reserved_quantity`
 - 任意时刻不得出现负库存
+- 正式持久化实现优先使用 `MyBatis-Plus BaseMapper + DataObject`
+- 在未装配 `DataSource` / `SqlSessionFactory` 的启动或测试场景下，可退回内存 `Repository` 实现
 - 预占、释放、扣减都以 `order_no` 为幂等键
 - `releaseReservedStock` 和 `deductReservedStock` 只允许基于已存在预占单执行语义判断
 - `InventoryStockDTO` 是读模型，不单独建表

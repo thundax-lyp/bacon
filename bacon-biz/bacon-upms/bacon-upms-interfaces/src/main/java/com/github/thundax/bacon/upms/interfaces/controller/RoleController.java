@@ -9,6 +9,7 @@ import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleDataScopeAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleMenuAssignRequest;
+import com.github.thundax.bacon.upms.interfaces.dto.RolePageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleResourceAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleUpdateRequest;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -44,15 +46,10 @@ public class RoleController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "分页查询角色", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public RolePageResponse pageRoles(@RequestParam("tenantId") Long tenantId,
-                                      @RequestParam(value = "code", required = false) String code,
-                                      @RequestParam(value = "name", required = false) String name,
-                                      @RequestParam(value = "roleType", required = false) String roleType,
-                                      @RequestParam(value = "status", required = false) String status,
-                                      @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
-                                      @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-        return RolePageResponse.from(roleApplicationService.pageRoles(new RolePageQueryDTO(tenantId, code, name,
-                roleType, status, pageNo, pageSize)));
+    public RolePageResponse pageRoles(@ModelAttribute RolePageRequest request) {
+        return RolePageResponse.from(roleApplicationService.pageRoles(new RolePageQueryDTO(request.getTenantId(),
+                request.getCode(), request.getName(), request.getRoleType(), request.getStatus(), request.getPageNo(),
+                request.getPageSize())));
     }
 
     @Operation(summary = "创建角色")

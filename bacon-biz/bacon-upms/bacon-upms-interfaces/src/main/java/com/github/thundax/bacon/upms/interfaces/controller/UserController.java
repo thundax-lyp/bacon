@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.application.service.UserApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.UserCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserImportItem;
+import com.github.thundax.bacon.upms.interfaces.dto.UserPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserPasswordInitRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserPasswordResetRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserRoleAssignRequest;
@@ -23,6 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -47,15 +49,10 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "分页查询用户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public UserPageResponse pageUsers(@RequestParam("tenantId") Long tenantId,
-                                      @RequestParam(value = "account", required = false) String account,
-                                      @RequestParam(value = "name", required = false) String name,
-                                      @RequestParam(value = "phone", required = false) String phone,
-                                      @RequestParam(value = "status", required = false) String status,
-                                      @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
-                                      @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-        return UserPageResponse.from(userApplicationService.pageUsers(new UserPageQueryDTO(tenantId, account, name, phone,
-                status, pageNo, pageSize)));
+    public UserPageResponse pageUsers(@ModelAttribute UserPageRequest request) {
+        return UserPageResponse.from(userApplicationService.pageUsers(new UserPageQueryDTO(request.getTenantId(),
+                request.getAccount(), request.getName(), request.getPhone(), request.getStatus(), request.getPageNo(),
+                request.getPageSize())));
     }
 
     @Operation(summary = "创建用户")

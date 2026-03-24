@@ -7,6 +7,7 @@ import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationAppl
 import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationDecisionResult;
 import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationView;
 import com.github.thundax.bacon.auth.interfaces.dto.OAuth2DecisionRequest;
+import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@WrappedApiController
 @RequestMapping("/oauth2")
 @Tag(name = "Auth-OAuth2", description = "OAuth2 授权协议接口")
 public class OAuth2Controller {

@@ -71,3 +71,7 @@ Examples:
 - `Test(boot): 测试单例`
 
 Each commit should clearly describe the change. Add a body when scope or verification needs explanation.
+
+- When a task contains multiple distinct features or refactors, split commits by function.
+- Commit messages must state the concrete function or capability changed.
+- Avoid vague descriptions such as `收敛前端控制器P0问题`; prefer specific descriptions such as `新增岗位管理接口` or `新增系统访问日志查询接口`.

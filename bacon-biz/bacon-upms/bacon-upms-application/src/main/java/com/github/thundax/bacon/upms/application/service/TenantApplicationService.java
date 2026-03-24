@@ -62,6 +62,10 @@ public class TenantApplicationService {
         return toDto(tenant);
     }
 
+    public TenantDTO getTenantByTenantId(Long tenantId) {
+        return toDto(requireTenant(tenantId));
+    }
+
     private Tenant requireTenant(Long tenantId) {
         return tenantRepository.findTenantByTenantId(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));

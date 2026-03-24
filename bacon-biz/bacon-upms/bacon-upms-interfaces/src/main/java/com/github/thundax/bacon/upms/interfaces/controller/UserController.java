@@ -4,10 +4,13 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.upms.application.command.UserImportCommand;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.application.service.UserApplicationService;
+import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserImportItem;
+import com.github.thundax.bacon.upms.interfaces.dto.UserImportRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserIdentityQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserPasswordInitRequest;
@@ -16,9 +19,8 @@ import com.github.thundax.bacon.upms.interfaces.dto.UserRoleAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
-import com.github.thundax.bacon.upms.interfaces.response.UserPageResponse;
-import com.github.thundax.bacon.upms.interfaces.response.TenantResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserIdentityResponse;
+import com.github.thundax.bacon.upms.interfaces.response.UserPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +33,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -78,8 +79,8 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "查询用户详情", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}")
-    public UserResponse getUserById(@RequestParam("tenantId") Long tenantId, @PathVariable Long userId) {
-        return UserResponse.from(userApplicationService.getUserById(tenantId, userId));
+    public UserResponse getUserById(@PathVariable Long userId, @ModelAttribute TenantScopedRequest request) {
+        return UserResponse.from(userApplicationService.getUserById(request.getTenantId(), userId));
     }
 
     @Operation(summary = "按身份标识查询用户身份")
@@ -103,8 +104,8 @@ public class UserController {
     @HasPermission("sys:user:delete")
     @SysLog(module = "UPMS", action = "删除用户", eventType = LogEventType.DELETE)
     @DeleteMapping("/{userId}")
-    public void deleteUser(@RequestParam("tenantId") Long tenantId, @PathVariable Long userId) {
-        userApplicationService.deleteUser(tenantId, userId);
+    public void deleteUser(@PathVariable Long userId, @ModelAttribute TenantScopedRequest request) {
+        userApplicationService.deleteUser(request.getTenantId(), userId);
     }
 
     @Operation(summary = "管理员初始化密码")
@@ -137,11 +138,13 @@ public class UserController {
     @HasPermission("sys:user:create")
     @SysLog(module = "UPMS", action = "导入用户", eventType = LogEventType.IMPORT)
     @PostMapping("/import")
-    public List<UserResponse> importUsers(@RequestParam("tenantId") Long tenantId, @RequestBody List<UserImportItem> items) {
-        return userApplicationService.importUsers(tenantId, items.stream()
-                        .map(item -> new com.github.thundax.bacon.upms.api.dto.UserDTO(null, tenantId, item.account(), item.name(),
-                                item.phone(), item.departmentId(), null, false))
-                        .toList()).stream()
+    public List<UserResponse> importUsers(@RequestBody UserImportRequest request) {
+        List<UserImportItem> items = request.items() == null ? List.of() : request.items();
+        return userApplicationService.importUsers(request.tenantId(), items.stream()
+                        .map(item -> new UserImportCommand(item.account(), item.name(), item.phone(),
+                                item.departmentId()))
+                        .toList())
+                .stream()
                 .map(UserResponse::from)
                 .toList();
     }
@@ -158,11 +161,4 @@ public class UserController {
                 .toList();
     }
 
-    @Operation(summary = "按租户 ID 查询租户")
-    @HasPermission("sys:user:view")
-    @SysLog(module = "UPMS", action = "查询租户详情", eventType = LogEventType.QUERY)
-    @GetMapping("/tenants/{tenantId}")
-    public TenantResponse getTenant(@PathVariable Long tenantId) {
-        return TenantResponse.from(userApplicationService.getTenantByTenantId(tenantId));
-    }
 }

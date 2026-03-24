@@ -8,18 +8,19 @@ import com.github.thundax.bacon.upms.application.service.MenuApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuSortUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.response.MenuTreeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -38,8 +39,8 @@ public class MenuController {
     @HasPermission("sys:menu:view")
     @SysLog(module = "UPMS", action = "查询菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/tree")
-    public List<MenuTreeResponse> getMenuTree(@RequestParam("tenantId") Long tenantId) {
-        return menuApplicationService.getMenuTree(tenantId).stream().map(MenuTreeResponse::from).toList();
+    public List<MenuTreeResponse> getMenuTree(@ModelAttribute TenantScopedRequest request) {
+        return menuApplicationService.getMenuTree(request.getTenantId()).stream().map(MenuTreeResponse::from).toList();
     }
 
     @Operation(summary = "创建菜单")
@@ -66,8 +67,8 @@ public class MenuController {
     @HasPermission("sys:menu:delete")
     @SysLog(module = "UPMS", action = "删除菜单", eventType = LogEventType.DELETE)
     @DeleteMapping("/{menuId}")
-    public void deleteMenu(@RequestParam("tenantId") Long tenantId, @PathVariable Long menuId) {
-        menuApplicationService.deleteMenu(tenantId, menuId);
+    public void deleteMenu(@PathVariable Long menuId, @ModelAttribute TenantScopedRequest request) {
+        menuApplicationService.deleteMenu(request.getTenantId(), menuId);
     }
 
     @Operation(summary = "调整菜单排序")

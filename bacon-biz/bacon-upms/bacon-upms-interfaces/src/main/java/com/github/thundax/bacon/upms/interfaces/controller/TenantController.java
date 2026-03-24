@@ -60,6 +60,14 @@ public class TenantController {
         return TenantResponse.from(tenantApplicationService.updateTenant(tenantId, request.code(), request.name()));
     }
 
+    @Operation(summary = "按租户 ID 查询租户")
+    @HasPermission("sys:tenant:view")
+    @SysLog(module = "UPMS", action = "查询租户详情", eventType = LogEventType.QUERY)
+    @GetMapping("/{tenantId}")
+    public TenantResponse getTenantByTenantId(@PathVariable Long tenantId) {
+        return TenantResponse.from(tenantApplicationService.getTenantByTenantId(tenantId));
+    }
+
     @Operation(summary = "变更租户状态")
     @HasPermission("sys:tenant:update")
     @SysLog(module = "UPMS", action = "变更租户状态", eventType = LogEventType.UPDATE)

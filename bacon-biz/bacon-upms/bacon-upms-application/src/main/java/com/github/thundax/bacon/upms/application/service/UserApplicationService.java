@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.application.service;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.upms.application.command.UserImportCommand;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
@@ -130,12 +131,13 @@ public class UserApplicationService {
         return userRepository.assignRoles(tenantId, userId, roleIds).stream().map(this::toRoleDto).toList();
     }
 
-    public List<UserDTO> importUsers(Long tenantId, List<UserDTO> users) {
-        if (users == null || users.isEmpty()) {
+    public List<UserDTO> importUsers(Long tenantId, List<UserImportCommand> commands) {
+        if (commands == null || commands.isEmpty()) {
             return List.of();
         }
-        return users.stream()
-                .map(user -> createUser(tenantId, user.getAccount(), user.getName(), user.getPhone(), user.getDepartmentId()))
+        return commands.stream()
+                .map(command -> createUser(tenantId, command.account(), command.name(), command.phone(),
+                        command.departmentId()))
                 .toList();
     }
 

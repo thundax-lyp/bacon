@@ -13,6 +13,7 @@ import com.github.thundax.bacon.upms.interfaces.dto.RolePageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleResourceAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserRoleQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RolePageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
@@ -28,7 +29,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -75,8 +75,8 @@ public class RoleController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询角色详情", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}")
-    public RoleResponse getRoleById(@RequestParam("tenantId") Long tenantId, @PathVariable Long roleId) {
-        return RoleResponse.from(roleApplicationService.getRoleById(tenantId, roleId));
+    public RoleResponse getRoleById(@PathVariable Long roleId, @ModelAttribute TenantScopedRequest request) {
+        return RoleResponse.from(roleApplicationService.getRoleById(request.getTenantId(), roleId));
     }
 
     @Operation(summary = "查询用户角色列表")
@@ -101,8 +101,8 @@ public class RoleController {
     @HasPermission("sys:role:delete")
     @SysLog(module = "UPMS", action = "删除角色", eventType = LogEventType.DELETE)
     @DeleteMapping("/{roleId}")
-    public void deleteRole(@RequestParam("tenantId") Long tenantId, @PathVariable Long roleId) {
-        roleApplicationService.deleteRole(tenantId, roleId);
+    public void deleteRole(@PathVariable Long roleId, @ModelAttribute TenantScopedRequest request) {
+        roleApplicationService.deleteRole(request.getTenantId(), roleId);
     }
 
     @Operation(summary = "分配角色菜单")

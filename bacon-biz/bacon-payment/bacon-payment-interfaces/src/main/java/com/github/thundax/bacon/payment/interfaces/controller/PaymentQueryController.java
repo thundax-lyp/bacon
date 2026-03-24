@@ -6,12 +6,17 @@ import com.github.thundax.bacon.payment.application.service.PaymentQueryService;
 import com.github.thundax.bacon.payment.interfaces.response.PaymentDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Validated
 @RestController
 @WrappedApiController
 @RequestMapping("/payments")
@@ -27,16 +32,16 @@ public class PaymentQueryController {
     @Operation(summary = "按支付单号查询支付单")
     @HasPermission("payment:payment:view")
     @GetMapping("/{paymentNo}")
-    public PaymentDetailResponse getByPaymentNo(@RequestParam("tenantId") Long tenantId,
-                                                @PathVariable String paymentNo) {
+    public PaymentDetailResponse getByPaymentNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
+                                                @PathVariable @NotBlank String paymentNo) {
         return PaymentDetailResponse.from(paymentQueryService.getByPaymentNo(tenantId, paymentNo));
     }
 
     @Operation(summary = "按订单号查询支付单")
     @HasPermission("payment:payment:view")
     @GetMapping
-    public PaymentDetailResponse getByOrderNo(@RequestParam("tenantId") Long tenantId,
-                                              @RequestParam("orderNo") String orderNo) {
+    public PaymentDetailResponse getByOrderNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
+                                              @RequestParam("orderNo") @NotBlank String orderNo) {
         return PaymentDetailResponse.from(paymentQueryService.getByOrderNo(tenantId, orderNo));
     }
 }

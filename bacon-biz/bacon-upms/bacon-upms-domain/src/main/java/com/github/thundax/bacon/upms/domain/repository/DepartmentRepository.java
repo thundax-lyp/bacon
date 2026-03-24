@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
 import com.github.thundax.bacon.upms.domain.entity.Department;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -13,4 +12,14 @@ public interface DepartmentRepository {
     Optional<Department> findDepartmentByCode(Long tenantId, String departmentCode);
 
     List<Department> listDepartmentsByIds(Long tenantId, Set<Long> departmentIds);
+
+    List<Department> listDepartmentTree(Long tenantId);
+
+    Department save(Department department);
+
+    void deleteDepartment(Long tenantId, Long departmentId);
+
+    boolean existsChildDepartment(Long tenantId, Long departmentId);
+
+    boolean existsUserInDepartment(Long tenantId, Long departmentId);
 }

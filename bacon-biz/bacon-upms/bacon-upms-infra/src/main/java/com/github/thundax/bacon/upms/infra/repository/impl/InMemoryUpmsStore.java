@@ -37,6 +37,7 @@ public class InMemoryUpmsStore {
     private final AtomicLong userIdSequence = new AtomicLong(2002L);
     private final AtomicLong userIdentityIdSequence = new AtomicLong(3002L);
     private final AtomicLong roleIdSequence = new AtomicLong(4002L);
+    private final AtomicLong departmentIdSequence = new AtomicLong(11L);
 
     public InMemoryUpmsStore(PasswordEncoder passwordEncoder) {
         Tenant tenant = new Tenant(1L, 1001L, "tenant-demo", "Demo Tenant", "ENABLED");
@@ -145,6 +146,10 @@ public class InMemoryUpmsStore {
 
     public long nextRoleId() {
         return roleIdSequence.getAndIncrement();
+    }
+
+    public long nextDepartmentId() {
+        return departmentIdSequence.getAndIncrement();
     }
 
     public static String userKey(Long tenantId, Long userId) {

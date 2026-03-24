@@ -14,10 +14,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
@@ -61,6 +63,30 @@ public class GlobalExceptionHandler {
             return ApiResponse.fail("BAD_REQUEST", fieldError.getField() + ": " + fieldError.getDefaultMessage());
         }
         return ApiResponse.fail("BAD_REQUEST", "Request binding failed");
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMethodArgumentNotValid(MethodArgumentNotValidException exception) {
+        FieldError fieldError = exception.getBindingResult().getFieldError();
+        if (fieldError != null) {
+            return ApiResponse.fail("BAD_REQUEST", fieldError.getField() + ": " + fieldError.getDefaultMessage());
+        }
+        return ApiResponse.fail("BAD_REQUEST", "Request validation failed");
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleHandlerMethodValidation(HandlerMethodValidationException exception) {
+        if (!exception.getParameterValidationResults().isEmpty()
+                && !exception.getParameterValidationResults().get(0).getResolvableErrors().isEmpty()) {
+            String message = exception.getParameterValidationResults().get(0).getResolvableErrors().get(0)
+                    .getDefaultMessage();
+            if (message != null && !message.isBlank()) {
+                return ApiResponse.fail("BAD_REQUEST", message);
+            }
+        }
+        return ApiResponse.fail("BAD_REQUEST", "Request validation failed");
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

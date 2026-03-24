@@ -24,7 +24,7 @@ bacon
 │   ├── pom.xml
 │   ├── bacon-mono-boot/             # 单体启动模块
 │   │   ├── pom.xml
-│   │   └── src/main/java/.../BaconApplication.java
+│   │   └── src/main/java/.../BaconMonoApplication.java
 │   │
 │   ├── bacon-order-starter/         # 订单微服务启动模块
 │   │   ├── pom.xml

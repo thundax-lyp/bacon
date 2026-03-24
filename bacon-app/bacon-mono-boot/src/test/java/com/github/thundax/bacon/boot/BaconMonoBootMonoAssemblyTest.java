@@ -35,7 +35,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = BaconApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE,
+@SpringBootTest(classes = BaconMonoApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
                 "bacon.runtime.mode=mono",
                 "spring.cloud.nacos.discovery.enabled=false",

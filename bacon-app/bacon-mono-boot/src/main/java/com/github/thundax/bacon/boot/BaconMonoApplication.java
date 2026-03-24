@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Import;
 @EnableFeignClients(basePackages = "com.github.thundax.bacon")
 @Import(BaconSecurityConfiguration.class)
 @SpringBootApplication(scanBasePackages = "com.github.thundax.bacon")
-public class BaconApplication {
+public class BaconMonoApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(BaconApplication.class, args);
+        SpringApplication.run(BaconMonoApplication.class, args);
     }
 }

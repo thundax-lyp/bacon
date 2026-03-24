@@ -7,10 +7,15 @@ import com.github.thundax.bacon.common.security.context.SpringContextCurrentUser
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
+import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * 统一创建安全基础配置，包含方法安全启用与运行模式相关的当前用户上下文装配。
@@ -18,6 +23,19 @@ import org.springframework.security.core.annotation.AnnotationTemplateExpression
 @AutoConfiguration
 @EnableMethodSecurity
 public class BaconSecurityConfiguration {
+
+    @Bean
+    @Order(2)
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+                .csrf(csrf -> csrf.disable())
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
+                .logout(logout -> logout.disable())
+                .anonymous(Customizer.withDefaults());
+        return http.build();
+    }
 
     @Bean
     public AnnotationTemplateExpressionDefaults annotationTemplateExpressionDefaults() {

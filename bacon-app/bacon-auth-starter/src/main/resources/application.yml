@@ -15,7 +15,7 @@ bacon:
   runtime:
     mode: micro
   remote:
-    upms-base-url: ${BACON_REMOTE_UPMS_BASE_URL:http://localhost:8082/api}
+    upms-base-url: ${BACON_REMOTE_UPMS_BASE_URL:http://127.0.0.1:8082/api}
 
 management:
   endpoints:

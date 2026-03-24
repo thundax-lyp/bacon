@@ -7,19 +7,19 @@ spring:
   application:
     name: bacon-boot
   datasource:
-    url: ${BACON_DB_URL:jdbc:mysql://localhost:3306/bacon_sample?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    url: ${BACON_DB_URL:jdbc:mysql://127.0.0.1:3306/bacon_sample?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
     username: ${BACON_DB_USERNAME:}
     password: ${BACON_DB_PASSWORD:}
     driver-class-name: ${BACON_DB_DRIVER:com.mysql.cj.jdbc.Driver}
   data:
     redis:
-      host: ${BACON_REDIS_HOST:localhost}
+      host: ${BACON_REDIS_HOST:127.0.0.1}
       port: ${BACON_REDIS_PORT:6379}
       database: ${BACON_REDIS_DATABASE:0}
       password: ${BACON_REDIS_PASSWORD:}
       timeout: ${BACON_REDIS_TIMEOUT:5s}
   rabbitmq:
-    host: ${BACON_RABBITMQ_HOST:localhost}
+    host: ${BACON_RABBITMQ_HOST:127.0.0.1}
     port: ${BACON_RABBITMQ_PORT:5672}
     username: ${BACON_RABBITMQ_USERNAME:guest}
     password: ${BACON_RABBITMQ_PASSWORD:}

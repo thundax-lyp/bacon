@@ -23,7 +23,7 @@ public class PermissionReadFacadeRemoteImpl implements PermissionReadFacade {
 
     private final RestClient restClient;
 
-    public PermissionReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://localhost:8082/api}") String baseUrl) {
+    public PermissionReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

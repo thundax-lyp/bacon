@@ -20,7 +20,7 @@ public class DepartmentReadFacadeRemoteImpl implements DepartmentReadFacade {
 
     private final RestClient restClient;
 
-    public DepartmentReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://localhost:8082/api}") String baseUrl) {
+    public DepartmentReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
         this.restClient = RestClient.builder().baseUrl(baseUrl).build();
     }
 

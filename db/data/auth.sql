@@ -13,7 +13,7 @@ INSERT INTO `bacon_auth_oauth_client` (
     3000001, 'bacon-admin-web', '$2y$10$m.vDS3byljJ66FDH4l5EcOti3RW3YulgO53WkNmHnS9x/YXfvh.Pi', 'Bacon Admin Web', 'CONFIDENTIAL',
     JSON_ARRAY('authorization_code', 'refresh_token'),
     JSON_ARRAY('openid', 'profile', 'tenant.read', 'user.read'),
-    JSON_ARRAY('http://localhost:5173/login/oauth2/code/bacon', 'http://127.0.0.1:5173/login/oauth2/code/bacon'),
+    JSON_ARRAY('http://127.0.0.1:5173/login/oauth2/code/bacon'),
     7200, 2592000,
     1, 'platform-admin@bacon.local', 'Seeded admin console OAuth2 client',
     2000001, '2026-03-21 09:00:00.000', 2000001, '2026-03-21 09:00:00.000'

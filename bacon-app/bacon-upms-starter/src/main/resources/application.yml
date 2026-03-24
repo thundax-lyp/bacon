@@ -15,7 +15,7 @@ bacon:
   runtime:
     mode: micro
   remote:
-    auth-base-url: ${BACON_REMOTE_AUTH_BASE_URL:http://localhost:8081/api}
+    auth-base-url: ${BACON_REMOTE_AUTH_BASE_URL:http://127.0.0.1:8081/api}
 
 management:
   endpoints:

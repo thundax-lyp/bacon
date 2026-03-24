@@ -258,6 +258,16 @@ bacon-biz/bacon-order
 - 负责持久化、RPC 客户端、缓存、消息发送、三方适配。
 - 实现 `domain.repository` 中定义的接口。
 - 可以依赖数据库、中间件、SDK，但不能反向让 `domain` 依赖这些技术细节。
+- `Order`、`Payment`、`Inventory` 的业务单号生成固定由 `infra` 层集成 `tinyid-client` 完成，并使用本地缓存号段模式。
+
+## 业务单号策略
+
+- `Order`、`Payment`、`Inventory` 的业务单号固定使用发号中心方案。
+- 发号客户端固定使用 `tinyid-client`。
+- 发号模式固定使用“发号中心 + 本地缓存号段”。
+- `orderNo`、`paymentNo`、`reservationNo` 属于业务单号，必须通过 `tinyid-client` 生成。
+- 业务单号生成职责属于各业务域 `infra` 层，不得在 `controller`、`application` 或 `domain` 层手写 `AtomicLong`、时间戳拼接或数据库 `max(id)+1` 发号。
+- 数据库主键 `id` 与业务单号分离设计；业务单号策略不等同于数据库主键策略。
 - 业务审计日志的持久化实现固定放在各业务域 `infra`。
 
 ### starter/app

@@ -232,6 +232,7 @@
 
 - `Inventory` 必须保证 `(tenant_id, sku_id)` 唯一
 - `InventoryReservation` 必须保证 `(tenant_id, order_no)` 唯一
+- `InventoryReservation.reservation_no` 固定由 `tinyid-client` 在 `Inventory` 模块内生成，并使用本地缓存号段模式
 - `InventoryReservationItem` 必须保证 `(tenant_id, reservation_no, sku_id)` 唯一
 - `available_quantity` 必须始终等于 `on_hand_quantity - reserved_quantity`
 - 任意时刻不得出现负库存
@@ -247,6 +248,7 @@
 - `InventoryStockDTO` 是读模型，不单独建表
 - `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表
 - 预占单和库存流水不做逻辑删除
+- `id` 是数据库主键；`reservation_no` 是业务单号；二者不得混用
 
 ## 10. Query Model Rules
 

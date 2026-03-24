@@ -253,7 +253,7 @@ Order 是 Bacon 的统一订单业务域。
 
 ## 5.4 Fixed Request Contracts
 
-- `CreateOrderRequest` 至少包含 `tenantId`、`orderNo`、`userId`、`currencyCode`、`channelCode`、`items`、`remark`
+- `CreateOrderRequest` 至少包含 `tenantId`、`userId`、`currencyCode`、`channelCode`、`items`、`remark`
 - `CreateOrderRequest.items` 至少包含 `skuId`、`skuName`、`quantity`、`salePrice`
 - `CancelOrderRequest` 至少包含 `tenantId`、`orderNo`、`reason`、`operatorType`、`operatorId`
 - `CloseExpiredOrderRequest` 至少包含 `tenantId`、`orderNo`、`reason`
@@ -285,6 +285,14 @@ Order 是 Bacon 的统一订单业务域。
 - 不允许跨租户访问订单
 - `orderNo` 是跨域调用唯一业务键
 - `orderId` 不得用于跨域 `Facade` 入参与幂等键
+
+### 6.1.1 Numbering Rule
+
+- `orderNo` 必须由 `Order` 模块内部生成，外部请求不得自带订单号
+- `Order` 的业务单号客户端固定使用 `tinyid-client`
+- `Order` 发号模式固定使用本地缓存号段
+- `orderNo` 生成职责固定放在 `infra` 层
+- `orderNo` 生成失败时，创建订单必须直接失败，不得降级为本地临时发号
 
 ### 6.2 Amount Rule
 

@@ -251,6 +251,7 @@
 ## 9. Persistence Rules
 
 - `Order.order_no` 全局唯一
+- `Order.order_no` 固定由 `tinyid-client` 在 `Order` 模块内生成，并使用本地缓存号段模式
 - `OrderPaymentSnapshot.payment_no` 全局唯一
 - `OrderInventorySnapshot.reservation_no` 全局唯一
 - `OrderAmount` 是值对象，不单独建表
@@ -258,6 +259,7 @@
 - 订单和订单明细不支持物理删除，也不增加逻辑删除字段
 - `Order.total_amount` 固定等于全部 `OrderItem.line_amount` 之和
 - `Order.payable_amount` 当前固定等于 `Order.total_amount`
+- `id` 是数据库主键；`order_no` 是业务单号；二者不得混用
 - `OrderPaymentSnapshot` 和 `OrderInventorySnapshot` 是订单侧只读快照，不承载对端主数据
 
 ## 10. Query Model Rules

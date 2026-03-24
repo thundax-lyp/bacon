@@ -181,6 +181,7 @@
 ## 9. Persistence Rules
 
 - `PaymentOrder.payment_no` 全局唯一
+- `PaymentOrder.payment_no` 固定由 `tinyid-client` 在 `Payment` 模块内生成，并使用本地缓存号段模式
 - `PaymentOrder.order_no` 全局唯一
 - `PaymentCallbackRecord(tenant_id, channel_code, channel_transaction_no)` 唯一
 - `amount`、`paid_amount` 固定使用两位小数
@@ -188,6 +189,7 @@
 - 支付回调按 `(tenant_id, channel_code, channel_transaction_no)` 幂等
 - `PAID`、`FAILED`、`CLOSED` 后不得重新进入 `PAYING`
 - `PaymentCreateResultDTO`、`PaymentCloseResultDTO` 是命令返回模型，不单独建表
+- `id` 是数据库主键；`payment_no` 是业务单号；二者不得混用
 
 ## 10. Query Model Rules
 

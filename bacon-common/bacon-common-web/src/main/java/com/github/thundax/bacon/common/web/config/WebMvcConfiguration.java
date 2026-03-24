@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.common.core.config;
+package com.github.thundax.bacon.common.web.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Configuration;

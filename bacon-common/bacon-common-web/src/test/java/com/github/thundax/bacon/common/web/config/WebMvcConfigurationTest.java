@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.common.core.config;
+package com.github.thundax.bacon.common.web.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

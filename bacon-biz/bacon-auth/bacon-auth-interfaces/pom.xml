@@ -30,6 +30,11 @@
         </dependency>
         <dependency>
             <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-common-web</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
             <artifactId>bacon-common-swagger</artifactId>
             <version>${project.version}</version>
         </dependency>

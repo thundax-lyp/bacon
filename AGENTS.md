@@ -32,6 +32,9 @@ Use 4-space indentation for Java, XML, and YAML. Follow the base package `com.gi
 
 Checkstyle currently enforces filename/type matching, no unused imports, no wildcard imports, and braces on control blocks. Keep controllers in `interfaces`, orchestration in `application`, core business rules in `domain`, and persistence/RPC code in `infra`.
 
+- Prefer the simplest workable solution.
+- Do not add configuration, abstraction, directory levels, or code when it is not necessary.
+
 ## Testing Guidelines
 Place tests under `src/test/java`, mirroring production packages. Use `spring-boot-starter-test`; shared test support belongs in `bacon-common/bacon-common-test`.
 

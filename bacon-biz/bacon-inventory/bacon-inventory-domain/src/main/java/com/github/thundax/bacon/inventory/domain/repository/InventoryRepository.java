@@ -14,6 +14,8 @@ public interface InventoryRepository {
 
     List<Inventory> findInventories(Long tenantId, Set<Long> skuIds);
 
+    Inventory saveInventory(Inventory inventory);
+
     InventoryReservation saveReservation(InventoryReservation reservation);
 
     Optional<InventoryReservation> findReservation(Long tenantId, String orderNo);

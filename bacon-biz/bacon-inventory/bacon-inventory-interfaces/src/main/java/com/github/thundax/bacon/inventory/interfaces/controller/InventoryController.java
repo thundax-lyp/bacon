@@ -2,8 +2,11 @@ package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.inventory.application.service.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.application.service.InventoryQueryService;
+import com.github.thundax.bacon.inventory.interfaces.dto.CreateInventoryRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryBatchQueryRequest;
+import com.github.thundax.bacon.inventory.interfaces.dto.InventoryStatusUpdateRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryTenantScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryStockResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +18,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,10 +31,21 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Inventory-Management", description = "库存查询接口")
 public class InventoryController {
 
+    private final InventoryManagementApplicationService inventoryManagementApplicationService;
     private final InventoryQueryService inventoryQueryService;
 
-    public InventoryController(InventoryQueryService inventoryQueryService) {
+    public InventoryController(InventoryManagementApplicationService inventoryManagementApplicationService,
+                               InventoryQueryService inventoryQueryService) {
+        this.inventoryManagementApplicationService = inventoryManagementApplicationService;
         this.inventoryQueryService = inventoryQueryService;
+    }
+
+    @Operation(summary = "新增库存主数据")
+    @HasPermission("inventory:stock:create")
+    @PostMapping
+    public InventoryStockResponse createInventory(@Valid @RequestBody CreateInventoryRequest request) {
+        return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(request.tenantId(),
+                request.skuId(), request.onHandQuantity(), request.status()));
     }
 
     @Operation(summary = "查询 SKU 可用库存")
@@ -48,5 +65,14 @@ public class InventoryController {
         return inventoryQueryService.batchGetAvailableStock(request.getTenantId(), request.getSkuIds()).stream()
                 .map(InventoryStockResponse::from)
                 .toList();
+    }
+
+    @Operation(summary = "修改库存状态")
+    @HasPermission("inventory:stock:update")
+    @PutMapping("/{skuId}/status")
+    public InventoryStockResponse updateInventoryStatus(@PathVariable @Positive Long skuId,
+                                                        @Valid @RequestBody InventoryStatusUpdateRequest request) {
+        return InventoryStockResponse.from(inventoryManagementApplicationService.updateInventoryStatus(
+                request.tenantId(), skuId, request.status()));
     }
 }

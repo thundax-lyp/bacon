@@ -10,6 +10,7 @@ public class Inventory {
 
     public static final String STATUS_ENABLED = "ENABLED";
     public static final String STATUS_DISABLED = "DISABLED";
+    public static final Long DEFAULT_WAREHOUSE_ID = 1L;
 
     private Long id;
     private Long tenantId;
@@ -20,6 +21,18 @@ public class Inventory {
     private Integer availableQuantity;
     private String status;
     private Instant updatedAt;
+
+    public static Inventory create(Long id, Long tenantId, Long skuId, Integer onHandQuantity, String status, Instant createdAt) {
+        if (tenantId == null || skuId == null) {
+            throw new IllegalArgumentException("INVALID_INVENTORY_KEY");
+        }
+        if (onHandQuantity == null || onHandQuantity < 0) {
+            throw new IllegalArgumentException("INVALID_ON_HAND_QUANTITY:" + skuId);
+        }
+        String normalizedStatus = normalizeStatus(status);
+        return new Inventory(id, tenantId, skuId, DEFAULT_WAREHOUSE_ID, onHandQuantity, 0, onHandQuantity,
+                normalizedStatus, createdAt);
+    }
 
     public void reserve(int quantity, Instant operatedAt) {
         ensureReservable(quantity);
@@ -57,6 +70,11 @@ public class Inventory {
         refreshAvailableQuantity(operatedAt);
     }
 
+    public void updateStatus(String targetStatus, Instant operatedAt) {
+        this.status = normalizeStatus(targetStatus);
+        this.updatedAt = operatedAt;
+    }
+
     private void ensureEnabled() {
         if (STATUS_DISABLED.equals(status)) {
             throw new IllegalArgumentException("INVENTORY_DISABLED:" + skuId);
@@ -72,5 +90,12 @@ public class Inventory {
     private void refreshAvailableQuantity(Instant operatedAt) {
         availableQuantity = onHandQuantity - reservedQuantity;
         updatedAt = operatedAt;
+    }
+
+    private static String normalizeStatus(String status) {
+        if (STATUS_ENABLED.equals(status) || STATUS_DISABLED.equals(status)) {
+            return status;
+        }
+        throw new IllegalArgumentException("INVALID_INVENTORY_STATUS:" + status);
     }
 }

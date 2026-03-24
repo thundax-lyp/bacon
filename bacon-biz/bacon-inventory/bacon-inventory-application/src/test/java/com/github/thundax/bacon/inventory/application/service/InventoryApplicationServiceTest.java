@@ -149,6 +149,12 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
+        public Inventory saveInventory(Inventory inventory) {
+            inventories.put(key(inventory.getTenantId(), inventory.getSkuId()), inventory);
+            return inventory;
+        }
+
+        @Override
         public InventoryReservation saveReservation(InventoryReservation reservation) {
             reservations.put(reservationKey(reservation.getTenantId(), reservation.getOrderNo()), reservation);
             return reservation;

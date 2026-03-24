@@ -17,6 +17,16 @@ public interface UserRepository {
 
     Optional<Tenant> findTenantByTenantId(Long tenantId);
 
+    Optional<Tenant> findTenantByCode(String code);
+
+    List<Tenant> pageTenants(Long tenantId, String code, String name, String status, int pageNo, int pageSize);
+
+    long countTenants(Long tenantId, String code, String name, String status);
+
+    Tenant saveTenant(Tenant tenant);
+
+    Tenant updateTenantStatus(Long tenantId, String status);
+
     List<User> pageUsers(Long tenantId, String account, String name, String phone, String status, int pageNo, int pageSize);
 
     long countUsers(Long tenantId, String account, String name, String phone, String status);

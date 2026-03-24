@@ -72,6 +72,24 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
+        public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+            return findInventories(tenantId).stream()
+                    .filter(inventory -> skuId == null || inventory.getSkuId().equals(skuId))
+                    .filter(inventory -> status == null || status.equals(inventory.getStatus()))
+                    .skip((long) (pageNo - 1) * pageSize)
+                    .limit(pageSize)
+                    .toList();
+        }
+
+        @Override
+        public long countInventories(Long tenantId, Long skuId, String status) {
+            return findInventories(tenantId).stream()
+                    .filter(inventory -> skuId == null || inventory.getSkuId().equals(skuId))
+                    .filter(inventory -> status == null || status.equals(inventory.getStatus()))
+                    .count();
+        }
+
+        @Override
         public Inventory saveInventory(Inventory inventory) {
             Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
             inventory.markPersisted(version);

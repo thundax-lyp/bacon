@@ -83,6 +83,20 @@ public class InventoryRepositoryImpl implements InventoryRepository {
     }
 
     @Override
+    public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+        long offset = (long) (pageNo - 1) * pageSize;
+        return inventoryMapper.selectPageByCondition(tenantId, skuId, status, offset, pageSize)
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    public long countInventories(Long tenantId, Long skuId, String status) {
+        return inventoryMapper.countByCondition(tenantId, skuId, status);
+    }
+
+    @Override
     public Inventory saveInventory(Inventory inventory) {
         InventoryDO dataObject = toDataObject(inventory);
         if (dataObject.getId() == null) {
@@ -178,31 +192,10 @@ public class InventoryRepositoryImpl implements InventoryRepository {
     }
 
     private InventoryReservation toDomain(InventoryReservationDO reservation, List<InventoryReservationItem> items) {
-        InventoryReservation domain = new InventoryReservation(reservation.getId(), reservation.getTenantId(),
+        return InventoryReservation.rehydrate(reservation.getId(), reservation.getTenantId(),
                 reservation.getReservationNo(), reservation.getOrderNo(), reservation.getWarehouseId(),
-                reservation.getCreatedAt(), items);
-        return switch (reservation.getReservationStatus()) {
-            case InventoryReservation.STATUS_CREATED -> domain;
-            case InventoryReservation.STATUS_RESERVED -> {
-                domain.reserve();
-                yield domain;
-            }
-            case InventoryReservation.STATUS_FAILED -> {
-                domain.fail(reservation.getFailureReason());
-                yield domain;
-            }
-            case InventoryReservation.STATUS_RELEASED -> {
-                domain.reserve();
-                domain.release(reservation.getReleaseReason(), reservation.getReleasedAt());
-                yield domain;
-            }
-            case InventoryReservation.STATUS_DEDUCTED -> {
-                domain.reserve();
-                domain.deduct(reservation.getDeductedAt());
-                yield domain;
-            }
-            default -> throw new IllegalStateException("UNKNOWN_RESERVATION_STATUS:" + reservation.getReservationStatus());
-        };
+                reservation.getCreatedAt(), items, reservation.getReservationStatus(), reservation.getFailureReason(),
+                reservation.getReleaseReason(), reservation.getReleasedAt(), reservation.getDeductedAt());
     }
 
     private InventoryReservationItem toDomain(InventoryReservationItemDO item) {

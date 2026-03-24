@@ -48,6 +48,20 @@ public class InventoryReservation {
         this.reservationStatus = STATUS_CREATED;
     }
 
+    public static InventoryReservation rehydrate(Long id, Long tenantId, String reservationNo, String orderNo,
+                                                 Long warehouseId, Instant createdAt, List<InventoryReservationItem> items,
+                                                 String reservationStatus, String failureReason, String releaseReason,
+                                                 Instant releasedAt, Instant deductedAt) {
+        InventoryReservation reservation = new InventoryReservation(id, tenantId, reservationNo, orderNo, warehouseId,
+                createdAt, items);
+        reservation.reservationStatus = reservationStatus;
+        reservation.failureReason = failureReason;
+        reservation.releaseReason = releaseReason;
+        reservation.releasedAt = releasedAt;
+        reservation.deductedAt = deductedAt;
+        return reservation;
+    }
+
     public void reserve() {
         ensureStatus(STATUS_CREATED);
         this.reservationStatus = STATUS_RESERVED;

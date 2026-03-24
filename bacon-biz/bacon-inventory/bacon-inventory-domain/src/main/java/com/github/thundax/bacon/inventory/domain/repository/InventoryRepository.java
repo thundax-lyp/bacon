@@ -16,6 +16,10 @@ public interface InventoryRepository {
 
     List<Inventory> findInventories(Long tenantId, Set<Long> skuIds);
 
+    List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize);
+
+    long countInventories(Long tenantId, Long skuId, String status);
+
     Inventory saveInventory(Inventory inventory);
 
     InventoryReservation saveReservation(InventoryReservation reservation);

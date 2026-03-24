@@ -11,14 +11,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InventoryReservationApplicationService {
 
-    private final AtomicLong idGenerator = new AtomicLong(1L);
     private final InventoryRepository inventoryRepository;
     private final InventoryOperationLogService inventoryOperationLogService;
 
@@ -39,21 +38,30 @@ public class InventoryReservationApplicationService {
         String reservationNo = "RSV-" + UUID.randomUUID().toString().substring(0, 8);
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
         List<InventoryReservationItem> reservationItems = normalizedItems.stream()
-                .map(item -> new InventoryReservationItem(idGenerator.getAndIncrement(), tenantId, reservationNo,
+                .map(item -> new InventoryReservationItem(null, tenantId, reservationNo,
                         item.getSkuId(), item.getQuantity()))
                 .toList();
-        InventoryReservation reservation = new InventoryReservation(idGenerator.getAndIncrement(), tenantId, reservationNo,
+        InventoryReservation reservation = new InventoryReservation(null, tenantId, reservationNo,
                 orderNo, 1L, Instant.now(), reservationItems);
 
         String failureReason = validateReservation(tenantId, normalizedItems);
         if (failureReason != null) {
             reservation.fail(failureReason);
-            inventoryRepository.saveReservation(reservation);
+            reservation = saveReservationWithIdempotentFallback(reservation);
             inventoryOperationLogService.recordReserveFailed(reservation, Instant.now());
             return InventoryReservationResultMapper.fromReservation(reservation);
         }
 
+        InventoryReservation existing = tryFindExistingReservation(tenantId, orderNo);
+        if (existing != null) {
+            return InventoryReservationResultMapper.fromReservation(existing);
+        }
+
         Instant operatedAt = Instant.now();
+        reservation = saveReservationWithIdempotentFallback(reservation);
+        if (!reservation.getReservationNo().equals(reservationNo)) {
+            return InventoryReservationResultMapper.fromReservation(reservation);
+        }
         for (InventoryReservationItem item : reservationItems) {
             Inventory inventory = inventoryRepository.findInventory(tenantId, item.getSkuId())
                     .orElseThrow(() -> new IllegalStateException("Inventory not found: " + item.getSkuId()));
@@ -61,7 +69,7 @@ public class InventoryReservationApplicationService {
             inventoryRepository.saveInventory(inventory);
         }
         reservation.reserve();
-        inventoryRepository.saveReservation(reservation);
+        reservation = inventoryRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(reservation, operatedAt);
         return InventoryReservationResultMapper.fromReservation(reservation);
     }
@@ -96,5 +104,18 @@ public class InventoryReservationApplicationService {
             }
         }
         return null;
+    }
+
+    private InventoryReservation saveReservationWithIdempotentFallback(InventoryReservation reservation) {
+        try {
+            return inventoryRepository.saveReservation(reservation);
+        } catch (DuplicateKeyException ex) {
+            return inventoryRepository.findReservation(reservation.getTenantId(), reservation.getOrderNo())
+                    .orElseThrow(() -> ex);
+        }
+    }
+
+    private InventoryReservation tryFindExistingReservation(Long tenantId, String orderNo) {
+        return inventoryRepository.findReservation(tenantId, orderNo).orElse(null);
     }
 }

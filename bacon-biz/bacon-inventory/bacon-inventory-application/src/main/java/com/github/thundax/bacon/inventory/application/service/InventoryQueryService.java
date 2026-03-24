@@ -40,14 +40,12 @@ public class InventoryQueryService {
         int pageNo = normalizePageNo(query.getPageNo());
         int pageSize = normalizePageSize(query.getPageSize());
         String normalizedStatus = normalizeStatus(query.getStatus());
-        List<InventoryStockDTO> filtered = inventoryRepository.findInventories(query.getTenantId()).stream()
-                .filter(inventory -> query.getSkuId() == null || inventory.getSkuId().equals(query.getSkuId()))
-                .filter(inventory -> normalizedStatus == null || normalizedStatus.equals(inventory.getStatus()))
+        List<InventoryStockDTO> records = inventoryRepository
+                .pageInventories(query.getTenantId(), query.getSkuId(), normalizedStatus, pageNo, pageSize).stream()
                 .map(this::toStockDto)
                 .toList();
-        int fromIndex = Math.min((pageNo - 1) * pageSize, filtered.size());
-        int toIndex = Math.min(fromIndex + pageSize, filtered.size());
-        return new InventoryPageResultDTO(filtered.subList(fromIndex, toIndex), filtered.size(), pageNo, pageSize);
+        long total = inventoryRepository.countInventories(query.getTenantId(), query.getSkuId(), normalizedStatus);
+        return new InventoryPageResultDTO(records, total, pageNo, pageSize);
     }
 
     public InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo) {

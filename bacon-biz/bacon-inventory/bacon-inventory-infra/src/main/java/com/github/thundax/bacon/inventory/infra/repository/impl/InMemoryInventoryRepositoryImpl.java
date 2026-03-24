@@ -4,6 +4,7 @@ import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -22,6 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @ConditionalOnMissingBean(InventoryRepository.class)
 public class InMemoryInventoryRepositoryImpl implements InventoryRepository {
 
+    private final AtomicLong inventoryIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong reservationIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong itemIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong ledgerIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong auditLogIdGenerator = new AtomicLong(1000L);
     private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
     private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryLedger>> ledgers = new ConcurrentHashMap<>();
@@ -55,7 +62,30 @@ public class InMemoryInventoryRepositoryImpl implements InventoryRepository {
     }
 
     @Override
+    public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+        return findInventories(tenantId).stream()
+                .filter(inventory -> skuId == null || inventory.getSkuId().equals(skuId))
+                .filter(inventory -> status == null || status.equals(inventory.getStatus()))
+                .skip((long) (pageNo - 1) * pageSize)
+                .limit(pageSize)
+                .toList();
+    }
+
+    @Override
+    public long countInventories(Long tenantId, Long skuId, String status) {
+        return findInventories(tenantId).stream()
+                .filter(inventory -> skuId == null || inventory.getSkuId().equals(skuId))
+                .filter(inventory -> status == null || status.equals(inventory.getStatus()))
+                .count();
+    }
+
+    @Override
     public Inventory saveInventory(Inventory inventory) {
+        if (inventory.getId() == null) {
+            inventory = new Inventory(inventoryIdGenerator.getAndIncrement(), inventory.getTenantId(), inventory.getSkuId(),
+                    inventory.getWarehouseId(), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
+                    inventory.getAvailableQuantity(), inventory.getStatus(), inventory.getVersion(), inventory.getUpdatedAt());
+        }
         Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
         inventory.markPersisted(version);
         inventories.put(key(inventory.getTenantId(), inventory.getSkuId()), inventory);
@@ -64,6 +94,17 @@ public class InMemoryInventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public InventoryReservation saveReservation(InventoryReservation reservation) {
+        if (reservation.getId() == null) {
+            reservation = InventoryReservation.rehydrate(reservationIdGenerator.getAndIncrement(), reservation.getTenantId(),
+                    reservation.getReservationNo(), reservation.getOrderNo(), reservation.getWarehouseId(),
+                    reservation.getCreatedAt(), reservation.getItems().stream()
+                            .map(item -> new InventoryReservationItem(
+                                    item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
+                                    item.getTenantId(), item.getReservationNo(), item.getSkuId(), item.getQuantity()))
+                            .toList(),
+                    reservation.getReservationStatus(), reservation.getFailureReason(), reservation.getReleaseReason(),
+                    reservation.getReleasedAt(), reservation.getDeductedAt());
+        }
         reservations.put(reservationKey(reservation.getTenantId(), reservation.getOrderNo()), reservation);
         return reservation;
     }
@@ -75,6 +116,11 @@ public class InMemoryInventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public void saveLedger(InventoryLedger ledger) {
+        if (ledger.getId() == null) {
+            ledger = new InventoryLedger(ledgerIdGenerator.getAndIncrement(), ledger.getTenantId(), ledger.getOrderNo(),
+                    ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
+                    ledger.getQuantity(), ledger.getOccurredAt());
+        }
         ledgers.computeIfAbsent(reservationKey(ledger.getTenantId(), ledger.getOrderNo()), key -> new ArrayList<>())
                 .add(ledger);
     }
@@ -86,6 +132,11 @@ public class InMemoryInventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public void saveAuditLog(InventoryAuditLog auditLog) {
+        if (auditLog.getId() == null) {
+            auditLog = new InventoryAuditLog(auditLogIdGenerator.getAndIncrement(), auditLog.getTenantId(),
+                    auditLog.getOrderNo(), auditLog.getReservationNo(), auditLog.getActionType(),
+                    auditLog.getOperatorType(), auditLog.getOperatorId(), auditLog.getOccurredAt());
+        }
         auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantId(), auditLog.getOrderNo()), key -> new ArrayList<>())
                 .add(auditLog);
     }

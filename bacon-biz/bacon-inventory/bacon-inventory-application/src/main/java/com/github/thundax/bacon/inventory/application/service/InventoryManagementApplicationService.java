@@ -4,14 +4,13 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryRepository;
 import java.time.Instant;
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InventoryManagementApplicationService {
 
-    private final AtomicLong idGenerator = new AtomicLong(1000L);
     private final InventoryRepository inventoryRepository;
 
     public InventoryManagementApplicationService(InventoryRepository inventoryRepository) {
@@ -23,9 +22,13 @@ public class InventoryManagementApplicationService {
         inventoryRepository.findInventory(tenantId, skuId).ifPresent(inventory -> {
             throw new IllegalArgumentException("INVENTORY_ALREADY_EXISTS:" + skuId);
         });
-        Inventory inventory = Inventory.create(idGenerator.getAndIncrement(), tenantId, skuId, onHandQuantity, status,
+        Inventory inventory = Inventory.create(null, tenantId, skuId, onHandQuantity, status,
                 Instant.now());
-        return toStockDto(inventoryRepository.saveInventory(inventory));
+        try {
+            return toStockDto(inventoryRepository.saveInventory(inventory));
+        } catch (DuplicateKeyException ex) {
+            throw new IllegalArgumentException("INVENTORY_ALREADY_EXISTS:" + skuId, ex);
+        }
     }
 
     @Transactional

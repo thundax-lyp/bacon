@@ -236,9 +236,10 @@
 - `available_quantity` 必须始终等于 `on_hand_quantity - reserved_quantity`
 - 任意时刻不得出现负库存
 - `Inventory.version` 用于乐观锁控制，库存写入必须带版本条件更新
-- 正式持久化实现优先使用 `MyBatis-Plus BaseMapper + DataObject`
+- 正式持久化实现优先使用 `MyBatis-Plus BaseMapper + DO`
 - 在未装配 `DataSource` / `SqlSessionFactory` 的启动或测试场景下，可退回内存 `Repository` 实现
 - 预占、释放、扣减都以 `order_no` 为幂等键
+- `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的主键由持久化层生成，应用层不得自行发号
 - `releaseReservedStock` 和 `deductReservedStock` 只允许基于已存在预占单执行语义判断
 - 库存数量变更必须显式更新 `bacon_inventory_inventory`，不得依赖运行时对象引用副作用
 - `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的命令写入应运行在同一事务中
@@ -253,6 +254,7 @@
 - 预占单详情查询主表固定为 `bacon_inventory_reservation + bacon_inventory_reservation_item`
 - 库存流水查询主表固定为 `bacon_inventory_ledger`
 - 审计查询主表固定为 `bacon_inventory_audit_log`
+- 库存分页查询必须由数据库分页实现，不得在应用层做全量拉取后再分页
 
 ## 11. Open Items
 

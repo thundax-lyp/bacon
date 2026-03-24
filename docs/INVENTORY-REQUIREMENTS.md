@@ -168,7 +168,7 @@ Inventory 是 Bacon 的统一库存业务域。
 ### 4.5 `bacon-inventory-infra`
 
 - `MyBatis-Plus Mapper`
-- `DataObject`
+- `DO`
 - `Repository` 实现
 - 无数据源场景的内存 `Repository` fallback
 - 审计日志持久化
@@ -225,11 +225,14 @@ Inventory 是 Bacon 的统一库存业务域。
 ## 5.5 Uniqueness And Index Rules
 
 - `Inventory.id` 全局唯一
+- `Inventory.id` 由持久化层生成，应用层不得自行发号
 - 当前范围 `Inventory` 必须保证 `(tenantId, skuId)` 唯一
 - `InventoryReservation.id` 全局唯一
+- `InventoryReservation.id` 由持久化层生成，应用层不得自行发号
 - `InventoryReservation.reservationNo` 全局唯一
 - `InventoryReservation` 必须保证 `(tenantId, orderNo)` 唯一
 - `InventoryReservationItem.id` 全局唯一
+- `InventoryReservationItem.id` 由持久化层生成，应用层不得自行发号
 - `InventoryReservationItem` 必须保证 `(tenantId, reservationNo, skuId)` 唯一
 - `InventoryLedger.id` 全局唯一
 - `InventoryLedger` 必须建立 `(tenantId, orderNo, ledgerType)` 索引
@@ -311,6 +314,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - `reserveStock`、`releaseReservedStock`、`deductReservedStock` 必须在明确事务边界内执行
 - 单次库存命令必须保证 `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的写入原子性
 - 正式持久化实现必须对 `Inventory` 写入启用乐观锁或等价并发控制
+- `InventoryReservation` 的 `(tenantId, orderNo)` 唯一约束必须作为库存预占幂等的最终兜底
 - 并发写冲突时，不得静默覆盖库存数量，必须返回明确失败或抛出可识别异常
 - 审计日志写入失败不得破坏库存主业务提交结果，优先采用提交后异步/延后记录
 
@@ -321,6 +325,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - 维护库存主数据
 - 查询库存详情
 - 查询可售库存
+- 分页查询必须由数据库侧执行，不得先全量拉取后在应用层分页
 
 ### 7.2 Stock Reservation
 

@@ -118,10 +118,18 @@
 - 请求模型、响应模型、读模型、命令结果模型、分页结果模型必须使用稳定命名
 - 默认命名风格：
   - 请求模型使用 `*Request`
-  - 响应模型使用 `*Response`
+  - 前端响应模型使用 `*Response`
   - 读模型或跨域返回模型使用 `*DTO`
+  - 应用层命令入参使用 `*Command`
+  - 应用层查询入参使用 `*Query`
+  - 应用层结果模型使用 `*Result`
   - 分页结果模型使用 `*PageResultDTO`
   - 命令结果模型使用 `*ResultDTO`
+- 工程实现文档如果涉及分层命名，以 `ARCHITECTURE.md` 的工程规则为准：
+  - `interfaces.dto` 使用 `*Request`
+  - `interfaces.response` 使用 `*Response`
+  - `api.dto` 使用 `*DTO`
+  - `application.command` / `application.query` / `application.result` 分别使用 `*Command` / `*Query` / `*Result`
 - 枚举值默认使用全大写英文风格
 - 标准协议字段和值如果存在行业通用写法，可保留协议原生命名，例如 `OAuth2` 的 `access_token`
 

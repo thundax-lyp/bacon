@@ -194,7 +194,7 @@ bacon-biz/bacon-order
 │       ├── controller
 │       ├── provider
 │       ├── dto
-│       ├── vo
+│       ├── response
 │       ├── assembler
 │       └── consumer
 │
@@ -267,19 +267,44 @@ bacon-biz/bacon-order
 
 ## 对象约定
 
-- HTTP Request DTO / Response DTO 放在 `interfaces.dto`
-- 页面展示或接口返回对象放在 `interfaces.vo`
-- 跨域调用 DTO 放在 `api.dto`，只用于业务域之间调用
-- Command / Query 放在 `application`
+- HTTP 入参对象放在 `interfaces.dto`，统一使用 `*Request`
+- 前端 Controller 返回对象放在 `interfaces.response`，统一使用 `*Response`
+- `interfaces.vo` 仅允许保留历史兼容对象，不再新增
+- 跨域调用 DTO 放在 `api.dto`，统一使用 `*DTO`
+- Command / Query / Result 放在 `application`
 - Entity / Aggregate / ValueObject 放在 `domain`
 - DO / PO / DataObject / Mapper 放在 `infra.persistence`
 - `Assembler` 优先放在调用方所在层，用于本层对象转换。
 - `facade` 放在 `api.facade`，不再放在 `interfaces`
 - `Command` 用于应用层入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
-- `interfaces.dto` / `interfaces.vo` 只服务接入层，不参与跨域调用
+- `Query` 用于应用层读模型入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
+- `Result` 用于应用层用例输出，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
+- `interfaces.dto` / `interfaces.response` 只服务接入层，不参与跨域调用
 - provider 接口默认直接复用 `api.dto`，不再单独定义 provider DTO
-- HTTP DTO、跨域 DTO、领域对象默认不复用，避免协议层和领域层互相污染
+- provider 接口如需对内请求模型，使用 `interfaces.dto` 下的 `*Request`；如直接复用简单参数或 `api.dto`，不得再额外派生一套 provider response
+- HTTP DTO、HTTP Response、跨域 DTO、领域对象默认不复用，避免协议层和领域层互相污染
 - 枚举、异常码、通用常量优先沉淀到 `bacon-common-core`，业务私有的留在各自域内。
+
+### 命名规则
+
+- `interfaces.controller`
+  - 入参统一使用 `*Request`
+  - 出参统一使用 `*Response`
+  - 禁止新增 `*DTO`
+- `interfaces.provider`
+  - 默认直接复用 `api.dto`
+  - 如必须定义接入层入参对象，只允许新增 `*Request`
+  - 禁止新增 provider `*Response`
+- `api.dto`
+  - 统一使用 `*DTO`
+  - 禁止新增 `*Request` / `*Response`
+- `application.command`
+  - 统一使用 `*Command`
+- `application.query`
+  - 统一使用 `*Query`
+- `application.result`
+  - 统一使用 `*Result`
+  - 禁止继续使用 `application.dto`
 
 ## Maven 依赖方向
 

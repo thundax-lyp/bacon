@@ -9,6 +9,7 @@ import com.github.thundax.bacon.auth.domain.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
+import com.github.thundax.bacon.common.core.exception.UnauthorizedException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -47,12 +48,12 @@ public class OAuth2AuthorizationApplicationService {
             throw new IllegalArgumentException("Scope invalid");
         }
 
-        Long tenantId = 1001L;
-        Long userId = 2001L;
-        if (accessToken != null && !accessToken.isBlank()) {
-            tenantId = sessionApplicationService.currentSession(accessToken).getTenantId();
-            userId = sessionApplicationService.currentSession(accessToken).getUserId();
+        if (accessToken == null || accessToken.isBlank()) {
+            throw new UnauthorizedException("Login required before OAuth2 authorization");
         }
+        var currentSession = sessionApplicationService.currentSession(accessToken);
+        Long tenantId = currentSession.getTenantId();
+        Long userId = currentSession.getUserId();
 
         String authorizationRequestId = UUID.randomUUID().toString();
         oAuthAuthorizationRepository.saveAuthorizationRequest(new OAuthAuthorizationRequest(

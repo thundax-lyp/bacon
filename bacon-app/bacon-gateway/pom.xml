@@ -12,6 +12,11 @@
     <artifactId>bacon-gateway</artifactId>
     <dependencies>
         <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-common-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway-server-webmvc</artifactId>
         </dependency>

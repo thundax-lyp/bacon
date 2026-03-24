@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.common.security.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
 import com.github.thundax.bacon.common.security.context.CurrentUserResolver;
 import com.github.thundax.bacon.common.security.context.MonoCurrentUserProvider;
@@ -13,17 +15,25 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-class BaconMybatisSecurityConfigurationTest {
+class BaconSecurityConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(BaconMybatisSecurityConfiguration.class, SpringBootContextConfiguration.class);
+            .withUserConfiguration(BaconSecurityConfiguration.class, SpringBootContextConfiguration.class);
 
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void shouldCreateMethodSecurityExpressionDefaults() {
+        contextRunner.run(context -> {
+            AnnotationTemplateExpressionDefaults defaults = context.getBean(AnnotationTemplateExpressionDefaults.class);
+
+            assertThat(defaults).isNotNull();
+        });
     }
 
     @Test

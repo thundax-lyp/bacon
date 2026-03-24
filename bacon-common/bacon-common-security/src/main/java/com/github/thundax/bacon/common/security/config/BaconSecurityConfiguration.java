@@ -9,9 +9,20 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
 
+/**
+ * 统一创建安全基础配置，包含方法安全启用与运行模式相关的当前用户上下文装配。
+ */
 @AutoConfiguration
-public class BaconMybatisSecurityConfiguration {
+@EnableMethodSecurity
+public class BaconSecurityConfiguration {
+
+    @Bean
+    public AnnotationTemplateExpressionDefaults annotationTemplateExpressionDefaults() {
+        return new AnnotationTemplateExpressionDefaults();
+    }
 
     @Bean
     @Primary

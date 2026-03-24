@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.infra.rpc;
+package com.github.thundax.bacon.inventory.infra.facade.impl;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;

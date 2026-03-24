@@ -10,6 +10,7 @@ import com.github.thundax.bacon.order.application.query.GetOrderQuery;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderDomainService;
+import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,14 +22,17 @@ public class OrderApplicationService {
 
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService = new OrderDomainService();
+    private final OrderNoGenerator orderNoGenerator;
 
-    public OrderApplicationService(OrderRepository orderRepository) {
+    public OrderApplicationService(OrderRepository orderRepository, OrderNoGenerator orderNoGenerator) {
         this.orderRepository = orderRepository;
+        this.orderNoGenerator = orderNoGenerator;
     }
 
     public OrderSummaryDTO create(CreateOrderCommand command) {
         long generatedId = System.currentTimeMillis();
-        Order order = new Order(generatedId, 1001L, command.orderNo(), 2001L, command.customerName());
+        String orderNo = orderNoGenerator.nextOrderNo();
+        Order order = new Order(generatedId, 1001L, orderNo, 2001L, command.customerName());
         return toSummary(orderRepository.save(order));
     }
 

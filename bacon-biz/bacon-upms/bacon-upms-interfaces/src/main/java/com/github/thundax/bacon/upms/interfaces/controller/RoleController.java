@@ -14,6 +14,7 @@ import com.github.thundax.bacon.upms.interfaces.dto.RoleResourceAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
+import com.github.thundax.bacon.upms.interfaces.response.RoleDataScopeResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RolePageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -96,9 +97,25 @@ public class RoleController {
     @Operation(summary = "分配角色菜单")
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
+    @GetMapping("/{roleId}/menus")
+    public Set<Long> getAssignedMenus(@PathVariable Long roleId, @ModelAttribute TenantScopedRequest request) {
+        return roleApplicationService.getAssignedMenus(request.getTenantId(), roleId);
+    }
+
+    @Operation(summary = "分配角色菜单")
+    @HasPermission("sys:role:update")
+    @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/menus")
     public Set<Long> assignMenus(@PathVariable Long roleId, @RequestBody RoleMenuAssignRequest request) {
         return roleApplicationService.assignMenus(request.tenantId(), roleId, request.menuIds());
+    }
+
+    @Operation(summary = "查询角色资源授权")
+    @HasPermission("sys:role:view")
+    @SysLog(module = "UPMS", action = "查询角色资源授权", eventType = LogEventType.QUERY)
+    @GetMapping("/{roleId}/resources")
+    public Set<String> getAssignedResources(@PathVariable Long roleId, @ModelAttribute TenantScopedRequest request) {
+        return roleApplicationService.getAssignedResources(request.getTenantId(), roleId);
     }
 
     @Operation(summary = "分配角色资源")
@@ -107,6 +124,18 @@ public class RoleController {
     @PutMapping("/{roleId}/resources")
     public Set<String> assignResources(@PathVariable Long roleId, @RequestBody RoleResourceAssignRequest request) {
         return roleApplicationService.assignResources(request.tenantId(), roleId, request.resourceCodes());
+    }
+
+    @Operation(summary = "查询角色数据权限配置")
+    @HasPermission("sys:role:view")
+    @SysLog(module = "UPMS", action = "查询角色数据权限配置", eventType = LogEventType.QUERY)
+    @GetMapping("/{roleId}/data-scope")
+    public RoleDataScopeResponse getAssignedDataScope(@PathVariable Long roleId,
+                                                      @ModelAttribute TenantScopedRequest request) {
+        return new RoleDataScopeResponse(
+                roleApplicationService.getAssignedDataScopeType(request.getTenantId(), roleId),
+                roleApplicationService.getAssignedDataScopeDepartments(request.getTenantId(), roleId)
+        );
     }
 
     @Operation(summary = "配置角色数据权限")

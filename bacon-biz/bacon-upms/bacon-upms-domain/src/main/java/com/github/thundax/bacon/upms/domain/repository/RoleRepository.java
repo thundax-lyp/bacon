@@ -21,9 +21,17 @@ public interface RoleRepository {
 
     void deleteRole(Long tenantId, Long roleId);
 
+    Set<Long> getAssignedMenus(Long tenantId, Long roleId);
+
     Set<Long> assignMenus(Long tenantId, Long roleId, Set<Long> menuIds);
 
+    Set<String> getAssignedResources(Long tenantId, Long roleId);
+
     Set<String> assignResources(Long tenantId, Long roleId, Set<String> resourceCodes);
+
+    String getAssignedDataScopeType(Long tenantId, Long roleId);
+
+    Set<Long> getAssignedDataScopeDepartments(Long tenantId, Long roleId);
 
     Set<Long> assignDataScope(Long tenantId, Long roleId, String dataScopeType, Set<Long> departmentIds);
 }

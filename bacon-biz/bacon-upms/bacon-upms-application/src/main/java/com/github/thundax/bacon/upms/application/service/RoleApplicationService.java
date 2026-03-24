@@ -71,12 +71,28 @@ public class RoleApplicationService {
         roleRepository.deleteRole(tenantId, roleId);
     }
 
+    public Set<Long> getAssignedMenus(Long tenantId, Long roleId) {
+        return roleRepository.getAssignedMenus(tenantId, roleId);
+    }
+
     public Set<Long> assignMenus(Long tenantId, Long roleId, Set<Long> menuIds) {
         return roleRepository.assignMenus(tenantId, roleId, menuIds);
     }
 
+    public Set<String> getAssignedResources(Long tenantId, Long roleId) {
+        return roleRepository.getAssignedResources(tenantId, roleId);
+    }
+
     public Set<String> assignResources(Long tenantId, Long roleId, Set<String> resourceCodes) {
         return roleRepository.assignResources(tenantId, roleId, resourceCodes);
+    }
+
+    public String getAssignedDataScopeType(Long tenantId, Long roleId) {
+        return roleRepository.getAssignedDataScopeType(tenantId, roleId);
+    }
+
+    public Set<Long> getAssignedDataScopeDepartments(Long tenantId, Long roleId) {
+        return roleRepository.getAssignedDataScopeDepartments(tenantId, roleId);
     }
 
     public Set<Long> assignDataScope(Long tenantId, Long roleId, String dataScopeType, Set<Long> departmentIds) {

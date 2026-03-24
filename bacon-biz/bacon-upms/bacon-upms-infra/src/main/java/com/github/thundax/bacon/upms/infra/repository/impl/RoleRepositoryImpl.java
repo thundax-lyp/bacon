@@ -76,6 +76,12 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
+    public Set<Long> getAssignedMenus(Long tenantId, Long roleId) {
+        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
+        return upmsStore.getRoleMenus().getOrDefault(InMemoryUpmsStore.roleKey(tenantId, roleId), Set.of());
+    }
+
+    @Override
     public Set<Long> assignMenus(Long tenantId, Long roleId, Set<Long> menuIds) {
         findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         Set<Long> safeMenuIds = menuIds == null ? Set.of() : Set.copyOf(menuIds);
@@ -84,11 +90,30 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
+    public Set<String> getAssignedResources(Long tenantId, Long roleId) {
+        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
+        return upmsStore.getRoleResources().getOrDefault(InMemoryUpmsStore.roleKey(tenantId, roleId), Set.of());
+    }
+
+    @Override
     public Set<String> assignResources(Long tenantId, Long roleId, Set<String> resourceCodes) {
         findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         Set<String> safeResourceCodes = resourceCodes == null ? Set.of() : Set.copyOf(resourceCodes);
         upmsStore.getRoleResources().put(InMemoryUpmsStore.roleKey(tenantId, roleId), safeResourceCodes);
         return safeResourceCodes;
+    }
+
+    @Override
+    public String getAssignedDataScopeType(Long tenantId, Long roleId) {
+        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
+        return upmsStore.getRoleDataScopeTypes().getOrDefault(InMemoryUpmsStore.roleKey(tenantId, roleId), "SELF");
+    }
+
+    @Override
+    public Set<Long> getAssignedDataScopeDepartments(Long tenantId, Long roleId) {
+        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
+        return upmsStore.getRoleDataScopeDepartments()
+                .getOrDefault(InMemoryUpmsStore.roleKey(tenantId, roleId), Set.of());
     }
 
     @Override

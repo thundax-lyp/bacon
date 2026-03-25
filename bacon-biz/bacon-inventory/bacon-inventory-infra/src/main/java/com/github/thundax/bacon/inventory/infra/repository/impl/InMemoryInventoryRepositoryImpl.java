@@ -11,6 +11,7 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryStockReposi
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -24,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Repository
+@ConditionalOnProperty(name = "bacon.inventory.in-memory.enabled", havingValue = "true")
 @ConditionalOnMissingBean(SqlSessionFactory.class)
 public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository, InventoryReservationRepository,
         InventoryLogRepository {
@@ -39,8 +41,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
     private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
 
     public InMemoryInventoryRepositoryImpl() {
-        inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100, "ENABLED", 0L, Instant.now()));
-        inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, 1L, 50, 0, 50, "ENABLED", 0L, Instant.now()));
         log.info("Using in-memory inventory repository");
     }
 

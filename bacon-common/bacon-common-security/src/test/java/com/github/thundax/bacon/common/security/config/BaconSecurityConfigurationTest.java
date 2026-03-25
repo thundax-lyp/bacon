@@ -2,10 +2,10 @@ package com.github.thundax.bacon.common.security.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.thundax.bacon.common.core.context.SpringContextHolder;
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
 import com.github.thundax.bacon.common.security.context.CurrentUserResolver;
 import com.github.thundax.bacon.common.security.context.MonoCurrentUserProvider;
-import com.github.thundax.bacon.common.security.context.SpringBootContext;
 import com.github.thundax.bacon.common.security.context.SpringContextCurrentUserProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -25,16 +25,17 @@ import org.springframework.security.web.SecurityFilterChain;
 class BaconSecurityConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(BaconSecurityConfiguration.class, SpringBootContextConfiguration.class);
+            .withUserConfiguration(BaconSecurityConfiguration.class, SpringContextHolderConfiguration.class);
 
     private final WebApplicationContextRunner webContextRunner = new WebApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(SecurityAutoConfiguration.class,
                     UserDetailsServiceAutoConfiguration.class))
-            .withUserConfiguration(BaconSecurityConfiguration.class, SpringBootContextConfiguration.class);
+            .withUserConfiguration(BaconSecurityConfiguration.class, SpringContextHolderConfiguration.class);
 
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
+        SpringContextHolder.clear();
     }
 
     @Test
@@ -84,13 +85,13 @@ class BaconSecurityConfigurationTest {
     }
 
     @Test
-    void shouldResolveCurrentUserFromSpringBootContextInMicroProvider() {
+    void shouldResolveCurrentUserFromSpringContextHolderInMicroProvider() {
         StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.registerSingleton("currentUserResolver", StubCurrentUserResolver.class);
         applicationContext.refresh();
 
-        SpringBootContext springBootContext = new SpringBootContext();
-        springBootContext.setApplicationContext(applicationContext);
+        SpringContextHolder springContextHolder = new SpringContextHolder();
+        springContextHolder.setApplicationContext(applicationContext);
 
         CurrentUserProvider currentUserProvider = new SpringContextCurrentUserProvider();
         assertThat(currentUserProvider.currentUserId()).isEqualTo("micro-user");
@@ -106,11 +107,11 @@ class BaconSecurityConfigurationTest {
     }
 
     @Configuration(proxyBeanMethods = false)
-    static class SpringBootContextConfiguration {
+    static class SpringContextHolderConfiguration {
 
         @Bean
-        SpringBootContext springBootContext() {
-            return new SpringBootContext();
+        SpringContextHolder springContextHolder() {
+            return new SpringContextHolder();
         }
     }
 

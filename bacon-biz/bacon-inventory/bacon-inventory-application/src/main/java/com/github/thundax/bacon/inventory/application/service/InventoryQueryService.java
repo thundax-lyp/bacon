@@ -11,6 +11,8 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -37,7 +39,8 @@ public class InventoryQueryService {
 
     public InventoryStockDTO getAvailableStock(Long tenantId, Long skuId) {
         return toStockDto(inventoryStockRepository.findInventory(tenantId, skuId)
-                .orElseThrow(() -> new IllegalArgumentException("Inventory not found: " + skuId)));
+                .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                        String.valueOf(skuId))));
     }
 
     public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
@@ -58,7 +61,7 @@ public class InventoryQueryService {
 
     public InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo) {
         InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo)
-                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + orderNo));
+                .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.RESERVATION_NOT_FOUND, orderNo));
         return toReservationDto(reservation);
     }
 

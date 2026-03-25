@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.domain.entity;
 
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -76,7 +78,7 @@ public class InventoryReservation {
     public void release(String reason, Instant releasedTime) {
         ensureStatus(STATUS_RESERVED);
         if (!RELEASE_REASONS.contains(reason)) {
-            throw new IllegalArgumentException("INVALID_RELEASE_REASON:" + reason);
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_RELEASE_REASON, reason);
         }
         this.reservationStatus = STATUS_RELEASED;
         this.releaseReason = reason;
@@ -107,7 +109,7 @@ public class InventoryReservation {
 
     private void ensureStatus(String expectedStatus) {
         if (!expectedStatus.equals(reservationStatus)) {
-            throw new IllegalStateException("INVALID_RESERVATION_STATUS:" + reservationStatus);
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_RESERVATION_STATUS, reservationStatus);
         }
     }
 }

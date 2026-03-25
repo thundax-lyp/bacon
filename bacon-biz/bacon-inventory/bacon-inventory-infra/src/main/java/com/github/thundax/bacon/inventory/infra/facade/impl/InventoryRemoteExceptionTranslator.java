@@ -1,12 +1,8 @@
 package com.github.thundax.bacon.inventory.infra.facade.impl;
 
-import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.exception.BaconException;
-import com.github.thundax.bacon.common.core.exception.ConflictException;
-import com.github.thundax.bacon.common.core.exception.ForbiddenException;
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.core.exception.SystemException;
-import com.github.thundax.bacon.common.core.exception.UnauthorizedException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.web.client.RestClientResponseException;
 
@@ -20,26 +16,23 @@ final class InventoryRemoteExceptionTranslator {
             return baconException;
         }
         if (throwable instanceof CallNotPermittedException) {
-            return new SystemException("INVENTORY_REMOTE_CIRCUIT_OPEN",
-                    "Inventory remote call rejected by circuit breaker: " + operation);
+            return new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_CIRCUIT_OPEN, operation);
         }
         if (throwable.getClass().getSimpleName().contains("Bulkhead")) {
-            return new SystemException("INVENTORY_REMOTE_BULKHEAD_FULL",
-                    "Inventory remote call rejected by bulkhead: " + operation);
+            return new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_BULKHEAD_FULL, operation);
         }
         if (throwable instanceof RestClientResponseException responseException) {
             int statusCode = responseException.getStatusCode().value();
-            String message = "Inventory remote call failed: " + operation + ", status=" + statusCode;
             return switch (statusCode) {
-                case 400 -> new BadRequestException("INVENTORY_REMOTE_BAD_REQUEST", message);
-                case 401 -> new UnauthorizedException("INVENTORY_REMOTE_UNAUTHORIZED", message);
-                case 403 -> new ForbiddenException("INVENTORY_REMOTE_FORBIDDEN", message);
-                case 404 -> new NotFoundException("INVENTORY_REMOTE_NOT_FOUND", message);
-                case 409 -> new ConflictException("INVENTORY_REMOTE_CONFLICT", message);
-                default -> new SystemException("INVENTORY_REMOTE_ERROR", message);
+                case 400 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_BAD_REQUEST, operation);
+                case 401 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_UNAUTHORIZED, operation);
+                case 403 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, operation);
+                case 404 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND, operation);
+                case 409 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_CONFLICT, operation);
+                default -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_ERROR,
+                        operation + ", status=" + statusCode);
             };
         }
-        return new SystemException("INVENTORY_REMOTE_UNAVAILABLE",
-                "Inventory remote service unavailable: " + operation);
+        return new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_UNAVAILABLE, operation);
     }
 }

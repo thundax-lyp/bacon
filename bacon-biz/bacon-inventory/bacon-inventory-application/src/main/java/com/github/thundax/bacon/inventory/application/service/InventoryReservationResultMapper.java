@@ -2,6 +2,8 @@ package com.github.thundax.bacon.inventory.application.service;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 
 final class InventoryReservationResultMapper {
 
@@ -28,7 +30,7 @@ final class InventoryReservationResultMapper {
             case InventoryReservation.STATUS_RELEASED -> "RELEASED";
             case InventoryReservation.STATUS_DEDUCTED -> "DEDUCTED";
             case InventoryReservation.STATUS_FAILED -> "FAILED";
-            default -> throw new IllegalArgumentException("UNKNOWN_RESERVATION_STATUS:" + reservationStatus);
+            default -> throw new InventoryDomainException(InventoryErrorCode.UNKNOWN_RESERVATION_STATUS, reservationStatus);
         };
     }
 }

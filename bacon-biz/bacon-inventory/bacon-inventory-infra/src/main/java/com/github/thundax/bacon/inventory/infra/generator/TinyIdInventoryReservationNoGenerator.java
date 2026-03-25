@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.generator;
 
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
 import com.xiaoju.uemc.tinyid.client.utils.TinyId;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -32,7 +34,7 @@ public class TinyIdInventoryReservationNoGenerator implements InventoryReservati
     public String nextReservationNo() {
         Long id = TinyId.nextId(BIZ_TYPE);
         if (id == null) {
-            throw new IllegalStateException("TINYID_RETURN_NULL");
+            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_UNAVAILABLE, "tinyid-return-null");
         }
         return PREFIX + id;
     }

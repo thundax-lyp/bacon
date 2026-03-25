@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.generator;
 
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -29,10 +31,11 @@ public class LocalSnowflakeIdGenerator {
             @Value("${bacon.inventory.id-generator.worker-id:1}") long workerId,
             @Value("${bacon.inventory.id-generator.datacenter-id:1}") long datacenterId) {
         if (workerId < 0 || workerId > MAX_WORKER_ID) {
-            throw new IllegalArgumentException("Invalid worker id: " + workerId);
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_ID_GENERATOR_CONFIG, "worker-id=" + workerId);
         }
         if (datacenterId < 0 || datacenterId > MAX_DATACENTER_ID) {
-            throw new IllegalArgumentException("Invalid datacenter id: " + datacenterId);
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_ID_GENERATOR_CONFIG,
+                    "datacenter-id=" + datacenterId);
         }
         this.workerId = workerId;
         this.datacenterId = datacenterId;

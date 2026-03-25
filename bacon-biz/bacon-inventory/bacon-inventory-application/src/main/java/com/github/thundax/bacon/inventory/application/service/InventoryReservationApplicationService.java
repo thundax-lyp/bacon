@@ -5,6 +5,8 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
@@ -71,7 +73,8 @@ public class InventoryReservationApplicationService {
         }
         for (InventoryReservationItem item : reservationItems) {
             Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
-                    .orElseThrow(() -> new IllegalStateException("Inventory not found: " + item.getSkuId()));
+                    .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                            String.valueOf(item.getSkuId())));
             inventory.reserve(item.getQuantity(), operatedAt);
             inventoryStockRepository.saveInventory(inventory);
         }
@@ -96,18 +99,19 @@ public class InventoryReservationApplicationService {
 
     private String validateReservation(Long tenantId, List<InventoryReservationItemDTO> items) {
         if (items.isEmpty()) {
-            return "EMPTY_ITEMS";
+            return InventoryErrorCode.INVALID_QUANTITY.code();
         }
         for (InventoryReservationItemDTO item : items) {
             if (item.getSkuId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
-                return "INVALID_ITEM";
+                return InventoryErrorCode.INVALID_QUANTITY.code();
             }
             try {
                 Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
-                        .orElseThrow(() -> new IllegalArgumentException("INVENTORY_NOT_FOUND:" + item.getSkuId()));
+                        .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                                String.valueOf(item.getSkuId())));
                 inventory.ensureReservable(item.getQuantity());
-            } catch (RuntimeException ex) {
-                return ex.getMessage();
+            } catch (InventoryDomainException ex) {
+                return ex.getCode();
             }
         }
         return null;

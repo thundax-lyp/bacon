@@ -6,6 +6,8 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -105,7 +107,8 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
             inventoryMapper.insert(dataObject);
         } else {
             if (inventoryMapper.updateById(dataObject) == 0) {
-                throw new IllegalStateException("INVENTORY_CONCURRENT_MODIFIED:" + inventory.getSkuId());
+                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED,
+                        String.valueOf(inventory.getSkuId()));
             }
         }
         return toDomain(dataObject);

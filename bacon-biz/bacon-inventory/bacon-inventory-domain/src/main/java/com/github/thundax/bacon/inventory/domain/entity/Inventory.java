@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.domain.entity;
 
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,10 +27,10 @@ public class Inventory {
 
     public static Inventory create(Long id, Long tenantId, Long skuId, Integer onHandQuantity, String status, Instant createdAt) {
         if (tenantId == null || skuId == null) {
-            throw new IllegalArgumentException("INVALID_INVENTORY_KEY");
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
         }
         if (onHandQuantity == null || onHandQuantity < 0) {
-            throw new IllegalArgumentException("INVALID_ON_HAND_QUANTITY:" + skuId);
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_ON_HAND_QUANTITY, String.valueOf(skuId));
         }
         String normalizedStatus = normalizeStatus(status);
         return new Inventory(id, tenantId, skuId, DEFAULT_WAREHOUSE_ID, onHandQuantity, 0, onHandQuantity,
@@ -45,14 +47,14 @@ public class Inventory {
         validateQuantity(quantity);
         ensureEnabled();
         if (availableQuantity < quantity) {
-            throw new IllegalArgumentException("INSUFFICIENT_STOCK:" + skuId);
+            throw new InventoryDomainException(InventoryErrorCode.INSUFFICIENT_STOCK, String.valueOf(skuId));
         }
     }
 
     public void release(int quantity, Instant operatedAt) {
         validateQuantity(quantity);
         if (reservedQuantity < quantity) {
-            throw new IllegalStateException("RESERVED_QUANTITY_NOT_ENOUGH:" + skuId);
+            throw new InventoryDomainException(InventoryErrorCode.RESERVED_QUANTITY_NOT_ENOUGH, String.valueOf(skuId));
         }
         reservedQuantity -= quantity;
         refreshAvailableQuantity(operatedAt);
@@ -61,10 +63,10 @@ public class Inventory {
     public void deduct(int quantity, Instant operatedAt) {
         validateQuantity(quantity);
         if (reservedQuantity < quantity) {
-            throw new IllegalStateException("RESERVED_QUANTITY_NOT_ENOUGH:" + skuId);
+            throw new InventoryDomainException(InventoryErrorCode.RESERVED_QUANTITY_NOT_ENOUGH, String.valueOf(skuId));
         }
         if (onHandQuantity < quantity) {
-            throw new IllegalStateException("ON_HAND_QUANTITY_NOT_ENOUGH:" + skuId);
+            throw new InventoryDomainException(InventoryErrorCode.ON_HAND_QUANTITY_NOT_ENOUGH, String.valueOf(skuId));
         }
         reservedQuantity -= quantity;
         onHandQuantity -= quantity;
@@ -82,13 +84,13 @@ public class Inventory {
 
     private void ensureEnabled() {
         if (STATUS_DISABLED.equals(status)) {
-            throw new IllegalArgumentException("INVENTORY_DISABLED:" + skuId);
+            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_DISABLED, String.valueOf(skuId));
         }
     }
 
     private void validateQuantity(int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("INVALID_QUANTITY:" + skuId);
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_QUANTITY, String.valueOf(skuId));
         }
     }
 
@@ -101,6 +103,6 @@ public class Inventory {
         if (STATUS_ENABLED.equals(status) || STATUS_DISABLED.equals(status)) {
             return status;
         }
-        throw new IllegalArgumentException("INVALID_INVENTORY_STATUS:" + status);
+        throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_STATUS, String.valueOf(status));
     }
 }

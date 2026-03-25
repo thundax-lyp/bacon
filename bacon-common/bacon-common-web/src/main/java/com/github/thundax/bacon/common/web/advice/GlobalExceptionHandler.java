@@ -2,6 +2,7 @@ package com.github.thundax.bacon.common.web.advice;
 
 import com.github.thundax.bacon.common.core.exception.BaconException;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.BizException;
 import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.ForbiddenException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
@@ -10,6 +11,7 @@ import com.github.thundax.bacon.common.web.ApiResponse;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -27,6 +29,12 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice(annotations = WrappedApiController.class)
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BizException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBizException(BizException exception) {
+        return ResponseEntity.status(exception.getHttpStatus())
+                .body(ApiResponse.fail(exception.getCode(), exception.getMessage()));
+    }
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

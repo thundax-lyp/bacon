@@ -3,6 +3,8 @@ package com.github.thundax.bacon.inventory.application.service;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
@@ -28,7 +30,7 @@ public class InventoryDeductionApplicationService {
     public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
         InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (reservation == null) {
-            return InventoryReservationResultMapper.failed(tenantId, orderNo, "RESERVATION_NOT_FOUND");
+            return InventoryReservationResultMapper.failed(tenantId, orderNo, InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
             return InventoryReservationResultMapper.fromReservation(reservation);
@@ -37,7 +39,8 @@ public class InventoryDeductionApplicationService {
         Instant deductedAt = Instant.now();
         reservation.getItems().forEach(item -> {
             Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
-                    .orElseThrow(() -> new IllegalStateException("Inventory not found: " + item.getSkuId()));
+                    .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                            String.valueOf(item.getSkuId())));
             inventory.deduct(item.getQuantity(), deductedAt);
             inventoryStockRepository.saveInventory(inventory);
         });

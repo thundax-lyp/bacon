@@ -24,26 +24,22 @@ public class BaconIdGeneratorAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public IdGenerator idGenerator(BaconIdGeneratorProperties properties,
-                                   TinyIdGenerator tinyIdGenerator,
-                                   LeafIdGenerator leafIdGenerator) {
+                                   ObjectProvider<RestClient.Builder> restClientBuilderProvider,
+                                   ObjectMapper objectMapper) {
         IdProviderType providerType = IdProviderType.from(properties.getProvider());
         return switch (providerType) {
-            case TINYID -> tinyIdGenerator;
-            case LEAF -> leafIdGenerator;
+            case TINYID -> createTinyIdGenerator();
+            case LEAF -> createLeafIdGenerator(properties, restClientBuilderProvider, objectMapper);
         };
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public TinyIdGenerator tinyIdGenerator() {
+    private TinyIdGenerator createTinyIdGenerator() {
         return new TinyIdGenerator();
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public LeafIdGenerator leafIdGenerator(BaconIdGeneratorProperties properties,
-                                           ObjectProvider<RestClient.Builder> restClientBuilderProvider,
-                                           ObjectMapper objectMapper) {
+    private LeafIdGenerator createLeafIdGenerator(BaconIdGeneratorProperties properties,
+                                                  ObjectProvider<RestClient.Builder> restClientBuilderProvider,
+                                                  ObjectMapper objectMapper) {
         String baseUrl = properties.getLeaf().getBaseUrl();
         if (baseUrl == null || baseUrl.isBlank()) {
             throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,

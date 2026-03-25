@@ -40,6 +40,9 @@ bacon:
     type: ${BACON_MQ_TYPE:ROCKETMQ}
   runtime:
     mode: mono
+  id:
+    generator:
+      provider: tinyid
 
 management:
   endpoints:

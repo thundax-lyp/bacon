@@ -29,13 +29,13 @@
         </dependency>
         <dependency>
             <groupId>com.github.thundax</groupId>
-            <artifactId>bacon-common-mybatis</artifactId>
+            <artifactId>bacon-common-id</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.xiaoju.uemc.tinyid</groupId>
-            <artifactId>tinyid-client</artifactId>
-            <version>${tinyid.version}</version>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-common-mybatis</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

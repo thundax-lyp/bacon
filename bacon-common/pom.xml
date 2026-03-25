@@ -17,6 +17,7 @@
     <modules>
         <module>bacon-common-bom</module>
         <module>bacon-common-core</module>
+        <module>bacon-common-id</module>
         <module>bacon-common-log</module>
         <module>bacon-common-web</module>
         <module>bacon-common-mybatis</module>

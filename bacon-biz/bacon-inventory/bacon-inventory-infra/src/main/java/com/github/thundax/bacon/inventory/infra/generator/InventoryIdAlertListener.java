@@ -6,11 +6,11 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class InventoryTinyIdAlertListener {
+public class InventoryIdAlertListener {
 
     @EventListener
-    public void onFallback(InventoryTinyIdFallbackEvent event) {
-        log.error("ALERT inventory tinyid degraded, operation={}, reason={}, occurredAt={}",
+    public void onFallback(InventoryIdFallbackEvent event) {
+        log.error("ALERT inventory id provider degraded, operation={}, reason={}, occurredAt={}",
                 event.operation(), event.reason(), event.occurredAt());
     }
 }

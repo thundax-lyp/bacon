@@ -11,8 +11,8 @@ import com.github.thundax.bacon.common.security.context.SpringContextCurrentUser
 import com.github.thundax.bacon.common.test.BaconSpringBootTest;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
-import com.github.thundax.bacon.inventory.infra.rpc.InventoryCommandFacadeRemoteImpl;
-import com.github.thundax.bacon.inventory.infra.rpc.InventoryReadFacadeRemoteImpl;
+import com.github.thundax.bacon.inventory.infra.facade.impl.InventoryCommandFacadeRemoteImpl;
+import com.github.thundax.bacon.inventory.infra.facade.impl.InventoryReadFacadeRemoteImpl;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.order.api.facade.OrderReadFacade;
 import com.github.thundax.bacon.order.infra.rpc.OrderCommandFacadeRemoteImpl;

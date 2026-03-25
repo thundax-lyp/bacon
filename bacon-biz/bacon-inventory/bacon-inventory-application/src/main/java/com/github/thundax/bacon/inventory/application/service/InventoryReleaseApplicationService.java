@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class InventoryReleaseApplicationService {
 
+    private static final int MAX_RETRY_ATTEMPTS = 3;
+    private static final long INITIAL_BACKOFF_MILLIS = 20L;
+
     private final InventoryStockRepository inventoryStockRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryOperationLogService inventoryOperationLogService;
@@ -38,15 +41,46 @@ public class InventoryReleaseApplicationService {
 
         Instant releasedAt = Instant.now();
         reservation.getItems().forEach(item -> {
-            Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
-                    .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                            String.valueOf(item.getSkuId())));
-            inventory.release(item.getQuantity(), releasedAt);
-            inventoryStockRepository.saveInventory(inventory);
+            releaseStockWithRetry(tenantId, item.getSkuId(), item.getQuantity(), releasedAt);
         });
         reservation.release(reason, releasedAt);
         inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReleaseSuccess(reservation, releasedAt);
         return InventoryReservationResultMapper.fromReservation(reservation);
+    }
+
+    private void releaseStockWithRetry(Long tenantId, Long skuId, int quantity, Instant operatedAt) {
+        int attempt = 0;
+        long backoffMillis = INITIAL_BACKOFF_MILLIS;
+        while (attempt < MAX_RETRY_ATTEMPTS) {
+            attempt++;
+            Inventory inventory = inventoryStockRepository.findInventory(tenantId, skuId)
+                    .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                            String.valueOf(skuId)));
+            inventory.release(quantity, operatedAt);
+            try {
+                inventoryStockRepository.saveInventory(inventory);
+                return;
+            } catch (InventoryDomainException ex) {
+                if (!isConcurrentModified(ex) || attempt >= MAX_RETRY_ATTEMPTS) {
+                    throw ex;
+                }
+                sleepBackoff(backoffMillis);
+                backoffMillis = backoffMillis * 2;
+            }
+        }
+    }
+
+    private boolean isConcurrentModified(InventoryDomainException exception) {
+        return InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED.code().equals(exception.getCode());
+    }
+
+    private void sleepBackoff(long backoffMillis) {
+        try {
+            Thread.sleep(backoffMillis);
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED, "retry-interrupted");
+        }
     }
 }

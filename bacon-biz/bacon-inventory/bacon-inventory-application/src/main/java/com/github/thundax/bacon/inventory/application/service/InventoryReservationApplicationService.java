@@ -21,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class InventoryReservationApplicationService {
 
+    private static final int MAX_RETRY_ATTEMPTS = 3;
+    private static final long INITIAL_BACKOFF_MILLIS = 20L;
+
     private final InventoryStockRepository inventoryStockRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryOperationLogService inventoryOperationLogService;
@@ -72,11 +75,7 @@ public class InventoryReservationApplicationService {
             return InventoryReservationResultMapper.fromReservation(reservation);
         }
         for (InventoryReservationItem item : reservationItems) {
-            Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
-                    .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                            String.valueOf(item.getSkuId())));
-            inventory.reserve(item.getQuantity(), operatedAt);
-            inventoryStockRepository.saveInventory(inventory);
+            reserveStockWithRetry(tenantId, item, operatedAt);
         }
         reservation.reserve();
         reservation = inventoryReservationRepository.saveReservation(reservation);
@@ -128,5 +127,40 @@ public class InventoryReservationApplicationService {
 
     private InventoryReservation tryFindExistingReservation(Long tenantId, String orderNo) {
         return inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
+    }
+
+    private void reserveStockWithRetry(Long tenantId, InventoryReservationItem item, Instant operatedAt) {
+        int attempt = 0;
+        long backoffMillis = INITIAL_BACKOFF_MILLIS;
+        while (attempt < MAX_RETRY_ATTEMPTS) {
+            attempt++;
+            Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
+                    .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                            String.valueOf(item.getSkuId())));
+            inventory.reserve(item.getQuantity(), operatedAt);
+            try {
+                inventoryStockRepository.saveInventory(inventory);
+                return;
+            } catch (InventoryDomainException ex) {
+                if (!isConcurrentModified(ex) || attempt >= MAX_RETRY_ATTEMPTS) {
+                    throw ex;
+                }
+                sleepBackoff(backoffMillis);
+                backoffMillis = backoffMillis * 2;
+            }
+        }
+    }
+
+    private boolean isConcurrentModified(InventoryDomainException exception) {
+        return InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED.code().equals(exception.getCode());
+    }
+
+    private void sleepBackoff(long backoffMillis) {
+        try {
+            Thread.sleep(backoffMillis);
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED, "retry-interrupted");
+        }
     }
 }

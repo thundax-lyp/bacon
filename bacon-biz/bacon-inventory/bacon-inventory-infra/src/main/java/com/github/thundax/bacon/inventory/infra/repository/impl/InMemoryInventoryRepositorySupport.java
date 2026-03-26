@@ -9,12 +9,9 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.time.Instant;
@@ -26,10 +23,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-@Repository
+@Component
 @ConditionalOnProperty(name = "bacon.inventory.repository.mode", havingValue = "memory")
-public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository, InventoryReservationRepository,
-        InventoryLogRepository {
+public class InMemoryInventoryRepositorySupport {
 
     private final AtomicLong inventoryIdGenerator = new AtomicLong(1000L);
     private final AtomicLong reservationIdGenerator = new AtomicLong(1000L);
@@ -49,16 +45,14 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
     private final Map<Long, InventoryAuditReplayTask> auditReplayTasks = new ConcurrentHashMap<>();
     private final Map<Long, List<InventoryAuditReplayTaskItem>> auditReplayTaskItems = new ConcurrentHashMap<>();
 
-    public InMemoryInventoryRepositoryImpl() {
+    public InMemoryInventoryRepositorySupport() {
         log.info("Using in-memory inventory repository");
     }
 
-    @Override
     public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
         return Optional.ofNullable(inventories.get(key(tenantId, skuId)));
     }
 
-    @Override
     public List<Inventory> findInventories(Long tenantId) {
         return inventories.values().stream()
                 .filter(inventory -> inventory.getTenantId().equals(tenantId))
@@ -66,7 +60,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .toList();
     }
 
-    @Override
     public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
         return skuIds.stream()
                 .map(skuId -> inventories.get(key(tenantId, skuId)))
@@ -74,7 +67,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .toList();
     }
 
-    @Override
     public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
         return findInventories(tenantId).stream()
                 .filter(inventory -> skuId == null || inventory.getSkuId().equals(skuId))
@@ -84,7 +76,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .toList();
     }
 
-    @Override
     public long countInventories(Long tenantId, Long skuId, String status) {
         return findInventories(tenantId).stream()
                 .filter(inventory -> skuId == null || inventory.getSkuId().equals(skuId))
@@ -92,7 +83,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .count();
     }
 
-    @Override
     public Inventory saveInventory(Inventory inventory) {
         if (inventory.getId() == null) {
             inventory = new Inventory(inventoryIdGenerator.getAndIncrement(), inventory.getTenantId(), inventory.getSkuId(),
@@ -105,7 +95,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         return inventory;
     }
 
-    @Override
     public InventoryReservation saveReservation(InventoryReservation reservation) {
         if (reservation.getId() == null) {
             reservation = InventoryReservation.rehydrate(reservationIdGenerator.getAndIncrement(), reservation.getTenantId(),
@@ -122,12 +111,10 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         return reservation;
     }
 
-    @Override
     public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
         return Optional.ofNullable(reservations.get(reservationKey(tenantId, orderNo)));
     }
 
-    @Override
     public void saveLedger(InventoryLedger ledger) {
         if (ledger.getId() == null) {
             ledger = new InventoryLedger(ledgerIdGenerator.getAndIncrement(), ledger.getTenantId(), ledger.getOrderNo(),
@@ -138,12 +125,10 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .add(ledger);
     }
 
-    @Override
     public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
         return List.copyOf(ledgers.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
     }
 
-    @Override
     public void saveAuditLog(InventoryAuditLog auditLog) {
         if (auditLog.getId() == null) {
             auditLog = new InventoryAuditLog(auditLogIdGenerator.getAndIncrement(), auditLog.getTenantId(),
@@ -154,12 +139,10 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .add(auditLog);
     }
 
-    @Override
     public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
         return List.copyOf(auditLogs.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
     }
 
-    @Override
     public void saveAuditOutbox(InventoryAuditOutbox outbox) {
         if (outbox.getId() == null) {
             outbox = new InventoryAuditOutbox(auditOutboxIdGenerator.getAndIncrement(), outbox.getTenantId(),
@@ -172,7 +155,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .add(outbox);
     }
 
-    @Override
     public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
         return auditOutbox.values().stream()
                 .flatMap(List::stream)
@@ -184,7 +166,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .toList();
     }
 
-    @Override
     public List<InventoryAuditOutbox> claimRetryableAuditOutbox(Instant now, int limit,
                                                                  String processingOwner, Instant leaseUntil) {
         List<InventoryAuditOutbox> claimed = new ArrayList<>(Math.max(limit, 0));
@@ -201,7 +182,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         return List.copyOf(claimed);
     }
 
-    @Override
     public int releaseExpiredAuditOutboxLease(Instant now) {
         int released = 0;
         for (List<InventoryAuditOutbox> list : auditOutbox.values()) {
@@ -223,7 +203,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         return released;
     }
 
-    @Override
     public void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
                                           Instant updatedAt) {
         findAuditOutboxById(outboxId).ifPresent(item -> {
@@ -235,7 +214,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         });
     }
 
-    @Override
     public boolean updateAuditOutboxForRetryClaimed(Long outboxId, String processingOwner, int retryCount,
                                                     Instant nextRetryAt, String errorMessage, Instant updatedAt) {
         return findAuditOutboxById(outboxId)
@@ -255,7 +233,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .orElse(false);
     }
 
-    @Override
     public void markAuditOutboxDead(Long outboxId, int retryCount, String deadReason, Instant updatedAt) {
         findAuditOutboxById(outboxId).ifPresent(item -> {
             item.setStatus(InventoryAuditOutbox.STATUS_DEAD);
@@ -265,7 +242,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         });
     }
 
-    @Override
     public boolean markAuditOutboxDeadClaimed(Long outboxId, String processingOwner, int retryCount,
                                               String deadReason, Instant updatedAt) {
         return findAuditOutboxById(outboxId)
@@ -284,12 +260,10 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .orElse(false);
     }
 
-    @Override
     public void deleteAuditOutbox(Long outboxId) {
         auditOutbox.values().forEach(list -> list.removeIf(item -> item.getId().equals(outboxId)));
     }
 
-    @Override
     public boolean deleteAuditOutboxClaimed(Long outboxId, String processingOwner) {
         for (List<InventoryAuditOutbox> list : auditOutbox.values()) {
             java.util.Iterator<InventoryAuditOutbox> iterator = list.iterator();
@@ -309,7 +283,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         return false;
     }
 
-    @Override
     public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
         if (deadLetter.getId() == null) {
             deadLetter = new InventoryAuditDeadLetter(auditDeadLetterIdGenerator.getAndIncrement(), deadLetter.getOutboxId(),
@@ -326,7 +299,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .add(deadLetter);
     }
 
-    @Override
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(Long tenantId, String orderNo,
                                                                 String replayStatus, int pageNo, int pageSize) {
         return auditDeadLetters.values().stream()
@@ -342,7 +314,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .toList();
     }
 
-    @Override
     public long countAuditDeadLetters(Long tenantId, String orderNo, String replayStatus) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
@@ -353,7 +324,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .count();
     }
 
-    @Override
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(Long id) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
@@ -361,7 +331,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .findFirst();
     }
 
-    @Override
     public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
                                                  String operatorType, Long operatorId, Instant replayAt) {
         return findAuditDeadLetterById(id)
@@ -381,7 +350,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .orElse(false);
     }
 
-    @Override
     public void markAuditDeadLetterReplaySuccess(Long id, String replayKey, String operatorType, Long operatorId,
                                                  Instant replayAt) {
         findAuditDeadLetterById(id).ifPresent(item -> {
@@ -396,7 +364,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         });
     }
 
-    @Override
     public void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
                                                 String replayError, Instant replayAt) {
         findAuditDeadLetterById(id).ifPresent(item -> {
@@ -411,7 +378,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         });
     }
 
-    @Override
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         if (task.getId() == null) {
             task = new InventoryAuditReplayTask(auditReplayTaskIdGenerator.getAndIncrement(), task.getTenantId(),
@@ -425,7 +391,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         return task;
     }
 
-    @Override
     public void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
         List<InventoryAuditReplayTaskItem> items = auditReplayTaskItems.computeIfAbsent(taskId, key -> new ArrayList<>());
         for (Long deadLetterId : deadLetterIds) {
@@ -434,12 +399,10 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
         }
     }
 
-    @Override
     public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
         return Optional.ofNullable(auditReplayTasks.get(taskId));
     }
 
-    @Override
     public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
                                                                         String processingOwner, Instant leaseUntil) {
         return auditReplayTasks.values().stream()
@@ -461,7 +424,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .toList();
     }
 
-    @Override
     public void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
         findAuditReplayTaskById(taskId)
                 .filter(task -> InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
@@ -472,7 +434,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 });
     }
 
-    @Override
     public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
         return auditReplayTaskItems.getOrDefault(taskId, List.of()).stream()
                 .filter(item -> InventoryAuditReplayTaskItem.STATUS_PENDING.equals(item.getItemStatus()))
@@ -481,7 +442,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .toList();
     }
 
-    @Override
     public void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
                                               String replayKey, String resultMessage, Instant startedAt,
                                               Instant finishedAt) {
@@ -502,7 +462,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 }));
     }
 
-    @Override
     public void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
                                                  int successDelta, int failedDelta, Instant updatedAt) {
         findAuditReplayTaskById(taskId)
@@ -519,7 +478,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 });
     }
 
-    @Override
     public void finishAuditReplayTask(Long taskId, String processingOwner, String status, String lastError,
                                       Instant finishedAt) {
         findAuditReplayTaskById(taskId)
@@ -535,7 +493,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 });
     }
 
-    @Override
     public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
         return findAuditReplayTaskById(taskId)
                 .filter(task -> tenantId.equals(task.getTenantId()))
@@ -551,7 +508,6 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 }).orElse(false);
     }
 
-    @Override
     public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
         return findAuditReplayTaskById(taskId)
                 .filter(task -> tenantId.equals(task.getTenantId()))

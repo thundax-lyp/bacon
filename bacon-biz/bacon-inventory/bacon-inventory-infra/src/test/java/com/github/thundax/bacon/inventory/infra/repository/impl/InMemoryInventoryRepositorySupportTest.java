@@ -9,11 +9,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class InMemoryInventoryRepositoryImplTest {
+class InMemoryInventoryRepositorySupportTest {
 
     @Test
     void shouldSupportAuditOutboxRetryLifecycle() {
-        InMemoryInventoryRepositoryImpl repository = new InMemoryInventoryRepositoryImpl();
+        InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
 
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-1", "RSV-1",
@@ -42,7 +42,7 @@ class InMemoryInventoryRepositoryImplTest {
 
     @Test
     void shouldClaimOutboxOnceAndRecycleExpiredLease() {
-        InMemoryInventoryRepositoryImpl repository = new InMemoryInventoryRepositoryImpl();
+        InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-2", "RSV-2",
                 "RESERVE", "SYSTEM", 0L, now, "INIT", InventoryAuditOutbox.STATUS_NEW,

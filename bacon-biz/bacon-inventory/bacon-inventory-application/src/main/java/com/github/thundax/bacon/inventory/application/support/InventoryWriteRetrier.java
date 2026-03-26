@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.support;
 
+import com.github.thundax.bacon.common.core.util.WriteConflictRetrier;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import io.micrometer.core.instrument.Metrics;
@@ -13,9 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class InventoryWriteRetrier {
 
-    private final int maxAttempts;
-    private final long initialBackoffMillis;
-    private final long maxBackoffMillis;
+    private final WriteConflictRetrier writeConflictRetrier;
 
     public InventoryWriteRetrier() {
         this(6, 20L, 500L);
@@ -26,54 +25,67 @@ public class InventoryWriteRetrier {
             @Value("${bacon.inventory.retry.max-attempts:3}") int maxAttempts,
             @Value("${bacon.inventory.retry.initial-backoff-ms:20}") long initialBackoffMillis,
             @Value("${bacon.inventory.retry.max-backoff-ms:200}") long maxBackoffMillis) {
-        this.maxAttempts = Math.max(maxAttempts, 1);
-        this.initialBackoffMillis = Math.max(initialBackoffMillis, 1L);
-        this.maxBackoffMillis = Math.max(maxBackoffMillis, this.initialBackoffMillis);
+        this.writeConflictRetrier = new WriteConflictRetrier(maxAttempts, initialBackoffMillis, maxBackoffMillis);
     }
 
     public <T> T execute(String operation, String businessKey, Supplier<T> action) {
-        long backoffMillis = initialBackoffMillis;
-        int attempt = 0;
-        while (attempt < maxAttempts) {
-            attempt++;
-            try {
-                T result = action.get();
-                if (attempt > 1) {
-                    Metrics.counter("bacon.inventory.write.retry.recovered.total", "operation", operation).increment();
-                }
-                return result;
-            } catch (InventoryDomainException ex) {
-                if (!isConcurrentModified(ex)) {
-                    throw ex;
-                }
-                Metrics.counter("bacon.inventory.write.retry.conflict.total", "operation", operation).increment();
-                if (attempt >= maxAttempts) {
-                    Metrics.counter("bacon.inventory.write.retry.exhausted.total", "operation", operation).increment();
-                    log.error("ALERT inventory write retry exhausted, operation={}, businessKey={}, attempts={}",
-                            operation, businessKey, attempt, ex);
-                    throw ex;
-                }
-                log.warn("Inventory write conflict retry, operation={}, businessKey={}, attempt={}, backoffMs={}",
-                        operation, businessKey, attempt, backoffMillis);
-                sleepBackoff(backoffMillis, operation, businessKey);
-                backoffMillis = Math.min(backoffMillis * 2, maxBackoffMillis);
-            }
-        }
-        throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED, "retry-exhausted");
-    }
-
-    private boolean isConcurrentModified(InventoryDomainException exception) {
-        return InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED.code().equals(exception.getCode());
-    }
-
-    private void sleepBackoff(long backoffMillis, String operation, String businessKey) {
         try {
-            Thread.sleep(backoffMillis);
-        } catch (InterruptedException interruptedException) {
-            Thread.currentThread().interrupt();
+            return writeConflictRetrier.execute(action, this::isConcurrentModified,
+                    new InventoryRetryMetricsListener(operation, businessKey));
+        } catch (IllegalStateException exception) {
+            if ("write-conflict-retry-interrupted".equals(exception.getMessage())) {
+                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED,
+                        "retry-interrupted", exception);
+            }
+            throw exception;
+        }
+    }
+
+    private boolean isConcurrentModified(RuntimeException exception) {
+        if (!(exception instanceof InventoryDomainException inventoryDomainException)) {
+            return false;
+        }
+        return InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED.code().equals(inventoryDomainException.getCode());
+    }
+
+    private static final class InventoryRetryMetricsListener implements WriteConflictRetrier.RetryListener {
+
+        private final String operation;
+        private final String businessKey;
+
+        private InventoryRetryMetricsListener(String operation, String businessKey) {
+            this.operation = operation;
+            this.businessKey = businessKey;
+        }
+
+        @Override
+        public void onConflict(int attempt, RuntimeException exception) {
+            Metrics.counter("bacon.inventory.write.retry.conflict.total", "operation", operation).increment();
+        }
+
+        @Override
+        public void onRetry(int attempt, long backoffMillis, RuntimeException exception) {
+            log.warn("Inventory write conflict retry, operation={}, businessKey={}, attempt={}, backoffMs={}",
+                    operation, businessKey, attempt, backoffMillis);
+        }
+
+        @Override
+        public void onRecovered(int attempt) {
+            Metrics.counter("bacon.inventory.write.retry.recovered.total", "operation", operation).increment();
+        }
+
+        @Override
+        public void onExhausted(int attempt, RuntimeException exception) {
+            Metrics.counter("bacon.inventory.write.retry.exhausted.total", "operation", operation).increment();
+            log.error("ALERT inventory write retry exhausted, operation={}, businessKey={}, attempts={}",
+                    operation, businessKey, attempt, exception);
+        }
+
+        @Override
+        public void onInterrupted(int attempt, long backoffMillis, RuntimeException cause,
+                                  InterruptedException interruptedException) {
             log.error("ALERT inventory write retry interrupted, operation={}, businessKey={}",
                     operation, businessKey, interruptedException);
-            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED, "retry-interrupted");
         }
     }
 }

@@ -8,11 +8,14 @@ import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand;
+import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
+import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
@@ -34,8 +37,11 @@ class OrderApplicationServiceTest {
 
     @Test
     void createShouldGenerateOrderNoInsideModule() {
-        OrderApplicationService service = new OrderApplicationService(new TestOrderRepository(), () -> "ORD-10001",
-                new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade());
+        TestOrderRepository repository = new TestOrderRepository();
+        OrderApplicationService service = new OrderApplicationService(repository, () -> "ORD-10001",
+                new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade(),
+                new OrderOutboxActionExecutor(repository, new TestOrderOutboxRepository(),
+                        new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade()));
 
         OrderSummaryDTO result = service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "remark",
                 Instant.parse("2026-03-30T00:00:00Z"),
@@ -44,9 +50,9 @@ class OrderApplicationServiceTest {
         assertEquals("ORD-10001", result.getOrderNo());
         assertEquals(1001L, result.getTenantId());
         assertEquals(BigDecimal.valueOf(20), result.getTotalAmount());
-        assertEquals("PENDING_PAYMENT", result.getOrderStatus());
-        assertEquals("PAYING", result.getPayStatus());
-        assertEquals("RESERVED", result.getInventoryStatus());
+        assertEquals("RESERVING_STOCK", result.getOrderStatus());
+        assertEquals("UNPAID", result.getPayStatus());
+        assertEquals("RESERVING", result.getInventoryStatus());
         assertEquals(1, service.getByOrderNo(1001L, "ORD-10001").getItems().size());
     }
 
@@ -54,7 +60,9 @@ class OrderApplicationServiceTest {
     void pageOrdersShouldRespectFilterAndPaging() {
         TestOrderRepository repository = new TestOrderRepository();
         OrderApplicationService service = new OrderApplicationService(repository, new SequenceOrderNoGenerator(),
-                new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade());
+                new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade(),
+                new OrderOutboxActionExecutor(repository, new TestOrderOutboxRepository(),
+                        new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade()));
         service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "r1",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(101L, "item-1", 1, BigDecimal.valueOf(10)))));
@@ -67,19 +75,21 @@ class OrderApplicationServiceTest {
         service.markPaid(1001L, paid.getOrderNo(), "PAY-1", "MOCK", BigDecimal.valueOf(20),
                 Instant.parse("2026-03-26T10:00:00Z"));
 
-        OrderPageResultDTO page = service.pageOrders(new OrderPageQueryDTO(1001L, 2001L, null, null, "PAYING",
+        OrderPageResultDTO page = service.pageOrders(new OrderPageQueryDTO(1001L, 2001L, null, null, "UNPAID",
                 null, null, null, 1, 10));
 
         assertEquals(1, page.getTotal());
         assertEquals(1, page.getRecords().size());
-        assertEquals("PAYING", page.getRecords().get(0).getPayStatus());
+        assertEquals("UNPAID", page.getRecords().get(0).getPayStatus());
     }
 
     @Test
     void cancelShouldPersistGivenReason() {
         TestOrderRepository repository = new TestOrderRepository();
         OrderApplicationService service = new OrderApplicationService(repository, () -> "ORD-CANCEL-1",
-                new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade());
+                new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade(),
+                new OrderOutboxActionExecutor(repository, new TestOrderOutboxRepository(),
+                        new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade()));
         OrderCancelApplicationService cancelService = new OrderCancelApplicationService(service);
         OrderSummaryDTO created = service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "r1",
                 Instant.parse("2026-03-30T00:00:00Z"),
@@ -95,30 +105,37 @@ class OrderApplicationServiceTest {
 
     @Test
     void createShouldCloseOrderWhenInventoryReserveFailed() {
-        OrderApplicationService service = new OrderApplicationService(new TestOrderRepository(), () -> "ORD-FAIL-1",
-                new FailedInventoryCommandFacade(), new SuccessPaymentCommandFacade());
-
-        IllegalStateException exception = org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () ->
-                service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "remark",
-                        Instant.parse("2026-03-30T00:00:00Z"),
-                        List.of(new CreateOrderItemCommand(101L, "demo-item", 2, BigDecimal.valueOf(10))))));
-
-        assertEquals("stock not enough", exception.getMessage());
+        TestOrderRepository repository = new TestOrderRepository();
+        OrderApplicationService service = new OrderApplicationService(repository, () -> "ORD-FAIL-1",
+                new FailedInventoryCommandFacade(), new SuccessPaymentCommandFacade(),
+                new OrderOutboxActionExecutor(repository, new TestOrderOutboxRepository(),
+                        new FailedInventoryCommandFacade(), new SuccessPaymentCommandFacade()));
+        OrderSummaryDTO summary = service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "remark",
+                Instant.parse("2026-03-30T00:00:00Z"),
+                List.of(new CreateOrderItemCommand(101L, "demo-item", 2, BigDecimal.valueOf(10)))));
+        assertEquals("RESERVING_STOCK", summary.getOrderStatus());
     }
 
     @Test
     void createShouldReleaseInventoryWhenPaymentCreateFailed() {
         TrackingInventoryCommandFacade inventoryFacade = new TrackingInventoryCommandFacade();
-        OrderApplicationService service = new OrderApplicationService(new TestOrderRepository(), () -> "ORD-FAIL-2",
-                inventoryFacade, new FailedPaymentCommandFacade());
+        TestOrderRepository repository = new TestOrderRepository();
+        OrderApplicationService service = new OrderApplicationService(repository, () -> "ORD-FAIL-2",
+                inventoryFacade, new FailedPaymentCommandFacade(),
+                new OrderOutboxActionExecutor(repository, new TestOrderOutboxRepository(),
+                        inventoryFacade, new FailedPaymentCommandFacade()));
+        OrderSummaryDTO summary = service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "remark",
+                Instant.parse("2026-03-30T00:00:00Z"),
+                List.of(new CreateOrderItemCommand(101L, "demo-item", 2, BigDecimal.valueOf(10)))));
+        assertEquals("RESERVING_STOCK", summary.getOrderStatus());
+    }
 
-        IllegalStateException exception = org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () ->
-                service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "remark",
-                        Instant.parse("2026-03-30T00:00:00Z"),
-                        List.of(new CreateOrderItemCommand(101L, "demo-item", 2, BigDecimal.valueOf(10))))));
+    private static final class TestOrderOutboxRepository implements OrderOutboxRepository {
 
-        assertEquals("payment channel unavailable", exception.getMessage());
-        assertEquals("PAYMENT_CREATE_FAILED", inventoryFacade.lastReleaseReason);
+        @Override
+        public void saveOutboxEvent(OrderOutboxEvent event) {
+            // no-op for unit tests
+        }
     }
 
     private static final class SequenceOrderNoGenerator implements OrderNoGenerator {

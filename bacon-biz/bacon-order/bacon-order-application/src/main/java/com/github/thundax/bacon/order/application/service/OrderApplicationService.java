@@ -12,6 +12,7 @@ import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand;
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.application.query.GetOrderQuery;
+import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
@@ -46,14 +47,17 @@ public class OrderApplicationService {
     private final OrderNoGenerator orderNoGenerator;
     private final InventoryCommandFacade inventoryCommandFacade;
     private final PaymentCommandFacade paymentCommandFacade;
+    private final OrderOutboxActionExecutor orderOutboxActionExecutor;
 
     public OrderApplicationService(OrderRepository orderRepository, OrderNoGenerator orderNoGenerator,
                                    InventoryCommandFacade inventoryCommandFacade,
-                                   PaymentCommandFacade paymentCommandFacade) {
+                                   PaymentCommandFacade paymentCommandFacade,
+                                   OrderOutboxActionExecutor orderOutboxActionExecutor) {
         this.orderRepository = orderRepository;
         this.orderNoGenerator = orderNoGenerator;
         this.inventoryCommandFacade = inventoryCommandFacade;
         this.paymentCommandFacade = paymentCommandFacade;
+        this.orderOutboxActionExecutor = orderOutboxActionExecutor;
     }
 
     public OrderSummaryDTO create(CreateOrderCommand command) {
@@ -78,14 +82,8 @@ public class OrderApplicationService {
                 .toList());
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);
-
-        InventoryReservationResultDTO reserveResult = reserveInventory(savedOrder, items);
-        savedOrder.markInventoryReserved(reserveResult.getReservationNo(), reserveResult.getWarehouseId());
-        orderRepository.save(savedOrder);
-
-        PaymentCreateResultDTO paymentResult = createPayment(savedOrder, command.channelCode());
-        savedOrder.markPendingPayment(paymentResult.getPaymentNo(), paymentResult.getChannelCode());
-        orderRepository.save(savedOrder);
+        orderOutboxActionExecutor.enqueueReserveStock(savedOrder.getTenantId(), savedOrder.getOrderNo(),
+                command.channelCode());
         persistOrderDerivedData(savedOrder, ACTION_CREATE, Order.ORDER_STATUS_CREATED);
         return toSummary(savedOrder);
     }

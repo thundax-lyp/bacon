@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.order.application.service;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
@@ -23,7 +22,6 @@ import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderDomainService;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import org.springframework.stereotype.Service;
 
@@ -35,8 +33,6 @@ import java.util.Objects;
 @Service
 public class OrderApplicationService {
 
-    private static final String CLOSE_REASON_INVENTORY_RESERVE_FAILED = "INVENTORY_RESERVE_FAILED";
-    private static final String CLOSE_REASON_PAYMENT_CREATE_FAILED = "PAYMENT_CREATE_FAILED";
     private static final String ACTION_CREATE = "ORDER_CREATE";
     private static final String ACTION_CANCEL = "ORDER_CANCEL";
     private static final String ACTION_MARK_PAID = "ORDER_MARK_PAID";
@@ -174,45 +170,6 @@ public class OrderApplicationService {
         persistOrderDerivedData(order, ACTION_CLOSE_EXPIRED, beforeStatus);
     }
 
-    private InventoryReservationResultDTO reserveInventory(Order order, List<CreateOrderItemCommand> items) {
-        List<InventoryReservationItemDTO> reserveItems = items.stream()
-                .map(item -> new InventoryReservationItemDTO(item.skuId(), item.quantity()))
-                .toList();
-        InventoryReservationResultDTO reserveResult = inventoryCommandFacade.reserveStock(
-                order.getTenantId(), order.getOrderNo(), reserveItems);
-        if (!Order.INVENTORY_STATUS_RESERVED.equals(reserveResult.getInventoryStatus())) {
-            String reason = resolveFailureReason(reserveResult.getFailureReason(), "inventory reserve failed");
-            order.markInventoryFailed(reserveResult.getReservationNo(), reserveResult.getWarehouseId(), reason);
-            order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
-            orderRepository.save(order);
-            persistOrderDerivedData(order, ACTION_CREATE, Order.ORDER_STATUS_CREATED);
-            throw new IllegalStateException(reason);
-        }
-        return reserveResult;
-    }
-
-    private PaymentCreateResultDTO createPayment(Order order, String channelCode) {
-        PaymentCreateResultDTO paymentResult = paymentCommandFacade.createPayment(order.getTenantId(), order.getOrderNo(),
-                order.getUserId(), order.getPayableAmount(), channelCode, buildPaymentSubject(order), order.getExpiredAt());
-        if (paymentResult.getPaymentNo() == null || paymentResult.getPaymentNo().isBlank()) {
-            closeForPaymentCreateFailed(order, resolveFailureReason(paymentResult.getFailureReason(), "payment create failed"));
-        }
-        if (!Order.PAY_STATUS_PAYING.equals(paymentResult.getPaymentStatus())) {
-            closeForPaymentCreateFailed(order, resolveFailureReason(paymentResult.getFailureReason(), "payment not in PAYING"));
-        }
-        return paymentResult;
-    }
-
-    private void closeForPaymentCreateFailed(Order order, String failureReason) {
-        InventoryReservationResultDTO releaseResult =
-                inventoryCommandFacade.releaseReservedStock(order.getTenantId(), order.getOrderNo(), CLOSE_REASON_PAYMENT_CREATE_FAILED);
-        applyReleaseResult(order, releaseResult, CLOSE_REASON_PAYMENT_CREATE_FAILED);
-        order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
-        orderRepository.save(order);
-        persistOrderDerivedData(order, ACTION_CREATE, Order.ORDER_STATUS_RESERVING_STOCK);
-        throw new IllegalStateException(failureReason);
-    }
-
     private void persistOrderDerivedData(Order order, String actionType, String beforeStatus) {
         Instant now = Instant.now();
         if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
@@ -237,10 +194,6 @@ public class OrderApplicationService {
         }
         order.markInventoryFailed(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
-    }
-
-    private String buildPaymentSubject(Order order) {
-        return "order:" + order.getOrderNo();
     }
 
     private String resolveFailureReason(String reason, String defaultReason) {

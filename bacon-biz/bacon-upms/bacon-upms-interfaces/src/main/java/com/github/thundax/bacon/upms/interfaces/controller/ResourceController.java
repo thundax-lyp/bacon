@@ -14,6 +14,7 @@ import com.github.thundax.bacon.upms.interfaces.response.ResourcePageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.ResourceResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -40,7 +41,7 @@ public class ResourceController {
     @HasPermission("sys:resource:view")
     @SysLog(module = "UPMS", action = "分页查询资源", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public ResourcePageResponse pageResources(@ModelAttribute ResourcePageRequest request) {
+    public ResourcePageResponse pageResources(@Valid @ModelAttribute ResourcePageRequest request) {
         return ResourcePageResponse.from(resourceApplicationService.pageResources(new ResourcePageQueryDTO(
                 request.getTenantId(), request.getCode(), request.getName(), request.getResourceType(),
                 request.getStatus(), request.getPageNo(), request.getPageSize()

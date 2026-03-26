@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.inventory.interfaces.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +21,11 @@ public class InventoryPageRequest {
     private Long skuId;
 
     private String status;
+
+    @Min(1)
     private Integer pageNo;
+
+    @Min(1)
+    @Max(200)
     private Integer pageSize;
 }

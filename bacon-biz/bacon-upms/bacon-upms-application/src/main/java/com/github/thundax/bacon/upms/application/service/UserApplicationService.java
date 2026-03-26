@@ -25,6 +25,8 @@ public class UserApplicationService {
 
     private static final String DISABLED_STATUS = "DISABLED";
     private static final String DEFAULT_PASSWORD = "123456";
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 200;
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -207,6 +209,9 @@ public class UserApplicationService {
     }
 
     private int normalizePageSize(Integer pageSize) {
-        return pageSize == null || pageSize < 1 ? 20 : pageSize;
+        if (pageSize == null || pageSize < 1) {
+            return DEFAULT_PAGE_SIZE;
+        }
+        return Math.min(pageSize, MAX_PAGE_SIZE);
     }
 }

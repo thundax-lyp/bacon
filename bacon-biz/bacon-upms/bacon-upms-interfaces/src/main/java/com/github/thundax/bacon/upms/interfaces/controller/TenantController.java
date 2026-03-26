@@ -14,6 +14,7 @@ import com.github.thundax.bacon.upms.interfaces.response.TenantPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.TenantResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,7 +40,7 @@ public class TenantController {
     @HasPermission("sys:tenant:view")
     @SysLog(module = "UPMS", action = "分页查询租户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public TenantPageResponse pageTenants(@ModelAttribute TenantPageRequest request) {
+    public TenantPageResponse pageTenants(@Valid @ModelAttribute TenantPageRequest request) {
         return TenantPageResponse.from(tenantApplicationService.pageTenants(new TenantPageQueryDTO(request.getTenantId(),
                 request.getCode(), request.getName(), request.getStatus(), request.getPageNo(), request.getPageSize())));
     }

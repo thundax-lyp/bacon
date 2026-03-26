@@ -19,6 +19,7 @@ import com.github.thundax.bacon.upms.interfaces.response.RolePageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.Set;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +47,7 @@ public class RoleController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "分页查询角色", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public RolePageResponse pageRoles(@ModelAttribute RolePageRequest request) {
+    public RolePageResponse pageRoles(@Valid @ModelAttribute RolePageRequest request) {
         return RolePageResponse.from(roleApplicationService.pageRoles(new RolePageQueryDTO(request.getTenantId(),
                 request.getCode(), request.getName(), request.getRoleType(), request.getStatus(), request.getPageNo(),
                 request.getPageSize())));

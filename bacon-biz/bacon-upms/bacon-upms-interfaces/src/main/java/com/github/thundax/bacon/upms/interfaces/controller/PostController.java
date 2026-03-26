@@ -14,6 +14,7 @@ import com.github.thundax.bacon.upms.interfaces.response.PostPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.PostResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -40,7 +41,7 @@ public class PostController {
     @HasPermission("sys:post:view")
     @SysLog(module = "UPMS", action = "分页查询岗位", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public PostPageResponse pagePosts(@ModelAttribute PostPageRequest request) {
+    public PostPageResponse pagePosts(@Valid @ModelAttribute PostPageRequest request) {
         return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(request.getTenantId(),
                 request.getCode(), request.getName(), request.getDepartmentId(), request.getStatus(),
                 request.getPageNo(), request.getPageSize())));

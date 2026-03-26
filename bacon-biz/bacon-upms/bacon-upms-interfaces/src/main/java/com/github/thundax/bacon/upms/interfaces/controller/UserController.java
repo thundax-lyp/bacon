@@ -24,6 +24,7 @@ import com.github.thundax.bacon.upms.interfaces.response.UserPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,7 +52,7 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "分页查询用户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public UserPageResponse pageUsers(@ModelAttribute UserPageRequest request) {
+    public UserPageResponse pageUsers(@Valid @ModelAttribute UserPageRequest request) {
         return UserPageResponse.from(userApplicationService.pageUsers(new UserPageQueryDTO(request.getTenantId(),
                 request.getAccount(), request.getName(), request.getPhone(), request.getStatus(), request.getPageNo(),
                 request.getPageSize())));

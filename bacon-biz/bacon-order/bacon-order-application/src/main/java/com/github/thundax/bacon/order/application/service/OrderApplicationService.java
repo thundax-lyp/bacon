@@ -20,6 +20,10 @@ import java.util.List;
 @Service
 public class OrderApplicationService {
 
+    private static final int DEFAULT_PAGE_NO = 1;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int MAX_PAGE_SIZE = 200;
+
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService = new OrderDomainService();
     private final OrderNoGenerator orderNoGenerator;
@@ -55,8 +59,8 @@ public class OrderApplicationService {
                 .filter(order -> query.getOrderNo() == null || order.getOrderNo().contains(query.getOrderNo()))
                 .map(this::toSummary)
                 .toList();
-        int pageNo = query.getPageNo() == null ? 1 : query.getPageNo();
-        int pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
+        int pageNo = normalizePageNo(query.getPageNo());
+        int pageSize = normalizePageSize(query.getPageSize());
         return new OrderPageResultDTO(records, records.size(), pageNo, pageSize);
     }
 
@@ -98,5 +102,16 @@ public class OrderApplicationService {
                 order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(),
                 List.of(new OrderItemDTO(101L, order.getCustomerName() + "-item", 1, BigDecimal.TEN, BigDecimal.TEN)),
                 "mock-payment", "mock-inventory", order.getPaidAt(), order.getClosedAt());
+    }
+
+    private int normalizePageNo(Integer pageNo) {
+        return pageNo == null || pageNo < 1 ? DEFAULT_PAGE_NO : pageNo;
+    }
+
+    private int normalizePageSize(Integer pageSize) {
+        if (pageSize == null || pageSize < 1) {
+            return DEFAULT_PAGE_SIZE;
+        }
+        return Math.min(pageSize, MAX_PAGE_SIZE);
     }
 }

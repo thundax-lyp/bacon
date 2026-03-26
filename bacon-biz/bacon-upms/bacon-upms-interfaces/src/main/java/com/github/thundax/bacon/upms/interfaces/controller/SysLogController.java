@@ -11,6 +11,7 @@ import com.github.thundax.bacon.upms.interfaces.response.SysLogPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.SysLogResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +34,7 @@ public class SysLogController {
     @HasPermission("sys:log:view")
     @SysLog(module = "UPMS", action = "分页查询系统日志", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public SysLogPageResponse pageLogs(@ModelAttribute SysLogPageRequest request) {
+    public SysLogPageResponse pageLogs(@Valid @ModelAttribute SysLogPageRequest request) {
         return SysLogPageResponse.from(sysLogQueryService.pageLogs(new SysLogQueryDTO(request.getTenantId(),
                 request.getModule(), request.getEventType(), request.getResult(), request.getOperatorName(),
                 request.getPageNo(), request.getPageSize())));

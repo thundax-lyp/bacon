@@ -2,7 +2,7 @@ package com.github.thundax.bacon.upms.application.service;
 
 import com.github.thundax.bacon.upms.api.dto.MenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
-import com.github.thundax.bacon.upms.domain.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import org.springframework.stereotype.Service;

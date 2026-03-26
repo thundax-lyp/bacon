@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.upms.domain.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import java.util.Comparator;
 import java.util.List;

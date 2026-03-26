@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
-import com.github.thundax.bacon.upms.domain.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import java.util.List;
 import java.util.Optional;
 

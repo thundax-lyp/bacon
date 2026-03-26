@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.service;
 
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
-import com.github.thundax.bacon.upms.domain.entity.SysLogRecord;
+import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
 

@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.upms.domain.entity.Role;
-import com.github.thundax.bacon.upms.domain.entity.User;
-import com.github.thundax.bacon.upms.domain.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.entity.Role;
+import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import java.util.Comparator;
 import java.util.List;

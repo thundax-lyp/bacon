@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageResultDTO;
-import com.github.thundax.bacon.upms.domain.entity.Role;
+import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import java.util.List;
 import java.util.Set;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;

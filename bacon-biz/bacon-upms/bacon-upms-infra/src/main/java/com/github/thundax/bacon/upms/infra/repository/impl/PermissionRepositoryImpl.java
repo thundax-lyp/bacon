@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.upms.domain.entity.Menu;
-import com.github.thundax.bacon.upms.domain.entity.Role;
+import com.github.thundax.bacon.upms.domain.model.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import java.util.ArrayList;
 import java.util.Comparator;

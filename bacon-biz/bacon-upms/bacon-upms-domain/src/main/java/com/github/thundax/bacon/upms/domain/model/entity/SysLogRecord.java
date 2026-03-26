@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.domain.entity;
+package com.github.thundax.bacon.upms.domain.model.entity;
 
 import lombok.Getter;
 

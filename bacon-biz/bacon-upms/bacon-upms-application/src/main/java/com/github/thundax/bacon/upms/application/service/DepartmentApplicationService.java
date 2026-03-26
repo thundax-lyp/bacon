@@ -2,7 +2,7 @@ package com.github.thundax.bacon.upms.application.service;
 
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
-import com.github.thundax.bacon.upms.domain.entity.Department;
+import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import org.springframework.stereotype.Service;
 

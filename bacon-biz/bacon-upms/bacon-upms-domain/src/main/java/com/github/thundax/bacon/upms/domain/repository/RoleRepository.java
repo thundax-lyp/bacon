@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
-import com.github.thundax.bacon.upms.domain.entity.Role;
+import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;

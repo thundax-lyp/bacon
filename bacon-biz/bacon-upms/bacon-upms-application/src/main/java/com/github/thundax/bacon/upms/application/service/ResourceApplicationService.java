@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageResultDTO;
-import com.github.thundax.bacon.upms.domain.entity.Resource;
+import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
 

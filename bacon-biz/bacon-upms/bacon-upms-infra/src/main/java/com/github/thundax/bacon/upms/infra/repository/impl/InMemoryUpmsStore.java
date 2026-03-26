@@ -1,14 +1,14 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.upms.domain.entity.Department;
-import com.github.thundax.bacon.upms.domain.entity.Menu;
-import com.github.thundax.bacon.upms.domain.entity.Post;
-import com.github.thundax.bacon.upms.domain.entity.Resource;
-import com.github.thundax.bacon.upms.domain.entity.Role;
-import com.github.thundax.bacon.upms.domain.entity.SysLogRecord;
-import com.github.thundax.bacon.upms.domain.entity.Tenant;
-import com.github.thundax.bacon.upms.domain.entity.User;
-import com.github.thundax.bacon.upms.domain.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.entity.Department;
+import com.github.thundax.bacon.upms.domain.model.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.entity.Post;
+import com.github.thundax.bacon.upms.domain.model.entity.Resource;
+import com.github.thundax.bacon.upms.domain.model.entity.Role;
+import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
+import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

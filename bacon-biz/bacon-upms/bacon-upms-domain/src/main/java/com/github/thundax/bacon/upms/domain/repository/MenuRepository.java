@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
-import com.github.thundax.bacon.upms.domain.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import java.util.List;
 import java.util.Optional;
 

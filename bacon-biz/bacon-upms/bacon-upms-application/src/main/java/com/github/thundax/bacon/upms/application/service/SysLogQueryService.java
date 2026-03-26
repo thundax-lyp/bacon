@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.api.dto.SysLogPageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.SysLogQueryDTO;
-import com.github.thundax.bacon.upms.domain.entity.SysLogRecord;
+import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
 

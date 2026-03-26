@@ -1,0 +1,22 @@
+groups:
+  - name: bacon.inventory.audit
+    rules:
+      - alert: BaconInventoryAuditOutboxPersistFailure
+        expr: increase(bacon_inventory_audit_outbox_persist_fail_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+          domain: inventory
+        annotations:
+          summary: "Inventory 审计 outbox 落库失败"
+          description: "过去 5 分钟出现 outbox 落库失败，审计事件存在丢失风险。"
+
+      - alert: BaconInventoryAuditRetryDeadLetter
+        expr: increase(bacon_inventory_audit_retry_dead_total[10m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          domain: inventory
+        annotations:
+          summary: "Inventory 审计进入死信"
+          description: "过去 10 分钟有审计事件重试耗尽进入死信，请排查并人工补偿。"

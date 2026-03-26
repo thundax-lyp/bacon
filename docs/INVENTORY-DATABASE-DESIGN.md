@@ -324,6 +324,7 @@
 - `releaseReservedStock` 和 `deductReservedStock` 只允许基于已存在预占单执行语义判断
 - 库存数量变更必须显式更新 `bacon_inventory_inventory`，不得依赖运行时对象引用副作用
 - `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的命令写入应运行在同一事务中
+- 并发冲突重试的退避等待必须在事务外执行，每次重试应开启新的短事务，避免长事务持锁
 - `InventoryAuditLog` 优先在主事务提交后以 best effort 方式记录，失败不回滚主业务
 - `InventoryAuditLog` 写入失败时必须落库 `bacon_inventory_audit_outbox`
 - `InventoryAuditOutbox` 重试成功后应删除；达到最大重试次数后状态置为 `DEAD`

@@ -133,6 +133,25 @@ class InventoryApplicationServiceTest {
                 queryService.listLedgersByOrderNo(1001L, "ORDER-4").get(1).getLedgerType());
     }
 
+    @Test
+    void reserveStockShouldBatchLoadInventoriesWithoutPerSkuPreRead() {
+        TestInventoryRepository repository = new TestInventoryRepository();
+        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
+        InventoryApplicationService service = new InventoryApplicationService(
+                new InventoryReservationApplicationService(repository, repository, operationLogService,
+                        RESERVATION_NO_GENERATOR),
+                new InventoryReleaseApplicationService(repository, repository, operationLogService),
+                new InventoryDeductionApplicationService(repository, repository, operationLogService)
+        );
+
+        service.reserveStock(1001L, "ORDER-5", List.of(
+                new InventoryReservationItemDTO(101L, 2),
+                new InventoryReservationItemDTO(101L, 3)));
+
+        assertEquals(1, repository.getBatchFindInventoriesCallCount());
+        assertEquals(0, repository.getSingleFindInventoryCallCount());
+    }
+
     private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,
             InventoryLogRepository {
 
@@ -140,6 +159,8 @@ class InventoryApplicationServiceTest {
         private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();
         private final Map<String, List<InventoryLedger>> ledgers = new ConcurrentHashMap<>();
         private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
+        private int singleFindInventoryCallCount;
+        private int batchFindInventoriesCallCount;
 
         private TestInventoryRepository() {
             inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100,
@@ -148,6 +169,7 @@ class InventoryApplicationServiceTest {
 
         @Override
         public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
+            singleFindInventoryCallCount++;
             return Optional.ofNullable(inventories.get(key(tenantId, skuId)));
         }
 
@@ -160,6 +182,7 @@ class InventoryApplicationServiceTest {
 
         @Override
         public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
+            batchFindInventoriesCallCount++;
             return skuIds.stream()
                     .map(skuId -> inventories.get(key(tenantId, skuId)))
                     .filter(java.util.Objects::nonNull)
@@ -231,6 +254,14 @@ class InventoryApplicationServiceTest {
 
         private static String reservationKey(Long tenantId, String orderNo) {
             return tenantId + ":" + orderNo;
+        }
+
+        private int getSingleFindInventoryCallCount() {
+            return singleFindInventoryCallCount;
+        }
+
+        private int getBatchFindInventoriesCallCount() {
+            return batchFindInventoriesCallCount;
         }
     }
 

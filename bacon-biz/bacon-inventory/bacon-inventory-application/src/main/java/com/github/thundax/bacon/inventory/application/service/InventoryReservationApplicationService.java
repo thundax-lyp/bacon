@@ -11,9 +11,11 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryReservation
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +58,8 @@ public class InventoryReservationApplicationService {
         InventoryReservation reservation = new InventoryReservation(null, tenantId, reservationNo,
                 orderNo, 1L, Instant.now(), reservationItems);
 
-        String failureReason = validateReservation(tenantId, normalizedItems);
+        ReservationValidationResult validationResult = validateReservation(tenantId, normalizedItems);
+        String failureReason = validationResult.failureReason();
         if (failureReason != null) {
             reservation.fail(failureReason);
             reservation = saveReservationWithIdempotentFallback(reservation);
@@ -74,8 +77,9 @@ public class InventoryReservationApplicationService {
         if (!reservation.getReservationNo().equals(reservationNo)) {
             return InventoryReservationResultMapper.fromReservation(reservation);
         }
+        Map<Long, Inventory> inventoryBySku = new HashMap<>(validationResult.inventoryBySku());
         for (InventoryReservationItem item : reservationItems) {
-            reserveStockWithRetry(tenantId, item, operatedAt);
+            reserveStockWithRetry(tenantId, item, operatedAt, inventoryBySku);
         }
         reservation.reserve();
         reservation = inventoryReservationRepository.saveReservation(reservation);
@@ -96,24 +100,32 @@ public class InventoryReservationApplicationService {
                 .toList();
     }
 
-    private String validateReservation(Long tenantId, List<InventoryReservationItemDTO> items) {
+    private ReservationValidationResult validateReservation(Long tenantId, List<InventoryReservationItemDTO> items) {
         if (items.isEmpty()) {
-            return InventoryErrorCode.INVALID_QUANTITY.code();
+            return ReservationValidationResult.failed(InventoryErrorCode.INVALID_QUANTITY.code());
         }
+        Set<Long> skuIds = items.stream()
+                .map(InventoryReservationItemDTO::getSkuId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        Map<Long, Inventory> inventoryBySku = inventoryStockRepository.findInventories(tenantId, skuIds).stream()
+                .collect(java.util.stream.Collectors.toMap(Inventory::getSkuId, inventory -> inventory));
         for (InventoryReservationItemDTO item : items) {
             if (item.getSkuId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
-                return InventoryErrorCode.INVALID_QUANTITY.code();
+                return ReservationValidationResult.failed(InventoryErrorCode.INVALID_QUANTITY.code());
             }
             try {
-                Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
-                        .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                                String.valueOf(item.getSkuId())));
+                Inventory inventory = inventoryBySku.get(item.getSkuId());
+                if (inventory == null) {
+                    throw new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                            String.valueOf(item.getSkuId()));
+                }
                 inventory.ensureReservable(item.getQuantity());
             } catch (InventoryDomainException ex) {
-                return ex.getCode();
+                return ReservationValidationResult.failed(ex.getCode());
             }
         }
-        return null;
+        return ReservationValidationResult.success(inventoryBySku);
     }
 
     private InventoryReservation saveReservationWithIdempotentFallback(InventoryReservation reservation) {
@@ -129,17 +141,23 @@ public class InventoryReservationApplicationService {
         return inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
     }
 
-    private void reserveStockWithRetry(Long tenantId, InventoryReservationItem item, Instant operatedAt) {
+    private void reserveStockWithRetry(Long tenantId,
+                                       InventoryReservationItem item,
+                                       Instant operatedAt,
+                                       Map<Long, Inventory> inventoryBySku) {
         int attempt = 0;
         long backoffMillis = INITIAL_BACKOFF_MILLIS;
         while (attempt < MAX_RETRY_ATTEMPTS) {
             attempt++;
-            Inventory inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
-                    .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                            String.valueOf(item.getSkuId())));
+            Inventory inventory = inventoryBySku.get(item.getSkuId());
+            if (inventory == null) {
+                inventory = loadInventory(tenantId, item.getSkuId());
+                inventoryBySku.put(item.getSkuId(), inventory);
+            }
             inventory.reserve(item.getQuantity(), operatedAt);
             try {
-                inventoryStockRepository.saveInventory(inventory);
+                Inventory persistedInventory = inventoryStockRepository.saveInventory(inventory);
+                inventoryBySku.put(item.getSkuId(), persistedInventory);
                 return;
             } catch (InventoryDomainException ex) {
                 if (!isConcurrentModified(ex) || attempt >= MAX_RETRY_ATTEMPTS) {
@@ -147,8 +165,15 @@ public class InventoryReservationApplicationService {
                 }
                 sleepBackoff(backoffMillis);
                 backoffMillis = backoffMillis * 2;
+                inventoryBySku.put(item.getSkuId(), loadInventory(tenantId, item.getSkuId()));
             }
         }
+    }
+
+    private Inventory loadInventory(Long tenantId, Long skuId) {
+        return inventoryStockRepository.findInventory(tenantId, skuId)
+                .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                        String.valueOf(skuId)));
     }
 
     private boolean isConcurrentModified(InventoryDomainException exception) {
@@ -161,6 +186,17 @@ public class InventoryReservationApplicationService {
         } catch (InterruptedException interruptedException) {
             Thread.currentThread().interrupt();
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED, "retry-interrupted");
+        }
+    }
+
+    private record ReservationValidationResult(String failureReason, Map<Long, Inventory> inventoryBySku) {
+
+        private static ReservationValidationResult failed(String failureReason) {
+            return new ReservationValidationResult(failureReason, Map.of());
+        }
+
+        private static ReservationValidationResult success(Map<Long, Inventory> inventoryBySku) {
+            return new ReservationValidationResult(null, Map.copyOf(inventoryBySku));
         }
     }
 }

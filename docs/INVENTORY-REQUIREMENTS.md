@@ -352,6 +352,7 @@ Inventory 是 Bacon 的统一库存业务域。
 
 - 请求字段遵守 `5.4 Fixed Request Contracts`
 - 预占失败时必须返回明确原因
+- 单次 `reserveStock` 请求必须先按 SKU 批量读取库存，再在应用层内存完成校验与变更计划，不得对同一批 SKU 做逐条重复读取
 
 ### 7.3 Stock Release
 

@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.order.application.service;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
@@ -14,6 +17,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderDomainService;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
+import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
+import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,14 +30,22 @@ import java.util.Objects;
 public class OrderApplicationService {
 
     private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final String CLOSE_REASON_INVENTORY_RESERVE_FAILED = "INVENTORY_RESERVE_FAILED";
+    private static final String CLOSE_REASON_PAYMENT_CREATE_FAILED = "PAYMENT_CREATE_FAILED";
 
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService = new OrderDomainService();
     private final OrderNoGenerator orderNoGenerator;
+    private final InventoryCommandFacade inventoryCommandFacade;
+    private final PaymentCommandFacade paymentCommandFacade;
 
-    public OrderApplicationService(OrderRepository orderRepository, OrderNoGenerator orderNoGenerator) {
+    public OrderApplicationService(OrderRepository orderRepository, OrderNoGenerator orderNoGenerator,
+                                   InventoryCommandFacade inventoryCommandFacade,
+                                   PaymentCommandFacade paymentCommandFacade) {
         this.orderRepository = orderRepository;
         this.orderNoGenerator = orderNoGenerator;
+        this.inventoryCommandFacade = inventoryCommandFacade;
+        this.paymentCommandFacade = paymentCommandFacade;
     }
 
     public OrderSummaryDTO create(CreateOrderCommand command) {
@@ -55,6 +68,16 @@ public class OrderApplicationService {
                 .map(item -> new OrderItem(savedOrder.getTenantId(), savedOrder.getId(), item.skuId(), item.skuName(),
                         item.quantity(), item.salePrice(), calculateLineAmount(item)))
                 .toList());
+        savedOrder.markReservingStock();
+        orderRepository.save(savedOrder);
+
+        InventoryReservationResultDTO reserveResult = reserveInventory(savedOrder, items);
+        savedOrder.markInventoryReserved(reserveResult.getReservationNo(), reserveResult.getWarehouseId());
+        orderRepository.save(savedOrder);
+
+        PaymentCreateResultDTO paymentResult = createPayment(savedOrder, command.channelCode());
+        savedOrder.markPendingPayment(paymentResult.getPaymentNo(), paymentResult.getChannelCode());
+        orderRepository.save(savedOrder);
         return toSummary(savedOrder);
     }
 
@@ -100,20 +123,39 @@ public class OrderApplicationService {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         order.cancel(reason);
+        InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);
+        applyReleaseResult(order, releaseResult, reason);
+        if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
+            paymentCommandFacade.closePayment(tenantId, order.getPaymentNo(), reason);
+        }
         orderRepository.save(order);
     }
 
-    public void markPaid(Long tenantId, String orderNo, String paymentNo, Instant paidTime) {
+    public void markPaid(Long tenantId, String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount,
+                         Instant paidTime) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
-        order.markPaid(paymentNo, paidTime);
+        order.markPaid(paymentNo, channelCode, paidAmount, paidTime);
+        InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(tenantId, orderNo);
+        if (!Order.INVENTORY_STATUS_DEDUCTED.equals(deductResult.getInventoryStatus())) {
+            String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
+            order.markInventoryFailed(deductResult.getReservationNo(), deductResult.getWarehouseId(), reason);
+            orderRepository.save(order);
+            throw new IllegalStateException(reason);
+        }
+        order.markInventoryDeducted(deductResult.getReservationNo(), deductResult.getWarehouseId(),
+                deductResult.getDeductedAt());
         orderRepository.save(order);
     }
 
-    public void markPaymentFailed(Long tenantId, String orderNo, String paymentNo, String reason) {
+    public void markPaymentFailed(Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus,
+                                  Instant failedTime) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
-        order.markPaymentFailed(paymentNo, reason);
+        order.markPaymentFailed(paymentNo, reason, channelStatus, failedTime);
+        InventoryReservationResultDTO releaseResult =
+                inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, "PAYMENT_FAILED");
+        applyReleaseResult(order, releaseResult, "PAYMENT_FAILED");
         orderRepository.save(order);
     }
 
@@ -121,7 +163,67 @@ public class OrderApplicationService {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         order.closeExpired(reason);
+        if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
+            paymentCommandFacade.closePayment(tenantId, order.getPaymentNo(), reason);
+        }
+        InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);
+        applyReleaseResult(order, releaseResult, reason);
         orderRepository.save(order);
+    }
+
+    private InventoryReservationResultDTO reserveInventory(Order order, List<CreateOrderItemCommand> items) {
+        List<InventoryReservationItemDTO> reserveItems = items.stream()
+                .map(item -> new InventoryReservationItemDTO(item.skuId(), item.quantity()))
+                .toList();
+        InventoryReservationResultDTO reserveResult = inventoryCommandFacade.reserveStock(
+                order.getTenantId(), order.getOrderNo(), reserveItems);
+        if (!Order.INVENTORY_STATUS_RESERVED.equals(reserveResult.getInventoryStatus())) {
+            String reason = resolveFailureReason(reserveResult.getFailureReason(), "inventory reserve failed");
+            order.markInventoryFailed(reserveResult.getReservationNo(), reserveResult.getWarehouseId(), reason);
+            order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
+            orderRepository.save(order);
+            throw new IllegalStateException(reason);
+        }
+        return reserveResult;
+    }
+
+    private PaymentCreateResultDTO createPayment(Order order, String channelCode) {
+        PaymentCreateResultDTO paymentResult = paymentCommandFacade.createPayment(order.getTenantId(), order.getOrderNo(),
+                order.getUserId(), order.getPayableAmount(), channelCode, buildPaymentSubject(order), order.getExpiredAt());
+        if (paymentResult.getPaymentNo() == null || paymentResult.getPaymentNo().isBlank()) {
+            closeForPaymentCreateFailed(order, resolveFailureReason(paymentResult.getFailureReason(), "payment create failed"));
+        }
+        if (!Order.PAY_STATUS_PAYING.equals(paymentResult.getPaymentStatus())) {
+            closeForPaymentCreateFailed(order, resolveFailureReason(paymentResult.getFailureReason(), "payment not in PAYING"));
+        }
+        return paymentResult;
+    }
+
+    private void closeForPaymentCreateFailed(Order order, String failureReason) {
+        InventoryReservationResultDTO releaseResult =
+                inventoryCommandFacade.releaseReservedStock(order.getTenantId(), order.getOrderNo(), CLOSE_REASON_PAYMENT_CREATE_FAILED);
+        applyReleaseResult(order, releaseResult, CLOSE_REASON_PAYMENT_CREATE_FAILED);
+        order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
+        orderRepository.save(order);
+        throw new IllegalStateException(failureReason);
+    }
+
+    private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
+        if (Order.INVENTORY_STATUS_RELEASED.equals(releaseResult.getInventoryStatus())) {
+            order.markInventoryReleased(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
+                    releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
+            return;
+        }
+        order.markInventoryFailed(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
+                resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
+    }
+
+    private String buildPaymentSubject(Order order) {
+        return "order:" + order.getOrderNo();
+    }
+
+    private String resolveFailureReason(String reason, String defaultReason) {
+        return reason == null || reason.isBlank() ? defaultReason : reason;
     }
 
     private OrderSummaryDTO toSummary(Order order) {
@@ -158,11 +260,19 @@ public class OrderApplicationService {
         if (order.getPaymentNo() == null) {
             return null;
         }
-        return "paymentNo=" + order.getPaymentNo() + ",payStatus=" + order.getPayStatus();
+        return "paymentNo=" + order.getPaymentNo()
+                + ",payStatus=" + order.getPayStatus()
+                + ",channelCode=" + Objects.toString(order.getPaymentChannelCode(), "N/A")
+                + ",paidAmount=" + Objects.toString(order.getPaidAmount(), "N/A")
+                + ",channelStatus=" + Objects.toString(order.getPaymentChannelStatus(), "N/A")
+                + ",failureReason=" + Objects.toString(order.getPaymentFailureReason(), "N/A");
     }
 
     private String buildInventorySnapshot(Order order) {
         String reservationNo = Objects.toString(order.getReservationNo(), "N/A");
-        return "reservationNo=" + reservationNo + ",inventoryStatus=" + order.getInventoryStatus();
+        return "reservationNo=" + reservationNo
+                + ",inventoryStatus=" + order.getInventoryStatus()
+                + ",warehouseId=" + Objects.toString(order.getWarehouseId(), "N/A")
+                + ",failureReason=" + Objects.toString(order.getInventoryFailureReason(), "N/A");
     }
 }

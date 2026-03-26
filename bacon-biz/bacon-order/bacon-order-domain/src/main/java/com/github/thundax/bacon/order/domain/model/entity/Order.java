@@ -5,6 +5,26 @@ import java.time.Instant;
 
 public class Order {
 
+    public static final String ORDER_STATUS_CREATED = "CREATED";
+    public static final String ORDER_STATUS_RESERVING_STOCK = "RESERVING_STOCK";
+    public static final String ORDER_STATUS_PENDING_PAYMENT = "PENDING_PAYMENT";
+    public static final String ORDER_STATUS_PAID = "PAID";
+    public static final String ORDER_STATUS_CANCELLED = "CANCELLED";
+    public static final String ORDER_STATUS_CLOSED = "CLOSED";
+
+    public static final String PAY_STATUS_UNPAID = "UNPAID";
+    public static final String PAY_STATUS_PAYING = "PAYING";
+    public static final String PAY_STATUS_PAID = "PAID";
+    public static final String PAY_STATUS_FAILED = "FAILED";
+    public static final String PAY_STATUS_CLOSED = "CLOSED";
+
+    public static final String INVENTORY_STATUS_UNRESERVED = "UNRESERVED";
+    public static final String INVENTORY_STATUS_RESERVING = "RESERVING";
+    public static final String INVENTORY_STATUS_RESERVED = "RESERVED";
+    public static final String INVENTORY_STATUS_RELEASED = "RELEASED";
+    public static final String INVENTORY_STATUS_DEDUCTED = "DEDUCTED";
+    public static final String INVENTORY_STATUS_FAILED = "FAILED";
+
     private Long id;
     private final Long tenantId;
     private final String orderNo;
@@ -24,6 +44,16 @@ public class Order {
     private final Instant expiredAt;
     private Instant paidAt;
     private Instant closedAt;
+    private String paymentChannelCode;
+    private BigDecimal paidAmount;
+    private String paymentChannelStatus;
+    private String paymentFailureReason;
+    private Instant paymentFailedAt;
+    private Long warehouseId;
+    private String inventoryFailureReason;
+    private String inventoryReleaseReason;
+    private Instant inventoryReleasedAt;
+    private Instant inventoryDeductedAt;
 
     public Order(Long id, Long tenantId, String orderNo, Long userId, String currencyCode,
                  BigDecimal totalAmount, BigDecimal payableAmount, String remark, Instant expiredAt) {
@@ -31,9 +61,9 @@ public class Order {
         this.tenantId = tenantId;
         this.orderNo = orderNo;
         this.userId = userId;
-        this.orderStatus = "CREATED";
-        this.payStatus = "UNPAID";
-        this.inventoryStatus = "UNRESERVED";
+        this.orderStatus = ORDER_STATUS_CREATED;
+        this.payStatus = PAY_STATUS_UNPAID;
+        this.inventoryStatus = INVENTORY_STATUS_UNRESERVED;
         this.currencyCode = currencyCode;
         this.totalAmount = totalAmount;
         this.payableAmount = payableAmount;
@@ -118,40 +148,151 @@ public class Order {
         return closedAt;
     }
 
+    public String getPaymentChannelCode() {
+        return paymentChannelCode;
+    }
+
+    public BigDecimal getPaidAmount() {
+        return paidAmount;
+    }
+
+    public String getPaymentChannelStatus() {
+        return paymentChannelStatus;
+    }
+
+    public String getPaymentFailureReason() {
+        return paymentFailureReason;
+    }
+
+    public Instant getPaymentFailedAt() {
+        return paymentFailedAt;
+    }
+
+    public Long getWarehouseId() {
+        return warehouseId;
+    }
+
+    public String getInventoryFailureReason() {
+        return inventoryFailureReason;
+    }
+
+    public String getInventoryReleaseReason() {
+        return inventoryReleaseReason;
+    }
+
+    public Instant getInventoryReleasedAt() {
+        return inventoryReleasedAt;
+    }
+
+    public Instant getInventoryDeductedAt() {
+        return inventoryDeductedAt;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
 
-    public void markPaid(String paymentNo, Instant paidTime) {
-        this.orderStatus = "PAID";
-        this.payStatus = "PAID";
-        this.inventoryStatus = "DEDUCTED";
+    public void markReservingStock() {
+        ensureOrderStatus(ORDER_STATUS_CREATED);
+        this.orderStatus = ORDER_STATUS_RESERVING_STOCK;
+        this.inventoryStatus = INVENTORY_STATUS_RESERVING;
+    }
+
+    public void markInventoryReserved(String reservationNo, Long warehouseId) {
+        ensureOrderStatus(ORDER_STATUS_RESERVING_STOCK);
+        this.reservationNo = reservationNo;
+        this.warehouseId = warehouseId;
+        this.inventoryStatus = INVENTORY_STATUS_RESERVED;
+    }
+
+    public void markInventoryReleased(String reservationNo, Long warehouseId, String releaseReason, Instant releasedAt) {
+        this.reservationNo = reservationNo;
+        this.warehouseId = warehouseId;
+        this.inventoryReleaseReason = releaseReason;
+        this.inventoryReleasedAt = releasedAt;
+        this.inventoryStatus = INVENTORY_STATUS_RELEASED;
+    }
+
+    public void markInventoryDeducted(String reservationNo, Long warehouseId, Instant deductedAt) {
+        this.reservationNo = reservationNo;
+        this.warehouseId = warehouseId;
+        this.inventoryDeductedAt = deductedAt;
+        this.inventoryStatus = INVENTORY_STATUS_DEDUCTED;
+    }
+
+    public void markInventoryFailed(String reservationNo, Long warehouseId, String failureReason) {
+        this.reservationNo = reservationNo;
+        this.warehouseId = warehouseId;
+        this.inventoryFailureReason = failureReason;
+        this.inventoryStatus = INVENTORY_STATUS_FAILED;
+    }
+
+    public void markPendingPayment(String paymentNo, String channelCode) {
+        ensureOrderStatus(ORDER_STATUS_RESERVING_STOCK);
+        this.orderStatus = ORDER_STATUS_PENDING_PAYMENT;
+        this.payStatus = PAY_STATUS_PAYING;
         this.paymentNo = paymentNo;
+        this.paymentChannelCode = channelCode;
+    }
+
+    public void markPaid(String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
+        ensureOrderStatus(ORDER_STATUS_PENDING_PAYMENT);
+        this.orderStatus = ORDER_STATUS_PAID;
+        this.payStatus = PAY_STATUS_PAID;
+        this.paymentNo = paymentNo;
+        this.paymentChannelCode = channelCode;
+        this.paidAmount = paidAmount;
         this.paidAt = paidTime;
     }
 
-    public void markPaymentFailed(String paymentNo, String reason) {
-        this.orderStatus = "CLOSED";
-        this.payStatus = "FAILED";
-        this.inventoryStatus = "RELEASED";
+    public void markPaymentFailed(String paymentNo, String reason, String channelStatus, Instant failedAt) {
+        ensureOrderStatus(ORDER_STATUS_PENDING_PAYMENT);
+        this.orderStatus = ORDER_STATUS_CLOSED;
+        this.payStatus = PAY_STATUS_FAILED;
         this.paymentNo = paymentNo;
+        this.paymentFailureReason = reason;
+        this.paymentChannelStatus = channelStatus;
+        this.paymentFailedAt = failedAt;
+        this.closeReason = reason;
+        this.closedAt = Instant.now();
+    }
+
+    public void closeByInventoryReserveFailed(String reason) {
+        ensureOrderStatus(ORDER_STATUS_RESERVING_STOCK);
+        this.orderStatus = ORDER_STATUS_CLOSED;
+        this.closeReason = reason;
+        this.closedAt = Instant.now();
+    }
+
+    public void closeByPaymentCreateFailed(String reason) {
+        ensureOrderStatus(ORDER_STATUS_RESERVING_STOCK);
+        this.orderStatus = ORDER_STATUS_CLOSED;
         this.closeReason = reason;
         this.closedAt = Instant.now();
     }
 
     public void closeExpired(String reason) {
-        this.orderStatus = "CLOSED";
-        this.payStatus = "CLOSED";
-        this.inventoryStatus = "RELEASED";
+        ensureOrderStatus(ORDER_STATUS_CREATED, ORDER_STATUS_PENDING_PAYMENT);
+        this.orderStatus = ORDER_STATUS_CLOSED;
+        this.payStatus = PAY_STATUS_CLOSED;
         this.closeReason = reason;
         this.closedAt = Instant.now();
     }
 
     public void cancel(String reason) {
-        this.orderStatus = "CANCELLED";
-        this.payStatus = "CLOSED";
+        ensureOrderStatus(ORDER_STATUS_CREATED, ORDER_STATUS_PENDING_PAYMENT, ORDER_STATUS_RESERVING_STOCK);
+        this.orderStatus = ORDER_STATUS_CANCELLED;
+        this.payStatus = PAY_STATUS_CLOSED;
         this.cancelReason = reason;
-        this.inventoryStatus = "RELEASED";
         this.closedAt = Instant.now();
+    }
+
+    private void ensureOrderStatus(String... expectedStatuses) {
+        for (String expectedStatus : expectedStatuses) {
+            if (expectedStatus.equals(orderStatus)) {
+                return;
+            }
+        }
+        throw new IllegalStateException("Invalid order status: " + orderStatus);
     }
 }

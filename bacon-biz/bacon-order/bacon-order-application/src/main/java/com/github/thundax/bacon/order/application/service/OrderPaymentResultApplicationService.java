@@ -15,11 +15,11 @@ public class OrderPaymentResultApplicationService {
     }
 
     public void markPaid(Long tenantId, String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
-        orderApplicationService.markPaid(tenantId, orderNo, paymentNo, paidTime);
+        orderApplicationService.markPaid(tenantId, orderNo, paymentNo, channelCode, paidAmount, paidTime);
     }
 
     public void markPaymentFailed(Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus,
                                   Instant failedTime) {
-        orderApplicationService.markPaymentFailed(tenantId, orderNo, paymentNo, reason);
+        orderApplicationService.markPaymentFailed(tenantId, orderNo, paymentNo, reason, channelStatus, failedTime);
     }
 }

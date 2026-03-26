@@ -43,6 +43,11 @@ bacon:
   id:
     generator:
       provider: tinyid
+      tiny-id:
+        server: ${BACON_TINYID_SERVER:127.0.0.1:9999}
+        token: ${BACON_TINYID_TOKEN:tinyid_token}
+        connect-timeout: ${BACON_TINYID_CONNECT_TIMEOUT:5s}
+        read-timeout: ${BACON_TINYID_READ_TIMEOUT:5s}
 
 management:
   endpoints:

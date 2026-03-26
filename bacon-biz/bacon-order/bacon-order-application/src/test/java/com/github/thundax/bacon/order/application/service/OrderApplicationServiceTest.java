@@ -17,6 +17,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
@@ -29,6 +31,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
@@ -314,6 +317,28 @@ class OrderApplicationServiceTest {
         @Override
         public List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo) {
             return List.copyOf(auditLogs.getOrDefault(tenantId + ":" + orderNo, List.of()));
+        }
+
+        @Override
+        public OrderPageResult pageOrders(OrderPageQuery query) {
+            List<Order> filtered = storage.values().stream()
+                    .filter(order -> query.tenantId() == null || query.tenantId().equals(order.getTenantId()))
+                    .filter(order -> query.userId() == null || query.userId().equals(order.getUserId()))
+                    .filter(order -> query.orderNo() == null || order.getOrderNo().contains(query.orderNo()))
+                    .filter(order -> query.orderStatus() == null || query.orderStatus().equals(order.getOrderStatus()))
+                    .filter(order -> query.payStatus() == null || query.payStatus().equals(order.getPayStatus()))
+                    .filter(order -> query.inventoryStatus() == null || query.inventoryStatus().equals(order.getInventoryStatus()))
+                    .filter(order -> query.createdAtFrom() == null || !order.getCreatedAt().isBefore(query.createdAtFrom()))
+                    .filter(order -> query.createdAtTo() == null || !order.getCreatedAt().isAfter(query.createdAtTo()))
+                    .sorted(Comparator.comparing(Order::getCreatedAt).reversed()
+                            .thenComparing(Order::getId, Comparator.reverseOrder()))
+                    .toList();
+            long total = filtered.size();
+            List<Order> records = filtered.stream()
+                    .skip(query.offset())
+                    .limit(query.limit())
+                    .toList();
+            return new OrderPageResult(records, total);
         }
 
         @Override

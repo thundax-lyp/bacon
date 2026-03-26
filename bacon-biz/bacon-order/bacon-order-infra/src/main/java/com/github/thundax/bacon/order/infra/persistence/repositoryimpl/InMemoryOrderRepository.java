@@ -113,7 +113,8 @@ public class InMemoryOrderRepository implements OrderRepository {
                 .filter(order -> query.inventoryStatus() == null || query.inventoryStatus().equals(order.getInventoryStatus()))
                 .filter(order -> query.createdAtFrom() == null || !order.getCreatedAt().isBefore(query.createdAtFrom()))
                 .filter(order -> query.createdAtTo() == null || !order.getCreatedAt().isAfter(query.createdAtTo()))
-                .sorted(Comparator.comparing(Order::getCreatedAt).reversed().thenComparing(Order::getId).reversed())
+                .sorted(Comparator.comparing(Order::getCreatedAt).reversed()
+                        .thenComparing(Order::getId, Comparator.reverseOrder()))
                 .toList();
         long total = filtered.size();
         int offset = Math.max(query.offset(), 0);

@@ -18,6 +18,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderDomainService;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
@@ -33,7 +35,6 @@ import java.util.Objects;
 @Service
 public class OrderApplicationService {
 
-    private static final int DEFAULT_PAGE_SIZE = 10;
     private static final String CLOSE_REASON_INVENTORY_RESERVE_FAILED = "INVENTORY_RESERVE_FAILED";
     private static final String CLOSE_REASON_PAYMENT_CREATE_FAILED = "PAYMENT_CREATE_FAILED";
     private static final String ACTION_CREATE = "ORDER_CREATE";
@@ -102,28 +103,15 @@ public class OrderApplicationService {
 
     public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
-        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize(), DEFAULT_PAGE_SIZE);
-        List<Order> filtered = orderRepository.findAll().stream()
-                .filter(order -> query.getTenantId() == null || query.getTenantId().equals(order.getTenantId()))
-                .filter(order -> query.getUserId() == null || query.getUserId().equals(order.getUserId()))
-                .filter(order -> query.getOrderNo() == null || order.getOrderNo().contains(query.getOrderNo()))
-                .toList();
-        filtered = filtered.stream()
-                .filter(order -> query.getOrderStatus() == null || query.getOrderStatus().equals(order.getOrderStatus()))
-                .filter(order -> query.getPayStatus() == null || query.getPayStatus().equals(order.getPayStatus()))
-                .filter(order -> query.getInventoryStatus() == null
-                        || query.getInventoryStatus().equals(order.getInventoryStatus()))
-                .filter(order -> query.getCreatedAtFrom() == null || !order.getCreatedAt().isBefore(query.getCreatedAtFrom()))
-                .filter(order -> query.getCreatedAtTo() == null || !order.getCreatedAt().isAfter(query.getCreatedAtTo()))
-                .sorted(java.util.Comparator.comparing(Order::getCreatedAt).reversed().thenComparing(Order::getId).reversed())
-                .toList();
-        long total = filtered.size();
-        List<OrderSummaryDTO> records = filtered.stream()
-                .skip((long) (pageNo - 1) * pageSize)
-                .limit(pageSize)
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+        int offset = Math.max(0, (pageNo - 1) * pageSize);
+        OrderPageResult pageResult = orderRepository.pageOrders(new OrderPageQuery(query.getTenantId(),
+                query.getUserId(), query.getOrderNo(), query.getOrderStatus(), query.getPayStatus(),
+                query.getInventoryStatus(), query.getCreatedAtFrom(), query.getCreatedAtTo(), offset, pageSize));
+        List<OrderSummaryDTO> records = pageResult.records().stream()
                 .map(this::toSummary)
                 .toList();
-        return new OrderPageResultDTO(records, total, pageNo, pageSize);
+        return new OrderPageResultDTO(records, pageResult.total(), pageNo, pageSize);
     }
 
     public void cancelOrder(Long tenantId, String orderNo, String reason) {
@@ -260,15 +248,9 @@ public class OrderApplicationService {
     }
 
     private OrderSummaryDTO toSummary(Order order) {
-        String paymentNo = orderRepository.findPaymentSnapshotByOrderId(order.getTenantId(), order.getId())
-                .map(OrderPaymentSnapshot::paymentNo)
-                .orElse(order.getPaymentNo());
-        String reservationNo = orderRepository.findInventorySnapshotByOrderId(order.getTenantId(), order.getId())
-                .map(OrderInventorySnapshot::reservationNo)
-                .orElse(order.getReservationNo());
         return new OrderSummaryDTO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
-                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), paymentNo,
-                reservationNo, order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
+                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNo(),
+                order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
                 order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt());
     }
 

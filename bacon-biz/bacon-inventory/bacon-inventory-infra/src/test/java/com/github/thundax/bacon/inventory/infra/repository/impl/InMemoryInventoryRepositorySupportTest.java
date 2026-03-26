@@ -7,6 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryInventoryRepositorySupportTest {
@@ -58,5 +59,25 @@ class InMemoryInventoryRepositorySupportTest {
         assertEquals(0, repository.releaseExpiredAuditOutboxLease(now.plusSeconds(10)));
         assertEquals(1, repository.releaseExpiredAuditOutboxLease(now.plusSeconds(31)));
         assertEquals(1, repository.findRetryableAuditOutbox(now.plusSeconds(31), 10).size());
+    }
+
+    @Test
+    void shouldRequireOwnerMatchWhenUpdatingClaimedOutbox() {
+        InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
+        Instant now = Instant.parse("2026-03-26T10:00:00Z");
+        repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-3", "RSV-3",
+                "RESERVE", "SYSTEM", 0L, now, "INIT", InventoryAuditOutbox.STATUS_NEW,
+                0, now, null, null, null, null, now, now));
+
+        List<InventoryAuditOutbox> claimed = repository.claimRetryableAuditOutbox(now, 1, "owner-a",
+                now.plusSeconds(30));
+        Long outboxId = claimed.get(0).getId();
+        boolean wrongOwnerUpdated = repository.updateAuditOutboxForRetryClaimed(outboxId, "owner-b",
+                1, now.plusSeconds(60), "ERR", now.plusSeconds(5));
+        boolean rightOwnerUpdated = repository.updateAuditOutboxForRetryClaimed(outboxId, "owner-a",
+                1, now.plusSeconds(60), "ERR", now.plusSeconds(5));
+
+        assertFalse(wrongOwnerUpdated);
+        assertTrue(rightOwnerUpdated);
     }
 }

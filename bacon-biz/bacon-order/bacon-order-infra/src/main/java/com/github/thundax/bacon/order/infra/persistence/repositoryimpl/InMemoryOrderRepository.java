@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.persistence.repositoryimpl;
 
 import com.github.thundax.bacon.order.domain.model.entity.Order;
+import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class InMemoryOrderRepository implements OrderRepository {
 
     private final Map<Long, Order> storage = new ConcurrentHashMap<>();
+    private final Map<Long, List<OrderItem>> itemsStorage = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1000L);
 
     @Override
@@ -36,6 +38,18 @@ public class InMemoryOrderRepository implements OrderRepository {
                 .filter(order -> tenantId.equals(order.getTenantId()))
                 .filter(order -> orderNo.equals(order.getOrderNo()))
                 .findFirst();
+    }
+
+    @Override
+    public void saveItems(Long tenantId, Long orderId, List<OrderItem> items) {
+        itemsStorage.put(orderId, items == null ? List.of() : List.copyOf(items));
+    }
+
+    @Override
+    public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId) {
+        return itemsStorage.getOrDefault(orderId, List.of()).stream()
+                .filter(item -> tenantId.equals(item.getTenantId()))
+                .toList();
     }
 
     @Override

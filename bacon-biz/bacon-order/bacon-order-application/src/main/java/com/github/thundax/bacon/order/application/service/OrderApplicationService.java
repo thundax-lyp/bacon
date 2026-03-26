@@ -10,6 +10,7 @@ import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.application.query.GetOrderQuery;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
+import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderDomainService;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
@@ -49,7 +50,12 @@ public class OrderApplicationService {
         Order order = orderDomainService.create(null, command.tenantId(), orderNo, command.userId(),
                 resolveCurrencyCode(command.currencyCode()), totalAmount, totalAmount, command.remark(),
                 command.expiredAt());
-        return toSummary(orderRepository.save(order));
+        Order savedOrder = orderRepository.save(order);
+        orderRepository.saveItems(savedOrder.getTenantId(), savedOrder.getId(), items.stream()
+                .map(item -> new OrderItem(savedOrder.getTenantId(), savedOrder.getId(), item.skuId(), item.skuName(),
+                        item.quantity(), item.salePrice(), calculateLineAmount(item)))
+                .toList());
+        return toSummary(savedOrder);
     }
 
     public OrderDetailDTO get(GetOrderQuery query) {
@@ -126,11 +132,14 @@ public class OrderApplicationService {
     }
 
     private OrderDetailDTO toDetail(Order order) {
+        List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantId(), order.getId()).stream()
+                .map(item -> new OrderItemDTO(item.getSkuId(), item.getSkuName(), item.getQuantity(),
+                        item.getSalePrice(), item.getLineAmount()))
+                .toList();
         return new OrderDetailDTO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNo(),
                 order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
-                order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(),
-                List.of(new OrderItemDTO(101L, "demo-item", 1, BigDecimal.TEN, BigDecimal.TEN)),
+                order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(), itemDtos,
                 buildPaymentSnapshot(order), buildInventorySnapshot(order), order.getPaidAt(), order.getClosedAt());
     }
 

@@ -6,6 +6,7 @@ import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
+import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
 import java.math.BigDecimal;
@@ -35,6 +36,7 @@ class OrderApplicationServiceTest {
         assertEquals(1001L, result.getTenantId());
         assertEquals(BigDecimal.valueOf(20), result.getTotalAmount());
         assertEquals("CREATED", result.getOrderStatus());
+        assertEquals(1, service.getByOrderNo(1001L, "ORD-10001").getItems().size());
     }
 
     @Test
@@ -92,6 +94,7 @@ class OrderApplicationServiceTest {
     private static final class TestOrderRepository implements OrderRepository {
 
         private final Map<Long, Order> storage = new ConcurrentHashMap<>();
+        private final Map<Long, List<OrderItem>> itemStorage = new ConcurrentHashMap<>();
         private final AtomicLong idGenerator = new AtomicLong(1000L);
 
         @Override
@@ -114,6 +117,18 @@ class OrderApplicationServiceTest {
                     .filter(order -> tenantId.equals(order.getTenantId()))
                     .filter(order -> orderNo.equals(order.getOrderNo()))
                     .findFirst();
+        }
+
+        @Override
+        public void saveItems(Long tenantId, Long orderId, List<OrderItem> items) {
+            itemStorage.put(orderId, items == null ? List.of() : List.copyOf(items));
+        }
+
+        @Override
+        public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId) {
+            return itemStorage.getOrDefault(orderId, List.of()).stream()
+                    .filter(item -> tenantId.equals(item.getTenantId()))
+                    .toList();
         }
 
         @Override

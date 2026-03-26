@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class InventoryAuditReplayTaskServiceTest {
+class InventoryAuditReplayTaskApplicationServiceTest {
 
     @Test
     void shouldCreateAndProcessReplayTask() {
@@ -35,9 +35,9 @@ class InventoryAuditReplayTaskServiceTest {
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z")));
 
-        InventoryAuditReplayTaskService taskService = new InventoryAuditReplayTaskService(repository);
-        InventoryAuditCompensationService compensationService = new InventoryAuditCompensationService(repository,
-                new InventoryAuditReplayTransactionService(repository, repository, new InventoryTransactionExecutor()));
+        InventoryAuditReplayTaskApplicationService taskService = new InventoryAuditReplayTaskApplicationService(repository);
+        InventoryAuditCompensationApplicationService compensationService = new InventoryAuditCompensationApplicationService(repository,
+                new InventoryAuditReplayTransactionExecutor(repository, repository, new InventoryTransactionExecutor()));
 
         var created = taskService.createReplayTask(new InventoryAuditReplayTaskCreateDTO(3001L, 9001L,
                 "TASK-BATCH", List.of(101L)));

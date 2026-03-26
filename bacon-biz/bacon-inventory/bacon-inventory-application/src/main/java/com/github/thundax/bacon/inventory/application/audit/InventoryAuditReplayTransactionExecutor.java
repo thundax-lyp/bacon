@@ -10,13 +10,13 @@ import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 @Component
-public class InventoryAuditReplayTransactionService {
+public class InventoryAuditReplayTransactionExecutor {
 
     private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
     private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
     private final InventoryTransactionExecutor inventoryTransactionExecutor;
 
-    public InventoryAuditReplayTransactionService(InventoryAuditRecordRepository inventoryAuditRecordRepository,
+    public InventoryAuditReplayTransactionExecutor(InventoryAuditRecordRepository inventoryAuditRecordRepository,
                                                   InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
                                                   InventoryTransactionExecutor inventoryTransactionExecutor) {
         this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;

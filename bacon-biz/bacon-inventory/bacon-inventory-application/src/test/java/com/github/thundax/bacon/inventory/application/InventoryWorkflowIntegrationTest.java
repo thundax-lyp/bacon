@@ -48,7 +48,7 @@ class InventoryWorkflowIntegrationTest {
     @Test
     void shouldHandleConcurrentReserveWithOptimisticRetry() throws Exception {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(false);
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
+        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
         InventoryReservationApplicationService service = new InventoryReservationApplicationService(
                 repository,
                 repository,
@@ -92,8 +92,8 @@ class InventoryWorkflowIntegrationTest {
     @Test
     void shouldMoveOutboxToDeadLetterAfterRetryExhausted() {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(true);
-        InventoryAuditOutboxRetryService retryService =
-                new InventoryAuditOutboxRetryService(repository, repository, repository);
+        InventoryAuditOutboxRetrier retryService =
+                new InventoryAuditOutboxRetrier(repository, repository, repository);
         ReflectionTestUtils.setField(retryService, "enabled", true);
         ReflectionTestUtils.setField(retryService, "batchSize", 10);
         ReflectionTestUtils.setField(retryService, "maxRetries", 1);
@@ -115,8 +115,8 @@ class InventoryWorkflowIntegrationTest {
     @Test
     void shouldDeleteOutboxAfterRetrySuccess() {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(false);
-        InventoryAuditOutboxRetryService retryService =
-                new InventoryAuditOutboxRetryService(repository, repository, repository);
+        InventoryAuditOutboxRetrier retryService =
+                new InventoryAuditOutboxRetrier(repository, repository, repository);
         ReflectionTestUtils.setField(retryService, "enabled", true);
         ReflectionTestUtils.setField(retryService, "batchSize", 10);
         ReflectionTestUtils.setField(retryService, "maxRetries", 3);

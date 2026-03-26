@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class InventoryAuditOutboxRetryService {
+public class InventoryAuditOutboxRetrier {
 
     private static final int MAX_EXPONENT = 20;
 
@@ -42,7 +42,7 @@ public class InventoryAuditOutboxRetryService {
 
     private final String processingOwner = UUID.randomUUID().toString();
 
-    public InventoryAuditOutboxRetryService(InventoryAuditRecordRepository inventoryAuditRecordRepository,
+    public InventoryAuditOutboxRetrier(InventoryAuditRecordRepository inventoryAuditRecordRepository,
                                             InventoryAuditOutboxRepository inventoryAuditOutboxRepository,
                                             InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository) {
         this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;

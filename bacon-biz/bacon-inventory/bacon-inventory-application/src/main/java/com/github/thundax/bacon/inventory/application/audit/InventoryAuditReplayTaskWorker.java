@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 public class InventoryAuditReplayTaskWorker {
 
     private final InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository;
-    private final InventoryAuditReplayTaskService inventoryAuditReplayTaskService;
-    private final InventoryAuditCompensationService inventoryAuditCompensationService;
+    private final InventoryAuditReplayTaskApplicationService inventoryAuditReplayTaskService;
+    private final InventoryAuditCompensationApplicationService inventoryAuditCompensationService;
 
     @Value("${bacon.inventory.audit.replay-task.enabled:true}")
     private boolean enabled;
@@ -33,8 +33,8 @@ public class InventoryAuditReplayTaskWorker {
     private final String ownerSuffix = UUID.randomUUID().toString();
 
     public InventoryAuditReplayTaskWorker(InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository,
-                                          InventoryAuditReplayTaskService inventoryAuditReplayTaskService,
-                                          InventoryAuditCompensationService inventoryAuditCompensationService) {
+                                          InventoryAuditReplayTaskApplicationService inventoryAuditReplayTaskService,
+                                          InventoryAuditCompensationApplicationService inventoryAuditCompensationService) {
         this.inventoryAuditReplayTaskRepository = inventoryAuditReplayTaskRepository;
         this.inventoryAuditReplayTaskService = inventoryAuditReplayTaskService;
         this.inventoryAuditCompensationService = inventoryAuditCompensationService;

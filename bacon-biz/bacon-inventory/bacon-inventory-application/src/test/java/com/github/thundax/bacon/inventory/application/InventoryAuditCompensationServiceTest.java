@@ -22,12 +22,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class InventoryAuditCompensationServiceTest {
+class InventoryAuditCompensationApplicationServiceTest {
 
     @Test
     void shouldReplayDeadLetterSuccessfully() {
         TestLogRepository repository = new TestLogRepository();
-        InventoryAuditCompensationService service = createService(repository);
+        InventoryAuditCompensationApplicationService service = createService(repository);
         repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1001L, 2001L, 3001L, "ORDER-1", "RSV-1",
                 InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 3, "FAIL",
@@ -47,7 +47,7 @@ class InventoryAuditCompensationServiceTest {
     @Test
     void shouldBatchReplayAndKeepRunningItemsUnchanged() {
         TestLogRepository repository = new TestLogRepository();
-        InventoryAuditCompensationService service = createService(repository);
+        InventoryAuditCompensationApplicationService service = createService(repository);
         repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1002L, 2002L, 3001L, "ORDER-2", "RSV-2",
                 InventoryAuditLog.ACTION_RELEASE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL",
@@ -70,7 +70,7 @@ class InventoryAuditCompensationServiceTest {
     @Test
     void shouldCompensateWhenReplayTransactionFails() {
         TestLogRepository repository = new TestLogRepository();
-        InventoryAuditCompensationService service = createService(repository, new FailingOnceTransactionExecutor());
+        InventoryAuditCompensationApplicationService service = createService(repository, new FailingOnceTransactionExecutor());
         repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1004L, 2004L, 3001L, "ORDER-4", "RSV-4",
                 InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
@@ -86,15 +86,15 @@ class InventoryAuditCompensationServiceTest {
                 repository.auditLogs.get(repository.auditLogs.size() - 1).getActionType());
     }
 
-    private InventoryAuditCompensationService createService(TestLogRepository repository) {
+    private InventoryAuditCompensationApplicationService createService(TestLogRepository repository) {
         return createService(repository, new InventoryTransactionExecutor());
     }
 
-    private InventoryAuditCompensationService createService(TestLogRepository repository,
+    private InventoryAuditCompensationApplicationService createService(TestLogRepository repository,
                                                             InventoryTransactionExecutor transactionExecutor) {
-        InventoryAuditReplayTransactionService service =
-                new InventoryAuditReplayTransactionService(repository, repository, transactionExecutor);
-        return new InventoryAuditCompensationService(repository, service);
+        InventoryAuditReplayTransactionExecutor service =
+                new InventoryAuditReplayTransactionExecutor(repository, repository, transactionExecutor);
+        return new InventoryAuditCompensationApplicationService(repository, service);
     }
 
     private static final class FailingOnceTransactionExecutor extends InventoryTransactionExecutor {

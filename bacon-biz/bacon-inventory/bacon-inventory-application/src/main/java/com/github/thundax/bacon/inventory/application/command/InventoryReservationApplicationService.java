@@ -3,7 +3,7 @@ package com.github.thundax.bacon.inventory.application.command;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
-import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogService;
+import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -29,7 +29,7 @@ public class InventoryReservationApplicationService {
 
     private final InventoryStockRepository inventoryStockRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
-    private final InventoryOperationLogService inventoryOperationLogService;
+    private final InventoryOperationLogSupport inventoryOperationLogService;
     private final InventoryReservationNoGenerator inventoryReservationNoGenerator;
     private final InventoryTransactionExecutor inventoryTransactionExecutor;
     private final InventoryWriteRetrier inventoryWriteRetrier;
@@ -37,7 +37,7 @@ public class InventoryReservationApplicationService {
     @Autowired
     public InventoryReservationApplicationService(InventoryStockRepository inventoryStockRepository,
                                                   InventoryReservationRepository inventoryReservationRepository,
-                                                  InventoryOperationLogService inventoryOperationLogService,
+                                                  InventoryOperationLogSupport inventoryOperationLogService,
                                                   InventoryReservationNoGenerator inventoryReservationNoGenerator,
                                                   InventoryTransactionExecutor inventoryTransactionExecutor,
                                                   InventoryWriteRetrier inventoryWriteRetrier) {
@@ -51,7 +51,7 @@ public class InventoryReservationApplicationService {
 
     public InventoryReservationApplicationService(InventoryStockRepository inventoryStockRepository,
                                                   InventoryReservationRepository inventoryReservationRepository,
-                                                  InventoryOperationLogService inventoryOperationLogService,
+                                                  InventoryOperationLogSupport inventoryOperationLogService,
                                                   InventoryReservationNoGenerator inventoryReservationNoGenerator) {
         this(inventoryStockRepository, inventoryReservationRepository, inventoryOperationLogService,
                 inventoryReservationNoGenerator, new InventoryTransactionExecutor(), new InventoryWriteRetrier());

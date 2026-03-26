@@ -37,7 +37,7 @@ class InventoryApplicationServiceTest {
     @Test
     void reserveStockShouldBeIdempotentAndUpdateAvailableQuantity() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
+        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),
@@ -65,7 +65,7 @@ class InventoryApplicationServiceTest {
     @Test
     void reserveStockShouldReturnFailedWhenStockIsInsufficient() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
+        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),
@@ -90,7 +90,7 @@ class InventoryApplicationServiceTest {
     @Test
     void releaseReservedStockShouldBeIdempotent() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
+        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),
@@ -116,7 +116,7 @@ class InventoryApplicationServiceTest {
     @Test
     void deductReservedStockShouldBeIdempotent() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
+        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),
@@ -143,7 +143,7 @@ class InventoryApplicationServiceTest {
     @Test
     void reserveStockShouldBatchLoadInventoriesWithoutPerSkuPreRead() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
+        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),

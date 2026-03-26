@@ -16,13 +16,13 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 @Service
-public class InventoryAuditReplayTaskService {
+public class InventoryAuditReplayTaskApplicationService {
 
     private static final String OPERATOR_TYPE_MANUAL = "MANUAL";
 
     private final InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository;
 
-    public InventoryAuditReplayTaskService(InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository) {
+    public InventoryAuditReplayTaskApplicationService(InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository) {
         this.inventoryAuditReplayTaskRepository = inventoryAuditReplayTaskRepository;
     }
 
@@ -77,7 +77,7 @@ public class InventoryAuditReplayTaskService {
         return toDto(getTaskById(taskId));
     }
 
-    public void processClaimedTask(InventoryAuditReplayTask task, InventoryAuditCompensationService compensationService,
+    public void processClaimedTask(InventoryAuditReplayTask task, InventoryAuditCompensationApplicationService compensationService,
                                    String processingOwner, int batchSize, long leaseSeconds) {
         if (task == null || !InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus())) {
             return;

@@ -4,8 +4,8 @@ import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageQueryDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
-import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationService;
-import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskService;
+import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
+import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryAuditBatchReplayRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryAuditDeadLetterPageRequest;
@@ -39,12 +39,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class InventoryAuditCompensationController {
 
     private final InventoryQueryApplicationService inventoryQueryService;
-    private final InventoryAuditCompensationService inventoryAuditCompensationService;
-    private final InventoryAuditReplayTaskService inventoryAuditReplayTaskService;
+    private final InventoryAuditCompensationApplicationService inventoryAuditCompensationService;
+    private final InventoryAuditReplayTaskApplicationService inventoryAuditReplayTaskService;
 
     public InventoryAuditCompensationController(InventoryQueryApplicationService inventoryQueryService,
-                                                InventoryAuditCompensationService inventoryAuditCompensationService,
-                                                InventoryAuditReplayTaskService inventoryAuditReplayTaskService) {
+                                                InventoryAuditCompensationApplicationService inventoryAuditCompensationService,
+                                                InventoryAuditReplayTaskApplicationService inventoryAuditReplayTaskService) {
         this.inventoryQueryService = inventoryQueryService;
         this.inventoryAuditCompensationService = inventoryAuditCompensationService;
         this.inventoryAuditReplayTaskService = inventoryAuditReplayTaskService;

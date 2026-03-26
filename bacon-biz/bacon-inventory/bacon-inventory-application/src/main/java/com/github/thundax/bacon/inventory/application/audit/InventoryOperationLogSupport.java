@@ -17,12 +17,12 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 @Slf4j
 @Service
-public class InventoryOperationLogService {
+public class InventoryOperationLogSupport {
 
     private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
     private final InventoryAuditOutboxRepository inventoryAuditOutboxRepository;
 
-    public InventoryOperationLogService(InventoryAuditRecordRepository inventoryAuditRecordRepository,
+    public InventoryOperationLogSupport(InventoryAuditRecordRepository inventoryAuditRecordRepository,
                                         InventoryAuditOutboxRepository inventoryAuditOutboxRepository) {
         this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;
         this.inventoryAuditOutboxRepository = inventoryAuditOutboxRepository;

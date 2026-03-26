@@ -15,15 +15,15 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class InventoryAuditCompensationService {
+public class InventoryAuditCompensationApplicationService {
 
     private static final String REPLAY_OPERATOR_TYPE = "MANUAL";
 
     private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
-    private final InventoryAuditReplayTransactionService inventoryAuditReplayTransactionService;
+    private final InventoryAuditReplayTransactionExecutor inventoryAuditReplayTransactionService;
 
-    public InventoryAuditCompensationService(InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
-                                             InventoryAuditReplayTransactionService inventoryAuditReplayTransactionService) {
+    public InventoryAuditCompensationApplicationService(InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
+                                             InventoryAuditReplayTransactionExecutor inventoryAuditReplayTransactionService) {
         this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
         this.inventoryAuditReplayTransactionService = inventoryAuditReplayTransactionService;
     }

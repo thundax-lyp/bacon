@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.infra.facade.impl;
+package com.github.thundax.bacon.inventory.infra.rpc.impl;
 
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;

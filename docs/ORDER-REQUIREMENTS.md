@@ -382,6 +382,16 @@ Order 是 Bacon 的统一订单业务域。
 - `memory` 模式仅允许用于测试环境（`test` profile）
 - 非测试环境禁止启用 `memory` 模式
 
+### 6.11 Outbox Saga Rule
+
+- 跨域编排固定采用“本地状态事务 + Outbox 事件驱动补偿”模型
+- `Order` 在发起库存预占、支付创建、库存释放等跨域动作前，必须先落库对应 outbox 事件
+- outbox 事件固定状态：`NEW`、`RETRYING`、`PROCESSING`、`DEAD`
+- 重试必须采用 claim + lease 机制，确保同一事件同一时刻只被一个实例处理
+- 重试耗尽后必须进入 dead-letter，并提供后续重放能力
+- outbox 事件必须携带幂等业务键 `businessKey`，并在数据库层做唯一约束
+- 允许同步“立即尝试”，但同步失败不得丢弃事件，必须由 outbox 重试接管
+
 ## 7. Functional Requirements
 
 ### 7.1 Create Order

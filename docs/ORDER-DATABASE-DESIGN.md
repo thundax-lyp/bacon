@@ -80,6 +80,8 @@
 | `OrderPaymentSnapshot` | `bacon_order_payment_snapshot` |
 | `OrderInventorySnapshot` | `bacon_order_inventory_snapshot` |
 | `OrderAuditLog` | `bacon_order_audit_log` |
+| `OrderOutboxEvent` | `bacon_order_outbox` |
+| `OrderOutboxDeadLetter` | `bacon_order_dead_letter` |
 
 ## 7. Table Design
 
@@ -238,6 +240,80 @@
 - `idx_tenant_occurred(tenant_id, occurred_at)`
 - `idx_order_no(order_no)`
 
+### 7.6 `bacon_order_outbox`
+
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化跨域编排事件
+- 提供重试、抢占、租约与死信流转基础
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
+| `order_no` | `varchar(64)` | N | 订单业务键 |
+| `event_type` | `varchar(64)` | N | 事件类型 |
+| `business_key` | `varchar(128)` | N | 幂等业务键 |
+| `payload` | `text` | Y | 事件载荷 |
+| `status` | `varchar(32)` | N | 事件状态：`NEW`、`RETRYING`、`PROCESSING`、`DEAD` |
+| `retry_count` | `int` | N | 重试次数 |
+| `next_retry_at` | `datetime(3)` | Y | 下次重试时间 |
+| `processing_owner` | `varchar(128)` | Y | 处理者标识 |
+| `lease_until` | `datetime(3)` | Y | 租约到期时间 |
+| `claimed_at` | `datetime(3)` | Y | 抢占时间 |
+| `error_message` | `varchar(512)` | Y | 最近错误信息 |
+| `dead_reason` | `varchar(128)` | Y | 死信原因 |
+| `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_at` | `datetime(3)` | N | 更新时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `uk_biz_event(tenant_id, business_key, event_type)`
+- `idx_status_next_retry(status, next_retry_at)`
+- `idx_tenant_order(tenant_id, order_no)`
+
+### 7.7 `bacon_order_dead_letter`
+
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化 outbox 重试耗尽事件
+- 支撑后续运营重放与补偿
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `outbox_id` | `bigint` | N | outbox 主键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
+| `order_no` | `varchar(64)` | N | 订单业务键 |
+| `event_type` | `varchar(64)` | N | 事件类型 |
+| `business_key` | `varchar(128)` | N | 幂等业务键 |
+| `payload` | `text` | Y | 事件载荷 |
+| `retry_count` | `int` | N | 重试次数 |
+| `error_message` | `varchar(512)` | Y | 错误信息 |
+| `dead_reason` | `varchar(128)` | N | 死信原因 |
+| `dead_at` | `datetime(3)` | N | 死信时间 |
+| `replay_status` | `varchar(32)` | N | 重放状态 |
+| `replay_count` | `int` | N | 重放次数 |
+| `last_replay_at` | `datetime(3)` | Y | 最近重放时间 |
+| `last_replay_message` | `varchar(512)` | Y | 最近重放信息 |
+| `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_at` | `datetime(3)` | N | 更新时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `idx_tenant_dead_at(tenant_id, dead_at)`
+- `idx_order_no(order_no)`
+
 ## 8. Relationship Rules
 
 - `bacon_order_item.order_id` 关联 `bacon_order_order.id`
@@ -260,6 +336,7 @@
 - `Order.payable_amount` 当前固定等于 `Order.total_amount`
 - `id` 是数据库主键；`order_no` 是业务单号；二者不得混用
 - `OrderPaymentSnapshot` 和 `OrderInventorySnapshot` 是订单侧只读快照，不承载对端主数据
+- `OrderOutboxEvent.business_key + event_type` 必须全局幂等
 
 ## 10. Query Model Rules
 

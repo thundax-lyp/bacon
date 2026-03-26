@@ -2,7 +2,8 @@ package com.github.thundax.bacon.common.id.core;
 
 public enum IdProviderType {
     TINYID,
-    LEAF;
+    LEAF,
+    SNOWFLAKE;
 
     public static IdProviderType from(String provider) {
         if (provider == null || provider.isBlank()) {

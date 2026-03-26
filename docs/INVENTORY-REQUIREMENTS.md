@@ -257,7 +257,9 @@ Inventory 是 Bacon 的统一库存业务域。
 ### 6.1.1 Numbering Rule
 
 - `reservationNo` 必须由 `Inventory` 模块内部生成
-- `reservationNo` 生成失败时，库存预占必须直接失败，不得降级为本地临时发号
+- 默认采用严格发号模式（`strict`）：`reservationNo` 生成失败时，库存预占必须直接失败
+- 发号模式必须通过配置显式选择，不得在运行时因失败自动从远端发号切换到本地发号
+- 可选本地模式仅允许通过显式配置启用（例如统一 `id provider=snowflake`），且启用后应全链路保持单一 provider，不得混用号段策略
 
 ### 6.2 Reservation Rule
 

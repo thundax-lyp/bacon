@@ -1,9 +1,10 @@
 package com.github.thundax.bacon.common.id.provider;
 
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorErrorCode;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorException;
 
-public class SnowflakeIdGenerator {
+public class SnowflakeIdGenerator implements IdGenerator {
 
     private static final long CUSTOM_EPOCH = 1704067200000L;
     private static final long WORKER_ID_BITS = 5L;
@@ -37,7 +38,8 @@ public class SnowflakeIdGenerator {
         this.datacenterId = datacenterId;
     }
 
-    public synchronized long nextId() {
+    @Override
+    public synchronized long nextId(String bizTag) {
         long timestamp = currentTimeMillis();
         if (timestamp < lastTimestamp) {
             timestamp = waitUntilNextMillis(lastTimestamp);
@@ -55,6 +57,10 @@ public class SnowflakeIdGenerator {
                 | (datacenterId << DATACENTER_ID_SHIFT)
                 | (workerId << WORKER_ID_SHIFT)
                 | sequence;
+    }
+
+    public long nextId() {
+        return nextId(null);
     }
 
     private long waitUntilNextMillis(long lastTimestamp) {

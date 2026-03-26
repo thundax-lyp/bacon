@@ -32,6 +32,7 @@ public class BaconIdGeneratorAutoConfiguration {
         return switch (providerType) {
             case TINYID -> createTinyIdGenerator(properties);
             case LEAF -> createLeafIdGenerator(properties, restClientBuilderProvider, objectMapper);
+            case SNOWFLAKE -> createSnowflakeIdGenerator(properties);
         };
     }
 
@@ -87,10 +88,14 @@ public class BaconIdGeneratorAutoConfiguration {
         return ClientHttpRequestFactoryBuilder.detect().build(settings);
     }
 
+    private SnowflakeIdGenerator createSnowflakeIdGenerator(BaconIdGeneratorProperties properties) {
+        return new SnowflakeIdGenerator(properties.getSnowflake().getWorkerId(),
+                properties.getSnowflake().getDatacenterId());
+    }
+
     @Bean
     @ConditionalOnMissingBean
     public SnowflakeIdGenerator snowflakeIdGenerator(BaconIdGeneratorProperties properties) {
-        return new SnowflakeIdGenerator(properties.getSnowflake().getWorkerId(),
-                properties.getSnowflake().getDatacenterId());
+        return createSnowflakeIdGenerator(properties);
     }
 }

@@ -30,7 +30,7 @@
 - 数据库固定使用 `MySQL 8.x`
 - 存储引擎固定使用 `InnoDB`
 - 字符集固定使用 `utf8mb4`
-- 排序规则固定使用 `utf8mb4_0900_ai_ci`
+- 排序规则使用数据库实例可用的 `utf8mb4` 排序规则（推荐 `utf8mb4_unicode_ci`）
 - 时间字段统一使用 `datetime(3)`
 - 主键字段统一使用 `bigint`
 - 数量字段统一使用 `int`

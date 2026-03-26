@@ -350,6 +350,9 @@ Order 是 Bacon 的统一订单业务域。
 - `markPaid` 按 `tenantId + orderNo + paymentNo + eventType` 幂等
 - `markPaymentFailed` 按 `tenantId + orderNo + paymentNo + eventType` 幂等
 - 非支付事件（取消、超时关闭）的 `paymentNo` 固定使用空字符串参与幂等键计算
+- 幂等记录 `PROCESSING` 状态必须带租约字段 `processingOwner + leaseUntil`
+- 命令请求遇到未过期 `PROCESSING` 记录时可短路返回；遇到已过期记录时必须先抢占租约后再执行
+- 系统必须提供过期 `PROCESSING` 回收任务，避免僵尸记录长期卡死
 - 同一订单只允许绑定一个 `paymentNo`
 - 同一订单只允许绑定一个 `reservationNo`
 

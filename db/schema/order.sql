@@ -138,9 +138,13 @@ CREATE TABLE IF NOT EXISTS `bacon_order_idempotency_record` (
     `status` varchar(16) NOT NULL,
     `attempt_count` int NOT NULL DEFAULT 1,
     `last_error` varchar(512) DEFAULT NULL,
+    `processing_owner` varchar(128) DEFAULT NULL,
+    `lease_until` datetime(3) DEFAULT NULL,
+    `claimed_at` datetime(3) DEFAULT NULL,
     `created_at` datetime(3) NOT NULL,
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_tenant_order_payment_event` (`tenant_id`, `order_no`, `payment_no`, `event_type`),
-    KEY `idx_status_updated` (`status`, `updated_at`)
+    KEY `idx_status_updated` (`status`, `updated_at`),
+    KEY `idx_status_lease` (`status`, `lease_until`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

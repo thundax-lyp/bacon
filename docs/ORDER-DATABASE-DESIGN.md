@@ -337,6 +337,9 @@
 | `status` | `varchar(16)` | N | 处理状态：`PROCESSING`、`SUCCESS`、`FAILED` |
 | `attempt_count` | `int` | N | 尝试次数 |
 | `last_error` | `varchar(512)` | Y | 最近失败摘要 |
+| `processing_owner` | `varchar(128)` | Y | 租约持有者 |
+| `lease_until` | `datetime(3)` | Y | 租约到期时间 |
+| `claimed_at` | `datetime(3)` | Y | 最近抢占时间 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
@@ -345,6 +348,7 @@
 - `pk(id)`
 - `uk_tenant_order_payment_event(tenant_id, order_no, payment_no, event_type)`
 - `idx_status_updated(status, updated_at)`
+- `idx_status_lease(status, lease_until)`
 
 ## 8. Relationship Rules
 
@@ -370,6 +374,7 @@
 - `OrderPaymentSnapshot` 和 `OrderInventorySnapshot` 是订单侧只读快照，不承载对端主数据
 - `OrderOutboxEvent.business_key + event_type` 必须全局幂等
 - `OrderIdempotencyRecord` 必须按 `(tenant_id, order_no, payment_no, event_type)` 建唯一约束
+- `OrderIdempotencyRecord` 的 `PROCESSING` 状态必须维护 `processing_owner + lease_until`
 
 ## 10. Query Model Rules
 

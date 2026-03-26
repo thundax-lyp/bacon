@@ -92,9 +92,9 @@ class InventoryAuditCompensationServiceTest {
 
     private InventoryAuditCompensationService createService(TestLogRepository repository,
                                                             InventoryTransactionExecutor transactionExecutor) {
-        InventoryAuditReplayTransactionFacade facade =
-                new InventoryAuditReplayTransactionFacade(repository, repository, transactionExecutor);
-        return new InventoryAuditCompensationService(repository, facade);
+        InventoryAuditReplayTransactionService service =
+                new InventoryAuditReplayTransactionService(repository, repository, transactionExecutor);
+        return new InventoryAuditCompensationService(repository, service);
     }
 
     private static final class FailingOnceTransactionExecutor extends InventoryTransactionExecutor {

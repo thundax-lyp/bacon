@@ -37,7 +37,7 @@ class InventoryAuditReplayTaskServiceTest {
 
         InventoryAuditReplayTaskService taskService = new InventoryAuditReplayTaskService(repository);
         InventoryAuditCompensationService compensationService = new InventoryAuditCompensationService(repository,
-                new InventoryAuditReplayTransactionFacade(repository, repository, new InventoryTransactionExecutor()));
+                new InventoryAuditReplayTransactionService(repository, repository, new InventoryTransactionExecutor()));
 
         var created = taskService.createReplayTask(new InventoryAuditReplayTaskCreateDTO(3001L, 9001L,
                 "TASK-BATCH", List.of(101L)));

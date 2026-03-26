@@ -20,12 +20,12 @@ public class InventoryAuditCompensationService {
     private static final String REPLAY_OPERATOR_TYPE = "MANUAL";
 
     private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
-    private final InventoryAuditReplayTransactionFacade inventoryAuditReplayTransactionFacade;
+    private final InventoryAuditReplayTransactionService inventoryAuditReplayTransactionService;
 
     public InventoryAuditCompensationService(InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
-                                             InventoryAuditReplayTransactionFacade inventoryAuditReplayTransactionFacade) {
+                                             InventoryAuditReplayTransactionService inventoryAuditReplayTransactionService) {
         this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
-        this.inventoryAuditReplayTransactionFacade = inventoryAuditReplayTransactionFacade;
+        this.inventoryAuditReplayTransactionService = inventoryAuditReplayTransactionService;
     }
 
     public InventoryAuditReplayResultDTO replayDeadLetter(Long tenantId, Long deadLetterId, String replayKey, Long operatorId) {
@@ -48,7 +48,7 @@ public class InventoryAuditCompensationService {
                     resolvedReplayKey, "dead-letter-not-claimable");
         }
         try {
-            return inventoryAuditReplayTransactionFacade.replayClaimedDeadLetter(deadLetter, resolvedReplayKey,
+            return inventoryAuditReplayTransactionService.replayClaimedDeadLetter(deadLetter, resolvedReplayKey,
                     REPLAY_OPERATOR_TYPE, operatorId, replayAt);
         } catch (RuntimeException txException) {
             String truncatedError = truncateError(txException.getMessage());
@@ -56,7 +56,7 @@ public class InventoryAuditCompensationService {
             log.error("ALERT inventory audit replay tx failed, deadLetterId={}, replayKey={}",
                     deadLetterId, resolvedReplayKey, txException);
             try {
-                inventoryAuditReplayTransactionFacade.compensateReplayTxFailure(deadLetter, resolvedReplayKey,
+                inventoryAuditReplayTransactionService.compensateReplayTxFailure(deadLetter, resolvedReplayKey,
                         REPLAY_OPERATOR_TYPE, operatorId, replayAt, truncatedError);
                 Metrics.counter("bacon.inventory.audit.replay.tx.compensate.success.total").increment();
             } catch (RuntimeException compensateException) {

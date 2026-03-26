@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.domain.entity;
+package com.github.thundax.bacon.auth.domain.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,11 +1,11 @@
 package com.github.thundax.bacon.auth.infra.repository.impl;
 
-import com.github.thundax.bacon.auth.domain.entity.AuthSession;
-import com.github.thundax.bacon.auth.domain.entity.OAuthAccessToken;
-import com.github.thundax.bacon.auth.domain.entity.OAuthAuthorizationRequest;
-import com.github.thundax.bacon.auth.domain.entity.OAuthClient;
-import com.github.thundax.bacon.auth.domain.entity.OAuthRefreshToken;
-import com.github.thundax.bacon.auth.domain.entity.RefreshTokenSession;
+import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
+import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;

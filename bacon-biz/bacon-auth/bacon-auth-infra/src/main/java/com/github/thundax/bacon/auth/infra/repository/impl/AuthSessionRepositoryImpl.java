@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.auth.infra.repository.impl;
 
-import com.github.thundax.bacon.auth.domain.entity.AuthSession;
-import com.github.thundax.bacon.auth.domain.entity.RefreshTokenSession;
+import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
+import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import org.springframework.stereotype.Repository;
 

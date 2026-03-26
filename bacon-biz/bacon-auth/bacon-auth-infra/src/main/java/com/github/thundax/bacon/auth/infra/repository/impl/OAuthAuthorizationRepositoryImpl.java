@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.infra.repository.impl;
 
-import com.github.thundax.bacon.auth.domain.entity.OAuthAccessToken;
-import com.github.thundax.bacon.auth.domain.entity.OAuthAuthorizationRequest;
-import com.github.thundax.bacon.auth.domain.entity.OAuthRefreshToken;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import org.springframework.stereotype.Repository;
 

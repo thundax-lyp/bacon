@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.infra.repository.impl;
 
-import com.github.thundax.bacon.auth.domain.entity.OAuthClient;
+import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
 import org.springframework.stereotype.Repository;
 

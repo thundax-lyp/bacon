@@ -136,6 +136,7 @@ Payment 是 Bacon 的统一支付业务域。
 - 请求 `DTO`
 - 响应 `VO`
 - `Assembler`
+- `Facade Local` 适配实现（固定放在 `interfaces.facade`）
 - 对外适配端点
 
 固定端点：
@@ -149,7 +150,7 @@ Payment 是 Bacon 的统一支付业务域。
 固定服务：
 
 - `PaymentApplicationService`
-- `PaymentQueryService`
+- `PaymentQueryApplicationService`
 - `PaymentCallbackApplicationService`
 - `PaymentCloseApplicationService`
 
@@ -157,13 +158,14 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 聚合、实体、值对象
 - 领域服务
-- `Repository` 接口
+- 按职责拆分的 `Repository` 接口
 - 领域规则和不变量
 
 ### 4.5 `bacon-payment-infra`
 
 - `MyBatis-Plus Mapper`
-- `Repository` 实现
+- 按职责拆分的 `Repository` 实现
+- `Facade Remote` 适配实现（固定放在 `infra.facade.remote`）
 - 渠道适配器
 - 审计日志持久化
 
@@ -248,7 +250,7 @@ Payment 是 Bacon 的统一支付业务域。
 ### 6.1.1 Numbering Rule
 
 - `paymentNo` 必须由 `Payment` 模块内部生成
-- `paymentNo` 生成失败时，创建支付单必须直接失败，不得降级为本地临时发号
+- `paymentNo` 生成失败时，创建支付单必须直接失败，不得降级为本地雪花号、时间戳拼接、数据库 `max(id)+1` 或其他临时发号
 
 ### 6.2 Status Rule
 

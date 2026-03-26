@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.payment.infra.rpc;
+package com.github.thundax.bacon.payment.infra.facade.remote;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;

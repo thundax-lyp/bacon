@@ -352,9 +352,9 @@ common      -> 被各层依赖
 ### 推荐放置方式
 - 对外读写能力抽象放在 `<domain>-api` 模块的 `api.facade`。
 - 跨域 DTO 放在 `<domain>-api` 模块的 `api.dto`。
-- 本地实现放在被调用方，作为 `api.facade` 的本地适配实现，例如 `UserReadFacadeLocalImpl`。
-- 远程调用实现放在调用方的 `infra.rpc` 或公共 `common-feign` 扩展中，例如 `UserReadFacadeRemoteImpl`。
-- 服务提供方的 provider 入口固定放在 `interfaces.provider`，本地 `Facade` 适配实现固定放在 `interfaces.facade`，但都必须直接对齐 `api.facade`。
+- 本地实现放在被调用方 `interfaces.facade`，作为 `api.facade` 的本地适配实现，例如 `UserReadFacadeLocalImpl`。
+- 远程调用实现放在调用方 `infra.facade.remote`（内部可使用 `infra.rpc` 能力），例如 `UserReadFacadeRemoteImpl`。
+- 服务提供方的 provider 入口固定放在 `interfaces.provider`，本地/远程 `Facade` 适配实现必须直接对齐 `api.facade`。
 - 业务编排始终写在 `application`，不要写进 Feign client。
 
 ## Mono-App 约定
@@ -366,8 +366,8 @@ common      -> 被各层依赖
 
 ### Facade 双 Bean 设计
 - 每个跨域 `facade` 接口都应预留两种实现：
-    - 本地实现 Bean：`<FacadeName>LocalImpl`
-    - 远程实现 Bean：`<FacadeName>RemoteImpl`
+    - 本地实现 Bean：`interfaces.facade.<FacadeName>LocalImpl`
+    - 远程实现 Bean：`infra.facade.remote.<FacadeName>RemoteImpl`
 - `mono-app` 模式只启用 `LocalImpl`。
 - 微服务模式只启用 `RemoteImpl`。
 - 两种实现必须实现同一个 `api.facade` 接口，对 `application` 层保持透明。
@@ -397,6 +397,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
     - `@ConditionalOnMonoApp`
     - `@ConditionalOnMicroservice`
 - 所有 `facade` 实现都应遵循同一套装配规则，不能某些域用配置切换，某些域靠代码硬编码。
+- 全部业务域统一遵循该落位约束：`auth / upms / order / inventory / payment` 不允许各自定义不同目录策略。
 
 ### 单体装配规则
 - `bacon-mono-boot` 启动时默认装配各域的本地 `facade` 实现。
@@ -457,6 +458,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - 即使在 `mono-app` 中，也禁止因为同 JVM 部署而直接依赖其他业务域的 `application` 实现、`repository`、`mapper`。
 - 禁止同时激活同一个 `facade` 接口的本地实现和远程实现。
 - 微服务 starter 禁止引入其他业务域的本地 `facade` 实现。
+- 禁止把 `*LocalImpl` 放入 `infra`；禁止把 `*RemoteImpl` 放入 `interfaces`。
 - 禁止把跨域写操作默认设计成同步 RPC 链路。
 - 不允许跨域直接引用对方 `infra`、`controller`、`application.service` 实现类。
 - 禁止在业务域模块中重复声明工程级依赖版本。

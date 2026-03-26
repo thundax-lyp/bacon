@@ -8,13 +8,16 @@ import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand;
+import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
+import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
@@ -90,7 +93,8 @@ class OrderApplicationServiceTest {
                 new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade(),
                 new OrderOutboxActionExecutor(repository, new TestOrderOutboxRepository(),
                         new SuccessInventoryCommandFacade(), new SuccessPaymentCommandFacade()));
-        OrderCancelApplicationService cancelService = new OrderCancelApplicationService(service);
+        OrderCancelApplicationService cancelService = new OrderCancelApplicationService(service,
+                new OrderIdempotencyExecutor(new TestOrderIdempotencyRepository()));
         OrderSummaryDTO created = service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "r1",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(101L, "item-1", 1, BigDecimal.valueOf(10)))));
@@ -135,6 +139,88 @@ class OrderApplicationServiceTest {
         @Override
         public void saveOutboxEvent(OrderOutboxEvent event) {
             // no-op for unit tests
+        }
+    }
+
+    private static final class TestOrderIdempotencyRepository implements OrderIdempotencyRepository {
+
+        private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();
+        private final AtomicLong idGenerator = new AtomicLong(1);
+
+        @Override
+        public boolean createProcessing(OrderIdempotencyRecord record) {
+            String key = keyOf(record.getTenantId(), record.getOrderNo(), record.getPaymentNo(),
+                    record.getEventType());
+            OrderIdempotencyRecord value = new OrderIdempotencyRecord(idGenerator.getAndIncrement(), record.getTenantId(),
+                    record.getOrderNo(), normalizePaymentNo(record.getPaymentNo()), record.getEventType(),
+                    OrderIdempotencyRecord.STATUS_PROCESSING, 1, null, Instant.now(), Instant.now());
+            return storage.putIfAbsent(key, value) == null;
+        }
+
+        @Override
+        public Optional<OrderIdempotencyRecord> findByBusinessKey(Long tenantId, String orderNo, String paymentNo,
+                                                                  String eventType) {
+            return Optional.ofNullable(storage.get(keyOf(tenantId, orderNo, paymentNo, eventType)));
+        }
+
+        @Override
+        public boolean markSuccess(Long tenantId, String orderNo, String paymentNo, String eventType,
+                                   Instant updatedAt) {
+            AtomicLong updated = new AtomicLong(0);
+            storage.computeIfPresent(keyOf(tenantId, orderNo, paymentNo, eventType), (key, existing) -> {
+                if (!OrderIdempotencyRecord.STATUS_PROCESSING.equals(existing.getStatus())) {
+                    return existing;
+                }
+                existing.setStatus(OrderIdempotencyRecord.STATUS_SUCCESS);
+                existing.setLastError(null);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
+            return updated.get() > 0;
+        }
+
+        @Override
+        public boolean markFailed(Long tenantId, String orderNo, String paymentNo, String eventType, String lastError,
+                                  Instant updatedAt) {
+            AtomicLong updated = new AtomicLong(0);
+            storage.computeIfPresent(keyOf(tenantId, orderNo, paymentNo, eventType), (key, existing) -> {
+                if (!OrderIdempotencyRecord.STATUS_PROCESSING.equals(existing.getStatus())) {
+                    return existing;
+                }
+                existing.setStatus(OrderIdempotencyRecord.STATUS_FAILED);
+                existing.setLastError(lastError);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
+            return updated.get() > 0;
+        }
+
+        @Override
+        public boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
+                                       Instant updatedAt) {
+            AtomicLong updated = new AtomicLong(0);
+            storage.computeIfPresent(keyOf(tenantId, orderNo, paymentNo, eventType), (key, existing) -> {
+                if (!OrderIdempotencyRecord.STATUS_FAILED.equals(existing.getStatus())) {
+                    return existing;
+                }
+                existing.setStatus(OrderIdempotencyRecord.STATUS_PROCESSING);
+                existing.setAttemptCount(existing.getAttemptCount() + 1);
+                existing.setLastError(null);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
+            return updated.get() > 0;
+        }
+
+        private String keyOf(Long tenantId, String orderNo, String paymentNo, String eventType) {
+            return tenantId + ":" + orderNo + ":" + normalizePaymentNo(paymentNo) + ":" + eventType;
+        }
+
+        private String normalizePaymentNo(String paymentNo) {
+            return paymentNo == null ? "" : paymentNo;
         }
     }
 

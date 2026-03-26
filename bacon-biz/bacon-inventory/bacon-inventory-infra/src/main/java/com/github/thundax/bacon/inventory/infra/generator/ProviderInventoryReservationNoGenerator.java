@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.inventory.infra.generator;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.event.IdFallbackEvent;
+import com.github.thundax.bacon.common.id.provider.SnowflakeIdGenerator;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
@@ -20,14 +22,14 @@ public class ProviderInventoryReservationNoGenerator implements InventoryReserva
     private static final String LOCAL_PREFIX = "RSV-SF-";
 
     private final IdGenerator idGenerator;
-    private final LocalSnowflakeIdGenerator localSnowflakeIdGenerator;
+    private final SnowflakeIdGenerator snowflakeIdGenerator;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     public ProviderInventoryReservationNoGenerator(IdGenerator idGenerator,
-                                                   LocalSnowflakeIdGenerator localSnowflakeIdGenerator,
+                                                   SnowflakeIdGenerator snowflakeIdGenerator,
                                                    ApplicationEventPublisher applicationEventPublisher) {
         this.idGenerator = idGenerator;
-        this.localSnowflakeIdGenerator = localSnowflakeIdGenerator;
+        this.snowflakeIdGenerator = snowflakeIdGenerator;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
@@ -45,8 +47,8 @@ public class ProviderInventoryReservationNoGenerator implements InventoryReserva
 
     @SuppressWarnings("unused")
     private String nextReservationNoFallback(Throwable throwable) {
-        long localId = localSnowflakeIdGenerator.nextId();
-        applicationEventPublisher.publishEvent(new InventoryIdFallbackEvent("nextReservationNo",
+        long localId = snowflakeIdGenerator.nextId();
+        applicationEventPublisher.publishEvent(new IdFallbackEvent(BIZ_TYPE, "nextReservationNo",
                 throwable.getClass().getSimpleName(), Instant.now()));
         log.error("id provider failed, fallback to local snowflake id, localId={}", localId, throwable);
         return LOCAL_PREFIX + localId;

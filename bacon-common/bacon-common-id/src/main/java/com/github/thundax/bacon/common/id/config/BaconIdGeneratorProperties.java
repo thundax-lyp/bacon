@@ -8,6 +8,7 @@ public class BaconIdGeneratorProperties {
 
     private String provider = "tinyid";
     private final TinyId tinyId = new TinyId();
+    private final Snowflake snowflake = new Snowflake();
     private final Leaf leaf = new Leaf();
 
     public String getProvider() {
@@ -22,8 +23,34 @@ public class BaconIdGeneratorProperties {
         return tinyId;
     }
 
+    public Snowflake getSnowflake() {
+        return snowflake;
+    }
+
     public Leaf getLeaf() {
         return leaf;
+    }
+
+    public static class Snowflake {
+
+        private long workerId = 1L;
+        private long datacenterId = 1L;
+
+        public long getWorkerId() {
+            return workerId;
+        }
+
+        public void setWorkerId(long workerId) {
+            this.workerId = workerId;
+        }
+
+        public long getDatacenterId() {
+            return datacenterId;
+        }
+
+        public void setDatacenterId(long datacenterId) {
+            this.datacenterId = datacenterId;
+        }
     }
 
     public static class TinyId {

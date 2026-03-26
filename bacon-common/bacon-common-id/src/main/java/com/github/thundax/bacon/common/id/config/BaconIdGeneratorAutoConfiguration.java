@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.core.IdProviderType;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorErrorCode;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorException;
 import com.github.thundax.bacon.common.id.provider.LeafIdGenerator;
+import com.github.thundax.bacon.common.id.provider.SnowflakeIdGenerator;
 import com.github.thundax.bacon.common.id.provider.TinyIdGenerator;
 import java.time.Duration;
 import org.springframework.beans.factory.ObjectProvider;
@@ -84,5 +85,12 @@ public class BaconIdGeneratorAutoConfiguration {
                 .withConnectTimeout(properties.getLeaf().getConnectTimeout())
                 .withReadTimeout(properties.getLeaf().getReadTimeout());
         return ClientHttpRequestFactoryBuilder.detect().build(settings);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SnowflakeIdGenerator snowflakeIdGenerator(BaconIdGeneratorProperties properties) {
+        return new SnowflakeIdGenerator(properties.getSnowflake().getWorkerId(),
+                properties.getSnowflake().getDatacenterId());
     }
 }

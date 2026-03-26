@@ -1,12 +1,9 @@
-package com.github.thundax.bacon.inventory.infra.generator;
+package com.github.thundax.bacon.common.id.provider;
 
-import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
-import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import com.github.thundax.bacon.common.id.exception.IdGeneratorErrorCode;
+import com.github.thundax.bacon.common.id.exception.IdGeneratorException;
 
-@Component
-public class LocalSnowflakeIdGenerator {
+public class SnowflakeIdGenerator {
 
     private static final long CUSTOM_EPOCH = 1704067200000L;
     private static final long WORKER_ID_BITS = 5L;
@@ -27,15 +24,14 @@ public class LocalSnowflakeIdGenerator {
     private long sequence;
     private long lastTimestamp = -1L;
 
-    public LocalSnowflakeIdGenerator(
-            @Value("${bacon.inventory.id-generator.worker-id:1}") long workerId,
-            @Value("${bacon.inventory.id-generator.datacenter-id:1}") long datacenterId) {
+    public SnowflakeIdGenerator(long workerId, long datacenterId) {
         if (workerId < 0 || workerId > MAX_WORKER_ID) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_ID_GENERATOR_CONFIG, "worker-id=" + workerId);
+            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
+                    "snowflake worker-id out of range: " + workerId);
         }
         if (datacenterId < 0 || datacenterId > MAX_DATACENTER_ID) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_ID_GENERATOR_CONFIG,
-                    "datacenter-id=" + datacenterId);
+            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
+                    "snowflake datacenter-id out of range: " + datacenterId);
         }
         this.workerId = workerId;
         this.datacenterId = datacenterId;

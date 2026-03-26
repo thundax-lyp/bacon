@@ -55,7 +55,6 @@
 
 ### 5.2 Fixed Length Rules
 
-- `tenant_id`: `varchar(64)`
 - `payment_no`: `varchar(64)`
 - `order_no`: `varchar(64)`
 - `channel_code`: `varchar(32)`
@@ -90,7 +89,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `payment_no` | `varchar(64)` | N | 支付业务键，全局唯一 |
 | `order_no` | `varchar(64)` | N | 订单业务键，全局唯一 |
 | `user_id` | `bigint` | N | 用户主键 |
@@ -127,7 +126,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `payment_no` | `varchar(64)` | N | 支付业务键，关联 `bacon_payment_order.payment_no` |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `channel_code` | `varchar(32)` | N | 渠道编码 |
@@ -156,7 +155,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `payment_no` | `varchar(64)` | N | 支付业务键 |
 | `action_type` | `varchar(64)` | N | 操作类型 |
 | `before_status` | `varchar(16)` | Y | 变更前状态 |
@@ -181,7 +180,8 @@
 ## 9. Persistence Rules
 
 - `PaymentOrder.payment_no` 全局唯一
-- `PaymentOrder.payment_no` 固定由 `tinyid-client` 在 `Payment` 模块内生成，并使用本地缓存号段模式
+- `PaymentOrder.payment_no` 固定由发号中心客户端在 `Payment` 模块 `infra` 层生成
+- 发号失败时必须直接失败，不得降级为本地临时号段
 - `PaymentOrder.order_no` 全局唯一
 - `PaymentCallbackRecord(tenant_id, channel_code, channel_transaction_no)` 唯一
 - `amount`、`paid_amount` 固定使用两位小数

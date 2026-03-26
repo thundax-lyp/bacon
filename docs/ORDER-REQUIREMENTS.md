@@ -374,6 +374,14 @@ Order 是 Bacon 的统一订单业务域。
 - 订单和订单明细不支持物理删除
 - 已关闭和已取消订单默认可查询
 
+### 6.10 Repository Mode Rule
+
+- `Order` 仓储模式固定为 `strict` 与 `memory` 两种
+- 默认模式固定为 `strict`
+- `strict` 模式下必须启用 DB 持久化仓储；若缺失持久化仓储 Bean，服务必须启动失败（fail-fast）
+- `memory` 模式仅允许用于测试环境（`test` profile）
+- 非测试环境禁止启用 `memory` 模式
+
 ## 7. Functional Requirements
 
 ### 7.1 Create Order

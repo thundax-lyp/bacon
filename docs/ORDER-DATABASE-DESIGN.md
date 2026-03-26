@@ -270,3 +270,11 @@
 ## 11. Open Items
 
 无
+
+## 12. Repository Mode And Startup Rule
+
+- `Order` 仓储模式固定支持：`strict`、`memory`
+- 默认模式固定为 `strict`
+- `strict` 模式下，必须存在基于 MyBatis 的持久化仓储实现；否则应用启动必须失败（fail-fast）
+- `memory` 模式仅允许测试环境启用，不得在生产环境启用
+- 内存仓储实现只用于测试和演示，不作为生产级持久化能力

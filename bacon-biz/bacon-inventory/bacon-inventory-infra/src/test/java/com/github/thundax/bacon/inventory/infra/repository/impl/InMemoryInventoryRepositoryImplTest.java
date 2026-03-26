@@ -18,7 +18,7 @@ class InMemoryInventoryRepositoryImplTest {
 
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-1", "RSV-1",
                 "RESERVE", "SYSTEM", 0L, now, "DB_TIMEOUT", InventoryAuditOutbox.STATUS_NEW,
-                0, now, null, now, now));
+                0, now, null, null, null, null, now, now));
 
         List<InventoryAuditOutbox> retryable = repository.findRetryableAuditOutbox(now.plusSeconds(1), 10);
         assertEquals(1, retryable.size());
@@ -38,5 +38,25 @@ class InMemoryInventoryRepositoryImplTest {
 
         repository.deleteAuditOutbox(outboxId);
         assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(1000), 10).isEmpty());
+    }
+
+    @Test
+    void shouldClaimOutboxOnceAndRecycleExpiredLease() {
+        InMemoryInventoryRepositoryImpl repository = new InMemoryInventoryRepositoryImpl();
+        Instant now = Instant.parse("2026-03-26T10:00:00Z");
+        repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-2", "RSV-2",
+                "RESERVE", "SYSTEM", 0L, now, "INIT", InventoryAuditOutbox.STATUS_NEW,
+                0, now, null, null, null, null, now, now));
+
+        List<InventoryAuditOutbox> firstClaim = repository.claimRetryableAuditOutbox(now, 10, "owner-a",
+                now.plusSeconds(30));
+        List<InventoryAuditOutbox> secondClaim = repository.claimRetryableAuditOutbox(now, 10, "owner-b",
+                now.plusSeconds(30));
+
+        assertEquals(1, firstClaim.size());
+        assertTrue(secondClaim.isEmpty());
+        assertEquals(0, repository.releaseExpiredAuditOutboxLease(now.plusSeconds(10)));
+        assertEquals(1, repository.releaseExpiredAuditOutboxLease(now.plusSeconds(31)));
+        assertEquals(1, repository.findRetryableAuditOutbox(now.plusSeconds(31), 10).size());
     }
 }

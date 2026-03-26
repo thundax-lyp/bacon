@@ -159,8 +159,8 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
             outbox = new InventoryAuditOutbox(auditOutboxIdGenerator.getAndIncrement(), outbox.getTenantId(),
                     outbox.getOrderNo(), outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
                     outbox.getOperatorId(), outbox.getOccurredAt(), outbox.getErrorMessage(), outbox.getStatus(),
-                    outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getDeadReason(), outbox.getFailedAt(),
-                    outbox.getUpdatedAt());
+                    outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(), outbox.getLeaseUntil(),
+                    outbox.getClaimedAt(), outbox.getDeadReason(), outbox.getFailedAt(), outbox.getUpdatedAt());
         }
         auditOutbox.computeIfAbsent(reservationKey(outbox.getTenantId(), outbox.getOrderNo()), key -> new ArrayList<>())
                 .add(outbox);
@@ -179,6 +179,45 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
     }
 
     @Override
+    public List<InventoryAuditOutbox> claimRetryableAuditOutbox(Instant now, int limit,
+                                                                 String processingOwner, Instant leaseUntil) {
+        List<InventoryAuditOutbox> claimed = new ArrayList<>(Math.max(limit, 0));
+        List<InventoryAuditOutbox> candidates = findRetryableAuditOutbox(now, Math.max(limit * 3, limit));
+        for (InventoryAuditOutbox candidate : candidates) {
+            if (claimed.size() >= limit) {
+                break;
+            }
+            if (!tryClaim(candidate.getId(), now, processingOwner, leaseUntil)) {
+                continue;
+            }
+            findAuditOutboxById(candidate.getId()).ifPresent(claimed::add);
+        }
+        return List.copyOf(claimed);
+    }
+
+    @Override
+    public int releaseExpiredAuditOutboxLease(Instant now) {
+        int released = 0;
+        for (List<InventoryAuditOutbox> list : auditOutbox.values()) {
+            for (InventoryAuditOutbox item : list) {
+                if (!InventoryAuditOutbox.STATUS_PROCESSING.equals(item.getStatus())) {
+                    continue;
+                }
+                if (item.getLeaseUntil() == null || item.getLeaseUntil().isAfter(now)) {
+                    continue;
+                }
+                item.setStatus(InventoryAuditOutbox.STATUS_RETRYING);
+                item.setProcessingOwner(null);
+                item.setLeaseUntil(null);
+                item.setClaimedAt(null);
+                item.setUpdatedAt(now);
+                released++;
+            }
+        }
+        return released;
+    }
+
+    @Override
     public void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
                                           Instant updatedAt) {
         findAuditOutboxById(outboxId).ifPresent(item -> {
@@ -188,6 +227,26 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
             item.setErrorMessage(errorMessage);
             item.setUpdatedAt(updatedAt);
         });
+    }
+
+    @Override
+    public boolean updateAuditOutboxForRetryClaimed(Long outboxId, String processingOwner, int retryCount,
+                                                    Instant nextRetryAt, String errorMessage, Instant updatedAt) {
+        return findAuditOutboxById(outboxId)
+                .filter(item -> InventoryAuditOutbox.STATUS_PROCESSING.equals(item.getStatus()))
+                .filter(item -> processingOwner.equals(item.getProcessingOwner()))
+                .map(item -> {
+                    item.setStatus(InventoryAuditOutbox.STATUS_RETRYING);
+                    item.setRetryCount(retryCount);
+                    item.setNextRetryAt(nextRetryAt);
+                    item.setErrorMessage(errorMessage);
+                    item.setProcessingOwner(null);
+                    item.setLeaseUntil(null);
+                    item.setClaimedAt(null);
+                    item.setUpdatedAt(updatedAt);
+                    return true;
+                })
+                .orElse(false);
     }
 
     @Override
@@ -201,8 +260,47 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
     }
 
     @Override
+    public boolean markAuditOutboxDeadClaimed(Long outboxId, String processingOwner, int retryCount,
+                                              String deadReason, Instant updatedAt) {
+        return findAuditOutboxById(outboxId)
+                .filter(item -> InventoryAuditOutbox.STATUS_PROCESSING.equals(item.getStatus()))
+                .filter(item -> processingOwner.equals(item.getProcessingOwner()))
+                .map(item -> {
+                    item.setStatus(InventoryAuditOutbox.STATUS_DEAD);
+                    item.setRetryCount(retryCount);
+                    item.setDeadReason(deadReason);
+                    item.setProcessingOwner(null);
+                    item.setLeaseUntil(null);
+                    item.setClaimedAt(null);
+                    item.setUpdatedAt(updatedAt);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
     public void deleteAuditOutbox(Long outboxId) {
         auditOutbox.values().forEach(list -> list.removeIf(item -> item.getId().equals(outboxId)));
+    }
+
+    @Override
+    public boolean deleteAuditOutboxClaimed(Long outboxId, String processingOwner) {
+        for (List<InventoryAuditOutbox> list : auditOutbox.values()) {
+            java.util.Iterator<InventoryAuditOutbox> iterator = list.iterator();
+            while (iterator.hasNext()) {
+                InventoryAuditOutbox item = iterator.next();
+                if (!item.getId().equals(outboxId)) {
+                    continue;
+                }
+                if (!InventoryAuditOutbox.STATUS_PROCESSING.equals(item.getStatus())
+                        || !processingOwner.equals(item.getProcessingOwner())) {
+                    return false;
+                }
+                iterator.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -232,5 +330,21 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                 .flatMap(List::stream)
                 .filter(item -> item.getId().equals(outboxId))
                 .findFirst();
+    }
+
+    private boolean tryClaim(Long outboxId, Instant now, String processingOwner, Instant leaseUntil) {
+        return findAuditOutboxById(outboxId)
+                .filter(item -> InventoryAuditOutbox.STATUS_NEW.equals(item.getStatus())
+                        || InventoryAuditOutbox.STATUS_RETRYING.equals(item.getStatus()))
+                .filter(item -> item.getNextRetryAt() == null || !item.getNextRetryAt().isAfter(now))
+                .map(item -> {
+                    item.setStatus(InventoryAuditOutbox.STATUS_PROCESSING);
+                    item.setProcessingOwner(processingOwner);
+                    item.setLeaseUntil(leaseUntil);
+                    item.setClaimedAt(now);
+                    item.setUpdatedAt(now);
+                    return true;
+                })
+                .orElse(false);
     }
 }

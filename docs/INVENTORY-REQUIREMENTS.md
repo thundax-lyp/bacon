@@ -328,6 +328,9 @@ Inventory 是 Bacon 的统一库存业务域。
 - 审计日志写入失败必须记录失败指标并触发告警日志（`ALERT` 前缀）
 - 审计日志写入失败必须落库到审计 outbox，后续由补偿任务重试
 - 审计 outbox 重试采用退避策略；达到最大重试次数后必须进入死信
+- 多实例场景下，审计 outbox 重试必须先抢占再处理，禁止“先查后处理”的无锁并发消费
+- outbox 抢占后必须记录 `processingOwner` 与 `leaseUntil`，并通过 owner + 状态 CAS 更新提交重试结果
+- claim 租约超时后必须可回收为可重试状态，避免实例异常导致记录永久卡死
 
 ### 6.10 Repository Mode Rule
 

@@ -51,6 +51,7 @@ bacon:
         max-retries: ${BACON_INVENTORY_AUDIT_RETRY_MAX_RETRIES:6}
         base-delay-seconds: ${BACON_INVENTORY_AUDIT_RETRY_BASE_DELAY_SECONDS:30}
         max-delay-seconds: ${BACON_INVENTORY_AUDIT_RETRY_MAX_DELAY_SECONDS:1800}
+        lease-seconds: ${BACON_INVENTORY_AUDIT_RETRY_LEASE_SECONDS:60}
   id:
     generator:
       provider: tinyid

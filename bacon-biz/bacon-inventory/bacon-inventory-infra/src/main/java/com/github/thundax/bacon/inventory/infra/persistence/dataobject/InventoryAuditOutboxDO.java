@@ -39,6 +39,12 @@ public class InventoryAuditOutboxDO {
     private Integer retryCount;
     @TableField("next_retry_at")
     private Instant nextRetryAt;
+    @TableField("processing_owner")
+    private String processingOwner;
+    @TableField("lease_until")
+    private Instant leaseUntil;
+    @TableField("claimed_at")
+    private Instant claimedAt;
     @TableField("dead_reason")
     private String deadReason;
     @TableField("failed_at")

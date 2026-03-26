@@ -251,6 +251,9 @@
 | `status` | `varchar(16)` | N | outbox 状态，初始为 `NEW` |
 | `retry_count` | `int` | N | 重试次数，初始 `0` |
 | `next_retry_at` | `datetime(3)` | Y | 下次可重试时间 |
+| `processing_owner` | `varchar(128)` | Y | 当前处理实例标识 |
+| `lease_until` | `datetime(3)` | Y | 处理租约到期时间 |
+| `claimed_at` | `datetime(3)` | Y | 最近一次抢占时间 |
 | `dead_reason` | `varchar(64)` | Y | 进入死信原因 |
 | `failed_at` | `datetime(3)` | N | 失败落库时间 |
 | `updated_at` | `datetime(3)` | N | 最近状态更新时间 |
@@ -261,6 +264,8 @@
 - `idx_status_failed(status, failed_at)`
 - `idx_tenant_order(tenant_id, order_no)`
 - `idx_status_next_retry(status, next_retry_at)`
+- `idx_status_next_retry_lease(status, next_retry_at, lease_until)`
+- `idx_processing_owner(processing_owner)`
 
 ### 7.7 `bacon_inventory_audit_dead_letter`
 
@@ -322,6 +327,9 @@
 - `InventoryAuditLog` 优先在主事务提交后以 best effort 方式记录，失败不回滚主业务
 - `InventoryAuditLog` 写入失败时必须落库 `bacon_inventory_audit_outbox`
 - `InventoryAuditOutbox` 重试成功后应删除；达到最大重试次数后状态置为 `DEAD`
+- `InventoryAuditOutbox` 在多实例下必须先抢占（claim）再处理：仅允许 `NEW/RETRYING` 且 `next_retry_at <= now` 的记录转为 `PROCESSING`
+- claim 后必须写入 `processing_owner` 与 `lease_until`，并使用 owner + 状态的条件更新/删除（CAS）完成重试结果提交
+- 超过 `lease_until` 的 `PROCESSING` 记录必须可被回收并重新进入 `RETRYING`
 - `InventoryAuditOutbox` 进入 `DEAD` 后必须写入 `bacon_inventory_audit_dead_letter`
 - `InventoryStockDTO` 是读模型，不单独建表
 - `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表

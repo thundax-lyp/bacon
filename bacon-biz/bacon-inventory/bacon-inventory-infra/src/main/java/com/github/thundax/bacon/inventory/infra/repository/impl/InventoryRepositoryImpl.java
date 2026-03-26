@@ -217,6 +217,61 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
     }
 
     @Override
+    public List<InventoryAuditOutbox> claimRetryableAuditOutbox(Instant now, int limit,
+                                                                 String processingOwner, Instant leaseUntil) {
+        List<InventoryAuditOutboxDO> candidates = auditOutboxMapper.selectList(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
+                        .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_NEW,
+                                InventoryAuditOutbox.STATUS_RETRYING)
+                        .and(wrapper -> wrapper.isNull(InventoryAuditOutboxDO::getNextRetryAt)
+                                .or()
+                                .le(InventoryAuditOutboxDO::getNextRetryAt, now))
+                        .orderByAsc(InventoryAuditOutboxDO::getFailedAt, InventoryAuditOutboxDO::getId)
+                        .last("limit " + Math.max(limit * 3, limit)))
+                .stream()
+                .toList();
+        if (candidates.isEmpty()) {
+            return List.of();
+        }
+        List<InventoryAuditOutbox> claimed = new java.util.ArrayList<>(limit);
+        for (InventoryAuditOutboxDO candidate : candidates) {
+            if (claimed.size() >= limit) {
+                break;
+            }
+            int updated = auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
+                    .eq(InventoryAuditOutboxDO::getId, candidate.getId())
+                    .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_NEW, InventoryAuditOutbox.STATUS_RETRYING)
+                    .and(wrapper -> wrapper.isNull(InventoryAuditOutboxDO::getNextRetryAt)
+                            .or()
+                            .le(InventoryAuditOutboxDO::getNextRetryAt, now))
+                    .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                    .set(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)
+                    .set(InventoryAuditOutboxDO::getLeaseUntil, leaseUntil)
+                    .set(InventoryAuditOutboxDO::getClaimedAt, now)
+                    .set(InventoryAuditOutboxDO::getUpdatedAt, now));
+            if (updated == 0) {
+                continue;
+            }
+            InventoryAuditOutboxDO claimedDataObject = auditOutboxMapper.selectById(candidate.getId());
+            if (claimedDataObject != null) {
+                claimed.add(toDomain(claimedDataObject));
+            }
+        }
+        return List.copyOf(claimed);
+    }
+
+    @Override
+    public int releaseExpiredAuditOutboxLease(Instant now) {
+        return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
+                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                .le(InventoryAuditOutboxDO::getLeaseUntil, now)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_RETRYING)
+                .set(InventoryAuditOutboxDO::getProcessingOwner, null)
+                .set(InventoryAuditOutboxDO::getLeaseUntil, null)
+                .set(InventoryAuditOutboxDO::getClaimedAt, null)
+                .set(InventoryAuditOutboxDO::getUpdatedAt, now));
+    }
+
+    @Override
     public void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
                                           Instant updatedAt) {
         auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
@@ -226,6 +281,23 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditOutboxDO::getNextRetryAt, nextRetryAt)
                 .set(InventoryAuditOutboxDO::getErrorMessage, errorMessage)
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt));
+    }
+
+    @Override
+    public boolean updateAuditOutboxForRetryClaimed(Long outboxId, String processingOwner, int retryCount,
+                                                    Instant nextRetryAt, String errorMessage, Instant updatedAt) {
+        return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
+                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_RETRYING)
+                .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
+                .set(InventoryAuditOutboxDO::getNextRetryAt, nextRetryAt)
+                .set(InventoryAuditOutboxDO::getErrorMessage, errorMessage)
+                .set(InventoryAuditOutboxDO::getProcessingOwner, null)
+                .set(InventoryAuditOutboxDO::getLeaseUntil, null)
+                .set(InventoryAuditOutboxDO::getClaimedAt, null)
+                .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt)) > 0;
     }
 
     @Override
@@ -239,8 +311,32 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
     }
 
     @Override
+    public boolean markAuditOutboxDeadClaimed(Long outboxId, String processingOwner, int retryCount,
+                                              String deadReason, Instant updatedAt) {
+        return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
+                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_DEAD)
+                .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
+                .set(InventoryAuditOutboxDO::getDeadReason, deadReason)
+                .set(InventoryAuditOutboxDO::getProcessingOwner, null)
+                .set(InventoryAuditOutboxDO::getLeaseUntil, null)
+                .set(InventoryAuditOutboxDO::getClaimedAt, null)
+                .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt)) > 0;
+    }
+
+    @Override
     public void deleteAuditOutbox(Long outboxId) {
         auditOutboxMapper.deleteById(outboxId);
+    }
+
+    @Override
+    public boolean deleteAuditOutboxClaimed(Long outboxId, String processingOwner) {
+        return auditOutboxMapper.delete(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
+                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)) > 0;
     }
 
     @Override
@@ -314,8 +410,9 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return new InventoryAuditOutboxDO(outbox.getId(), outbox.getTenantId(), outbox.getOrderNo(),
                 outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
                 outbox.getOperatorId(), outbox.getOccurredAt(), outbox.getErrorMessage(),
-                outbox.getStatus(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getDeadReason(),
-                outbox.getFailedAt(), outbox.getUpdatedAt());
+                outbox.getStatus(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(),
+                outbox.getLeaseUntil(), outbox.getClaimedAt(), outbox.getDeadReason(), outbox.getFailedAt(),
+                outbox.getUpdatedAt());
     }
 
     private InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
@@ -323,6 +420,7 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 dataObject.getReservationNo(), dataObject.getActionType(), dataObject.getOperatorType(),
                 dataObject.getOperatorId(), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
                 dataObject.getStatus(), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
+                dataObject.getProcessingOwner(), dataObject.getLeaseUntil(), dataObject.getClaimedAt(),
                 dataObject.getDeadReason(), dataObject.getFailedAt(), dataObject.getUpdatedAt());
     }
 

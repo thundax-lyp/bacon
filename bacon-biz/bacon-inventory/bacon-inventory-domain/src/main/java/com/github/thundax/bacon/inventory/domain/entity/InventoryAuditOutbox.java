@@ -12,6 +12,7 @@ public class InventoryAuditOutbox {
 
     public static final String STATUS_NEW = "NEW";
     public static final String STATUS_RETRYING = "RETRYING";
+    public static final String STATUS_PROCESSING = "PROCESSING";
     public static final String STATUS_DEAD = "DEAD";
 
     private Long id;
@@ -26,6 +27,9 @@ public class InventoryAuditOutbox {
     private String status;
     private Integer retryCount;
     private Instant nextRetryAt;
+    private String processingOwner;
+    private Instant leaseUntil;
+    private Instant claimedAt;
     private String deadReason;
     private Instant failedAt;
     private Instant updatedAt;

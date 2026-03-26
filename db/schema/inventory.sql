@@ -89,13 +89,18 @@ CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_outbox` (
     `status` varchar(16) NOT NULL,
     `retry_count` int NOT NULL DEFAULT 0,
     `next_retry_at` datetime(3) DEFAULT NULL,
+    `processing_owner` varchar(128) DEFAULT NULL,
+    `lease_until` datetime(3) DEFAULT NULL,
+    `claimed_at` datetime(3) DEFAULT NULL,
     `dead_reason` varchar(64) DEFAULT NULL,
     `failed_at` datetime(3) NOT NULL,
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_status_failed` (`status`, `failed_at`),
     KEY `idx_tenant_order` (`tenant_id`, `order_no`),
-    KEY `idx_status_next_retry` (`status`, `next_retry_at`)
+    KEY `idx_status_next_retry` (`status`, `next_retry_at`),
+    KEY `idx_status_next_retry_lease` (`status`, `next_retry_at`, `lease_until`),
+    KEY `idx_processing_owner` (`processing_owner`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_dead_letter` (

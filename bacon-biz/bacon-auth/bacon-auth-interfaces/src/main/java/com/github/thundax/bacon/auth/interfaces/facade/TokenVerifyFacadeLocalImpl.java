@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.infra.facade.local;
+package com.github.thundax.bacon.auth.interfaces.facade;
 
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;

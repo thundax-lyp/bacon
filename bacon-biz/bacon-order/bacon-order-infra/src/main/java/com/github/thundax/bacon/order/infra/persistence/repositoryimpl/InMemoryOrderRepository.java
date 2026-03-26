@@ -8,14 +8,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
 public class InMemoryOrderRepository implements OrderRepository {
 
     private final Map<Long, Order> storage = new ConcurrentHashMap<>();
+    private final AtomicLong idGenerator = new AtomicLong(1000L);
 
     @Override
     public Order save(Order order) {
+        if (order.getId() == null) {
+            order.setId(idGenerator.getAndIncrement());
+        }
         storage.put(order.getId(), order);
         return order;
     }

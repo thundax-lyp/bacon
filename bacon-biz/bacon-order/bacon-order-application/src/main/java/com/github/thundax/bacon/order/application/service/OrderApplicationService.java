@@ -6,6 +6,7 @@ import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
+import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand;
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.application.query.GetOrderQuery;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class OrderApplicationService {
@@ -33,9 +35,20 @@ public class OrderApplicationService {
     }
 
     public OrderSummaryDTO create(CreateOrderCommand command) {
-        long generatedId = System.currentTimeMillis();
+        if (command.tenantId() == null || command.userId() == null) {
+            throw new IllegalArgumentException("tenantId and userId are required");
+        }
+        List<CreateOrderItemCommand> items = command.items() == null ? List.of() : command.items();
+        if (items.isEmpty()) {
+            throw new IllegalArgumentException("items must not be empty");
+        }
+        BigDecimal totalAmount = items.stream()
+                .map(this::calculateLineAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         String orderNo = orderNoGenerator.nextOrderNo();
-        Order order = new Order(generatedId, 1001L, orderNo, 2001L, command.customerName());
+        Order order = orderDomainService.create(null, command.tenantId(), orderNo, command.userId(),
+                resolveCurrencyCode(command.currencyCode()), totalAmount, totalAmount, command.remark(),
+                command.expiredAt());
         return toSummary(orderRepository.save(order));
     }
 
@@ -99,8 +112,30 @@ public class OrderApplicationService {
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNo(),
                 order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
                 order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(),
-                List.of(new OrderItemDTO(101L, order.getCustomerName() + "-item", 1, BigDecimal.TEN, BigDecimal.TEN)),
-                "mock-payment", "mock-inventory", order.getPaidAt(), order.getClosedAt());
+                List.of(new OrderItemDTO(101L, "demo-item", 1, BigDecimal.TEN, BigDecimal.TEN)),
+                buildPaymentSnapshot(order), buildInventorySnapshot(order), order.getPaidAt(), order.getClosedAt());
     }
 
+    private BigDecimal calculateLineAmount(CreateOrderItemCommand item) {
+        if (item == null || item.quantity() == null || item.salePrice() == null) {
+            throw new IllegalArgumentException("order item quantity and salePrice are required");
+        }
+        return item.salePrice().multiply(BigDecimal.valueOf(item.quantity()));
+    }
+
+    private String resolveCurrencyCode(String currencyCode) {
+        return currencyCode == null || currencyCode.isBlank() ? "CNY" : currencyCode;
+    }
+
+    private String buildPaymentSnapshot(Order order) {
+        if (order.getPaymentNo() == null) {
+            return null;
+        }
+        return "paymentNo=" + order.getPaymentNo() + ",payStatus=" + order.getPayStatus();
+    }
+
+    private String buildInventorySnapshot(Order order) {
+        String reservationNo = Objects.toString(order.getReservationNo(), "N/A");
+        return "reservationNo=" + reservationNo + ",inventoryStatus=" + order.getInventoryStatus();
+    }
 }

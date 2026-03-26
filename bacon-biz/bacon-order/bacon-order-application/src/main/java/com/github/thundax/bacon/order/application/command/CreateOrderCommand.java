@@ -1,4 +1,15 @@
 package com.github.thundax.bacon.order.application.command;
 
-public record CreateOrderCommand(String customerName) {
+import java.time.Instant;
+import java.util.List;
+
+public record CreateOrderCommand(
+        Long tenantId,
+        Long userId,
+        String currencyCode,
+        String channelCode,
+        String remark,
+        Instant expiredAt,
+        List<CreateOrderItemCommand> items
+) {
 }

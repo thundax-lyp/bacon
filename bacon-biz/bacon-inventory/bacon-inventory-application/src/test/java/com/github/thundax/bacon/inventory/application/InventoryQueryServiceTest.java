@@ -1,11 +1,12 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application;
 
 import com.github.thundax.bacon.inventory.application.audit.*;
 import com.github.thundax.bacon.inventory.application.assembler.*;
 import com.github.thundax.bacon.inventory.application.command.*;
 import com.github.thundax.bacon.inventory.application.query.*;
 import com.github.thundax.bacon.inventory.application.support.*;
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryPageQueryDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
@@ -23,31 +24,34 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class InventoryManagementApplicationServiceTest {
+class InventoryQueryServiceTest {
 
     @Test
-    void createInventoryShouldInitializeAvailableQuantity() {
+    void pageInventoriesShouldFilterAndPaginate() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
+        InventoryQueryService service = new InventoryQueryService(repository, repository, repository, repository);
 
-        InventoryStockDTO result = service.createInventory(1001L, 103L, 30, Inventory.STATUS_ENABLED);
+        InventoryPageResultDTO result = service.pageInventories(new InventoryPageQueryDTO(1001L, null,
+                Inventory.STATUS_ENABLED, 1, 2));
 
-        assertEquals(103L, result.getSkuId());
-        assertEquals(30, result.getOnHandQuantity());
-        assertEquals(0, result.getReservedQuantity());
-        assertEquals(30, result.getAvailableQuantity());
-        assertEquals(Inventory.STATUS_ENABLED, result.getStatus());
+        assertEquals(2, result.getRecords().size());
+        assertEquals(3, result.getTotal());
+        assertEquals(101L, result.getRecords().get(0).getSkuId());
+        assertEquals(103L, result.getRecords().get(1).getSkuId());
     }
 
     @Test
-    void updateInventoryStatusShouldPersistStatus() {
+    void pageInventoriesShouldUseDefaultPagingValues() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
+        InventoryQueryService service = new InventoryQueryService(repository, repository, repository, repository);
 
-        InventoryStockDTO result = service.updateInventoryStatus(1001L, 101L, Inventory.STATUS_DISABLED);
+        InventoryPageResultDTO result = service.pageInventories(new InventoryPageQueryDTO(1001L, 104L,
+                null, 0, 0));
 
-        assertEquals(Inventory.STATUS_DISABLED, result.getStatus());
-        assertEquals(Inventory.STATUS_DISABLED, repository.findInventory(1001L, 101L).orElseThrow().getStatus());
+        assertEquals(1, result.getRecords().size());
+        assertEquals(1, result.getTotal());
+        assertEquals(1, result.getPageNo());
+        assertEquals(20, result.getPageSize());
     }
 
     private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,
@@ -57,6 +61,12 @@ class InventoryManagementApplicationServiceTest {
 
         private TestInventoryRepository() {
             inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100,
+                    Inventory.STATUS_ENABLED, 0L, Instant.now()));
+            inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, 1L, 80, 0, 80,
+                    Inventory.STATUS_DISABLED, 0L, Instant.now()));
+            inventories.put(key(1001L, 103L), new Inventory(3L, 1001L, 103L, 1L, 60, 0, 60,
+                    Inventory.STATUS_ENABLED, 0L, Instant.now()));
+            inventories.put(key(1001L, 104L), new Inventory(4L, 1001L, 104L, 1L, 40, 0, 40,
                     Inventory.STATUS_ENABLED, 0L, Instant.now()));
         }
 
@@ -69,6 +79,7 @@ class InventoryManagementApplicationServiceTest {
         public List<Inventory> findInventories(Long tenantId) {
             return inventories.values().stream()
                     .filter(inventory -> inventory.getTenantId().equals(tenantId))
+                    .sorted(java.util.Comparator.comparing(Inventory::getSkuId))
                     .toList();
         }
 

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application;
 
 import com.github.thundax.bacon.inventory.application.audit.*;
 import com.github.thundax.bacon.inventory.application.assembler.*;

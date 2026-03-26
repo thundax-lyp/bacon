@@ -1,10 +1,6 @@
 package com.github.thundax.bacon.inventory.application;
 
-import com.github.thundax.bacon.inventory.application.audit.*;
-import com.github.thundax.bacon.inventory.application.assembler.*;
-import com.github.thundax.bacon.inventory.application.command.*;
-import com.github.thundax.bacon.inventory.application.query.*;
-import com.github.thundax.bacon.inventory.application.support.*;
+import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;

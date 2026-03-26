@@ -57,19 +57,63 @@ public class Order {
 
     public Order(Long id, Long tenantId, String orderNo, Long userId, String currencyCode,
                  BigDecimal totalAmount, BigDecimal payableAmount, String remark, Instant expiredAt) {
+        this(id, tenantId, orderNo, userId, ORDER_STATUS_CREATED, PAY_STATUS_UNPAID, INVENTORY_STATUS_UNRESERVED,
+                null, null, currencyCode, totalAmount, payableAmount, remark, null, null, Instant.now(),
+                expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    private Order(Long id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
+                  String inventoryStatus, String paymentNo, String reservationNo, String currencyCode,
+                  BigDecimal totalAmount, BigDecimal payableAmount, String remark, String cancelReason,
+                  String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
+                  String paymentChannelCode, BigDecimal paidAmount, String paymentChannelStatus,
+                  String paymentFailureReason, Instant paymentFailedAt, Long warehouseId,
+                  String inventoryFailureReason, String inventoryReleaseReason, Instant inventoryReleasedAt,
+                  Instant inventoryDeductedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.orderNo = orderNo;
         this.userId = userId;
-        this.orderStatus = ORDER_STATUS_CREATED;
-        this.payStatus = PAY_STATUS_UNPAID;
-        this.inventoryStatus = INVENTORY_STATUS_UNRESERVED;
+        this.orderStatus = orderStatus;
+        this.payStatus = payStatus;
+        this.inventoryStatus = inventoryStatus;
+        this.paymentNo = paymentNo;
+        this.reservationNo = reservationNo;
         this.currencyCode = currencyCode;
         this.totalAmount = totalAmount;
         this.payableAmount = payableAmount;
         this.remark = remark;
-        this.createdAt = Instant.now();
+        this.cancelReason = cancelReason;
+        this.closeReason = closeReason;
+        this.createdAt = createdAt == null ? Instant.now() : createdAt;
         this.expiredAt = expiredAt == null ? this.createdAt.plusSeconds(1800) : expiredAt;
+        this.paidAt = paidAt;
+        this.closedAt = closedAt;
+        this.paymentChannelCode = paymentChannelCode;
+        this.paidAmount = paidAmount;
+        this.paymentChannelStatus = paymentChannelStatus;
+        this.paymentFailureReason = paymentFailureReason;
+        this.paymentFailedAt = paymentFailedAt;
+        this.warehouseId = warehouseId;
+        this.inventoryFailureReason = inventoryFailureReason;
+        this.inventoryReleaseReason = inventoryReleaseReason;
+        this.inventoryReleasedAt = inventoryReleasedAt;
+        this.inventoryDeductedAt = inventoryDeductedAt;
+    }
+
+    public static Order rehydrate(Long id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
+                                  String inventoryStatus, String paymentNo, String reservationNo, String currencyCode,
+                                  BigDecimal totalAmount, BigDecimal payableAmount, String remark, String cancelReason,
+                                  String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,
+                                  Instant closedAt, String paymentChannelCode, BigDecimal paidAmount,
+                                  String paymentChannelStatus, String paymentFailureReason, Instant paymentFailedAt,
+                                  Long warehouseId, String inventoryFailureReason, String inventoryReleaseReason,
+                                  Instant inventoryReleasedAt, Instant inventoryDeductedAt) {
+        return new Order(id, tenantId, orderNo, userId, orderStatus, payStatus, inventoryStatus, paymentNo,
+                reservationNo, currencyCode, totalAmount, payableAmount, remark, cancelReason, closeReason, createdAt,
+                expiredAt, paidAt, closedAt, paymentChannelCode, paidAmount, paymentChannelStatus, paymentFailureReason,
+                paymentFailedAt, warehouseId, inventoryFailureReason, inventoryReleaseReason, inventoryReleasedAt,
+                inventoryDeductedAt);
     }
 
     public Long getId() {

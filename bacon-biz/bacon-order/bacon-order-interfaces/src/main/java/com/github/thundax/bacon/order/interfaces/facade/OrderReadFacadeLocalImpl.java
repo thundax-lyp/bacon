@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.infra.facade.local;
+package com.github.thundax.bacon.order.interfaces.facade;
 
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;

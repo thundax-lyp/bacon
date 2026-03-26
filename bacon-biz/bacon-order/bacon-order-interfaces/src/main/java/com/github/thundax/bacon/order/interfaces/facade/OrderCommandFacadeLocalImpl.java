@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.infra.facade.local;
+package com.github.thundax.bacon.order.interfaces.facade;
 
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.order.application.service.OrderPaymentResultApplicationService;

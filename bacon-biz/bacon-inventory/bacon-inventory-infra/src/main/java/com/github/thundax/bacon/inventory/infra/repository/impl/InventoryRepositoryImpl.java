@@ -28,10 +28,12 @@ import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
 @Repository
+@ConditionalOnProperty(name = "bacon.inventory.repository.mode", havingValue = "strict", matchIfMissing = true)
 @ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 public class InventoryRepositoryImpl implements InventoryStockRepository, InventoryReservationRepository, InventoryLogRepository {
 

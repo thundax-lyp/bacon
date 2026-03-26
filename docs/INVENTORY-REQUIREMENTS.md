@@ -325,6 +325,14 @@ Inventory 是 Bacon 的统一库存业务域。
 - 并发写冲突时，不得静默覆盖库存数量，必须返回明确失败或抛出可识别异常
 - 审计日志写入失败不得破坏库存主业务提交结果，优先采用提交后异步/延后记录
 
+### 6.10 Repository Mode Rule
+
+- 库存仓储模式固定为显式配置：`strict` 或 `memory`
+- 默认模式必须是 `strict`
+- `strict` 模式下，若无可用持久化仓储（如 MyBatis + 数据源），应用必须启动失败（fail-fast）
+- `memory` 模式仅允许在开发、测试或演练场景显式启用，不得作为生产默认策略
+- 禁止因基础设施异常自动从 `strict` 切换到 `memory`
+
 ## 7. Functional Requirements
 
 ### 7.1 Inventory Management

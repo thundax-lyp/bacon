@@ -40,6 +40,9 @@ bacon:
     type: ${BACON_MQ_TYPE:ROCKETMQ}
   runtime:
     mode: mono
+  inventory:
+    repository:
+      mode: ${BACON_INVENTORY_REPOSITORY_MODE:strict}
   id:
     generator:
       provider: tinyid

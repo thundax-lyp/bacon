@@ -9,12 +9,9 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryLogReposito
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Repository
-@ConditionalOnProperty(name = "bacon.inventory.in-memory.enabled", havingValue = "true", matchIfMissing = true)
-@ConditionalOnMissingBean(SqlSessionFactory.class)
+@ConditionalOnProperty(name = "bacon.inventory.repository.mode", havingValue = "memory")
 public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository, InventoryReservationRepository,
         InventoryLogRepository {
 

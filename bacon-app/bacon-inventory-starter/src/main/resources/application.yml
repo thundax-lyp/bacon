@@ -10,6 +10,9 @@ spring:
 bacon:
   runtime:
     mode: micro
+  inventory:
+    repository:
+      mode: ${BACON_INVENTORY_REPOSITORY_MODE:strict}
 
 management:
   endpoints:

@@ -16,6 +16,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
@@ -24,6 +25,7 @@ import org.springframework.web.client.RestClient;
 public class BaconIdGeneratorAutoConfiguration {
 
     @Bean
+    @Primary
     @ConditionalOnMissingBean
     public IdGenerator idGenerator(BaconIdGeneratorProperties properties,
                                    ObjectProvider<RestClient.Builder> restClientBuilderProvider,

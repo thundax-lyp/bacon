@@ -421,6 +421,9 @@ Order 是 Bacon 的统一订单业务域。
 - 详情查询通过 `getById(tenantId, orderId)` 或 `getByOrderNo(tenantId, orderNo)` 执行
 - 列表查询请求遵守 `OrderPageQuery`
 - 分页结果字段遵守 `OrderPageResultDTO`
+- 分页查询必须下推到 `OrderRepository`，禁止应用层全量拉取后内存过滤
+- 分页排序固定为 `createdAt desc, id desc`，确保翻页稳定
+- `pageSize` 必须遵守通用分页上限约束
 
 ### 7.3 Cancel Order
 

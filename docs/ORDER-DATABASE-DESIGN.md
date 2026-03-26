@@ -375,6 +375,9 @@
 
 - 订单详情查询主表固定为 `bacon_order_order + bacon_order_item + bacon_order_payment_snapshot + bacon_order_inventory_snapshot`
 - 订单分页查询主表固定为 `bacon_order_order`
+- 订单分页查询必须在仓储层完成条件过滤与分页，不允许应用层全量加载后过滤
+- 订单分页查询排序固定为 `created_at desc, id desc`
+- 订单分页查询默认使用 `limit/offset`，并可按场景扩展 `seek` 模式
 - 审计查询主表固定为 `bacon_order_audit_log`
 
 ## 11. Open Items

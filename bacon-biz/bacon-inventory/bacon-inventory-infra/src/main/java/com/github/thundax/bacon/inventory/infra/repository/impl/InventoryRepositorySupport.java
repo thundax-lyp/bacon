@@ -12,9 +12,6 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditDeadLetterDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditOutboxDO;
@@ -42,13 +39,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-@Repository
+@Component
 @ConditionalOnProperty(name = "bacon.inventory.repository.mode", havingValue = "strict", matchIfMissing = true)
 @ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
-public class InventoryRepositoryImpl implements InventoryStockRepository, InventoryReservationRepository, InventoryLogRepository {
+public class InventoryRepositorySupport {
 
     private final InventoryMapper inventoryMapper;
     private final InventoryReservationMapper reservationMapper;
@@ -60,15 +57,15 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
     private final InventoryAuditReplayTaskMapper auditReplayTaskMapper;
     private final InventoryAuditReplayTaskItemMapper auditReplayTaskItemMapper;
 
-    public InventoryRepositoryImpl(InventoryMapper inventoryMapper,
-                                   InventoryReservationMapper reservationMapper,
-                                   InventoryReservationItemMapper reservationItemMapper,
-                                   InventoryLedgerMapper ledgerMapper,
-                                   InventoryAuditLogMapper auditLogMapper,
-                                   InventoryAuditOutboxMapper auditOutboxMapper,
-                                   InventoryAuditDeadLetterMapper auditDeadLetterMapper,
-                                   InventoryAuditReplayTaskMapper auditReplayTaskMapper,
-                                   InventoryAuditReplayTaskItemMapper auditReplayTaskItemMapper) {
+    public InventoryRepositorySupport(InventoryMapper inventoryMapper,
+                                      InventoryReservationMapper reservationMapper,
+                                      InventoryReservationItemMapper reservationItemMapper,
+                                      InventoryLedgerMapper ledgerMapper,
+                                      InventoryAuditLogMapper auditLogMapper,
+                                      InventoryAuditOutboxMapper auditOutboxMapper,
+                                      InventoryAuditDeadLetterMapper auditDeadLetterMapper,
+                                      InventoryAuditReplayTaskMapper auditReplayTaskMapper,
+                                      InventoryAuditReplayTaskItemMapper auditReplayTaskItemMapper) {
         this.inventoryMapper = inventoryMapper;
         this.reservationMapper = reservationMapper;
         this.reservationItemMapper = reservationItemMapper;
@@ -81,7 +78,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         log.info("Using MyBatis-Plus inventory repository");
     }
 
-    @Override
     public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
         return Optional.ofNullable(inventoryMapper.selectOne(Wrappers.<InventoryDO>lambdaQuery()
                 .eq(InventoryDO::getTenantId, tenantId)
@@ -89,7 +85,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .map(this::toDomain);
     }
 
-    @Override
     public List<Inventory> findInventories(Long tenantId) {
         return inventoryMapper.selectList(Wrappers.<InventoryDO>lambdaQuery()
                         .eq(InventoryDO::getTenantId, tenantId)
@@ -99,7 +94,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .toList();
     }
 
-    @Override
     public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
         if (skuIds == null || skuIds.isEmpty()) {
             return List.of();
@@ -113,7 +107,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .toList();
     }
 
-    @Override
     public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
         long offset = (long) (pageNo - 1) * pageSize;
         return inventoryMapper.selectPageByCondition(tenantId, skuId, status, offset, pageSize)
@@ -122,12 +115,10 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .toList();
     }
 
-    @Override
     public long countInventories(Long tenantId, Long skuId, String status) {
         return inventoryMapper.countByCondition(tenantId, skuId, status);
     }
 
-    @Override
     public Inventory saveInventory(Inventory inventory) {
         InventoryDO dataObject = toDataObject(inventory);
         if (dataObject.getId() == null) {
@@ -141,7 +132,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return toDomain(dataObject);
     }
 
-    @Override
     public InventoryReservation saveReservation(InventoryReservation reservation) {
         InventoryReservationDO reservationDataObject = toDataObject(reservation);
         if (reservationDataObject.getId() == null) {
@@ -156,7 +146,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return findReservation(reservation.getTenantId(), reservation.getOrderNo()).orElseThrow();
     }
 
-    @Override
     public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
         InventoryReservationDO reservation = reservationMapper.selectOne(
                 Wrappers.<InventoryReservationDO>lambdaQuery()
@@ -176,12 +165,10 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return Optional.of(toDomain(reservation, items));
     }
 
-    @Override
     public void saveLedger(InventoryLedger ledger) {
         ledgerMapper.insert(toDataObject(ledger));
     }
 
-    @Override
     public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
         return ledgerMapper.selectList(Wrappers.<InventoryLedgerDO>lambdaQuery()
                         .eq(InventoryLedgerDO::getTenantId, tenantId)
@@ -192,12 +179,10 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .toList();
     }
 
-    @Override
     public void saveAuditLog(InventoryAuditLog auditLog) {
         auditLogMapper.insert(toDataObject(auditLog));
     }
 
-    @Override
     public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
         return auditLogMapper.selectList(Wrappers.<InventoryAuditLogDO>lambdaQuery()
                         .eq(InventoryAuditLogDO::getTenantId, tenantId)
@@ -208,12 +193,10 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .toList();
     }
 
-    @Override
     public void saveAuditOutbox(InventoryAuditOutbox outbox) {
         auditOutboxMapper.insert(toDataObject(outbox));
     }
 
-    @Override
     public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
         return auditOutboxMapper.selectList(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
                         .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_NEW,
@@ -228,7 +211,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .toList();
     }
 
-    @Override
     public List<InventoryAuditOutbox> claimRetryableAuditOutbox(Instant now, int limit,
                                                                  String processingOwner, Instant leaseUntil) {
         List<InventoryAuditOutboxDO> candidates = auditOutboxMapper.selectList(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
@@ -271,7 +253,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return List.copyOf(claimed);
     }
 
-    @Override
     public int releaseExpiredAuditOutboxLease(Instant now) {
         return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
                 .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
@@ -283,7 +264,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditOutboxDO::getUpdatedAt, now));
     }
 
-    @Override
     public void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
                                           Instant updatedAt) {
         auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
@@ -295,7 +275,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt));
     }
 
-    @Override
     public boolean updateAuditOutboxForRetryClaimed(Long outboxId, String processingOwner, int retryCount,
                                                     Instant nextRetryAt, String errorMessage, Instant updatedAt) {
         return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
@@ -312,7 +291,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt)) > 0;
     }
 
-    @Override
     public void markAuditOutboxDead(Long outboxId, int retryCount, String deadReason, Instant updatedAt) {
         auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
                 .eq(InventoryAuditOutboxDO::getId, outboxId)
@@ -322,7 +300,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt));
     }
 
-    @Override
     public boolean markAuditOutboxDeadClaimed(Long outboxId, String processingOwner, int retryCount,
                                               String deadReason, Instant updatedAt) {
         return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
@@ -338,12 +315,10 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt)) > 0;
     }
 
-    @Override
     public void deleteAuditOutbox(Long outboxId) {
         auditOutboxMapper.deleteById(outboxId);
     }
 
-    @Override
     public boolean deleteAuditOutboxClaimed(Long outboxId, String processingOwner) {
         return auditOutboxMapper.delete(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
                 .eq(InventoryAuditOutboxDO::getId, outboxId)
@@ -351,12 +326,10 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)) > 0;
     }
 
-    @Override
     public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
         auditDeadLetterMapper.insert(toDataObject(deadLetter));
     }
 
-    @Override
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(Long tenantId, String orderNo,
                                                                 String replayStatus, int pageNo, int pageSize) {
         long offset = (long) (pageNo - 1) * pageSize;
@@ -377,7 +350,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .toList();
     }
 
-    @Override
     public long countAuditDeadLetters(Long tenantId, String orderNo, String replayStatus) {
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
                 Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
@@ -391,12 +363,10 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return auditDeadLetterMapper.selectCount(query);
     }
 
-    @Override
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(Long id) {
         return Optional.ofNullable(auditDeadLetterMapper.selectById(id)).map(this::toDomain);
     }
 
-    @Override
     public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
                                                  String operatorType, Long operatorId, Instant replayAt) {
         return auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
@@ -413,7 +383,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditDeadLetterDO::getLastReplayError, null)) > 0;
     }
 
-    @Override
     public void markAuditDeadLetterReplaySuccess(Long id, String replayKey, String operatorType, Long operatorId,
                                                  Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
@@ -428,7 +397,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditDeadLetterDO::getLastReplayError, null));
     }
 
-    @Override
     public void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
                                                 String replayError, Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
@@ -443,7 +411,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditDeadLetterDO::getLastReplayError, replayError));
     }
 
-    @Override
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         InventoryAuditReplayTaskDO dataObject = toDataObject(task);
         if (dataObject.getId() == null) {
@@ -454,7 +421,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return toDomain(dataObject);
     }
 
-    @Override
     public void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             return;
@@ -465,12 +431,10 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         }
     }
 
-    @Override
     public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
         return Optional.ofNullable(auditReplayTaskMapper.selectById(taskId)).map(this::toDomain);
     }
 
-    @Override
     public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
                                                                         String processingOwner, Instant leaseUntil) {
         List<InventoryAuditReplayTaskDO> candidates = auditReplayTaskMapper.selectList(
@@ -514,7 +478,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return List.copyOf(claimed);
     }
 
-    @Override
     public void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
         auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
                 .eq(InventoryAuditReplayTaskDO::getId, taskId)
@@ -524,7 +487,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt));
     }
 
-    @Override
     public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
         return auditReplayTaskItemMapper.selectList(Wrappers.<InventoryAuditReplayTaskItemDO>lambdaQuery()
                         .eq(InventoryAuditReplayTaskItemDO::getTaskId, taskId)
@@ -536,7 +498,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .toList();
     }
 
-    @Override
     public void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
                                               String replayKey, String resultMessage, Instant startedAt,
                                               Instant finishedAt) {
@@ -552,7 +513,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditReplayTaskItemDO::getUpdatedAt, finishedAt));
     }
 
-    @Override
     public void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
                                                  int successDelta, int failedDelta, Instant updatedAt) {
         auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
@@ -565,7 +525,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt));
     }
 
-    @Override
     public void finishAuditReplayTask(Long taskId, String processingOwner, String status, String lastError,
                                       Instant finishedAt) {
         auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
@@ -580,7 +539,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, finishedAt));
     }
 
-    @Override
     public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
         return auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
                 .eq(InventoryAuditReplayTaskDO::getId, taskId)
@@ -594,7 +552,6 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, pausedAt)) > 0;
     }
 
-    @Override
     public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
         return auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
                 .eq(InventoryAuditReplayTaskDO::getId, taskId)

@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_order` (
     KEY `idx_tenant_user_created` (`tenant_id`, `user_id`, `created_at`),
     KEY `idx_tenant_order_status_created` (`tenant_id`, `order_status`, `created_at`),
     KEY `idx_tenant_expired_status` (`tenant_id`, `expired_at`, `order_status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_order_item` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_item` (
     `line_amount` decimal(18,2) NOT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_tenant_order` (`tenant_id`, `order_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_order_payment_snapshot` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_payment_snapshot` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_id` (`order_id`),
     UNIQUE KEY `uk_payment_no` (`payment_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_order_inventory_snapshot` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_inventory_snapshot` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_id` (`order_id`),
     UNIQUE KEY `uk_reservation_no` (`reservation_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_order_audit_log` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_audit_log` (
     PRIMARY KEY (`id`),
     KEY `idx_tenant_occurred` (`tenant_id`, `occurred_at`),
     KEY `idx_order_no` (`order_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_order_outbox` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_outbox` (
     UNIQUE KEY `uk_biz_event` (`tenant_id`, `business_key`, `event_type`),
     KEY `idx_status_next_retry` (`status`, `next_retry_at`),
     KEY `idx_tenant_order` (`tenant_id`, `order_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_order_dead_letter` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS `bacon_order_dead_letter` (
     PRIMARY KEY (`id`),
     KEY `idx_tenant_dead_at` (`tenant_id`, `dead_at`),
     KEY `idx_order_no` (`order_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_order_idempotency_record` (
     `id` bigint NOT NULL AUTO_INCREMENT,
@@ -147,4 +147,4 @@ CREATE TABLE IF NOT EXISTS `bacon_order_idempotency_record` (
     UNIQUE KEY `uk_tenant_order_payment_event` (`tenant_id`, `order_no`, `payment_no`, `event_type`),
     KEY `idx_status_updated` (`status`, `updated_at`),
     KEY `idx_status_lease` (`status`, `lease_until`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.infra.rpc;
+package com.github.thundax.bacon.auth.infra.facade.remote;
 
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;

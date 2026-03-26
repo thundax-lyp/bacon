@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.interfaces.facade;
+package com.github.thundax.bacon.auth.infra.facade.local;
 
 import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
 import com.github.thundax.bacon.auth.api.facade.OAuthClientReadFacade;

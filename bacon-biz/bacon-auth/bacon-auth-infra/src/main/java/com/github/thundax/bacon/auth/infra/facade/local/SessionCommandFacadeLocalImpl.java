@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.interfaces.facade;
+package com.github.thundax.bacon.auth.infra.facade.local;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.auth.application.service.SessionApplicationService;

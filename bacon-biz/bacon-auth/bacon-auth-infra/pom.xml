@@ -26,6 +26,11 @@
         </dependency>
         <dependency>
             <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-auth-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
             <artifactId>bacon-upms-api</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -5,6 +5,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,8 @@ public interface OrderRepository {
     void saveAuditLog(OrderAuditLog auditLog);
 
     List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo);
+
+    OrderPageResult pageOrders(OrderPageQuery query);
 
     List<Order> findAll();
 }

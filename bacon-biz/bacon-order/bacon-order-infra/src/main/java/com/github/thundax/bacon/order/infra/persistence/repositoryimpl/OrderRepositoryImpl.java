@@ -5,6 +5,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +76,11 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo) {
         return support.findAuditLogs(tenantId, orderNo);
+    }
+
+    @Override
+    public OrderPageResult pageOrders(OrderPageQuery query) {
+        return support.pageOrders(query);
     }
 
     @Override

@@ -6,6 +6,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderAuditLogDataObject;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDataObject;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderInventorySnapshotDataObject;
@@ -18,7 +20,10 @@ import com.github.thundax.bacon.order.infra.persistence.mapper.OrderMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderPaymentSnapshotMapper;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -157,12 +162,60 @@ public class OrderRepositorySupport {
                 .toList();
     }
 
+    public OrderPageResult pageOrders(OrderPageQuery query) {
+        long total = Optional.ofNullable(orderMapper.selectCount(buildPageQuery(query))).orElse(0L);
+        if (total <= 0) {
+            return new OrderPageResult(List.of(), 0L);
+        }
+        List<OrderDataObject> pageOrders = orderMapper.selectList(buildPageQuery(query)
+                .orderByDesc(OrderDataObject::getCreatedAt, OrderDataObject::getId)
+                .last("limit " + query.offset() + "," + query.limit()));
+        if (pageOrders.isEmpty()) {
+            return new OrderPageResult(List.of(), total);
+        }
+        List<Long> orderIds = pageOrders.stream()
+                .map(OrderDataObject::getId)
+                .toList();
+        Map<Long, OrderPaymentSnapshotDataObject> paymentSnapshotMap = orderPaymentSnapshotMapper.selectList(
+                        Wrappers.<OrderPaymentSnapshotDataObject>lambdaQuery()
+                                .in(OrderPaymentSnapshotDataObject::getOrderId, orderIds))
+                .stream()
+                .collect(Collectors.toMap(OrderPaymentSnapshotDataObject::getOrderId, Function.identity(),
+                        (left, right) -> left));
+        Map<Long, OrderInventorySnapshotDataObject> inventorySnapshotMap = orderInventorySnapshotMapper.selectList(
+                        Wrappers.<OrderInventorySnapshotDataObject>lambdaQuery()
+                                .in(OrderInventorySnapshotDataObject::getOrderId, orderIds))
+                .stream()
+                .collect(Collectors.toMap(OrderInventorySnapshotDataObject::getOrderId, Function.identity(),
+                        (left, right) -> left));
+        List<Order> records = pageOrders.stream()
+                .map(orderData -> toDomain(orderData, paymentSnapshotMap.get(orderData.getId()),
+                        inventorySnapshotMap.get(orderData.getId())))
+                .toList();
+        return new OrderPageResult(records, total);
+    }
+
     public List<Order> findAll() {
         return orderMapper.selectList(Wrappers.<OrderDataObject>lambdaQuery()
                         .orderByDesc(OrderDataObject::getCreatedAt, OrderDataObject::getId))
                 .stream()
                 .map(this::toDomainWithSnapshots)
                 .toList();
+    }
+
+    private com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OrderDataObject> buildPageQuery(
+            OrderPageQuery query) {
+        return Wrappers.<OrderDataObject>lambdaQuery()
+                .eq(query.tenantId() != null, OrderDataObject::getTenantId, query.tenantId())
+                .eq(query.userId() != null, OrderDataObject::getUserId, query.userId())
+                .like(query.orderNo() != null && !query.orderNo().isBlank(), OrderDataObject::getOrderNo, query.orderNo())
+                .eq(query.orderStatus() != null && !query.orderStatus().isBlank(),
+                        OrderDataObject::getOrderStatus, query.orderStatus())
+                .eq(query.payStatus() != null && !query.payStatus().isBlank(), OrderDataObject::getPayStatus, query.payStatus())
+                .eq(query.inventoryStatus() != null && !query.inventoryStatus().isBlank(),
+                        OrderDataObject::getInventoryStatus, query.inventoryStatus())
+                .ge(query.createdAtFrom() != null, OrderDataObject::getCreatedAt, query.createdAtFrom())
+                .le(query.createdAtTo() != null, OrderDataObject::getCreatedAt, query.createdAtTo());
     }
 
     private OrderDataObject toDataObject(Order order) {
@@ -182,6 +235,11 @@ public class OrderRepositorySupport {
                 Wrappers.<OrderInventorySnapshotDataObject>lambdaQuery()
                         .eq(OrderInventorySnapshotDataObject::getTenantId, dataObject.getTenantId())
                         .eq(OrderInventorySnapshotDataObject::getOrderId, dataObject.getId()));
+        return toDomain(dataObject, paymentSnapshot, inventorySnapshot);
+    }
+
+    private Order toDomain(OrderDataObject dataObject, OrderPaymentSnapshotDataObject paymentSnapshot,
+                           OrderInventorySnapshotDataObject inventorySnapshot) {
         return Order.rehydrate(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getUserId(), dataObject.getOrderStatus(), dataObject.getPayStatus(),
                 dataObject.getInventoryStatus(),

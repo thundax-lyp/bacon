@@ -5,6 +5,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.context.annotation.Profile;
@@ -12,6 +14,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -97,6 +100,29 @@ public class InMemoryOrderRepository implements OrderRepository {
     @Override
     public List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo) {
         return List.copyOf(auditLogStorage.getOrDefault(tenantId + ":" + orderNo, List.of()));
+    }
+
+    @Override
+    public OrderPageResult pageOrders(OrderPageQuery query) {
+        List<Order> filtered = storage.values().stream()
+                .filter(order -> query.tenantId() == null || query.tenantId().equals(order.getTenantId()))
+                .filter(order -> query.userId() == null || query.userId().equals(order.getUserId()))
+                .filter(order -> query.orderNo() == null || order.getOrderNo().contains(query.orderNo()))
+                .filter(order -> query.orderStatus() == null || query.orderStatus().equals(order.getOrderStatus()))
+                .filter(order -> query.payStatus() == null || query.payStatus().equals(order.getPayStatus()))
+                .filter(order -> query.inventoryStatus() == null || query.inventoryStatus().equals(order.getInventoryStatus()))
+                .filter(order -> query.createdAtFrom() == null || !order.getCreatedAt().isBefore(query.createdAtFrom()))
+                .filter(order -> query.createdAtTo() == null || !order.getCreatedAt().isAfter(query.createdAtTo()))
+                .sorted(Comparator.comparing(Order::getCreatedAt).reversed().thenComparing(Order::getId).reversed())
+                .toList();
+        long total = filtered.size();
+        int offset = Math.max(query.offset(), 0);
+        int limit = Math.max(query.limit(), 1);
+        List<Order> records = filtered.stream()
+                .skip(offset)
+                .limit(limit)
+                .toList();
+        return new OrderPageResult(records, total);
     }
 
     @Override

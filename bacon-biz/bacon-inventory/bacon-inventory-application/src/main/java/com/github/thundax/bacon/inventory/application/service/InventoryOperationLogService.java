@@ -1,10 +1,12 @@
 package com.github.thundax.bacon.inventory.application.service;
 
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -69,9 +71,34 @@ public class InventoryOperationLogService {
             inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
                 reservation.getOrderNo(), reservation.getReservationNo(), actionType,
                 InventoryAuditLog.OPERATOR_TYPE_SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
+            Metrics.counter("bacon.inventory.audit.write.success.total", "actionType", actionType).increment();
         } catch (RuntimeException ex) {
-            log.warn("Failed to persist inventory audit log, orderNo={}, actionType={}",
-                    reservation.getOrderNo(), actionType, ex);
+            Metrics.counter("bacon.inventory.audit.write.fail.total", "actionType", actionType).increment();
+            saveAuditOutboxSafely(reservation, actionType, occurredAt, ex);
+            log.error("ALERT inventory audit write failed, orderNo={}, reservationNo={}, actionType={}",
+                    reservation.getOrderNo(), reservation.getReservationNo(), actionType, ex);
         }
+    }
+
+    private void saveAuditOutboxSafely(InventoryReservation reservation, String actionType, Instant occurredAt,
+                                       RuntimeException ex) {
+        try {
+            inventoryLogRepository.saveAuditOutbox(new InventoryAuditOutbox(null, reservation.getTenantId(),
+                    reservation.getOrderNo(), reservation.getReservationNo(), actionType,
+                    InventoryAuditLog.OPERATOR_TYPE_SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt,
+                    truncateErrorMessage(ex.getMessage()), InventoryAuditOutbox.STATUS_NEW, Instant.now()));
+            Metrics.counter("bacon.inventory.audit.outbox.persist.success.total", "actionType", actionType).increment();
+        } catch (RuntimeException outboxEx) {
+            Metrics.counter("bacon.inventory.audit.outbox.persist.fail.total", "actionType", actionType).increment();
+            log.error("ALERT inventory audit outbox persist failed, orderNo={}, reservationNo={}, actionType={}",
+                    reservation.getOrderNo(), reservation.getReservationNo(), actionType, outboxEx);
+        }
+    }
+
+    private String truncateErrorMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return "UNKNOWN";
+        }
+        return message.length() <= 512 ? message : message.substring(0, 512);
     }
 }

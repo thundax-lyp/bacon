@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
@@ -31,10 +32,12 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
     private final AtomicLong itemIdGenerator = new AtomicLong(1000L);
     private final AtomicLong ledgerIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditLogIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong auditOutboxIdGenerator = new AtomicLong(1000L);
     private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
     private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryLedger>> ledgers = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
+    private final Map<String, List<InventoryAuditOutbox>> auditOutbox = new ConcurrentHashMap<>();
 
     public InMemoryInventoryRepositoryImpl() {
         log.info("Using in-memory inventory repository");
@@ -144,6 +147,18 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
     @Override
     public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
         return List.copyOf(auditLogs.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
+    }
+
+    @Override
+    public void saveAuditOutbox(InventoryAuditOutbox outbox) {
+        if (outbox.getId() == null) {
+            outbox = new InventoryAuditOutbox(auditOutboxIdGenerator.getAndIncrement(), outbox.getTenantId(),
+                    outbox.getOrderNo(), outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
+                    outbox.getOperatorId(), outbox.getOccurredAt(), outbox.getErrorMessage(), outbox.getStatus(),
+                    outbox.getFailedAt());
+        }
+        auditOutbox.computeIfAbsent(reservationKey(outbox.getTenantId(), outbox.getOrderNo()), key -> new ArrayList<>())
+                .add(outbox);
     }
 
     private static String key(Long tenantId, Long skuId) {

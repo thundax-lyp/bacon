@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
@@ -12,11 +13,13 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryLogReposito
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;
+import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditOutboxDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryLedgerDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationItemDO;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditLogMapper;
+import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditOutboxMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryLedgerMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryReservationItemMapper;
@@ -42,17 +45,20 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
     private final InventoryReservationItemMapper reservationItemMapper;
     private final InventoryLedgerMapper ledgerMapper;
     private final InventoryAuditLogMapper auditLogMapper;
+    private final InventoryAuditOutboxMapper auditOutboxMapper;
 
     public InventoryRepositoryImpl(InventoryMapper inventoryMapper,
                                    InventoryReservationMapper reservationMapper,
                                    InventoryReservationItemMapper reservationItemMapper,
                                    InventoryLedgerMapper ledgerMapper,
-                                   InventoryAuditLogMapper auditLogMapper) {
+                                   InventoryAuditLogMapper auditLogMapper,
+                                   InventoryAuditOutboxMapper auditOutboxMapper) {
         this.inventoryMapper = inventoryMapper;
         this.reservationMapper = reservationMapper;
         this.reservationItemMapper = reservationItemMapper;
         this.ledgerMapper = ledgerMapper;
         this.auditLogMapper = auditLogMapper;
+        this.auditOutboxMapper = auditOutboxMapper;
         log.info("Using MyBatis-Plus inventory repository");
     }
 
@@ -183,6 +189,11 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .toList();
     }
 
+    @Override
+    public void saveAuditOutbox(InventoryAuditOutbox outbox) {
+        auditOutboxMapper.insert(toDataObject(outbox));
+    }
+
     private Inventory toDomain(InventoryDO dataObject) {
         return new Inventory(dataObject.getId(), dataObject.getTenantId(), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getOnHandQuantity(), dataObject.getReservedQuantity(), dataObject.getAvailableQuantity(),
@@ -243,5 +254,12 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return new InventoryAuditLogDO(auditLog.getId(), auditLog.getTenantId(), auditLog.getOrderNo(),
                 auditLog.getReservationNo(), auditLog.getActionType(), auditLog.getOperatorType(),
                 auditLog.getOperatorId(), auditLog.getOccurredAt());
+    }
+
+    private InventoryAuditOutboxDO toDataObject(InventoryAuditOutbox outbox) {
+        return new InventoryAuditOutboxDO(outbox.getId(), outbox.getTenantId(), outbox.getOrderNo(),
+                outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
+                outbox.getOperatorId(), outbox.getOccurredAt(), outbox.getErrorMessage(),
+                outbox.getStatus(), outbox.getFailedAt());
     }
 }

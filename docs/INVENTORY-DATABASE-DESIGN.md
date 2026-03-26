@@ -74,6 +74,7 @@
 | `InventoryReservationItem` | `bacon_inventory_reservation_item` |
 | `InventoryLedger` | `bacon_inventory_ledger` |
 | `InventoryAuditLog` | `bacon_inventory_audit_log` |
+| `InventoryAuditOutbox` | `bacon_inventory_audit_outbox` |
 
 ## 7. Table Design
 
@@ -221,6 +222,37 @@
 - `idx_order_no(order_no)`
 - `idx_reservation_no(reservation_no)`
 
+### 7.6 `bacon_inventory_audit_outbox`
+
+表类型：`Outbox Table`
+
+用途：
+
+- 记录库存审计日志写入失败事件
+- 作为审计补偿任务重试数据源
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
+| `order_no` | `varchar(64)` | Y | 订单号 |
+| `reservation_no` | `varchar(64)` | Y | 预占单号 |
+| `action_type` | `varchar(64)` | N | 操作类型 |
+| `operator_type` | `varchar(32)` | Y | 操作人类型 |
+| `operator_id` | `bigint` | Y | 操作人标识 |
+| `occurred_at` | `datetime(3)` | N | 业务事件发生时间 |
+| `error_message` | `varchar(512)` | N | 审计写入失败原因 |
+| `status` | `varchar(16)` | N | outbox 状态，初始为 `NEW` |
+| `failed_at` | `datetime(3)` | N | 失败落库时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `idx_status_failed(status, failed_at)`
+- `idx_tenant_order(tenant_id, order_no)`
+
 ## 8. Relationship Rules
 
 - `bacon_inventory_reservation_item.reservation_no` 关联 `bacon_inventory_reservation.reservation_no`
@@ -244,7 +276,8 @@
 - `releaseReservedStock` 和 `deductReservedStock` 只允许基于已存在预占单执行语义判断
 - 库存数量变更必须显式更新 `bacon_inventory_inventory`，不得依赖运行时对象引用副作用
 - `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的命令写入应运行在同一事务中
-- `InventoryAuditLog` 优先在主事务提交后以 best effort 方式记录，失败只告警不回滚主业务
+- `InventoryAuditLog` 优先在主事务提交后以 best effort 方式记录，失败不回滚主业务
+- `InventoryAuditLog` 写入失败时必须落库 `bacon_inventory_audit_outbox`
 - `InventoryStockDTO` 是读模型，不单独建表
 - `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表
 - 预占单和库存流水不做逻辑删除
@@ -256,6 +289,7 @@
 - 预占单详情查询主表固定为 `bacon_inventory_reservation + bacon_inventory_reservation_item`
 - 库存流水查询主表固定为 `bacon_inventory_ledger`
 - 审计查询主表固定为 `bacon_inventory_audit_log`
+- 审计补偿查询主表固定为 `bacon_inventory_audit_outbox`
 - 库存分页查询必须由数据库分页实现，不得在应用层做全量拉取后再分页
 
 ## 11. Open Items

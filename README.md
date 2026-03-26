@@ -53,6 +53,13 @@ mvn checkstyle:check
 mvn -pl bacon-app/bacon-mono-boot spring-boot:run
 ```
 
+Inventory 模块补充测试（可按需单独执行）：
+
+```bash
+mvn -q -pl bacon-biz/bacon-inventory/bacon-inventory-infra -am test -Dtest=InMemoryInventoryRepositorySupportTest -Dsurefire.failIfNoSpecifiedTests=false
+mvn -q -pl bacon-biz/bacon-inventory/bacon-inventory-interfaces -am test -Dtest=InventoryControllerContractTest,InventoryProviderControllerContractTest -Dsurefire.failIfNoSpecifiedTests=false
+```
+
 ## JDK 约定
 
 - 日常开发可以使用 JDK 19

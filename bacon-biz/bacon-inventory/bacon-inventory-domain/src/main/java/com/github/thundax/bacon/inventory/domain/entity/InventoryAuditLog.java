@@ -12,6 +12,8 @@ public class InventoryAuditLog {
     public static final String ACTION_RESERVE_FAILED = "RESERVE_FAILED";
     public static final String ACTION_RELEASE = "RELEASE";
     public static final String ACTION_DEDUCT = "DEDUCT";
+    public static final String ACTION_AUDIT_REPLAY_SUCCEEDED = "AUDIT_REPLAY_SUCCEEDED";
+    public static final String ACTION_AUDIT_REPLAY_FAILED = "AUDIT_REPLAY_FAILED";
 
     public static final String OPERATOR_TYPE_SYSTEM = "SYSTEM";
     public static final Long OPERATOR_ID_SYSTEM = 0L;

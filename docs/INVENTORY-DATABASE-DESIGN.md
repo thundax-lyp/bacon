@@ -340,6 +340,7 @@
 - 并发冲突重试的退避等待必须在事务外执行，每次重试应开启新的短事务，避免长事务持锁
 - `InventoryAuditLog` 优先在主事务提交后以 best effort 方式记录，失败不回滚主业务
 - `InventoryAuditLog` 写入失败时必须落库 `bacon_inventory_audit_outbox`
+- 审计相关表（`bacon_inventory_audit_log`、`bacon_inventory_audit_outbox`、`bacon_inventory_audit_dead_letter`）的 `action_type` 必须使用统一动作码：`RESERVE`、`RESERVE_FAILED`、`RELEASE`、`DEDUCT`、`AUDIT_REPLAY_SUCCEEDED`、`AUDIT_REPLAY_FAILED`
 - `InventoryAuditOutbox` 重试成功后应删除；达到最大重试次数后状态置为 `DEAD`
 - `InventoryAuditOutbox` 在多实例下必须先抢占（claim）再处理：仅允许 `NEW/RETRYING` 且 `next_retry_at <= now` 的记录转为 `PROCESSING`
 - claim 后必须写入 `processing_owner` 与 `lease_until`，并使用 owner + 状态的条件更新/删除（CAS）完成重试结果提交

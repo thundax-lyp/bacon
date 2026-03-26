@@ -407,6 +407,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - 记录预占
 - 记录释放
 - 记录扣减
+- 审计 `actionType` 必须使用统一动作码常量，固定值至少包含：`RESERVE`、`RESERVE_FAILED`、`RELEASE`、`DEDUCT`、`AUDIT_REPLAY_SUCCEEDED`、`AUDIT_REPLAY_FAILED`
 - 写入失败时记录 outbox 并保留失败原因
 - outbox 重试成功后删除 outbox 记录
 - 超过最大重试次数必须写入死信并保留最终失败原因

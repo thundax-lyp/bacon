@@ -6,6 +6,10 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
@@ -57,6 +61,40 @@ class OrderIdempotencyExecutorTest {
         executor.execute(OrderIdempotencyExecutor.EVENT_MARK_PAID, 1001L, "ORD-3", "PAY-3",
                 executedTimes::incrementAndGet);
 
+        assertEquals(1, executedTimes.get());
+    }
+
+    @Test
+    void concurrentDuplicateRequestsShouldExecuteBusinessActionOnlyOnce() throws InterruptedException {
+        OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(new InMemoryOrderIdempotencyRepository());
+        AtomicInteger executedTimes = new AtomicInteger(0);
+        int threadCount = 8;
+        CountDownLatch ready = new CountDownLatch(threadCount);
+        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch done = new CountDownLatch(threadCount);
+        ExecutorService pool = Executors.newFixedThreadPool(threadCount);
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                pool.execute(() -> {
+                    ready.countDown();
+                    try {
+                        start.await();
+                        executor.execute(OrderIdempotencyExecutor.EVENT_MARK_PAID, 1001L,
+                                "ORD-CONCURRENT-1", "PAY-CONCURRENT-1",
+                                executedTimes::incrementAndGet);
+                    } catch (InterruptedException exception) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        done.countDown();
+                    }
+                });
+            }
+            ready.await(2, TimeUnit.SECONDS);
+            start.countDown();
+            done.await(5, TimeUnit.SECONDS);
+        } finally {
+            pool.shutdownNow();
+        }
         assertEquals(1, executedTimes.get());
     }
 

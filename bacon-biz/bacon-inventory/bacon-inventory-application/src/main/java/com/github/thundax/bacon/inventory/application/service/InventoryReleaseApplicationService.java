@@ -18,30 +18,30 @@ public class InventoryReleaseApplicationService {
     private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryOperationLogService inventoryOperationLogService;
     private final InventoryTransactionExecutor inventoryTransactionExecutor;
-    private final InventoryConcurrencyRetrier inventoryConcurrencyRetrier;
+    private final InventoryWriteRetrier inventoryWriteRetrier;
 
     @Autowired
     public InventoryReleaseApplicationService(InventoryStockRepository inventoryStockRepository,
                                               InventoryReservationRepository inventoryReservationRepository,
                                               InventoryOperationLogService inventoryOperationLogService,
                                               InventoryTransactionExecutor inventoryTransactionExecutor,
-                                              InventoryConcurrencyRetrier inventoryConcurrencyRetrier) {
+                                              InventoryWriteRetrier inventoryWriteRetrier) {
         this.inventoryStockRepository = inventoryStockRepository;
         this.inventoryReservationRepository = inventoryReservationRepository;
         this.inventoryOperationLogService = inventoryOperationLogService;
         this.inventoryTransactionExecutor = inventoryTransactionExecutor;
-        this.inventoryConcurrencyRetrier = inventoryConcurrencyRetrier;
+        this.inventoryWriteRetrier = inventoryWriteRetrier;
     }
 
     public InventoryReleaseApplicationService(InventoryStockRepository inventoryStockRepository,
                                               InventoryReservationRepository inventoryReservationRepository,
                                               InventoryOperationLogService inventoryOperationLogService) {
         this(inventoryStockRepository, inventoryReservationRepository, inventoryOperationLogService,
-                new InventoryTransactionExecutor(), new InventoryConcurrencyRetrier());
+                new InventoryTransactionExecutor(), new InventoryWriteRetrier());
     }
 
     public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        return inventoryConcurrencyRetrier.execute(() ->
+        return inventoryWriteRetrier.execute("release", tenantId + ":" + orderNo, () ->
                 inventoryTransactionExecutor.executeInNewTransaction(() ->
                         releaseReservedStockOnce(tenantId, orderNo, reason)));
     }

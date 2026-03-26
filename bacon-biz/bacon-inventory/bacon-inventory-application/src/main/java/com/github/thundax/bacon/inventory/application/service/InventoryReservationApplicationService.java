@@ -28,7 +28,7 @@ public class InventoryReservationApplicationService {
     private final InventoryOperationLogService inventoryOperationLogService;
     private final InventoryReservationNoGenerator inventoryReservationNoGenerator;
     private final InventoryTransactionExecutor inventoryTransactionExecutor;
-    private final InventoryConcurrencyRetrier inventoryConcurrencyRetrier;
+    private final InventoryWriteRetrier inventoryWriteRetrier;
 
     @Autowired
     public InventoryReservationApplicationService(InventoryStockRepository inventoryStockRepository,
@@ -36,13 +36,13 @@ public class InventoryReservationApplicationService {
                                                   InventoryOperationLogService inventoryOperationLogService,
                                                   InventoryReservationNoGenerator inventoryReservationNoGenerator,
                                                   InventoryTransactionExecutor inventoryTransactionExecutor,
-                                                  InventoryConcurrencyRetrier inventoryConcurrencyRetrier) {
+                                                  InventoryWriteRetrier inventoryWriteRetrier) {
         this.inventoryStockRepository = inventoryStockRepository;
         this.inventoryReservationRepository = inventoryReservationRepository;
         this.inventoryOperationLogService = inventoryOperationLogService;
         this.inventoryReservationNoGenerator = inventoryReservationNoGenerator;
         this.inventoryTransactionExecutor = inventoryTransactionExecutor;
-        this.inventoryConcurrencyRetrier = inventoryConcurrencyRetrier;
+        this.inventoryWriteRetrier = inventoryWriteRetrier;
     }
 
     public InventoryReservationApplicationService(InventoryStockRepository inventoryStockRepository,
@@ -50,11 +50,11 @@ public class InventoryReservationApplicationService {
                                                   InventoryOperationLogService inventoryOperationLogService,
                                                   InventoryReservationNoGenerator inventoryReservationNoGenerator) {
         this(inventoryStockRepository, inventoryReservationRepository, inventoryOperationLogService,
-                inventoryReservationNoGenerator, new InventoryTransactionExecutor(), new InventoryConcurrencyRetrier());
+                inventoryReservationNoGenerator, new InventoryTransactionExecutor(), new InventoryWriteRetrier());
     }
 
     public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
-        return inventoryConcurrencyRetrier.execute(() ->
+        return inventoryWriteRetrier.execute("reserve", tenantId + ":" + orderNo, () ->
                 inventoryTransactionExecutor.executeInNewTransaction(() ->
                         reserveStockOnce(tenantId, orderNo, items)));
     }

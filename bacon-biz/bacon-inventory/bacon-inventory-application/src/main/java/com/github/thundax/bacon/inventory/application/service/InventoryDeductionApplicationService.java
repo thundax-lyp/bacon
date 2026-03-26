@@ -18,30 +18,30 @@ public class InventoryDeductionApplicationService {
     private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryOperationLogService inventoryOperationLogService;
     private final InventoryTransactionExecutor inventoryTransactionExecutor;
-    private final InventoryConcurrencyRetrier inventoryConcurrencyRetrier;
+    private final InventoryWriteRetrier inventoryWriteRetrier;
 
     @Autowired
     public InventoryDeductionApplicationService(InventoryStockRepository inventoryStockRepository,
                                                 InventoryReservationRepository inventoryReservationRepository,
                                                 InventoryOperationLogService inventoryOperationLogService,
                                                 InventoryTransactionExecutor inventoryTransactionExecutor,
-                                                InventoryConcurrencyRetrier inventoryConcurrencyRetrier) {
+                                                InventoryWriteRetrier inventoryWriteRetrier) {
         this.inventoryStockRepository = inventoryStockRepository;
         this.inventoryReservationRepository = inventoryReservationRepository;
         this.inventoryOperationLogService = inventoryOperationLogService;
         this.inventoryTransactionExecutor = inventoryTransactionExecutor;
-        this.inventoryConcurrencyRetrier = inventoryConcurrencyRetrier;
+        this.inventoryWriteRetrier = inventoryWriteRetrier;
     }
 
     public InventoryDeductionApplicationService(InventoryStockRepository inventoryStockRepository,
                                                 InventoryReservationRepository inventoryReservationRepository,
                                                 InventoryOperationLogService inventoryOperationLogService) {
         this(inventoryStockRepository, inventoryReservationRepository, inventoryOperationLogService,
-                new InventoryTransactionExecutor(), new InventoryConcurrencyRetrier());
+                new InventoryTransactionExecutor(), new InventoryWriteRetrier());
     }
 
     public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
-        return inventoryConcurrencyRetrier.execute(() ->
+        return inventoryWriteRetrier.execute("deduct", tenantId + ":" + orderNo, () ->
                 inventoryTransactionExecutor.executeInNewTransaction(() ->
                         deductReservedStockOnce(tenantId, orderNo)));
     }

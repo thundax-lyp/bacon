@@ -61,7 +61,7 @@
 - `reservation_no`: `varchar(64)`
 - `order_no`: `varchar(64)`
 - `failure_reason`: `varchar(255)`
-- `release_reason`: `varchar(64)`
+- `release_reason`: `varchar(255)`
 - `action_type`: `varchar(64)`
 - `operator_type`: `varchar(32)`
 
@@ -99,7 +99,7 @@
 | `on_hand_quantity` | `int` | N | 现存量 |
 | `reserved_quantity` | `int` | N | 预占量 |
 | `available_quantity` | `int` | N | 可售量 |
-| `status` | `varchar(16)` | N | 库存状态，取值见 `status` |
+| `status` | `varchar(32)` | N | 库存状态，取值见 `status` |
 | `version` | `bigint` | N | 乐观锁版本号 |
 | `created_by` | `bigint` | Y | 创建人用户主键 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
@@ -110,7 +110,7 @@
 
 - `pk(id)`
 - `uk_tenant_sku(tenant_id, sku_id)`
-- `idx_tenant_sku(tenant_id, sku_id)`
+- `idx_tenant_status(tenant_id, status)`
 
 ### 7.2 `bacon_inventory_reservation`
 
@@ -127,12 +127,12 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
-| `reservation_no` | `varchar(64)` | N | 预占单号，全局唯一 |
+| `reservation_no` | `varchar(64)` | N | 预占单号，同租户唯一 |
 | `order_no` | `varchar(64)` | N | 订单号，同租户唯一 |
-| `reservation_status` | `varchar(16)` | N | 预占状态，取值见 `reservation_status` |
+| `reservation_status` | `varchar(32)` | N | 预占状态，取值见 `reservation_status` |
 | `warehouse_id` | `bigint` | N | 仓库标识 |
 | `failure_reason` | `varchar(255)` | Y | 失败原因 |
-| `release_reason` | `varchar(64)` | Y | 释放原因，取值见 `release_reason` |
+| `release_reason` | `varchar(255)` | Y | 释放原因，取值见 `release_reason` |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `released_at` | `datetime(3)` | Y | 释放时间 |
 | `deducted_at` | `datetime(3)` | Y | 扣减时间 |
@@ -140,8 +140,9 @@
 索引与约束：
 
 - `pk(id)`
-- `uk_reservation_no(reservation_no)`
-- `uk_tenant_order_no(tenant_id, order_no)`
+- `uk_tenant_order(tenant_id, order_no)`
+- `uk_tenant_reservation_no(tenant_id, reservation_no)`
+- `idx_tenant_status(tenant_id, reservation_status)`
 
 ### 7.3 `bacon_inventory_reservation_item`
 
@@ -164,7 +165,8 @@
 索引与约束：
 
 - `pk(id)`
-- `uk_reservation_sku(tenant_id, reservation_no, sku_id)`
+- `uk_tenant_reservation_sku(tenant_id, reservation_no, sku_id)`
+- `idx_tenant_reservation_no(tenant_id, reservation_no)`
 
 ### 7.4 `bacon_inventory_ledger`
 
@@ -193,6 +195,7 @@
 
 - `pk(id)`
 - `idx_tenant_order_ledger(tenant_id, order_no, ledger_type)`
+- `idx_tenant_reservation(tenant_id, reservation_no)`
 
 ### 7.5 `bacon_inventory_audit_log`
 
@@ -257,6 +260,7 @@
 - `pk(id)`
 - `idx_status_failed(status, failed_at)`
 - `idx_tenant_order(tenant_id, order_no)`
+- `idx_status_next_retry(status, next_retry_at)`
 
 ### 7.7 `bacon_inventory_audit_dead_letter`
 
@@ -290,6 +294,7 @@
 - `pk(id)`
 - `idx_dead_at(dead_at)`
 - `idx_tenant_order(tenant_id, order_no)`
+- `idx_outbox_id(outbox_id)`
 
 ## 8. Relationship Rules
 

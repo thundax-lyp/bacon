@@ -145,6 +145,9 @@ Inventory 是 Bacon 的统一库存业务域。
 - `GET /inventory-reservations/{orderNo}`
 - `GET /inventory-ledgers`
 - `GET /inventory-audit-logs`
+- `GET /inventory-audit-dead-letters`
+- `POST /inventory-audit-dead-letters/{deadLetterId}/replay`
+- `POST /inventory-audit-dead-letters/replay-batch`
 
 ### 4.3 `bacon-inventory-application`
 
@@ -333,6 +336,10 @@ Inventory 是 Bacon 的统一库存业务域。
 - 多实例场景下，审计 outbox 重试必须先抢占再处理，禁止“先查后处理”的无锁并发消费
 - outbox 抢占后必须记录 `processingOwner` 与 `leaseUntil`，并通过 owner + 状态 CAS 更新提交重试结果
 - claim 租约超时后必须可回收为可重试状态，避免实例异常导致记录永久卡死
+- 审计死信必须提供可运营处理闭环：支持分页查询、单条重放、按条件批量重放
+- 审计死信重放必须记录幂等 `replayKey` 与操作追踪字段（操作人类型、操作人、重放时间、重放结果）
+- 审计死信重放状态固定为 `PENDING`、`RUNNING`、`SUCCEEDED`、`FAILED`
+- 审计死信重放成功后必须记录补偿成功追踪日志；重放失败后必须记录补偿失败追踪日志
 
 ### 6.10 Repository Mode Rule
 

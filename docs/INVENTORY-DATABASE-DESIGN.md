@@ -293,6 +293,14 @@
 | `error_message` | `varchar(512)` | N | 最后一次失败原因 |
 | `dead_reason` | `varchar(64)` | N | 死信原因 |
 | `dead_at` | `datetime(3)` | N | 进入死信时间 |
+| `replay_status` | `varchar(16)` | N | 重放状态，`PENDING/RUNNING/SUCCEEDED/FAILED` |
+| `replay_count` | `int` | N | 重放次数 |
+| `last_replay_at` | `datetime(3)` | Y | 最近一次重放时间 |
+| `last_replay_result` | `varchar(16)` | Y | 最近一次重放结果 |
+| `last_replay_error` | `varchar(512)` | Y | 最近一次重放失败原因 |
+| `replay_key` | `varchar(128)` | Y | 重放幂等键 |
+| `replay_operator_type` | `varchar(32)` | Y | 最近一次重放操作人类型 |
+| `replay_operator_id` | `bigint` | Y | 最近一次重放操作人标识 |
 
 索引与约束：
 
@@ -300,6 +308,8 @@
 - `idx_dead_at(dead_at)`
 - `idx_tenant_order(tenant_id, order_no)`
 - `idx_outbox_id(outbox_id)`
+- `idx_tenant_replay_status_dead(tenant_id, replay_status, dead_at)`
+- `uk_replay_key(replay_key)`
 
 ## 8. Relationship Rules
 
@@ -332,6 +342,8 @@
 - claim 后必须写入 `processing_owner` 与 `lease_until`，并使用 owner + 状态的条件更新/删除（CAS）完成重试结果提交
 - 超过 `lease_until` 的 `PROCESSING` 记录必须可被回收并重新进入 `RETRYING`
 - `InventoryAuditOutbox` 进入 `DEAD` 后必须写入 `bacon_inventory_audit_dead_letter`
+- `InventoryAuditDeadLetter` 必须支持运营分页查询和按 `replay_status` 过滤
+- `InventoryAuditDeadLetter` 重放必须写入幂等 `replay_key`，并更新重放状态与追踪字段
 - `InventoryStockDTO` 是读模型，不单独建表
 - `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表
 - 预占单和库存流水不做逻辑删除

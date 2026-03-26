@@ -310,11 +310,99 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
                     deadLetter.getTenantId(), deadLetter.getOrderNo(), deadLetter.getReservationNo(),
                     deadLetter.getActionType(), deadLetter.getOperatorType(), deadLetter.getOperatorId(),
                     deadLetter.getOccurredAt(), deadLetter.getRetryCount(), deadLetter.getErrorMessage(),
-                    deadLetter.getDeadReason(), deadLetter.getDeadAt());
+                    deadLetter.getDeadReason(), deadLetter.getDeadAt(), deadLetter.getReplayStatus(),
+                    deadLetter.getReplayCount(), deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(),
+                    deadLetter.getLastReplayError(), deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(),
+                    deadLetter.getReplayOperatorId());
         }
         auditDeadLetters.computeIfAbsent(reservationKey(deadLetter.getTenantId(), deadLetter.getOrderNo()),
                         key -> new ArrayList<>())
                 .add(deadLetter);
+    }
+
+    @Override
+    public List<InventoryAuditDeadLetter> pageAuditDeadLetters(Long tenantId, String orderNo,
+                                                                String replayStatus, int pageNo, int pageSize) {
+        return auditDeadLetters.values().stream()
+                .flatMap(List::stream)
+                .filter(item -> item.getTenantId().equals(tenantId))
+                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo()))
+                .filter(item -> replayStatus == null || replayStatus.isBlank()
+                        || replayStatus.equals(item.getReplayStatus()))
+                .sorted(java.util.Comparator.comparing(InventoryAuditDeadLetter::getDeadAt).reversed()
+                        .thenComparing(InventoryAuditDeadLetter::getId, java.util.Comparator.reverseOrder()))
+                .skip((long) (pageNo - 1) * pageSize)
+                .limit(pageSize)
+                .toList();
+    }
+
+    @Override
+    public long countAuditDeadLetters(Long tenantId, String orderNo, String replayStatus) {
+        return auditDeadLetters.values().stream()
+                .flatMap(List::stream)
+                .filter(item -> item.getTenantId().equals(tenantId))
+                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo()))
+                .filter(item -> replayStatus == null || replayStatus.isBlank()
+                        || replayStatus.equals(item.getReplayStatus()))
+                .count();
+    }
+
+    @Override
+    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(Long id) {
+        return auditDeadLetters.values().stream()
+                .flatMap(List::stream)
+                .filter(item -> item.getId().equals(id))
+                .findFirst();
+    }
+
+    @Override
+    public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
+                                                 String operatorType, Long operatorId, Instant replayAt) {
+        return findAuditDeadLetterById(id)
+                .filter(item -> item.getTenantId().equals(tenantId))
+                .filter(item -> InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.equals(item.getReplayStatus())
+                        || InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.equals(item.getReplayStatus()))
+                .map(item -> {
+                    item.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_RUNNING);
+                    item.setReplayKey(replayKey);
+                    item.setReplayOperatorType(operatorType);
+                    item.setReplayOperatorId(operatorId);
+                    item.setLastReplayAt(replayAt);
+                    item.setLastReplayResult("RUNNING");
+                    item.setLastReplayError(null);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public void markAuditDeadLetterReplaySuccess(Long id, String replayKey, String operatorType, Long operatorId,
+                                                 Instant replayAt) {
+        findAuditDeadLetterById(id).ifPresent(item -> {
+            item.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED);
+            item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
+            item.setReplayKey(replayKey);
+            item.setReplayOperatorType(operatorType);
+            item.setReplayOperatorId(operatorId);
+            item.setLastReplayAt(replayAt);
+            item.setLastReplayResult("SUCCEEDED");
+            item.setLastReplayError(null);
+        });
+    }
+
+    @Override
+    public void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
+                                                String replayError, Instant replayAt) {
+        findAuditDeadLetterById(id).ifPresent(item -> {
+            item.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_FAILED);
+            item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
+            item.setReplayKey(replayKey);
+            item.setReplayOperatorType(operatorType);
+            item.setReplayOperatorId(operatorId);
+            item.setLastReplayAt(replayAt);
+            item.setLastReplayResult("FAILED");
+            item.setLastReplayError(replayError);
+        });
     }
 
     private static String key(Long tenantId, Long skuId) {

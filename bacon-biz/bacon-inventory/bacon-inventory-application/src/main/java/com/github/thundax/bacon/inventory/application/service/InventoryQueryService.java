@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.inventory.application.service;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageQueryDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageQueryDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
@@ -8,6 +11,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
@@ -78,6 +82,20 @@ public class InventoryQueryService {
                 .toList();
     }
 
+    public InventoryAuditDeadLetterPageResultDTO pageAuditDeadLetters(InventoryAuditDeadLetterPageQueryDTO query) {
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+        String normalizedReplayStatus = normalizeStatus(query.getReplayStatus());
+        List<InventoryAuditDeadLetterDTO> records = inventoryLogRepository
+                .pageAuditDeadLetters(query.getTenantId(), query.getOrderNo(), normalizedReplayStatus, pageNo, pageSize)
+                .stream()
+                .map(this::toAuditDeadLetterDto)
+                .toList();
+        long total = inventoryLogRepository.countAuditDeadLetters(query.getTenantId(), query.getOrderNo(),
+                normalizedReplayStatus);
+        return new InventoryAuditDeadLetterPageResultDTO(records, total, pageNo, pageSize);
+    }
+
     InventoryReservationDTO toReservationDto(InventoryReservation reservation) {
         return new InventoryReservationDTO(reservation.getTenantId(), reservation.getOrderNo(), reservation.getReservationNo(),
                 reservation.getReservationStatus(), reservation.getWarehouseId(),
@@ -104,6 +122,16 @@ public class InventoryQueryService {
         return new InventoryAuditLogDTO(auditLog.getId(), auditLog.getTenantId(), auditLog.getOrderNo(),
                 auditLog.getReservationNo(), auditLog.getActionType(), auditLog.getOperatorType(),
                 auditLog.getOperatorId(), auditLog.getOccurredAt());
+    }
+
+    private InventoryAuditDeadLetterDTO toAuditDeadLetterDto(InventoryAuditDeadLetter deadLetter) {
+        return new InventoryAuditDeadLetterDTO(deadLetter.getId(), deadLetter.getOutboxId(), deadLetter.getTenantId(),
+                deadLetter.getOrderNo(), deadLetter.getReservationNo(), deadLetter.getActionType(),
+                deadLetter.getOperatorType(), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
+                deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
+                deadLetter.getDeadAt(), deadLetter.getReplayStatus(), deadLetter.getReplayCount(),
+                deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
+                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), deadLetter.getReplayOperatorId());
     }
 
     private String normalizeStatus(String status) {

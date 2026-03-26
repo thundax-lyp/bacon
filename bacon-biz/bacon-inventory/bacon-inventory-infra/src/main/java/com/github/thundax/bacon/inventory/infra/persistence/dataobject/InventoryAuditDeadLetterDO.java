@@ -41,4 +41,20 @@ public class InventoryAuditDeadLetterDO {
     private String deadReason;
     @TableField("dead_at")
     private Instant deadAt;
+    @TableField("replay_status")
+    private String replayStatus;
+    @TableField("replay_count")
+    private Integer replayCount;
+    @TableField("last_replay_at")
+    private Instant lastReplayAt;
+    @TableField("last_replay_result")
+    private String lastReplayResult;
+    @TableField("last_replay_error")
+    private String lastReplayError;
+    @TableField("replay_key")
+    private String replayKey;
+    @TableField("replay_operator_type")
+    private String replayOperatorType;
+    @TableField("replay_operator_id")
+    private Long replayOperatorId;
 }

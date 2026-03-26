@@ -117,8 +117,18 @@ CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_dead_letter` (
     `error_message` varchar(512) NOT NULL,
     `dead_reason` varchar(64) NOT NULL,
     `dead_at` datetime(3) NOT NULL,
+    `replay_status` varchar(16) NOT NULL DEFAULT 'PENDING',
+    `replay_count` int NOT NULL DEFAULT 0,
+    `last_replay_at` datetime(3) DEFAULT NULL,
+    `last_replay_result` varchar(16) DEFAULT NULL,
+    `last_replay_error` varchar(512) DEFAULT NULL,
+    `replay_key` varchar(128) DEFAULT NULL,
+    `replay_operator_type` varchar(32) DEFAULT NULL,
+    `replay_operator_id` bigint DEFAULT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_dead_at` (`dead_at`),
     KEY `idx_tenant_order` (`tenant_id`, `order_no`),
-    KEY `idx_outbox_id` (`outbox_id`)
+    KEY `idx_outbox_id` (`outbox_id`),
+    KEY `idx_tenant_replay_status_dead` (`tenant_id`, `replay_status`, `dead_at`),
+    UNIQUE KEY `uk_replay_key` (`replay_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

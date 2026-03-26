@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.infra.mq;
+package com.github.thundax.bacon.upms.interfaces.consumer;
 
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

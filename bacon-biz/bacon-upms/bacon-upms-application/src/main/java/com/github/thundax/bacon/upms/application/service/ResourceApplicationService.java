@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.application.service;
 
+import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageResultDTO;
@@ -10,9 +11,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class ResourceApplicationService {
 
-    private static final int DEFAULT_PAGE_SIZE = 20;
-    private static final int MAX_PAGE_SIZE = 200;
-
     private final ResourceRepository resourceRepository;
 
     public ResourceApplicationService(ResourceRepository resourceRepository) {
@@ -20,8 +18,8 @@ public class ResourceApplicationService {
     }
 
     public ResourcePageResultDTO pageResources(ResourcePageQueryDTO query) {
-        int pageNo = normalizePageNo(query.getPageNo());
-        int pageSize = normalizePageSize(query.getPageSize());
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         return new ResourcePageResultDTO(
                 resourceRepository.pageResources(query.getTenantId(), query.getCode(), query.getName(),
                         query.getResourceType(), query.getStatus(), pageNo, pageSize).stream()
@@ -90,14 +88,4 @@ public class ResourceApplicationService {
         return value == null || value.isBlank() ? defaultValue : normalize(value);
     }
 
-    private int normalizePageNo(Integer pageNo) {
-        return pageNo == null || pageNo < 1 ? 1 : pageNo;
-    }
-
-    private int normalizePageSize(Integer pageSize) {
-        if (pageSize == null || pageSize < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(pageSize, MAX_PAGE_SIZE);
-    }
 }

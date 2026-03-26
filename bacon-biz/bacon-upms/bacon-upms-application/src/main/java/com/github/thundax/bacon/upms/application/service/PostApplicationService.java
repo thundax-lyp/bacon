@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.application.service;
 
+import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageResultDTO;
@@ -10,9 +11,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class PostApplicationService {
 
-    private static final int DEFAULT_PAGE_SIZE = 20;
-    private static final int MAX_PAGE_SIZE = 200;
-
     private final PostRepository postRepository;
 
     public PostApplicationService(PostRepository postRepository) {
@@ -20,8 +18,8 @@ public class PostApplicationService {
     }
 
     public PostPageResultDTO pagePosts(PostPageQueryDTO query) {
-        int pageNo = normalizePageNo(query.getPageNo());
-        int pageSize = normalizePageSize(query.getPageSize());
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         return new PostPageResultDTO(
                 postRepository.pagePosts(query.getTenantId(), query.getCode(), query.getName(),
                         query.getDepartmentId(), query.getStatus(), pageNo, pageSize).stream()
@@ -83,14 +81,4 @@ public class PostApplicationService {
         return value == null || value.isBlank() ? defaultValue : normalize(value);
     }
 
-    private int normalizePageNo(Integer pageNo) {
-        return pageNo == null || pageNo < 1 ? 1 : pageNo;
-    }
-
-    private int normalizePageSize(Integer pageSize) {
-        if (pageSize == null || pageSize < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(pageSize, MAX_PAGE_SIZE);
-    }
 }

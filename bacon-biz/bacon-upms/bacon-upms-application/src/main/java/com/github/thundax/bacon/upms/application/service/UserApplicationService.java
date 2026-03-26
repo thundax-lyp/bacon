@@ -16,6 +16,7 @@ import com.github.thundax.bacon.upms.domain.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
+import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,8 +26,6 @@ public class UserApplicationService {
 
     private static final String DISABLED_STATUS = "DISABLED";
     private static final String DEFAULT_PASSWORD = "123456";
-    private static final int DEFAULT_PAGE_SIZE = 20;
-    private static final int MAX_PAGE_SIZE = 200;
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -73,8 +72,8 @@ public class UserApplicationService {
     }
 
     public UserPageResultDTO pageUsers(UserPageQueryDTO query) {
-        int pageNo = normalizePageNo(query.getPageNo());
-        int pageSize = normalizePageSize(query.getPageSize());
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         return new UserPageResultDTO(userRepository.pageUsers(query.getTenantId(), query.getAccount(), query.getName(),
                 query.getPhone(), query.getStatus(), pageNo, pageSize).stream().map(this::toDto).toList(),
                 userRepository.countUsers(query.getTenantId(), query.getAccount(), query.getName(), query.getPhone(),
@@ -204,14 +203,4 @@ public class UserApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private int normalizePageNo(Integer pageNo) {
-        return pageNo == null || pageNo < 1 ? 1 : pageNo;
-    }
-
-    private int normalizePageSize(Integer pageSize) {
-        if (pageSize == null || pageSize < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(pageSize, MAX_PAGE_SIZE);
-    }
 }

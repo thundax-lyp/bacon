@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.application.service;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageResultDTO;
@@ -12,8 +13,6 @@ import org.springframework.stereotype.Service;
 public class TenantApplicationService {
 
     private static final String DISABLED_STATUS = "DISABLED";
-    private static final int DEFAULT_PAGE_SIZE = 20;
-    private static final int MAX_PAGE_SIZE = 200;
 
     private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
@@ -24,8 +23,8 @@ public class TenantApplicationService {
     }
 
     public TenantPageResultDTO pageTenants(TenantPageQueryDTO query) {
-        int pageNo = normalizePageNo(query.getPageNo());
-        int pageSize = normalizePageSize(query.getPageSize());
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         return new TenantPageResultDTO(tenantRepository.pageTenants(query.getTenantId(), query.getCode(), query.getName(),
                 query.getStatus(), pageNo, pageSize).stream().map(this::toDto).toList(),
                 tenantRepository.countTenants(query.getTenantId(), query.getCode(), query.getName(), query.getStatus()),
@@ -87,14 +86,4 @@ public class TenantApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private int normalizePageNo(Integer pageNo) {
-        return pageNo == null || pageNo < 1 ? 1 : pageNo;
-    }
-
-    private int normalizePageSize(Integer pageSize) {
-        if (pageSize == null || pageSize < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(pageSize, MAX_PAGE_SIZE);
-    }
 }

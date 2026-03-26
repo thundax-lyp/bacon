@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.application.service;
 
+import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageResultDTO;
@@ -11,9 +12,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RoleApplicationService {
-
-    private static final int DEFAULT_PAGE_SIZE = 20;
-    private static final int MAX_PAGE_SIZE = 200;
 
     private final RoleRepository roleRepository;
 
@@ -33,8 +31,8 @@ public class RoleApplicationService {
     }
 
     public RolePageResultDTO pageRoles(RolePageQueryDTO query) {
-        int pageNo = normalizePageNo(query.getPageNo());
-        int pageSize = normalizePageSize(query.getPageSize());
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         return new RolePageResultDTO(roleRepository.pageRoles(query.getTenantId(), query.getCode(), query.getName(),
                 query.getRoleType(), query.getStatus(), pageNo, pageSize).stream().map(this::toDto).toList(),
                 roleRepository.countRoles(query.getTenantId(), query.getCode(), query.getName(), query.getRoleType(),
@@ -118,14 +116,4 @@ public class RoleApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private int normalizePageNo(Integer pageNo) {
-        return pageNo == null || pageNo < 1 ? 1 : pageNo;
-    }
-
-    private int normalizePageSize(Integer pageSize) {
-        if (pageSize == null || pageSize < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(pageSize, MAX_PAGE_SIZE);
-    }
 }

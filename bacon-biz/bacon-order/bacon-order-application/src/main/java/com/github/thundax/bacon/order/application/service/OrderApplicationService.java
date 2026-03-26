@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.application.service;
 
+import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
@@ -20,9 +21,7 @@ import java.util.List;
 @Service
 public class OrderApplicationService {
 
-    private static final int DEFAULT_PAGE_NO = 1;
     private static final int DEFAULT_PAGE_SIZE = 10;
-    private static final int MAX_PAGE_SIZE = 200;
 
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService = new OrderDomainService();
@@ -59,8 +58,8 @@ public class OrderApplicationService {
                 .filter(order -> query.getOrderNo() == null || order.getOrderNo().contains(query.getOrderNo()))
                 .map(this::toSummary)
                 .toList();
-        int pageNo = normalizePageNo(query.getPageNo());
-        int pageSize = normalizePageSize(query.getPageSize());
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize(), DEFAULT_PAGE_SIZE);
         return new OrderPageResultDTO(records, records.size(), pageNo, pageSize);
     }
 
@@ -104,14 +103,4 @@ public class OrderApplicationService {
                 "mock-payment", "mock-inventory", order.getPaidAt(), order.getClosedAt());
     }
 
-    private int normalizePageNo(Integer pageNo) {
-        return pageNo == null || pageNo < 1 ? DEFAULT_PAGE_NO : pageNo;
-    }
-
-    private int normalizePageSize(Integer pageSize) {
-        if (pageSize == null || pageSize < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(pageSize, MAX_PAGE_SIZE);
-    }
 }

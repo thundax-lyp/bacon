@@ -16,6 +16,7 @@ import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
+import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,9 +25,6 @@ import java.util.Set;
 
 @Service
 public class InventoryQueryService {
-
-    private static final int DEFAULT_PAGE_SIZE = 20;
-    private static final int MAX_PAGE_SIZE = 200;
 
     private final InventoryStockRepository inventoryStockRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
@@ -51,8 +49,8 @@ public class InventoryQueryService {
     }
 
     public InventoryPageResultDTO pageInventories(InventoryPageQueryDTO query) {
-        int pageNo = normalizePageNo(query.getPageNo());
-        int pageSize = normalizePageSize(query.getPageSize());
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         String normalizedStatus = normalizeStatus(query.getStatus());
         List<InventoryStockDTO> records = inventoryStockRepository
                 .pageInventories(query.getTenantId(), query.getSkuId(), normalizedStatus, pageNo, pageSize).stream()
@@ -106,17 +104,6 @@ public class InventoryQueryService {
         return new InventoryAuditLogDTO(auditLog.getId(), auditLog.getTenantId(), auditLog.getOrderNo(),
                 auditLog.getReservationNo(), auditLog.getActionType(), auditLog.getOperatorType(),
                 auditLog.getOperatorId(), auditLog.getOccurredAt());
-    }
-
-    private int normalizePageNo(Integer pageNo) {
-        return pageNo == null || pageNo < 1 ? 1 : pageNo;
-    }
-
-    private int normalizePageSize(Integer pageSize) {
-        if (pageSize == null || pageSize < 1) {
-            return DEFAULT_PAGE_SIZE;
-        }
-        return Math.min(pageSize, MAX_PAGE_SIZE);
     }
 
     private String normalizeStatus(String status) {

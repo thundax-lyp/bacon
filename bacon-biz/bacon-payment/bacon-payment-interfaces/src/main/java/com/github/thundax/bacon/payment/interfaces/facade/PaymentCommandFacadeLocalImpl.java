@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.payment.infra.facade.local;
+package com.github.thundax.bacon.payment.interfaces.facade;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;

@@ -347,6 +347,8 @@
 - `InventoryAuditOutbox` 进入 `DEAD` 后必须写入 `bacon_inventory_audit_dead_letter`
 - `InventoryAuditDeadLetter` 必须支持运营分页查询和按 `replay_status` 过滤
 - `InventoryAuditDeadLetter` 重放必须写入幂等 `replay_key`，并更新重放状态与追踪字段
+- `InventoryAuditDeadLetter` 在 claim 成功后的重放链路必须在独立事务中完成：原始审计重写、重放状态迁移、重放追踪日志写入需原子提交
+- 若上述事务失败，必须通过补偿事务将死信记录置为 `FAILED`，并写入失败追踪日志与可观测告警指标
 - `InventoryStockDTO` 是读模型，不单独建表
 - `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表
 - 预占单和库存流水不做逻辑删除

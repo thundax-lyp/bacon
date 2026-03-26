@@ -2,25 +2,30 @@ package com.github.thundax.bacon.inventory.application.service;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class InventoryAuditCompensationService {
 
     private static final String REPLAY_OPERATOR_TYPE = "MANUAL";
 
     private final InventoryLogRepository inventoryLogRepository;
+    private final InventoryAuditReplayTransactionFacade inventoryAuditReplayTransactionFacade;
 
-    public InventoryAuditCompensationService(InventoryLogRepository inventoryLogRepository) {
+    public InventoryAuditCompensationService(InventoryLogRepository inventoryLogRepository,
+                                             InventoryAuditReplayTransactionFacade inventoryAuditReplayTransactionFacade) {
         this.inventoryLogRepository = inventoryLogRepository;
+        this.inventoryAuditReplayTransactionFacade = inventoryAuditReplayTransactionFacade;
     }
 
     public InventoryAuditReplayResultDTO replayDeadLetter(Long tenantId, Long deadLetterId, String replayKey, Long operatorId) {
@@ -43,22 +48,24 @@ public class InventoryAuditCompensationService {
                     resolvedReplayKey, "dead-letter-not-claimable");
         }
         try {
-            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
-                    deadLetter.getReservationNo(), deadLetter.getActionType(), deadLetter.getOperatorType(),
-                    deadLetter.getOperatorId(), deadLetter.getOccurredAt()));
-            inventoryLogRepository.markAuditDeadLetterReplaySuccess(deadLetterId, resolvedReplayKey, REPLAY_OPERATOR_TYPE,
-                    operatorId, replayAt);
-            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
-                    deadLetter.getReservationNo(), "AUDIT_REPLAY_SUCCEEDED", REPLAY_OPERATOR_TYPE, operatorId, replayAt));
-            return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED,
-                    resolvedReplayKey, "ok");
-        } catch (RuntimeException ex) {
-            inventoryLogRepository.markAuditDeadLetterReplayFailed(deadLetterId, resolvedReplayKey, REPLAY_OPERATOR_TYPE,
-                    operatorId, truncateError(ex.getMessage()), replayAt);
-            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
-                    deadLetter.getReservationNo(), "AUDIT_REPLAY_FAILED", REPLAY_OPERATOR_TYPE, operatorId, replayAt));
+            return inventoryAuditReplayTransactionFacade.replayClaimedDeadLetter(deadLetter, resolvedReplayKey,
+                    REPLAY_OPERATOR_TYPE, operatorId, replayAt);
+        } catch (RuntimeException txException) {
+            String truncatedError = truncateError(txException.getMessage());
+            Metrics.counter("bacon.inventory.audit.replay.tx.fail.total").increment();
+            log.error("ALERT inventory audit replay tx failed, deadLetterId={}, replayKey={}",
+                    deadLetterId, resolvedReplayKey, txException);
+            try {
+                inventoryAuditReplayTransactionFacade.compensateReplayTxFailure(deadLetter, resolvedReplayKey,
+                        REPLAY_OPERATOR_TYPE, operatorId, replayAt, truncatedError);
+                Metrics.counter("bacon.inventory.audit.replay.tx.compensate.success.total").increment();
+            } catch (RuntimeException compensateException) {
+                Metrics.counter("bacon.inventory.audit.replay.tx.compensate.fail.total").increment();
+                log.error("ALERT inventory audit replay tx compensate failed, deadLetterId={}, replayKey={}",
+                        deadLetterId, resolvedReplayKey, compensateException);
+            }
             return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED,
-                    resolvedReplayKey, "failed:" + truncateError(ex.getMessage()));
+                    resolvedReplayKey, "tx-failed:" + truncatedError);
         }
     }
 

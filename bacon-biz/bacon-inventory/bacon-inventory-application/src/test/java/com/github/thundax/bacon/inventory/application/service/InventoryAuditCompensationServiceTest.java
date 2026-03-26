@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,7 +22,7 @@ class InventoryAuditCompensationServiceTest {
     @Test
     void shouldReplayDeadLetterSuccessfully() {
         TestLogRepository repository = new TestLogRepository();
-        InventoryAuditCompensationService service = new InventoryAuditCompensationService(repository);
+        InventoryAuditCompensationService service = createService(repository);
         repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1001L, 2001L, 3001L, "ORDER-1", "RSV-1",
                 InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 3, "FAIL",
@@ -39,7 +40,7 @@ class InventoryAuditCompensationServiceTest {
     @Test
     void shouldBatchReplayAndKeepRunningItemsUnchanged() {
         TestLogRepository repository = new TestLogRepository();
-        InventoryAuditCompensationService service = new InventoryAuditCompensationService(repository);
+        InventoryAuditCompensationService service = createService(repository);
         repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1002L, 2002L, 3001L, "ORDER-2", "RSV-2",
                 InventoryAuditLog.ACTION_RELEASE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL",
@@ -57,6 +58,47 @@ class InventoryAuditCompensationServiceTest {
         assertEquals(2, results.size());
         assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED, results.get(0).getReplayStatus());
         assertTrue(results.get(1).getMessage().contains("not-claimable"));
+    }
+
+    @Test
+    void shouldCompensateWhenReplayTransactionFails() {
+        TestLogRepository repository = new TestLogRepository();
+        InventoryAuditCompensationService service = createService(repository, new FailingOnceTransactionExecutor());
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1004L, 2004L, 3001L, "ORDER-4", "RSV-4",
+                InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
+                InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
+                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z")));
+
+        InventoryAuditReplayResultDTO result = service.replayDeadLetter(3001L, 1004L, "MANUAL-REPLAY-1004", 9001L);
+
+        assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_FAILED, result.getReplayStatus());
+        assertTrue(result.getMessage().startsWith("tx-failed:"));
+        assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_FAILED, repository.deadLetters.get(1004L).getReplayStatus());
+        assertEquals("MANUAL", repository.deadLetters.get(1004L).getReplayOperatorType());
+    }
+
+    private InventoryAuditCompensationService createService(TestLogRepository repository) {
+        return createService(repository, new InventoryTransactionExecutor());
+    }
+
+    private InventoryAuditCompensationService createService(TestLogRepository repository,
+                                                            InventoryTransactionExecutor transactionExecutor) {
+        InventoryAuditReplayTransactionFacade facade =
+                new InventoryAuditReplayTransactionFacade(repository, transactionExecutor);
+        return new InventoryAuditCompensationService(repository, facade);
+    }
+
+    private static final class FailingOnceTransactionExecutor extends InventoryTransactionExecutor {
+
+        private final AtomicInteger invokeCount = new AtomicInteger(0);
+
+        @Override
+        public <T> T executeInNewTransaction(java.util.function.Supplier<T> action) {
+            if (invokeCount.incrementAndGet() == 1) {
+                throw new RuntimeException("simulated-tx-error");
+            }
+            return action.get();
+        }
     }
 
     private static final class TestLogRepository implements InventoryLogRepository {

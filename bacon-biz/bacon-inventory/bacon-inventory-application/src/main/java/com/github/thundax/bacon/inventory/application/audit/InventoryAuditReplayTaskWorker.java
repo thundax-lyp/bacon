@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask;

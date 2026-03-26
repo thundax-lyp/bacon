@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;

@@ -6,7 +6,7 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
-import com.github.thundax.bacon.inventory.application.service.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;

@@ -2,7 +2,7 @@ package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.application.service.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryOrderScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryLedgerResponse;
 import io.swagger.v3.oas.annotations.Operation;

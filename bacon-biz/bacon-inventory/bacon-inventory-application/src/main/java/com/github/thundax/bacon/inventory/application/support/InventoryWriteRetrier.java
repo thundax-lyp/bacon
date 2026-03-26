@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application.support;
 
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;

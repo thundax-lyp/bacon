@@ -1,6 +1,10 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
+import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogService;
+import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
+import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
@@ -12,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class InventoryReleaseApplicationService {
+public class InventoryDeductionApplicationService {
 
     private final InventoryStockRepository inventoryStockRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
@@ -21,11 +25,11 @@ public class InventoryReleaseApplicationService {
     private final InventoryWriteRetrier inventoryWriteRetrier;
 
     @Autowired
-    public InventoryReleaseApplicationService(InventoryStockRepository inventoryStockRepository,
-                                              InventoryReservationRepository inventoryReservationRepository,
-                                              InventoryOperationLogService inventoryOperationLogService,
-                                              InventoryTransactionExecutor inventoryTransactionExecutor,
-                                              InventoryWriteRetrier inventoryWriteRetrier) {
+    public InventoryDeductionApplicationService(InventoryStockRepository inventoryStockRepository,
+                                                InventoryReservationRepository inventoryReservationRepository,
+                                                InventoryOperationLogService inventoryOperationLogService,
+                                                InventoryTransactionExecutor inventoryTransactionExecutor,
+                                                InventoryWriteRetrier inventoryWriteRetrier) {
         this.inventoryStockRepository = inventoryStockRepository;
         this.inventoryReservationRepository = inventoryReservationRepository;
         this.inventoryOperationLogService = inventoryOperationLogService;
@@ -33,43 +37,43 @@ public class InventoryReleaseApplicationService {
         this.inventoryWriteRetrier = inventoryWriteRetrier;
     }
 
-    public InventoryReleaseApplicationService(InventoryStockRepository inventoryStockRepository,
-                                              InventoryReservationRepository inventoryReservationRepository,
-                                              InventoryOperationLogService inventoryOperationLogService) {
+    public InventoryDeductionApplicationService(InventoryStockRepository inventoryStockRepository,
+                                                InventoryReservationRepository inventoryReservationRepository,
+                                                InventoryOperationLogService inventoryOperationLogService) {
         this(inventoryStockRepository, inventoryReservationRepository, inventoryOperationLogService,
                 new InventoryTransactionExecutor(), new InventoryWriteRetrier());
     }
 
-    public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        return inventoryWriteRetrier.execute("release", tenantId + ":" + orderNo, () ->
+    public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
+        return inventoryWriteRetrier.execute("deduct", tenantId + ":" + orderNo, () ->
                 inventoryTransactionExecutor.executeInNewTransaction(() ->
-                        releaseReservedStockOnce(tenantId, orderNo, reason)));
+                        deductReservedStockOnce(tenantId, orderNo)));
     }
 
-    private InventoryReservationResultDTO releaseReservedStockOnce(Long tenantId, String orderNo, String reason) {
+    private InventoryReservationResultDTO deductReservedStockOnce(Long tenantId, String orderNo) {
         InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (reservation == null) {
-            return InventoryReservationResultMapper.failed(tenantId, orderNo, InventoryErrorCode.RESERVATION_NOT_FOUND.code());
+            return InventoryReservationResultAssembler.failed(tenantId, orderNo, InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
-            return InventoryReservationResultMapper.fromReservation(reservation);
+            return InventoryReservationResultAssembler.fromReservation(reservation);
         }
 
-        Instant releasedAt = Instant.now();
+        Instant deductedAt = Instant.now();
         reservation.getItems().forEach(item -> {
-            releaseStockOnce(tenantId, item.getSkuId(), item.getQuantity(), releasedAt);
+            deductStockOnce(tenantId, item.getSkuId(), item.getQuantity(), deductedAt);
         });
-        reservation.release(reason, releasedAt);
+        reservation.deduct(deductedAt);
         inventoryReservationRepository.saveReservation(reservation);
-        inventoryOperationLogService.recordReleaseSuccess(reservation, releasedAt);
-        return InventoryReservationResultMapper.fromReservation(reservation);
+        inventoryOperationLogService.recordDeductSuccess(reservation, deductedAt);
+        return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
-    private void releaseStockOnce(Long tenantId, Long skuId, int quantity, Instant operatedAt) {
+    private void deductStockOnce(Long tenantId, Long skuId, int quantity, Instant operatedAt) {
         Inventory inventory = inventoryStockRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
-        inventory.release(quantity, operatedAt);
+        inventory.deduct(quantity, operatedAt);
         inventoryStockRepository.saveInventory(inventory);
     }
 }

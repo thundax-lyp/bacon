@@ -1,16 +1,16 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application.assembler;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 
-final class InventoryReservationResultMapper {
+public final class InventoryReservationResultAssembler {
 
-    private InventoryReservationResultMapper() {
+    private InventoryReservationResultAssembler() {
     }
 
-    static InventoryReservationResultDTO fromReservation(InventoryReservation reservation) {
+    public static InventoryReservationResultDTO fromReservation(InventoryReservation reservation) {
         return new InventoryReservationResultDTO(reservation.getTenantId(), reservation.getOrderNo(),
                 reservation.getReservationNo(), reservation.getReservationStatus(),
                 toInventoryStatus(reservation.getReservationStatus()), reservation.getWarehouseId(),
@@ -18,12 +18,12 @@ final class InventoryReservationResultMapper {
                 reservation.getDeductedAt());
     }
 
-    static InventoryReservationResultDTO failed(Long tenantId, String orderNo, String failureReason) {
+    public static InventoryReservationResultDTO failed(Long tenantId, String orderNo, String failureReason) {
         return new InventoryReservationResultDTO(tenantId, orderNo, null, InventoryReservation.STATUS_FAILED,
                 toInventoryStatus(InventoryReservation.STATUS_FAILED), null, failureReason, null, null, null);
     }
 
-    static String toInventoryStatus(String reservationStatus) {
+    public static String toInventoryStatus(String reservationStatus) {
         return switch (reservationStatus) {
             case InventoryReservation.STATUS_CREATED -> "RESERVING";
             case InventoryReservation.STATUS_RESERVED -> "RESERVED";

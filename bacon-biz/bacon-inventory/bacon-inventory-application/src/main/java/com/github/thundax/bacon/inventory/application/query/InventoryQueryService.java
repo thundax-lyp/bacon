@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application.query;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;

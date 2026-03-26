@@ -3,7 +3,7 @@ package com.github.thundax.bacon.inventory.interfaces.facade;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
-import com.github.thundax.bacon.inventory.application.service.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

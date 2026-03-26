@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application.support;
 
 import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;

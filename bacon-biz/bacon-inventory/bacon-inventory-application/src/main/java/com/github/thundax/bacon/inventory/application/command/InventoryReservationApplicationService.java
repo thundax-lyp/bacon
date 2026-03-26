@@ -1,7 +1,11 @@
-package com.github.thundax.bacon.inventory.application.service;
+package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
+import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogService;
+import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
+import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
@@ -65,7 +69,7 @@ public class InventoryReservationApplicationService {
             if (InventoryReservation.STATUS_CREATED.equals(existingReservation.getReservationStatus())) {
                 return completeCreatedReservation(existingReservation);
             }
-            return InventoryReservationResultMapper.fromReservation(existingReservation);
+            return InventoryReservationResultAssembler.fromReservation(existingReservation);
         }
         return createReservation(tenantId, orderNo, items);
     }
@@ -87,12 +91,12 @@ public class InventoryReservationApplicationService {
             reservation.fail(failureReason);
             reservation = saveReservationWithIdempotentFallback(reservation);
             inventoryOperationLogService.recordReserveFailed(reservation, Instant.now());
-            return InventoryReservationResultMapper.fromReservation(reservation);
+            return InventoryReservationResultAssembler.fromReservation(reservation);
         }
 
         InventoryReservation existing = tryFindExistingReservation(tenantId, orderNo);
         if (existing != null) {
-            return InventoryReservationResultMapper.fromReservation(existing);
+            return InventoryReservationResultAssembler.fromReservation(existing);
         }
 
         Instant operatedAt = Instant.now();
@@ -101,7 +105,7 @@ public class InventoryReservationApplicationService {
             if (InventoryReservation.STATUS_CREATED.equals(reservation.getReservationStatus())) {
                 return completeCreatedReservation(reservation);
             }
-            return InventoryReservationResultMapper.fromReservation(reservation);
+            return InventoryReservationResultAssembler.fromReservation(reservation);
         }
         Map<Long, Inventory> inventoryBySku = new HashMap<>(validationResult.inventoryBySku());
         for (InventoryReservationItem item : reservationItems) {
@@ -110,7 +114,7 @@ public class InventoryReservationApplicationService {
         reservation.reserve();
         reservation = inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(reservation, operatedAt);
-        return InventoryReservationResultMapper.fromReservation(reservation);
+        return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
     private List<InventoryReservationItemDTO> normalizeItems(List<InventoryReservationItemDTO> items) {
@@ -191,7 +195,7 @@ public class InventoryReservationApplicationService {
             reservation.fail(failureReason);
             InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);
             inventoryOperationLogService.recordReserveFailed(persisted, Instant.now());
-            return InventoryReservationResultMapper.fromReservation(persisted);
+            return InventoryReservationResultAssembler.fromReservation(persisted);
         }
         Instant operatedAt = Instant.now();
         Map<Long, Inventory> inventoryBySku = new HashMap<>(validationResult.inventoryBySku());
@@ -201,7 +205,7 @@ public class InventoryReservationApplicationService {
         reservation.reserve();
         InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(persisted, operatedAt);
-        return InventoryReservationResultMapper.fromReservation(persisted);
+        return InventoryReservationResultAssembler.fromReservation(persisted);
     }
 
     private Inventory loadInventory(Long tenantId, Long skuId) {

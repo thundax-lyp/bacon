@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.payment.domain.entity;
+package com.github.thundax.bacon.payment.domain.model.entity;
 
 import lombok.Getter;
 

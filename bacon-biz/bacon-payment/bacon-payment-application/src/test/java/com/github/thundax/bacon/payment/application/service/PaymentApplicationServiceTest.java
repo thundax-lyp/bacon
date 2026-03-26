@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.payment.application.service;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
-import com.github.thundax.bacon.payment.domain.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.repository.PaymentRepository;
 import java.math.BigDecimal;
 import java.time.Instant;

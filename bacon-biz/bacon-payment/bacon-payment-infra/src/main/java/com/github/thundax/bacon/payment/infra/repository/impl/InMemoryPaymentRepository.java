@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
-import com.github.thundax.bacon.payment.domain.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.repository.PaymentRepository;
 import org.springframework.stereotype.Repository;
 

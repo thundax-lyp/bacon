@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.payment.domain.repository;
 
-import com.github.thundax.bacon.payment.domain.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 
 import java.util.Optional;
 

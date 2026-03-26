@@ -75,6 +75,7 @@
 | `InventoryLedger` | `bacon_inventory_ledger` |
 | `InventoryAuditLog` | `bacon_inventory_audit_log` |
 | `InventoryAuditOutbox` | `bacon_inventory_audit_outbox` |
+| `InventoryAuditDeadLetter` | `bacon_inventory_audit_dead_letter` |
 
 ## 7. Table Design
 
@@ -245,12 +246,49 @@
 | `occurred_at` | `datetime(3)` | N | 业务事件发生时间 |
 | `error_message` | `varchar(512)` | N | 审计写入失败原因 |
 | `status` | `varchar(16)` | N | outbox 状态，初始为 `NEW` |
+| `retry_count` | `int` | N | 重试次数，初始 `0` |
+| `next_retry_at` | `datetime(3)` | Y | 下次可重试时间 |
+| `dead_reason` | `varchar(64)` | Y | 进入死信原因 |
 | `failed_at` | `datetime(3)` | N | 失败落库时间 |
+| `updated_at` | `datetime(3)` | N | 最近状态更新时间 |
 
 索引与约束：
 
 - `pk(id)`
 - `idx_status_failed(status, failed_at)`
+- `idx_tenant_order(tenant_id, order_no)`
+
+### 7.7 `bacon_inventory_audit_dead_letter`
+
+表类型：`Dead Letter Table`
+
+用途：
+
+- 记录 outbox 达到最大重试次数后的终态失败事件
+- 作为人工补偿和运维排查数据源
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `outbox_id` | `bigint` | N | outbox 主键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
+| `order_no` | `varchar(64)` | Y | 订单号 |
+| `reservation_no` | `varchar(64)` | Y | 预占单号 |
+| `action_type` | `varchar(64)` | N | 操作类型 |
+| `operator_type` | `varchar(32)` | Y | 操作人类型 |
+| `operator_id` | `bigint` | Y | 操作人标识 |
+| `occurred_at` | `datetime(3)` | N | 业务事件发生时间 |
+| `retry_count` | `int` | N | 达到死信时重试次数 |
+| `error_message` | `varchar(512)` | N | 最后一次失败原因 |
+| `dead_reason` | `varchar(64)` | N | 死信原因 |
+| `dead_at` | `datetime(3)` | N | 进入死信时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `idx_dead_at(dead_at)`
 - `idx_tenant_order(tenant_id, order_no)`
 
 ## 8. Relationship Rules
@@ -278,6 +316,8 @@
 - `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的命令写入应运行在同一事务中
 - `InventoryAuditLog` 优先在主事务提交后以 best effort 方式记录，失败不回滚主业务
 - `InventoryAuditLog` 写入失败时必须落库 `bacon_inventory_audit_outbox`
+- `InventoryAuditOutbox` 重试成功后应删除；达到最大重试次数后状态置为 `DEAD`
+- `InventoryAuditOutbox` 进入 `DEAD` 后必须写入 `bacon_inventory_audit_dead_letter`
 - `InventoryStockDTO` 是读模型，不单独建表
 - `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表
 - 预占单和库存流水不做逻辑删除
@@ -290,6 +330,7 @@
 - 库存流水查询主表固定为 `bacon_inventory_ledger`
 - 审计查询主表固定为 `bacon_inventory_audit_log`
 - 审计补偿查询主表固定为 `bacon_inventory_audit_outbox`
+- 死信查询主表固定为 `bacon_inventory_audit_dead_letter`
 - 库存分页查询必须由数据库分页实现，不得在应用层做全量拉取后再分页
 
 ## 11. Open Items

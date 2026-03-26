@@ -12,11 +12,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("bacon_inventory_audit_outbox")
-public class InventoryAuditOutboxDO {
+@TableName("bacon_inventory_audit_dead_letter")
+public class InventoryAuditDeadLetterDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+    @TableField("outbox_id")
+    private Long outboxId;
     @TableField("tenant_id")
     private Long tenantId;
     @TableField("order_no")
@@ -31,18 +33,12 @@ public class InventoryAuditOutboxDO {
     private Long operatorId;
     @TableField("occurred_at")
     private Instant occurredAt;
-    @TableField("error_message")
-    private String errorMessage;
-    @TableField("status")
-    private String status;
     @TableField("retry_count")
     private Integer retryCount;
-    @TableField("next_retry_at")
-    private Instant nextRetryAt;
+    @TableField("error_message")
+    private String errorMessage;
     @TableField("dead_reason")
     private String deadReason;
-    @TableField("failed_at")
-    private Instant failedAt;
-    @TableField("updated_at")
-    private Instant updatedAt;
+    @TableField("dead_at")
+    private Instant deadAt;
 }

@@ -8,13 +8,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InventoryAuditOutbox {
-
-    public static final String STATUS_NEW = "NEW";
-    public static final String STATUS_RETRYING = "RETRYING";
-    public static final String STATUS_DEAD = "DEAD";
+public class InventoryAuditDeadLetter {
 
     private Long id;
+    private Long outboxId;
     private Long tenantId;
     private String orderNo;
     private String reservationNo;
@@ -22,11 +19,8 @@ public class InventoryAuditOutbox {
     private String operatorType;
     private Long operatorId;
     private Instant occurredAt;
-    private String errorMessage;
-    private String status;
     private Integer retryCount;
-    private Instant nextRetryAt;
+    private String errorMessage;
     private String deadReason;
-    private Instant failedAt;
-    private Instant updatedAt;
+    private Instant deadAt;
 }

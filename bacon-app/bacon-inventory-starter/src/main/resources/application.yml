@@ -13,9 +13,17 @@ bacon:
   inventory:
     repository:
       mode: ${BACON_INVENTORY_REPOSITORY_MODE:strict}
+    audit:
+      retry:
+        enabled: ${BACON_INVENTORY_AUDIT_RETRY_ENABLED:true}
+        fixed-delay-ms: ${BACON_INVENTORY_AUDIT_RETRY_FIXED_DELAY_MS:10000}
+        batch-size: ${BACON_INVENTORY_AUDIT_RETRY_BATCH_SIZE:100}
+        max-retries: ${BACON_INVENTORY_AUDIT_RETRY_MAX_RETRIES:6}
+        base-delay-seconds: ${BACON_INVENTORY_AUDIT_RETRY_BASE_DELAY_SECONDS:30}
+        max-delay-seconds: ${BACON_INVENTORY_AUDIT_RETRY_MAX_DELAY_SECONDS:1800}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus

@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
@@ -13,12 +14,14 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryLogReposito
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;
+import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditDeadLetterDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditOutboxDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryLedgerDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationItemDO;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditLogMapper;
+import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditDeadLetterMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditOutboxMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryLedgerMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryMapper;
@@ -27,6 +30,7 @@ import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryRese
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.time.Instant;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -46,19 +50,22 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
     private final InventoryLedgerMapper ledgerMapper;
     private final InventoryAuditLogMapper auditLogMapper;
     private final InventoryAuditOutboxMapper auditOutboxMapper;
+    private final InventoryAuditDeadLetterMapper auditDeadLetterMapper;
 
     public InventoryRepositoryImpl(InventoryMapper inventoryMapper,
                                    InventoryReservationMapper reservationMapper,
                                    InventoryReservationItemMapper reservationItemMapper,
                                    InventoryLedgerMapper ledgerMapper,
                                    InventoryAuditLogMapper auditLogMapper,
-                                   InventoryAuditOutboxMapper auditOutboxMapper) {
+                                   InventoryAuditOutboxMapper auditOutboxMapper,
+                                   InventoryAuditDeadLetterMapper auditDeadLetterMapper) {
         this.inventoryMapper = inventoryMapper;
         this.reservationMapper = reservationMapper;
         this.reservationItemMapper = reservationItemMapper;
         this.ledgerMapper = ledgerMapper;
         this.auditLogMapper = auditLogMapper;
         this.auditOutboxMapper = auditOutboxMapper;
+        this.auditDeadLetterMapper = auditDeadLetterMapper;
         log.info("Using MyBatis-Plus inventory repository");
     }
 
@@ -194,6 +201,53 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         auditOutboxMapper.insert(toDataObject(outbox));
     }
 
+    @Override
+    public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
+        return auditOutboxMapper.selectList(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
+                        .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_NEW,
+                                InventoryAuditOutbox.STATUS_RETRYING)
+                        .and(wrapper -> wrapper.isNull(InventoryAuditOutboxDO::getNextRetryAt)
+                                .or()
+                                .le(InventoryAuditOutboxDO::getNextRetryAt, now))
+                        .orderByAsc(InventoryAuditOutboxDO::getFailedAt, InventoryAuditOutboxDO::getId)
+                        .last("limit " + limit))
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    public void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
+                                          Instant updatedAt) {
+        auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
+                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_RETRYING)
+                .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
+                .set(InventoryAuditOutboxDO::getNextRetryAt, nextRetryAt)
+                .set(InventoryAuditOutboxDO::getErrorMessage, errorMessage)
+                .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt));
+    }
+
+    @Override
+    public void markAuditOutboxDead(Long outboxId, int retryCount, String deadReason, Instant updatedAt) {
+        auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
+                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_DEAD)
+                .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
+                .set(InventoryAuditOutboxDO::getDeadReason, deadReason)
+                .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt));
+    }
+
+    @Override
+    public void deleteAuditOutbox(Long outboxId) {
+        auditOutboxMapper.deleteById(outboxId);
+    }
+
+    @Override
+    public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+        auditDeadLetterMapper.insert(toDataObject(deadLetter));
+    }
+
     private Inventory toDomain(InventoryDO dataObject) {
         return new Inventory(dataObject.getId(), dataObject.getTenantId(), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getOnHandQuantity(), dataObject.getReservedQuantity(), dataObject.getAvailableQuantity(),
@@ -260,6 +314,23 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         return new InventoryAuditOutboxDO(outbox.getId(), outbox.getTenantId(), outbox.getOrderNo(),
                 outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
                 outbox.getOperatorId(), outbox.getOccurredAt(), outbox.getErrorMessage(),
-                outbox.getStatus(), outbox.getFailedAt());
+                outbox.getStatus(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getDeadReason(),
+                outbox.getFailedAt(), outbox.getUpdatedAt());
+    }
+
+    private InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
+        return new InventoryAuditOutbox(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
+                dataObject.getReservationNo(), dataObject.getActionType(), dataObject.getOperatorType(),
+                dataObject.getOperatorId(), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
+                dataObject.getStatus(), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
+                dataObject.getDeadReason(), dataObject.getFailedAt(), dataObject.getUpdatedAt());
+    }
+
+    private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
+        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxId(), deadLetter.getTenantId(),
+                deadLetter.getOrderNo(), deadLetter.getReservationNo(), deadLetter.getActionType(),
+                deadLetter.getOperatorType(), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
+                deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
+                deadLetter.getDeadAt());
     }
 }

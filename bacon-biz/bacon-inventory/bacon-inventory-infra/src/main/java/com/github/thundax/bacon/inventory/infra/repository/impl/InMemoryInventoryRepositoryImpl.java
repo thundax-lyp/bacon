@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
@@ -14,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,11 +35,13 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
     private final AtomicLong ledgerIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditLogIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditOutboxIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong auditDeadLetterIdGenerator = new AtomicLong(1000L);
     private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
     private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryLedger>> ledgers = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryAuditOutbox>> auditOutbox = new ConcurrentHashMap<>();
+    private final Map<String, List<InventoryAuditDeadLetter>> auditDeadLetters = new ConcurrentHashMap<>();
 
     public InMemoryInventoryRepositoryImpl() {
         log.info("Using in-memory inventory repository");
@@ -155,10 +159,64 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
             outbox = new InventoryAuditOutbox(auditOutboxIdGenerator.getAndIncrement(), outbox.getTenantId(),
                     outbox.getOrderNo(), outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
                     outbox.getOperatorId(), outbox.getOccurredAt(), outbox.getErrorMessage(), outbox.getStatus(),
-                    outbox.getFailedAt());
+                    outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getDeadReason(), outbox.getFailedAt(),
+                    outbox.getUpdatedAt());
         }
         auditOutbox.computeIfAbsent(reservationKey(outbox.getTenantId(), outbox.getOrderNo()), key -> new ArrayList<>())
                 .add(outbox);
+    }
+
+    @Override
+    public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
+        return auditOutbox.values().stream()
+                .flatMap(List::stream)
+                .filter(item -> InventoryAuditOutbox.STATUS_NEW.equals(item.getStatus())
+                        || InventoryAuditOutbox.STATUS_RETRYING.equals(item.getStatus()))
+                .filter(item -> item.getNextRetryAt() == null || !item.getNextRetryAt().isAfter(now))
+                .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt).thenComparing(InventoryAuditOutbox::getId))
+                .limit(limit)
+                .toList();
+    }
+
+    @Override
+    public void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
+                                          Instant updatedAt) {
+        findAuditOutboxById(outboxId).ifPresent(item -> {
+            item.setStatus(InventoryAuditOutbox.STATUS_RETRYING);
+            item.setRetryCount(retryCount);
+            item.setNextRetryAt(nextRetryAt);
+            item.setErrorMessage(errorMessage);
+            item.setUpdatedAt(updatedAt);
+        });
+    }
+
+    @Override
+    public void markAuditOutboxDead(Long outboxId, int retryCount, String deadReason, Instant updatedAt) {
+        findAuditOutboxById(outboxId).ifPresent(item -> {
+            item.setStatus(InventoryAuditOutbox.STATUS_DEAD);
+            item.setRetryCount(retryCount);
+            item.setDeadReason(deadReason);
+            item.setUpdatedAt(updatedAt);
+        });
+    }
+
+    @Override
+    public void deleteAuditOutbox(Long outboxId) {
+        auditOutbox.values().forEach(list -> list.removeIf(item -> item.getId().equals(outboxId)));
+    }
+
+    @Override
+    public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+        if (deadLetter.getId() == null) {
+            deadLetter = new InventoryAuditDeadLetter(auditDeadLetterIdGenerator.getAndIncrement(), deadLetter.getOutboxId(),
+                    deadLetter.getTenantId(), deadLetter.getOrderNo(), deadLetter.getReservationNo(),
+                    deadLetter.getActionType(), deadLetter.getOperatorType(), deadLetter.getOperatorId(),
+                    deadLetter.getOccurredAt(), deadLetter.getRetryCount(), deadLetter.getErrorMessage(),
+                    deadLetter.getDeadReason(), deadLetter.getDeadAt());
+        }
+        auditDeadLetters.computeIfAbsent(reservationKey(deadLetter.getTenantId(), deadLetter.getOrderNo()),
+                        key -> new ArrayList<>())
+                .add(deadLetter);
     }
 
     private static String key(Long tenantId, Long skuId) {
@@ -167,5 +225,12 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
 
     private static String reservationKey(Long tenantId, String orderNo) {
         return tenantId + ":" + orderNo;
+    }
+
+    private Optional<InventoryAuditOutbox> findAuditOutboxById(Long outboxId) {
+        return auditOutbox.values().stream()
+                .flatMap(List::stream)
+                .filter(item -> item.getId().equals(outboxId))
+                .findFirst();
     }
 }

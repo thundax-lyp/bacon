@@ -59,13 +59,11 @@
 
 ### 5.2 Fixed Length Rules
 
-- `tenant_id`: `varchar(64)`
 - `order_no`: `varchar(64)`
 - `payment_no`: `varchar(64)`
 - `reservation_no`: `varchar(64)`
 - `currency_code`: `varchar(16)`
 - `channel_code`: `varchar(32)`
-- `warehouse_id`: `varchar(64)`
 - `sku_name`: `varchar(128)`
 - `remark`: `varchar(255)`
 - `failure_reason`: `varchar(255)`
@@ -99,7 +97,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键，全局唯一 |
 | `user_id` | `bigint` | N | 下单用户主键 |
 | `order_status` | `varchar(32)` | N | 订单状态，取值见 `order_status` |
@@ -139,7 +137,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `sku_id` | `bigint` | N | SKU 主键 |
 | `sku_name` | `varchar(128)` | N | SKU 名称快照 |
@@ -166,7 +164,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `payment_no` | `varchar(64)` | N | 支付单号，全局唯一 |
 | `channel_code` | `varchar(32)` | N | 渠道编码 |
@@ -197,11 +195,11 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `reservation_no` | `varchar(64)` | N | 预占单号，全局唯一 |
 | `inventory_status` | `varchar(16)` | N | 库存状态，取值见 `inventory_status` |
-| `warehouse_id` | `varchar(64)` | Y | 仓库标识 |
+| `warehouse_id` | `bigint` | Y | 仓库标识 |
 | `failure_reason` | `varchar(255)` | Y | 库存失败原因摘要 |
 | `updated_at` | `datetime(3)` | N | 快照更新时间 |
 
@@ -225,7 +223,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `action_type` | `varchar(64)` | N | 操作类型 |
 | `before_status` | `varchar(32)` | Y | 变更前订单状态 |
@@ -251,7 +249,8 @@
 ## 9. Persistence Rules
 
 - `Order.order_no` 全局唯一
-- `Order.order_no` 固定由 `tinyid-client` 在 `Order` 模块内生成，并使用本地缓存号段模式
+- `Order.order_no` 固定由发号中心客户端在 `Order` 模块 `infra` 层生成
+- 发号失败时必须直接失败，不得降级为本地临时号段
 - `OrderPaymentSnapshot.payment_no` 全局唯一
 - `OrderInventorySnapshot.reservation_no` 全局唯一
 - `OrderAmount` 是值对象，不单独建表

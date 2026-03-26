@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.infra.rpc;
+package com.github.thundax.bacon.order.infra.facade.remote;
 
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;

@@ -430,6 +430,14 @@ Inventory 是 Bacon 的统一库存业务域。
 | NFR-004 | Compatibility | `Facade + DTO` 契约必须同时支持本地和远程实现 |
 | NFR-005 | Auditability | 审计日志必须持久化、可检索、可追溯 |
 
+### 9.1 Testing Baseline
+
+- `application` 层必须覆盖：幂等、状态流转、失败原因、批量读取与重试分支
+- `infra` 层必须覆盖：仓储读写、outbox 状态迁移、死信落库、远程异常翻译
+- `interfaces` 层必须覆盖：`@Valid` 参数校验、分页上限约束、核心响应契约
+- 并发场景必须覆盖：同 SKU 并发预占下的乐观锁冲突重试与结果一致性
+- 关键链路必须至少有 1 组跨层测试：审计写失败 -> outbox -> 重试成功/死信
+
 ## 10. Open Items
 
 - 是否支持多仓优先级分配未确认

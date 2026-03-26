@@ -164,6 +164,7 @@ Order 是 Bacon 的统一订单业务域。
 - 请求 `DTO`
 - 响应 `VO`
 - `Assembler`
+- `Facade Local` 适配实现（固定放在 `interfaces.facade`）
 - 对外适配端点
 
 固定端点：
@@ -178,7 +179,7 @@ Order 是 Bacon 的统一订单业务域。
 固定服务：
 
 - `OrderApplicationService`
-- `OrderQueryService`
+- `OrderQueryApplicationService`
 - `OrderCancelApplicationService`
 - `OrderTimeoutApplicationService`
 - `OrderPaymentResultApplicationService`
@@ -193,9 +194,9 @@ Order 是 Bacon 的统一订单业务域。
 ### 4.5 `bacon-order-infra`
 
 - `MyBatis-Plus Mapper`
-- `Repository` 实现
-- `InventoryFacade` 远程适配器
-- `PaymentFacade` 远程适配器
+- 按职责拆分的 `Repository` 实现
+- `Facade Remote` 适配实现（固定放在 `infra.facade.remote`）
+- `InventoryFacade`、`PaymentFacade` 远程适配器
 - 审计日志持久化
 
 ## 5. Core Domain Objects
@@ -289,7 +290,7 @@ Order 是 Bacon 的统一订单业务域。
 ### 6.1.1 Numbering Rule
 
 - `orderNo` 必须由 `Order` 模块内部生成，外部请求不得自带订单号
-- `orderNo` 生成失败时，创建订单必须直接失败，不得降级为本地临时发号
+- `orderNo` 生成失败时，创建订单必须直接失败，不得降级为本地雪花号、时间戳拼接、数据库 `max(id)+1` 或其他临时发号
 
 ### 6.2 Amount Rule
 

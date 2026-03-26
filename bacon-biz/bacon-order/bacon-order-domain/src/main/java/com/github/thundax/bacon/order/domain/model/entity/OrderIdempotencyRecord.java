@@ -22,6 +22,9 @@ public class OrderIdempotencyRecord {
     private String status;
     private Integer attemptCount;
     private String lastError;
+    private String processingOwner;
+    private Instant leaseUntil;
+    private Instant claimedAt;
     private Instant createdAt;
     private Instant updatedAt;
 }

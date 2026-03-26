@@ -31,6 +31,12 @@ public class OrderIdempotencyRecordDataObject {
     private Integer attemptCount;
     @TableField("last_error")
     private String lastError;
+    @TableField("processing_owner")
+    private String processingOwner;
+    @TableField("lease_until")
+    private Instant leaseUntil;
+    @TableField("claimed_at")
+    private Instant claimedAt;
     @TableField("created_at")
     private Instant createdAt;
     @TableField("updated_at")

@@ -10,6 +10,12 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
+    default boolean claimExpiredProcessing(Long tenantId, String orderNo, String paymentNo, String eventType,
+                                           String processingOwner, Instant leaseUntil, Instant claimedAt,
+                                           Instant updatedAt) {
+        return false;
+    }
+
     default Optional<OrderIdempotencyRecord> findByBusinessKey(Long tenantId, String orderNo,
                                                                 String paymentNo, String eventType) {
         return Optional.empty();
@@ -28,5 +34,14 @@ public interface OrderIdempotencyRepository {
     default boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
                                     Instant updatedAt) {
         return false;
+    }
+
+    default boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
+                                    String processingOwner, Instant leaseUntil, Instant claimedAt, Instant updatedAt) {
+        return false;
+    }
+
+    default int recoverExpiredProcessing(Instant now, String recoverMessage) {
+        return 0;
     }
 }

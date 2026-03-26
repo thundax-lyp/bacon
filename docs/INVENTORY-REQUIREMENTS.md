@@ -302,6 +302,7 @@ Inventory 是 Bacon 的统一库存业务域。
 
 - `Inventory.status=DISABLED` 的库存主数据不得参与预占
 - 库存预占请求进入处理后，`reservationStatus` 必须先进入 `CREATED`
+- `reservationStatus` 固定状态集为 `CREATED`、`RESERVED`、`RELEASED`、`DEDUCTED`、`FAILED`，不得新增 `PROCESSING` 等中间持久化状态
 - 全部明细预占成功后，`reservationStatus` 必须进入 `RESERVED`
 - 预占失败后，`reservationStatus` 必须进入 `FAILED`
 - 释放成功后，`reservationStatus` 必须进入 `RELEASED`

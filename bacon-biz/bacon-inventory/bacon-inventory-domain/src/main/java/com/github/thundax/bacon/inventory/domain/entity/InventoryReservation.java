@@ -12,7 +12,6 @@ import java.util.Set;
 public class InventoryReservation {
 
     public static final String STATUS_CREATED = "CREATED";
-    public static final String STATUS_PROCESSING = "PROCESSING";
     public static final String STATUS_RESERVED = "RESERVED";
     public static final String STATUS_RELEASED = "RELEASED";
     public static final String STATUS_DEDUCTED = "DEDUCTED";
@@ -48,7 +47,7 @@ public class InventoryReservation {
         this.warehouseId = warehouseId;
         this.createdAt = createdAt;
         this.items = items;
-        this.reservationStatus = STATUS_PROCESSING;
+        this.reservationStatus = STATUS_CREATED;
     }
 
     public static InventoryReservation rehydrate(Long id, Long tenantId, String reservationNo, String orderNo,
@@ -66,12 +65,12 @@ public class InventoryReservation {
     }
 
     public void reserve() {
-        ensureStatus(STATUS_PROCESSING, STATUS_CREATED);
+        ensureStatus(STATUS_CREATED);
         this.reservationStatus = STATUS_RESERVED;
     }
 
     public void fail(String reason) {
-        ensureStatus(STATUS_PROCESSING, STATUS_CREATED);
+        ensureStatus(STATUS_CREATED);
         this.reservationStatus = STATUS_FAILED;
         this.failureReason = reason;
     }
@@ -97,7 +96,7 @@ public class InventoryReservation {
     }
 
     public boolean isProcessing() {
-        return STATUS_PROCESSING.equals(reservationStatus) || STATUS_CREATED.equals(reservationStatus);
+        return STATUS_CREATED.equals(reservationStatus);
     }
 
     public boolean isReleased() {

@@ -26,7 +26,6 @@ final class InventoryReservationResultMapper {
     static String toInventoryStatus(String reservationStatus) {
         return switch (reservationStatus) {
             case InventoryReservation.STATUS_CREATED -> "RESERVING";
-            case InventoryReservation.STATUS_PROCESSING -> "RESERVING";
             case InventoryReservation.STATUS_RESERVED -> "RESERVED";
             case InventoryReservation.STATUS_RELEASED -> "RELEASED";
             case InventoryReservation.STATUS_DEDUCTED -> "DEDUCTED";

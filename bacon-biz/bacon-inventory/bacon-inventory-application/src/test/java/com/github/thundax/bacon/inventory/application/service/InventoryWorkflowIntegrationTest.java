@@ -16,7 +16,9 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
@@ -46,7 +48,7 @@ class InventoryWorkflowIntegrationTest {
     @Test
     void shouldHandleConcurrentReserveWithOptimisticRetry() throws Exception {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(false);
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
+        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
         InventoryReservationApplicationService service = new InventoryReservationApplicationService(
                 repository,
                 repository,
@@ -90,7 +92,8 @@ class InventoryWorkflowIntegrationTest {
     @Test
     void shouldMoveOutboxToDeadLetterAfterRetryExhausted() {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(true);
-        InventoryAuditOutboxRetryService retryService = new InventoryAuditOutboxRetryService(repository);
+        InventoryAuditOutboxRetryService retryService =
+                new InventoryAuditOutboxRetryService(repository, repository, repository);
         ReflectionTestUtils.setField(retryService, "enabled", true);
         ReflectionTestUtils.setField(retryService, "batchSize", 10);
         ReflectionTestUtils.setField(retryService, "maxRetries", 1);
@@ -112,7 +115,8 @@ class InventoryWorkflowIntegrationTest {
     @Test
     void shouldDeleteOutboxAfterRetrySuccess() {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(false);
-        InventoryAuditOutboxRetryService retryService = new InventoryAuditOutboxRetryService(repository);
+        InventoryAuditOutboxRetryService retryService =
+                new InventoryAuditOutboxRetryService(repository, repository, repository);
         ReflectionTestUtils.setField(retryService, "enabled", true);
         ReflectionTestUtils.setField(retryService, "batchSize", 10);
         ReflectionTestUtils.setField(retryService, "maxRetries", 3);
@@ -141,7 +145,8 @@ class InventoryWorkflowIntegrationTest {
     }
 
     private static final class OptimisticInventoryRepository implements InventoryStockRepository,
-            InventoryReservationRepository, InventoryLogRepository {
+            InventoryReservationRepository, InventoryAuditRecordRepository, InventoryAuditOutboxRepository,
+            InventoryAuditDeadLetterRepository {
 
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
         private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();

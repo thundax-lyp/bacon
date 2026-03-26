@@ -31,7 +31,7 @@ class InventoryControllerContractTest {
     @BeforeEach
     void setUp() {
         StubInventoryRepository repository = new StubInventoryRepository();
-        InventoryQueryService inventoryQueryService = new InventoryQueryService(repository, repository, repository);
+        InventoryQueryService inventoryQueryService = new InventoryQueryService(repository, repository, repository, repository);
         InventoryController controller = new InventoryController(null, inventoryQueryService);
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();

@@ -5,7 +5,8 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.List;
@@ -18,10 +19,13 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 public class InventoryOperationLogService {
 
-    private final InventoryLogRepository inventoryLogRepository;
+    private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
+    private final InventoryAuditOutboxRepository inventoryAuditOutboxRepository;
 
-    public InventoryOperationLogService(InventoryLogRepository inventoryLogRepository) {
-        this.inventoryLogRepository = inventoryLogRepository;
+    public InventoryOperationLogService(InventoryAuditRecordRepository inventoryAuditRecordRepository,
+                                        InventoryAuditOutboxRepository inventoryAuditOutboxRepository) {
+        this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;
+        this.inventoryAuditOutboxRepository = inventoryAuditOutboxRepository;
     }
 
     public void recordReserveSuccess(InventoryReservation reservation, Instant occurredAt) {
@@ -46,7 +50,7 @@ public class InventoryOperationLogService {
     private void recordLedgerBatch(InventoryReservation reservation, List<InventoryReservationItem> items,
                                    String ledgerType, Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryLogRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(),
+            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(),
                     reservation.getOrderNo(), reservation.getReservationNo(), item.getSkuId(),
                     reservation.getWarehouseId(), ledgerType, item.getQuantity(), occurredAt));
         }
@@ -68,7 +72,7 @@ public class InventoryOperationLogService {
 
     private void saveAuditSafely(InventoryReservation reservation, String actionType, Instant occurredAt) {
         try {
-            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
                 reservation.getOrderNo(), reservation.getReservationNo(), actionType,
                 InventoryAuditLog.OPERATOR_TYPE_SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
             Metrics.counter("bacon.inventory.audit.write.success.total", "actionType", actionType).increment();
@@ -83,7 +87,7 @@ public class InventoryOperationLogService {
     private void saveAuditOutboxSafely(InventoryReservation reservation, String actionType, Instant occurredAt,
                                        RuntimeException ex) {
         try {
-            inventoryLogRepository.saveAuditOutbox(new InventoryAuditOutbox(null, reservation.getTenantId(),
+            inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(null, reservation.getTenantId(),
                     reservation.getOrderNo(), reservation.getReservationNo(), actionType,
                     InventoryAuditLog.OPERATOR_TYPE_SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt,
                     truncateErrorMessage(ex.getMessage()), InventoryAuditOutbox.STATUS_NEW, 0, Instant.now(),

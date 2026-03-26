@@ -7,7 +7,7 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.List;
@@ -20,10 +20,10 @@ public class InventoryAuditReplayTaskService {
 
     private static final String OPERATOR_TYPE_MANUAL = "MANUAL";
 
-    private final InventoryLogRepository inventoryLogRepository;
+    private final InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository;
 
-    public InventoryAuditReplayTaskService(InventoryLogRepository inventoryLogRepository) {
-        this.inventoryLogRepository = inventoryLogRepository;
+    public InventoryAuditReplayTaskService(InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository) {
+        this.inventoryAuditReplayTaskRepository = inventoryAuditReplayTaskRepository;
     }
 
     public InventoryAuditReplayTaskDTO createReplayTask(InventoryAuditReplayTaskCreateDTO createDTO) {
@@ -36,8 +36,8 @@ public class InventoryAuditReplayTaskService {
                 "RPT-" + UUID.randomUUID().toString().replace("-", ""), InventoryAuditReplayTask.STATUS_PENDING,
                 createDTO.getDeadLetterIds().size(), 0, 0, 0, createDTO.getReplayKeyPrefix(), OPERATOR_TYPE_MANUAL,
                 createDTO.getOperatorId(), null, null, null, now, null, null, null, now);
-        InventoryAuditReplayTask saved = inventoryLogRepository.saveAuditReplayTask(task);
-        inventoryLogRepository.batchSaveAuditReplayTaskItems(saved.getId(), saved.getTenantId(),
+        InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
+        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getId(), saved.getTenantId(),
                 createDTO.getDeadLetterIds(), now);
         Metrics.counter("bacon.inventory.audit.replay.task.created.total").increment();
         return toDto(saved);
@@ -56,7 +56,7 @@ public class InventoryAuditReplayTaskService {
             return toDto(task);
         }
         Instant now = Instant.now();
-        boolean paused = inventoryLogRepository.pauseAuditReplayTask(taskId, tenantId, operatorId, now);
+        boolean paused = inventoryAuditReplayTaskRepository.pauseAuditReplayTask(taskId, tenantId, operatorId, now);
         if (paused) {
             Metrics.counter("bacon.inventory.audit.replay.task.paused.total").increment();
         }
@@ -70,7 +70,7 @@ public class InventoryAuditReplayTaskService {
             return toDto(task);
         }
         Instant now = Instant.now();
-        boolean resumed = inventoryLogRepository.resumeAuditReplayTask(taskId, tenantId, operatorId, now);
+        boolean resumed = inventoryAuditReplayTaskRepository.resumeAuditReplayTask(taskId, tenantId, operatorId, now);
         if (resumed) {
             Metrics.counter("bacon.inventory.audit.replay.task.resumed.total").increment();
         }
@@ -86,10 +86,10 @@ public class InventoryAuditReplayTaskService {
             return;
         }
         Instant now = Instant.now();
-        inventoryLogRepository.renewAuditReplayTaskLease(task.getId(), processingOwner,
+        inventoryAuditReplayTaskRepository.renewAuditReplayTaskLease(task.getId(), processingOwner,
                 now.plusSeconds(Math.max(leaseSeconds, 1L)), now);
 
-        List<InventoryAuditReplayTaskItem> items = inventoryLogRepository.findPendingAuditReplayTaskItems(task.getId(),
+        List<InventoryAuditReplayTaskItem> items = inventoryAuditReplayTaskRepository.findPendingAuditReplayTaskItems(task.getId(),
                 Math.max(batchSize, 1));
         if (items.isEmpty()) {
             finishTask(task.getId(), processingOwner);
@@ -114,23 +114,23 @@ public class InventoryAuditReplayTaskService {
                     failedDelta++;
                     lastError = result.getMessage();
                 }
-                inventoryLogRepository.markAuditReplayTaskItemResult(item.getId(), itemStatus, result.getReplayStatus(),
+                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(item.getId(), itemStatus, result.getReplayStatus(),
                         result.getReplayKey(), result.getMessage(), startedAt, Instant.now());
             } catch (RuntimeException ex) {
                 failedDelta++;
                 lastError = truncateError(ex.getMessage());
-                inventoryLogRepository.markAuditReplayTaskItemResult(item.getId(), InventoryAuditReplayTaskItem.STATUS_FAILED,
+                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(item.getId(), InventoryAuditReplayTaskItem.STATUS_FAILED,
                         InventoryAuditReplayTaskItem.STATUS_FAILED, null, "failed:" + lastError, startedAt, Instant.now());
             }
             processedDelta++;
         }
-        inventoryLogRepository.incrementAuditReplayTaskProgress(task.getId(), processingOwner, processedDelta,
+        inventoryAuditReplayTaskRepository.incrementAuditReplayTaskProgress(task.getId(), processingOwner, processedDelta,
                 successDelta, failedDelta, Instant.now());
         if (lastError != null) {
             Metrics.counter("bacon.inventory.audit.replay.task.item.failed.total").increment(failedDelta);
         }
 
-        List<InventoryAuditReplayTaskItem> remain = inventoryLogRepository.findPendingAuditReplayTaskItems(task.getId(), 1);
+        List<InventoryAuditReplayTaskItem> remain = inventoryAuditReplayTaskRepository.findPendingAuditReplayTaskItems(task.getId(), 1);
         if (remain.isEmpty()) {
             finishTask(task.getId(), processingOwner);
         }
@@ -141,7 +141,7 @@ public class InventoryAuditReplayTaskService {
         String status = Integer.valueOf(0).equals(latest.getFailedCount())
                 ? InventoryAuditReplayTask.STATUS_SUCCEEDED
                 : InventoryAuditReplayTask.STATUS_FAILED;
-        inventoryLogRepository.finishAuditReplayTask(taskId, processingOwner, status, latest.getLastError(), Instant.now());
+        inventoryAuditReplayTaskRepository.finishAuditReplayTask(taskId, processingOwner, status, latest.getLastError(), Instant.now());
         Metrics.counter("bacon.inventory.audit.replay.task.finished.total", "status", status).increment();
     }
 
@@ -160,7 +160,7 @@ public class InventoryAuditReplayTaskService {
     }
 
     private InventoryAuditReplayTask getTaskById(Long taskId) {
-        return inventoryLogRepository.findAuditReplayTaskById(taskId)
+        return inventoryAuditReplayTaskRepository.findAuditReplayTaskById(taskId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
                         "replay-task-not-found:" + taskId));
     }

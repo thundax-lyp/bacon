@@ -93,7 +93,7 @@ class InventoryAuditCompensationServiceTest {
     private InventoryAuditCompensationService createService(TestLogRepository repository,
                                                             InventoryTransactionExecutor transactionExecutor) {
         InventoryAuditReplayTransactionFacade facade =
-                new InventoryAuditReplayTransactionFacade(repository, transactionExecutor);
+                new InventoryAuditReplayTransactionFacade(repository, repository, transactionExecutor);
         return new InventoryAuditCompensationService(repository, facade);
     }
 

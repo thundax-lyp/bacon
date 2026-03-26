@@ -3,7 +3,9 @@ package com.github.thundax.bacon.inventory.application.audit;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.List;
@@ -19,7 +21,9 @@ public class InventoryAuditOutboxRetryService {
 
     private static final int MAX_EXPONENT = 20;
 
-    private final InventoryLogRepository inventoryLogRepository;
+    private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
+    private final InventoryAuditOutboxRepository inventoryAuditOutboxRepository;
+    private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
 
     @Value("${bacon.inventory.audit.retry.batch-size:100}")
     private int batchSize;
@@ -38,8 +42,12 @@ public class InventoryAuditOutboxRetryService {
 
     private final String processingOwner = UUID.randomUUID().toString();
 
-    public InventoryAuditOutboxRetryService(InventoryLogRepository inventoryLogRepository) {
-        this.inventoryLogRepository = inventoryLogRepository;
+    public InventoryAuditOutboxRetryService(InventoryAuditRecordRepository inventoryAuditRecordRepository,
+                                            InventoryAuditOutboxRepository inventoryAuditOutboxRepository,
+                                            InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository) {
+        this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;
+        this.inventoryAuditOutboxRepository = inventoryAuditOutboxRepository;
+        this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
     }
 
     @Scheduled(fixedDelayString = "${bacon.inventory.audit.retry.fixed-delay-ms:10000}")
@@ -48,7 +56,7 @@ public class InventoryAuditOutboxRetryService {
             return;
         }
         Instant now = Instant.now();
-        int released = inventoryLogRepository.releaseExpiredAuditOutboxLease(now);
+        int released = inventoryAuditOutboxRepository.releaseExpiredAuditOutboxLease(now);
         if (released > 0) {
             Metrics.counter("bacon.inventory.audit.retry.lease.released.total").increment(released);
             log.warn("Released expired audit outbox leases, released={}", released);
@@ -56,7 +64,7 @@ public class InventoryAuditOutboxRetryService {
         int safeBatchSize = Math.max(batchSize, 1);
         Instant leaseUntil = now.plusSeconds(Math.max(leaseSeconds, 1L));
         String owner = applicationName + ":" + processingOwner;
-        List<InventoryAuditOutbox> outboxItems = inventoryLogRepository
+        List<InventoryAuditOutbox> outboxItems = inventoryAuditOutboxRepository
                 .claimRetryableAuditOutbox(now, safeBatchSize, owner, leaseUntil);
         for (InventoryAuditOutbox item : outboxItems) {
             retryOne(item, now, owner);
@@ -65,10 +73,10 @@ public class InventoryAuditOutboxRetryService {
 
     private void retryOne(InventoryAuditOutbox item, Instant now, String owner) {
         try {
-            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, item.getTenantId(), item.getOrderNo(),
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, item.getTenantId(), item.getOrderNo(),
                     item.getReservationNo(), item.getActionType(), item.getOperatorType(), item.getOperatorId(),
                     item.getOccurredAt()));
-            if (!inventoryLogRepository.deleteAuditOutboxClaimed(item.getId(), owner)) {
+            if (!inventoryAuditOutboxRepository.deleteAuditOutboxClaimed(item.getId(), owner)) {
                 Metrics.counter("bacon.inventory.audit.retry.cas_conflict.total", "actionType", item.getActionType()).increment();
                 log.warn("Inventory audit retry skip delete due to owner mismatch, outboxId={}, owner={}",
                         item.getId(), owner);
@@ -85,13 +93,13 @@ public class InventoryAuditOutboxRetryService {
         String errorMessage = truncateMessage(ex.getMessage());
         if (nextRetryCount > maxRetries) {
             String deadReason = "MAX_RETRIES_EXCEEDED";
-            if (!inventoryLogRepository.markAuditOutboxDeadClaimed(item.getId(), owner, nextRetryCount, deadReason, now)) {
+            if (!inventoryAuditOutboxRepository.markAuditOutboxDeadClaimed(item.getId(), owner, nextRetryCount, deadReason, now)) {
                 Metrics.counter("bacon.inventory.audit.retry.cas_conflict.total", "actionType", item.getActionType()).increment();
                 log.warn("Inventory audit retry skip dead mark due to owner mismatch, outboxId={}, owner={}",
                         item.getId(), owner);
                 return;
             }
-            inventoryLogRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, item.getId(), item.getTenantId(),
+            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, item.getId(), item.getTenantId(),
                     item.getOrderNo(), item.getReservationNo(), item.getActionType(), item.getOperatorType(),
                     item.getOperatorId(), item.getOccurredAt(), nextRetryCount, errorMessage, deadReason, now,
                     InventoryAuditDeadLetter.REPLAY_STATUS_PENDING, 0, null, null, null, null, null, null));
@@ -101,7 +109,7 @@ public class InventoryAuditOutboxRetryService {
             return;
         }
         Instant nextRetryAt = now.plusSeconds(nextDelaySeconds(nextRetryCount));
-        if (!inventoryLogRepository.updateAuditOutboxForRetryClaimed(item.getId(), owner, nextRetryCount,
+        if (!inventoryAuditOutboxRepository.updateAuditOutboxForRetryClaimed(item.getId(), owner, nextRetryCount,
                 nextRetryAt, errorMessage, now)) {
             Metrics.counter("bacon.inventory.audit.retry.cas_conflict.total", "actionType", item.getActionType()).increment();
             log.warn("Inventory audit retry skip retry-mark due to owner mismatch, outboxId={}, owner={}",

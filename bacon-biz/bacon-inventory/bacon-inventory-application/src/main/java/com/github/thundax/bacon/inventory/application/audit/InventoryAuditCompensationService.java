@@ -4,7 +4,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -19,17 +19,17 @@ public class InventoryAuditCompensationService {
 
     private static final String REPLAY_OPERATOR_TYPE = "MANUAL";
 
-    private final InventoryLogRepository inventoryLogRepository;
+    private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
     private final InventoryAuditReplayTransactionFacade inventoryAuditReplayTransactionFacade;
 
-    public InventoryAuditCompensationService(InventoryLogRepository inventoryLogRepository,
+    public InventoryAuditCompensationService(InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
                                              InventoryAuditReplayTransactionFacade inventoryAuditReplayTransactionFacade) {
-        this.inventoryLogRepository = inventoryLogRepository;
+        this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
         this.inventoryAuditReplayTransactionFacade = inventoryAuditReplayTransactionFacade;
     }
 
     public InventoryAuditReplayResultDTO replayDeadLetter(Long tenantId, Long deadLetterId, String replayKey, Long operatorId) {
-        InventoryAuditDeadLetter deadLetter = inventoryLogRepository.findAuditDeadLetterById(deadLetterId)
+        InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository.findAuditDeadLetterById(deadLetterId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
                         "dead-letter-not-found:" + deadLetterId));
         if (!Objects.equals(tenantId, deadLetter.getTenantId())) {
@@ -41,7 +41,7 @@ public class InventoryAuditCompensationService {
         }
         String resolvedReplayKey = resolveReplayKey(deadLetter, replayKey);
         Instant replayAt = Instant.now();
-        boolean claimed = inventoryLogRepository.claimAuditDeadLetterForReplay(deadLetterId, tenantId, resolvedReplayKey,
+        boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(deadLetterId, tenantId, resolvedReplayKey,
                 REPLAY_OPERATOR_TYPE, operatorId, replayAt);
         if (!claimed) {
             return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED,

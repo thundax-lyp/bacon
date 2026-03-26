@@ -4,19 +4,23 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 @Component
 public class InventoryAuditReplayTransactionFacade {
 
-    private final InventoryLogRepository inventoryLogRepository;
+    private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
+    private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
     private final InventoryTransactionExecutor inventoryTransactionExecutor;
 
-    public InventoryAuditReplayTransactionFacade(InventoryLogRepository inventoryLogRepository,
+    public InventoryAuditReplayTransactionFacade(InventoryAuditRecordRepository inventoryAuditRecordRepository,
+                                                 InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
                                                  InventoryTransactionExecutor inventoryTransactionExecutor) {
-        this.inventoryLogRepository = inventoryLogRepository;
+        this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;
+        this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
         this.inventoryTransactionExecutor = inventoryTransactionExecutor;
     }
 
@@ -29,9 +33,9 @@ public class InventoryAuditReplayTransactionFacade {
     public void compensateReplayTxFailure(InventoryAuditDeadLetter deadLetter, String replayKey,
                                           String operatorType, Long operatorId, Instant replayAt, String error) {
         inventoryTransactionExecutor.executeInNewTransaction(() -> {
-            inventoryLogRepository.markAuditDeadLetterReplayFailed(deadLetter.getId(), replayKey, operatorType, operatorId,
+            inventoryAuditDeadLetterRepository.markAuditDeadLetterReplayFailed(deadLetter.getId(), replayKey, operatorType, operatorId,
                     error, replayAt);
-            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(), InventoryAuditLog.ACTION_AUDIT_REPLAY_FAILED,
                     operatorType, operatorId, replayAt));
             return null;
@@ -41,20 +45,20 @@ public class InventoryAuditReplayTransactionFacade {
     private InventoryAuditReplayResultDTO doReplay(InventoryAuditDeadLetter deadLetter, String replayKey,
                                                    String operatorType, Long operatorId, Instant replayAt) {
         try {
-            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(), deadLetter.getActionType(), deadLetter.getOperatorType(),
                     deadLetter.getOperatorId(), deadLetter.getOccurredAt()));
-            inventoryLogRepository.markAuditDeadLetterReplaySuccess(deadLetter.getId(), replayKey, operatorType,
+            inventoryAuditDeadLetterRepository.markAuditDeadLetterReplaySuccess(deadLetter.getId(), replayKey, operatorType,
                     operatorId, replayAt);
-            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(), InventoryAuditLog.ACTION_AUDIT_REPLAY_SUCCEEDED,
                     operatorType, operatorId, replayAt));
             return new InventoryAuditReplayResultDTO(deadLetter.getId(), InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED,
                     replayKey, "ok");
         } catch (RuntimeException ex) {
-            inventoryLogRepository.markAuditDeadLetterReplayFailed(deadLetter.getId(), replayKey, operatorType, operatorId,
+            inventoryAuditDeadLetterRepository.markAuditDeadLetterReplayFailed(deadLetter.getId(), replayKey, operatorType, operatorId,
                     truncateError(ex.getMessage()), replayAt);
-            inventoryLogRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantId(), deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(), InventoryAuditLog.ACTION_AUDIT_REPLAY_FAILED,
                     operatorType, operatorId, replayAt));
             return new InventoryAuditReplayResultDTO(deadLetter.getId(), InventoryAuditDeadLetter.REPLAY_STATUS_FAILED,

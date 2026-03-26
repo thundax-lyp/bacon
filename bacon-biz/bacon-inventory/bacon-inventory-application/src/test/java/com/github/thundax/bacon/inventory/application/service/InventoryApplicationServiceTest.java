@@ -12,7 +12,9 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
@@ -35,14 +37,14 @@ class InventoryApplicationServiceTest {
     @Test
     void reserveStockShouldBeIdempotentAndUpdateAvailableQuantity() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
+        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository);
+        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository, repository);
 
         InventoryReservationResultDTO first = service.reserveStock(1001L, "ORDER-1",
                 List.of(new InventoryReservationItemDTO(101L, 10)));
@@ -63,14 +65,14 @@ class InventoryApplicationServiceTest {
     @Test
     void reserveStockShouldReturnFailedWhenStockIsInsufficient() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
+        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository);
+        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository, repository);
 
         InventoryReservationResultDTO result = service.reserveStock(1001L, "ORDER-2",
                 List.of(new InventoryReservationItemDTO(101L, 1000)));
@@ -88,14 +90,14 @@ class InventoryApplicationServiceTest {
     @Test
     void releaseReservedStockShouldBeIdempotent() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
+        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository);
+        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository, repository);
 
         service.reserveStock(1001L, "ORDER-3", List.of(new InventoryReservationItemDTO(101L, 5)));
         InventoryReservationResultDTO firstRelease = service.releaseReservedStock(1001L, "ORDER-3", "USER_CANCELLED");
@@ -114,14 +116,14 @@ class InventoryApplicationServiceTest {
     @Test
     void deductReservedStockShouldBeIdempotent() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
+        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository);
+        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository, repository);
 
         service.reserveStock(1001L, "ORDER-4", List.of(new InventoryReservationItemDTO(101L, 7)));
         InventoryReservationResultDTO firstDeduct = service.deductReservedStock(1001L, "ORDER-4");
@@ -141,7 +143,7 @@ class InventoryApplicationServiceTest {
     @Test
     void reserveStockShouldBatchLoadInventoriesWithoutPerSkuPreRead() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository);
+        InventoryOperationLogService operationLogService = new InventoryOperationLogService(repository, repository);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(repository, repository, operationLogService,
                         RESERVATION_NO_GENERATOR),
@@ -158,7 +160,7 @@ class InventoryApplicationServiceTest {
     }
 
     private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,
-            InventoryLogRepository {
+            InventoryAuditRecordRepository, InventoryAuditOutboxRepository, InventoryAuditDeadLetterRepository {
 
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
         private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();

@@ -29,7 +29,7 @@ class InventoryQueryServiceTest {
     @Test
     void pageInventoriesShouldFilterAndPaginate() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryQueryService service = new InventoryQueryService(repository, repository, repository);
+        InventoryQueryService service = new InventoryQueryService(repository, repository, repository, repository);
 
         InventoryPageResultDTO result = service.pageInventories(new InventoryPageQueryDTO(1001L, null,
                 Inventory.STATUS_ENABLED, 1, 2));
@@ -43,7 +43,7 @@ class InventoryQueryServiceTest {
     @Test
     void pageInventoriesShouldUseDefaultPagingValues() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryQueryService service = new InventoryQueryService(repository, repository, repository);
+        InventoryQueryService service = new InventoryQueryService(repository, repository, repository, repository);
 
         InventoryPageResultDTO result = service.pageInventories(new InventoryPageQueryDTO(1001L, 104L,
                 null, 0, 0));

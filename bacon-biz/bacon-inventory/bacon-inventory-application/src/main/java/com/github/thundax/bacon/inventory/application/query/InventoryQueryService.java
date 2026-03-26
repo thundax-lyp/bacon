@@ -17,7 +17,8 @@ import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
@@ -32,14 +33,17 @@ public class InventoryQueryService {
 
     private final InventoryStockRepository inventoryStockRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
-    private final InventoryLogRepository inventoryLogRepository;
+    private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
+    private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
 
     public InventoryQueryService(InventoryStockRepository inventoryStockRepository,
                                  InventoryReservationRepository inventoryReservationRepository,
-                                 InventoryLogRepository inventoryLogRepository) {
+                                 InventoryAuditRecordRepository inventoryAuditRecordRepository,
+                                 InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository) {
         this.inventoryStockRepository = inventoryStockRepository;
         this.inventoryReservationRepository = inventoryReservationRepository;
-        this.inventoryLogRepository = inventoryLogRepository;
+        this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;
+        this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
     }
 
     public InventoryStockDTO getAvailableStock(Long tenantId, Long skuId) {
@@ -71,13 +75,13 @@ public class InventoryQueryService {
     }
 
     public List<InventoryLedgerDTO> listLedgersByOrderNo(Long tenantId, String orderNo) {
-        return inventoryLogRepository.findLedgers(tenantId, orderNo).stream()
+        return inventoryAuditRecordRepository.findLedgers(tenantId, orderNo).stream()
                 .map(this::toLedgerDto)
                 .toList();
     }
 
     public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(Long tenantId, String orderNo) {
-        return inventoryLogRepository.findAuditLogs(tenantId, orderNo).stream()
+        return inventoryAuditRecordRepository.findAuditLogs(tenantId, orderNo).stream()
                 .map(this::toAuditLogDto)
                 .toList();
     }
@@ -86,12 +90,12 @@ public class InventoryQueryService {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         String normalizedReplayStatus = normalizeStatus(query.getReplayStatus());
-        List<InventoryAuditDeadLetterDTO> records = inventoryLogRepository
+        List<InventoryAuditDeadLetterDTO> records = inventoryAuditDeadLetterRepository
                 .pageAuditDeadLetters(query.getTenantId(), query.getOrderNo(), normalizedReplayStatus, pageNo, pageSize)
                 .stream()
                 .map(this::toAuditDeadLetterDto)
                 .toList();
-        long total = inventoryLogRepository.countAuditDeadLetters(query.getTenantId(), query.getOrderNo(),
+        long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(query.getTenantId(), query.getOrderNo(),
                 normalizedReplayStatus);
         return new InventoryAuditDeadLetterPageResultDTO(records, total, pageNo, pageSize);
     }

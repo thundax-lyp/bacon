@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
-import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.List;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class InventoryAuditReplayTaskWorker {
 
-    private final InventoryLogRepository inventoryLogRepository;
+    private final InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository;
     private final InventoryAuditReplayTaskService inventoryAuditReplayTaskService;
     private final InventoryAuditCompensationService inventoryAuditCompensationService;
 
@@ -32,10 +32,10 @@ public class InventoryAuditReplayTaskWorker {
 
     private final String ownerSuffix = UUID.randomUUID().toString();
 
-    public InventoryAuditReplayTaskWorker(InventoryLogRepository inventoryLogRepository,
+    public InventoryAuditReplayTaskWorker(InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository,
                                           InventoryAuditReplayTaskService inventoryAuditReplayTaskService,
                                           InventoryAuditCompensationService inventoryAuditCompensationService) {
-        this.inventoryLogRepository = inventoryLogRepository;
+        this.inventoryAuditReplayTaskRepository = inventoryAuditReplayTaskRepository;
         this.inventoryAuditReplayTaskService = inventoryAuditReplayTaskService;
         this.inventoryAuditCompensationService = inventoryAuditCompensationService;
     }
@@ -47,7 +47,8 @@ public class InventoryAuditReplayTaskWorker {
         }
         Instant now = Instant.now();
         String owner = applicationName + ":" + ownerSuffix;
-        List<InventoryAuditReplayTask> tasks = inventoryLogRepository.claimRunnableAuditReplayTasks(now, Math.max(claimSize, 1), owner,
+        List<InventoryAuditReplayTask> tasks = inventoryAuditReplayTaskRepository.claimRunnableAuditReplayTasks(now,
+                Math.max(claimSize, 1), owner,
                 now.plusSeconds(Math.max(leaseSeconds, 1L)));
         if (tasks.isEmpty()) {
             return;

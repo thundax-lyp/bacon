@@ -13,7 +13,10 @@ import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.application.query.GetOrderQuery;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
+import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
+import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
+import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderDomainService;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
@@ -32,6 +35,11 @@ public class OrderApplicationService {
     private static final int DEFAULT_PAGE_SIZE = 10;
     private static final String CLOSE_REASON_INVENTORY_RESERVE_FAILED = "INVENTORY_RESERVE_FAILED";
     private static final String CLOSE_REASON_PAYMENT_CREATE_FAILED = "PAYMENT_CREATE_FAILED";
+    private static final String ACTION_CREATE = "ORDER_CREATE";
+    private static final String ACTION_CANCEL = "ORDER_CANCEL";
+    private static final String ACTION_MARK_PAID = "ORDER_MARK_PAID";
+    private static final String ACTION_MARK_PAYMENT_FAILED = "ORDER_MARK_PAYMENT_FAILED";
+    private static final String ACTION_CLOSE_EXPIRED = "ORDER_CLOSE_EXPIRED";
 
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService = new OrderDomainService();
@@ -78,6 +86,7 @@ public class OrderApplicationService {
         PaymentCreateResultDTO paymentResult = createPayment(savedOrder, command.channelCode());
         savedOrder.markPendingPayment(paymentResult.getPaymentNo(), paymentResult.getChannelCode());
         orderRepository.save(savedOrder);
+        persistOrderDerivedData(savedOrder, ACTION_CREATE, Order.ORDER_STATUS_CREATED);
         return toSummary(savedOrder);
     }
 
@@ -122,6 +131,7 @@ public class OrderApplicationService {
     public void cancelOrder(Long tenantId, String orderNo, String reason) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+        String beforeStatus = order.getOrderStatus();
         order.cancel(reason);
         InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);
         applyReleaseResult(order, releaseResult, reason);
@@ -129,12 +139,14 @@ public class OrderApplicationService {
             paymentCommandFacade.closePayment(tenantId, order.getPaymentNo(), reason);
         }
         orderRepository.save(order);
+        persistOrderDerivedData(order, ACTION_CANCEL, beforeStatus);
     }
 
     public void markPaid(Long tenantId, String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount,
                          Instant paidTime) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+        String beforeStatus = order.getOrderStatus();
         order.markPaid(paymentNo, channelCode, paidAmount, paidTime);
         InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(tenantId, orderNo);
         if (!Order.INVENTORY_STATUS_DEDUCTED.equals(deductResult.getInventoryStatus())) {
@@ -146,22 +158,26 @@ public class OrderApplicationService {
         order.markInventoryDeducted(deductResult.getReservationNo(), deductResult.getWarehouseId(),
                 deductResult.getDeductedAt());
         orderRepository.save(order);
+        persistOrderDerivedData(order, ACTION_MARK_PAID, beforeStatus);
     }
 
     public void markPaymentFailed(Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus,
                                   Instant failedTime) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+        String beforeStatus = order.getOrderStatus();
         order.markPaymentFailed(paymentNo, reason, channelStatus, failedTime);
         InventoryReservationResultDTO releaseResult =
                 inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, "PAYMENT_FAILED");
         applyReleaseResult(order, releaseResult, "PAYMENT_FAILED");
         orderRepository.save(order);
+        persistOrderDerivedData(order, ACTION_MARK_PAYMENT_FAILED, beforeStatus);
     }
 
     public void closeExpiredOrder(Long tenantId, String orderNo, String reason) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+        String beforeStatus = order.getOrderStatus();
         order.closeExpired(reason);
         if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
             paymentCommandFacade.closePayment(tenantId, order.getPaymentNo(), reason);
@@ -169,6 +185,7 @@ public class OrderApplicationService {
         InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);
         applyReleaseResult(order, releaseResult, reason);
         orderRepository.save(order);
+        persistOrderDerivedData(order, ACTION_CLOSE_EXPIRED, beforeStatus);
     }
 
     private InventoryReservationResultDTO reserveInventory(Order order, List<CreateOrderItemCommand> items) {
@@ -182,6 +199,7 @@ public class OrderApplicationService {
             order.markInventoryFailed(reserveResult.getReservationNo(), reserveResult.getWarehouseId(), reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
             orderRepository.save(order);
+            persistOrderDerivedData(order, ACTION_CREATE, Order.ORDER_STATUS_CREATED);
             throw new IllegalStateException(reason);
         }
         return reserveResult;
@@ -205,7 +223,24 @@ public class OrderApplicationService {
         applyReleaseResult(order, releaseResult, CLOSE_REASON_PAYMENT_CREATE_FAILED);
         order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
         orderRepository.save(order);
+        persistOrderDerivedData(order, ACTION_CREATE, Order.ORDER_STATUS_RESERVING_STOCK);
         throw new IllegalStateException(failureReason);
+    }
+
+    private void persistOrderDerivedData(Order order, String actionType, String beforeStatus) {
+        Instant now = Instant.now();
+        if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
+            orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), order.getId(),
+                    order.getPaymentNo(), order.getPaymentChannelCode(), order.getPayStatus(), order.getPaidAmount(),
+                    order.getPaidAt(), order.getPaymentFailureReason(), order.getPaymentChannelStatus(), now));
+        }
+        if (order.getReservationNo() != null && !order.getReservationNo().isBlank()) {
+            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(null, order.getTenantId(), order.getId(),
+                    order.getReservationNo(), order.getInventoryStatus(), order.getWarehouseId(),
+                    order.getInventoryFailureReason(), now));
+        }
+        orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNo(), actionType,
+                beforeStatus, order.getOrderStatus(), "SYSTEM", 0L, now));
     }
 
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
@@ -227,22 +262,35 @@ public class OrderApplicationService {
     }
 
     private OrderSummaryDTO toSummary(Order order) {
+        String paymentNo = orderRepository.findPaymentSnapshotByOrderId(order.getTenantId(), order.getId())
+                .map(OrderPaymentSnapshot::paymentNo)
+                .orElse(order.getPaymentNo());
+        String reservationNo = orderRepository.findInventorySnapshotByOrderId(order.getTenantId(), order.getId())
+                .map(OrderInventorySnapshot::reservationNo)
+                .orElse(order.getReservationNo());
         return new OrderSummaryDTO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
-                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNo(),
-                order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
+                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), paymentNo,
+                reservationNo, order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
                 order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt());
     }
 
     private OrderDetailDTO toDetail(Order order) {
+        OrderPaymentSnapshot paymentSnapshot = orderRepository.findPaymentSnapshotByOrderId(order.getTenantId(),
+                order.getId()).orElse(null);
+        OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderId(order.getTenantId(),
+                order.getId()).orElse(null);
         List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantId(), order.getId()).stream()
                 .map(item -> new OrderItemDTO(item.getSkuId(), item.getSkuName(), item.getQuantity(),
                         item.getSalePrice(), item.getLineAmount()))
                 .toList();
         return new OrderDetailDTO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
-                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNo(),
-                order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
+                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(),
+                paymentSnapshot == null ? order.getPaymentNo() : paymentSnapshot.paymentNo(),
+                inventorySnapshot == null ? order.getReservationNo() : inventorySnapshot.reservationNo(),
+                order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
                 order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(), itemDtos,
-                buildPaymentSnapshot(order), buildInventorySnapshot(order), order.getPaidAt(), order.getClosedAt());
+                buildPaymentSnapshot(order, paymentSnapshot), buildInventorySnapshot(order, inventorySnapshot),
+                order.getPaidAt(), order.getClosedAt());
     }
 
     private BigDecimal calculateLineAmount(CreateOrderItemCommand item) {
@@ -256,23 +304,36 @@ public class OrderApplicationService {
         return currencyCode == null || currencyCode.isBlank() ? "CNY" : currencyCode;
     }
 
-    private String buildPaymentSnapshot(Order order) {
-        if (order.getPaymentNo() == null) {
+    private String buildPaymentSnapshot(Order order, OrderPaymentSnapshot paymentSnapshot) {
+        if (paymentSnapshot == null && order.getPaymentNo() == null) {
             return null;
         }
-        return "paymentNo=" + order.getPaymentNo()
-                + ",payStatus=" + order.getPayStatus()
-                + ",channelCode=" + Objects.toString(order.getPaymentChannelCode(), "N/A")
-                + ",paidAmount=" + Objects.toString(order.getPaidAmount(), "N/A")
-                + ",channelStatus=" + Objects.toString(order.getPaymentChannelStatus(), "N/A")
-                + ",failureReason=" + Objects.toString(order.getPaymentFailureReason(), "N/A");
+        String paymentNo = paymentSnapshot == null ? order.getPaymentNo() : paymentSnapshot.paymentNo();
+        String payStatus = paymentSnapshot == null ? order.getPayStatus() : paymentSnapshot.payStatus();
+        String channelCode = paymentSnapshot == null ? order.getPaymentChannelCode() : paymentSnapshot.channelCode();
+        BigDecimal paidAmount = paymentSnapshot == null ? order.getPaidAmount() : paymentSnapshot.paidAmount();
+        String channelStatus = paymentSnapshot == null
+                ? order.getPaymentChannelStatus() : paymentSnapshot.channelStatus();
+        String failureReason = paymentSnapshot == null
+                ? order.getPaymentFailureReason() : paymentSnapshot.failureReason();
+        return "paymentNo=" + paymentNo
+                + ",payStatus=" + payStatus
+                + ",channelCode=" + Objects.toString(channelCode, "N/A")
+                + ",paidAmount=" + Objects.toString(paidAmount, "N/A")
+                + ",channelStatus=" + Objects.toString(channelStatus, "N/A")
+                + ",failureReason=" + Objects.toString(failureReason, "N/A");
     }
 
-    private String buildInventorySnapshot(Order order) {
-        String reservationNo = Objects.toString(order.getReservationNo(), "N/A");
+    private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {
+        String reservationNo = Objects.toString(
+                inventorySnapshot == null ? order.getReservationNo() : inventorySnapshot.reservationNo(), "N/A");
+        String inventoryStatus = inventorySnapshot == null ? order.getInventoryStatus() : inventorySnapshot.inventoryStatus();
+        Long warehouseId = inventorySnapshot == null ? order.getWarehouseId() : inventorySnapshot.warehouseId();
+        String failureReason = inventorySnapshot == null
+                ? order.getInventoryFailureReason() : inventorySnapshot.failureReason();
         return "reservationNo=" + reservationNo
-                + ",inventoryStatus=" + order.getInventoryStatus()
-                + ",warehouseId=" + Objects.toString(order.getWarehouseId(), "N/A")
-                + ",failureReason=" + Objects.toString(order.getInventoryFailureReason(), "N/A");
+                + ",inventoryStatus=" + inventoryStatus
+                + ",warehouseId=" + Objects.toString(warehouseId, "N/A")
+                + ",failureReason=" + Objects.toString(failureReason, "N/A");
     }
 }

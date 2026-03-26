@@ -9,7 +9,10 @@ import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
+import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
+import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
+import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
@@ -64,12 +67,12 @@ class OrderApplicationServiceTest {
         service.markPaid(1001L, paid.getOrderNo(), "PAY-1", "MOCK", BigDecimal.valueOf(20),
                 Instant.parse("2026-03-26T10:00:00Z"));
 
-        OrderPageResultDTO page = service.pageOrders(new OrderPageQueryDTO(1001L, 2001L, null, null, "UNPAID",
+        OrderPageResultDTO page = service.pageOrders(new OrderPageQueryDTO(1001L, 2001L, null, null, "PAYING",
                 null, null, null, 1, 10));
 
         assertEquals(1, page.getTotal());
         assertEquals(1, page.getRecords().size());
-        assertEquals("UNPAID", page.getRecords().get(0).getPayStatus());
+        assertEquals("PAYING", page.getRecords().get(0).getPayStatus());
     }
 
     @Test
@@ -132,6 +135,9 @@ class OrderApplicationServiceTest {
 
         private final Map<Long, Order> storage = new ConcurrentHashMap<>();
         private final Map<Long, List<OrderItem>> itemStorage = new ConcurrentHashMap<>();
+        private final Map<Long, OrderPaymentSnapshot> paymentSnapshots = new ConcurrentHashMap<>();
+        private final Map<Long, OrderInventorySnapshot> inventorySnapshots = new ConcurrentHashMap<>();
+        private final Map<String, List<OrderAuditLog>> auditLogs = new ConcurrentHashMap<>();
         private final AtomicLong idGenerator = new AtomicLong(1000L);
 
         @Override
@@ -166,6 +172,45 @@ class OrderApplicationServiceTest {
             return itemStorage.getOrDefault(orderId, List.of()).stream()
                     .filter(item -> tenantId.equals(item.getTenantId()))
                     .toList();
+        }
+
+        @Override
+        public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
+            paymentSnapshots.put(snapshot.orderId(), snapshot);
+        }
+
+        @Override
+        public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId) {
+            OrderPaymentSnapshot snapshot = paymentSnapshots.get(orderId);
+            if (snapshot == null || !tenantId.equals(snapshot.tenantId())) {
+                return Optional.empty();
+            }
+            return Optional.of(snapshot);
+        }
+
+        @Override
+        public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
+            inventorySnapshots.put(snapshot.orderId(), snapshot);
+        }
+
+        @Override
+        public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderId(Long tenantId, Long orderId) {
+            OrderInventorySnapshot snapshot = inventorySnapshots.get(orderId);
+            if (snapshot == null || !tenantId.equals(snapshot.tenantId())) {
+                return Optional.empty();
+            }
+            return Optional.of(snapshot);
+        }
+
+        @Override
+        public void saveAuditLog(OrderAuditLog auditLog) {
+            String key = auditLog.tenantId() + ":" + auditLog.orderNo();
+            auditLogs.computeIfAbsent(key, unused -> new java.util.ArrayList<>()).add(auditLog);
+        }
+
+        @Override
+        public List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+            return List.copyOf(auditLogs.getOrDefault(tenantId + ":" + orderNo, List.of()));
         }
 
         @Override

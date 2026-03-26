@@ -1,8 +1,13 @@
 package com.github.thundax.bacon.common.security.config;
 
 import com.github.thundax.bacon.common.security.context.CurrentUserResolver;
+import com.github.thundax.bacon.common.security.context.CurrentTenantProvider;
+import com.github.thundax.bacon.common.security.context.CurrentTenantResolver;
+import com.github.thundax.bacon.common.security.context.MonoCurrentTenantProvider;
 import com.github.thundax.bacon.common.security.context.MonoCurrentUserProvider;
+import com.github.thundax.bacon.common.security.context.SecurityContextCurrentTenantResolver;
 import com.github.thundax.bacon.common.security.context.SecurityContextCurrentUserResolver;
+import com.github.thundax.bacon.common.security.context.SpringContextCurrentTenantProvider;
 import com.github.thundax.bacon.common.security.context.SpringContextCurrentUserProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -51,9 +56,23 @@ public class BaconSecurityConfiguration {
 
     @Bean
     @Primary
+    @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
+    public MonoCurrentTenantProvider monoCurrentTenantProvider() {
+        return new MonoCurrentTenantProvider(new SecurityContextCurrentTenantResolver());
+    }
+
+    @Bean
+    @Primary
     @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
     public SpringContextCurrentUserProvider microCurrentUserProvider() {
         return new SpringContextCurrentUserProvider();
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
+    public SpringContextCurrentTenantProvider microCurrentTenantProvider() {
+        return new SpringContextCurrentTenantProvider();
     }
 
     @Bean
@@ -61,5 +80,12 @@ public class BaconSecurityConfiguration {
     @ConditionalOnMissingBean(CurrentUserResolver.class)
     public SecurityContextCurrentUserResolver microCurrentUserResolver() {
         return new SecurityContextCurrentUserResolver();
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
+    @ConditionalOnMissingBean(CurrentTenantResolver.class)
+    public SecurityContextCurrentTenantResolver microCurrentTenantResolver() {
+        return new SecurityContextCurrentTenantResolver();
     }
 }

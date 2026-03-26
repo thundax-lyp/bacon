@@ -1,90 +1,171 @@
 # Bacon
 
-`Bacon` 是一个基于 `Spring Boot 3.5`、`Spring Cloud 2025`、`Spring Cloud Alibaba 2025` 的混合架构后端工程，支持单体装配与微服务装配并存。
+> Enterprise-grade RBAC and business platform based on Spring Cloud Alibaba 2025, Spring Boot 3, and OAuth2.
 
-## 项目定位
+## TL;DR
 
-- 统一技术栈：`Java 17`、`Maven`、`Spring Boot 3`
-- 统一业务方向：认证、用户权限、订单、库存、支付
-- 统一工程形态：同一套业务模块同时支持单体和微服务运行模式
+Bacon is a multi-module Java 17 backend project that supports both:
 
-## 目录结构
+- `mono` deployment (single boot app)
+- `micro` deployment (domain starters)
+
+It provides a unified architecture for:
+
+- `Auth` (identity, session, OAuth2)
+- `UPMS` (RBAC, org, menu, resource, data permission)
+- `Order`
+- `Inventory`
+- `Payment`
+
+---
+
+## AI Quick Context
+
+This section is intentionally structured for AI agents and tooling.
+
+```yaml
+project:
+  name: bacon
+  language: Java
+  build: Maven
+  java: 17
+  spring_boot: 3.5.x
+  spring_cloud: 2025.x
+  spring_cloud_alibaba: 2025.x
+
+runtime_modes:
+  - mono
+  - micro
+
+architecture:
+  layers:
+    - interfaces
+    - application
+    - domain
+    - infra
+  dependency_direction: interfaces -> application -> domain <- infra
+  cross_domain_rule: depend on facade contracts only
+
+main_dirs:
+  - bacon-app
+  - bacon-biz
+  - bacon-common
+  - docs
+  - deploy
+
+entrypoints:
+  mono: bacon-app/bacon-mono-boot
+  micro:
+    - bacon-app/bacon-auth-starter
+    - bacon-app/bacon-upms-starter
+    - bacon-app/bacon-order-starter
+    - bacon-app/bacon-inventory-starter
+    - bacon-app/bacon-payment-starter
+```
+
+---
+
+## Repository Layout
 
 ```text
 bacon
-├── bacon-app/      # 启动与装配层
-├── bacon-biz/      # 业务域层
-├── bacon-common/   # 公共基础能力
-├── docs/           # 架构、需求、数据库、文档规范
-└── deploy/         # 部署脚本与配置样例
+├── bacon-app/      # Bootstrapping and runtime assembly
+├── bacon-biz/      # Business domains (auth/upms/order/inventory/payment)
+├── bacon-common/   # Shared platform capabilities
+├── docs/           # Architecture, requirements, DB design, doc standards
+└── deploy/         # Deployment scripts and environment samples
 ```
 
-核心公共模块包括：
+### Core Shared Modules
 
-- `bacon-common-core`：配置、异常、上下文、缓存验证码等公共基础能力
-- `bacon-common-web`：统一 Web 响应模型
-- `bacon-common-security`：安全上下文与权限能力
-- `bacon-common-mybatis`：MyBatis / MyBatis-Plus 基础封装
-- `bacon-common-feign`：Feign 基础封装
-- `bacon-common-mq`：消息队列基础封装
+- `bacon-common-core`: exceptions, context, common utilities
+- `bacon-common-web`: response envelope and global exception handling
+- `bacon-common-security`: security context and permission abstraction
+- `bacon-common-mybatis`: MyBatis/MyBatis-Plus conventions
+- `bacon-common-feign`: RPC client foundation
+- `bacon-common-mq`: MQ abstraction
 
-## 业务域
+---
 
-- `Auth`：登录、令牌、会话、`OAuth2`
-- `UPMS`：用户、组织、角色、菜单、资源、数据权限
-- `Order`：订单下单、查询、支付结果处理
-- `Inventory`：库存查询、预占、释放、扣减
-- `Payment`：支付单、回调、关闭、状态查询
+## Domain Map
 
-## 开发说明
+- `Auth`: authentication, token/session lifecycle, OAuth2
+- `UPMS`: RBAC, tenant/user/org/menu/resource/data-scope
+- `Order`: order lifecycle and cross-domain orchestration
+- `Inventory`: stock query, reservation/release/deduction, audit outbox
+- `Payment`: payment order, callback, close, reconciliation baseline
 
-首次阅读建议按以下顺序：
+---
+
+## Getting Started
+
+### 1) Read Docs in Correct Order
 
 1. [docs/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/ARCHITECTURE.md)
 2. [docs/README.md](/Volumes/storage/workspace/bacon/docs/README.md)
-3. 当前任务所属业务域的 `*-REQUIREMENTS.md`
+3. target domain `*-REQUIREMENTS.md`
 
-常用命令：
+### 2) Build and Test
 
 ```bash
 mvn clean verify
 mvn test
 mvn checkstyle:check
+```
+
+### 3) Run
+
+Mono:
+
+```bash
 mvn -pl bacon-app/bacon-mono-boot spring-boot:run
 ```
 
-Inventory 模块补充测试（可按需单独执行）：
+Micro (example):
+
+```bash
+mvn -pl bacon-app/bacon-order-starter spring-boot:run
+```
+
+---
+
+## Testing Notes
+
+Inventory focused checks:
 
 ```bash
 mvn -q -pl bacon-biz/bacon-inventory/bacon-inventory-infra -am test -Dtest=InMemoryInventoryRepositorySupportTest -Dsurefire.failIfNoSpecifiedTests=false
 mvn -q -pl bacon-biz/bacon-inventory/bacon-inventory-interfaces -am test -Dtest=InventoryControllerContractTest,InventoryProviderControllerContractTest -Dsurefire.failIfNoSpecifiedTests=false
 ```
 
-## JDK 约定
+---
 
-- 日常开发可以使用 JDK 19
-- Maven 编译、单元测试、集成测试统一使用 JDK 17
-- 根 `pom.xml` 已通过 Maven Toolchains 固定要求 JDK 17
+## JDK and Toolchain
 
-首次配置时，将 [` .mvn/toolchains.example.xml`](/Volumes/storage/workspace/bacon/.mvn/toolchains.example.xml) 复制为 `~/.m2/toolchains.xml`，并将其中的 `jdkHome` 改为本机实际安装路径。
+- Daily development may use `JDK 19`
+- Maven compile/test must use `JDK 17`
+- Toolchain is enforced by root `pom.xml`
 
-## 运行模式
+Setup:
 
-- 单体模式：使用 `bacon-app/bacon-mono-boot`
-- 微服务模式：按业务域分别启动 `bacon-auth-starter`、`bacon-upms-starter`、`bacon-order-starter`、`bacon-inventory-starter`、`bacon-payment-starter`
+1. copy `.mvn/toolchains.example.xml` to `~/.m2/toolchains.xml`
+2. update `jdkHome` to your local JDK 17 path
 
-业务代码保持统一分层：
+---
 
-```text
-interfaces -> application -> domain -> infra
-```
+## Engineering Rules
 
-跨域调用统一依赖 `Facade` 契约，不直接依赖其他业务域内部实现。
+- Keep layer boundaries strict
+- Do not bypass facade contracts for cross-domain calls
+- Keep docs and schema in sync with code changes
+- Prefer simple, explicit, production-safe designs
 
-## 文档索引
+---
 
-- [docs/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/ARCHITECTURE.md)：项目架构与模块边界
-- [docs/README.md](/Volumes/storage/workspace/bacon/docs/README.md)：文档加载索引
+## Documentation Index
+
+- [docs/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/ARCHITECTURE.md)
+- [docs/README.md](/Volumes/storage/workspace/bacon/docs/README.md)
 - [docs/AUTH-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/AUTH-REQUIREMENTS.md)
 - [docs/UPMS-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/UPMS-REQUIREMENTS.md)
 - [docs/ORDER-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/ORDER-REQUIREMENTS.md)
@@ -93,4 +174,4 @@ interfaces -> application -> domain -> infra
 
 ## License
 
-本项目使用 Apache License 2.0，详见 [LICENSE](/Volumes/storage/workspace/bacon/LICENSE)。
+Apache License 2.0. See [LICENSE](/Volumes/storage/workspace/bacon/LICENSE).

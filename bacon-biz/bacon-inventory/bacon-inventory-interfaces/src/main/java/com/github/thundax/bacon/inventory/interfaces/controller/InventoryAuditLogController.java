@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryOrderScopedRequest;
@@ -31,8 +32,9 @@ public class InventoryAuditLogController {
     @Operation(summary = "按订单号查询库存审计日志")
     @HasPermission("inventory:audit:view")
     @GetMapping
-    public List<InventoryAuditLogResponse> listByOrderNo(@Valid @ModelAttribute InventoryOrderScopedRequest request) {
-        return inventoryQueryService.listAuditLogsByOrderNo(request.getTenantId(), request.getOrderNo()).stream()
+    public List<InventoryAuditLogResponse> listByOrderNo(@CurrentTenant Long tenantId,
+                                                         @Valid @ModelAttribute InventoryOrderScopedRequest request) {
+        return inventoryQueryService.listAuditLogsByOrderNo(tenantId, request.getOrderNo()).stream()
                 .map(InventoryAuditLogResponse::from)
                 .toList();
     }

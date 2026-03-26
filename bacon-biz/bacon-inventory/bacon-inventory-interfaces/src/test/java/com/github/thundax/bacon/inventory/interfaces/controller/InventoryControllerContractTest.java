@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
+import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
@@ -38,22 +39,25 @@ class InventoryControllerContractTest {
         validator.afterPropertiesSet();
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver(() -> 1001L))
                 .setValidator(validator)
                 .build();
     }
 
     @Test
-    void shouldRejectPageRequestWithoutTenantId() throws Exception {
+    void shouldAllowPageRequestWithoutTenantIdParam() throws Exception {
         mockMvc.perform(get("/inventories/page")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.pageNo").value(1))
+                .andExpect(jsonPath("$.records[0].skuId").value(101));
     }
 
     @Test
     void shouldRejectPageRequestWithOversizedPageSize() throws Exception {
         mockMvc.perform(get("/inventories/page")
-                        .param("tenantId", "1001")
                         .param("pageNo", "1")
                         .param("pageSize", "1000"))
                 .andExpect(status().isBadRequest());
@@ -62,7 +66,6 @@ class InventoryControllerContractTest {
     @Test
     void shouldReturnPagedInventoryWhenRequestIsValid() throws Exception {
         mockMvc.perform(get("/inventories/page")
-                        .param("tenantId", "1001")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
                 .andExpect(status().isOk())

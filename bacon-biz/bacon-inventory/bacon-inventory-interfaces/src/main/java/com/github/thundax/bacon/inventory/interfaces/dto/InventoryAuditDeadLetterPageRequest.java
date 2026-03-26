@@ -2,8 +2,6 @@ package com.github.thundax.bacon.inventory.interfaces.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,10 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryAuditDeadLetterPageRequest {
-
-    @NotNull
-    @Positive
-    private Long tenantId;
 
     private String orderNo;
 

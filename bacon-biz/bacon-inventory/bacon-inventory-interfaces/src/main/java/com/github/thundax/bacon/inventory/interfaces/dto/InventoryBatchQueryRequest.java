@@ -13,10 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InventoryBatchQueryRequest {
 
-    @NotNull
-    @Positive
-    private Long tenantId;
-
     @NotEmpty
     private Set<@NotNull @Positive Long> skuIds;
 }

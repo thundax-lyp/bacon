@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Positive;
 import java.util.List;
 
 public record InventoryAuditReplayTaskCreateRequest(
-        @NotNull @Positive Long tenantId,
         Long operatorId,
         String replayKeyPrefix,
         @NotEmpty List<@NotNull @Positive Long> deadLetterIds

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageQueryDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
@@ -9,7 +10,6 @@ import com.github.thundax.bacon.inventory.interfaces.dto.CreateInventoryRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryBatchQueryRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryPageRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryStatusUpdateRequest;
-import com.github.thundax.bacon.inventory.interfaces.dto.InventoryTenantScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryPageResponse;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryStockResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,26 +46,27 @@ public class InventoryController {
     @Operation(summary = "新增库存主数据")
     @HasPermission("inventory:stock:create")
     @PostMapping
-    public InventoryStockResponse createInventory(@Valid @RequestBody CreateInventoryRequest request) {
-        return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(request.tenantId(),
+    public InventoryStockResponse createInventory(@CurrentTenant Long tenantId,
+                                                  @Valid @RequestBody CreateInventoryRequest request) {
+        return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(tenantId,
                 request.skuId(), request.onHandQuantity(), request.status()));
     }
 
     @Operation(summary = "查询 SKU 可用库存")
     @HasPermission("inventory:stock:view")
     @GetMapping("/{skuId}")
-    public InventoryStockResponse getInventory(@PathVariable @Positive Long skuId,
-                                               @Valid @ModelAttribute InventoryTenantScopedRequest request) {
+    public InventoryStockResponse getInventory(@CurrentTenant Long tenantId, @PathVariable @Positive Long skuId) {
         return InventoryStockResponse.from(
-                inventoryQueryService.getAvailableStock(request.getTenantId(), skuId)
+                inventoryQueryService.getAvailableStock(tenantId, skuId)
         );
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
     @HasPermission("inventory:stock:view")
     @GetMapping
-    public List<InventoryStockResponse> listInventories(@Valid @ModelAttribute InventoryBatchQueryRequest request) {
-        return inventoryQueryService.batchGetAvailableStock(request.getTenantId(), request.getSkuIds()).stream()
+    public List<InventoryStockResponse> listInventories(@CurrentTenant Long tenantId,
+                                                        @Valid @ModelAttribute InventoryBatchQueryRequest request) {
+        return inventoryQueryService.batchGetAvailableStock(tenantId, request.getSkuIds()).stream()
                 .map(InventoryStockResponse::from)
                 .toList();
     }
@@ -73,18 +74,20 @@ public class InventoryController {
     @Operation(summary = "分页查询库存主数据")
     @HasPermission("inventory:stock:view")
     @GetMapping("/page")
-    public InventoryPageResponse pageInventories(@Valid @ModelAttribute InventoryPageRequest request) {
+    public InventoryPageResponse pageInventories(@CurrentTenant Long tenantId,
+                                                 @Valid @ModelAttribute InventoryPageRequest request) {
         return InventoryPageResponse.from(inventoryQueryService.pageInventories(new InventoryPageQueryDTO(
-                request.getTenantId(), request.getSkuId(), request.getStatus(), request.getPageNo(),
+                tenantId, request.getSkuId(), request.getStatus(), request.getPageNo(),
                 request.getPageSize())));
     }
 
     @Operation(summary = "修改库存状态")
     @HasPermission("inventory:stock:update")
     @PutMapping("/{skuId}/status")
-    public InventoryStockResponse updateInventoryStatus(@PathVariable @Positive Long skuId,
+    public InventoryStockResponse updateInventoryStatus(@CurrentTenant Long tenantId,
+                                                        @PathVariable @Positive Long skuId,
                                                         @Valid @RequestBody InventoryStatusUpdateRequest request) {
         return InventoryStockResponse.from(inventoryManagementApplicationService.updateInventoryStatus(
-                request.tenantId(), skuId, request.status()));
+                tenantId, skuId, request.status()));
     }
 }

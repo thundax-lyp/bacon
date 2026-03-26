@@ -13,10 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InventoryPageRequest {
 
-    @NotNull
-    @Positive
-    private Long tenantId;
-
     @Positive
     private Long skuId;
 

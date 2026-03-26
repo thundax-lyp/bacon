@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryOrderScopedRequest;
@@ -31,8 +32,9 @@ public class InventoryLedgerController {
     @Operation(summary = "按订单号查询库存流水")
     @HasPermission("inventory:ledger:view")
     @GetMapping
-    public List<InventoryLedgerResponse> listByOrderNo(@Valid @ModelAttribute InventoryOrderScopedRequest request) {
-        return inventoryQueryService.listLedgersByOrderNo(request.getTenantId(), request.getOrderNo()).stream()
+    public List<InventoryLedgerResponse> listByOrderNo(@CurrentTenant Long tenantId,
+                                                       @Valid @ModelAttribute InventoryOrderScopedRequest request) {
+        return inventoryQueryService.listLedgersByOrderNo(tenantId, request.getOrderNo()).stream()
                 .map(InventoryLedgerResponse::from)
                 .toList();
     }

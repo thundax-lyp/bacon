@@ -5,6 +5,8 @@ import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
@@ -16,6 +18,8 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryStockReposi
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditDeadLetterDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditOutboxDO;
+import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditReplayTaskDO;
+import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditReplayTaskItemDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryLedgerDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationDO;
@@ -23,6 +27,8 @@ import com.github.thundax.bacon.inventory.infra.persistence.dataobject.Inventory
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditLogMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditDeadLetterMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditOutboxMapper;
+import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditReplayTaskMapper;
+import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditReplayTaskItemMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryLedgerMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryReservationItemMapper;
@@ -51,6 +57,8 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
     private final InventoryAuditLogMapper auditLogMapper;
     private final InventoryAuditOutboxMapper auditOutboxMapper;
     private final InventoryAuditDeadLetterMapper auditDeadLetterMapper;
+    private final InventoryAuditReplayTaskMapper auditReplayTaskMapper;
+    private final InventoryAuditReplayTaskItemMapper auditReplayTaskItemMapper;
 
     public InventoryRepositoryImpl(InventoryMapper inventoryMapper,
                                    InventoryReservationMapper reservationMapper,
@@ -58,7 +66,9 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                                    InventoryLedgerMapper ledgerMapper,
                                    InventoryAuditLogMapper auditLogMapper,
                                    InventoryAuditOutboxMapper auditOutboxMapper,
-                                   InventoryAuditDeadLetterMapper auditDeadLetterMapper) {
+                                   InventoryAuditDeadLetterMapper auditDeadLetterMapper,
+                                   InventoryAuditReplayTaskMapper auditReplayTaskMapper,
+                                   InventoryAuditReplayTaskItemMapper auditReplayTaskItemMapper) {
         this.inventoryMapper = inventoryMapper;
         this.reservationMapper = reservationMapper;
         this.reservationItemMapper = reservationItemMapper;
@@ -66,6 +76,8 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
         this.auditLogMapper = auditLogMapper;
         this.auditOutboxMapper = auditOutboxMapper;
         this.auditDeadLetterMapper = auditDeadLetterMapper;
+        this.auditReplayTaskMapper = auditReplayTaskMapper;
+        this.auditReplayTaskItemMapper = auditReplayTaskItemMapper;
         log.info("Using MyBatis-Plus inventory repository");
     }
 
@@ -431,6 +443,170 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 .set(InventoryAuditDeadLetterDO::getLastReplayError, replayError));
     }
 
+    @Override
+    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+        InventoryAuditReplayTaskDO dataObject = toDataObject(task);
+        if (dataObject.getId() == null) {
+            auditReplayTaskMapper.insert(dataObject);
+        } else {
+            auditReplayTaskMapper.updateById(dataObject);
+        }
+        return toDomain(dataObject);
+    }
+
+    @Override
+    public void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
+        if (deadLetterIds == null || deadLetterIds.isEmpty()) {
+            return;
+        }
+        for (Long deadLetterId : deadLetterIds) {
+            auditReplayTaskItemMapper.insert(new InventoryAuditReplayTaskItemDO(null, taskId, tenantId, deadLetterId,
+                    InventoryAuditReplayTaskItem.STATUS_PENDING, null, null, null, null, null, createdAt));
+        }
+    }
+
+    @Override
+    public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
+        return Optional.ofNullable(auditReplayTaskMapper.selectById(taskId)).map(this::toDomain);
+    }
+
+    @Override
+    public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
+                                                                        String processingOwner, Instant leaseUntil) {
+        List<InventoryAuditReplayTaskDO> candidates = auditReplayTaskMapper.selectList(
+                Wrappers.<InventoryAuditReplayTaskDO>lambdaQuery()
+                        .in(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_PENDING,
+                                InventoryAuditReplayTask.STATUS_RUNNING)
+                        .and(wrapper -> wrapper.isNull(InventoryAuditReplayTaskDO::getLeaseUntil)
+                                .or()
+                                .le(InventoryAuditReplayTaskDO::getLeaseUntil, now))
+                        .orderByAsc(InventoryAuditReplayTaskDO::getCreatedAt, InventoryAuditReplayTaskDO::getId)
+                        .last("limit " + Math.max(limit * 3, limit)));
+        if (candidates.isEmpty()) {
+            return List.of();
+        }
+        List<InventoryAuditReplayTask> claimed = new java.util.ArrayList<>(limit);
+        for (InventoryAuditReplayTaskDO candidate : candidates) {
+            if (claimed.size() >= limit) {
+                break;
+            }
+            int updated = auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
+                    .eq(InventoryAuditReplayTaskDO::getId, candidate.getId())
+                    .in(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_PENDING,
+                            InventoryAuditReplayTask.STATUS_RUNNING)
+                    .and(wrapper -> wrapper.isNull(InventoryAuditReplayTaskDO::getLeaseUntil)
+                            .or()
+                            .le(InventoryAuditReplayTaskDO::getLeaseUntil, now))
+                    .set(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_RUNNING)
+                    .set(InventoryAuditReplayTaskDO::getProcessingOwner, processingOwner)
+                    .set(InventoryAuditReplayTaskDO::getLeaseUntil, leaseUntil)
+                    .set(InventoryAuditReplayTaskDO::getStartedAt,
+                            candidate.getStartedAt() == null ? now : candidate.getStartedAt())
+                    .set(InventoryAuditReplayTaskDO::getUpdatedAt, now));
+            if (updated == 0) {
+                continue;
+            }
+            InventoryAuditReplayTaskDO claimedDataObject = auditReplayTaskMapper.selectById(candidate.getId());
+            if (claimedDataObject != null) {
+                claimed.add(toDomain(claimedDataObject));
+            }
+        }
+        return List.copyOf(claimed);
+    }
+
+    @Override
+    public void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+        auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
+                .eq(InventoryAuditReplayTaskDO::getId, taskId)
+                .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_RUNNING)
+                .eq(InventoryAuditReplayTaskDO::getProcessingOwner, processingOwner)
+                .set(InventoryAuditReplayTaskDO::getLeaseUntil, leaseUntil)
+                .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt));
+    }
+
+    @Override
+    public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
+        return auditReplayTaskItemMapper.selectList(Wrappers.<InventoryAuditReplayTaskItemDO>lambdaQuery()
+                        .eq(InventoryAuditReplayTaskItemDO::getTaskId, taskId)
+                        .eq(InventoryAuditReplayTaskItemDO::getItemStatus, InventoryAuditReplayTaskItem.STATUS_PENDING)
+                        .orderByAsc(InventoryAuditReplayTaskItemDO::getId)
+                        .last("limit " + limit))
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    public void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
+                                              String replayKey, String resultMessage, Instant startedAt,
+                                              Instant finishedAt) {
+        auditReplayTaskItemMapper.update(null, Wrappers.<InventoryAuditReplayTaskItemDO>lambdaUpdate()
+                .eq(InventoryAuditReplayTaskItemDO::getId, itemId)
+                .eq(InventoryAuditReplayTaskItemDO::getItemStatus, InventoryAuditReplayTaskItem.STATUS_PENDING)
+                .set(InventoryAuditReplayTaskItemDO::getItemStatus, itemStatus)
+                .set(InventoryAuditReplayTaskItemDO::getReplayStatus, replayStatus)
+                .set(InventoryAuditReplayTaskItemDO::getReplayKey, replayKey)
+                .set(InventoryAuditReplayTaskItemDO::getResultMessage, resultMessage)
+                .set(InventoryAuditReplayTaskItemDO::getStartedAt, startedAt)
+                .set(InventoryAuditReplayTaskItemDO::getFinishedAt, finishedAt)
+                .set(InventoryAuditReplayTaskItemDO::getUpdatedAt, finishedAt));
+    }
+
+    @Override
+    public void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
+                                                 int successDelta, int failedDelta, Instant updatedAt) {
+        auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
+                .eq(InventoryAuditReplayTaskDO::getId, taskId)
+                .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_RUNNING)
+                .eq(InventoryAuditReplayTaskDO::getProcessingOwner, processingOwner)
+                .setSql("processed_count = ifnull(processed_count, 0) + " + Math.max(processedDelta, 0))
+                .setSql("success_count = ifnull(success_count, 0) + " + Math.max(successDelta, 0))
+                .setSql("failed_count = ifnull(failed_count, 0) + " + Math.max(failedDelta, 0))
+                .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt));
+    }
+
+    @Override
+    public void finishAuditReplayTask(Long taskId, String processingOwner, String status, String lastError,
+                                      Instant finishedAt) {
+        auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
+                .eq(InventoryAuditReplayTaskDO::getId, taskId)
+                .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_RUNNING)
+                .eq(InventoryAuditReplayTaskDO::getProcessingOwner, processingOwner)
+                .set(InventoryAuditReplayTaskDO::getStatus, status)
+                .set(InventoryAuditReplayTaskDO::getLastError, lastError)
+                .set(InventoryAuditReplayTaskDO::getProcessingOwner, null)
+                .set(InventoryAuditReplayTaskDO::getLeaseUntil, null)
+                .set(InventoryAuditReplayTaskDO::getFinishedAt, finishedAt)
+                .set(InventoryAuditReplayTaskDO::getUpdatedAt, finishedAt));
+    }
+
+    @Override
+    public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
+        return auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
+                .eq(InventoryAuditReplayTaskDO::getId, taskId)
+                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId)
+                .in(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_PENDING,
+                        InventoryAuditReplayTask.STATUS_RUNNING)
+                .set(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_PAUSED)
+                .set(InventoryAuditReplayTaskDO::getProcessingOwner, null)
+                .set(InventoryAuditReplayTaskDO::getLeaseUntil, null)
+                .set(InventoryAuditReplayTaskDO::getPausedAt, pausedAt)
+                .set(InventoryAuditReplayTaskDO::getUpdatedAt, pausedAt)) > 0;
+    }
+
+    @Override
+    public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
+        return auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
+                .eq(InventoryAuditReplayTaskDO::getId, taskId)
+                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId)
+                .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_PAUSED)
+                .set(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTask.STATUS_PENDING)
+                .set(InventoryAuditReplayTaskDO::getPausedAt, null)
+                .set(InventoryAuditReplayTaskDO::getProcessingOwner, null)
+                .set(InventoryAuditReplayTaskDO::getLeaseUntil, null)
+                .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt)) > 0;
+    }
+
     private Inventory toDomain(InventoryDO dataObject) {
         return new Inventory(dataObject.getId(), dataObject.getTenantId(), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getOnHandQuantity(), dataObject.getReservedQuantity(), dataObject.getAvailableQuantity(),
@@ -529,5 +705,30 @@ public class InventoryRepositoryImpl implements InventoryStockRepository, Invent
                 dataObject.getDeadAt(), dataObject.getReplayStatus(), dataObject.getReplayCount(),
                 dataObject.getLastReplayAt(), dataObject.getLastReplayResult(), dataObject.getLastReplayError(),
                 dataObject.getReplayKey(), dataObject.getReplayOperatorType(), dataObject.getReplayOperatorId());
+    }
+
+    private InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {
+        return new InventoryAuditReplayTaskDO(task.getId(), task.getTenantId(), task.getTaskNo(), task.getStatus(),
+                task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
+                task.getReplayKeyPrefix(), task.getOperatorType(), task.getOperatorId(), task.getProcessingOwner(),
+                task.getLeaseUntil(), task.getLastError(), task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(),
+                task.getFinishedAt(), task.getUpdatedAt());
+    }
+
+    private InventoryAuditReplayTask toDomain(InventoryAuditReplayTaskDO dataObject) {
+        return new InventoryAuditReplayTask(dataObject.getId(), dataObject.getTenantId(), dataObject.getTaskNo(),
+                dataObject.getStatus(), dataObject.getTotalCount(), dataObject.getProcessedCount(),
+                dataObject.getSuccessCount(), dataObject.getFailedCount(), dataObject.getReplayKeyPrefix(),
+                dataObject.getOperatorType(), dataObject.getOperatorId(), dataObject.getProcessingOwner(),
+                dataObject.getLeaseUntil(), dataObject.getLastError(), dataObject.getCreatedAt(),
+                dataObject.getStartedAt(), dataObject.getPausedAt(), dataObject.getFinishedAt(),
+                dataObject.getUpdatedAt());
+    }
+
+    private InventoryAuditReplayTaskItem toDomain(InventoryAuditReplayTaskItemDO dataObject) {
+        return new InventoryAuditReplayTaskItem(dataObject.getId(), dataObject.getTaskId(), dataObject.getTenantId(),
+                dataObject.getDeadLetterId(), dataObject.getItemStatus(), dataObject.getReplayStatus(),
+                dataObject.getReplayKey(), dataObject.getResultMessage(), dataObject.getStartedAt(),
+                dataObject.getFinishedAt(), dataObject.getUpdatedAt());
     }
 }

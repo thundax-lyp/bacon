@@ -132,3 +132,47 @@ CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_dead_letter` (
     KEY `idx_tenant_replay_status_dead` (`tenant_id`, `replay_status`, `dead_at`),
     UNIQUE KEY `uk_replay_key` (`replay_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_replay_task` (
+    `id` bigint NOT NULL AUTO_INCREMENT,
+    `tenant_id` bigint NOT NULL,
+    `task_no` varchar(64) NOT NULL,
+    `status` varchar(16) NOT NULL,
+    `total_count` int NOT NULL,
+    `processed_count` int NOT NULL DEFAULT 0,
+    `success_count` int NOT NULL DEFAULT 0,
+    `failed_count` int NOT NULL DEFAULT 0,
+    `replay_key_prefix` varchar(64) DEFAULT NULL,
+    `operator_type` varchar(32) DEFAULT NULL,
+    `operator_id` bigint DEFAULT NULL,
+    `processing_owner` varchar(128) DEFAULT NULL,
+    `lease_until` datetime(3) DEFAULT NULL,
+    `last_error` varchar(512) DEFAULT NULL,
+    `created_at` datetime(3) NOT NULL,
+    `started_at` datetime(3) DEFAULT NULL,
+    `paused_at` datetime(3) DEFAULT NULL,
+    `finished_at` datetime(3) DEFAULT NULL,
+    `updated_at` datetime(3) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_task_no` (`task_no`),
+    KEY `idx_tenant_status_created` (`tenant_id`, `status`, `created_at`),
+    KEY `idx_status_lease` (`status`, `lease_until`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_replay_task_item` (
+    `id` bigint NOT NULL AUTO_INCREMENT,
+    `task_id` bigint NOT NULL,
+    `tenant_id` bigint NOT NULL,
+    `dead_letter_id` bigint NOT NULL,
+    `item_status` varchar(16) NOT NULL,
+    `replay_status` varchar(16) DEFAULT NULL,
+    `replay_key` varchar(128) DEFAULT NULL,
+    `result_message` varchar(512) DEFAULT NULL,
+    `started_at` datetime(3) DEFAULT NULL,
+    `finished_at` datetime(3) DEFAULT NULL,
+    `updated_at` datetime(3) NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_task_status_id` (`task_id`, `item_status`, `id`),
+    KEY `idx_tenant_task` (`tenant_id`, `task_id`),
+    UNIQUE KEY `uk_task_dead_letter` (`task_id`, `dead_letter_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

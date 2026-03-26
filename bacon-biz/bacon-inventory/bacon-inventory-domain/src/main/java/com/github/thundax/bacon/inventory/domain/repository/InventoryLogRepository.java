@@ -3,6 +3,8 @@ package com.github.thundax.bacon.inventory.domain.repository;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import java.time.Instant;
 import java.util.List;
@@ -85,5 +87,49 @@ public interface InventoryLogRepository {
 
     default void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
                                                  String replayError, Instant replayAt) {
+    }
+
+    default InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+        return task;
+    }
+
+    default void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
+    }
+
+    default Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
+        return Optional.empty();
+    }
+
+    default List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
+                                                                         String processingOwner, Instant leaseUntil) {
+        return List.of();
+    }
+
+    default void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+    }
+
+    default List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
+        return List.of();
+    }
+
+    default void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
+                                               String replayKey, String resultMessage, Instant startedAt,
+                                               Instant finishedAt) {
+    }
+
+    default void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
+                                                  int successDelta, int failedDelta, Instant updatedAt) {
+    }
+
+    default void finishAuditReplayTask(Long taskId, String processingOwner, String status,
+                                       String lastError, Instant finishedAt) {
+    }
+
+    default boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
+        return false;
+    }
+
+    default boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
+        return false;
     }
 }

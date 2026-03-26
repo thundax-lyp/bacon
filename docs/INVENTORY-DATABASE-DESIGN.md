@@ -16,6 +16,10 @@
 - `InventoryReservationItem`
 - `InventoryLedger`
 - `InventoryAuditLog`
+- `InventoryAuditOutbox`
+- `InventoryAuditDeadLetter`
+- `InventoryAuditReplayTask`
+- `InventoryAuditReplayTaskItem`
 
 当前范围不建表的对象：
 
@@ -76,6 +80,8 @@
 | `InventoryAuditLog` | `bacon_inventory_audit_log` |
 | `InventoryAuditOutbox` | `bacon_inventory_audit_outbox` |
 | `InventoryAuditDeadLetter` | `bacon_inventory_audit_dead_letter` |
+| `InventoryAuditReplayTask` | `bacon_inventory_audit_replay_task` |
+| `InventoryAuditReplayTaskItem` | `bacon_inventory_audit_replay_task_item` |
 
 ## 7. Table Design
 
@@ -311,6 +317,78 @@
 - `idx_tenant_replay_status_dead(tenant_id, replay_status, dead_at)`
 - `uk_replay_key(replay_key)`
 
+### 7.8 `bacon_inventory_audit_replay_task`
+
+表类型：`Async Task Table`
+
+用途：
+
+- 记录死信批量重放任务头
+- 提供任务状态、进度和租约信息
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
+| `task_no` | `varchar(64)` | N | 任务号 |
+| `status` | `varchar(16)` | N | 任务状态：`PENDING/RUNNING/PAUSED/SUCCEEDED/FAILED/CANCELED` |
+| `total_count` | `int` | N | 总条数 |
+| `processed_count` | `int` | N | 已处理条数 |
+| `success_count` | `int` | N | 成功条数 |
+| `failed_count` | `int` | N | 失败条数 |
+| `replay_key_prefix` | `varchar(64)` | Y | 任务级重放键前缀 |
+| `operator_type` | `varchar(32)` | Y | 操作人类型 |
+| `operator_id` | `bigint` | Y | 操作人标识 |
+| `processing_owner` | `varchar(128)` | Y | 当前处理实例 |
+| `lease_until` | `datetime(3)` | Y | 处理租约到期时间 |
+| `last_error` | `varchar(512)` | Y | 最近错误摘要 |
+| `created_at` | `datetime(3)` | N | 任务创建时间 |
+| `started_at` | `datetime(3)` | Y | 首次启动时间 |
+| `paused_at` | `datetime(3)` | Y | 最近暂停时间 |
+| `finished_at` | `datetime(3)` | Y | 完成时间 |
+| `updated_at` | `datetime(3)` | N | 最近更新时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `uk_task_no(task_no)`
+- `idx_tenant_status_created(tenant_id, status, created_at)`
+- `idx_status_lease(status, lease_until)`
+
+### 7.9 `bacon_inventory_audit_replay_task_item`
+
+表类型：`Async Task Item Table`
+
+用途：
+
+- 记录批量重放任务的每条死信执行结果
+- 支撑进度统计与失败排查
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `task_id` | `bigint` | N | 任务主键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
+| `dead_letter_id` | `bigint` | N | 死信主键 |
+| `item_status` | `varchar(16)` | N | 项状态：`PENDING/SUCCEEDED/FAILED` |
+| `replay_status` | `varchar(16)` | Y | 死信重放状态 |
+| `replay_key` | `varchar(128)` | Y | 本条重放幂等键 |
+| `result_message` | `varchar(512)` | Y | 执行结果描述 |
+| `started_at` | `datetime(3)` | Y | 本条开始时间 |
+| `finished_at` | `datetime(3)` | Y | 本条结束时间 |
+| `updated_at` | `datetime(3)` | N | 最近更新时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `idx_task_status_id(task_id, item_status, id)`
+- `idx_tenant_task(tenant_id, task_id)`
+- `uk_task_dead_letter(task_id, dead_letter_id)`
+
 ## 8. Relationship Rules
 
 - `bacon_inventory_reservation_item.reservation_no` 关联 `bacon_inventory_reservation.reservation_no`
@@ -350,6 +428,9 @@
 - `InventoryAuditDeadLetter` 重放必须写入幂等 `replay_key`，并更新重放状态与追踪字段
 - `InventoryAuditDeadLetter` 在 claim 成功后的重放链路必须在独立事务中完成：原始审计重写、重放状态迁移、重放追踪日志写入需原子提交
 - 若上述事务失败，必须通过补偿事务将死信记录置为 `FAILED`，并写入失败追踪日志与可观测告警指标
+- `InventoryAuditReplayTask` 必须通过租约抢占执行，避免多实例重复推进同一任务
+- `InventoryAuditReplayTaskItem` 必须按 `task_id + item_status + id` 顺序分页拉取，禁止全量加载大批次
+- 任务暂停时必须释放 `processing_owner` 与 `lease_until`；恢复时只能从 `PAUSED` 回到 `PENDING`
 - `InventoryStockDTO` 是读模型，不单独建表
 - `InventoryReservationDTO` 和 `InventoryReservationResultDTO` 由预占表和预占明细表组装，不单独建表
 - 预占单和库存流水不做逻辑删除
@@ -363,6 +444,7 @@
 - 审计查询主表固定为 `bacon_inventory_audit_log`
 - 审计补偿查询主表固定为 `bacon_inventory_audit_outbox`
 - 死信查询主表固定为 `bacon_inventory_audit_dead_letter`
+- 重放任务查询主表固定为 `bacon_inventory_audit_replay_task + bacon_inventory_audit_replay_task_item`
 - 库存分页查询必须由数据库分页实现，不得在应用层做全量拉取后再分页
 
 ## 11. Open Items

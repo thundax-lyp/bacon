@@ -148,6 +148,10 @@ Inventory 是 Bacon 的统一库存业务域。
 - `GET /inventory-audit-dead-letters`
 - `POST /inventory-audit-dead-letters/{deadLetterId}/replay`
 - `POST /inventory-audit-dead-letters/replay-batch`
+- `POST /inventory-audit-dead-letters/replay-tasks`
+- `GET /inventory-audit-dead-letters/replay-tasks/{taskId}`
+- `POST /inventory-audit-dead-letters/replay-tasks/{taskId}/pause`
+- `POST /inventory-audit-dead-letters/replay-tasks/{taskId}/resume`
 
 ### 4.3 `bacon-inventory-application`
 
@@ -157,6 +161,8 @@ Inventory 是 Bacon 的统一库存业务域。
 - `InventoryManagementApplicationService`
 - `InventoryQueryService`
 - `InventoryOperationLogService`
+- `InventoryAuditReplayTaskService`
+- `InventoryAuditReplayTaskWorker`
 - `InventoryReservationApplicationService`
 - `InventoryReleaseApplicationService`
 - `InventoryDeductionApplicationService`
@@ -338,6 +344,9 @@ Inventory 是 Bacon 的统一库存业务域。
 - outbox 抢占后必须记录 `processingOwner` 与 `leaseUntil`，并通过 owner + 状态 CAS 更新提交重试结果
 - claim 租约超时后必须可回收为可重试状态，避免实例异常导致记录永久卡死
 - 审计死信必须提供可运营处理闭环：支持分页查询、单条重放、按条件批量重放
+- 审计死信批量重放应支持异步任务模式：创建任务并返回 `taskId`
+- 任务状态固定为 `PENDING`、`RUNNING`、`PAUSED`、`SUCCEEDED`、`FAILED`、`CANCELED`
+- 异步任务必须支持进度查询（total/processed/success/failed）与暂停/恢复
 - 审计死信重放必须记录幂等 `replayKey` 与操作追踪字段（操作人类型、操作人、重放时间、重放结果）
 - 审计死信重放状态固定为 `PENDING`、`RUNNING`、`SUCCEEDED`、`FAILED`
 - 审计死信重放成功后必须记录补偿成功追踪日志；重放失败后必须记录补偿失败追踪日志

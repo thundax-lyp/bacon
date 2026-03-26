@@ -56,6 +56,12 @@ bacon:
         base-delay-seconds: ${BACON_INVENTORY_AUDIT_RETRY_BASE_DELAY_SECONDS:30}
         max-delay-seconds: ${BACON_INVENTORY_AUDIT_RETRY_MAX_DELAY_SECONDS:1800}
         lease-seconds: ${BACON_INVENTORY_AUDIT_RETRY_LEASE_SECONDS:60}
+      replay-task:
+        enabled: ${BACON_INVENTORY_AUDIT_REPLAY_TASK_ENABLED:true}
+        fixed-delay-ms: ${BACON_INVENTORY_AUDIT_REPLAY_TASK_FIXED_DELAY_MS:3000}
+        claim-size: ${BACON_INVENTORY_AUDIT_REPLAY_TASK_CLAIM_SIZE:2}
+        batch-size: ${BACON_INVENTORY_AUDIT_REPLAY_TASK_BATCH_SIZE:20}
+        lease-seconds: ${BACON_INVENTORY_AUDIT_REPLAY_TASK_LEASE_SECONDS:60}
   id:
     generator:
       provider: tinyid

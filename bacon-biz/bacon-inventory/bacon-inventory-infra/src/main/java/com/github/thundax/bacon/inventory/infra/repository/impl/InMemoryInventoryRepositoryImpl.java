@@ -4,6 +4,8 @@ import com.github.thundax.bacon.inventory.domain.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask;
+import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
@@ -36,12 +38,16 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
     private final AtomicLong auditLogIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditOutboxIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditDeadLetterIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong auditReplayTaskIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong auditReplayTaskItemIdGenerator = new AtomicLong(1000L);
     private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
     private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryLedger>> ledgers = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryAuditOutbox>> auditOutbox = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryAuditDeadLetter>> auditDeadLetters = new ConcurrentHashMap<>();
+    private final Map<Long, InventoryAuditReplayTask> auditReplayTasks = new ConcurrentHashMap<>();
+    private final Map<Long, List<InventoryAuditReplayTaskItem>> auditReplayTaskItems = new ConcurrentHashMap<>();
 
     public InMemoryInventoryRepositoryImpl() {
         log.info("Using in-memory inventory repository");
@@ -403,6 +409,159 @@ public class InMemoryInventoryRepositoryImpl implements InventoryStockRepository
             item.setLastReplayResult("FAILED");
             item.setLastReplayError(replayError);
         });
+    }
+
+    @Override
+    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+        if (task.getId() == null) {
+            task = new InventoryAuditReplayTask(auditReplayTaskIdGenerator.getAndIncrement(), task.getTenantId(),
+                    task.getTaskNo(), task.getStatus(), task.getTotalCount(), task.getProcessedCount(),
+                    task.getSuccessCount(), task.getFailedCount(), task.getReplayKeyPrefix(), task.getOperatorType(),
+                    task.getOperatorId(), task.getProcessingOwner(), task.getLeaseUntil(), task.getLastError(),
+                    task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(), task.getFinishedAt(),
+                    task.getUpdatedAt());
+        }
+        auditReplayTasks.put(task.getId(), task);
+        return task;
+    }
+
+    @Override
+    public void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
+        List<InventoryAuditReplayTaskItem> items = auditReplayTaskItems.computeIfAbsent(taskId, key -> new ArrayList<>());
+        for (Long deadLetterId : deadLetterIds) {
+            items.add(new InventoryAuditReplayTaskItem(auditReplayTaskItemIdGenerator.getAndIncrement(), taskId, tenantId,
+                    deadLetterId, InventoryAuditReplayTaskItem.STATUS_PENDING, null, null, null, null, null, createdAt));
+        }
+    }
+
+    @Override
+    public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
+        return Optional.ofNullable(auditReplayTasks.get(taskId));
+    }
+
+    @Override
+    public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
+                                                                        String processingOwner, Instant leaseUntil) {
+        return auditReplayTasks.values().stream()
+                .filter(task -> InventoryAuditReplayTask.STATUS_PENDING.equals(task.getStatus())
+                        || InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .filter(task -> task.getLeaseUntil() == null || !task.getLeaseUntil().isAfter(now))
+                .sorted(java.util.Comparator.comparing(InventoryAuditReplayTask::getCreatedAt)
+                        .thenComparing(InventoryAuditReplayTask::getId))
+                .limit(limit)
+                .peek(task -> {
+                    task.setStatus(InventoryAuditReplayTask.STATUS_RUNNING);
+                    task.setProcessingOwner(processingOwner);
+                    task.setLeaseUntil(leaseUntil);
+                    if (task.getStartedAt() == null) {
+                        task.setStartedAt(now);
+                    }
+                    task.setUpdatedAt(now);
+                })
+                .toList();
+    }
+
+    @Override
+    public void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+        findAuditReplayTaskById(taskId)
+                .filter(task -> InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .filter(task -> processingOwner.equals(task.getProcessingOwner()))
+                .ifPresent(task -> {
+                    task.setLeaseUntil(leaseUntil);
+                    task.setUpdatedAt(updatedAt);
+                });
+    }
+
+    @Override
+    public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
+        return auditReplayTaskItems.getOrDefault(taskId, List.of()).stream()
+                .filter(item -> InventoryAuditReplayTaskItem.STATUS_PENDING.equals(item.getItemStatus()))
+                .sorted(java.util.Comparator.comparing(InventoryAuditReplayTaskItem::getId))
+                .limit(limit)
+                .toList();
+    }
+
+    @Override
+    public void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
+                                              String replayKey, String resultMessage, Instant startedAt,
+                                              Instant finishedAt) {
+        auditReplayTaskItems.values().forEach(items -> items.stream()
+                .filter(item -> item.getId().equals(itemId))
+                .findFirst()
+                .ifPresent(item -> {
+                    if (!InventoryAuditReplayTaskItem.STATUS_PENDING.equals(item.getItemStatus())) {
+                        return;
+                    }
+                    item.setItemStatus(itemStatus);
+                    item.setReplayStatus(replayStatus);
+                    item.setReplayKey(replayKey);
+                    item.setResultMessage(resultMessage);
+                    item.setStartedAt(startedAt);
+                    item.setFinishedAt(finishedAt);
+                    item.setUpdatedAt(finishedAt);
+                }));
+    }
+
+    @Override
+    public void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
+                                                 int successDelta, int failedDelta, Instant updatedAt) {
+        findAuditReplayTaskById(taskId)
+                .filter(task -> InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .filter(task -> processingOwner.equals(task.getProcessingOwner()))
+                .ifPresent(task -> {
+                    task.setProcessedCount((task.getProcessedCount() == null ? 0 : task.getProcessedCount())
+                            + Math.max(processedDelta, 0));
+                    task.setSuccessCount((task.getSuccessCount() == null ? 0 : task.getSuccessCount())
+                            + Math.max(successDelta, 0));
+                    task.setFailedCount((task.getFailedCount() == null ? 0 : task.getFailedCount())
+                            + Math.max(failedDelta, 0));
+                    task.setUpdatedAt(updatedAt);
+                });
+    }
+
+    @Override
+    public void finishAuditReplayTask(Long taskId, String processingOwner, String status, String lastError,
+                                      Instant finishedAt) {
+        findAuditReplayTaskById(taskId)
+                .filter(task -> InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .filter(task -> processingOwner.equals(task.getProcessingOwner()))
+                .ifPresent(task -> {
+                    task.setStatus(status);
+                    task.setLastError(lastError);
+                    task.setProcessingOwner(null);
+                    task.setLeaseUntil(null);
+                    task.setFinishedAt(finishedAt);
+                    task.setUpdatedAt(finishedAt);
+                });
+    }
+
+    @Override
+    public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
+        return findAuditReplayTaskById(taskId)
+                .filter(task -> tenantId.equals(task.getTenantId()))
+                .filter(task -> InventoryAuditReplayTask.STATUS_PENDING.equals(task.getStatus())
+                        || InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .map(task -> {
+                    task.setStatus(InventoryAuditReplayTask.STATUS_PAUSED);
+                    task.setProcessingOwner(null);
+                    task.setLeaseUntil(null);
+                    task.setPausedAt(pausedAt);
+                    task.setUpdatedAt(pausedAt);
+                    return true;
+                }).orElse(false);
+    }
+
+    @Override
+    public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
+        return findAuditReplayTaskById(taskId)
+                .filter(task -> tenantId.equals(task.getTenantId()))
+                .filter(task -> InventoryAuditReplayTask.STATUS_PAUSED.equals(task.getStatus()))
+                .map(task -> {
+                    task.setStatus(InventoryAuditReplayTask.STATUS_PENDING);
+                    task.setPausedAt(null);
+                    task.setUpdatedAt(updatedAt);
+                    return true;
+                }).orElse(false);
     }
 
     private static String key(Long tenantId, Long skuId) {

@@ -322,13 +322,16 @@
 
 - `Inventory` 必须保证 `(tenant_id, sku_id)` 唯一
 - `InventoryReservation` 必须保证 `(tenant_id, order_no)` 唯一
-- `InventoryReservation.reservation_no` 固定由 `tinyid-client` 在 `Inventory` 模块内生成，并使用本地缓存号段模式
+- `InventoryReservation.reservation_no` 必须由 `Inventory` 模块内发号组件生成，发号 provider 通过配置显式选择（`tinyid/leaf/snowflake`）
+- 默认发号策略必须为 `strict`：发号失败时库存预占必须直接失败，不得自动降级到本地号段
 - `InventoryReservationItem` 必须保证 `(tenant_id, reservation_no, sku_id)` 唯一
 - `available_quantity` 必须始终等于 `on_hand_quantity - reserved_quantity`
 - 任意时刻不得出现负库存
 - `Inventory.version` 用于乐观锁控制，库存写入必须带版本条件更新
 - 正式持久化实现优先使用 `MyBatis-Plus BaseMapper + DO`
-- 在未装配 `DataSource` / `SqlSessionFactory` 的启动或测试场景下，可退回内存 `Repository` 实现
+- 仓储模式必须显式配置为 `strict` 或 `memory`；默认 `strict`
+- `strict` 模式下，未装配可用持久化仓储（如 `DataSource` / `SqlSessionFactory`）必须启动失败（fail-fast）
+- `memory` 模式仅允许开发、测试或演练场景显式启用，不得作为生产默认，也不得在运行时自动从 `strict` 切换
 - 预占、释放、扣减都以 `order_no` 为幂等键
 - `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的主键由持久化层生成，应用层不得自行发号
 - `releaseReservedStock` 和 `deductReservedStock` 只允许基于已存在预占单执行语义判断

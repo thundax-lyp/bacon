@@ -65,6 +65,11 @@ bacon:
   order:
     repository:
       mode: ${BACON_ORDER_REPOSITORY_MODE:strict}
+    idempotency:
+      lease-seconds: ${BACON_ORDER_IDEMPOTENCY_LEASE_SECONDS:60}
+      recovery:
+        enabled: ${BACON_ORDER_IDEMPOTENCY_RECOVERY_ENABLED:true}
+        fixed-delay-ms: ${BACON_ORDER_IDEMPOTENCY_RECOVERY_FIXED_DELAY_MS:10000}
     outbox:
       retry:
         enabled: ${BACON_ORDER_OUTBOX_RETRY_ENABLED:true}

@@ -59,7 +59,8 @@ public class OrderIdempotencyRepositorySupport {
                 .eq(OrderIdempotencyRecordDataObject::getPaymentNo, paymentNo)
                 .eq(OrderIdempotencyRecordDataObject::getEventType, eventType)
                 .eq(OrderIdempotencyRecordDataObject::getStatus, OrderIdempotencyRecord.STATUS_PROCESSING)
-                .le(OrderIdempotencyRecordDataObject::getLeaseUntil, claimedAt)
+                .and(wrapper -> wrapper.isNull(OrderIdempotencyRecordDataObject::getLeaseUntil)
+                        .or().le(OrderIdempotencyRecordDataObject::getLeaseUntil, claimedAt))
                 .set(OrderIdempotencyRecordDataObject::getProcessingOwner, processingOwner)
                 .set(OrderIdempotencyRecordDataObject::getLeaseUntil, leaseUntil)
                 .set(OrderIdempotencyRecordDataObject::getClaimedAt, claimedAt)
@@ -87,6 +88,7 @@ public class OrderIdempotencyRepositorySupport {
                 .set(OrderIdempotencyRecordDataObject::getLastError, null)
                 .set(OrderIdempotencyRecordDataObject::getProcessingOwner, null)
                 .set(OrderIdempotencyRecordDataObject::getLeaseUntil, null)
+                .set(OrderIdempotencyRecordDataObject::getClaimedAt, null)
                 .set(OrderIdempotencyRecordDataObject::getUpdatedAt, updatedAt)) > 0;
     }
 
@@ -102,6 +104,7 @@ public class OrderIdempotencyRepositorySupport {
                 .set(OrderIdempotencyRecordDataObject::getLastError, truncate(lastError))
                 .set(OrderIdempotencyRecordDataObject::getProcessingOwner, null)
                 .set(OrderIdempotencyRecordDataObject::getLeaseUntil, null)
+                .set(OrderIdempotencyRecordDataObject::getClaimedAt, null)
                 .set(OrderIdempotencyRecordDataObject::getUpdatedAt, updatedAt)) > 0;
     }
 
@@ -134,6 +137,7 @@ public class OrderIdempotencyRepositorySupport {
                 .set(OrderIdempotencyRecordDataObject::getLastError, truncate(recoverMessage))
                 .set(OrderIdempotencyRecordDataObject::getProcessingOwner, null)
                 .set(OrderIdempotencyRecordDataObject::getLeaseUntil, null)
+                .set(OrderIdempotencyRecordDataObject::getClaimedAt, null)
                 .set(OrderIdempotencyRecordDataObject::getUpdatedAt, now));
     }
 

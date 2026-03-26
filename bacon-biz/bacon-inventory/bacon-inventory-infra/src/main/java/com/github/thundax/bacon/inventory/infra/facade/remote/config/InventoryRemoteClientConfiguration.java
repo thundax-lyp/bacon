@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.infra.rpc.config;
+package com.github.thundax.bacon.inventory.infra.facade.remote.config;
 
 import java.time.Duration;
 import org.springframework.beans.factory.ObjectProvider;

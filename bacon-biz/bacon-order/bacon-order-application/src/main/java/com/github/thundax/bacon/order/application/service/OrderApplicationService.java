@@ -65,39 +65,57 @@ public class OrderApplicationService {
     }
 
     public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
-        List<OrderSummaryDTO> records = orderRepository.findAll().stream()
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize(), DEFAULT_PAGE_SIZE);
+        List<Order> filtered = orderRepository.findAll().stream()
                 .filter(order -> query.getTenantId() == null || query.getTenantId().equals(order.getTenantId()))
                 .filter(order -> query.getUserId() == null || query.getUserId().equals(order.getUserId()))
                 .filter(order -> query.getOrderNo() == null || order.getOrderNo().contains(query.getOrderNo()))
+                .toList();
+        filtered = filtered.stream()
+                .filter(order -> query.getOrderStatus() == null || query.getOrderStatus().equals(order.getOrderStatus()))
+                .filter(order -> query.getPayStatus() == null || query.getPayStatus().equals(order.getPayStatus()))
+                .filter(order -> query.getInventoryStatus() == null
+                        || query.getInventoryStatus().equals(order.getInventoryStatus()))
+                .filter(order -> query.getCreatedAtFrom() == null || !order.getCreatedAt().isBefore(query.getCreatedAtFrom()))
+                .filter(order -> query.getCreatedAtTo() == null || !order.getCreatedAt().isAfter(query.getCreatedAtTo()))
+                .sorted(java.util.Comparator.comparing(Order::getCreatedAt).reversed().thenComparing(Order::getId).reversed())
+                .toList();
+        long total = filtered.size();
+        List<OrderSummaryDTO> records = filtered.stream()
+                .skip((long) (pageNo - 1) * pageSize)
+                .limit(pageSize)
                 .map(this::toSummary)
                 .toList();
-        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
-        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize(), DEFAULT_PAGE_SIZE);
-        return new OrderPageResultDTO(records, records.size(), pageNo, pageSize);
+        return new OrderPageResultDTO(records, total, pageNo, pageSize);
     }
 
     public void cancelOrder(Long tenantId, String orderNo, String reason) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         order.cancel(reason);
+        orderRepository.save(order);
     }
 
     public void markPaid(Long tenantId, String orderNo, String paymentNo, Instant paidTime) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         order.markPaid(paymentNo, paidTime);
+        orderRepository.save(order);
     }
 
     public void markPaymentFailed(Long tenantId, String orderNo, String paymentNo, String reason) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         order.markPaymentFailed(paymentNo, reason);
+        orderRepository.save(order);
     }
 
     public void closeExpiredOrder(Long tenantId, String orderNo, String reason) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         order.closeExpired(reason);
+        orderRepository.save(order);
     }
 
     private OrderSummaryDTO toSummary(Order order) {

@@ -16,7 +16,11 @@ public class OrderQueryApplicationService {
     }
 
     public OrderDetailDTO getById(Long tenantId, Long orderId) {
-        return orderApplicationService.get(new GetOrderQuery(orderId));
+        OrderDetailDTO dto = orderApplicationService.get(new GetOrderQuery(orderId));
+        if (tenantId != null && !tenantId.equals(dto.getTenantId())) {
+            throw new IllegalArgumentException("Order not found: " + orderId);
+        }
+        return dto;
     }
 
     public OrderDetailDTO getByOrderNo(Long tenantId, String orderNo) {

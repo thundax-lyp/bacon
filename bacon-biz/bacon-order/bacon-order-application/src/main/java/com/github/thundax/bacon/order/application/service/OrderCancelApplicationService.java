@@ -11,7 +11,8 @@ public class OrderCancelApplicationService {
         this.orderApplicationService = orderApplicationService;
     }
 
-    public void cancel(Long tenantId, String orderNo) {
-        orderApplicationService.cancelOrder(tenantId, orderNo, "USER_CANCELLED");
+    public void cancel(Long tenantId, String orderNo, String reason) {
+        String resolvedReason = reason == null || reason.isBlank() ? "USER_CANCELLED" : reason;
+        orderApplicationService.cancelOrder(tenantId, orderNo, resolvedReason);
     }
 }

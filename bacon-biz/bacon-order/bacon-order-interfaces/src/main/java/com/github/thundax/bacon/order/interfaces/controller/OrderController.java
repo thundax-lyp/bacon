@@ -6,6 +6,7 @@ import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.application.service.OrderApplicationService;
 import com.github.thundax.bacon.order.application.service.OrderCancelApplicationService;
 import com.github.thundax.bacon.order.application.service.OrderQueryApplicationService;
+import com.github.thundax.bacon.order.interfaces.dto.CancelOrderRequest;
 import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
 import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderPageResponse;
@@ -59,16 +60,22 @@ public class OrderController {
     @GetMapping
     public OrderPageResponse pageOrders(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
                                         @RequestParam(value = "userId", required = false) Long userId,
-                                        @RequestParam(value = "orderNo", required = false) String orderNo) {
+                                        @RequestParam(value = "orderNo", required = false) String orderNo,
+                                        @RequestParam(value = "orderStatus", required = false) String orderStatus,
+                                        @RequestParam(value = "payStatus", required = false) String payStatus,
+                                        @RequestParam(value = "inventoryStatus", required = false) String inventoryStatus,
+                                        @RequestParam(value = "createdAtFrom", required = false) Instant createdAtFrom,
+                                        @RequestParam(value = "createdAtTo", required = false) Instant createdAtTo,
+                                        @RequestParam(value = "pageNo", required = false) Integer pageNo,
+                                        @RequestParam(value = "pageSize", required = false) Integer pageSize) {
         return OrderPageResponse.from(orderQueryService.pageOrders(new OrderPageQueryDTO(tenantId, userId, orderNo,
-                null, null, null, (Instant) null, (Instant) null, 1, 20)));
+                orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, pageNo, pageSize)));
     }
 
     @Operation(summary = "取消订单")
     @HasPermission("order:order:cancel")
     @PostMapping("/{orderNo}/cancel")
-    public void cancel(@RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
-                       @PathVariable String orderNo) {
-        orderCancelApplicationService.cancel(tenantId, orderNo);
+    public void cancel(@PathVariable String orderNo, @RequestBody CancelOrderRequest request) {
+        orderCancelApplicationService.cancel(request.tenantId(), orderNo, request.reason());
     }
 }

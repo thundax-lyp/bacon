@@ -193,6 +193,7 @@ bacon-biz/bacon-order
 │   └── com.github.thundax.bacon.order.interfaces
 │       ├── controller
 │       ├── provider
+│       ├── facade
 │       ├── dto
 │       ├── response
 │       ├── assembler
@@ -223,6 +224,8 @@ bacon-biz/bacon-order
         │   ├── mapper
         │   ├── dataobject
         │   └── repositoryimpl
+        ├── facade
+        │   └── remote
         ├── rpc
         ├── cache
         ├── mq
@@ -234,6 +237,7 @@ bacon-biz/bacon-order
 ### interfaces
 - 面向统一接入协议层，承载 HTTP、消息消费以及服务提供方的 provider 入口适配。
 - 对外暴露 HTTP 接口、MQ consumer，并承载服务提供方的 provider 入口。
+- 承载本地 Facade 适配实现，固定放在 `interfaces.facade`，例如 `UserReadFacadeLocalImpl`。
 - 负责接收请求、参数校验、协议适配、返回值组装。
 - provider 只是 `api.facade` 的传输适配入口，不额外定义第二套业务契约。
 - 可以依赖 `application`，不能直接访问 `domain repository` 或 `infra mapper`。
@@ -257,6 +261,7 @@ bacon-biz/bacon-order
 ### infra
 - 负责持久化、RPC 客户端、缓存、消息发送、三方适配。
 - 实现 `domain.repository` 中定义的接口。
+- 承载远程 Facade 适配实现，固定放在 `infra.facade.remote`，例如 `UserReadFacadeRemoteImpl`。
 - 可以依赖数据库、中间件、SDK，但不能反向让 `domain` 依赖这些技术细节。
 - `Order`、`Payment`、`Inventory` 的业务单号生成固定由 `infra` 层集成发号中心客户端完成。
 
@@ -285,6 +290,7 @@ bacon-biz/bacon-order
 - DO / PO / DataObject / Mapper 放在 `infra.persistence`
 - `Assembler` 优先放在调用方所在层，用于本层对象转换。
 - `facade` 放在 `api.facade`，不再放在 `interfaces`
+- `api.facade` 只定义接口；`interfaces.facade` 只放本地实现 `*LocalImpl`；`infra.facade.remote` 只放远程实现 `*RemoteImpl`
 - `Command` 用于应用层入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
 - `Query` 用于应用层读模型入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
 - `Result` 用于应用层用例输出，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO

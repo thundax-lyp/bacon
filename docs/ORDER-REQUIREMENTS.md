@@ -67,7 +67,7 @@ Order 是 Bacon 的统一订单业务域。
 
 - `Order` 只能依赖 `bacon-inventory-api`、`bacon-payment-api`、`bacon-upms-api`
 - `Order` 不得依赖其他业务域内部实现
-- 订单创建时必须先落库 `Order`，再发起库存预占；库存预占成功后才能创建支付单
+- 订单创建时必须先落库 `Order` 并写入 outbox；库存预占与支付创建固定由 outbox saga 执行
 - 支付结果由 `Payment` 异步通知 `Order`
 - 库存预占、释放、扣减由 `Order` 同步调用 `Inventory`
 - 单体模式使用本地 `Facade` 实现
@@ -329,8 +329,8 @@ Order 是 Bacon 的统一订单业务域。
 
 ### 6.5 Cross-Domain Coordination Rule
 
-- `Order` 创建完成后，必须立即调用 `InventoryCommandFacade.reserveStock`
-- 只有库存预占成功，`Order` 才能调用 `PaymentCommandFacade.createPayment`
+- `Order` 创建完成后，必须立即写入库存预占 outbox 事件，再由 saga 执行器调用 `InventoryCommandFacade.reserveStock`
+- 只有库存预占成功，`Order` 才能由 saga 执行器调用 `PaymentCommandFacade.createPayment`
 - 库存预占失败时，不得创建支付单
 - 支付单创建失败时，`Order` 必须调用 `InventoryCommandFacade.releaseReservedStock`
 - 订单取消时，如库存已预占且未扣减，必须调用 `InventoryCommandFacade.releaseReservedStock`

@@ -4,7 +4,7 @@ import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.facade.OrderReadFacade;
-import com.github.thundax.bacon.order.application.service.OrderQueryService;
+import com.github.thundax.bacon.order.application.service.OrderQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class OrderReadFacadeLocalImpl implements OrderReadFacade {
 
-    private final OrderQueryService orderQueryService;
+    private final OrderQueryApplicationService orderQueryService;
 
-    public OrderReadFacadeLocalImpl(OrderQueryService orderQueryService) {
+    public OrderReadFacadeLocalImpl(OrderQueryApplicationService orderQueryService) {
         this.orderQueryService = orderQueryService;
     }
 

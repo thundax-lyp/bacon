@@ -2,7 +2,7 @@ package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryTenantScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryReservationResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Inventory-Reservation", description = "库存预占查询接口")
 public class InventoryReservationController {
 
-    private final InventoryQueryService inventoryQueryService;
+    private final InventoryQueryApplicationService inventoryQueryService;
 
-    public InventoryReservationController(InventoryQueryService inventoryQueryService) {
+    public InventoryReservationController(InventoryQueryApplicationService inventoryQueryService) {
         this.inventoryQueryService = inventoryQueryService;
     }
 

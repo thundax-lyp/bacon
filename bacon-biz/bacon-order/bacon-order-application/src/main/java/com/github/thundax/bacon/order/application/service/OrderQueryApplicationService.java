@@ -7,11 +7,11 @@ import com.github.thundax.bacon.order.application.query.GetOrderQuery;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OrderQueryService {
+public class OrderQueryApplicationService {
 
     private final OrderApplicationService orderApplicationService;
 
-    public OrderQueryService(OrderApplicationService orderApplicationService) {
+    public OrderQueryApplicationService(OrderApplicationService orderApplicationService) {
         this.orderApplicationService = orderApplicationService;
     }
 

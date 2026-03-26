@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageQueryDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.interfaces.dto.CreateInventoryRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryBatchQueryRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryPageRequest;
@@ -35,10 +35,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class InventoryController {
 
     private final InventoryManagementApplicationService inventoryManagementApplicationService;
-    private final InventoryQueryService inventoryQueryService;
+    private final InventoryQueryApplicationService inventoryQueryService;
 
     public InventoryController(InventoryManagementApplicationService inventoryManagementApplicationService,
-                               InventoryQueryService inventoryQueryService) {
+                               InventoryQueryApplicationService inventoryQueryService) {
         this.inventoryManagementApplicationService = inventoryManagementApplicationService;
         this.inventoryQueryService = inventoryQueryService;
     }

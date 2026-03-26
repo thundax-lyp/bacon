@@ -2,7 +2,7 @@ package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryOrderScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryAuditLogResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Inventory-Audit", description = "库存审计日志查询接口")
 public class InventoryAuditLogController {
 
-    private final InventoryQueryService inventoryQueryService;
+    private final InventoryQueryApplicationService inventoryQueryService;
 
-    public InventoryAuditLogController(InventoryQueryService inventoryQueryService) {
+    public InventoryAuditLogController(InventoryQueryApplicationService inventoryQueryService) {
         this.inventoryQueryService = inventoryQueryService;
     }
 

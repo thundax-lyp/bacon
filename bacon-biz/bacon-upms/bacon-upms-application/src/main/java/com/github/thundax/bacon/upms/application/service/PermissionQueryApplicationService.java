@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class PermissionQueryService {
+public class PermissionQueryApplicationService {
 
     private final PermissionRepository permissionRepository;
     private final MenuApplicationService menuApplicationService;
 
-    public PermissionQueryService(PermissionRepository permissionRepository, MenuApplicationService menuApplicationService) {
+    public PermissionQueryApplicationService(PermissionRepository permissionRepository, MenuApplicationService menuApplicationService) {
         this.permissionRepository = permissionRepository;
         this.menuApplicationService = menuApplicationService;
     }

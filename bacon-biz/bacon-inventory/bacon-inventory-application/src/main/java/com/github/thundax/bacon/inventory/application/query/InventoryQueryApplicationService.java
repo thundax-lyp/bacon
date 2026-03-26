@@ -29,14 +29,14 @@ import java.util.Locale;
 import java.util.Set;
 
 @Service
-public class InventoryQueryService {
+public class InventoryQueryApplicationService {
 
     private final InventoryStockRepository inventoryStockRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
     private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
 
-    public InventoryQueryService(InventoryStockRepository inventoryStockRepository,
+    public InventoryQueryApplicationService(InventoryStockRepository inventoryStockRepository,
                                  InventoryReservationRepository inventoryReservationRepository,
                                  InventoryAuditRecordRepository inventoryAuditRecordRepository,
                                  InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository) {

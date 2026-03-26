@@ -5,7 +5,7 @@ import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.SysLogQueryDTO;
-import com.github.thundax.bacon.upms.application.service.SysLogQueryService;
+import com.github.thundax.bacon.upms.application.service.SysLogQueryApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.SysLogPageRequest;
 import com.github.thundax.bacon.upms.interfaces.response.SysLogPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.SysLogResponse;
@@ -24,9 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "UPMS-SysLog", description = "系统访问日志查询接口")
 public class SysLogController {
 
-    private final SysLogQueryService sysLogQueryService;
+    private final SysLogQueryApplicationService sysLogQueryService;
 
-    public SysLogController(SysLogQueryService sysLogQueryService) {
+    public SysLogController(SysLogQueryApplicationService sysLogQueryService) {
         this.sysLogQueryService = sysLogQueryService;
     }
 

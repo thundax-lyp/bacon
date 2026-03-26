@@ -5,7 +5,7 @@ import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.application.service.OrderApplicationService;
 import com.github.thundax.bacon.order.application.service.OrderCancelApplicationService;
-import com.github.thundax.bacon.order.application.service.OrderQueryService;
+import com.github.thundax.bacon.order.application.service.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
 import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderPageResponse;
@@ -29,10 +29,10 @@ import java.time.Instant;
 public class OrderController {
 
     private final OrderApplicationService orderApplicationService;
-    private final OrderQueryService orderQueryService;
+    private final OrderQueryApplicationService orderQueryService;
     private final OrderCancelApplicationService orderCancelApplicationService;
 
-    public OrderController(OrderApplicationService orderApplicationService, OrderQueryService orderQueryService,
+    public OrderController(OrderApplicationService orderApplicationService, OrderQueryApplicationService orderQueryService,
                            OrderCancelApplicationService orderCancelApplicationService) {
         this.orderApplicationService = orderApplicationService;
         this.orderQueryService = orderQueryService;

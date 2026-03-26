@@ -4,7 +4,7 @@ import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.application.service.OrderPaymentResultApplicationService;
-import com.github.thundax.bacon.order.application.service.OrderQueryService;
+import com.github.thundax.bacon.order.application.service.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.application.service.OrderTimeoutApplicationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,11 +22,11 @@ import java.time.Instant;
 @Tag(name = "Inner-Order-Management", description = "Order 域内部 Provider 接口")
 public class OrderReadProviderController {
 
-    private final OrderQueryService orderQueryService;
+    private final OrderQueryApplicationService orderQueryService;
     private final OrderPaymentResultApplicationService orderPaymentResultApplicationService;
     private final OrderTimeoutApplicationService orderTimeoutApplicationService;
 
-    public OrderReadProviderController(OrderQueryService orderQueryService,
+    public OrderReadProviderController(OrderQueryApplicationService orderQueryService,
                                        OrderPaymentResultApplicationService orderPaymentResultApplicationService,
                                        OrderTimeoutApplicationService orderTimeoutApplicationService) {
         this.orderQueryService = orderQueryService;

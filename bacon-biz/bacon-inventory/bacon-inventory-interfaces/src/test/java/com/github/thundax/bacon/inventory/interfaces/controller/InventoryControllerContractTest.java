@@ -6,7 +6,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutb
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -31,7 +31,7 @@ class InventoryControllerContractTest {
     @BeforeEach
     void setUp() {
         StubInventoryRepository repository = new StubInventoryRepository();
-        InventoryQueryService inventoryQueryService = new InventoryQueryService(repository, repository, repository, repository);
+        InventoryQueryApplicationService inventoryQueryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
         InventoryController controller = new InventoryController(null, inventoryQueryService);
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();

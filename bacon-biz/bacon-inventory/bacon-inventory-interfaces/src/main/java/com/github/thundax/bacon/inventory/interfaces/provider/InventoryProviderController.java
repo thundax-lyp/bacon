@@ -9,7 +9,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReserveCommandDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,10 +34,10 @@ import java.util.Set;
 @Tag(name = "Inner-Inventory-Management", description = "Inventory 域内部 Provider 接口")
 public class InventoryProviderController {
 
-    private final InventoryQueryService inventoryQueryService;
+    private final InventoryQueryApplicationService inventoryQueryService;
     private final InventoryApplicationService inventoryApplicationService;
 
-    public InventoryProviderController(InventoryQueryService inventoryQueryService,
+    public InventoryProviderController(InventoryQueryApplicationService inventoryQueryService,
                                        InventoryApplicationService inventoryApplicationService) {
         this.inventoryQueryService = inventoryQueryService;
         this.inventoryApplicationService = inventoryApplicationService;

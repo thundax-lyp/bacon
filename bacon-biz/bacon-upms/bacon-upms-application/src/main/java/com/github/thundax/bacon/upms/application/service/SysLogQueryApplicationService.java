@@ -9,11 +9,11 @@ import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SysLogQueryService {
+public class SysLogQueryApplicationService {
 
     private final SysLogRepository sysLogRepository;
 
-    public SysLogQueryService(SysLogRepository sysLogRepository) {
+    public SysLogQueryApplicationService(SysLogRepository sysLogRepository) {
         this.sysLogRepository = sysLogRepository;
     }
 

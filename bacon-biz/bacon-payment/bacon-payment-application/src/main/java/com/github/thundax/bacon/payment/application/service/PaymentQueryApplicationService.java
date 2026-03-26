@@ -6,11 +6,11 @@ import com.github.thundax.bacon.payment.domain.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PaymentQueryService {
+public class PaymentQueryApplicationService {
 
     private final PaymentRepository paymentRepository;
 
-    public PaymentQueryService(PaymentRepository paymentRepository) {
+    public PaymentQueryApplicationService(PaymentRepository paymentRepository) {
         this.paymentRepository = paymentRepository;
     }
 

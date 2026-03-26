@@ -6,7 +6,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageQu
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskService;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryAuditBatchReplayRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryAuditDeadLetterPageRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryAuditReplayRequest;
@@ -38,11 +38,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Inventory-Audit-Compensation", description = "库存审计死信补偿接口")
 public class InventoryAuditCompensationController {
 
-    private final InventoryQueryService inventoryQueryService;
+    private final InventoryQueryApplicationService inventoryQueryService;
     private final InventoryAuditCompensationService inventoryAuditCompensationService;
     private final InventoryAuditReplayTaskService inventoryAuditReplayTaskService;
 
-    public InventoryAuditCompensationController(InventoryQueryService inventoryQueryService,
+    public InventoryAuditCompensationController(InventoryQueryApplicationService inventoryQueryService,
                                                 InventoryAuditCompensationService inventoryAuditCompensationService,
                                                 InventoryAuditReplayTaskService inventoryAuditReplayTaskService) {
         this.inventoryQueryService = inventoryQueryService;

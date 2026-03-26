@@ -2,7 +2,7 @@ package com.github.thundax.bacon.payment.interfaces.facade;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
-import com.github.thundax.bacon.payment.application.service.PaymentQueryService;
+import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class PaymentReadFacadeLocalImpl implements PaymentReadFacade {
 
-    private final PaymentQueryService paymentQueryService;
+    private final PaymentQueryApplicationService paymentQueryService;
 
-    public PaymentReadFacadeLocalImpl(PaymentQueryService paymentQueryService) {
+    public PaymentReadFacadeLocalImpl(PaymentQueryApplicationService paymentQueryService) {
         this.paymentQueryService = paymentQueryService;
     }
 

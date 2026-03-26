@@ -3,7 +3,7 @@ package com.github.thundax.bacon.inventory.interfaces.facade;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryService;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -14,9 +14,9 @@ import java.util.Set;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
 
-    private final InventoryQueryService inventoryQueryService;
+    private final InventoryQueryApplicationService inventoryQueryService;
 
-    public InventoryReadFacadeLocalImpl(InventoryQueryService inventoryQueryService) {
+    public InventoryReadFacadeLocalImpl(InventoryQueryApplicationService inventoryQueryService) {
         this.inventoryQueryService = inventoryQueryService;
     }
 

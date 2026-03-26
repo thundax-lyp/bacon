@@ -44,7 +44,7 @@ class InventoryApplicationServiceTest {
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository, repository);
+        InventoryQueryApplicationService queryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         InventoryReservationResultDTO first = service.reserveStock(1001L, "ORDER-1",
                 List.of(new InventoryReservationItemDTO(101L, 10)));
@@ -72,7 +72,7 @@ class InventoryApplicationServiceTest {
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository, repository);
+        InventoryQueryApplicationService queryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         InventoryReservationResultDTO result = service.reserveStock(1001L, "ORDER-2",
                 List.of(new InventoryReservationItemDTO(101L, 1000)));
@@ -97,7 +97,7 @@ class InventoryApplicationServiceTest {
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository, repository);
+        InventoryQueryApplicationService queryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         service.reserveStock(1001L, "ORDER-3", List.of(new InventoryReservationItemDTO(101L, 5)));
         InventoryReservationResultDTO firstRelease = service.releaseReservedStock(1001L, "ORDER-3", "USER_CANCELLED");
@@ -123,7 +123,7 @@ class InventoryApplicationServiceTest {
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
-        InventoryQueryService queryService = new InventoryQueryService(repository, repository, repository, repository);
+        InventoryQueryApplicationService queryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         service.reserveStock(1001L, "ORDER-4", List.of(new InventoryReservationItemDTO(101L, 7)));
         InventoryReservationResultDTO firstDeduct = service.deductReservedStock(1001L, "ORDER-4");

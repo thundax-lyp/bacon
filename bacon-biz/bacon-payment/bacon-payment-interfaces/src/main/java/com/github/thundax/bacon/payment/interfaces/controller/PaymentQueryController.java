@@ -2,7 +2,7 @@ package com.github.thundax.bacon.payment.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.payment.application.service.PaymentQueryService;
+import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
 import com.github.thundax.bacon.payment.interfaces.response.PaymentDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Payment-Query", description = "支付查询接口")
 public class PaymentQueryController {
 
-    private final PaymentQueryService paymentQueryService;
+    private final PaymentQueryApplicationService paymentQueryService;
 
-    public PaymentQueryController(PaymentQueryService paymentQueryService) {
+    public PaymentQueryController(PaymentQueryApplicationService paymentQueryService) {
         this.paymentQueryService = paymentQueryService;
     }
 

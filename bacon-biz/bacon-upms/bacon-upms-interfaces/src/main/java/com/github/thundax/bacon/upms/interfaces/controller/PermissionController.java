@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
+import com.github.thundax.bacon.upms.application.service.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.response.UserDataScopeResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserMenuTreeResponse;
@@ -24,9 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "UPMS-Permission", description = "权限管理接口")
 public class PermissionController {
 
-    private final PermissionQueryService permissionQueryService;
+    private final PermissionQueryApplicationService permissionQueryService;
 
-    public PermissionController(PermissionQueryService permissionQueryService) {
+    public PermissionController(PermissionQueryApplicationService permissionQueryService) {
         this.permissionQueryService = permissionQueryService;
     }
 

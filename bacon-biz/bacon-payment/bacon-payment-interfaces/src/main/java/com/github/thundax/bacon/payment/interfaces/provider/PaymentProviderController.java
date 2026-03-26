@@ -5,7 +5,7 @@ import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.service.PaymentApplicationService;
 import com.github.thundax.bacon.payment.application.service.PaymentCloseApplicationService;
-import com.github.thundax.bacon.payment.application.service.PaymentQueryService;
+import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,11 +23,11 @@ import java.time.Instant;
 @Tag(name = "Inner-Payment-Management", description = "Payment 域内部 Provider 接口")
 public class PaymentProviderController {
 
-    private final PaymentQueryService paymentQueryService;
+    private final PaymentQueryApplicationService paymentQueryService;
     private final PaymentApplicationService paymentApplicationService;
     private final PaymentCloseApplicationService paymentCloseApplicationService;
 
-    public PaymentProviderController(PaymentQueryService paymentQueryService,
+    public PaymentProviderController(PaymentQueryApplicationService paymentQueryService,
                                      PaymentApplicationService paymentApplicationService,
                                      PaymentCloseApplicationService paymentCloseApplicationService) {
         this.paymentQueryService = paymentQueryService;

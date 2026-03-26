@@ -10,7 +10,7 @@ import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
 import com.github.thundax.bacon.upms.application.service.DepartmentApplicationService;
-import com.github.thundax.bacon.upms.application.service.PermissionQueryService;
+import com.github.thundax.bacon.upms.application.service.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
 import com.github.thundax.bacon.upms.application.service.UserApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,12 +33,12 @@ public class UpmsProviderController {
     private final UserApplicationService userApplicationService;
     private final DepartmentApplicationService departmentApplicationService;
     private final RoleApplicationService roleApplicationService;
-    private final PermissionQueryService permissionQueryService;
+    private final PermissionQueryApplicationService permissionQueryService;
 
     public UpmsProviderController(UserApplicationService userApplicationService,
                                   DepartmentApplicationService departmentApplicationService,
                                   RoleApplicationService roleApplicationService,
-                                  PermissionQueryService permissionQueryService) {
+                                  PermissionQueryApplicationService permissionQueryService) {
         this.userApplicationService = userApplicationService;
         this.departmentApplicationService = departmentApplicationService;
         this.roleApplicationService = roleApplicationService;

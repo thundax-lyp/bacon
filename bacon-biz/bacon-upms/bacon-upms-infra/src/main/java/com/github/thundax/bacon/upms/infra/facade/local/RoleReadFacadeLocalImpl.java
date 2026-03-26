@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.interfaces.facade;
+package com.github.thundax.bacon.upms.infra.facade.local;
 
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;

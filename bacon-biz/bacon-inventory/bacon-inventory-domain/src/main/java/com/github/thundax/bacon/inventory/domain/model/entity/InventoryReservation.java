@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.domain.entity;
+package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;

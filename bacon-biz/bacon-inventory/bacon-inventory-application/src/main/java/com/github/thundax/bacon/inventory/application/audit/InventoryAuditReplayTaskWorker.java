@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;

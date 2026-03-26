@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.domain.repository;
 
-import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import java.util.Optional;
 
 public interface InventoryReservationRepository {

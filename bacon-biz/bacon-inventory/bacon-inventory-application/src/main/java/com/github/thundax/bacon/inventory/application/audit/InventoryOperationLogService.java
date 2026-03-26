@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import io.micrometer.core.instrument.Metrics;

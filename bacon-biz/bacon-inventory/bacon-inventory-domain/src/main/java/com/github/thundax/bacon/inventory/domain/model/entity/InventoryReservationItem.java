@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.domain.entity;
+package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

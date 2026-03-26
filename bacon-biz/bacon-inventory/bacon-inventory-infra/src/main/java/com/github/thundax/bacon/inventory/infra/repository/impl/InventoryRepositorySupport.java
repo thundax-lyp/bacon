@@ -1,15 +1,15 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.inventory.domain.entity.Inventory;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTaskItem;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;

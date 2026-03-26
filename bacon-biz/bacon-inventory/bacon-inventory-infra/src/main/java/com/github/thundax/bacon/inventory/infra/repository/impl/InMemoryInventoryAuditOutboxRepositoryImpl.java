@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditOutbox;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import java.time.Instant;
 import java.util.List;

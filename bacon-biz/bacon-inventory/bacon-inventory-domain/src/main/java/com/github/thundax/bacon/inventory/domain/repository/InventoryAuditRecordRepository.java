@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.domain.repository;
 
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditLog;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryLedger;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import java.util.List;
 
 public interface InventoryAuditRecordRepository {

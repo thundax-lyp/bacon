@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTask;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditReplayTaskItem;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
 import java.time.Instant;
 import java.util.List;

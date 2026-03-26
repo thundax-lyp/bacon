@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;

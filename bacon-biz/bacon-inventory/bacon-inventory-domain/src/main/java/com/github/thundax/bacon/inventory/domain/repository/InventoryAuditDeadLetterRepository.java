@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.domain.repository;
 
-import com.github.thundax.bacon.inventory.domain.entity.InventoryAuditDeadLetter;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;

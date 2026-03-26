@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.domain.repository;
 
-import com.github.thundax.bacon.inventory.domain.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;

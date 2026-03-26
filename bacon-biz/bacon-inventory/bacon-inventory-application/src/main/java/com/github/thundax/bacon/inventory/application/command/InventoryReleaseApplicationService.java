@@ -5,8 +5,8 @@ import com.github.thundax.bacon.inventory.application.assembler.InventoryReserva
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogService;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
-import com.github.thundax.bacon.inventory.domain.entity.Inventory;
-import com.github.thundax.bacon.inventory.domain.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;

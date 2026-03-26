@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
-import com.github.thundax.bacon.inventory.domain.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;

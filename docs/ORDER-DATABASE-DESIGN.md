@@ -16,6 +16,7 @@
 - `OrderPaymentSnapshot`
 - `OrderInventorySnapshot`
 - `OrderAuditLog`
+- `OrderIdempotencyRecord`
 
 当前范围不建表的对象：
 
@@ -82,6 +83,7 @@
 | `OrderAuditLog` | `bacon_order_audit_log` |
 | `OrderOutboxEvent` | `bacon_order_outbox` |
 | `OrderOutboxDeadLetter` | `bacon_order_dead_letter` |
+| `OrderIdempotencyRecord` | `bacon_order_idempotency_record` |
 
 ## 7. Table Design
 
@@ -314,6 +316,36 @@
 - `idx_tenant_dead_at(tenant_id, dead_at)`
 - `idx_order_no(order_no)`
 
+### 7.8 `bacon_order_idempotency_record`
+
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化订单命令幂等记录
+- 支撑支付回调、取消、超时关闭的重复请求短路
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
+| `order_no` | `varchar(64)` | N | 订单业务键 |
+| `payment_no` | `varchar(64)` | N | 支付单号，非支付事件固定为空字符串 |
+| `event_type` | `varchar(64)` | N | 幂等事件类型 |
+| `status` | `varchar(16)` | N | 处理状态：`PROCESSING`、`SUCCESS`、`FAILED` |
+| `attempt_count` | `int` | N | 尝试次数 |
+| `last_error` | `varchar(512)` | Y | 最近失败摘要 |
+| `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_at` | `datetime(3)` | N | 更新时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `uk_tenant_order_payment_event(tenant_id, order_no, payment_no, event_type)`
+- `idx_status_updated(status, updated_at)`
+
 ## 8. Relationship Rules
 
 - `bacon_order_item.order_id` 关联 `bacon_order_order.id`
@@ -337,6 +369,7 @@
 - `id` 是数据库主键；`order_no` 是业务单号；二者不得混用
 - `OrderPaymentSnapshot` 和 `OrderInventorySnapshot` 是订单侧只读快照，不承载对端主数据
 - `OrderOutboxEvent.business_key + event_type` 必须全局幂等
+- `OrderIdempotencyRecord` 必须按 `(tenant_id, order_no, payment_no, event_type)` 建唯一约束
 
 ## 10. Query Model Rules
 

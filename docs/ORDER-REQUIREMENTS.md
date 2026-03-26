@@ -345,10 +345,11 @@ Order 是 Bacon 的统一订单业务域。
 ### 6.6 Idempotency Rule
 
 - 创建订单按 `orderNo` 幂等
-- 取消订单按 `orderNo` 幂等
-- 超时关闭按 `orderNo` 幂等
-- `markPaid` 按 `paymentNo` 幂等
-- `markPaymentFailed` 按 `paymentNo` 幂等
+- 取消订单按 `tenantId + orderNo + paymentNo + eventType` 幂等
+- 超时关闭按 `tenantId + orderNo + paymentNo + eventType` 幂等
+- `markPaid` 按 `tenantId + orderNo + paymentNo + eventType` 幂等
+- `markPaymentFailed` 按 `tenantId + orderNo + paymentNo + eventType` 幂等
+- 非支付事件（取消、超时关闭）的 `paymentNo` 固定使用空字符串参与幂等键计算
 - 同一订单只允许绑定一个 `paymentNo`
 - 同一订单只允许绑定一个 `reservationNo`
 

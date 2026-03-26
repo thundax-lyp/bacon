@@ -128,3 +128,19 @@ CREATE TABLE IF NOT EXISTS `bacon_order_dead_letter` (
     KEY `idx_tenant_dead_at` (`tenant_id`, `dead_at`),
     KEY `idx_order_no` (`order_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `bacon_order_idempotency_record` (
+    `id` bigint NOT NULL AUTO_INCREMENT,
+    `tenant_id` bigint NOT NULL,
+    `order_no` varchar(64) NOT NULL,
+    `payment_no` varchar(64) NOT NULL DEFAULT '',
+    `event_type` varchar(64) NOT NULL,
+    `status` varchar(16) NOT NULL,
+    `attempt_count` int NOT NULL DEFAULT 1,
+    `last_error` varchar(512) DEFAULT NULL,
+    `created_at` datetime(3) NOT NULL,
+    `updated_at` datetime(3) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_tenant_order_payment_event` (`tenant_id`, `order_no`, `payment_no`, `event_type`),
+    KEY `idx_status_updated` (`status`, `updated_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

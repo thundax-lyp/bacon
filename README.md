@@ -1,27 +1,20 @@
 # Bacon
 
-> Enterprise-grade RBAC and business platform based on Spring Cloud Alibaba 2025, Spring Boot 3, and OAuth2.
+> 面向企业级场景的云原生 RBAC 与业务平台，基于 Spring Cloud Alibaba 2025、Spring Boot 3 与 OAuth2。
 
-## TL;DR
+## 项目简介
 
-Bacon is a multi-module Java 17 backend project that supports both:
+`Bacon` 是一个支持 **单体（Mono）** 与 **微服务（Micro）** 双运行模式的后端工程，统一承载以下核心领域能力：
 
-- `mono` deployment (single boot app)
-- `micro` deployment (domain starters)
-
-It provides a unified architecture for:
-
-- `Auth` (identity, session, OAuth2)
-- `UPMS` (RBAC, org, menu, resource, data permission)
-- `Order`
-- `Inventory`
-- `Payment`
+- `Auth`：认证、会话、OAuth2
+- `UPMS`：用户与组织、角色权限、菜单资源、数据权限
+- `Order`：订单生命周期与跨域编排
+- `Inventory`：库存查询、预占、释放、扣减与审计
+- `Payment`：支付单、回调、关单与状态流转
 
 ---
 
-## AI Quick Context
-
-This section is intentionally structured for AI agents and tooling.
+## AI 快速上下文
 
 ```yaml
 project:
@@ -44,7 +37,7 @@ architecture:
     - domain
     - infra
   dependency_direction: interfaces -> application -> domain <- infra
-  cross_domain_rule: depend on facade contracts only
+  cross_domain_rule: 仅依赖 facade 契约
 
 main_dirs:
   - bacon-app
@@ -52,60 +45,32 @@ main_dirs:
   - bacon-common
   - docs
   - deploy
-
-entrypoints:
-  mono: bacon-app/bacon-mono-boot
-  micro:
-    - bacon-app/bacon-auth-starter
-    - bacon-app/bacon-upms-starter
-    - bacon-app/bacon-order-starter
-    - bacon-app/bacon-inventory-starter
-    - bacon-app/bacon-payment-starter
 ```
 
 ---
 
-## Repository Layout
+## 仓库结构
 
 ```text
 bacon
-├── bacon-app/      # Bootstrapping and runtime assembly
-├── bacon-biz/      # Business domains (auth/upms/order/inventory/payment)
-├── bacon-common/   # Shared platform capabilities
-├── docs/           # Architecture, requirements, DB design, doc standards
-└── deploy/         # Deployment scripts and environment samples
+├── bacon-app/      # 启动与装配层
+├── bacon-biz/      # 业务域模块
+├── bacon-common/   # 公共能力模块
+├── docs/           # 架构、需求、数据库设计文档
+└── deploy/         # 部署脚本与配置样例
 ```
 
-### Core Shared Modules
-
-- `bacon-common-core`: exceptions, context, common utilities
-- `bacon-common-web`: response envelope and global exception handling
-- `bacon-common-security`: security context and permission abstraction
-- `bacon-common-mybatis`: MyBatis/MyBatis-Plus conventions
-- `bacon-common-feign`: RPC client foundation
-- `bacon-common-mq`: MQ abstraction
-
 ---
 
-## Domain Map
+## 快速开始
 
-- `Auth`: authentication, token/session lifecycle, OAuth2
-- `UPMS`: RBAC, tenant/user/org/menu/resource/data-scope
-- `Order`: order lifecycle and cross-domain orchestration
-- `Inventory`: stock query, reservation/release/deduction, audit outbox
-- `Payment`: payment order, callback, close, reconciliation baseline
-
----
-
-## Getting Started
-
-### 1) Read Docs in Correct Order
+### 1. 先读文档
 
 1. [docs/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/ARCHITECTURE.md)
 2. [docs/README.md](/Volumes/storage/workspace/bacon/docs/README.md)
-3. target domain `*-REQUIREMENTS.md`
+3. 对应业务域 `*-REQUIREMENTS.md`
 
-### 2) Build and Test
+### 2. 构建与测试
 
 ```bash
 mvn clean verify
@@ -113,15 +78,15 @@ mvn test
 mvn checkstyle:check
 ```
 
-### 3) Run
+### 3. 运行
 
-Mono:
+单体模式：
 
 ```bash
 mvn -pl bacon-app/bacon-mono-boot spring-boot:run
 ```
 
-Micro (example):
+微服务模式（示例）：
 
 ```bash
 mvn -pl bacon-app/bacon-order-starter spring-boot:run
@@ -129,40 +94,16 @@ mvn -pl bacon-app/bacon-order-starter spring-boot:run
 
 ---
 
-## Testing Notes
+## 关键工程约束
 
-Inventory focused checks:
-
-```bash
-mvn -q -pl bacon-biz/bacon-inventory/bacon-inventory-infra -am test -Dtest=InMemoryInventoryRepositorySupportTest -Dsurefire.failIfNoSpecifiedTests=false
-mvn -q -pl bacon-biz/bacon-inventory/bacon-inventory-interfaces -am test -Dtest=InventoryControllerContractTest,InventoryProviderControllerContractTest -Dsurefire.failIfNoSpecifiedTests=false
-```
+- 分层依赖方向固定：`interfaces -> application -> domain <- infra`
+- 跨域调用固定通过 `Facade` 契约，禁止越层直连他域实现
+- Maven 编译/测试统一使用 `JDK 17`
+- 代码、数据库与文档需保持同步演进
 
 ---
 
-## JDK and Toolchain
-
-- Daily development may use `JDK 19`
-- Maven compile/test must use `JDK 17`
-- Toolchain is enforced by root `pom.xml`
-
-Setup:
-
-1. copy `.mvn/toolchains.example.xml` to `~/.m2/toolchains.xml`
-2. update `jdkHome` to your local JDK 17 path
-
----
-
-## Engineering Rules
-
-- Keep layer boundaries strict
-- Do not bypass facade contracts for cross-domain calls
-- Keep docs and schema in sync with code changes
-- Prefer simple, explicit, production-safe designs
-
----
-
-## Documentation Index
+## 文档索引
 
 - [docs/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/ARCHITECTURE.md)
 - [docs/README.md](/Volumes/storage/workspace/bacon/docs/README.md)
@@ -174,4 +115,4 @@ Setup:
 
 ## License
 
-Apache License 2.0. See [LICENSE](/Volumes/storage/workspace/bacon/LICENSE).
+Apache License 2.0，详见 [LICENSE](/Volumes/storage/workspace/bacon/LICENSE)。

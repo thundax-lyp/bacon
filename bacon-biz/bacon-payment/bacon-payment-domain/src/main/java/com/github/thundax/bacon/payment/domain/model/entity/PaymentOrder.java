@@ -74,6 +74,7 @@ public class PaymentOrder {
                                          Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
                                          String paymentStatus, String channelTransactionNo, String channelStatus,
                                          String callbackSummary) {
+        // 查询和回调处理依赖主单快照，因此重建时必须带回最新终态、渠道交易号和回调摘要。
         PaymentOrder paymentOrder = new PaymentOrder(id, tenantId, paymentNo, orderNo, userId, channelCode,
                 amount, subject, expiredAt, createdAt);
         paymentOrder.paidAmount = paidAmount == null ? BigDecimal.ZERO : paidAmount;
@@ -87,6 +88,7 @@ public class PaymentOrder {
     }
 
     public void markPaying() {
+        // 创建支付单后允许把 CREATED 推进到 PAYING；终态收到重复指令时静默返回，幂等由主单承担。
         if (STATUS_PAID.equals(paymentStatus) || STATUS_FAILED.equals(paymentStatus) || STATUS_CLOSED.equals(paymentStatus)) {
             return;
         }
@@ -95,6 +97,7 @@ public class PaymentOrder {
 
     public void markPaid(BigDecimal paidAmount, Instant paidTime, String channelTransactionNo, String channelStatus,
                          String callbackSummary) {
+        // 支付成功一旦落主单就不可逆；重复成功回调只应被上层记审计，不应在实体内改写终态。
         if (STATUS_PAID.equals(paymentStatus) || STATUS_FAILED.equals(paymentStatus) || STATUS_CLOSED.equals(paymentStatus)) {
             return;
         }
@@ -107,6 +110,7 @@ public class PaymentOrder {
     }
 
     public void markFailed(String channelStatus, String callbackSummary) {
+        // 失败与成功、关闭互斥，进入 FAILED 后不再允许回到 PAYING，避免把终态再次暴露给渠道重试。
         if (STATUS_PAID.equals(paymentStatus) || STATUS_FAILED.equals(paymentStatus) || STATUS_CLOSED.equals(paymentStatus)) {
             return;
         }
@@ -116,6 +120,7 @@ public class PaymentOrder {
     }
 
     public void close(Instant closeTime) {
+        // 关闭只针对未完成支付的主单；已支付/已失败的订单保持原终态，不被关单流程覆盖。
         if (STATUS_PAID.equals(paymentStatus) || STATUS_FAILED.equals(paymentStatus) || STATUS_CLOSED.equals(paymentStatus)) {
             return;
         }

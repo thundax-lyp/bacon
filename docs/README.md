@@ -69,6 +69,10 @@
   - 用途：统一存储对象、上传、引用、访问地址和业务域接入规则。
   - 何时加载：涉及头像、附件、对象存储、文件上传、`OSS` 或本地文件存储时。
 
+- [`STORAGE-LAUNCH-READINESS.md`](./STORAGE-LAUNCH-READINESS.md)
+  - 用途：`Storage` 模块上线前整改清单，按 `P0/P1/P2` 收敛阻断项、高优先级项和治理项。
+  - 何时加载：评审 `Storage` 上线准备度、制定整改计划、核对发布阻断项时。
+
 ### 3.5 Business Database Designs
 
 - [`AUTH-DATABASE-DESIGN.md`](./AUTH-DATABASE-DESIGN.md)

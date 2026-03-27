@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -16,6 +15,7 @@ import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
@@ -139,7 +139,9 @@ class PaymentRepositorySupportTest {
                         return 1;
                     }
                     if ("updateById".equals(method.getName())) {
-                        updatedRef.set((PaymentOrderDO) args[0]);
+                        if (updatedRef != null) {
+                            updatedRef.set((PaymentOrderDO) args[0]);
+                        }
                         return updateRows;
                     }
                     if ("selectOne".equals(method.getName())) {
@@ -153,6 +155,7 @@ class PaymentRepositorySupportTest {
     private PaymentCallbackRecordMapper createCallbackMapper(PaymentCallbackRecordDO singleSelected,
                                                              PaymentCallbackRecordDO transactionSelected,
                                                              List<PaymentCallbackRecordDO> listSelected) {
+        AtomicInteger selectListCalls = new AtomicInteger(0);
         return (PaymentCallbackRecordMapper) Proxy.newProxyInstance(PaymentCallbackRecordMapper.class.getClassLoader(),
                 new Class[]{PaymentCallbackRecordMapper.class}, (proxy, method, args) -> {
                     if ("insert".equals(method.getName())) {
@@ -167,8 +170,9 @@ class PaymentRepositorySupportTest {
                         return transactionSelected;
                     }
                     if ("selectList".equals(method.getName())) {
-                        LambdaQueryWrapper<PaymentCallbackRecordDO> wrapper = (LambdaQueryWrapper<PaymentCallbackRecordDO>) args[0];
-                        return wrapper.getSqlSegment().contains("LIMIT 1") ? List.of(singleSelected) : listSelected;
+                        return selectListCalls.getAndIncrement() == 0
+                                ? singleSelected == null ? List.of() : List.of(singleSelected)
+                                : listSelected == null ? List.of() : listSelected;
                     }
                     return null;
                 });

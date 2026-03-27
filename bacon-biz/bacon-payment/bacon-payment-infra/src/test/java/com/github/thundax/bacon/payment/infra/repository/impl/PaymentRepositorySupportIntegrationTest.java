@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
-import com.github.thundax.bacon.payment.infra.config.PaymentMybatisConfiguration;
+import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentAuditLogMapper;
+import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentCallbackRecordMapper;
+import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentOrderMapper;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Statement;
@@ -14,22 +16,20 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@SpringJUnitConfig(classes = PaymentRepositorySupportIntegrationTest.TestConfig.class)
 class PaymentRepositorySupportIntegrationTest {
 
-    @jakarta.annotation.Resource
-    private DataSource dataSource;
-
-    @jakarta.annotation.Resource
-    private PaymentRepositorySupport paymentRepositorySupport;
+    private final AnnotationConfigApplicationContext context =
+            new AnnotationConfigApplicationContext(TestConfig.class);
+    private final DataSource dataSource = context.getBean(DataSource.class);
+    private final PaymentRepositorySupport paymentRepositorySupport = context.getBean(PaymentRepositorySupport.class);
 
     @BeforeEach
     void setUpSchema() throws Exception {
@@ -121,7 +121,7 @@ class PaymentRepositorySupportIntegrationTest {
     }
 
     @Configuration(proxyBeanMethods = false)
-    @Import({PaymentMybatisConfiguration.class, PaymentRepositorySupport.class})
+    @MapperScan("com.github.thundax.bacon.payment.infra.persistence.mapper")
     static class TestConfig {
 
         @Bean
@@ -138,6 +138,13 @@ class PaymentRepositorySupportIntegrationTest {
             MybatisSqlSessionFactoryBean factoryBean = new MybatisSqlSessionFactoryBean();
             factoryBean.setDataSource(dataSource);
             return factoryBean.getObject();
+        }
+
+        @Bean
+        PaymentRepositorySupport paymentRepositorySupport(PaymentOrderMapper paymentOrderMapper,
+                                                         PaymentCallbackRecordMapper paymentCallbackRecordMapper,
+                                                         PaymentAuditLogMapper paymentAuditLogMapper) {
+            return new PaymentRepositorySupport(paymentOrderMapper, paymentCallbackRecordMapper, paymentAuditLogMapper);
         }
     }
 }

@@ -35,7 +35,7 @@ public class PaymentAuditLogController {
     @HasPermission("payment:payment:view")
     @GetMapping("/{paymentNo}/audit-logs")
     public List<PaymentAuditLogResponse> getByPaymentNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
-                                                        @PathVariable @NotBlank String paymentNo) {
+                                                        @PathVariable("paymentNo") @NotBlank String paymentNo) {
         return PaymentAuditLogResponseAssembler.from(
                 paymentAuditQueryApplicationService.getByPaymentNo(tenantId, paymentNo));
     }

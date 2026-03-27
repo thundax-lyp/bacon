@@ -34,7 +34,7 @@ public class PaymentQueryController {
     @HasPermission("payment:payment:view")
     @GetMapping("/{paymentNo}")
     public PaymentDetailResponse getByPaymentNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
-                                                @PathVariable @NotBlank String paymentNo) {
+                                                @PathVariable("paymentNo") @NotBlank String paymentNo) {
         return PaymentDetailResponseAssembler.from(paymentQueryService.getByPaymentNo(tenantId, paymentNo));
     }
 

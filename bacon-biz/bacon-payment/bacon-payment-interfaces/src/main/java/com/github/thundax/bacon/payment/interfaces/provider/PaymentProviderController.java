@@ -49,7 +49,7 @@ public class PaymentProviderController {
     @Operation(summary = "按支付单号查询支付单")
     @GetMapping("/{paymentNo}")
     public PaymentDetailDTO getByPaymentNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
-                                           @PathVariable @NotBlank String paymentNo) {
+                                           @PathVariable("paymentNo") @NotBlank String paymentNo) {
         return paymentQueryService.getByPaymentNo(tenantId, paymentNo);
     }
 
@@ -63,7 +63,7 @@ public class PaymentProviderController {
     @Operation(summary = "按支付单号查询支付审计日志")
     @GetMapping("/{paymentNo}/audit-logs")
     public List<PaymentAuditLogDTO> getAuditLogsByPaymentNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
-                                                            @PathVariable @NotBlank String paymentNo) {
+                                                            @PathVariable("paymentNo") @NotBlank String paymentNo) {
         return paymentAuditQueryApplicationService.getByPaymentNo(tenantId, paymentNo);
     }
 

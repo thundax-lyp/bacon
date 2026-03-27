@@ -27,7 +27,8 @@ public class PaymentCallbackController {
 
     @Operation(summary = "处理支付渠道回调")
     @PostMapping("/{channelCode}")
-    public void callback(@PathVariable @NotBlank String channelCode, @Valid @RequestBody PaymentCallbackRequest request) {
+    public void callback(@PathVariable("channelCode") @NotBlank String channelCode,
+                         @Valid @RequestBody PaymentCallbackRequest request) {
         if (request.isSuccess()) {
             paymentCallbackApplicationService.callbackPaid(channelCode, request.getTenantId(),
                     request.getPaymentNo(), request.getChannelTransactionNo(),

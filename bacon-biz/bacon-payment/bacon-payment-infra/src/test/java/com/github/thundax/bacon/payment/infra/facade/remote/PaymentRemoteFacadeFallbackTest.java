@@ -2,6 +2,7 @@ package com.github.thundax.bacon.payment.infra.facade.remote;
 
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -20,11 +21,11 @@ class PaymentRemoteFacadeFallbackTest {
                 Throwable.class);
         method.setAccessible(true);
 
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> method.invoke(facade,
+        InvocationTargetException thrown = assertThrows(InvocationTargetException.class, () -> method.invoke(facade,
                 1001L, "ORD-10001", 2001L, BigDecimal.TEN, "MOCK", "test",
                 Instant.parse("2026-03-27T10:30:00Z"), new RuntimeException("boom")));
 
-        Throwable cause = thrown.getCause();
+        Throwable cause = thrown.getTargetException();
         assertEquals(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE.code(), ((PaymentDomainException) cause).getCode());
     }
 
@@ -35,10 +36,10 @@ class PaymentRemoteFacadeFallbackTest {
                 Long.class, String.class, Throwable.class);
         method.setAccessible(true);
 
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> method.invoke(facade,
+        InvocationTargetException thrown = assertThrows(InvocationTargetException.class, () -> method.invoke(facade,
                 1001L, "PAY-10001", new RuntimeException("boom")));
 
-        Throwable cause = thrown.getCause();
+        Throwable cause = thrown.getTargetException();
         assertEquals(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE.code(), ((PaymentDomainException) cause).getCode());
     }
 }

@@ -35,13 +35,19 @@ public class PaymentQueryApplicationService {
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
                 .findLatestCallbackByPaymentNo(paymentOrder.getTenantId(), paymentOrder.getPaymentNo())
                 .orElse(null);
+        String channelTransactionNo = paymentOrder.getChannelTransactionNo() != null
+                ? paymentOrder.getChannelTransactionNo()
+                : latestRecord != null ? latestRecord.getChannelTransactionNo() : null;
+        String channelStatus = paymentOrder.getChannelStatus() != null
+                ? paymentOrder.getChannelStatus()
+                : latestRecord != null ? latestRecord.getChannelStatus() : null;
+        String callbackSummary = paymentOrder.getCallbackSummary() != null
+                ? paymentOrder.getCallbackSummary()
+                : latestRecord != null ? latestRecord.summarize() : null;
         return new PaymentDetailDTO(paymentOrder.getTenantId(), paymentOrder.getPaymentNo(), paymentOrder.getOrderNo(),
                 paymentOrder.getUserId(), paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus(),
                 paymentOrder.getAmount(), paymentOrder.getPaidAmount(), paymentOrder.getCreatedAt(),
                 paymentOrder.getExpiredAt(), paymentOrder.getPaidAt(), paymentOrder.getSubject(),
-                paymentOrder.getClosedAt(),
-                latestRecord != null ? latestRecord.getChannelTransactionNo() : paymentOrder.getChannelTransactionNo(),
-                latestRecord != null ? latestRecord.getChannelStatus() : paymentOrder.getChannelStatus(),
-                latestRecord != null ? latestRecord.summarize() : paymentOrder.getCallbackSummary());
+                paymentOrder.getClosedAt(), channelTransactionNo, channelStatus, callbackSummary);
     }
 }

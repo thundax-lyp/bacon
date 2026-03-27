@@ -65,6 +65,10 @@
   - 用途：支付单、支付回调、支付关闭、支付审计的业务边界与固定契约。
   - 何时加载：涉及支付创建、回调处理、关闭、支付状态查询时。
 
+- [`STORAGE-REQUIREMENTS.md`](./STORAGE-REQUIREMENTS.md)
+  - 用途：统一存储对象、上传、引用、访问地址和业务域接入规则。
+  - 何时加载：涉及头像、附件、对象存储、文件上传、`OSS` 或本地文件存储时。
+
 ### 3.5 Business Database Designs
 
 - [`AUTH-DATABASE-DESIGN.md`](./AUTH-DATABASE-DESIGN.md)
@@ -90,6 +94,11 @@
 - [`PAYMENT-DATABASE-DESIGN.md`](./PAYMENT-DATABASE-DESIGN.md)
   - 用途：`Payment` 主表、回调记录、审计表的数据库设计。
   - 何时加载：设计或实现支付持久化时。
+  - 前置：先加载 [`DATABASE-RULES.md`](./DATABASE-RULES.md)。
+
+- [`STORAGE-DATABASE-DESIGN.md`](./STORAGE-DATABASE-DESIGN.md)
+  - 用途：`Storage` 存储对象表、引用表、字段、索引与查询模型。
+  - 何时加载：设计或实现头像、附件、统一存储对象持久化时。
   - 前置：先加载 [`DATABASE-RULES.md`](./DATABASE-RULES.md)。
 
 ## 4. Task Routing

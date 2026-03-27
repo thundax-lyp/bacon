@@ -72,6 +72,14 @@ bacon
 │   │   ├── bacon-inventory-domain/
 │   │   └── bacon-inventory-infra/
 │   │
+│   ├── bacon-storage/
+│   │   ├── pom.xml
+│   │   ├── bacon-storage-api/
+│   │   ├── bacon-storage-interfaces/
+│   │   ├── bacon-storage-application/
+│   │   ├── bacon-storage-domain/
+│   │   └── bacon-storage-infra/
+│   │
 │   └── bacon-payment/
 │       ├── pom.xml
 │       ├── bacon-payment-api/
@@ -125,12 +133,14 @@ bacon-mono-boot
 ├── depends on bacon-upms-domain
 ├── depends on bacon-upms-infra
 │
+├── depends on bacon-storage-*
+│
 ├── depends on bacon-inventory-*
 ├── depends on bacon-payment-*
 └── depends on bacon-common/*
 ```
 
-也就是：`bacon-mono-boot = order + upms + inventory + payment + common`
+也就是：`bacon-mono-boot = order + upms + storage + inventory + payment + common`
 
 ### 单体和微服务共存时的调用关系
 

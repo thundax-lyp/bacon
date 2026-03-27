@@ -42,7 +42,7 @@ public class StoredObjectApplicationService {
         StoredObject storedObject = new StoredObject(null, command.getTenantId(), storageResult.getStorageType(),
                 storageResult.getBucketName(), storageResult.getObjectKey(), command.getOriginalFilename(),
                 command.getContentType(), command.getSize(), storageResult.getAccessUrl(), ObjectStatusEnum.ACTIVE.name(),
-                ReferenceStatusEnum.UNREFERENCED.name(), null, Instant.now());
+                ReferenceStatusEnum.UNREFERENCED.name(), null, Instant.now(), null, Instant.now());
         return toDto(storedObjectRepository.save(storedObject));
     }
 
@@ -51,7 +51,7 @@ public class StoredObjectApplicationService {
         StoredObject storedObject = storedObjectRepository.findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         if (!storedObjectReferenceRepository.existsByObjectIdAndOwner(objectId, ownerType, ownerId)) {
-            StoredObjectReference reference = new StoredObjectReference(null, objectId, ownerType, ownerId, Instant.now());
+            StoredObjectReference reference = new StoredObjectReference(null, objectId, ownerType, ownerId);
             storedObjectReferenceRepository.save(reference);
         }
         storedObject.markReferenced();

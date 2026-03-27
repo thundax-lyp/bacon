@@ -13,6 +13,7 @@
 
 - `StoredObject`
 - `StoredObjectReference`
+- `StorageAuditLog`
 
 当前范围不建表的对象：
 
@@ -47,7 +48,7 @@
 - `storage_type`: `LOCAL_FILE`、`OSS`
 - `object_status`: `ACTIVE`、`DELETED`
 - `reference_status`: `UNREFERENCED`、`REFERENCED`
-- `owner_type`: 至少包含 `UPMS_USER_AVATAR`
+- `owner_type`: 至少包含 `UPMS_USER_AVATAR`、`INVENTORY_PRODUCT_IMAGE`
 
 ### 5.2 Fixed Length Rules
 
@@ -98,6 +99,8 @@
 | `reference_status` | `varchar(32)` | N | 引用状态 |
 | `created_by` | `bigint` | Y | 创建人 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `bigint` | Y | 更新人 |
+| `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
 
@@ -122,13 +125,43 @@
 | `object_id` | `bigint` | N | 存储对象主键 |
 | `owner_type` | `varchar(64)` | N | 引用方类型 |
 | `owner_id` | `varchar(64)` | N | 引用方业务主键 |
-| `created_at` | `datetime(3)` | N | 建立引用时间 |
-
 索引与约束：
 
 - `pk(id)`
 - `uk_object_owner(object_id, owner_type, owner_id)`
 - `idx_owner(owner_type, owner_id)`
+
+### 7.3 `bacon_storage_audit_log`
+
+表类型：`Audit Log Table`
+
+用途：
+
+- 持久化对象上传、引用变更、删除等关键操作审计摘要
+- 支持按租户、对象、操作人、时间范围查询
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
+| `object_id` | `bigint` | Y | 存储对象主键 |
+| `owner_type` | `varchar(64)` | Y | 引用方类型 |
+| `owner_id` | `varchar(64)` | Y | 引用方业务主键 |
+| `action_type` | `varchar(64)` | N | 审计动作类型 |
+| `before_status` | `varchar(32)` | Y | 变更前对象状态 |
+| `after_status` | `varchar(32)` | Y | 变更后对象状态 |
+| `operator_type` | `varchar(32)` | Y | 操作人类型 |
+| `operator_id` | `bigint` | Y | 操作人主键 |
+| `occurred_at` | `datetime(3)` | N | 审计发生时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `idx_tenant_occurred(tenant_id, occurred_at)`
+- `idx_object_occurred(object_id, occurred_at)`
+- `idx_operator_occurred(operator_id, occurred_at)`
 
 ## 8. Relationship Rules
 
@@ -142,12 +175,14 @@
 - 建立业务引用后必须写 `bacon_storage_object_reference`
 - 清理引用后如对象已无任何引用，必须把 `reference_status` 更新为 `UNREFERENCED`
 - 删除对象时必须先删除底层对象，再把 `object_status` 更新为 `DELETED`
+- 上传、引用变更、删除等关键操作必须写 `bacon_storage_audit_log`
 
 ## 10. Query Model Rules
 
 - `getObjectById` 固定查询 `bacon_storage_object`
 - `existsReference` 固定查询 `bacon_storage_object_reference`
 - 按 `(owner_type, owner_id)` 查询时固定使用 `idx_owner`
+- 按租户、对象、操作人查询审计日志时固定使用 `bacon_storage_audit_log` 对应索引
 
 ## 11. Open Items
 

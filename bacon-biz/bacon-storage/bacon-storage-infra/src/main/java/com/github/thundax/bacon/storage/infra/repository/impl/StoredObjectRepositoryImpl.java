@@ -56,7 +56,7 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
                 storedObject.getBucketName(), storedObject.getObjectKey(), storedObject.getOriginalFilename(),
                 storedObject.getContentType(), storedObject.getSize(), storedObject.getAccessUrl(),
                 storedObject.getObjectStatus(), storedObject.getReferenceStatus(), storedObject.getCreatedBy(),
-                storedObject.getCreatedAt());
+                storedObject.getCreatedAt(), storedObject.getUpdatedBy(), storedObject.getUpdatedAt());
     }
 
     private StoredObject toDomain(StoredObjectDO dataObject) {
@@ -64,6 +64,6 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
                 dataObject.getBucketName(), dataObject.getObjectKey(), dataObject.getOriginalFilename(),
                 dataObject.getContentType(), dataObject.getSize(), dataObject.getAccessUrl(),
                 dataObject.getObjectStatus(), dataObject.getReferenceStatus(), dataObject.getCreatedBy(),
-                dataObject.getCreatedAt());
+                dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
     }
 }

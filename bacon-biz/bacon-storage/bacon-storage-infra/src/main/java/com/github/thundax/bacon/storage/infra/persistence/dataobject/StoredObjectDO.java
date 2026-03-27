@@ -39,4 +39,8 @@ public class StoredObjectDO {
     private Long createdBy;
     @TableField("created_at")
     private Instant createdAt;
+    @TableField("updated_by")
+    private Long updatedBy;
+    @TableField("updated_at")
+    private Instant updatedAt;
 }

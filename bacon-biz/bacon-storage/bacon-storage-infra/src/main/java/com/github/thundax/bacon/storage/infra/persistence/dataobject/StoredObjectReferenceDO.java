@@ -5,9 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +18,4 @@ public class StoredObjectReferenceDO {
     private String ownerType;
     @TableField("owner_id")
     private String ownerId;
-    @TableField("created_at")
-    private Instant createdAt;
 }

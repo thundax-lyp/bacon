@@ -58,12 +58,11 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
 
     private StoredObjectReferenceDO toDataObject(StoredObjectReference storedObjectReference) {
         return new StoredObjectReferenceDO(storedObjectReference.getId(), storedObjectReference.getObjectId(),
-                storedObjectReference.getOwnerType(), storedObjectReference.getOwnerId(),
-                storedObjectReference.getCreatedAt());
+                storedObjectReference.getOwnerType(), storedObjectReference.getOwnerId());
     }
 
     private StoredObjectReference toDomain(StoredObjectReferenceDO dataObject) {
         return new StoredObjectReference(dataObject.getId(), dataObject.getObjectId(), dataObject.getOwnerType(),
-                dataObject.getOwnerId(), dataObject.getCreatedAt());
+                dataObject.getOwnerId());
     }
 }

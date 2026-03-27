@@ -23,10 +23,12 @@ public class StoredObject {
     private String referenceStatus;
     private final Long createdBy;
     private final Instant createdAt;
+    private Long updatedBy;
+    private Instant updatedAt;
 
     public StoredObject(Long id, String tenantId, String storageType, String bucketName, String objectKey,
                         String originalFilename, String contentType, Long size, String accessUrl, String objectStatus,
-                        String referenceStatus, Long createdBy, Instant createdAt) {
+                        String referenceStatus, Long createdBy, Instant createdAt, Long updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.storageType = storageType;
@@ -40,21 +42,27 @@ public class StoredObject {
         this.referenceStatus = referenceStatus;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
+        this.updatedBy = updatedBy;
+        this.updatedAt = updatedAt;
     }
 
     public void markReferenced() {
         this.referenceStatus = "REFERENCED";
+        this.updatedAt = Instant.now();
     }
 
     public void markUnreferenced() {
         this.referenceStatus = "UNREFERENCED";
+        this.updatedAt = Instant.now();
     }
 
     public void markDeleted() {
         this.objectStatus = "DELETED";
+        this.updatedAt = Instant.now();
     }
 
     public void refreshAccessUrl(String accessUrl) {
         this.accessUrl = accessUrl;
+        this.updatedAt = Instant.now();
     }
 }

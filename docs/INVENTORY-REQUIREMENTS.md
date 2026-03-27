@@ -60,6 +60,13 @@ Inventory 是 Bacon 的统一库存业务域。
 - 单体模式使用本地 `Facade` 实现
 - 微服务模式使用远程 `Facade` 实现，并保持同一契约
 
+### 3.5 Resource API Exposure Rule
+
+- 面向前端或第三方调用方的资源接口必须由 `Inventory` 业务域提供，不得直接暴露 `Storage` 业务语义接口
+- 若接入商品图片或附件能力，对外路径必须使用 `Inventory` 业务语义路径，例如 `/inventory/product/{productId}/image`
+- `Inventory` 负责认证、鉴权、数据可见性与业务主键校验
+- `Storage` 仅负责对象上传、引用管理与访问地址生成
+
 ## 4. Module Mapping
 
 ### 4.1 `bacon-inventory-api`
@@ -444,6 +451,15 @@ Inventory 是 Bacon 的统一库存业务域。
 2. `Inventory` 校验预占单状态
 3. `Inventory` 减少 `onHandQuantity` 和 `reservedQuantity`
 4. `Inventory` 更新 `reservationStatus=DEDUCTED`
+
+### 8.4 Resource Upload And Access (When Enabled)
+
+1. 前端调用 `Inventory` 资源业务接口（如 `POST /inventory/product/{productId}/image`）
+2. `Inventory` 完成认证、鉴权、可见性与业务参数校验
+3. `Inventory` 调用 `Storage` 上传资源并获取 `objectId`
+4. `Inventory` 回写资源字段（如 `imageObjectId`）
+5. 如为替换场景，`Inventory` 先绑定新对象引用，再解除旧对象引用
+6. 前端调用 `Inventory` 资源读取接口（如 `GET /inventory/product/{productId}/image`），由 `Inventory` 通过 `Storage` 派生 `imageUrl`
 
 ## 9. Non-Functional Requirements
 

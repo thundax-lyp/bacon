@@ -455,6 +455,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - 服务注册名保持统一命名，例如 `bacon-order-service`、`bacon-upms-service`。
 - 配置中心需统一约定 `namespace`、`group`、`dataId` 命名规则。
 - Feign / RPC client 需统一超时、重试、熔断、日志追踪策略，避免各服务各自配置。
+- 如工程使用 OpenFeign，公共配置、默认治理策略、统一属性入口必须集中在 `bacon-common-feign`，禁止在业务模块或 starter 内各自复制一套 Feign 配置。
 - `api.dto` 作为跨服务契约对象，需要关注兼容性，新增字段优先向后兼容，避免破坏性变更。
 - `bacon-common-feign`、`bacon-common-security` 作为微服务基础能力模块使用；`bacon-common-seata` 仅在确有分布式事务需求时启用，不视为默认标配。
 
@@ -477,6 +478,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - 禁止在业务域模块中重复声明工程级依赖版本。
 - 禁止在 `domain` 中直接依赖 `nacos`、`jasypt`、`actuator`、`spring-boot-admin`。
 - 禁止在各业务模块内各自维护一套 `springdoc`、`mybatis-plus`、`checkstyle` 配置。
+- 禁止在业务模块、starter 或 `infra.remote` 包内重复定义 Feign 公共配置；如需新增 Feign 默认行为，只能修改 `bacon-common-feign`。
 - 禁止在同一模块内同时把 Hutool `StrUtil` 和 Apache `StringUtils` 作为常规字符串工具混用。
 - 禁止在 `jetcache` 之外再抽象一套通用缓存门面。
 - 禁止在 `mybatis-plus + mapper + repositoryimpl` 之外再叠加通用 DAO 框架。

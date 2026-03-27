@@ -7,13 +7,19 @@ import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
+import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
+import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
+import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
+import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
+import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -24,11 +30,20 @@ public class MultipartUploadApplicationService {
 
     private final MultipartUploadSessionRepository multipartUploadSessionRepository;
     private final MultipartUploadPartRepository multipartUploadPartRepository;
+    private final StoredObjectRepository storedObjectRepository;
+    private final StoredObjectStorageRepository storedObjectStorageRepository;
+    private final StorageAuditApplicationService storageAuditApplicationService;
 
     public MultipartUploadApplicationService(MultipartUploadSessionRepository multipartUploadSessionRepository,
-                                            MultipartUploadPartRepository multipartUploadPartRepository) {
+                                            MultipartUploadPartRepository multipartUploadPartRepository,
+                                            StoredObjectRepository storedObjectRepository,
+                                            StoredObjectStorageRepository storedObjectStorageRepository,
+                                            StorageAuditApplicationService storageAuditApplicationService) {
         this.multipartUploadSessionRepository = multipartUploadSessionRepository;
         this.multipartUploadPartRepository = multipartUploadPartRepository;
+        this.storedObjectRepository = storedObjectRepository;
+        this.storedObjectStorageRepository = storedObjectStorageRepository;
+        this.storageAuditApplicationService = storageAuditApplicationService;
     }
 
     @Transactional
@@ -47,16 +62,39 @@ public class MultipartUploadApplicationService {
     public MultipartUploadPartDTO uploadMultipartPart(UploadMultipartPartCommand command) {
         MultipartUploadSession session = multipartUploadSessionRepository.findByUploadId(command.getUploadId())
                 .orElseThrow(() -> new NotFoundException("Multipart upload session not found: " + command.getUploadId()));
+        String etag = storedObjectStorageRepository.uploadPart(command.getUploadId(), command.getPartNumber(),
+                command.getInputStream());
         session.recordUploadedPart();
         multipartUploadSessionRepository.save(session);
-        MultipartUploadPart part = MultipartUploadPart.create(command.getUploadId(), command.getPartNumber(),
-                "PART-" + command.getPartNumber(), command.getSize());
+        MultipartUploadPart part = MultipartUploadPart.create(command.getUploadId(), command.getPartNumber(), etag,
+                command.getSize());
         MultipartUploadPart savedPart = multipartUploadPartRepository.save(part);
         return new MultipartUploadPartDTO(savedPart.getUploadId(), savedPart.getPartNumber(), savedPart.getEtag());
     }
 
+    @Transactional
     public StoredObjectDTO completeMultipartUpload(CompleteMultipartUploadCommand command) {
-        throw new UnsupportedOperationException("Multipart upload completion not implemented yet");
+        MultipartUploadSession session = multipartUploadSessionRepository.findByUploadId(command.getUploadId())
+                .orElseThrow(() -> new NotFoundException("Multipart upload session not found: " + command.getUploadId()));
+        List<MultipartUploadPart> parts = multipartUploadPartRepository.listByUploadId(command.getUploadId());
+        if (parts.isEmpty()) {
+            throw new NotFoundException("Multipart upload parts not found: " + command.getUploadId());
+        }
+        var storageResult = storedObjectStorageRepository.completeMultipartUpload(command.getUploadId(),
+                session.getCategory(), session.getOriginalFilename(), parts);
+        StoredObject storedObject = StoredObject.newUploadedObject(session.getTenantId(), storageResult.getStorageType(),
+                storageResult.getBucketName(), storageResult.getObjectKey(), session.getOriginalFilename(),
+                session.getContentType(), session.getTotalSize(), storageResult.getAccessEndpoint(), null);
+        StoredObject savedObject = storedObjectRepository.save(storedObject);
+        session.markCompleted();
+        multipartUploadSessionRepository.save(session);
+        multipartUploadPartRepository.deleteByUploadId(command.getUploadId());
+        storageAuditApplicationService.record(savedObject.getTenantId(), savedObject.getId(), session.getOwnerType(),
+                command.getOwnerId(), StorageAuditLog.ACTION_UPLOAD, null, savedObject.getObjectStatus());
+        return new StoredObjectDTO(savedObject.getId(), savedObject.getStorageType(), savedObject.getBucketName(),
+                savedObject.getObjectKey(), savedObject.getOriginalFilename(), savedObject.getContentType(),
+                savedObject.getSize(), savedObject.getAccessEndpoint(), savedObject.getObjectStatus(),
+                savedObject.getReferenceStatus(), savedObject.getCreatedAt());
     }
 
     @Transactional
@@ -65,6 +103,7 @@ public class MultipartUploadApplicationService {
                 .orElseThrow(() -> new NotFoundException("Multipart upload session not found: " + uploadId));
         session.markAborted();
         multipartUploadSessionRepository.save(session);
+        storedObjectStorageRepository.abortMultipartUpload(uploadId);
         multipartUploadPartRepository.deleteByUploadId(uploadId);
     }
 }

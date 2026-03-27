@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.github.thundax.bacon.common.core.exception.SystemException;
 import com.github.thundax.bacon.storage.api.enums.StorageTypeEnum;
+import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
@@ -12,9 +13,13 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -38,21 +43,65 @@ public class LocalFileStoredObjectStorageRepository implements StoredObjectStora
     public StoredObjectStorageResult upload(String category, String originalFilename, String contentType,
                                             InputStream inputStream) {
         String objectKey = buildObjectKey(category, originalFilename);
-        Path targetPath = Path.of(rootPath, objectKey);
+        Path targetPath = resolveObjectPath(objectKey);
         try {
             Files.createDirectories(targetPath.getParent());
             Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             return new StoredObjectStorageResult(StorageTypeEnum.LOCAL_FILE.name(), bucketName, objectKey,
-                    buildAccessUrl(objectKey));
+                    buildAccessEndpoint(objectKey));
         } catch (IOException ex) {
             throw new SystemException("Failed to store file to local storage", ex);
         }
     }
 
     @Override
+    public String uploadPart(String uploadId, Integer partNumber, InputStream inputStream) {
+        Path partPath = resolveMultipartPartPath(uploadId, partNumber);
+        try {
+            Files.createDirectories(partPath.getParent());
+            Files.copy(inputStream, partPath, StandardCopyOption.REPLACE_EXISTING);
+            return "PART-" + partNumber;
+        } catch (IOException ex) {
+            throw new SystemException("Failed to store multipart part to local storage", ex);
+        }
+    }
+
+    @Override
+    public StoredObjectStorageResult completeMultipartUpload(String uploadId, String category, String originalFilename,
+                                                             List<MultipartUploadPart> parts) {
+        String objectKey = buildObjectKey(category, originalFilename);
+        Path targetPath = resolveObjectPath(objectKey);
+        try {
+            Files.createDirectories(targetPath.getParent());
+            try (OutputStream outputStream = Files.newOutputStream(targetPath, StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING)) {
+                for (MultipartUploadPart part : parts.stream()
+                        .sorted(Comparator.comparing(MultipartUploadPart::getPartNumber))
+                        .toList()) {
+                    Files.copy(resolveMultipartPartPath(uploadId, part.getPartNumber()), outputStream);
+                }
+            }
+            deleteMultipartDirectory(uploadId);
+            return new StoredObjectStorageResult(StorageTypeEnum.LOCAL_FILE.name(), bucketName, objectKey,
+                    buildAccessEndpoint(objectKey));
+        } catch (IOException ex) {
+            throw new SystemException("Failed to complete multipart upload in local storage", ex);
+        }
+    }
+
+    @Override
+    public void abortMultipartUpload(String uploadId) {
+        try {
+            deleteMultipartDirectory(uploadId);
+        } catch (IOException ex) {
+            throw new SystemException("Failed to abort multipart upload in local storage", ex);
+        }
+    }
+
+    @Override
     public void delete(StoredObject storedObject) {
         try {
-            Files.deleteIfExists(Path.of(rootPath, storedObject.getObjectKey()));
+            Files.deleteIfExists(resolveObjectPath(storedObject.getObjectKey()));
         } catch (IOException ex) {
             throw new SystemException("Failed to delete file from local storage", ex);
         }
@@ -75,9 +124,34 @@ public class LocalFileStoredObjectStorageRepository implements StoredObjectStora
         return originalFilename.substring(index);
     }
 
-    private String buildAccessUrl(String objectKey) {
+    private Path resolveObjectPath(String objectKey) {
+        return Path.of(rootPath, objectKey);
+    }
+
+    private Path resolveMultipartPartPath(String uploadId, Integer partNumber) {
+        return Path.of(rootPath, "_multipart", uploadId, partNumber + ".part");
+    }
+
+    private String buildAccessEndpoint(String objectKey) {
         String normalizedBaseUrl = publicBaseUrl.endsWith("/")
                 ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1) : publicBaseUrl;
         return normalizedBaseUrl + "/" + objectKey;
+    }
+
+    private void deleteMultipartDirectory(String uploadId) throws IOException {
+        Path multipartDirectory = Path.of(rootPath, "_multipart", uploadId);
+        if (!Files.exists(multipartDirectory)) {
+            return;
+        }
+        try (var paths = Files.walk(multipartDirectory)) {
+            paths.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException ex) {
+                            throw new SystemException("Failed to clean multipart temporary files", ex);
+                        }
+                    });
+        }
     }
 }

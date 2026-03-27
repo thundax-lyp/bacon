@@ -228,6 +228,7 @@
 - 支付详情查询主表固定为 `bacon_payment_order + bacon_payment_callback_record`
 - 支付状态查询主表固定为 `bacon_payment_order`
 - 审计查询主表固定为 `bacon_payment_audit_log`
+- 支付审计日志查询当前阶段固定按 `tenant_id + payment_no` 精确过滤，并按 `occurred_at asc, id asc` 返回
 - 支付详情查询最近一次回调记录时，固定按 `received_at desc, id desc` 取第一条
 - 回调记录列表查询固定按 `received_at desc, id desc` 排序
 

@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.payment.interfaces.provider;
 
+import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.audit.PaymentAuditQueryApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
 import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
@@ -9,6 +11,7 @@ import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import jakarta.servlet.ServletException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -24,7 +27,8 @@ class PaymentProviderControllerContractTest {
     @Test
     void shouldKeepRawProviderPayloadWithoutResponseEnvelope() throws Exception {
         PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new PaymentCreateApplicationService(null, null, null), new PaymentCloseApplicationService(null, null));
+                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+                new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
         mockMvc.perform(get("/providers/payment/PAY-10001")
@@ -38,7 +42,8 @@ class PaymentProviderControllerContractTest {
     @Test
     void shouldReturnBadRequestWhenProviderRequiredParamMissing() throws Exception {
         PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new PaymentCreateApplicationService(null, null, null), new PaymentCloseApplicationService(null, null));
+                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+                new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
         mockMvc.perform(get("/providers/payment/PAY-10001"))
@@ -48,7 +53,8 @@ class PaymentProviderControllerContractTest {
     @Test
     void shouldExposeRawExceptionSemanticForProvider() {
         PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new PaymentCreateApplicationService(null, null, null), new PaymentCloseApplicationService(null, null));
+                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+                new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
         ServletException exception = assertThrows(ServletException.class, () -> mockMvc.perform(
@@ -56,6 +62,20 @@ class PaymentProviderControllerContractTest {
                         .param("tenantId", "9999")));
         assertEquals(PaymentDomainException.class, exception.getCause().getClass());
         assertEquals(PaymentErrorCode.PAYMENT_NOT_FOUND.code(), ((PaymentDomainException) exception.getCause()).getCode());
+    }
+
+    @Test
+    void shouldExposeRawAuditLogPayloadForProvider() throws Exception {
+        PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
+                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+                new PaymentCloseApplicationService(null, null));
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+
+        mockMvc.perform(get("/providers/payment/PAY-10001/audit-logs")
+                        .param("tenantId", "1001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].paymentNo").value("PAY-10001"))
+                .andExpect(jsonPath("$[0].actionType").value("CREATE"));
     }
 
     private static final class StubPaymentQueryApplicationService extends PaymentQueryApplicationService {
@@ -73,6 +93,19 @@ class PaymentProviderControllerContractTest {
                     new BigDecimal("88.80"), new BigDecimal("88.80"), Instant.parse("2026-03-27T10:00:00Z"),
                     Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:01:00Z"),
                     "provider-payment", null, "TXN-10001", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
+        }
+    }
+
+    private static final class StubPaymentAuditQueryApplicationService extends PaymentAuditQueryApplicationService {
+
+        private StubPaymentAuditQueryApplicationService() {
+            super(null);
+        }
+
+        @Override
+        public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
+            return List.of(new PaymentAuditLogDTO(tenantId, paymentNo, "CREATE", null, "PAYING",
+                    "SYSTEM", 0L, Instant.parse("2026-03-27T10:00:00Z")));
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
-import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
+import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
@@ -18,16 +18,16 @@ public class PaymentCallbackApplicationService {
 
     private final PaymentOrderRepository paymentOrderRepository;
     private final PaymentCallbackRecordRepository paymentCallbackRecordRepository;
-    private final PaymentAuditLogSupport paymentAuditLogSupport;
+    private final PaymentOperationLogSupport paymentOperationLogSupport;
     private final OrderCommandFacade orderCommandFacade;
 
     public PaymentCallbackApplicationService(PaymentOrderRepository paymentOrderRepository,
                                              PaymentCallbackRecordRepository paymentCallbackRecordRepository,
-                                             PaymentAuditLogSupport paymentAuditLogSupport,
+                                             PaymentOperationLogSupport paymentOperationLogSupport,
                                              OrderCommandFacade orderCommandFacade) {
         this.paymentOrderRepository = paymentOrderRepository;
         this.paymentCallbackRecordRepository = paymentCallbackRecordRepository;
-        this.paymentAuditLogSupport = paymentAuditLogSupport;
+        this.paymentOperationLogSupport = paymentOperationLogSupport;
         this.orderCommandFacade = orderCommandFacade;
     }
 
@@ -45,13 +45,13 @@ public class PaymentCallbackApplicationService {
                 paymentNo, paymentOrder.getOrderNo(), channelCode, channelTransactionNo, channelStatus, rawPayload, Instant.now()))
                 : existing;
         if (PaymentOrder.STATUS_PAID.equals(paymentOrder.getPaymentStatus())) {
-            paymentAuditLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
+            paymentOperationLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
                     paymentOrder.getPaymentStatus(), paymentOrder.getPaymentStatus(), Instant.now());
             return;
         }
         if (PaymentOrder.STATUS_FAILED.equals(paymentOrder.getPaymentStatus())
                 || PaymentOrder.STATUS_CLOSED.equals(paymentOrder.getPaymentStatus())) {
-            paymentAuditLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
+            paymentOperationLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
                     paymentOrder.getPaymentStatus(), paymentOrder.getPaymentStatus(), Instant.now());
             return;
         }
@@ -60,7 +60,7 @@ public class PaymentCallbackApplicationService {
         paymentOrder.markPaid(paymentOrder.getAmount(), paidTime, callbackRecord.getChannelTransactionNo(),
                 callbackRecord.getChannelStatus(), callbackRecord.summarize());
         paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
+        paymentOperationLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
                 beforeStatus, paymentOrder.getPaymentStatus(), paidTime);
         orderCommandFacade.markPaid(tenantId, paymentOrder.getOrderNo(), paymentNo, channelCode,
                 paymentOrder.getAmount(), paidTime);
@@ -82,13 +82,13 @@ public class PaymentCallbackApplicationService {
                     paymentNo, paymentOrder.getOrderNo(), channelCode, null, channelStatus, rawPayload, Instant.now()));
         }
         if (PaymentOrder.STATUS_PAID.equals(paymentOrder.getPaymentStatus())) {
-            paymentAuditLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_FAILED, tenantId, paymentNo,
+            paymentOperationLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_FAILED, tenantId, paymentNo,
                     paymentOrder.getPaymentStatus(), paymentOrder.getPaymentStatus(), Instant.now());
             return;
         }
         if (PaymentOrder.STATUS_FAILED.equals(paymentOrder.getPaymentStatus())
                 || PaymentOrder.STATUS_CLOSED.equals(paymentOrder.getPaymentStatus())) {
-            paymentAuditLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_FAILED, tenantId, paymentNo,
+            paymentOperationLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_FAILED, tenantId, paymentNo,
                     paymentOrder.getPaymentStatus(), paymentOrder.getPaymentStatus(), Instant.now());
             return;
         }
@@ -96,7 +96,7 @@ public class PaymentCallbackApplicationService {
         Instant failedTime = Instant.now();
         paymentOrder.markFailed(channelStatus, rawPayload.length() <= 255 ? rawPayload : rawPayload.substring(0, 255));
         paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_FAILED, tenantId, paymentNo,
+        paymentOperationLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_FAILED, tenantId, paymentNo,
                 beforeStatus, paymentOrder.getPaymentStatus(), failedTime);
         orderCommandFacade.markPaymentFailed(tenantId, paymentOrder.getOrderNo(), paymentNo, reason, channelStatus, failedTime);
     }

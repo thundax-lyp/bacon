@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
-import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
+import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
-import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentChannelPayload;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
@@ -18,14 +17,14 @@ import java.time.Instant;
 public class PaymentCreateApplicationService {
 
     private final PaymentOrderRepository paymentOrderRepository;
-    private final PaymentAuditLogSupport paymentAuditLogSupport;
+    private final PaymentOperationLogSupport paymentOperationLogSupport;
     private final PaymentNoGenerator paymentNoGenerator;
 
     public PaymentCreateApplicationService(PaymentOrderRepository paymentOrderRepository,
-                                           PaymentAuditLogSupport paymentAuditLogSupport,
+                                           PaymentOperationLogSupport paymentOperationLogSupport,
                                            PaymentNoGenerator paymentNoGenerator) {
         this.paymentOrderRepository = paymentOrderRepository;
-        this.paymentAuditLogSupport = paymentAuditLogSupport;
+        this.paymentOperationLogSupport = paymentOperationLogSupport;
         this.paymentNoGenerator = paymentNoGenerator;
     }
 
@@ -44,7 +43,8 @@ public class PaymentCreateApplicationService {
                 channelCode, amount, subject, expiredAt, Instant.now());
         paymentOrder.markPaying();
         PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogSupport.recordCreate(tenantId, paymentNo, paymentOrder.getPaymentStatus(), persistedOrder.getCreatedAt());
+        paymentOperationLogSupport.recordCreate(tenantId, paymentNo, paymentOrder.getPaymentStatus(),
+                persistedOrder.getCreatedAt());
         return toCreateResult(persistedOrder, buildPayload(persistedOrder), null);
     }
 

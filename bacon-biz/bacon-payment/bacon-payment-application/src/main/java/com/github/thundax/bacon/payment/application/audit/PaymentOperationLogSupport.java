@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.payment.application.support;
+package com.github.thundax.bacon.payment.application.audit;
 
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
@@ -7,11 +7,11 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class PaymentAuditLogSupport {
+public class PaymentOperationLogSupport {
 
     private final PaymentAuditLogRepository paymentAuditLogRepository;
 
-    public PaymentAuditLogSupport(PaymentAuditLogRepository paymentAuditLogRepository) {
+    public PaymentOperationLogSupport(PaymentAuditLogRepository paymentAuditLogRepository) {
         this.paymentAuditLogRepository = paymentAuditLogRepository;
     }
 

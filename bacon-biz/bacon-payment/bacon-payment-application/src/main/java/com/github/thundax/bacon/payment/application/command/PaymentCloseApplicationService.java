@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
-import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
+import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
-import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import org.springframework.stereotype.Service;
@@ -17,12 +16,12 @@ public class PaymentCloseApplicationService {
 
     private static final Set<String> VALID_REASONS = Set.of("USER_CANCELLED", "SYSTEM_CANCELLED", "TIMEOUT_CLOSED");
     private final PaymentOrderRepository paymentOrderRepository;
-    private final PaymentAuditLogSupport paymentAuditLogSupport;
+    private final PaymentOperationLogSupport paymentOperationLogSupport;
 
     public PaymentCloseApplicationService(PaymentOrderRepository paymentOrderRepository,
-                                          PaymentAuditLogSupport paymentAuditLogSupport) {
+                                          PaymentOperationLogSupport paymentOperationLogSupport) {
         this.paymentOrderRepository = paymentOrderRepository;
-        this.paymentAuditLogSupport = paymentAuditLogSupport;
+        this.paymentOperationLogSupport = paymentOperationLogSupport;
     }
 
     public PaymentCloseResultDTO closePayment(Long tenantId, String paymentNo, String reason) {
@@ -47,7 +46,8 @@ public class PaymentCloseApplicationService {
         Instant closedAt = Instant.now();
         paymentOrder.close(closedAt);
         paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogSupport.recordClose(tenantId, paymentNo, beforeStatus, paymentOrder.getPaymentStatus(), closedAt);
+        paymentOperationLogSupport.recordClose(tenantId, paymentNo, beforeStatus, paymentOrder.getPaymentStatus(),
+                closedAt);
         return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
                 paymentOrder.getPaymentStatus(), "SUCCESS", reason, null);
     }

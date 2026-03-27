@@ -143,6 +143,7 @@ Payment 是 Bacon 的统一支付业务域。
 
 - `GET /payments/{paymentNo}`
 - `GET /payments`
+- `GET /payments/{paymentNo}/audit-logs`
 - `POST /payments/callback/{channelCode}`
 
 ### 4.3 `bacon-payment-application`
@@ -153,6 +154,8 @@ Payment 是 Bacon 的统一支付业务域。
 - `PaymentQueryApplicationService`
 - `PaymentCallbackApplicationService`
 - `PaymentCloseApplicationService`
+- `PaymentAuditQueryApplicationService`
+- `PaymentOperationLogSupport`
 
 ### 4.4 `bacon-payment-domain`
 
@@ -357,6 +360,7 @@ Payment 是 Bacon 的统一支付业务域。
 - 记录支付回调
 - 记录支付关闭
 - 审计日志至少支持按 `tenantId`、`paymentNo`、`actionType`、`occurredAt` 查询
+- 当前范围固定提供按 `tenantId + paymentNo` 查询支付审计日志的应用服务、外部查询接口和内部 provider 查询接口
 
 ## 8. Key Flows
 

@@ -3,6 +3,8 @@ package com.github.thundax.bacon.payment.interfaces.provider;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
+import com.github.thundax.bacon.payment.application.audit.PaymentAuditQueryApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
 import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Validated
 @RestController
@@ -29,13 +32,16 @@ import java.time.Instant;
 public class PaymentProviderController {
 
     private final PaymentQueryApplicationService paymentQueryService;
+    private final PaymentAuditQueryApplicationService paymentAuditQueryApplicationService;
     private final PaymentCreateApplicationService paymentCreateApplicationService;
     private final PaymentCloseApplicationService paymentCloseApplicationService;
 
     public PaymentProviderController(PaymentQueryApplicationService paymentQueryService,
+                                     PaymentAuditQueryApplicationService paymentAuditQueryApplicationService,
                                      PaymentCreateApplicationService paymentCreateApplicationService,
                                      PaymentCloseApplicationService paymentCloseApplicationService) {
         this.paymentQueryService = paymentQueryService;
+        this.paymentAuditQueryApplicationService = paymentAuditQueryApplicationService;
         this.paymentCreateApplicationService = paymentCreateApplicationService;
         this.paymentCloseApplicationService = paymentCloseApplicationService;
     }
@@ -52,6 +58,13 @@ public class PaymentProviderController {
     public PaymentDetailDTO getByOrderNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                          @RequestParam("orderNo") @NotBlank String orderNo) {
         return paymentQueryService.getByOrderNo(tenantId, orderNo);
+    }
+
+    @Operation(summary = "按支付单号查询支付审计日志")
+    @GetMapping("/{paymentNo}/audit-logs")
+    public List<PaymentAuditLogDTO> getAuditLogsByPaymentNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
+                                                            @PathVariable @NotBlank String paymentNo) {
+        return paymentAuditQueryApplicationService.getByPaymentNo(tenantId, paymentNo);
     }
 
     @Operation(summary = "创建支付单")

@@ -2,11 +2,11 @@ package com.github.thundax.bacon.payment.application.service;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.application.command.PaymentCallbackApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
 import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
-import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -32,7 +32,7 @@ class PaymentApplicationServiceTest {
     @Test
     void createPaymentShouldGeneratePaymentNoInsideModule() {
         TestPaymentRepository repository = new TestPaymentRepository();
-        PaymentCreateApplicationService service = new PaymentCreateApplicationService(repository, new PaymentAuditLogSupport(repository),
+        PaymentCreateApplicationService service = new PaymentCreateApplicationService(repository, new PaymentOperationLogSupport(repository),
                 () -> "PAY-20001");
 
         PaymentCreateResultDTO result = service.createPayment(1001L, "ORD-10001", 2001L, BigDecimal.TEN,
@@ -47,7 +47,7 @@ class PaymentApplicationServiceTest {
     @Test
     void createPaymentShouldBeIdempotentByOrderNo() {
         TestPaymentRepository repository = new TestPaymentRepository();
-        PaymentCreateApplicationService service = new PaymentCreateApplicationService(repository, new PaymentAuditLogSupport(repository),
+        PaymentCreateApplicationService service = new PaymentCreateApplicationService(repository, new PaymentOperationLogSupport(repository),
                 new SequencePaymentNoGenerator());
 
         PaymentCreateResultDTO first = service.createPayment(1001L, "ORD-10002", 2001L, BigDecimal.ONE,
@@ -63,13 +63,13 @@ class PaymentApplicationServiceTest {
     void callbackAndCloseShouldRespectStateRules() {
         TestPaymentRepository repository = new TestPaymentRepository();
         StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
-        PaymentCreateApplicationService createService = new PaymentCreateApplicationService(repository, new PaymentAuditLogSupport(repository),
+        PaymentCreateApplicationService createService = new PaymentCreateApplicationService(repository, new PaymentOperationLogSupport(repository),
                 () -> "PAY-20003");
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(repository, repository,
-                new PaymentAuditLogSupport(repository), orderCommandFacade);
+                new PaymentOperationLogSupport(repository), orderCommandFacade);
         PaymentQueryApplicationService queryService = new PaymentQueryApplicationService(repository, repository);
         PaymentCloseApplicationService closeService = new PaymentCloseApplicationService(repository,
-                new PaymentAuditLogSupport(repository));
+                new PaymentOperationLogSupport(repository));
 
         PaymentCreateResultDTO created = createService.createPayment(1001L, "ORD-10003", 2003L, new BigDecimal("18.80"),
                 "MOCK", "callback", Instant.now().plusSeconds(1800));
@@ -92,10 +92,10 @@ class PaymentApplicationServiceTest {
     void duplicateOrIgnoredCallbacksShouldStillWriteAuditLog() {
         TestPaymentRepository repository = new TestPaymentRepository();
         StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
-        PaymentCreateApplicationService createService = new PaymentCreateApplicationService(repository, new PaymentAuditLogSupport(repository),
+        PaymentCreateApplicationService createService = new PaymentCreateApplicationService(repository, new PaymentOperationLogSupport(repository),
                 () -> "PAY-20007");
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(repository, repository,
-                new PaymentAuditLogSupport(repository), orderCommandFacade);
+                new PaymentOperationLogSupport(repository), orderCommandFacade);
 
         PaymentCreateResultDTO created = createService.createPayment(1001L, "ORD-10007", 2007L, new BigDecimal("20.00"),
                 "MOCK", "duplicate-callback", Instant.now().plusSeconds(1800));
@@ -124,10 +124,10 @@ class PaymentApplicationServiceTest {
     @Test
     void closePaymentShouldBeIdempotentForClosedPayment() {
         TestPaymentRepository repository = new TestPaymentRepository();
-        PaymentCreateApplicationService createService = new PaymentCreateApplicationService(repository, new PaymentAuditLogSupport(repository),
+        PaymentCreateApplicationService createService = new PaymentCreateApplicationService(repository, new PaymentOperationLogSupport(repository),
                 () -> "PAY-20004");
         PaymentCloseApplicationService closeService = new PaymentCloseApplicationService(repository,
-                new PaymentAuditLogSupport(repository));
+                new PaymentOperationLogSupport(repository));
 
         PaymentCreateResultDTO created = createService.createPayment(1001L, "ORD-10004", 2004L, new BigDecimal("28.00"),
                 "MOCK", "close", Instant.now().plusSeconds(1800));
@@ -144,7 +144,7 @@ class PaymentApplicationServiceTest {
     void createPaymentShouldNotRollbackWhenAuditWriteFails() {
         TestPaymentRepository repository = new TestPaymentRepository();
         repository.failAuditSave = true;
-        PaymentCreateApplicationService service = new PaymentCreateApplicationService(repository, new PaymentAuditLogSupport(repository),
+        PaymentCreateApplicationService service = new PaymentCreateApplicationService(repository, new PaymentOperationLogSupport(repository),
                 () -> "PAY-20005");
 
         PaymentCreateResultDTO result = assertDoesNotThrow(() -> service.createPayment(1001L, "ORD-10005", 2005L,
@@ -159,13 +159,13 @@ class PaymentApplicationServiceTest {
     void callbackPaidShouldNotRollbackWhenAuditWriteFails() {
         TestPaymentRepository repository = new TestPaymentRepository();
         StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
-        PaymentCreateApplicationService createService = new PaymentCreateApplicationService(repository, new PaymentAuditLogSupport(repository),
+        PaymentCreateApplicationService createService = new PaymentCreateApplicationService(repository, new PaymentOperationLogSupport(repository),
                 () -> "PAY-20006");
         createService.createPayment(1001L, "ORD-10006", 2006L, new BigDecimal("18.00"),
                 "MOCK", "audit-fail-callback", Instant.now().plusSeconds(1800));
         repository.failAuditSave = true;
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(repository, repository,
-                new PaymentAuditLogSupport(repository), orderCommandFacade);
+                new PaymentOperationLogSupport(repository), orderCommandFacade);
 
         assertDoesNotThrow(() -> callbackService.callbackPaid("MOCK", 1001L, "PAY-20006", "TXN-20006", "SUCCESS",
                 "{\"tradeStatus\":\"SUCCESS\"}"));

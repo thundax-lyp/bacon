@@ -1,8 +1,13 @@
 package com.github.thundax.bacon.storage.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
+import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
+import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
+import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
+import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -46,6 +51,48 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     }
 
     @Override
+    public MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command) {
+        return restClient.post()
+                .uri("/providers/storage/objects/multipart/init?ownerType={ownerType}&tenantId={tenantId}&category={category}"
+                                + "&originalFilename={originalFilename}&contentType={contentType}&totalSize={totalSize}&partSize={partSize}",
+                        command.getOwnerType(), command.getTenantId(), command.getCategory(), command.getOriginalFilename(),
+                        command.getContentType(), command.getTotalSize(), command.getPartSize())
+                .retrieve()
+                .body(MultipartUploadSessionDTO.class);
+    }
+
+    @Override
+    public MultipartUploadPartDTO uploadMultipartPart(UploadMultipartPartCommand command) {
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+        bodyBuilder.part("partNumber", command.getPartNumber());
+        bodyBuilder.part("file", new NamedByteArrayResource(readBytes(command.getInputStream()), "part-" + command.getPartNumber()))
+                .contentType(MediaType.APPLICATION_OCTET_STREAM);
+        return restClient.post()
+                .uri("/providers/storage/objects/multipart/{uploadId}/parts", command.getUploadId())
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(bodyBuilder.build())
+                .retrieve()
+                .body(MultipartUploadPartDTO.class);
+    }
+
+    @Override
+    public StoredObjectDTO completeMultipartUpload(CompleteMultipartUploadCommand command) {
+        return restClient.post()
+                .uri("/providers/storage/objects/multipart/{uploadId}/complete?ownerId={ownerId}",
+                        command.getUploadId(), command.getOwnerId())
+                .retrieve()
+                .body(StoredObjectDTO.class);
+    }
+
+    @Override
+    public void abortMultipartUpload(String uploadId) {
+        restClient.delete()
+                .uri("/providers/storage/objects/multipart/{uploadId}", uploadId)
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    @Override
     public StoredObjectDTO getObjectById(Long objectId) {
         return restClient.get()
                 .uri("/providers/storage/objects/{objectId}", objectId)
@@ -79,11 +126,11 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
                 .toBodilessEntity();
     }
 
-    private byte[] readBytes(UploadObjectCommand command) {
+    private byte[] readBytes(java.io.InputStream inputStream) {
         try {
-            return command.getInputStream().readAllBytes();
+            return inputStream.readAllBytes();
         } catch (IOException ex) {
-            throw new IllegalStateException("Failed to read upload object command input stream", ex);
+            throw new IllegalStateException("Failed to read upload input stream", ex);
         }
     }
 

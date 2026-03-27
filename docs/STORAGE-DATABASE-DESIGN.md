@@ -13,13 +13,15 @@
 
 - `StoredObject`
 - `StoredObjectReference`
+- `MultipartUploadSession`
+- `MultipartUploadPart`
 - `StorageAuditLog`
 
 当前范围不建表的对象：
 
 - 业务域主数据表
 - 文件内容本身
-- 临时上传分片表
+- 底层存储临时分片物理文件
 
 ## 3. Database Rules
 
@@ -48,6 +50,7 @@
 - `storage_type`: `LOCAL_FILE`、`OSS`
 - `object_status`: `ACTIVE`、`DELETED`
 - `reference_status`: `UNREFERENCED`、`REFERENCED`
+- `upload_status`: `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
 - `owner_type`: 至少包含 `UPMS_USER_AVATAR`、`INVENTORY_PRODUCT_IMAGE`
 
 ### 5.2 Fixed Length Rules
@@ -63,6 +66,9 @@
 - `reference_status`: `varchar(32)`
 - `owner_type`: `varchar(64)`
 - `owner_id`: `varchar(64)`
+- `upload_id`: `varchar(64)`
+- `upload_status`: `varchar(32)`
+- `etag`: `varchar(128)`
 
 ## 6. Table Mapping
 
@@ -70,6 +76,9 @@
 |----|----|
 | `StoredObject` | `bacon_storage_object` |
 | `StoredObjectReference` | `bacon_storage_object_reference` |
+| `MultipartUploadSession` | `bacon_storage_multipart_upload` |
+| `MultipartUploadPart` | `bacon_storage_multipart_upload_part` |
+| `StorageAuditLog` | `bacon_storage_audit_log` |
 
 ## 7. Table Design
 
@@ -163,15 +172,81 @@
 - `idx_object_occurred(object_id, occurred_at)`
 - `idx_operator_occurred(operator_id, occurred_at)`
 
+### 7.4 `bacon_storage_multipart_upload`
+
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化大文件分段上传会话
+- 记录分段上传状态与会话元数据
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `upload_id` | `varchar(64)` | N | 分段上传会话业务键 |
+| `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
+| `owner_type` | `varchar(64)` | N | 引用方类型 |
+| `category` | `varchar(64)` | Y | 对象分类 |
+| `original_filename` | `varchar(255)` | N | 原始文件名 |
+| `content_type` | `varchar(128)` | N | 内容类型 |
+| `total_size` | `bigint` | N | 总文件大小，字节 |
+| `part_size` | `bigint` | N | 固定分段大小，字节 |
+| `uploaded_part_count` | `int` | N | 已上传分段数 |
+| `upload_status` | `varchar(32)` | N | 分段上传状态 |
+| `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_at` | `datetime(3)` | N | 更新时间 |
+| `completed_at` | `datetime(3)` | Y | 完成时间 |
+| `aborted_at` | `datetime(3)` | Y | 取消时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `uk_upload_id(upload_id)`
+- `idx_tenant_status(tenant_id, upload_status, created_at)`
+
+### 7.5 `bacon_storage_multipart_upload_part`
+
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化已上传分段元数据
+- 支持分段完整性校验与最终合并
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `upload_id` | `varchar(64)` | N | 分段上传会话业务键 |
+| `part_number` | `int` | N | 分段序号 |
+| `etag` | `varchar(128)` | N | 分段校验标识 |
+| `size` | `bigint` | N | 分段大小，字节 |
+| `created_at` | `datetime(3)` | N | 创建时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `uk_upload_part(upload_id, part_number)`
+- `idx_upload_id(upload_id)`
+
 ## 8. Relationship Rules
 
 - `bacon_storage_object_reference.object_id` 关联 `bacon_storage_object.id`
+- `bacon_storage_multipart_upload_part.upload_id` 关联 `bacon_storage_multipart_upload.upload_id`
 - 当前设计默认不强制数据库外键
 - 业务对象表只保存 `object_id`，不保存 `bucket_name`、`object_key`、`access_url`
 
 ## 9. Persistence Rules
 
 - 上传成功后必须同时写 `bacon_storage_object`
+- 初始化分段上传后必须写 `bacon_storage_multipart_upload`
+- 分段上传成功后必须写 `bacon_storage_multipart_upload_part`
+- 分段上传完成后必须写 `bacon_storage_object` 并更新 `bacon_storage_multipart_upload.upload_status`
+- 分段上传取消后必须把 `bacon_storage_multipart_upload.upload_status` 更新为 `ABORTED`
 - 建立业务引用后必须写 `bacon_storage_object_reference`
 - 清理引用后如对象已无任何引用，必须把 `reference_status` 更新为 `UNREFERENCED`
 - 删除对象时必须先删除底层对象，再把 `object_status` 更新为 `DELETED`
@@ -181,6 +256,8 @@
 
 - `getObjectById` 固定查询 `bacon_storage_object`
 - `existsReference` 固定查询 `bacon_storage_object_reference`
+- `getMultipartUploadByUploadId` 固定查询 `bacon_storage_multipart_upload`
+- `listMultipartParts` 固定查询 `bacon_storage_multipart_upload_part`
 - 按 `(owner_type, owner_id)` 查询时固定使用 `idx_owner`
 - 按租户、对象、操作人查询审计日志时固定使用 `bacon_storage_audit_log` 对应索引
 

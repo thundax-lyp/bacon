@@ -1,8 +1,14 @@
 package com.github.thundax.bacon.storage.interfaces.facade;
 
+import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
+import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
+import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
+import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.storage.application.command.MultipartUploadApplicationService;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,17 +19,40 @@ import org.springframework.stereotype.Component;
 public class StoredObjectFacadeLocalImpl implements StoredObjectFacade {
 
     private final StoredObjectApplicationService storedObjectApplicationService;
+    private final MultipartUploadApplicationService multipartUploadApplicationService;
     private final StoredObjectQueryApplicationService storedObjectQueryApplicationService;
 
     public StoredObjectFacadeLocalImpl(StoredObjectApplicationService storedObjectApplicationService,
+                                       MultipartUploadApplicationService multipartUploadApplicationService,
                                        StoredObjectQueryApplicationService storedObjectQueryApplicationService) {
         this.storedObjectApplicationService = storedObjectApplicationService;
+        this.multipartUploadApplicationService = multipartUploadApplicationService;
         this.storedObjectQueryApplicationService = storedObjectQueryApplicationService;
     }
 
     @Override
     public StoredObjectDTO uploadObject(UploadObjectCommand command) {
         return storedObjectApplicationService.uploadObject(command);
+    }
+
+    @Override
+    public MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command) {
+        return multipartUploadApplicationService.initMultipartUpload(command);
+    }
+
+    @Override
+    public MultipartUploadPartDTO uploadMultipartPart(UploadMultipartPartCommand command) {
+        return multipartUploadApplicationService.uploadMultipartPart(command);
+    }
+
+    @Override
+    public StoredObjectDTO completeMultipartUpload(CompleteMultipartUploadCommand command) {
+        return multipartUploadApplicationService.completeMultipartUpload(command);
+    }
+
+    @Override
+    public void abortMultipartUpload(String uploadId) {
+        multipartUploadApplicationService.abortMultipartUpload(uploadId);
     }
 
     @Override

@@ -12,6 +12,7 @@
 
 - 统一 `StoredObject` 主数据
 - 文件上传
+- 大文件分段上传
 - 文件删除
 - 文件元数据查询
 - 存储后端切换
@@ -82,6 +83,10 @@
 `StoredObjectFacade` 固定方法：
 
 - `uploadObject(command)`，返回固定 `StoredObjectDTO`
+- `initMultipartUpload(command)`，返回固定 `MultipartUploadSessionDTO`
+- `uploadMultipartPart(command)`，返回固定 `MultipartUploadPartDTO`
+- `completeMultipartUpload(command)`，返回固定 `StoredObjectDTO`
+- `abortMultipartUpload(uploadId)`，无返回
 - `getObjectById(objectId)`，返回固定 `StoredObjectDTO`
 - `markObjectReferenced(objectId, ownerType, ownerId)`，无返回
 - `clearObjectReference(objectId, ownerType, ownerId)`，无返回
@@ -110,6 +115,47 @@
 - `size`
 - `inputStream` 或运行时等价输入对象
 
+`MultipartUploadSessionDTO` 至少包含：
+
+- `uploadId`
+- `ownerType`
+- `tenantId`
+- `category`
+- `originalFilename`
+- `contentType`
+- `totalSize`
+- `partSize`
+- `uploadedPartCount`
+- `uploadStatus`
+
+`MultipartUploadPartDTO` 至少包含：
+
+- `uploadId`
+- `partNumber`
+- `etag`
+
+`InitMultipartUploadCommand` 至少包含：
+
+- `ownerType`
+- `tenantId`
+- `category`
+- `originalFilename`
+- `contentType`
+- `totalSize`
+- `partSize`
+
+`UploadMultipartPartCommand` 至少包含：
+
+- `uploadId`
+- `partNumber`
+- `size`
+- `inputStream` 或运行时等价输入对象
+
+`CompleteMultipartUploadCommand` 至少包含：
+
+- `uploadId`
+- `ownerId`
+
 ### 4.2 `bacon-storage-interfaces`
 
 - `Controller`
@@ -123,12 +169,15 @@
 固定服务：
 
 - `StoredObjectApplicationService`
+- `MultipartUploadApplicationService`
 - `StoredObjectQueryApplicationService`
 
 ### 4.4 `bacon-storage-domain`
 
 - `StoredObject`
 - `StoredObjectReference`
+- `MultipartUploadSession`
+- `MultipartUploadPart`
 - `Repository` 接口
 - 存储状态规则
 - 引用状态规则
@@ -151,6 +200,7 @@
 - `storageType` 固定为 `LOCAL_FILE`、`OSS`
 - `objectStatus` 固定为 `ACTIVE`、`DELETED`
 - `referenceStatus` 固定为 `UNREFERENCED`、`REFERENCED`
+- `uploadStatus` 固定为 `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
 - `ownerType` 固定至少包含 `UPMS_USER_AVATAR`、`INVENTORY_PRODUCT_IMAGE`
 
 ## 5.2 Fixed Fields
@@ -178,6 +228,29 @@
 - `ownerId`
 - `createdAt`
 
+`MultipartUploadSession` 固定字段：
+
+- `uploadId`
+- `ownerType`
+- `tenantId`
+- `category`
+- `originalFilename`
+- `contentType`
+- `totalSize`
+- `partSize`
+- `uploadedPartCount`
+- `uploadStatus`
+- `createdAt`
+
+`MultipartUploadPart` 固定字段：
+
+- `id`
+- `uploadId`
+- `partNumber`
+- `etag`
+- `size`
+- `createdAt`
+
 ## 6. Global Constraints
 
 - `StoredObject` 只保存稳定元数据，不保存业务对象完整快照
@@ -187,6 +260,9 @@
 - 对象删除不得直接物理删除仍被引用的对象
 - 对象替换时先建立新对象引用，再解除旧对象引用
 - 同一对象可被多个业务对象引用时，必须通过引用表判断是否允许物理删除
+- 普通文件上传和大文件分段上传必须使用不同接口和不同应用服务逻辑
+- 大文件上传完成前不得写入正式 `StoredObject`
+- 大文件上传中断、取消、超时后，`Storage` 必须能够清理未完成分段数据
 
 ## 7. Functional Requirements
 
@@ -210,7 +286,30 @@
 - `contentType` 固定保存上传声明值
 - `size` 固定保存字节大小
 
-### 7.2 Reference Management
+### 7.2 Multipart Upload Management
+
+功能对象：
+
+- `MultipartUploadSession`
+- `MultipartUploadPart`
+
+功能能力：
+
+- 初始化大文件分段上传
+- 上传单个分段
+- 完成分段上传并合并对象
+- 取消分段上传
+- 查询分段上传会话状态
+
+必要补充约束：
+
+- 大文件上传与普通文件上传必须使用不同接口
+- `uploadId` 固定作为分段上传会话业务键
+- 同一 `(uploadId, partNumber)` 固定唯一
+- 分段上传完成后才允许写入正式 `StoredObject`
+- 分段上传取消或超时后不得生成正式 `StoredObject`
+- 合并完成后必须清理临时分段数据
+### 7.3 Reference Management
 
 功能对象：
 
@@ -228,7 +327,7 @@
 - 清理引用后，如对象已无任何引用，可进入删除候选状态
 - 引用关系变更不得依赖调用方本地缓存判断
 
-### 7.3 User Avatar Rule
+### 7.4 User Avatar Rule
 
 功能对象：
 
@@ -247,7 +346,7 @@
 - `avatarUrl` 由 `Storage` 查询结果派生，不单独落在 `UPMS`
 - 头像旧对象在引用解除后由 `Storage` 负责删除策略
 
-### 7.4 Inventory Product Image Rule
+### 7.5 Inventory Product Image Rule
 
 功能对象：
 
@@ -276,21 +375,33 @@
 4. `Storage` 写入 `StoredObject`
 5. 调用方拿到 `objectId`
 
-### 8.2 Replace Avatar Flow
+### 8.2 Multipart Upload Flow
+
+1. 调用方调用 `Storage.initMultipartUpload`
+2. `Storage` 创建 `uploadId` 和分段上传会话
+3. 调用方按 `partNumber` 多次上传分段
+4. `Storage` 逐段写入临时分段数据并记录分段元数据
+5. 调用方调用 `Storage.completeMultipartUpload`
+6. `Storage` 校验分段完整性并合并底层对象
+7. `Storage` 写入正式 `StoredObject`
+8. `Storage` 清理临时分段数据
+9. 调用方拿到 `objectId`
+
+### 8.3 Replace Avatar Flow
 
 1. `UPMS` 调用 `Storage` 上传新头像
 2. `UPMS` 更新 `User.avatarObjectId`
 3. `UPMS` 调用 `Storage.clearObjectReference(oldObjectId, UPMS_USER_AVATAR, userId)`
 4. `UPMS` 调用 `Storage.markObjectReferenced(newObjectId, UPMS_USER_AVATAR, userId)`
 
-### 8.3 Replace Inventory Product Image Flow
+### 8.4 Replace Inventory Product Image Flow
 
 1. `Inventory` 商品模块调用 `Storage` 上传新图片
 2. `Inventory` 商品模块更新 `InventoryProduct.imageObjectId`
 3. `Inventory` 商品模块调用 `Storage.clearObjectReference(oldObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
 4. `Inventory` 商品模块调用 `Storage.markObjectReferenced(newObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
 
-### 8.4 Delete Object Flow
+### 8.5 Delete Object Flow
 
 1. 调用删除接口
 2. `Storage` 校验对象是否仍被引用

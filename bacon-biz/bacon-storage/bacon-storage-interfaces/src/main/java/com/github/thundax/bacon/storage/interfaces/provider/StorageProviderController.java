@@ -1,7 +1,13 @@
 package com.github.thundax.bacon.storage.interfaces.provider;
 
+import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
+import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
+import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
+import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
+import com.github.thundax.bacon.storage.application.command.MultipartUploadApplicationService;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,16 +29,19 @@ import java.io.IOException;
 public class StorageProviderController {
 
     private final StoredObjectApplicationService storedObjectApplicationService;
+    private final MultipartUploadApplicationService multipartUploadApplicationService;
     private final StoredObjectQueryApplicationService storedObjectQueryApplicationService;
 
     public StorageProviderController(StoredObjectApplicationService storedObjectApplicationService,
+                                     MultipartUploadApplicationService multipartUploadApplicationService,
                                      StoredObjectQueryApplicationService storedObjectQueryApplicationService) {
         this.storedObjectApplicationService = storedObjectApplicationService;
+        this.multipartUploadApplicationService = multipartUploadApplicationService;
         this.storedObjectQueryApplicationService = storedObjectQueryApplicationService;
     }
 
-    @Operation(summary = "上传存储对象")
-    @PostMapping(value = "/objects", consumes = "multipart/form-data")
+    @Operation(summary = "普通文件上传")
+    @PostMapping(value = "/objects/upload", consumes = "multipart/form-data")
     public StoredObjectDTO uploadObject(@RequestParam("ownerType") String ownerType,
                                         @RequestParam(value = "tenantId", required = false) String tenantId,
                                         @RequestParam(value = "category", required = false) String category,
@@ -40,6 +49,42 @@ public class StorageProviderController {
         UploadObjectCommand command = new UploadObjectCommand(ownerType, tenantId, category, file.getOriginalFilename(),
                 file.getContentType(), file.getSize(), file.getInputStream());
         return storedObjectApplicationService.uploadObject(command);
+    }
+
+    @Operation(summary = "初始化大文件分段上传")
+    @PostMapping("/objects/multipart/init")
+    public MultipartUploadSessionDTO initMultipartUpload(@RequestParam("ownerType") String ownerType,
+                                                         @RequestParam(value = "tenantId", required = false) String tenantId,
+                                                         @RequestParam(value = "category", required = false) String category,
+                                                         @RequestParam("originalFilename") String originalFilename,
+                                                         @RequestParam("contentType") String contentType,
+                                                         @RequestParam("totalSize") Long totalSize,
+                                                         @RequestParam("partSize") Long partSize) {
+        return multipartUploadApplicationService.initMultipartUpload(new InitMultipartUploadCommand(ownerType, tenantId,
+                category, originalFilename, contentType, totalSize, partSize));
+    }
+
+    @Operation(summary = "上传大文件分段")
+    @PostMapping(value = "/objects/multipart/{uploadId}/parts", consumes = "multipart/form-data")
+    public MultipartUploadPartDTO uploadMultipartPart(@PathVariable String uploadId,
+                                                      @RequestParam("partNumber") Integer partNumber,
+                                                      @RequestParam("file") MultipartFile file) throws IOException {
+        return multipartUploadApplicationService.uploadMultipartPart(new UploadMultipartPartCommand(uploadId,
+                partNumber, file.getSize(), file.getInputStream()));
+    }
+
+    @Operation(summary = "完成大文件分段上传")
+    @PostMapping("/objects/multipart/{uploadId}/complete")
+    public StoredObjectDTO completeMultipartUpload(@PathVariable String uploadId,
+                                                   @RequestParam("ownerId") String ownerId) {
+        return multipartUploadApplicationService.completeMultipartUpload(
+                new CompleteMultipartUploadCommand(uploadId, ownerId));
+    }
+
+    @Operation(summary = "取消大文件分段上传")
+    @DeleteMapping("/objects/multipart/{uploadId}")
+    public void abortMultipartUpload(@PathVariable String uploadId) {
+        multipartUploadApplicationService.abortMultipartUpload(uploadId);
     }
 
     @Operation(summary = "查询存储对象")

@@ -30,6 +30,10 @@ public class MultipartUploadSession {
     private String originalFilename;
     /** 内容类型。 */
     private String contentType;
+    /** Storage 统一生成的对象键。 */
+    private String objectKey;
+    /** 底层存储提供方分段上传会话标识。 */
+    private String providerUploadId;
     /** 总文件大小，字节。 */
     private Long totalSize;
     /** 固定分段大小，字节。 */
@@ -48,9 +52,10 @@ public class MultipartUploadSession {
     private Instant abortedAt;
 
     public MultipartUploadSession(Long id, String uploadId, String tenantId, String ownerType, String category,
-                                  String originalFilename, String contentType, Long totalSize, Long partSize,
-                                  Integer uploadedPartCount, String uploadStatus, Instant createdAt, Instant updatedAt,
-                                  Instant completedAt, Instant abortedAt) {
+                                  String originalFilename, String contentType, String objectKey,
+                                  String providerUploadId, Long totalSize, Long partSize, Integer uploadedPartCount,
+                                  String uploadStatus, Instant createdAt, Instant updatedAt, Instant completedAt,
+                                  Instant abortedAt) {
         this.id = id;
         this.uploadId = uploadId;
         this.tenantId = tenantId;
@@ -58,6 +63,8 @@ public class MultipartUploadSession {
         this.category = category;
         this.originalFilename = originalFilename;
         this.contentType = contentType;
+        this.objectKey = objectKey;
+        this.providerUploadId = providerUploadId;
         this.totalSize = totalSize;
         this.partSize = partSize;
         this.uploadedPartCount = uploadedPartCount;
@@ -69,15 +76,17 @@ public class MultipartUploadSession {
     }
 
     public static MultipartUploadSession initiate(String uploadId, String tenantId, String ownerType, String category,
-                                                  String originalFilename, String contentType, Long totalSize,
-                                                  Long partSize) {
+                                                  String originalFilename, String contentType, String objectKey,
+                                                  String providerUploadId, Long totalSize, Long partSize) {
         requireText(uploadId, "uploadId");
         requireText(ownerType, "ownerType");
+        requireText(objectKey, "objectKey");
         requirePositive(totalSize, "totalSize");
         requirePositive(partSize, "partSize");
         Instant now = Instant.now();
-        return new MultipartUploadSession(null, uploadId, tenantId, ownerType, category, originalFilename, contentType,
-                totalSize, partSize, 0, STATUS_INITIATED, now, now, null, null);
+        return new MultipartUploadSession(null, uploadId, tenantId, ownerType, category, originalFilename,
+                contentType, objectKey, providerUploadId, totalSize, partSize, 0, STATUS_INITIATED, now, now,
+                null, null);
     }
 
     public boolean isCompleted() {

@@ -94,7 +94,7 @@
 - `originalFilename`
 - `contentType`
 - `size`
-- `accessUrl`
+- `accessEndpoint`
 - `objectStatus`
 - `referenceStatus`
 
@@ -208,7 +208,7 @@
 - `originalFilename`
 - `contentType`
 - `size`
-- `accessUrl`
+- `accessEndpoint`
 - `objectStatus`
 - `referenceStatus`
 - `createdAt`
@@ -229,6 +229,8 @@
 - `category`
 - `originalFilename`
 - `contentType`
+- `objectKey`
+- `providerUploadId`
 - `totalSize`
 - `partSize`
 - `uploadedPartCount`
@@ -247,7 +249,7 @@
 ## 6. Global Constraints
 
 - `StoredObject` 只保存稳定元数据，不保存业务对象完整快照
-- `accessUrl` 由 `Storage` 统一生成
+- `accessEndpoint` 由 `Storage` 统一生成
 - 业务域读取资源对象时，只依赖 `objectId`
 - 业务域不得自行拼接本地文件访问路径或 `OSS URL`
 - 对象删除不得直接物理删除仍被引用的对象
@@ -256,6 +258,9 @@
 - 普通文件上传和大文件分段上传必须使用不同接口和不同应用服务逻辑
 - 大文件上传完成前不得写入正式 `StoredObject`
 - 大文件上传中断、取消、超时后，`Storage` 必须能够清理未完成分段数据
+- 大文件分段上传初始化后，`Storage` 必须持久化本次上传使用的 `objectKey`
+- 当底层为 `OSS/S3 API` 时，`Storage` 必须持久化 provider 分段上传会话标识，供后续分片上传、完成和取消复用
+- `providerUploadId` 属于 `Storage` 内部运行态字段，不得暴露为业务域主数据
 
 ## 7. Functional Requirements
 
@@ -269,7 +274,7 @@
 
 - 上传对象时必须先写底层存储，再写 `StoredObject` 主数据
 - 上传成功后返回固定 `StoredObjectDTO`
-- 查询对象时必须返回 `accessUrl`
+- 查询对象时必须返回 `accessEndpoint`
 - 删除对象时必须先校验引用状态
 
 必要补充约束：
@@ -334,7 +339,7 @@
 
 必要补充约束：
 
-- 业务域只持久化 `objectId` 或固定引用字段，不复制 `bucketName`、`objectKey`、`accessUrl`
+- 业务域只持久化 `objectId` 或固定引用字段，不复制 `bucketName`、`objectKey`、`accessEndpoint`
 - 业务域替换资源时必须先绑定新对象，再解除旧对象引用
 - 业务域清除资源时必须先解除引用，再清空业务字段
 - 前端与第三方调用方不得直接依赖 `Storage` 内部路径
@@ -375,7 +380,7 @@
 3. 业务域调用 `Storage` 上传对象并获取 `objectId`
 4. 业务域回写资源关联字段（如主数据中的 `objectId`）
 5. 如为替换场景，业务域先建立新对象引用，再解除旧对象引用
-6. 前端通过业务域接口获取资源访问信息，业务域通过 `Storage` 派生 `accessUrl`
+6. 前端通过业务域接口获取资源访问信息，业务域通过 `Storage` 派生 `accessEndpoint`
 
 ## 9. Non-Functional Requirements
 

@@ -37,6 +37,12 @@ public class MultipartUploadSessionDO {
     /** 内容类型。 */
     @TableField("content_type")
     private String contentType;
+    /** Storage 统一生成的对象键。 */
+    @TableField("object_key")
+    private String objectKey;
+    /** 底层存储提供方分段上传会话标识。 */
+    @TableField("provider_upload_id")
+    private String providerUploadId;
     /** 总文件大小，字节。 */
     @TableField("total_size")
     private Long totalSize;

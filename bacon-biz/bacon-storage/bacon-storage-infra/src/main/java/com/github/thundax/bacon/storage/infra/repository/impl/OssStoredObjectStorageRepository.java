@@ -1,10 +1,13 @@
 package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.github.thundax.bacon.common.oss.client.ObjectStorageClient;
+import com.github.thundax.bacon.common.oss.model.ObjectStoragePart;
 import com.github.thundax.bacon.common.oss.model.ObjectStorageWriteResult;
 import com.github.thundax.bacon.storage.api.enums.StorageTypeEnum;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
+import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -37,19 +40,32 @@ public class OssStoredObjectStorageRepository implements StoredObjectStorageRepo
     }
 
     @Override
-    public String uploadPart(String uploadId, Integer partNumber, InputStream inputStream) {
-        throw new UnsupportedOperationException("OSS multipart upload requires provider upload id persistence");
+    public MultipartUploadStorageSession initMultipartUpload(String category, String originalFilename,
+                                                             String contentType) {
+        String objectKey = buildObjectKey(category, originalFilename);
+        String providerUploadId = objectStorageClient.initiateMultipartUpload(objectKey, contentType);
+        return new MultipartUploadStorageSession(objectKey, providerUploadId);
     }
 
     @Override
-    public StoredObjectStorageResult completeMultipartUpload(String uploadId, String category, String originalFilename,
+    public String uploadPart(MultipartUploadSession session, Integer partNumber, Long size, InputStream inputStream) {
+        return objectStorageClient.uploadPart(session.getObjectKey(), session.getProviderUploadId(), partNumber, size,
+                inputStream);
+    }
+
+    @Override
+    public StoredObjectStorageResult completeMultipartUpload(MultipartUploadSession session,
                                                              List<MultipartUploadPart> parts) {
-        throw new UnsupportedOperationException("OSS multipart upload requires provider upload id persistence");
+        ObjectStorageWriteResult result = objectStorageClient.completeMultipartUpload(session.getObjectKey(),
+                session.getProviderUploadId(), parts.stream()
+                        .map(part -> new ObjectStoragePart(part.getPartNumber(), part.getEtag()))
+                        .toList());
+        return toStorageResult(result);
     }
 
     @Override
-    public void abortMultipartUpload(String uploadId) {
-        throw new UnsupportedOperationException("OSS multipart upload requires provider upload id persistence");
+    public void abortMultipartUpload(MultipartUploadSession session) {
+        objectStorageClient.abortMultipartUpload(session.getObjectKey(), session.getProviderUploadId());
     }
 
     @Override

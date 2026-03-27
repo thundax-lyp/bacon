@@ -3,7 +3,9 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 import com.github.thundax.bacon.common.core.exception.SystemException;
 import com.github.thundax.bacon.storage.api.enums.StorageTypeEnum;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
+import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,8 +57,14 @@ public class LocalFileStoredObjectStorageRepository implements StoredObjectStora
     }
 
     @Override
-    public String uploadPart(String uploadId, Integer partNumber, InputStream inputStream) {
-        Path partPath = resolveMultipartPartPath(uploadId, partNumber);
+    public MultipartUploadStorageSession initMultipartUpload(String category, String originalFilename,
+                                                             String contentType) {
+        return new MultipartUploadStorageSession(buildObjectKey(category, originalFilename), null);
+    }
+
+    @Override
+    public String uploadPart(MultipartUploadSession session, Integer partNumber, Long size, InputStream inputStream) {
+        Path partPath = resolveMultipartPartPath(session.getUploadId(), partNumber);
         try {
             Files.createDirectories(partPath.getParent());
             Files.copy(inputStream, partPath, StandardCopyOption.REPLACE_EXISTING);
@@ -67,10 +75,9 @@ public class LocalFileStoredObjectStorageRepository implements StoredObjectStora
     }
 
     @Override
-    public StoredObjectStorageResult completeMultipartUpload(String uploadId, String category, String originalFilename,
+    public StoredObjectStorageResult completeMultipartUpload(MultipartUploadSession session,
                                                              List<MultipartUploadPart> parts) {
-        String objectKey = buildObjectKey(category, originalFilename);
-        Path targetPath = resolveObjectPath(objectKey);
+        Path targetPath = resolveObjectPath(session.getObjectKey());
         try {
             Files.createDirectories(targetPath.getParent());
             try (OutputStream outputStream = Files.newOutputStream(targetPath, StandardOpenOption.CREATE,
@@ -78,21 +85,21 @@ public class LocalFileStoredObjectStorageRepository implements StoredObjectStora
                 for (MultipartUploadPart part : parts.stream()
                         .sorted(Comparator.comparing(MultipartUploadPart::getPartNumber))
                         .toList()) {
-                    Files.copy(resolveMultipartPartPath(uploadId, part.getPartNumber()), outputStream);
+                    Files.copy(resolveMultipartPartPath(session.getUploadId(), part.getPartNumber()), outputStream);
                 }
             }
-            deleteMultipartDirectory(uploadId);
-            return new StoredObjectStorageResult(StorageTypeEnum.LOCAL_FILE.name(), bucketName, objectKey,
-                    buildAccessEndpoint(objectKey));
+            deleteMultipartDirectory(session.getUploadId());
+            return new StoredObjectStorageResult(StorageTypeEnum.LOCAL_FILE.name(), bucketName, session.getObjectKey(),
+                    buildAccessEndpoint(session.getObjectKey()));
         } catch (IOException ex) {
             throw new SystemException("Failed to complete multipart upload in local storage", ex);
         }
     }
 
     @Override
-    public void abortMultipartUpload(String uploadId) {
+    public void abortMultipartUpload(MultipartUploadSession session) {
         try {
-            deleteMultipartDirectory(uploadId);
+            deleteMultipartDirectory(session.getUploadId());
         } catch (IOException ex) {
             throw new SystemException("Failed to abort multipart upload in local storage", ex);
         }

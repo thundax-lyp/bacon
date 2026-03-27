@@ -12,6 +12,7 @@ import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -48,9 +49,12 @@ public class MultipartUploadApplicationService {
 
     @Transactional
     public MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command) {
+        MultipartUploadStorageSession storageSession = storedObjectStorageRepository.initMultipartUpload(
+                command.getCategory(), command.getOriginalFilename(), command.getContentType());
         MultipartUploadSession session = MultipartUploadSession.initiate(UUID.randomUUID().toString(),
                 command.getTenantId(), command.getOwnerType(), command.getCategory(), command.getOriginalFilename(),
-                command.getContentType(), command.getTotalSize(), command.getPartSize());
+                command.getContentType(), storageSession.objectKey(), storageSession.providerUploadId(),
+                command.getTotalSize(), command.getPartSize());
         MultipartUploadSession savedSession = multipartUploadSessionRepository.save(session);
         return new MultipartUploadSessionDTO(savedSession.getUploadId(), savedSession.getOwnerType(),
                 savedSession.getTenantId(), savedSession.getCategory(), savedSession.getOriginalFilename(),
@@ -62,7 +66,7 @@ public class MultipartUploadApplicationService {
     public MultipartUploadPartDTO uploadMultipartPart(UploadMultipartPartCommand command) {
         MultipartUploadSession session = multipartUploadSessionRepository.findByUploadId(command.getUploadId())
                 .orElseThrow(() -> new NotFoundException("Multipart upload session not found: " + command.getUploadId()));
-        String etag = storedObjectStorageRepository.uploadPart(command.getUploadId(), command.getPartNumber(),
+        String etag = storedObjectStorageRepository.uploadPart(session, command.getPartNumber(), command.getSize(),
                 command.getInputStream());
         session.recordUploadedPart();
         multipartUploadSessionRepository.save(session);
@@ -80,8 +84,7 @@ public class MultipartUploadApplicationService {
         if (parts.isEmpty()) {
             throw new NotFoundException("Multipart upload parts not found: " + command.getUploadId());
         }
-        var storageResult = storedObjectStorageRepository.completeMultipartUpload(command.getUploadId(),
-                session.getCategory(), session.getOriginalFilename(), parts);
+        var storageResult = storedObjectStorageRepository.completeMultipartUpload(session, parts);
         StoredObject storedObject = StoredObject.newUploadedObject(session.getTenantId(), storageResult.getStorageType(),
                 storageResult.getBucketName(), storageResult.getObjectKey(), session.getOriginalFilename(),
                 session.getContentType(), session.getTotalSize(), storageResult.getAccessEndpoint(), null);
@@ -103,7 +106,7 @@ public class MultipartUploadApplicationService {
                 .orElseThrow(() -> new NotFoundException("Multipart upload session not found: " + uploadId));
         session.markAborted();
         multipartUploadSessionRepository.save(session);
-        storedObjectStorageRepository.abortMultipartUpload(uploadId);
+        storedObjectStorageRepository.abortMultipartUpload(session);
         multipartUploadPartRepository.deleteByUploadId(uploadId);
     }
 }

@@ -51,7 +51,7 @@
 - `object_status`: `ACTIVE`、`DELETED`
 - `reference_status`: `UNREFERENCED`、`REFERENCED`
 - `upload_status`: `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
-- `owner_type`: 至少包含 `UPMS_USER_AVATAR`、`INVENTORY_PRODUCT_IMAGE`
+- `owner_type`: 由接入业务域约定并在全局保持稳定
 
 ### 5.2 Fixed Length Rules
 
@@ -61,12 +61,14 @@
 - `object_key`: `varchar(512)`
 - `original_filename`: `varchar(255)`
 - `content_type`: `varchar(128)`
-- `access_url`: `varchar(1024)`
+- `access_endpoint`: `varchar(1024)`
 - `object_status`: `varchar(32)`
 - `reference_status`: `varchar(32)`
 - `owner_type`: `varchar(64)`
 - `owner_id`: `varchar(64)`
 - `upload_id`: `varchar(64)`
+- `provider_upload_id`: `varchar(128)`
+- `category`: `varchar(64)`
 - `upload_status`: `varchar(32)`
 - `etag`: `varchar(128)`
 
@@ -103,7 +105,7 @@
 | `original_filename` | `varchar(255)` | N | 原始文件名 |
 | `content_type` | `varchar(128)` | N | 内容类型 |
 | `size` | `bigint` | N | 文件大小，字节 |
-| `access_url` | `varchar(1024)` | N | 当前访问地址 |
+| `access_endpoint` | `varchar(1024)` | N | 当前访问端点 |
 | `object_status` | `varchar(32)` | N | 对象状态 |
 | `reference_status` | `varchar(32)` | N | 引用状态 |
 | `created_by` | `bigint` | Y | 创建人 |
@@ -192,6 +194,8 @@
 | `category` | `varchar(64)` | Y | 对象分类 |
 | `original_filename` | `varchar(255)` | N | 原始文件名 |
 | `content_type` | `varchar(128)` | N | 内容类型 |
+| `object_key` | `varchar(512)` | N | 本次分段上传最终对象键 |
+| `provider_upload_id` | `varchar(128)` | Y | 底层存储提供方分段上传会话标识 |
 | `total_size` | `bigint` | N | 总文件大小，字节 |
 | `part_size` | `bigint` | N | 固定分段大小，字节 |
 | `uploaded_part_count` | `int` | N | 已上传分段数 |
@@ -205,6 +209,7 @@
 
 - `pk(id)`
 - `uk_upload_id(upload_id)`
+- `idx_object_key(object_key)`
 - `idx_tenant_status(tenant_id, upload_status, created_at)`
 
 ### 7.5 `bacon_storage_multipart_upload_part`
@@ -238,12 +243,13 @@
 - `bacon_storage_object_reference.object_id` 关联 `bacon_storage_object.id`
 - `bacon_storage_multipart_upload_part.upload_id` 关联 `bacon_storage_multipart_upload.upload_id`
 - 当前设计默认不强制数据库外键
-- 业务对象表只保存 `object_id`，不保存 `bucket_name`、`object_key`、`access_url`
+- 业务对象表只保存 `object_id`，不保存 `bucket_name`、`object_key`、`access_endpoint`
 
 ## 9. Persistence Rules
 
 - 上传成功后必须同时写 `bacon_storage_object`
 - 初始化分段上传后必须写 `bacon_storage_multipart_upload`
+- 初始化分段上传后必须同时写入 `object_key`，如底层为 `OSS/S3 API` 还必须写入 `provider_upload_id`
 - 分段上传成功后必须写 `bacon_storage_multipart_upload_part`
 - 分段上传完成后必须写 `bacon_storage_object` 并更新 `bacon_storage_multipart_upload.upload_status`
 - 分段上传取消后必须把 `bacon_storage_multipart_upload.upload_status` 更新为 `ABORTED`

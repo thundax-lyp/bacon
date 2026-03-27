@@ -33,6 +33,7 @@
 - `Auth` 会话与令牌表
 - `Order`、`Inventory`、`Payment` 业务表
 - 导入导出临时文件表
+- `StoredObject` 主表与引用表
 
 ## 3. Database Rules
 
@@ -185,6 +186,7 @@
 | `name` | `varchar(128)` | N | 用户名称 |
 | `phone` | `varchar(32)` | Y | 手机号 |
 | `department_id` | `bigint` | Y | 部门主键 |
+| `avatar_object_id` | `bigint` | Y | 用户头像对象主键，引用 `Storage` 域 `StoredObject` |
 | `password_hash` | `varchar(255)` | N | 密码哈希，固定保存 `BCrypt` 哈希值 |
 | `need_change_password` | `tinyint(1)` | N | 首次登录是否必须改密 |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
@@ -199,6 +201,7 @@
 - `pk(id)`
 - `uk_account(account)`
 - `idx_tenant_department_status(tenant_id, department_id, status)`
+- `idx_avatar_object_id(avatar_object_id)`
 
 ### 7.3 `bacon_upms_user_identity`
 
@@ -683,6 +686,7 @@
 ## 8. Relationship Rules
 
 - `bacon_upms_user.department_id` 关联 `bacon_upms_department.id`
+- `bacon_upms_user.avatar_object_id` 关联 `Storage` 域 `bacon_storage_object.id`
 - `bacon_upms_user_identity.user_id` 关联 `bacon_upms_user.id`
 - `bacon_upms_department.leader_user_id` 关联 `bacon_upms_user.id`
 - `bacon_upms_user_role_rel.user_id` 关联 `bacon_upms_user.id`
@@ -701,12 +705,15 @@
 - 所有跨表写入必须校验 `tenant_id` 一致性
 - `bacon_upms_sys_log.operator_id` 可关联 `bacon_upms_user.id`
 - 当前设计不强制 `bacon_upms_sys_log.operator_id` 建立数据库外键
+- `UPMS` 只保存 `avatar_object_id`，不复制 `Storage` 域对象的 `bucket_name`、`object_key`、`access_url`
 
 ## 9. Persistence Rules
 
 - `User`、`Department`、`Post`、`Role`、`Menu`、`Resource` 统一逻辑删除
 - `Tenant`、关系表、规则表、审计表当前不使用逻辑删除
 - `User.account` 全局唯一，逻辑删除后也不得复用
+- `User.avatar_object_id` 允许为空
+- `User.avatar_object_id` 不为空时必须指向状态为 `ACTIVE` 的 `StoredObject`
 - `Tenant.code`、`Department.code`、`Post.code`、`Role.code`、`Resource.code` 全局唯一
 - `Menu.permission_code`、`Resource.permission_code` 全局唯一
 - `Resource(path, method)` 全局唯一

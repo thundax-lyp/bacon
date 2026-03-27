@@ -302,6 +302,8 @@
 - `originalFilename` 只用于展示，不作为唯一键
 - `contentType` 固定保存上传声明值
 - `size` 固定保存字节大小
+- `DELETING/DELETED` 对象查询固定返回 `404`
+- `DELETING/DELETED` 对象不得再建立新引用
 - 物理删除失败时对象状态必须保持为 `DELETING`，供后续重试或补偿
 
 ### 7.2 Multipart Upload Management

@@ -62,6 +62,7 @@ public class StoredObjectApplicationService {
     public void markObjectReferenced(Long objectId, String ownerType, String ownerId) {
         StoredObject storedObject = storedObjectRepository.findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
+        ensureAvailable(storedObject, objectId);
         String beforeStatus = storedObject.getReferenceStatus();
         if (!storedObjectReferenceRepository.existsByObjectIdAndOwner(objectId, ownerType, ownerId)) {
             StoredObjectReference reference = StoredObjectReference.create(objectId, ownerType, ownerId);
@@ -101,5 +102,11 @@ public class StoredObjectApplicationService {
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
                 storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),
                 storedObject.getReferenceStatus(), storedObject.getCreatedAt());
+    }
+
+    private void ensureAvailable(StoredObject storedObject, Long objectId) {
+        if (storedObject.isDeleting() || storedObject.isDeleted()) {
+            throw new NotFoundException("Stored object is unavailable: " + objectId);
+        }
     }
 }

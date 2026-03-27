@@ -21,6 +21,9 @@ public class StoredObjectQueryApplicationService {
     public StoredObjectDTO getObjectById(Long objectId) {
         StoredObject storedObject = storedObjectRepository.findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
+        if (storedObject.isDeleting() || storedObject.isDeleted()) {
+            throw new NotFoundException("Stored object is unavailable: " + objectId);
+        }
         return new StoredObjectDTO(storedObject.getId(), storedObject.getStorageType(), storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
                 storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),

@@ -224,10 +224,13 @@ Payment 是 Bacon 的统一支付业务域。
 
 - `CreatePaymentRequest` 至少包含 `tenantId`、`orderNo`、`userId`、`amount`、`channelCode`、`subject`、`expiredAt`
 - `ClosePaymentRequest` 至少包含 `tenantId`、`paymentNo`、`reason`
+- `PaymentCallbackRequest` 至少包含 `tenantId`、`paymentNo`、`success`、`channelTransactionNo`、`channelStatus`、`rawPayload`、`reason`
 
 固定约束：
 
 - `ClosePaymentRequest.reason` 的值域遵守 `6.5 Close Reason Rule`
+- `PaymentCallbackRequest.success=true` 时，`channelTransactionNo`、`channelStatus`、`rawPayload` 必须有值，`reason` 必须为空
+- `PaymentCallbackRequest.success=false` 时，`channelStatus`、`rawPayload`、`reason` 必须有值，`channelTransactionNo` 允许为空
 
 ## 5.5 Uniqueness And Index Rules
 
@@ -265,10 +268,13 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 支付回调处理必须幂等
 - 未知支付单回调必须拒绝
+- 当前范围固定只支持 `MOCK` 渠道
 - 回调结果必须保留原始渠道状态摘要
 - 支付成功后，`Payment` 必须调用 `OrderCommandFacade.markPaid`
 - 支付失败后，`Payment` 必须调用 `OrderCommandFacade.markPaymentFailed`
 - `Payment` 不得在回调处理中直接修改订单表
+- 回调记录必须先持久化 `PaymentCallbackRecord`，再更新 `PaymentOrder`
+- `PaymentDetailDTO.callbackSummary` 必须基于最近一次有效回调记录的 `rawPayload` 摘要组装
 
 ### 6.4 Payment Presence Rule
 
@@ -300,6 +306,9 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 请求字段遵守 `5.4 Fixed Request Contracts`
 - 仅允许为 `Order` 已确认库存预占成功的订单创建支付单
+- 当前范围内支付发起参数固定生成 `PaymentChannelPayload.payUrl`
+- 当前范围内 `channelCode` 固定为 `MOCK`
+- 创建成功时必须持久化一条 `PaymentAuditLog`，`actionType` 固定为 `CREATE`
 - 创建失败时，必须通过 `PaymentCreateResultDTO.failureReason` 返回明确失败原因
 
 ### 7.2 Payment Callback
@@ -312,6 +321,9 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 成功回调不得重复改变已支付结果
 - 失败回调不得覆盖已支付结果
+- 成功回调时必须持久化 `channelTransactionNo`
+- 成功回调时必须写入 `PaymentAuditLog`，`actionType` 固定为 `CALLBACK_PAID`
+- 失败回调时必须写入 `PaymentAuditLog`，`actionType` 固定为 `CALLBACK_FAILED`
 
 ### 7.3 Close Payment
 
@@ -322,6 +334,8 @@ Payment 是 Bacon 的统一支付业务域。
 - 请求字段遵守 `5.4 Fixed Request Contracts`
 - 已支付支付单不得关闭
 - 重复关闭不得产生脏数据
+- 关闭成功时必须写入 `PaymentAuditLog`，`actionType` 固定为 `CLOSE`
+- `closePayment` 成功关闭时不得再保留可继续支付的渠道参数语义
 
 ### 7.4 Read Capability
 
@@ -341,6 +355,7 @@ Payment 是 Bacon 的统一支付业务域。
 - 记录支付单创建
 - 记录支付回调
 - 记录支付关闭
+- 审计日志至少支持按 `tenantId`、`paymentNo`、`actionType`、`occurredAt` 查询
 
 ## 8. Key Flows
 
@@ -348,30 +363,36 @@ Payment 是 Bacon 的统一支付业务域。
 
 1. `Order` 发起支付单创建
 2. `Payment` 校验 `orderNo` 唯一性和金额有效性
-3. `Payment` 创建 `PaymentOrder`
-4. `Payment` 生成渠道支付参数
-5. `Payment` 返回支付单号和支付参数
+3. `Payment` 创建 `PaymentOrder`，状态进入 `CREATED`
+4. `Payment` 生成渠道支付参数，状态推进到 `PAYING`
+5. `Payment` 写入 `PaymentAuditLog`
+6. `Payment` 返回支付单号和支付参数
 
 ### 8.2 Payment Callback Success
 
 1. 渠道回调支付成功
 2. `Payment` 按渠道交易号执行幂等校验
-3. `Payment` 更新 `paymentStatus=PAID`
-4. `Payment` 调用 `OrderCommandFacade.markPaid`
+3. `Payment` 持久化 `PaymentCallbackRecord`
+4. `Payment` 更新 `paymentStatus=PAID`
+5. `Payment` 写入 `PaymentAuditLog`
+6. `Payment` 调用 `OrderCommandFacade.markPaid`
 
 ### 8.3 Payment Callback Failure
 
 1. 渠道回调支付失败
 2. `Payment` 按渠道交易号执行幂等校验
-3. `Payment` 更新 `paymentStatus=FAILED`
-4. `Payment` 调用 `OrderCommandFacade.markPaymentFailed`
+3. `Payment` 持久化 `PaymentCallbackRecord`
+4. `Payment` 更新 `paymentStatus=FAILED`
+5. `Payment` 写入 `PaymentAuditLog`
+6. `Payment` 调用 `OrderCommandFacade.markPaymentFailed`
 
 ### 8.4 Close Payment
 
 1. `Order` 发起支付关闭
 2. `Payment` 校验支付状态
 3. `Payment` 更新 `paymentStatus=CLOSED`
-4. `Payment` 返回 `PaymentCloseResultDTO`
+4. `Payment` 写入 `PaymentAuditLog`
+5. `Payment` 返回 `PaymentCloseResultDTO`
 
 ## 9. Non-Functional Requirements
 
@@ -384,6 +405,4 @@ Payment 是 Bacon 的统一支付业务域。
 
 ## 10. Open Items
 
-- 首批支付渠道范围未确认
-- 支付超时关闭时长未确认
-- 渠道签名校验规则未确认
+无

@@ -32,6 +32,7 @@
 - 主键字段统一使用 `bigint`
 - 金额字段统一使用 `decimal(18,2)`
 - 枚举字段统一使用 `varchar`
+- 渠道原始回调固定使用 `json`
 - 支付主表使用 `created_at`、`updated_at`
 - 回调记录表和审计表使用领域时间字段，不额外增加 `created_at`、`updated_at`
 - 当前范围不使用逻辑删除字段
@@ -52,6 +53,8 @@
 - `channel_code`: `MOCK`
 - `close_result`: `SUCCESS`、`FAILED`
 - `close_reason`: `USER_CANCELLED`、`SYSTEM_CANCELLED`、`TIMEOUT_CLOSED`
+- `action_type`: `CREATE`、`CALLBACK_PAID`、`CALLBACK_FAILED`、`CLOSE`
+- `operator_type`: `SYSTEM`、`USER`、`CHANNEL`
 
 ### 5.2 Fixed Length Rules
 
@@ -83,6 +86,7 @@
 
 - 持久化支付主聚合
 - 承载支付状态、金额和过期时间
+- 当前范围固定每个 `order_no` 只对应一个支付单
 
 字段定义：
 
@@ -112,6 +116,12 @@
 - `idx_tenant_user_created(tenant_id, user_id, created_at)`
 - `idx_tenant_status_expired(tenant_id, payment_status, expired_at)`
 
+固定约束：
+
+- 创建成功并生成渠道参数后，`payment_status` 固定持久化为 `PAYING`
+- `paid_amount` 在未支付前固定为 `0.00`
+- `updated_at` 必须在支付成功、支付失败、支付关闭时更新
+
 ### 7.2 `bacon_payment_callback_record`
 
 表类型：`Runtime Table`
@@ -120,6 +130,7 @@
 
 - 持久化渠道原始回调记录
 - 作为支付回调幂等和回调摘要的来源
+- 同一渠道交易号在同租户同渠道下只保留一条有效记录
 
 字段定义：
 
@@ -140,6 +151,13 @@
 - `pk(id)`
 - `uk_tenant_channel_txn(tenant_id, channel_code, channel_transaction_no)`
 - `idx_payment_no(payment_no)`
+- `idx_tenant_payment_received(tenant_id, payment_no, received_at)`
+
+固定约束：
+
+- `raw_payload` 固定保存渠道回调原文或结构化 JSON
+- `channel_transaction_no` 在成功回调场景必须有值
+- 失败回调允许 `channel_transaction_no` 为空；为空时由应用层基于 `payment_no` 和失败语义执行幂等防重
 
 ### 7.3 `bacon_payment_audit_log`
 
@@ -169,6 +187,7 @@
 - `pk(id)`
 - `idx_tenant_occurred(tenant_id, occurred_at)`
 - `idx_payment_no(payment_no)`
+- `idx_tenant_payment_action(tenant_id, payment_no, action_type, occurred_at)`
 
 ## 8. Relationship Rules
 
@@ -176,6 +195,7 @@
 - 当前设计不强制数据库外键
 - `PaymentChannelPayload` 是返回模型，不单独建表
 - `PaymentDetailDTO.callbackSummary` 由最近一次有效 `PaymentCallbackRecord.raw_payload` 摘要组装
+- `PaymentDetailDTO.channelTransactionNo`、`channelStatus` 优先取最近一次有效 `PaymentCallbackRecord`
 
 ## 9. Persistence Rules
 
@@ -188,6 +208,7 @@
 - `raw_payload` 固定保存渠道原始回调，不在读模型中原样返回
 - 支付回调按 `(tenant_id, channel_code, channel_transaction_no)` 幂等
 - `PAID`、`FAILED`、`CLOSED` 后不得重新进入 `PAYING`
+- 审计日志写入失败不得回滚支付主流程，失败处理遵守工程级数据库规范
 - `PaymentCreateResultDTO`、`PaymentCloseResultDTO` 是命令返回模型，不单独建表
 - `id` 是数据库主键；`payment_no` 是业务单号；二者不得混用
 
@@ -196,6 +217,8 @@
 - 支付详情查询主表固定为 `bacon_payment_order + bacon_payment_callback_record`
 - 支付状态查询主表固定为 `bacon_payment_order`
 - 审计查询主表固定为 `bacon_payment_audit_log`
+- 支付详情查询最近一次回调记录时，固定按 `received_at desc, id desc` 取第一条
+- 回调记录列表查询固定按 `received_at desc, id desc` 排序
 
 ## 11. Open Items
 

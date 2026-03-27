@@ -11,4 +11,6 @@ public interface StoredObjectRepository {
     Optional<StoredObject> findById(Long objectId);
 
     Optional<StoredObject> findByObjectKey(String objectKey);
+
+    void deleteById(Long objectId);
 }

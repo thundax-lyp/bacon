@@ -61,8 +61,8 @@ public class UserApplicationService {
         User user = userRepository.findUserById(userIdentity.getTenantId(), userIdentity.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
         return new UserLoginCredentialDTO(user.getTenantId(), user.getId(), user.getAccount(), user.getPhone(),
-                user.getStatus(), user.isDeleted(), userIdentity.getIdentityType(), userIdentity.getIdentityValue(),
-                userIdentity.isEnabled(), user.getPasswordHash());
+                userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
+                user.getStatus(), user.isDeleted(), user.getPasswordHash());
     }
 
     public TenantDTO getTenantByTenantId(Long tenantId) {

@@ -3,9 +3,28 @@ package com.github.thundax.bacon.upms.interfaces.response;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import java.util.List;
 
-public record UserMenuTreeResponse(Long id, String name, String menuType, Long parentId, String routePath,
-                                   String componentName, String icon, Integer sort,
-                                   List<UserMenuTreeResponse> children) {
+/**
+ * 用户菜单树查询响应对象。
+ */
+public record UserMenuTreeResponse(
+        /** 菜单主键。 */
+        Long id,
+        /** 菜单名称。 */
+        String name,
+        /** 菜单类型。 */
+        String menuType,
+        /** 父菜单主键，根节点固定为 0。 */
+        Long parentId,
+        /** 前端路由路径。 */
+        String routePath,
+        /** 前端组件名称。 */
+        String componentName,
+        /** 前端图标标识。 */
+        String icon,
+        /** 排序值。 */
+        Integer sort,
+        /** 子菜单列表。 */
+        List<UserMenuTreeResponse> children) {
 
     public static UserMenuTreeResponse from(UserMenuTreeDTO dto) {
         List<UserMenuTreeResponse> childResponses = dto.getChildren() == null

@@ -4,7 +4,7 @@
 
 `Storage` 是 Bacon 的统一存储对象业务域。  
 本文档定义上传对象、存储后端切换、对象引用、访问地址生成和跨域读写契约。  
-目标是让后续头像、租户 Logo、导入导出文件、业务附件等能力共享同一套对象模型，而不是分散在各业务域重复建模。
+目标是让后续各业务域资源能力共享同一套对象模型，而不是分散在各业务域重复建模。
 
 ## 2. Scope
 
@@ -18,8 +18,7 @@
 - 存储后端切换
 - 对象访问地址生成
 - 对象引用标记
-- 用户头像对象管理
-- 商品图片对象管理
+- 业务资源对象管理（如图片、附件、导入导出文件）
 
 ### 2.2 Out Of Scope
 
@@ -46,21 +45,7 @@
 - `bacon-common-oss` 提供 `OSS` 与本地文件的统一上传、删除、读取基础能力
 - `bacon-common-oss` 不直接承载业务表、不直接承载业务 `Facade`
 
-### 3.3 UPMS
-
-- `UPMS` 只保存 `avatarObjectId`
-- `UPMS` 不直接保存 `avatarUrl`
-- `UPMS` 不直接保存本地文件路径或 `OSS object key`
-- 用户头像上传、替换、清除通过 `Storage` 能力完成
-
-### 3.4 Inventory
-
-- 商品主数据中的图片字段只保存 `objectId`
-- `Inventory` 不直接保存商品图片访问地址
-- `Inventory` 不直接保存本地文件路径或 `OSS object key`
-- 商品图片上传、替换、清除通过 `Storage` 能力完成
-
-### 3.5 Cross-Domain Rule
+### 3.3 Cross-Domain Rule
 
 - 其他业务域只能依赖 `bacon-storage-api`
 - 其他业务域不得依赖 `Storage` 内部实现
@@ -68,10 +53,10 @@
 - 单体模式使用本地 `Facade` 实现
 - 微服务模式使用远程 `Facade` 实现，并保持同一契约
 
-### 3.6 External API Exposure Rule
+### 3.4 External API Exposure Rule
 
 - 面向前端或第三方调用方的接口必须由业务域提供，不得直接暴露 `Storage` 业务语义接口
-- 对外接口路径必须使用业务语义，例如用户头像使用 `/sys/user/{userId}/avatar`，商品图片使用 `/inventory/product/{productId}/image`
+- 对外接口路径必须使用业务语义，不得以 `Storage` 资源路径直接对外建模
 - `Storage` 对外只提供域间能力契约（`bacon-storage-api`），不承诺前端路由结构
 - 业务域负责认证、鉴权、数据可见性、业务主键校验、文件类型与大小校验
 - `Storage` 负责上传、删除、引用关系与访问地址生成，不负责业务权限判断
@@ -209,7 +194,7 @@
 - `objectStatus` 固定为 `ACTIVE`、`DELETED`
 - `referenceStatus` 固定为 `UNREFERENCED`、`REFERENCED`
 - `uploadStatus` 固定为 `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
-- `ownerType` 固定至少包含 `UPMS_USER_AVATAR`、`INVENTORY_PRODUCT_IMAGE`
+- `ownerType` 由接入业务域约定并在全局保持稳定
 
 ## 5.2 Fixed Fields
 
@@ -263,7 +248,7 @@
 
 - `StoredObject` 只保存稳定元数据，不保存业务对象完整快照
 - `accessUrl` 由 `Storage` 统一生成
-- 业务域读取头像、附件等对象时，只依赖 `objectId`
+- 业务域读取资源对象时，只依赖 `objectId`
 - 业务域不得自行拼接本地文件访问路径或 `OSS URL`
 - 对象删除不得直接物理删除仍被引用的对象
 - 对象替换时先建立新对象引用，再解除旧对象引用
@@ -335,49 +320,11 @@
 - 清理引用后，如对象已无任何引用，可进入删除候选状态
 - 引用关系变更不得依赖调用方本地缓存判断
 
-### 7.4 User Avatar Rule
+### 7.4 Generic Business Integration Rule
 
 功能对象：
 
-- `User.avatarObjectId`
-
-功能能力：
-
-- 用户头像上传后返回新的 `objectId`
-- 用户头像替换时更新 `avatarObjectId`
-- 用户头像清除时清空 `avatarObjectId`
-
-必要补充约束：
-
-- `UPMS` 只保存 `avatarObjectId`
-- `UPMS` 响应模型固定返回 `avatarObjectId` 和 `avatarUrl`
-- `avatarUrl` 由 `Storage` 查询结果派生，不单独落在 `UPMS`
-- 头像旧对象在引用解除后由 `Storage` 负责删除策略
-
-### 7.5 Inventory Product Image Rule
-
-功能对象：
-
-- `InventoryProduct.imageObjectId`
-
-功能能力：
-
-- 商品图片上传后返回新的 `objectId`
-- 商品图片替换时更新 `imageObjectId`
-- 商品图片清除时清空 `imageObjectId`
-
-必要补充约束：
-
-- `Inventory` 商品主数据只保存 `imageObjectId`
-- `Inventory` 商品响应模型固定返回 `imageObjectId` 和 `imageUrl`
-- `imageUrl` 由 `Storage` 查询结果派生，不单独落在 `Inventory`
-- 商品图片旧对象在引用解除后由 `Storage` 负责删除策略
-
-### 7.6 Generic Business Integration Rule
-
-功能对象：
-
-- 任意业务域的资源字段（如 `avatarObjectId`、`imageObjectId`、`attachmentObjectId`）
+- 任意业务域的资源关联字段（如主数据中的 `objectId` 引用字段）
 
 功能能力：
 
@@ -414,33 +361,19 @@
 8. `Storage` 清理临时分段数据
 9. 调用方拿到 `objectId`
 
-### 8.3 Replace Avatar Flow
-
-1. `UPMS` 调用 `Storage` 上传新头像
-2. `UPMS` 更新 `User.avatarObjectId`
-3. `UPMS` 调用 `Storage.markObjectReferenced(newObjectId, UPMS_USER_AVATAR, userId)`
-4. `UPMS` 调用 `Storage.clearObjectReference(oldObjectId, UPMS_USER_AVATAR, userId)`
-
-### 8.4 Replace Inventory Product Image Flow
-
-1. `Inventory` 商品模块调用 `Storage` 上传新图片
-2. `Inventory` 商品模块更新 `InventoryProduct.imageObjectId`
-3. `Inventory` 商品模块调用 `Storage.markObjectReferenced(newObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
-4. `Inventory` 商品模块调用 `Storage.clearObjectReference(oldObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
-
-### 8.5 Delete Object Flow
+### 8.3 Delete Object Flow
 
 1. 调用删除接口
 2. `Storage` 校验对象是否仍被引用
 3. 仍被引用时拒绝删除
 4. 未被引用时删除底层对象并更新 `StoredObject.objectStatus`
 
-### 8.6 Generic Business Upload And Access Flow
+### 8.4 Generic Business Upload And Access Flow
 
-1. 前端调用业务域资源接口（例如 `/sys/user/{userId}/avatar`）
+1. 前端调用业务域资源接口
 2. 业务域完成认证、鉴权、数据可见性与业务参数校验
 3. 业务域调用 `Storage` 上传对象并获取 `objectId`
-4. 业务域回写资源字段（如 `avatarObjectId`、`imageObjectId`）
+4. 业务域回写资源关联字段（如主数据中的 `objectId`）
 5. 如为替换场景，业务域先建立新对象引用，再解除旧对象引用
 6. 前端通过业务域接口获取资源访问信息，业务域通过 `Storage` 派生 `accessUrl`
 

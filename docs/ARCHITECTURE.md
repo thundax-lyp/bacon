@@ -357,6 +357,7 @@ common      -> 被各层依赖
 - 单体模式下，由被调用方提供 `facade` 的本地实现 Bean，内部转调本域 `application`。
 - 微服务模式下，由调用方在 `infra.rpc` 中提供 `facade` 的远程实现 Bean，内部通过 `RestClient` 或其他受控 RPC client 调目标服务。
 - 同一个 `facade` 接口在容器中只能有一个生效 Bean，避免本地实现和远程实现同时注入。
+- `RestClient` 的默认创建、超时和请求工厂策略统一由 `bacon-common-core` 提供，业务模块只保留 `baseUrl` 和领域级差异配置。
 
 ### 推荐放置方式
 - 对外读写能力抽象放在 `<domain>-api` 模块的 `api.facade`。

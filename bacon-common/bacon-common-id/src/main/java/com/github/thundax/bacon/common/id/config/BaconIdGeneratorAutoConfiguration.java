@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.common.id.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.IdProviderType;
 import com.github.thundax.bacon.common.id.event.IdFallbackAlertListener;
@@ -10,15 +11,11 @@ import com.github.thundax.bacon.common.id.provider.LeafIdGenerator;
 import com.github.thundax.bacon.common.id.provider.SnowflakeIdGenerator;
 import com.github.thundax.bacon.common.id.provider.TinyIdGenerator;
 import java.time.Duration;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
-import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 @AutoConfiguration
@@ -29,12 +26,12 @@ public class BaconIdGeneratorAutoConfiguration {
     @Primary
     @ConditionalOnMissingBean
     public IdGenerator idGenerator(BaconIdGeneratorProperties properties,
-                                   ObjectProvider<RestClient.Builder> restClientBuilderProvider,
+                                   RestClientFactory restClientFactory,
                                    ObjectMapper objectMapper) {
         IdProviderType providerType = IdProviderType.from(properties.getProvider());
         return switch (providerType) {
             case TINYID -> createTinyIdGenerator(properties);
-            case LEAF -> createLeafIdGenerator(properties, restClientBuilderProvider, objectMapper);
+            case LEAF -> createLeafIdGenerator(properties, restClientFactory, objectMapper);
             case SNOWFLAKE -> createSnowflakeIdGenerator(properties);
         };
     }
@@ -69,26 +66,17 @@ public class BaconIdGeneratorAutoConfiguration {
     }
 
     private LeafIdGenerator createLeafIdGenerator(BaconIdGeneratorProperties properties,
-                                                  ObjectProvider<RestClient.Builder> restClientBuilderProvider,
+                                                  RestClientFactory restClientFactory,
                                                   ObjectMapper objectMapper) {
         String baseUrl = properties.getLeaf().getBaseUrl();
         if (baseUrl == null || baseUrl.isBlank()) {
             throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
                     "leaf base-url is blank");
         }
-        RestClient.Builder builder = restClientBuilderProvider.getIfAvailable(RestClient::builder);
-        ClientHttpRequestFactory requestFactory = createRequestFactory(properties);
-        RestClient restClient = builder.baseUrl(baseUrl)
-                .requestFactory(requestFactory)
-                .build();
+        RestClient restClient = restClientFactory.create(baseUrl,
+                properties.getLeaf().getConnectTimeout(),
+                properties.getLeaf().getReadTimeout());
         return new LeafIdGenerator(restClient, properties, objectMapper);
-    }
-
-    private ClientHttpRequestFactory createRequestFactory(BaconIdGeneratorProperties properties) {
-        ClientHttpRequestFactorySettings settings = ClientHttpRequestFactorySettings.defaults()
-                .withConnectTimeout(properties.getLeaf().getConnectTimeout())
-                .withReadTimeout(properties.getLeaf().getReadTimeout());
-        return ClientHttpRequestFactoryBuilder.detect().build(settings);
     }
 
     private SnowflakeIdGenerator createSnowflakeIdGenerator(BaconIdGeneratorProperties properties) {

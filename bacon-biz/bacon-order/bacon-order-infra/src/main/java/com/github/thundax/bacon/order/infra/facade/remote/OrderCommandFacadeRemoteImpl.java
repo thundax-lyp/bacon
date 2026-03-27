@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.infra.facade.remote;
 
+import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,8 +16,9 @@ public class OrderCommandFacadeRemoteImpl implements OrderCommandFacade {
 
     private final RestClient restClient;
 
-    public OrderCommandFacadeRemoteImpl(@Value("${bacon.remote.order-base-url:http://127.0.0.1:8083/api}") String baseUrl) {
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+    public OrderCommandFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                        @Value("${bacon.remote.order-base-url:http://127.0.0.1:8083/api}") String baseUrl) {
+        this.restClient = restClientFactory.create(baseUrl);
     }
 
     @Override

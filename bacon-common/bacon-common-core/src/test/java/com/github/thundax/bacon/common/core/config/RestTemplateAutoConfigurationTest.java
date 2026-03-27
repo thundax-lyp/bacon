@@ -33,10 +33,20 @@ class RestTemplateAutoConfigurationTest {
     }
 
     @Test
+    void shouldCreateRestClientFactory() {
+        contextRunner.run(context -> {
+            RestClientFactory restClientFactory = context.getBean(RestClientFactory.class);
+            assertThat(restClientFactory).isNotNull();
+            assertThat(restClientFactory.create("http://localhost")).isNotNull();
+        });
+    }
+
+    @Test
     void shouldRegisterLoadBalancedClientsWhenDiscoveryEnabled() {
         contextRunner.run(context -> {
             assertThat(context).hasSingleBean(RestTemplate.class);
             assertThat(context).hasSingleBean(RestClient.Builder.class);
+            assertThat(context).hasSingleBean(RestClientFactory.class);
         });
     }
 
@@ -46,6 +56,7 @@ class RestTemplateAutoConfigurationTest {
                 .run(context -> {
                     assertThat(context).doesNotHaveBean(RestTemplate.class);
                     assertThat(context).doesNotHaveBean(RestClient.Builder.class);
+                    assertThat(context).doesNotHaveBean(RestClientFactory.class);
                 });
     }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
+import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
@@ -16,8 +17,9 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
     private final RestClient restClient;
 
-    public UserReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+    public UserReadFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                    @Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
+        this.restClient = restClientFactory.create(baseUrl);
     }
 
     @Override

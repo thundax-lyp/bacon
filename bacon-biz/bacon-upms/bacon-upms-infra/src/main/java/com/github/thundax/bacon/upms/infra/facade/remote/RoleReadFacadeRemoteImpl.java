@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
+import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +20,9 @@ public class RoleReadFacadeRemoteImpl implements RoleReadFacade {
 
     private final RestClient restClient;
 
-    public RoleReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+    public RoleReadFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                    @Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
+        this.restClient = restClientFactory.create(baseUrl);
     }
 
     @Override

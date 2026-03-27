@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.common.core.config;
 
 import java.time.Duration;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -47,6 +48,12 @@ public class RestTemplateAutoConfiguration {
     public RestClient.Builder restClientBuilder() {
         return RestClient.builder()
                 .requestFactory(createRequestFactory());
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "spring.cloud.nacos.discovery.enabled", havingValue = "true", matchIfMissing = true)
+    public RestClientFactory restClientFactory(ObjectProvider<RestClient.Builder> restClientBuilderProvider) {
+        return new RestClientFactory(restClientBuilderProvider);
     }
 
     private org.springframework.http.client.ClientHttpRequestFactory createRequestFactory() {

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.infra.facade.remote;
 
+import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -15,8 +16,9 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
 
     private final RestClient restClient;
 
-    public OrderReadFacadeRemoteImpl(@Value("${bacon.remote.order-base-url:http://127.0.0.1:8083/api}") String baseUrl) {
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+    public OrderReadFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                     @Value("${bacon.remote.order-base-url:http://127.0.0.1:8083/api}") String baseUrl) {
+        this.restClient = restClientFactory.create(baseUrl);
     }
 
     @Override

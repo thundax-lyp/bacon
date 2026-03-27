@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.auth.infra.facade.remote;
 
+import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.api.facade.TokenVerifyFacade;
@@ -14,8 +15,9 @@ public class TokenVerifyFacadeRemoteImpl implements TokenVerifyFacade {
 
     private final RestClient restClient;
 
-    public TokenVerifyFacadeRemoteImpl(@Value("${bacon.remote.auth-base-url:http://127.0.0.1:8081/api}") String baseUrl) {
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+    public TokenVerifyFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                       @Value("${bacon.remote.auth-base-url:http://127.0.0.1:8081/api}") String baseUrl) {
+        this.restClient = restClientFactory.create(baseUrl);
     }
 
     @Override

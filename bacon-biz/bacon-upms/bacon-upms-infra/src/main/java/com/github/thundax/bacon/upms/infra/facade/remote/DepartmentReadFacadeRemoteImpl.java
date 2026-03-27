@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
+import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,8 +21,9 @@ public class DepartmentReadFacadeRemoteImpl implements DepartmentReadFacade {
 
     private final RestClient restClient;
 
-    public DepartmentReadFacadeRemoteImpl(@Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
-        this.restClient = RestClient.builder().baseUrl(baseUrl).build();
+    public DepartmentReadFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                          @Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
+        this.restClient = restClientFactory.create(baseUrl);
     }
 
     @Override

@@ -298,6 +298,7 @@
 - 删除底层对象成功后必须再把 `object_status` 更新为 `DELETED`
 - 上传、引用变更、删除等关键操作必须写 `bacon_storage_audit_log`
 - 审计写入失败时必须补写 `bacon_storage_audit_outbox`
+- 审计补偿任务重试时必须按 `status + next_retry_at` 扫描 `bacon_storage_audit_outbox`
 
 ## 10. Query Model Rules
 

@@ -23,6 +23,7 @@ public class TenantApplicationService {
     }
 
     public TenantPageResultDTO pageTenants(TenantPageQueryDTO query) {
+        // 租户分页属于运营后台能力，统一先归一化分页参数，避免不同入口传入 0/负数时结果漂移。
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         return new TenantPageResultDTO(tenantRepository.pageTenants(query.getTenantId(), query.getCode(), query.getName(),
@@ -64,6 +65,7 @@ public class TenantApplicationService {
     public TenantDTO updateTenantStatus(Long tenantId, String status) {
         validateRequired(status, "status");
         Tenant tenant = tenantRepository.updateTenantStatus(tenantId, normalize(status));
+        // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
         if (DISABLED_STATUS.equalsIgnoreCase(tenant.getStatus())) {
             sessionCommandFacade.invalidateTenantSessions(tenantId, "TENANT_DISABLED");
         }

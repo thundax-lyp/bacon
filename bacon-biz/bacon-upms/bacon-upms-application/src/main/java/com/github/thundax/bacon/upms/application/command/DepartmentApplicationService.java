@@ -39,6 +39,7 @@ public class DepartmentApplicationService {
 
     public List<DepartmentTreeDTO> getDepartmentTree(Long tenantId) {
         List<Department> departments = departmentRepository.listDepartmentTree(tenantId);
+        // 先平铺映射成节点表，再按 parentId 二次挂接，避免 repository 被迫返回固定层级结构。
         Map<Long, DepartmentTreeDTO> treeNodeMap = departments.stream()
                 .map(this::toTreeDto)
                 .collect(Collectors.toMap(DepartmentTreeDTO::getId, Function.identity()));
@@ -52,6 +53,7 @@ public class DepartmentApplicationService {
             }
         });
 
+        // 最终只返回根节点列表；子节点已经在前一步原地挂接完成。
         return departments.stream()
                 .filter(department -> department.getParentId() == null || department.getParentId() == 0L)
                 .map(department -> treeNodeMap.get(department.getId()))
@@ -113,6 +115,7 @@ public class DepartmentApplicationService {
     }
 
     private void validateParent(Long tenantId, Long parentId) {
+        // 0/NULL 统一视为根节点，避免调用方在“无父节点”语义上出现多套约定。
         if (parentId == null || parentId == 0L) {
             return;
         }

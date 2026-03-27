@@ -21,10 +21,12 @@ public class MenuApplicationService {
     }
 
     public List<UserMenuTreeDTO> toMenuTree(List<Menu> menus) {
+        // 这里假设上游已经给出树形菜单，当前方法只做 DTO 投影，不再重复构树。
         return menus.stream().map(this::toDto).toList();
     }
 
     public List<MenuTreeDTO> getMenuTree(Long tenantId) {
+        // 菜单树读取直接复用权限仓储结果，避免命令侧和权限侧各维护一套树装配逻辑。
         return permissionRepository.listMenus(tenantId).stream().map(this::toTreeDto).toList();
     }
 
@@ -82,6 +84,7 @@ public class MenuApplicationService {
     }
 
     private void validateParent(Long tenantId, Long parentId) {
+        // 菜单根节点同样用 0/NULL 语义，和部门树保持一致，减少前端和接口的分支判断。
         if (parentId == null || parentId == 0L) {
             return;
         }

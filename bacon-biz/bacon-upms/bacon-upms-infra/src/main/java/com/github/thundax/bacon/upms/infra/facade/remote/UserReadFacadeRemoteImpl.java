@@ -24,6 +24,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
     @Override
     public UserDTO getUserById(Long tenantId, Long userId) {
+        // 用户主数据读取按 tenantId + userId 定位，避免在调用侧绕过租户边界。
         return restClient.get()
                 .uri("/providers/upms/users/{userId}?tenantId={tenantId}", userId, tenantId)
                 .retrieve()
@@ -32,6 +33,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
     @Override
     public UserIdentityDTO getUserIdentity(Long tenantId, String identityType, String identityValue) {
+        // 身份映射读取只返回绑定结果，不在 remote facade 里补默认身份，避免认证链路误判“用户不存在”和“未绑定”。
         return restClient.get()
                 .uri("/providers/upms/user-identities?tenantId={tenantId}&identityType={identityType}&identityValue={identityValue}",
                         tenantId, identityType, identityValue)
@@ -41,6 +43,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
     @Override
     public UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue) {
+        // 登录凭据查询是 auth 登录链路的基础读操作；provider 负责决定哪些敏感字段可以下发。
         return restClient.get()
                 .uri("/providers/upms/user-credentials?tenantId={tenantId}&identityType={identityType}&identityValue={identityValue}",
                         tenantId, identityType, identityValue)
@@ -50,6 +53,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
     @Override
     public TenantDTO getTenantByTenantId(Long tenantId) {
+        // tenant 查询不需要额外 query 参数，直接以路径 tenantId 作为唯一租户定位键。
         return restClient.get()
                 .uri("/providers/upms/tenants/{tenantId}", tenantId)
                 .retrieve()

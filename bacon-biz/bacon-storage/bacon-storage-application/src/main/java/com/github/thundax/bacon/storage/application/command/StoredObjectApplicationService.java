@@ -37,7 +37,8 @@ public class StoredObjectApplicationService {
 
     @Transactional
     public StoredObjectDTO uploadObject(UploadObjectCommand command) {
-        StoredObjectStorageResult storageResult = storedObjectStorageRepository.upload(command);
+        StoredObjectStorageResult storageResult = storedObjectStorageRepository.upload(command.getCategory(),
+                command.getOriginalFilename(), command.getContentType(), command.getInputStream());
         StoredObject storedObject = new StoredObject(null, command.getTenantId(), storageResult.getStorageType(),
                 storageResult.getBucketName(), storageResult.getObjectKey(), command.getOriginalFilename(),
                 command.getContentType(), command.getSize(), storageResult.getAccessUrl(), ObjectStatusEnum.ACTIVE.name(),

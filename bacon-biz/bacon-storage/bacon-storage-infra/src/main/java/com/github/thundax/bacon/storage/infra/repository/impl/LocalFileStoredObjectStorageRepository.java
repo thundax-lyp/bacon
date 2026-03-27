@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.github.thundax.bacon.common.core.exception.SystemException;
-import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.enums.StorageTypeEnum;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -35,12 +35,13 @@ public class LocalFileStoredObjectStorageRepository implements StoredObjectStora
     }
 
     @Override
-    public StoredObjectStorageResult upload(UploadObjectCommand command) {
-        String objectKey = buildObjectKey(command.getCategory(), command.getOriginalFilename());
+    public StoredObjectStorageResult upload(String category, String originalFilename, String contentType,
+                                            InputStream inputStream) {
+        String objectKey = buildObjectKey(category, originalFilename);
         Path targetPath = Path.of(rootPath, objectKey);
         try {
             Files.createDirectories(targetPath.getParent());
-            Files.copy(command.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             return new StoredObjectStorageResult(StorageTypeEnum.LOCAL_FILE.name(), bucketName, objectKey,
                     buildAccessUrl(objectKey));
         } catch (IOException ex) {

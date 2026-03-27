@@ -27,6 +27,7 @@
         <module>bacon-mono-boot</module>
         <module>bacon-order-starter</module>
         <module>bacon-inventory-starter</module>
+        <module>bacon-storage-starter</module>
         <module>bacon-payment-starter</module>
         <module>bacon-auth-starter</module>
         <module>bacon-upms-starter</module>

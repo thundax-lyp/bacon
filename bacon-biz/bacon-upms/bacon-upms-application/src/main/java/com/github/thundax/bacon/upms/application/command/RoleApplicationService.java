@@ -56,9 +56,18 @@ public class RoleApplicationService {
         validateRequired(name, "name");
         validateRequired(roleType, "roleType");
         validateRequired(dataScopeType, "dataScopeType");
-        return toDto(roleRepository.save(new Role(currentRole.getId(), currentRole.getCreatedBy(), currentRole.getCreatedAt(),
-                currentRole.getUpdatedBy(), currentRole.getUpdatedAt(), tenantId, normalize(code), normalize(name),
-                normalize(roleType), normalize(dataScopeType), currentRole.getStatus())));
+        return toDto(roleRepository.save(new Role(
+                currentRole.getId(),
+                tenantId,
+                normalize(code),
+                normalize(name),
+                normalize(roleType),
+                normalize(dataScopeType),
+                currentRole.getStatus(),
+                currentRole.getCreatedBy(),
+                currentRole.getCreatedAt(),
+                currentRole.getUpdatedBy(),
+                currentRole.getUpdatedAt())));
     }
 
     public RoleDTO updateRoleStatus(Long tenantId, Long roleId, String status) {

@@ -53,20 +53,24 @@ public class AuthSession {
     }
 
     public void touch(Instant accessTime) {
+        // touch 只更新活跃时间，不改变状态；无状态切换语义，便于高频续期调用。
         this.lastAccessTime = accessTime;
     }
 
     public void logout(Instant logoutTime) {
+        // 用户主动登出和强制失效需要分开建模，后续审计才知道是用户行为还是系统策略。
         this.sessionStatus = "LOGGED_OUT";
         this.logoutAt = logoutTime;
     }
 
     public void invalidate(String reason) {
+        // invalidate 用于封禁、密码重置等安全场景；保留原因字段给上层做追踪。
         this.sessionStatus = "INVALIDATED";
         this.invalidateReason = reason;
     }
 
     public void expire() {
+        // 自然过期不携带业务原因，和 logout/invalidate 的人工动作区分开。
         this.sessionStatus = "EXPIRED";
     }
 }

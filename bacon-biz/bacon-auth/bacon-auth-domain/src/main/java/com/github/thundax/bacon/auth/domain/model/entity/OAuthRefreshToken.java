@@ -43,10 +43,12 @@ public class OAuthRefreshToken {
     }
 
     public void markUsed() {
+        // 刷新令牌采用一次性轮转；被成功消费后必须立刻标记 USED，禁止再次换发访问令牌。
         this.tokenStatus = "USED";
     }
 
     public void revoke() {
+        // 主动撤销用于登出或风控失效，和 USED 区分开，便于审计令牌为什么不可再用。
         this.tokenStatus = "REVOKED";
     }
 }

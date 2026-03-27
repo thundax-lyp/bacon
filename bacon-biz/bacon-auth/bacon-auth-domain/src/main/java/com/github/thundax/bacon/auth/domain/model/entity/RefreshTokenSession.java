@@ -32,15 +32,18 @@ public class RefreshTokenSession {
     }
 
     public void markUsed(Instant useTime) {
+        // 会话维度同样记录一次性消费时间，用来和 refresh token 主表交叉校验是否发生重放。
         this.tokenStatus = "USED";
         this.usedAt = useTime;
     }
 
     public void invalidate() {
+        // 失效通常来自安全策略或登出清理，和自然过期区分处理。
         this.tokenStatus = "INVALIDATED";
     }
 
     public void expire() {
+        // 过期是时间驱动的终态，不记录 usedAt，避免和真实消费混淆。
         this.tokenStatus = "EXPIRED";
     }
 }

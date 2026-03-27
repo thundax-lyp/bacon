@@ -44,6 +44,7 @@ public class OAuthAccessToken {
     }
 
     public void revoke() {
+        // 访问令牌只保留撤销语义；鉴权链路据此拒绝已签发但被强制作废的 token。
         this.tokenStatus = "REVOKED";
     }
 }

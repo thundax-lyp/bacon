@@ -89,10 +89,7 @@ public class S3ApiObjectStorageClient implements ObjectStorageClient {
     public ObjectStorageWriteResult completeMultipartUpload(String objectKey, String uploadId,
                                                             List<ObjectStoragePart> parts) {
         List<CompletedPart> completedParts = parts.stream()
-                .map(part -> CompletedPart.builder()
-                        .partNumber(part.partNumber())
-                        .eTag(part.etag())
-                        .build())
+                .map(this::toCompletedPart)
                 .toList();
         CompletedMultipartUpload multipartUpload = CompletedMultipartUpload.builder()
                 .parts(completedParts)
@@ -129,5 +126,12 @@ public class S3ApiObjectStorageClient implements ObjectStorageClient {
                 ? properties.getPublicBaseUrl() : properties.getEndpoint() + "/" + properties.getBucketName();
         String normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         return normalizedBaseUrl + "/" + objectKey;
+    }
+
+    private CompletedPart toCompletedPart(ObjectStoragePart part) {
+        return CompletedPart.builder()
+                .partNumber(part.partNumber())
+                .eTag(part.etag())
+                .build();
     }
 }

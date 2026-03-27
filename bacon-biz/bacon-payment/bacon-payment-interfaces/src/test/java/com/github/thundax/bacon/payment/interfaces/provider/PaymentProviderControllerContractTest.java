@@ -4,6 +4,8 @@ import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.service.PaymentApplicationService;
 import com.github.thundax.bacon.payment.application.service.PaymentCloseApplicationService;
 import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
+import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
+import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import jakarta.servlet.ServletException;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -52,7 +54,8 @@ class PaymentProviderControllerContractTest {
         ServletException exception = assertThrows(ServletException.class, () -> mockMvc.perform(
                 get("/providers/payment/PAY-10001")
                         .param("tenantId", "9999")));
-        assertEquals("Invalid tenant: 9999", exception.getCause().getMessage());
+        assertEquals(PaymentDomainException.class, exception.getCause().getClass());
+        assertEquals(PaymentErrorCode.PAYMENT_NOT_FOUND.code(), ((PaymentDomainException) exception.getCause()).getCode());
     }
 
     private static final class StubPaymentQueryApplicationService extends PaymentQueryApplicationService {
@@ -64,7 +67,7 @@ class PaymentProviderControllerContractTest {
         @Override
         public PaymentDetailDTO getByPaymentNo(Long tenantId, String paymentNo) {
             if (Long.valueOf(9999L).equals(tenantId)) {
-                throw new IllegalArgumentException("Invalid tenant: " + tenantId);
+                throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
             }
             return new PaymentDetailDTO(tenantId, paymentNo, "ORD-10001", 2001L, "MOCK", "PAID",
                     new BigDecimal("88.80"), new BigDecimal("88.80"), Instant.parse("2026-03-27T10:00:00Z"),

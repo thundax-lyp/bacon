@@ -4,6 +4,8 @@ import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
+import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
+import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +50,14 @@ class PaymentQueryControllerContractTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void shouldExposePaymentErrorCodeWhenBusinessExceptionOccurs() throws Exception {
+        mockMvc.perform(get("/payments/PAY-40401")
+                        .param("tenantId", "1001"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(PaymentErrorCode.PAYMENT_NOT_FOUND.code()));
+    }
+
     private static final class StubPaymentQueryApplicationService extends PaymentQueryApplicationService {
 
         private StubPaymentQueryApplicationService() {
@@ -56,6 +66,9 @@ class PaymentQueryControllerContractTest {
 
         @Override
         public PaymentDetailDTO getByPaymentNo(Long tenantId, String paymentNo) {
+            if ("PAY-40401".equals(paymentNo)) {
+                throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
+            }
             return new PaymentDetailDTO(tenantId, paymentNo, "ORD-10001", 2001L, "MOCK", "PAID",
                     new BigDecimal("88.80"), new BigDecimal("88.80"), Instant.parse("2026-03-27T10:00:00Z"),
                     Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:01:00Z"),

@@ -58,6 +58,7 @@
 - `close_result`: `SUCCESS`、`FAILED`
 - `close_reason`: `USER_CANCELLED`、`SYSTEM_CANCELLED`、`TIMEOUT_CLOSED`
 - `action_type`: `CREATE`、`CALLBACK_PAID`、`CALLBACK_FAILED`、`CLOSE`
+- 幂等命中或终态忽略的回调沿用原始回调动作类型，`before_status`、`after_status` 允许相同
 - `operator_type`: `SYSTEM`、`USER`、`CHANNEL`
 
 ### 5.2 Fixed Length Rules

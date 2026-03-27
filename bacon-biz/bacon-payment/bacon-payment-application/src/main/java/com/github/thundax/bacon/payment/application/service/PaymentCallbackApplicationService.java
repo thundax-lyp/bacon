@@ -2,10 +2,11 @@ package com.github.thundax.bacon.payment.application.service;
 
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
+import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
+import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
-import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import org.springframework.stereotype.Service;
@@ -33,17 +34,9 @@ public class PaymentCallbackApplicationService {
     public void callbackPaid(String channelCode, Long tenantId, String paymentNo, String channelTransactionNo,
                              String channelStatus, String rawPayload) {
         validateChannel(channelCode);
-        if (channelTransactionNo == null || channelTransactionNo.isBlank()) {
-            throw new IllegalArgumentException("Channel transaction no must not be blank");
-        }
-        if (channelStatus == null || channelStatus.isBlank()) {
-            throw new IllegalArgumentException("Channel status must not be blank");
-        }
-        if (rawPayload == null || rawPayload.isBlank()) {
-            throw new IllegalArgumentException("Raw payload must not be blank");
-        }
+        validateSuccessCallbackPayload(channelTransactionNo, channelStatus, rawPayload);
         PaymentOrder paymentOrder = paymentOrderRepository.findOrderByPaymentNo(tenantId, paymentNo)
-                .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentNo));
+                .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         PaymentCallbackRecord existing = paymentCallbackRecordRepository
                 .findCallbackByChannelTransactionNo(tenantId, channelCode, channelTransactionNo)
                 .orElse(null);
@@ -52,10 +45,14 @@ public class PaymentCallbackApplicationService {
                 paymentNo, paymentOrder.getOrderNo(), channelCode, channelTransactionNo, channelStatus, rawPayload, Instant.now()))
                 : existing;
         if (PaymentOrder.STATUS_PAID.equals(paymentOrder.getPaymentStatus())) {
+            recordCallbackAudit(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
+                    paymentOrder.getPaymentStatus(), paymentOrder.getPaymentStatus(), Instant.now());
             return;
         }
         if (PaymentOrder.STATUS_FAILED.equals(paymentOrder.getPaymentStatus())
                 || PaymentOrder.STATUS_CLOSED.equals(paymentOrder.getPaymentStatus())) {
+            recordCallbackAudit(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
+                    paymentOrder.getPaymentStatus(), paymentOrder.getPaymentStatus(), Instant.now());
             return;
         }
         String beforeStatus = paymentOrder.getPaymentStatus();
@@ -73,17 +70,9 @@ public class PaymentCallbackApplicationService {
     public void callbackFailed(String channelCode, Long tenantId, String paymentNo, String channelStatus,
                                String rawPayload, String reason) {
         validateChannel(channelCode);
-        if (channelStatus == null || channelStatus.isBlank()) {
-            throw new IllegalArgumentException("Channel status must not be blank");
-        }
-        if (rawPayload == null || rawPayload.isBlank()) {
-            throw new IllegalArgumentException("Raw payload must not be blank");
-        }
-        if (reason == null || reason.isBlank()) {
-            throw new IllegalArgumentException("Failure reason must not be blank");
-        }
+        validateFailedCallbackPayload(channelStatus, rawPayload, reason);
         PaymentOrder paymentOrder = paymentOrderRepository.findOrderByPaymentNo(tenantId, paymentNo)
-                .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentNo));
+                .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
                 .findLatestCallbackByPaymentNo(tenantId, paymentNo)
                 .orElse(null);
@@ -94,10 +83,14 @@ public class PaymentCallbackApplicationService {
                     paymentNo, paymentOrder.getOrderNo(), channelCode, null, channelStatus, rawPayload, Instant.now()));
         }
         if (PaymentOrder.STATUS_PAID.equals(paymentOrder.getPaymentStatus())) {
+            recordCallbackAudit(PaymentAuditLog.ACTION_CALLBACK_FAILED, tenantId, paymentNo,
+                    paymentOrder.getPaymentStatus(), paymentOrder.getPaymentStatus(), Instant.now());
             return;
         }
         if (PaymentOrder.STATUS_FAILED.equals(paymentOrder.getPaymentStatus())
                 || PaymentOrder.STATUS_CLOSED.equals(paymentOrder.getPaymentStatus())) {
+            recordCallbackAudit(PaymentAuditLog.ACTION_CALLBACK_FAILED, tenantId, paymentNo,
+                    paymentOrder.getPaymentStatus(), paymentOrder.getPaymentStatus(), Instant.now());
             return;
         }
         String beforeStatus = paymentOrder.getPaymentStatus();
@@ -112,7 +105,37 @@ public class PaymentCallbackApplicationService {
 
     private void validateChannel(String channelCode) {
         if (!PaymentOrder.CHANNEL_MOCK.equals(channelCode)) {
-            throw new IllegalArgumentException("Unsupported channel code: " + channelCode);
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CHANNEL_CODE, channelCode);
         }
+    }
+
+    private void validateSuccessCallbackPayload(String channelTransactionNo, String channelStatus, String rawPayload) {
+        if (channelTransactionNo == null || channelTransactionNo.isBlank()) {
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "channelTransactionNo");
+        }
+        if (channelStatus == null || channelStatus.isBlank()) {
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "channelStatus");
+        }
+        if (rawPayload == null || rawPayload.isBlank()) {
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "rawPayload");
+        }
+    }
+
+    private void validateFailedCallbackPayload(String channelStatus, String rawPayload, String reason) {
+        if (channelStatus == null || channelStatus.isBlank()) {
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "channelStatus");
+        }
+        if (rawPayload == null || rawPayload.isBlank()) {
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "rawPayload");
+        }
+        if (reason == null || reason.isBlank()) {
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "reason");
+        }
+    }
+
+    private void recordCallbackAudit(String actionType, Long tenantId, String paymentNo, String beforeStatus,
+                                     String afterStatus, Instant occurredAt) {
+        paymentAuditLogSupport.saveSafely(new PaymentAuditLog(null, tenantId, paymentNo, actionType,
+                beforeStatus, afterStatus, PaymentAuditLog.OPERATOR_CHANNEL, 0L, occurredAt));
     }
 }

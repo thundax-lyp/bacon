@@ -324,6 +324,7 @@ Payment 是 Bacon 的统一支付业务域。
 - 成功回调时必须持久化 `channelTransactionNo`
 - 成功回调时必须写入 `PaymentAuditLog`，`actionType` 固定为 `CALLBACK_PAID`
 - 失败回调时必须写入 `PaymentAuditLog`，`actionType` 固定为 `CALLBACK_FAILED`
+- 幂等命中或终态忽略的回调同样必须写入 `PaymentAuditLog`；此时 `beforeStatus` 与 `afterStatus` 允许相同
 
 ### 7.3 Close Payment
 

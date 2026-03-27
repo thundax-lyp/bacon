@@ -85,6 +85,39 @@ class PaymentApplicationServiceTest {
     }
 
     @Test
+    void duplicateOrIgnoredCallbacksShouldStillWriteAuditLog() {
+        TestPaymentRepository repository = new TestPaymentRepository();
+        StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
+        PaymentApplicationService createService = new PaymentApplicationService(repository, new PaymentAuditLogSupport(repository),
+                () -> "PAY-20007");
+        PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(repository, repository,
+                new PaymentAuditLogSupport(repository), orderCommandFacade);
+
+        PaymentCreateResultDTO created = createService.createPayment(1001L, "ORD-10007", 2007L, new BigDecimal("20.00"),
+                "MOCK", "duplicate-callback", Instant.now().plusSeconds(1800));
+        callbackService.callbackPaid("MOCK", 1001L, created.getPaymentNo(), "TXN-20007", "SUCCESS",
+                "{\"tradeStatus\":\"SUCCESS\"}");
+        callbackService.callbackPaid("MOCK", 1001L, created.getPaymentNo(), "TXN-20007", "SUCCESS",
+                "{\"tradeStatus\":\"SUCCESS\"}");
+        callbackService.callbackFailed("MOCK", 1001L, created.getPaymentNo(), "FAILED",
+                "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL");
+
+        List<PaymentAuditLog> auditLogs = repository.findAuditLogsByPaymentNo(1001L, created.getPaymentNo());
+
+        assertEquals(4, auditLogs.size());
+        assertEquals(PaymentAuditLog.ACTION_CREATE, auditLogs.get(0).getActionType());
+        assertEquals(PaymentAuditLog.ACTION_CALLBACK_PAID, auditLogs.get(1).getActionType());
+        assertEquals(PaymentAuditLog.ACTION_CALLBACK_PAID, auditLogs.get(2).getActionType());
+        assertEquals(PaymentOrder.STATUS_PAID, auditLogs.get(2).getBeforeStatus());
+        assertEquals(PaymentOrder.STATUS_PAID, auditLogs.get(2).getAfterStatus());
+        assertEquals(PaymentAuditLog.ACTION_CALLBACK_FAILED, auditLogs.get(3).getActionType());
+        assertEquals(PaymentOrder.STATUS_PAID, auditLogs.get(3).getBeforeStatus());
+        assertEquals(PaymentOrder.STATUS_PAID, auditLogs.get(3).getAfterStatus());
+        assertEquals(1, orderCommandFacade.markPaidCount);
+        assertEquals(0, orderCommandFacade.markFailedCount);
+    }
+
+    @Test
     void closePaymentShouldBeIdempotentForClosedPayment() {
         TestPaymentRepository repository = new TestPaymentRepository();
         PaymentApplicationService createService = new PaymentApplicationService(repository, new PaymentAuditLogSupport(repository),

@@ -2,6 +2,8 @@ package com.github.thundax.bacon.payment.application.service;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
+import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
+import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentChannelPayload;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -36,7 +38,7 @@ public class PaymentApplicationService {
         }
         String paymentNo = paymentNoGenerator.nextPaymentNo();
         if (paymentNo == null || paymentNo.isBlank()) {
-            throw new IllegalStateException("Payment no generator returned blank value");
+            throw new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE, "payment-no-generator");
         }
         PaymentOrder paymentOrder = new PaymentOrder(null, tenantId, paymentNo, orderNo, userId,
                 channelCode, amount, subject, expiredAt, Instant.now());
@@ -50,13 +52,13 @@ public class PaymentApplicationService {
 
     private void validateCreateRequest(BigDecimal amount, String channelCode, Instant expiredAt) {
         if (amount == null || amount.signum() <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero");
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_PAYMENT_AMOUNT);
         }
         if (!PaymentOrder.CHANNEL_MOCK.equals(channelCode)) {
-            throw new IllegalArgumentException("Unsupported channel code: " + channelCode);
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CHANNEL_CODE, channelCode);
         }
         if (expiredAt == null || !expiredAt.isAfter(Instant.now())) {
-            throw new IllegalArgumentException("ExpiredAt must be in the future");
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_EXPIRED_AT);
         }
     }
 

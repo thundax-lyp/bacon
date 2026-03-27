@@ -165,11 +165,9 @@
 
 ### 4.2 `bacon-storage-interfaces`
 
-- `Controller`
-- 请求 `Request`
-- 响应 `Response`
-- `Assembler`
 - `Provider`
+- 本地域内 `Facade` 适配器
+- 不提供面向前端业务语义的外部 `Controller`
 
 ### 4.3 `bacon-storage-application`
 

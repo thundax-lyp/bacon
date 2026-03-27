@@ -47,9 +47,17 @@ public class PostApplicationService {
         Post currentPost = requirePost(tenantId, postId);
         validateRequired(code, "code");
         validateRequired(name, "name");
-        return toDto(postRepository.save(new Post(currentPost.getId(), currentPost.getCreatedBy(),
-                currentPost.getCreatedAt(), currentPost.getUpdatedBy(), currentPost.getUpdatedAt(), tenantId,
-                normalize(code), normalize(name), departmentId, normalizeNullable(status, currentPost.getStatus()))));
+        return toDto(postRepository.save(new Post(
+                currentPost.getId(),
+                tenantId,
+                normalize(code),
+                normalize(name),
+                departmentId,
+                normalizeNullable(status, currentPost.getStatus()),
+                currentPost.getCreatedBy(),
+                currentPost.getCreatedAt(),
+                currentPost.getUpdatedBy(),
+                currentPost.getUpdatedAt())));
     }
 
     public void deletePost(Long tenantId, Long postId) {

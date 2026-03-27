@@ -8,6 +8,8 @@ import com.github.thundax.bacon.storage.infra.persistence.dataobject.MultipartUp
 import com.github.thundax.bacon.storage.infra.persistence.mapper.MultipartUploadSessionMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -40,6 +42,18 @@ public class MultipartUploadSessionRepositoryImpl implements MultipartUploadSess
     public Optional<MultipartUploadSession> findByUploadId(String uploadId) {
         return Optional.ofNullable(multipartUploadSessionMapper.selectOne(Wrappers.<MultipartUploadSessionDO>lambdaQuery()
                 .eq(MultipartUploadSessionDO::getUploadId, uploadId))).map(this::toDomain);
+    }
+
+    @Override
+    public List<MultipartUploadSession> listExpiredSessions(List<String> uploadStatuses, Instant expireBefore, int limit) {
+        return multipartUploadSessionMapper.selectList(Wrappers.<MultipartUploadSessionDO>lambdaQuery()
+                        .in(MultipartUploadSessionDO::getUploadStatus, uploadStatuses)
+                        .lt(MultipartUploadSessionDO::getUpdatedAt, expireBefore)
+                        .orderByAsc(MultipartUploadSessionDO::getUpdatedAt)
+                        .last("limit " + limit))
+                .stream()
+                .map(this::toDomain)
+                .toList();
     }
 
     private MultipartUploadSessionDO toDataObject(MultipartUploadSession session) {

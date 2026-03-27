@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 import java.io.IOException;
@@ -105,11 +106,18 @@ public class S3ApiObjectStorageClient implements ObjectStorageClient {
 
     @Override
     public void abortMultipartUpload(String objectKey, String uploadId) {
-        s3Client.abortMultipartUpload(AbortMultipartUploadRequest.builder()
-                .bucket(properties.getBucketName())
-                .key(objectKey)
-                .uploadId(uploadId)
-                .build());
+        try {
+            s3Client.abortMultipartUpload(AbortMultipartUploadRequest.builder()
+                    .bucket(properties.getBucketName())
+                    .key(objectKey)
+                    .uploadId(uploadId)
+                    .build());
+        } catch (S3Exception ex) {
+            if ("NoSuchUpload".equals(ex.awsErrorDetails() == null ? null : ex.awsErrorDetails().errorCode())) {
+                return;
+            }
+            throw ex;
+        }
     }
 
     @Override

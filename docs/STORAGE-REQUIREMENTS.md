@@ -279,6 +279,7 @@
 - 单次普通上传最大文件大小必须由 `Storage` 配置统一控制
 - 分片上传固定分片大小必须由 `Storage` 配置统一控制，不允许调用方自定义分片规格
 - 分片上传总文件最大大小必须由 `Storage` 配置统一控制
+- 分片上传超时清理必须由 `Storage` 定时任务统一执行
 
 ## 7. Functional Requirements
 
@@ -330,6 +331,7 @@
 - 合并完成后必须清理临时分段数据
 - 上传分段、完成分段、取消分段都必须校验 `tenantId`、`ownerType`、`ownerId` 与初始化会话一致
 - 分段完成前必须校验分片序号连续、已上传分片数一致、分片总大小等于会话 `totalSize`
+- 超时 `INITIATED/UPLOADING` 会话必须由定时任务自动转为 `ABORTED` 并清理底层临时分片数据
 ### 7.3 Reference Management
 
 功能对象：

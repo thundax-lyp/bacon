@@ -12,13 +12,11 @@ import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-
-import java.io.IOException;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
@@ -41,8 +39,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
         if (command.getCategory() != null) {
             bodyBuilder.part("category", command.getCategory());
         }
-        bodyBuilder.part("file", new NamedByteArrayResource(readBytes(command.getInputStream()),
-                        command.getOriginalFilename()))
+        bodyBuilder.part("file", new NamedInputStreamResource(command.getInputStream(), command.getOriginalFilename()))
                 .contentType(resolveMediaType(command.getContentType()));
         return restClient.post()
                 .uri("/providers/storage/objects/upload")
@@ -67,7 +64,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     public MultipartUploadPartDTO uploadMultipartPart(UploadMultipartPartCommand command) {
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
         bodyBuilder.part("partNumber", command.getPartNumber());
-        bodyBuilder.part("file", new NamedByteArrayResource(readBytes(command.getInputStream()), "part-" + command.getPartNumber()))
+        bodyBuilder.part("file", new NamedInputStreamResource(command.getInputStream(), "part-" + command.getPartNumber()))
                 .contentType(MediaType.APPLICATION_OCTET_STREAM);
         return restClient.post()
                 .uri("/providers/storage/objects/multipart/{uploadId}/parts?ownerType={ownerType}&ownerId={ownerId}&tenantId={tenantId}",
@@ -130,30 +127,27 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
                 .toBodilessEntity();
     }
 
-    private byte[] readBytes(java.io.InputStream inputStream) {
-        try {
-            return inputStream.readAllBytes();
-        } catch (IOException ex) {
-            throw new IllegalStateException("Failed to read upload input stream", ex);
-        }
-    }
-
     private MediaType resolveMediaType(String contentType) {
         return contentType == null ? MediaType.APPLICATION_OCTET_STREAM : MediaType.parseMediaType(contentType);
     }
 
-    private static final class NamedByteArrayResource extends ByteArrayResource {
+    private static final class NamedInputStreamResource extends InputStreamResource {
 
         private final String filename;
 
-        private NamedByteArrayResource(byte[] byteArray, String filename) {
-            super(byteArray);
+        private NamedInputStreamResource(java.io.InputStream inputStream, String filename) {
+            super(inputStream);
             this.filename = filename;
         }
 
         @Override
         public String getFilename() {
             return filename;
+        }
+
+        @Override
+        public long contentLength() {
+            return -1L;
         }
     }
 }

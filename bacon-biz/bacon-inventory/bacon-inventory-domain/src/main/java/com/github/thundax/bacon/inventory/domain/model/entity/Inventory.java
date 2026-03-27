@@ -6,6 +6,9 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * 库存主数据领域实体。
+ */
 @Getter
 @AllArgsConstructor
 public class Inventory {
@@ -14,15 +17,25 @@ public class Inventory {
     public static final String STATUS_DISABLED = "DISABLED";
     public static final Long DEFAULT_WAREHOUSE_ID = 1L;
 
+    /** 库存主键。 */
     private Long id;
+    /** 所属租户主键。 */
     private Long tenantId;
+    /** 商品 SKU 主键。 */
     private Long skuId;
+    /** 仓库主键。 */
     private Long warehouseId;
+    /** 在库数量。 */
     private Integer onHandQuantity;
+    /** 预占数量。 */
     private Integer reservedQuantity;
+    /** 可用数量。 */
     private Integer availableQuantity;
+    /** 库存状态。 */
     private String status;
+    /** 乐观锁版本号。 */
     private Long version;
+    /** 最后更新时间。 */
     private Instant updatedAt;
 
     public static Inventory create(Long id, Long tenantId, Long skuId, Integer onHandQuantity, String status, Instant createdAt) {

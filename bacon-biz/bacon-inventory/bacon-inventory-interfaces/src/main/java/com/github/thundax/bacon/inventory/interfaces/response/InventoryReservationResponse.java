@@ -4,11 +4,32 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import java.time.Instant;
 import java.util.List;
 
-public record InventoryReservationResponse(Long tenantId, String orderNo, String reservationNo,
-                                           String reservationStatus, Long warehouseId,
-                                           List<InventoryReservationItemResponse> items, String failureReason,
-                                           String releaseReason, Instant createdAt, Instant releasedAt,
-                                           Instant deductedAt) {
+/**
+ * 库存预占响应对象。
+ */
+public record InventoryReservationResponse(
+        /** 所属租户主键。 */
+        Long tenantId,
+        /** 订单号。 */
+        String orderNo,
+        /** 预占单号。 */
+        String reservationNo,
+        /** 预占状态。 */
+        String reservationStatus,
+        /** 仓库主键。 */
+        Long warehouseId,
+        /** 预占明细列表。 */
+        List<InventoryReservationItemResponse> items,
+        /** 失败原因。 */
+        String failureReason,
+        /** 释放原因。 */
+        String releaseReason,
+        /** 创建时间。 */
+        Instant createdAt,
+        /** 释放时间。 */
+        Instant releasedAt,
+        /** 扣减时间。 */
+        Instant deductedAt) {
 
     public static InventoryReservationResponse from(InventoryReservationDTO dto) {
         return new InventoryReservationResponse(dto.getTenantId(), dto.getOrderNo(), dto.getReservationNo(),

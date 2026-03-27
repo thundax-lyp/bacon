@@ -3,7 +3,18 @@ package com.github.thundax.bacon.inventory.interfaces.response;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
 import java.util.List;
 
-public record InventoryPageResponse(List<InventoryStockResponse> records, long total, int pageNo, int pageSize) {
+/**
+ * 库存分页响应对象。
+ */
+public record InventoryPageResponse(
+        /** 当前页记录。 */
+        List<InventoryStockResponse> records,
+        /** 总记录数。 */
+        long total,
+        /** 页码。 */
+        int pageNo,
+        /** 每页条数。 */
+        int pageSize) {
 
     public static InventoryPageResponse from(InventoryPageResultDTO dto) {
         List<InventoryStockResponse> recordResponses = dto.getRecords() == null

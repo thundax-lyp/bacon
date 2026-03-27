@@ -8,6 +8,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * 库存预占单领域实体。
+ */
 @Getter
 public class InventoryReservation {
 
@@ -25,17 +28,29 @@ public class InventoryReservation {
             "TIMEOUT_CLOSED"
     );
 
+    /** 预占单主键。 */
     private final Long id;
+    /** 所属租户主键。 */
     private final Long tenantId;
+    /** 预占单号。 */
     private final String reservationNo;
+    /** 订单号。 */
     private final String orderNo;
+    /** 仓库主键。 */
     private final Long warehouseId;
+    /** 创建时间。 */
     private final Instant createdAt;
+    /** 预占明细列表。 */
     private final List<InventoryReservationItem> items;
+    /** 预占状态。 */
     private String reservationStatus;
+    /** 失败原因。 */
     private String failureReason;
+    /** 释放原因。 */
     private String releaseReason;
+    /** 释放时间。 */
     private Instant releasedAt;
+    /** 扣减时间。 */
     private Instant deductedAt;
 
     public InventoryReservation(Long id, Long tenantId, String reservationNo, String orderNo, Long warehouseId,

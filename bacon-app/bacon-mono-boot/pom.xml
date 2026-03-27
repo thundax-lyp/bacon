@@ -146,11 +146,6 @@
         </dependency>
         <dependency>
             <groupId>com.github.thundax</groupId>
-            <artifactId>bacon-common-feign</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.thundax</groupId>
             <artifactId>bacon-common-mq</artifactId>
             <version>${project.version}</version>
         </dependency>

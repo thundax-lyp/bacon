@@ -90,7 +90,6 @@ bacon
 │   ├── bacon-common-cache/          # JetCache / Redis / Caffeine 基础封装
 │   ├── bacon-common-mq/             # MQ 封装，按配置切换 RocketMQ / RabbitMQ / Kafka
 │   ├── bacon-common-oss/            # 对象存储封装
-│   ├── bacon-common-feign/          # Feign 封装
 │   ├── bacon-common-seata/          # Seata 封装
 │   ├── bacon-common-security/       # Spring Security 封装
 │   ├── bacon-common-swagger/        # OpenAPI / Swagger 封装
@@ -356,7 +355,7 @@ common      -> 被各层依赖
 ### 调用原则
 - 调用方依赖被调用方暴露的 `api.facade` 接口，不直接依赖其 `service`、`repository`、`mapper`。
 - 单体模式下，由被调用方提供 `facade` 的本地实现 Bean，内部转调本域 `application`。
-- 微服务模式下，由调用方在 `infra.rpc` 中提供 `facade` 的远程实现 Bean，内部通过 Feign / RPC client 调目标服务。
+- 微服务模式下，由调用方在 `infra.rpc` 中提供 `facade` 的远程实现 Bean，内部通过 `RestClient` 或其他受控 RPC client 调目标服务。
 - 同一个 `facade` 接口在容器中只能有一个生效 Bean，避免本地实现和远程实现同时注入。
 
 ### 推荐放置方式
@@ -365,7 +364,7 @@ common      -> 被各层依赖
 - 本地实现放在被调用方 `interfaces.facade`，作为 `api.facade` 的本地适配实现，例如 `UserReadFacadeLocalImpl`。
 - 远程调用实现放在调用方 `infra.facade.remote`（内部可使用 `infra.rpc` 能力），例如 `UserReadFacadeRemoteImpl`。
 - 服务提供方的 provider 入口固定放在 `interfaces.provider`，本地/远程 `Facade` 适配实现必须直接对齐 `api.facade`。
-- 业务编排始终写在 `application`，不要写进 Feign client。
+- 业务编排始终写在 `application`，不要写进 HTTP client。
 
 ## Mono-App 约定
 
@@ -411,7 +410,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
 ### 单体装配规则
 - `bacon-mono-boot` 启动时默认装配各域的本地 `facade` 实现。
-- `infra.rpc` 中的远程 `facade` 实现、Feign Client、远程专用配置在 `mono-app` 模式下默认禁用。
+- `infra.rpc` 中的远程 `facade` 实现、HTTP client、远程专用配置在 `mono-app` 模式下默认禁用。
 - MQ consumer、定时任务、RPC provider 等需要根据运行模式和服务职责决定是否启用，不能因为模块被引入就自动全部生效。
 - 单体模式下跨域调用路径应固定为：
     - `caller-application -> callee-api.facade -> callee LocalImpl -> callee-application`
@@ -454,16 +453,16 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 ### 服务治理约定
 - 服务注册名保持统一命名，例如 `bacon-order-service`、`bacon-upms-service`。
 - 配置中心需统一约定 `namespace`、`group`、`dataId` 命名规则。
-- Feign / RPC client 需统一超时、重试、熔断、日志追踪策略，避免各服务各自配置。
-- 如工程使用 OpenFeign，公共配置、默认治理策略、统一属性入口必须集中在 `bacon-common-feign`，禁止在业务模块或 starter 内各自复制一套 Feign 配置。
+- RPC client 需统一超时、重试、熔断、日志追踪策略，避免各服务各自配置。
+- 当前工程统一使用 `RestClient` 作为同步 HTTP 调用入口；未实际使用的 OpenFeign 模块不得保留在仓库内。
 - `api.dto` 作为跨服务契约对象，需要关注兼容性，新增字段优先向后兼容，避免破坏性变更。
-- `bacon-common-feign`、`bacon-common-security` 作为微服务基础能力模块使用；`bacon-common-seata` 仅在确有分布式事务需求时启用，不视为默认标配。
+- `bacon-common-security` 作为微服务基础能力模块使用；`bacon-common-seata` 仅在确有分布式事务需求时启用，不视为默认标配。
 
 ## 禁止事项
 
 - `domain` 禁止依赖 MyBatis、JPA、Feign、Redis、MQ SDK。
 - `domain` 禁止出现 `@RestController`、`@Service`、`@Mapper`、`@TableName` 等面向基础设施的注解。
-- `application` 禁止直接操作 `Mapper`、`DAO`、`FeignClient`。
+- `application` 禁止直接操作 `Mapper`、`DAO`、HTTP client。
 - `interfaces` 禁止直接编写数据库访问逻辑。
 - `interfaces` 禁止定义跨域调用契约。
 - `interfaces` 禁止再单独定义 provider DTO 或第二套内部服务契约。
@@ -478,7 +477,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - 禁止在业务域模块中重复声明工程级依赖版本。
 - 禁止在 `domain` 中直接依赖 `nacos`、`jasypt`、`actuator`、`spring-boot-admin`。
 - 禁止在各业务模块内各自维护一套 `springdoc`、`mybatis-plus`、`checkstyle` 配置。
-- 禁止在业务模块、starter 或 `infra.remote` 包内重复定义 Feign 公共配置；如需新增 Feign 默认行为，只能修改 `bacon-common-feign`。
+- 禁止在业务模块、starter 或 `infra.remote` 包内重复定义同步 HTTP 客户端公共配置；如需新增默认行为，应统一收敛到 `bacon-common-*` 公共模块。
 - 禁止在同一模块内同时把 Hutool `StrUtil` 和 Apache `StringUtils` 作为常规字符串工具混用。
 - 禁止在 `jetcache` 之外再抽象一套通用缓存门面。
 - 禁止在 `mybatis-plus + mapper + repositoryimpl` 之外再叠加通用 DAO 框架。

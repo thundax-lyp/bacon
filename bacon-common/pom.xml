@@ -23,7 +23,6 @@
         <module>bacon-common-mybatis</module>
         <module>bacon-common-mq</module>
         <module>bacon-common-oss</module>
-        <module>bacon-common-feign</module>
         <module>bacon-common-seata</module>
         <module>bacon-common-security</module>
         <module>bacon-common-swagger</module>

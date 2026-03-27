@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.auth.interfaces.controller;
 
-import com.github.thundax.bacon.auth.api.dto.OAuth2IntrospectionDTO;
-import com.github.thundax.bacon.auth.api.dto.OAuth2TokenDTO;
-import com.github.thundax.bacon.auth.api.dto.OAuth2UserinfoDTO;
-import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService;
-import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationDecisionResult;
-import com.github.thundax.bacon.auth.application.service.OAuth2AuthorizationApplicationService.AuthorizationView;
+import com.github.thundax.bacon.auth.application.command.OAuth2AuthorizationApplicationService;
 import com.github.thundax.bacon.auth.interfaces.dto.OAuth2DecisionRequest;
+import com.github.thundax.bacon.auth.interfaces.response.OAuth2AuthorizationDecisionResponse;
+import com.github.thundax.bacon.auth.interfaces.response.OAuth2AuthorizationViewResponse;
+import com.github.thundax.bacon.auth.interfaces.response.OAuth2IntrospectionResponse;
+import com.github.thundax.bacon.auth.interfaces.response.OAuth2TokenResponse;
+import com.github.thundax.bacon.auth.interfaces.response.OAuth2UserinfoResponse;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,37 +35,43 @@ public class OAuth2Controller {
 
     @Operation(summary = "发起 OAuth2 授权")
     @GetMapping("/authorize")
-    public AuthorizationView authorize(@RequestHeader(value = "Authorization", required = false) String authorization,
-                                       @RequestParam("client_id") String clientId,
-                                       @RequestParam("redirect_uri") String redirectUri,
-                                       @RequestParam(value = "scope", required = false) String scope,
-                                       @RequestParam(value = "state", required = false) String state,
-                                       @RequestParam(value = "code_challenge", required = false) String codeChallenge,
-                                       @RequestParam(value = "code_challenge_method", required = false) String codeChallengeMethod) {
-        return oAuth2AuthorizationApplicationService.authorize(BearerTokenUtils.extractToken(authorization), clientId, redirectUri,
-                scope, state, codeChallenge, codeChallengeMethod);
+    public OAuth2AuthorizationViewResponse authorize(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam("client_id") String clientId,
+            @RequestParam("redirect_uri") String redirectUri,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestParam(value = "state", required = false) String state,
+            @RequestParam(value = "code_challenge", required = false) String codeChallenge,
+            @RequestParam(value = "code_challenge_method", required = false) String codeChallengeMethod) {
+        return OAuth2AuthorizationViewResponse.from(oAuth2AuthorizationApplicationService.authorize(
+                BearerTokenUtils.extractToken(authorization), clientId, redirectUri, scope, state,
+                codeChallenge, codeChallengeMethod));
     }
 
     @Operation(summary = "提交 OAuth2 授权决策")
     @PostMapping("/authorize/decision")
-    public AuthorizationDecisionResult decide(@Valid @RequestBody OAuth2DecisionRequest request) {
-        return oAuth2AuthorizationApplicationService.decide(request.getAuthorizationRequestId(), request.getDecision());
+    public OAuth2AuthorizationDecisionResponse decide(@Valid @RequestBody OAuth2DecisionRequest request) {
+        return OAuth2AuthorizationDecisionResponse.from(
+                oAuth2AuthorizationApplicationService.decide(request.getAuthorizationRequestId(),
+                        request.getDecision()));
     }
 
     @Operation(summary = "换取 OAuth2 访问令牌")
     @PostMapping("/token")
-    public OAuth2TokenDTO token(@RequestParam MultiValueMap<String, String> request) {
-        return oAuth2AuthorizationApplicationService.token(request.getFirst("grant_type"), request.getFirst("code"),
-                request.getFirst("redirect_uri"), request.getFirst("client_id"), request.getFirst("client_secret"),
-                request.getFirst("code_verifier"), request.getFirst("refresh_token"));
+    public OAuth2TokenResponse token(@RequestParam MultiValueMap<String, String> request) {
+        return OAuth2TokenResponse.from(oAuth2AuthorizationApplicationService.token(
+                request.getFirst("grant_type"), request.getFirst("code"), request.getFirst("redirect_uri"),
+                request.getFirst("client_id"), request.getFirst("client_secret"),
+                request.getFirst("code_verifier"), request.getFirst("refresh_token")));
     }
 
     @Operation(summary = "校验 OAuth2 令牌")
     @PostMapping("/introspect")
-    public OAuth2IntrospectionDTO introspect(@RequestParam("token") String token,
+    public OAuth2IntrospectionResponse introspect(@RequestParam("token") String token,
                                                   @RequestParam("client_id") String clientId,
                                                   @RequestParam("client_secret") String clientSecret) {
-        return oAuth2AuthorizationApplicationService.introspect(token, clientId, clientSecret);
+        return OAuth2IntrospectionResponse.from(
+                oAuth2AuthorizationApplicationService.introspect(token, clientId, clientSecret));
     }
 
     @Operation(summary = "撤销 OAuth2 令牌")
@@ -78,7 +84,8 @@ public class OAuth2Controller {
 
     @Operation(summary = "获取 OAuth2 用户信息")
     @GetMapping("/userinfo")
-    public OAuth2UserinfoDTO userinfo(@RequestHeader("Authorization") String authorization) {
-        return oAuth2AuthorizationApplicationService.userinfo(BearerTokenUtils.extractToken(authorization));
+    public OAuth2UserinfoResponse userinfo(@RequestHeader("Authorization") String authorization) {
+        return OAuth2UserinfoResponse.from(
+                oAuth2AuthorizationApplicationService.userinfo(BearerTokenUtils.extractToken(authorization)));
     }
 }

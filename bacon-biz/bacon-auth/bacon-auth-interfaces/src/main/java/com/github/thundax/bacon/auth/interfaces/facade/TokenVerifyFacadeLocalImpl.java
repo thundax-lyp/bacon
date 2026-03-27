@@ -3,7 +3,7 @@ package com.github.thundax.bacon.auth.interfaces.facade;
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.api.facade.TokenVerifyFacade;
-import com.github.thundax.bacon.auth.application.service.TokenApplicationService;
+import com.github.thundax.bacon.auth.application.command.TokenApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

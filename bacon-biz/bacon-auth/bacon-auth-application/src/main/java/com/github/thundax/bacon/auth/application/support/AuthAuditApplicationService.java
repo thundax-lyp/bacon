@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.application.service;
+package com.github.thundax.bacon.auth.application.support;
 
 import org.springframework.stereotype.Service;
 

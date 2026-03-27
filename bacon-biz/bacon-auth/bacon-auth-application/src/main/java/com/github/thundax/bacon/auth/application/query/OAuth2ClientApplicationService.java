@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.application.service;
+package com.github.thundax.bacon.auth.application.query;
 
 import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;

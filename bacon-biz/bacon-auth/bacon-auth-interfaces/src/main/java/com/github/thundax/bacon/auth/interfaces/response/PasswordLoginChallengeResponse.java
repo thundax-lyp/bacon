@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.interfaces.dto;
+package com.github.thundax.bacon.auth.interfaces.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

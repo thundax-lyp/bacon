@@ -1,6 +1,8 @@
-package com.github.thundax.bacon.auth.application.service;
+package com.github.thundax.bacon.auth.application.command;
 
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
+import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
+import com.github.thundax.bacon.auth.application.support.TokenCodec;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import org.springframework.stereotype.Service;

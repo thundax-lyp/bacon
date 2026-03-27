@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.application.service;
+package com.github.thundax.bacon.auth.application.command;
 
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;

@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.auth.interfaces.facade;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
-import com.github.thundax.bacon.auth.application.service.SessionApplicationService;
+import com.github.thundax.bacon.auth.application.command.SessionApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

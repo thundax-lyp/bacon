@@ -247,11 +247,11 @@
 - `avatarUrl` 由 `Storage` 查询结果派生，不单独落在 `UPMS`
 - 头像旧对象在引用解除后由 `Storage` 负责删除策略
 
-### 7.4 Product Image Rule
+### 7.4 Inventory Product Image Rule
 
 功能对象：
 
-- `Product.imageObjectId`
+- `InventoryProduct.imageObjectId`
 
 功能能力：
 
@@ -261,9 +261,9 @@
 
 必要补充约束：
 
-- 商品域只保存 `imageObjectId`
-- 商品响应模型固定返回 `imageObjectId` 和 `imageUrl`
-- `imageUrl` 由 `Storage` 查询结果派生，不单独落在商品域
+- `Inventory` 商品主数据只保存 `imageObjectId`
+- `Inventory` 商品响应模型固定返回 `imageObjectId` 和 `imageUrl`
+- `imageUrl` 由 `Storage` 查询结果派生，不单独落在 `Inventory`
 - 商品图片旧对象在引用解除后由 `Storage` 负责删除策略
 
 ## 8. Key Flows
@@ -283,12 +283,12 @@
 3. `UPMS` 调用 `Storage.clearObjectReference(oldObjectId, UPMS_USER_AVATAR, userId)`
 4. `UPMS` 调用 `Storage.markObjectReferenced(newObjectId, UPMS_USER_AVATAR, userId)`
 
-### 8.3 Replace Product Image Flow
+### 8.3 Replace Inventory Product Image Flow
 
-1. 商品域调用 `Storage` 上传新图片
-2. 商品域更新 `Product.imageObjectId`
-3. 商品域调用 `Storage.clearObjectReference(oldObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
-4. 商品域调用 `Storage.markObjectReferenced(newObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
+1. `Inventory` 商品模块调用 `Storage` 上传新图片
+2. `Inventory` 商品模块更新 `InventoryProduct.imageObjectId`
+3. `Inventory` 商品模块调用 `Storage.clearObjectReference(oldObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
+4. `Inventory` 商品模块调用 `Storage.markObjectReferenced(newObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
 
 ### 8.4 Delete Object Flow
 

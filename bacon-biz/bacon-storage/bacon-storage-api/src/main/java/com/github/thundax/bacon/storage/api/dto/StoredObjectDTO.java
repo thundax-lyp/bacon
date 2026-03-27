@@ -28,9 +28,6 @@ public class StoredObjectDTO {
     private Long size;
     /** 由 Storage 派生的对象访问端点，仅用于展示/下载，不作为业务主数据持久化。 */
     private String accessEndpoint;
-    /** 已废弃，请改用 accessEndpoint。 */
-    @Deprecated
-    private String accessUrl;
     /** 对象状态。 */
     private String objectStatus;
     /** 引用状态。 */
@@ -49,27 +46,8 @@ public class StoredObjectDTO {
         this.contentType = contentType;
         this.size = size;
         this.accessEndpoint = accessEndpoint;
-        this.accessUrl = accessEndpoint;
         this.objectStatus = objectStatus;
         this.referenceStatus = referenceStatus;
         this.createdAt = createdAt;
-    }
-
-    /** 兼容旧字段读取。 */
-    @Deprecated
-    public String getAccessUrl() {
-        return accessUrl != null ? accessUrl : accessEndpoint;
-    }
-
-    /** 兼容旧字段写入。 */
-    @Deprecated
-    public void setAccessUrl(String accessUrl) {
-        this.accessUrl = accessUrl;
-        this.accessEndpoint = accessUrl;
-    }
-
-    public void setAccessEndpoint(String accessEndpoint) {
-        this.accessEndpoint = accessEndpoint;
-        this.accessUrl = accessEndpoint;
     }
 }

@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.application.support;
 
 import java.util.function.Supplier;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -16,10 +16,15 @@ public class InventoryTransactionExecutor {
         this.transactionTemplate = null;
     }
 
-    @Autowired
-    public InventoryTransactionExecutor(PlatformTransactionManager transactionManager) {
-        this.transactionTemplate = new TransactionTemplate(transactionManager);
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    public InventoryTransactionExecutor(ObjectProvider<PlatformTransactionManager> transactionManagerProvider) {
+        PlatformTransactionManager transactionManager = transactionManagerProvider.getIfAvailable();
+        if (transactionManager == null) {
+            this.transactionTemplate = null;
+            return;
+        }
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.transactionTemplate = template;
     }
 
     public <T> T executeInNewTransaction(Supplier<T> action) {

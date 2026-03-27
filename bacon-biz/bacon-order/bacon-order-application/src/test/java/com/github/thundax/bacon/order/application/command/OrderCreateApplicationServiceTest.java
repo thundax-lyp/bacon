@@ -80,6 +80,10 @@ class OrderCreateApplicationServiceTest {
         createService.create(new CreateOrderCommand(1002L, 2002L, "CNY", "MOCK", "r3",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(103L, "item-3", 1, BigDecimal.valueOf(30)))));
+        Order paidOrder = repository.findByOrderNo(1001L, paid.getOrderNo()).orElseThrow();
+        paidOrder.markInventoryReserved("RSV-" + paid.getOrderNo(), 1L);
+        paidOrder.markPendingPayment("PAY-" + paid.getOrderNo(), "MOCK");
+        repository.save(paidOrder);
         paymentResultService.markPaid(1001L, paid.getOrderNo(), "PAY-1", "MOCK", BigDecimal.valueOf(20),
                 Instant.parse("2026-03-26T10:00:00Z"));
 

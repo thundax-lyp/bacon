@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderDerivedDataPersistenceSupport {
 
+    private static final String OPERATOR_TYPE_SYSTEM = "SYSTEM";
+    private static final Long OPERATOR_ID_SYSTEM = 0L;
+
     private final OrderRepository orderRepository;
 
     public OrderDerivedDataPersistenceSupport(OrderRepository orderRepository) {
@@ -30,7 +33,6 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getInventoryFailureReason(), now));
         }
         orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNo(), actionType,
-                beforeStatus, order.getOrderStatus(), OrderAuditLog.OPERATOR_TYPE_SYSTEM,
-                OrderAuditLog.OPERATOR_ID_SYSTEM, now));
+                beforeStatus, order.getOrderStatus(), OPERATOR_TYPE_SYSTEM, OPERATOR_ID_SYSTEM, now));
     }
 }

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.interfaces.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -41,5 +42,25 @@ public class PaymentCallbackRequest {
 
     public boolean isSuccess() {
         return Boolean.TRUE.equals(success);
+    }
+
+    @AssertTrue(message = "Successful callback requires channelTransactionNo, channelStatus and rawPayload, and reason must be blank")
+    public boolean isSuccessPayloadValid() {
+        if (!isSuccess()) {
+            return true;
+        }
+        return hasText(channelTransactionNo) && hasText(channelStatus) && hasText(rawPayload) && !hasText(reason);
+    }
+
+    @AssertTrue(message = "Failed callback requires channelStatus, rawPayload and reason")
+    public boolean isFailurePayloadValid() {
+        if (isSuccess()) {
+            return true;
+        }
+        return hasText(channelStatus) && hasText(rawPayload) && hasText(reason);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

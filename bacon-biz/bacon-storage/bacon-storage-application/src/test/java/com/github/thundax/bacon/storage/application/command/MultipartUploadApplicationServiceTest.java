@@ -6,6 +6,7 @@ import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
+import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,13 +50,16 @@ class MultipartUploadApplicationServiceTest {
     private StoredObjectStorageRepository storedObjectStorageRepository;
     @Mock
     private StorageAuditApplicationService storageAuditApplicationService;
+    @Mock
+    private StorageUploadLimitValidator storageUploadLimitValidator;
 
     private MultipartUploadApplicationService service;
 
     @BeforeEach
     void setUp() {
         service = new MultipartUploadApplicationService(multipartUploadSessionRepository, multipartUploadPartRepository,
-                storedObjectRepository, storedObjectStorageRepository, storageAuditApplicationService);
+                storedObjectRepository, storedObjectStorageRepository, storageAuditApplicationService,
+                storageUploadLimitValidator);
     }
 
     @Test
@@ -76,6 +81,17 @@ class MultipartUploadApplicationServiceTest {
     }
 
     @Test
+    void shouldRejectInitWhenMultipartTotalSizeExceedsConfiguredLimit() {
+        doThrow(new IllegalArgumentException("Multipart totalSize exceeds configured limit"))
+                .when(storageUploadLimitValidator).validateMultipartInit(2048L, 512L);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.initMultipartUpload(new InitMultipartUploadCommand("GENERIC_ATTACHMENT", "owner-1",
+                        "tenant-a", "attachment", "a.png", "image/png", 2048L, 512L)));
+        verify(storedObjectStorageRepository, never()).initMultipartUpload(any(), any(), any());
+    }
+
+    @Test
     void shouldRejectMultipartPartUploadWhenOwnershipMismatch() {
         MultipartUploadSession session = new MultipartUploadSession(1L, "upload-1", "tenant-a", "GENERIC_ATTACHMENT",
                 "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",
@@ -85,6 +101,21 @@ class MultipartUploadApplicationServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.uploadMultipartPart(new UploadMultipartPartCommand("upload-1", "GENERIC_ATTACHMENT",
                         "owner-2", "tenant-a", 1, 512L, new ByteArrayInputStream(new byte[]{1}))));
+        verify(storedObjectStorageRepository, never()).uploadPart(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldRejectMultipartPartUploadWhenPartSizeExceedsConfiguredLimit() {
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-limit", "tenant-a", "GENERIC_ATTACHMENT",
+                "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",
+                1024L, 512L, 0, MultipartUploadSession.STATUS_INITIATED, Instant.now(), Instant.now(), null, null);
+        when(multipartUploadSessionRepository.findByUploadId("upload-limit")).thenReturn(Optional.of(session));
+        doThrow(new IllegalArgumentException("Multipart part size exceeds configured limit"))
+                .when(storageUploadLimitValidator).validateMultipartPartUpload(session, 1024L);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.uploadMultipartPart(new UploadMultipartPartCommand("upload-limit", "GENERIC_ATTACHMENT",
+                        "owner-1", "tenant-a", 1, 1024L, new ByteArrayInputStream(new byte[]{1}))));
         verify(storedObjectStorageRepository, never()).uploadPart(any(), any(), any(), any());
     }
 

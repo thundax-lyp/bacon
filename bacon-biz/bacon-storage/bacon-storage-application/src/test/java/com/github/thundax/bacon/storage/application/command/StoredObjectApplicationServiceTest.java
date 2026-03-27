@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.application.command;
 
 import com.github.thundax.bacon.storage.application.support.StoredObjectDeletionTransactionService;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
+import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -29,13 +30,16 @@ class StoredObjectApplicationServiceTest {
     private StorageAuditApplicationService storageAuditApplicationService;
     @Mock
     private StoredObjectDeletionTransactionService storedObjectDeletionTransactionService;
+    @Mock
+    private StorageUploadLimitValidator storageUploadLimitValidator;
 
     private StoredObjectApplicationService service;
 
     @BeforeEach
     void setUp() {
         service = new StoredObjectApplicationService(storedObjectRepository, storedObjectReferenceRepository,
-                storedObjectStorageRepository, storageAuditApplicationService, storedObjectDeletionTransactionService);
+                storedObjectStorageRepository, storageAuditApplicationService, storedObjectDeletionTransactionService,
+                storageUploadLimitValidator);
     }
 
     @Test

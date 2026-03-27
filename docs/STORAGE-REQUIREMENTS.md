@@ -276,6 +276,9 @@
 - 大文件分段上传初始化后，`Storage` 必须持久化 `ownerType`、`ownerId`、`tenantId`，后续所有分段操作都必须校验归属一致
 - 当底层为 `OSS/S3 API` 时，`Storage` 必须持久化 provider 分段上传会话标识，供后续分片上传、完成和取消复用
 - `providerUploadId` 属于 `Storage` 内部运行态字段，不得暴露为业务域主数据
+- 单次普通上传最大文件大小必须由 `Storage` 配置统一控制
+- 分片上传固定分片大小必须由 `Storage` 配置统一控制，不允许调用方自定义分片规格
+- 分片上传总文件最大大小必须由 `Storage` 配置统一控制
 
 ## 7. Functional Requirements
 
@@ -320,6 +323,8 @@
 - 大文件上传与普通文件上传必须使用不同接口
 - `uploadId` 固定作为分段上传会话业务键
 - 同一 `(uploadId, partNumber)` 固定唯一
+- `partSize` 必须等于 `Storage` 配置的固定分片大小，默认 `8MB`
+- `totalSize` 不得超过 `Storage` 配置的总大小上限，默认 `4GB`
 - 分段上传完成后才允许写入正式 `StoredObject`
 - 分段上传取消或超时后不得生成正式 `StoredObject`
 - 合并完成后必须清理临时分段数据

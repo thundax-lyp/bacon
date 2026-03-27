@@ -6,6 +6,7 @@ import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.application.support.StoredObjectDeletionTransactionService;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
+import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
@@ -27,21 +28,25 @@ public class StoredObjectApplicationService {
     private final StoredObjectStorageRepository storedObjectStorageRepository;
     private final StorageAuditApplicationService storageAuditApplicationService;
     private final StoredObjectDeletionTransactionService storedObjectDeletionTransactionService;
+    private final StorageUploadLimitValidator storageUploadLimitValidator;
 
     public StoredObjectApplicationService(StoredObjectRepository storedObjectRepository,
                                           StoredObjectReferenceRepository storedObjectReferenceRepository,
                                           StoredObjectStorageRepository storedObjectStorageRepository,
                                           StorageAuditApplicationService storageAuditApplicationService,
-                                          StoredObjectDeletionTransactionService storedObjectDeletionTransactionService) {
+                                          StoredObjectDeletionTransactionService storedObjectDeletionTransactionService,
+                                          StorageUploadLimitValidator storageUploadLimitValidator) {
         this.storedObjectRepository = storedObjectRepository;
         this.storedObjectReferenceRepository = storedObjectReferenceRepository;
         this.storedObjectStorageRepository = storedObjectStorageRepository;
         this.storageAuditApplicationService = storageAuditApplicationService;
         this.storedObjectDeletionTransactionService = storedObjectDeletionTransactionService;
+        this.storageUploadLimitValidator = storageUploadLimitValidator;
     }
 
     @Transactional
     public StoredObjectDTO uploadObject(UploadObjectCommand command) {
+        storageUploadLimitValidator.validateSingleUpload(command.getSize());
         StoredObjectStorageResult storageResult = storedObjectStorageRepository.upload(command.getCategory(),
                 command.getOriginalFilename(), command.getContentType(), command.getInputStream());
         StoredObject storedObject = StoredObject.newUploadedObject(command.getTenantId(), storageResult.getStorageType(),

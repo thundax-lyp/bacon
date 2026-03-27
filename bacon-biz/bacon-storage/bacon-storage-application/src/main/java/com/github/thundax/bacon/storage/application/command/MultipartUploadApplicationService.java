@@ -9,6 +9,7 @@ import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
+import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
@@ -35,21 +36,25 @@ public class MultipartUploadApplicationService {
     private final StoredObjectRepository storedObjectRepository;
     private final StoredObjectStorageRepository storedObjectStorageRepository;
     private final StorageAuditApplicationService storageAuditApplicationService;
+    private final StorageUploadLimitValidator storageUploadLimitValidator;
 
     public MultipartUploadApplicationService(MultipartUploadSessionRepository multipartUploadSessionRepository,
                                             MultipartUploadPartRepository multipartUploadPartRepository,
                                             StoredObjectRepository storedObjectRepository,
                                             StoredObjectStorageRepository storedObjectStorageRepository,
-                                            StorageAuditApplicationService storageAuditApplicationService) {
+                                            StorageAuditApplicationService storageAuditApplicationService,
+                                            StorageUploadLimitValidator storageUploadLimitValidator) {
         this.multipartUploadSessionRepository = multipartUploadSessionRepository;
         this.multipartUploadPartRepository = multipartUploadPartRepository;
         this.storedObjectRepository = storedObjectRepository;
         this.storedObjectStorageRepository = storedObjectStorageRepository;
         this.storageAuditApplicationService = storageAuditApplicationService;
+        this.storageUploadLimitValidator = storageUploadLimitValidator;
     }
 
     @Transactional
     public MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command) {
+        storageUploadLimitValidator.validateMultipartInit(command.getTotalSize(), command.getPartSize());
         MultipartUploadStorageSession storageSession = storedObjectStorageRepository.initMultipartUpload(
                 command.getCategory(), command.getOriginalFilename(), command.getContentType());
         MultipartUploadSession session = MultipartUploadSession.initiate(UUID.randomUUID().toString(),
@@ -68,6 +73,7 @@ public class MultipartUploadApplicationService {
         MultipartUploadSession session = multipartUploadSessionRepository.findByUploadId(command.getUploadId())
                 .orElseThrow(() -> new NotFoundException("Multipart upload session not found: " + command.getUploadId()));
         session.assertOwnership(command.getTenantId(), command.getOwnerType(), command.getOwnerId());
+        storageUploadLimitValidator.validateMultipartPartUpload(session, command.getSize());
         String etag = storedObjectStorageRepository.uploadPart(session, command.getPartNumber(), command.getSize(),
                 command.getInputStream());
         session.recordUploadedPart();

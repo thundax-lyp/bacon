@@ -42,7 +42,7 @@ public class StoredObjectApplicationService {
                 command.getOriginalFilename(), command.getContentType(), command.getInputStream());
         StoredObject storedObject = StoredObject.newUploadedObject(command.getTenantId(), storageResult.getStorageType(),
                 storageResult.getBucketName(), storageResult.getObjectKey(), command.getOriginalFilename(),
-                command.getContentType(), command.getSize(), storageResult.getAccessUrl(), null);
+                command.getContentType(), command.getSize(), storageResult.getAccessEndpoint(), null);
         StoredObject savedObject = storedObjectRepository.save(storedObject);
         storageAuditApplicationService.record(savedObject.getTenantId(), savedObject.getId(), command.getOwnerType(), null,
                 StorageAuditLog.ACTION_UPLOAD, null, savedObject.getObjectStatus());
@@ -96,7 +96,7 @@ public class StoredObjectApplicationService {
     private StoredObjectDTO toDto(StoredObject storedObject) {
         return new StoredObjectDTO(storedObject.getId(), storedObject.getStorageType(), storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
-                storedObject.getSize(), storedObject.getAccessUrl(), storedObject.getObjectStatus(),
+                storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),
                 storedObject.getReferenceStatus(), storedObject.getCreatedAt());
     }
 }

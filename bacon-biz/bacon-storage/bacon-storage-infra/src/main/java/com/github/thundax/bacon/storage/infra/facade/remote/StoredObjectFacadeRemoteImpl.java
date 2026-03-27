@@ -40,7 +40,8 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
         if (command.getCategory() != null) {
             bodyBuilder.part("category", command.getCategory());
         }
-        bodyBuilder.part("file", new NamedByteArrayResource(readBytes(command), command.getOriginalFilename()))
+        bodyBuilder.part("file", new NamedByteArrayResource(readBytes(command.getInputStream()),
+                        command.getOriginalFilename()))
                 .contentType(resolveMediaType(command.getContentType()));
         return restClient.post()
                 .uri("/providers/storage/objects")

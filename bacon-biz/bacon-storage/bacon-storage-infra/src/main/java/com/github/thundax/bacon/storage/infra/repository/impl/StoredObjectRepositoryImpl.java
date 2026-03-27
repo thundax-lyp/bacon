@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.storage.infra.repository.impl;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -40,21 +39,10 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
         return Optional.ofNullable(storedObjectMapper.selectById(objectId)).map(this::toDomain);
     }
 
-    @Override
-    public Optional<StoredObject> findByObjectKey(String objectKey) {
-        return Optional.ofNullable(storedObjectMapper.selectOne(Wrappers.<StoredObjectDO>lambdaQuery()
-                .eq(StoredObjectDO::getObjectKey, objectKey))).map(this::toDomain);
-    }
-
-    @Override
-    public void deleteById(Long objectId) {
-        storedObjectMapper.deleteById(objectId);
-    }
-
     private StoredObjectDO toDataObject(StoredObject storedObject) {
         return new StoredObjectDO(storedObject.getId(), storedObject.getTenantId(), storedObject.getStorageType(),
                 storedObject.getBucketName(), storedObject.getObjectKey(), storedObject.getOriginalFilename(),
-                storedObject.getContentType(), storedObject.getSize(), storedObject.getAccessUrl(),
+                storedObject.getContentType(), storedObject.getSize(), storedObject.getAccessEndpoint(),
                 storedObject.getObjectStatus(), storedObject.getReferenceStatus(), storedObject.getCreatedBy(),
                 storedObject.getCreatedAt(), storedObject.getUpdatedBy(), storedObject.getUpdatedAt());
     }
@@ -62,7 +50,7 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     private StoredObject toDomain(StoredObjectDO dataObject) {
         return new StoredObject(dataObject.getId(), dataObject.getTenantId(), dataObject.getStorageType(),
                 dataObject.getBucketName(), dataObject.getObjectKey(), dataObject.getOriginalFilename(),
-                dataObject.getContentType(), dataObject.getSize(), dataObject.getAccessUrl(),
+                dataObject.getContentType(), dataObject.getSize(), dataObject.getAccessEndpoint(),
                 dataObject.getObjectStatus(), dataObject.getReferenceStatus(), dataObject.getCreatedBy(),
                 dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
     }

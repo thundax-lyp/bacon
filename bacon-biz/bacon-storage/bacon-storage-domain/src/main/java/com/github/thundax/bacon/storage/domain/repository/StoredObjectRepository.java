@@ -9,8 +9,4 @@ public interface StoredObjectRepository {
     StoredObject save(StoredObject storedObject);
 
     Optional<StoredObject> findById(Long objectId);
-
-    Optional<StoredObject> findByObjectKey(String objectKey);
-
-    void deleteById(Long objectId);
 }

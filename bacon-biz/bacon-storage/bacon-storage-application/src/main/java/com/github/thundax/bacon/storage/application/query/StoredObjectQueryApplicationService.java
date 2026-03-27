@@ -23,7 +23,7 @@ public class StoredObjectQueryApplicationService {
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         return new StoredObjectDTO(storedObject.getId(), storedObject.getStorageType(), storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
-                storedObject.getSize(), storedObject.getAccessUrl(), storedObject.getObjectStatus(),
+                storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),
                 storedObject.getReferenceStatus(), storedObject.getCreatedAt());
     }
 }

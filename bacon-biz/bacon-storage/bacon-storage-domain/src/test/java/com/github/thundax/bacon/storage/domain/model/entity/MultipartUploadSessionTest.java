@@ -11,7 +11,7 @@ class MultipartUploadSessionTest {
     @Test
     void shouldTrackUploadStateTransitions() {
         MultipartUploadSession session = MultipartUploadSession.initiate("upload-1", "tenant-a",
-                "UPMS_USER_AVATAR", "avatar", "avatar.png", "image/png", 10_240L, 5_120L);
+                "GENERIC_ATTACHMENT", "attachment", "attachment.png", "image/png", 10_240L, 5_120L);
 
         session.recordUploadedPart();
         session.recordUploadedPart();
@@ -31,7 +31,7 @@ class MultipartUploadSessionTest {
                 "", 1024L));
 
         MultipartUploadSession session = MultipartUploadSession.initiate("upload-2", "tenant-a",
-                "UPMS_USER_AVATAR", "avatar", "avatar.png", "image/png", 10_240L, 5_120L);
+                "GENERIC_ATTACHMENT", "attachment", "attachment.png", "image/png", 10_240L, 5_120L);
         session.markAborted();
         assertTrue(session.isAborted());
         assertThrows(IllegalStateException.class, session::recordUploadedPart);

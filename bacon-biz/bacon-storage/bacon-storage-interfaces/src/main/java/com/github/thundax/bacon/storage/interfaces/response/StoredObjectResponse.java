@@ -22,7 +22,10 @@ public record StoredObjectResponse(
         String contentType,
         /** 文件大小，字节。 */
         Long size,
-        /** 当前访问地址。 */
+        /** 由 Storage 派生的对象访问端点，仅用于展示/下载，不作为业务主数据持久化。 */
+        String accessEndpoint,
+        /** 已废弃，请改用 accessEndpoint。 */
+        @Deprecated
         String accessUrl,
         /** 对象状态。 */
         String objectStatus,
@@ -33,7 +36,7 @@ public record StoredObjectResponse(
 
     public static StoredObjectResponse from(StoredObjectDTO dto) {
         return new StoredObjectResponse(dto.getId(), dto.getStorageType(), dto.getBucketName(), dto.getObjectKey(),
-                dto.getOriginalFilename(), dto.getContentType(), dto.getSize(), dto.getAccessUrl(),
-                dto.getObjectStatus(), dto.getReferenceStatus(), dto.getCreatedAt());
+                dto.getOriginalFilename(), dto.getContentType(), dto.getSize(), dto.getAccessEndpoint(),
+                dto.getAccessUrl(), dto.getObjectStatus(), dto.getReferenceStatus(), dto.getCreatedAt());
     }
 }

@@ -31,8 +31,8 @@ public class StoredObject {
     private String contentType;
     /** 文件大小，字节。 */
     private Long size;
-    /** 当前访问地址。 */
-    private String accessUrl;
+    /** 由 Storage 派生的对象访问端点，仅用于展示/下载，不作为业务主数据持久化。 */
+    private String accessEndpoint;
     /** 对象状态。 */
     private String objectStatus;
     /** 引用状态。 */
@@ -47,7 +47,7 @@ public class StoredObject {
     private Instant updatedAt;
 
     public StoredObject(Long id, String tenantId, String storageType, String bucketName, String objectKey,
-                        String originalFilename, String contentType, Long size, String accessUrl, String objectStatus,
+                        String originalFilename, String contentType, Long size, String accessEndpoint, String objectStatus,
                         String referenceStatus, Long createdBy, Instant createdAt, Long updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
@@ -57,7 +57,7 @@ public class StoredObject {
         this.originalFilename = originalFilename;
         this.contentType = contentType;
         this.size = size;
-        this.accessUrl = accessUrl;
+        this.accessEndpoint = accessEndpoint;
         this.objectStatus = objectStatus;
         this.referenceStatus = referenceStatus;
         this.createdBy = createdBy;
@@ -67,11 +67,11 @@ public class StoredObject {
     }
 
     public static StoredObject newUploadedObject(String tenantId, String storageType, String bucketName, String objectKey,
-                                                 String originalFilename, String contentType, Long size, String accessUrl,
+                                                 String originalFilename, String contentType, Long size, String accessEndpoint,
                                                  Long createdBy) {
         Instant now = Instant.now();
         return new StoredObject(null, tenantId, storageType, bucketName, objectKey, originalFilename, contentType, size,
-                accessUrl, OBJECT_STATUS_ACTIVE, REFERENCE_STATUS_UNREFERENCED, createdBy, now, createdBy, now);
+                accessEndpoint, OBJECT_STATUS_ACTIVE, REFERENCE_STATUS_UNREFERENCED, createdBy, now, createdBy, now);
     }
 
     public boolean isDeleted() {
@@ -97,8 +97,20 @@ public class StoredObject {
         this.updatedAt = Instant.now();
     }
 
-    public void refreshAccessUrl(String accessUrl) {
-        this.accessUrl = accessUrl;
+    public void refreshAccessEndpoint(String accessEndpoint) {
+        this.accessEndpoint = accessEndpoint;
         this.updatedAt = Instant.now();
+    }
+
+    /** 兼容旧命名，后续请使用 getAccessEndpoint。 */
+    @Deprecated
+    public String getAccessUrl() {
+        return accessEndpoint;
+    }
+
+    /** 兼容旧命名，后续请使用 refreshAccessEndpoint。 */
+    @Deprecated
+    public void refreshAccessUrl(String accessUrl) {
+        refreshAccessEndpoint(accessUrl);
     }
 }

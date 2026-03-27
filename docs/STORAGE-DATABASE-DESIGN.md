@@ -191,6 +191,7 @@
 | `upload_id` | `varchar(64)` | N | 分段上传会话业务键 |
 | `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
 | `owner_type` | `varchar(64)` | N | 引用方类型 |
+| `owner_id` | `varchar(64)` | N | 引用方业务主键 |
 | `category` | `varchar(64)` | Y | 对象分类 |
 | `original_filename` | `varchar(255)` | N | 原始文件名 |
 | `content_type` | `varchar(128)` | N | 内容类型 |
@@ -249,6 +250,7 @@
 
 - 上传成功后必须同时写 `bacon_storage_object`
 - 初始化分段上传后必须写 `bacon_storage_multipart_upload`
+- 初始化分段上传后必须同时写入 `owner_type`、`owner_id`、`tenant_id`，供后续分段上传、完成与取消时做归属校验
 - 初始化分段上传后必须同时写入 `object_key`，如底层为 `OSS/S3 API` 还必须写入 `provider_upload_id`
 - 分段上传成功后必须写 `bacon_storage_multipart_upload_part`
 - 分段上传完成后必须写 `bacon_storage_object` 并更新 `bacon_storage_multipart_upload.upload_status`

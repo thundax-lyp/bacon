@@ -10,6 +10,8 @@ public record MultipartUploadSessionResponse(
         String uploadId,
         /** 引用方类型。 */
         String ownerType,
+        /** 引用方业务主键。 */
+        String ownerId,
         /** 所属租户业务键。 */
         String tenantId,
         /** 对象分类。 */
@@ -28,7 +30,7 @@ public record MultipartUploadSessionResponse(
         String uploadStatus) {
 
     public static MultipartUploadSessionResponse from(MultipartUploadSessionDTO dto) {
-        return new MultipartUploadSessionResponse(dto.getUploadId(), dto.getOwnerType(), dto.getTenantId(),
+        return new MultipartUploadSessionResponse(dto.getUploadId(), dto.getOwnerType(), dto.getOwnerId(), dto.getTenantId(),
                 dto.getCategory(), dto.getOriginalFilename(), dto.getContentType(), dto.getTotalSize(),
                 dto.getPartSize(), dto.getUploadedPartCount(), dto.getUploadStatus());
     }

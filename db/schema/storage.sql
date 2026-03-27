@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS `bacon_storage_multipart_upload` (
     `upload_id` VARCHAR(64) NOT NULL COMMENT '分段上传会话业务键',
     `tenant_id` VARCHAR(64) DEFAULT NULL COMMENT '所属租户业务键',
     `owner_type` VARCHAR(64) NOT NULL COMMENT '引用方类型',
+    `owner_id` VARCHAR(64) NOT NULL COMMENT '引用方业务主键',
     `category` VARCHAR(64) DEFAULT NULL COMMENT '对象分类',
     `original_filename` VARCHAR(255) NOT NULL COMMENT '原始文件名',
     `content_type` VARCHAR(128) NOT NULL COMMENT '内容类型',

@@ -79,7 +79,7 @@
 - `initMultipartUpload(command)`，返回固定 `MultipartUploadSessionDTO`
 - `uploadMultipartPart(command)`，返回固定 `MultipartUploadPartDTO`
 - `completeMultipartUpload(command)`，返回固定 `StoredObjectDTO`
-- `abortMultipartUpload(uploadId)`，无返回
+- `abortMultipartUpload(command)`，无返回
 - `getObjectById(objectId)`，返回固定 `StoredObjectDTO`
 - `markObjectReferenced(objectId, ownerType, ownerId)`，无返回
 - `clearObjectReference(objectId, ownerType, ownerId)`，无返回
@@ -112,6 +112,7 @@
 
 - `uploadId`
 - `ownerType`
+- `ownerId`
 - `tenantId`
 - `category`
 - `originalFilename`
@@ -130,6 +131,7 @@
 `InitMultipartUploadCommand` 至少包含：
 
 - `ownerType`
+- `ownerId`
 - `tenantId`
 - `category`
 - `originalFilename`
@@ -140,6 +142,9 @@
 `UploadMultipartPartCommand` 至少包含：
 
 - `uploadId`
+- `ownerType`
+- `ownerId`
+- `tenantId`
 - `partNumber`
 - `size`
 - `inputStream` 或运行时等价输入对象
@@ -147,7 +152,16 @@
 `CompleteMultipartUploadCommand` 至少包含：
 
 - `uploadId`
+- `ownerType`
 - `ownerId`
+- `tenantId`
+
+`AbortMultipartUploadCommand` 至少包含：
+
+- `uploadId`
+- `ownerType`
+- `ownerId`
+- `tenantId`
 
 ### 4.2 `bacon-storage-interfaces`
 
@@ -225,6 +239,7 @@
 
 - `uploadId`
 - `ownerType`
+- `ownerId`
 - `tenantId`
 - `category`
 - `originalFilename`
@@ -259,6 +274,7 @@
 - 大文件上传完成前不得写入正式 `StoredObject`
 - 大文件上传中断、取消、超时后，`Storage` 必须能够清理未完成分段数据
 - 大文件分段上传初始化后，`Storage` 必须持久化本次上传使用的 `objectKey`
+- 大文件分段上传初始化后，`Storage` 必须持久化 `ownerType`、`ownerId`、`tenantId`，后续所有分段操作都必须校验归属一致
 - 当底层为 `OSS/S3 API` 时，`Storage` 必须持久化 provider 分段上传会话标识，供后续分片上传、完成和取消复用
 - `providerUploadId` 属于 `Storage` 内部运行态字段，不得暴露为业务域主数据
 
@@ -307,6 +323,8 @@
 - 分段上传完成后才允许写入正式 `StoredObject`
 - 分段上传取消或超时后不得生成正式 `StoredObject`
 - 合并完成后必须清理临时分段数据
+- 上传分段、完成分段、取消分段都必须校验 `tenantId`、`ownerType`、`ownerId` 与初始化会话一致
+- 分段完成前必须校验分片序号连续、已上传分片数一致、分片总大小等于会话 `totalSize`
 ### 7.3 Reference Management
 
 功能对象：

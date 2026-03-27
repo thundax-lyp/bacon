@@ -6,8 +6,10 @@ import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
+import com.github.thundax.bacon.storage.interfaces.dto.AbortMultipartUploadRequest;
 import com.github.thundax.bacon.storage.application.command.MultipartUploadApplicationService;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
@@ -62,7 +64,7 @@ public class StoredObjectController {
     @Operation(summary = "初始化大文件分段上传")
     @PostMapping("/multipart/init")
     public MultipartUploadSessionResponse initMultipartUpload(@ModelAttribute InitMultipartUploadRequest request) {
-        InitMultipartUploadCommand command = new InitMultipartUploadCommand(request.ownerType(), request.tenantId(),
+        InitMultipartUploadCommand command = new InitMultipartUploadCommand(request.ownerType(), request.ownerId(), request.tenantId(),
                 request.category(), request.originalFilename(), request.contentType(), request.totalSize(),
                 request.partSize());
         MultipartUploadSessionDTO session = multipartUploadApplicationService.initMultipartUpload(command);
@@ -74,7 +76,8 @@ public class StoredObjectController {
     public MultipartUploadPartResponse uploadMultipartPart(@PathVariable String uploadId,
                                                            @ModelAttribute UploadMultipartPartRequest request)
             throws IOException {
-        UploadMultipartPartCommand command = new UploadMultipartPartCommand(uploadId, request.partNumber(),
+        UploadMultipartPartCommand command = new UploadMultipartPartCommand(uploadId, request.ownerType(),
+                request.ownerId(), request.tenantId(), request.partNumber(),
                 request.file().getSize(), request.file().getInputStream());
         MultipartUploadPartDTO part = multipartUploadApplicationService.uploadMultipartPart(command);
         return MultipartUploadPartResponse.from(part);
@@ -84,14 +87,17 @@ public class StoredObjectController {
     @PostMapping("/multipart/{uploadId}/complete")
     public StoredObjectResponse completeMultipartUpload(@PathVariable String uploadId,
                                                         @ModelAttribute CompleteMultipartUploadRequest request) {
-        CompleteMultipartUploadCommand command = new CompleteMultipartUploadCommand(uploadId, request.ownerId());
+        CompleteMultipartUploadCommand command = new CompleteMultipartUploadCommand(uploadId, request.ownerType(),
+                request.ownerId(), request.tenantId());
         return StoredObjectResponse.from(multipartUploadApplicationService.completeMultipartUpload(command));
     }
 
     @Operation(summary = "取消大文件分段上传")
     @DeleteMapping("/multipart/{uploadId}")
-    public void abortMultipartUpload(@PathVariable String uploadId) {
-        multipartUploadApplicationService.abortMultipartUpload(uploadId);
+    public void abortMultipartUpload(@PathVariable String uploadId,
+                                     @ModelAttribute AbortMultipartUploadRequest request) {
+        multipartUploadApplicationService.abortMultipartUpload(new AbortMultipartUploadCommand(uploadId,
+                request.ownerType(), request.ownerId(), request.tenantId()));
     }
 
     @Operation(summary = "查询存储对象")

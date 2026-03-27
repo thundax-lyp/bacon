@@ -4,15 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.InputStream;
-
 /**
- * 上传分段命令。
+ * 取消分段上传命令。
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UploadMultipartPartCommand {
+public class AbortMultipartUploadCommand {
 
     /** 分段上传会话业务键。 */
     private String uploadId;
@@ -22,10 +20,4 @@ public class UploadMultipartPartCommand {
     private String ownerId;
     /** 所属租户业务键。 */
     private String tenantId;
-    /** 分段序号。 */
-    private Integer partNumber;
-    /** 分段大小，字节。 */
-    private Long size;
-    /** 上传输入流。 */
-    private InputStream inputStream;
 }

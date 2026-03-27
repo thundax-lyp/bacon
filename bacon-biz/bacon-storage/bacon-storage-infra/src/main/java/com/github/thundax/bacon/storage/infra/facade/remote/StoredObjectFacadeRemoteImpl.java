@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.storage.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
+import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
@@ -44,7 +45,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
                         command.getOriginalFilename()))
                 .contentType(resolveMediaType(command.getContentType()));
         return restClient.post()
-                .uri("/providers/storage/objects")
+                .uri("/providers/storage/objects/upload")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(bodyBuilder.build())
                 .retrieve()
@@ -54,9 +55,9 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     @Override
     public MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command) {
         return restClient.post()
-                .uri("/providers/storage/objects/multipart/init?ownerType={ownerType}&tenantId={tenantId}&category={category}"
+                .uri("/providers/storage/objects/multipart/init?ownerType={ownerType}&ownerId={ownerId}&tenantId={tenantId}&category={category}"
                                 + "&originalFilename={originalFilename}&contentType={contentType}&totalSize={totalSize}&partSize={partSize}",
-                        command.getOwnerType(), command.getTenantId(), command.getCategory(), command.getOriginalFilename(),
+                        command.getOwnerType(), command.getOwnerId(), command.getTenantId(), command.getCategory(), command.getOriginalFilename(),
                         command.getContentType(), command.getTotalSize(), command.getPartSize())
                 .retrieve()
                 .body(MultipartUploadSessionDTO.class);
@@ -69,7 +70,8 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
         bodyBuilder.part("file", new NamedByteArrayResource(readBytes(command.getInputStream()), "part-" + command.getPartNumber()))
                 .contentType(MediaType.APPLICATION_OCTET_STREAM);
         return restClient.post()
-                .uri("/providers/storage/objects/multipart/{uploadId}/parts", command.getUploadId())
+                .uri("/providers/storage/objects/multipart/{uploadId}/parts?ownerType={ownerType}&ownerId={ownerId}&tenantId={tenantId}",
+                        command.getUploadId(), command.getOwnerType(), command.getOwnerId(), command.getTenantId())
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(bodyBuilder.build())
                 .retrieve()
@@ -79,16 +81,17 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     @Override
     public StoredObjectDTO completeMultipartUpload(CompleteMultipartUploadCommand command) {
         return restClient.post()
-                .uri("/providers/storage/objects/multipart/{uploadId}/complete?ownerId={ownerId}",
-                        command.getUploadId(), command.getOwnerId())
+                .uri("/providers/storage/objects/multipart/{uploadId}/complete?ownerType={ownerType}&ownerId={ownerId}&tenantId={tenantId}",
+                        command.getUploadId(), command.getOwnerType(), command.getOwnerId(), command.getTenantId())
                 .retrieve()
                 .body(StoredObjectDTO.class);
     }
 
     @Override
-    public void abortMultipartUpload(String uploadId) {
+    public void abortMultipartUpload(AbortMultipartUploadCommand command) {
         restClient.delete()
-                .uri("/providers/storage/objects/multipart/{uploadId}", uploadId)
+                .uri("/providers/storage/objects/multipart/{uploadId}?ownerType={ownerType}&ownerId={ownerId}&tenantId={tenantId}",
+                        command.getUploadId(), command.getOwnerType(), command.getOwnerId(), command.getTenantId())
                 .retrieve()
                 .toBodilessEntity();
     }

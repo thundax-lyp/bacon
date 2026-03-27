@@ -2,6 +2,8 @@ package com.github.thundax.bacon.storage.domain.model.entity;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,13 +13,14 @@ class MultipartUploadSessionTest {
     @Test
     void shouldTrackUploadStateTransitions() {
         MultipartUploadSession session = MultipartUploadSession.initiate("upload-1", "tenant-a",
-                "GENERIC_ATTACHMENT", "attachment", "attachment.png", "image/png",
+                "GENERIC_ATTACHMENT", "owner-1", "attachment", "attachment.png", "image/png",
                 "attachment/object-1.png", "provider-upload-1", 10_240L, 5_120L);
 
         session.recordUploadedPart();
         session.recordUploadedPart();
         assertEquals(MultipartUploadSession.STATUS_UPLOADING, session.getUploadStatus());
         assertEquals(2, session.getUploadedPartCount());
+        assertEquals("owner-1", session.getOwnerId());
         assertEquals("attachment/object-1.png", session.getObjectKey());
         assertEquals("provider-upload-1", session.getProviderUploadId());
 
@@ -34,10 +37,33 @@ class MultipartUploadSessionTest {
                 "", 1024L));
 
         MultipartUploadSession session = MultipartUploadSession.initiate("upload-2", "tenant-a",
-                "GENERIC_ATTACHMENT", "attachment", "attachment.png", "image/png",
+                "GENERIC_ATTACHMENT", "owner-2", "attachment", "attachment.png", "image/png",
                 "attachment/object-2.png", null, 10_240L, 5_120L);
         session.markAborted();
         assertTrue(session.isAborted());
         assertThrows(IllegalStateException.class, session::recordUploadedPart);
+    }
+
+    @Test
+    void shouldValidateOwnershipAndMultipartIntegrity() {
+        MultipartUploadSession session = MultipartUploadSession.initiate("upload-3", "tenant-a",
+                "GENERIC_ATTACHMENT", "owner-3", "attachment", "attachment.png", "image/png",
+                "attachment/object-3.png", "provider-upload-3", 10_240L, 5_120L);
+        session.recordUploadedPart();
+        session.recordUploadedPart();
+
+        session.assertOwnership("tenant-a", "GENERIC_ATTACHMENT", "owner-3");
+        assertThrows(IllegalArgumentException.class,
+                () -> session.assertOwnership("tenant-b", "GENERIC_ATTACHMENT", "owner-3"));
+
+        List<MultipartUploadPart> validParts = List.of(
+                MultipartUploadPart.create("upload-3", 1, "etag-1", 5_120L),
+                MultipartUploadPart.create("upload-3", 2, "etag-2", 5_120L));
+        session.assertCompletable(validParts);
+
+        List<MultipartUploadPart> invalidParts = List.of(
+                MultipartUploadPart.create("upload-3", 1, "etag-1", 5_120L),
+                MultipartUploadPart.create("upload-3", 3, "etag-3", 5_120L));
+        assertThrows(IllegalArgumentException.class, () -> session.assertCompletable(invalidParts));
     }
 }

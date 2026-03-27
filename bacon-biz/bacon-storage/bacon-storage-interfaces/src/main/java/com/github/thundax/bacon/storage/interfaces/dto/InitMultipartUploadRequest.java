@@ -5,6 +5,7 @@ package com.github.thundax.bacon.storage.interfaces.dto;
  */
 public record InitMultipartUploadRequest(
         String ownerType,
+        String ownerId,
         String tenantId,
         String category,
         String originalFilename,

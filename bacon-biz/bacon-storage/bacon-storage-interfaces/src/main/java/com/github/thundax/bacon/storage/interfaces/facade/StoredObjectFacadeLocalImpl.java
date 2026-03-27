@@ -5,6 +5,7 @@ import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
@@ -51,8 +52,8 @@ public class StoredObjectFacadeLocalImpl implements StoredObjectFacade {
     }
 
     @Override
-    public void abortMultipartUpload(String uploadId) {
-        multipartUploadApplicationService.abortMultipartUpload(uploadId);
+    public void abortMultipartUpload(AbortMultipartUploadCommand command) {
+        multipartUploadApplicationService.abortMultipartUpload(command);
     }
 
     @Override

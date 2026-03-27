@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.storage.api.facade;
 
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
@@ -18,7 +19,7 @@ public interface StoredObjectFacade {
 
     StoredObjectDTO completeMultipartUpload(CompleteMultipartUploadCommand command);
 
-    void abortMultipartUpload(String uploadId);
+    void abortMultipartUpload(AbortMultipartUploadCommand command);
 
     StoredObjectDTO getObjectById(Long objectId);
 

@@ -44,7 +44,7 @@ public class MultipartUploadSessionRepositoryImpl implements MultipartUploadSess
 
     private MultipartUploadSessionDO toDataObject(MultipartUploadSession session) {
         return new MultipartUploadSessionDO(session.getId(), session.getUploadId(), session.getTenantId(),
-                session.getOwnerType(), session.getCategory(), session.getOriginalFilename(), session.getContentType(),
+                session.getOwnerType(), session.getOwnerId(), session.getCategory(), session.getOriginalFilename(), session.getContentType(),
                 session.getObjectKey(), session.getProviderUploadId(), session.getTotalSize(), session.getPartSize(),
                 session.getUploadedPartCount(), session.getUploadStatus(), session.getCreatedAt(),
                 session.getUpdatedAt(), session.getCompletedAt(), session.getAbortedAt());
@@ -52,7 +52,7 @@ public class MultipartUploadSessionRepositoryImpl implements MultipartUploadSess
 
     private MultipartUploadSession toDomain(MultipartUploadSessionDO dataObject) {
         return new MultipartUploadSession(dataObject.getId(), dataObject.getUploadId(), dataObject.getTenantId(),
-                dataObject.getOwnerType(), dataObject.getCategory(), dataObject.getOriginalFilename(),
+                dataObject.getOwnerType(), dataObject.getOwnerId(), dataObject.getCategory(), dataObject.getOriginalFilename(),
                 dataObject.getContentType(), dataObject.getObjectKey(), dataObject.getProviderUploadId(),
                 dataObject.getTotalSize(), dataObject.getPartSize(), dataObject.getUploadedPartCount(),
                 dataObject.getUploadStatus(), dataObject.getCreatedAt(), dataObject.getUpdatedAt(),

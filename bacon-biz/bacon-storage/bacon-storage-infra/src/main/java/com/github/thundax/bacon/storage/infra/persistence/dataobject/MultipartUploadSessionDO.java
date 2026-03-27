@@ -28,6 +28,9 @@ public class MultipartUploadSessionDO {
     /** 引用方类型。 */
     @TableField("owner_type")
     private String ownerType;
+    /** 引用方业务主键。 */
+    @TableField("owner_id")
+    private String ownerId;
     /** 对象分类。 */
     @TableField("category")
     private String category;

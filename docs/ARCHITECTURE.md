@@ -51,8 +51,8 @@ bacon
 │   ├── bacon-order/
 │   │   ├── pom.xml
 │   │   ├── bacon-order-api/         # 跨域调用契约：facade / dto
-│   │   ├── bacon-order-interfaces/  # controller / provider / http dto / vo
-│   │   ├── bacon-order-application/ # app service / command / query
+│   │   ├── bacon-order-interfaces/  # controller / provider / dto / response / assembler / consumer
+│   │   ├── bacon-order-application/ # command / query / audit / support / executor
 │   │   ├── bacon-order-domain/      # entity / domain service / repository 接口
 │   │   └── bacon-order-infra/       # mapper / repository impl / rpc client / cache
 │   │
@@ -201,9 +201,10 @@ bacon-biz/bacon-order
 │
 ├── bacon-order-application
 │   └── com.github.thundax.bacon.order.application
-│       ├── service
 │       ├── command
 │       ├── query
+│       ├── audit
+│       ├── support
 │       ├── executor
 │       └── assembler
 │
@@ -283,9 +284,9 @@ bacon-biz/bacon-order
 
 - HTTP 入参对象放在 `interfaces.dto`，统一使用 `*Request`
 - 前端 Controller 返回对象放在 `interfaces.response`，统一使用 `*Response`
-- `interfaces.vo` 仅允许保留历史兼容对象，不再新增
+- `interfaces.vo` 不再允许存在，新代码统一使用 `interfaces.response`
 - 跨域调用 DTO 放在 `api.dto`，统一使用 `*DTO`
-- Command / Query / Result 放在 `application`
+- Command / Query / Result / Audit / Support 放在 `application`
 - Entity / Aggregate / ValueObject 放在 `domain`
 - DO / PO / DataObject / Mapper 放在 `infra.persistence`
 - `Assembler` 优先放在调用方所在层，用于本层对象转换。
@@ -294,7 +295,9 @@ bacon-biz/bacon-order
 - `Command` 用于应用层入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
 - `Query` 用于应用层读模型入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
 - `Result` 用于应用层用例输出，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
+- `application.service` 不再作为默认目录，新增用例必须按 `command`、`query`、`audit`、`support`、`executor` 明确归类
 - `interfaces.dto` / `interfaces.response` 只服务接入层，不参与跨域调用
+- 外部 `interfaces.controller` 不直接返回 `api.dto` 或应用层内部视图对象，统一在接入层转换为 `*Response`
 - provider 接口默认直接复用 `api.dto`，不再单独定义 provider DTO
 - provider 接口如需对内请求模型，使用 `interfaces.dto` 下的 `*Request`；如直接复用简单参数或 `api.dto`，不得再额外派生一套 provider response
 - HTTP DTO、HTTP Response、跨域 DTO、领域对象默认不复用，避免协议层和领域层互相污染
@@ -317,9 +320,15 @@ bacon-biz/bacon-order
   - 统一使用 `*Command`
 - `application.query`
   - 统一使用 `*Query`
+- `application.audit`
+  - 审计查询、审计补偿、审计写入支持按职责命名
+- `application.support`
+  - 统一承载可复用的应用层支撑逻辑
 - `application.result`
   - 统一使用 `*Result`
   - 禁止继续使用 `application.dto`
+- `application.service`
+  - 禁止新增
 
 ## Maven 依赖方向
 
@@ -609,8 +618,8 @@ bacon-biz/bacon-<domain>/
 1. 在 `bacon-biz` 下创建领域聚合模块和四层子模块。
 2. 在 `api` 中定义 facade 和跨域 dto。
 3. 在 `domain` 中定义实体、聚合、仓储接口和领域服务。
-4. 在 `application` 中定义 command、query、service、executor。
-5. 在 `interfaces` 中定义 controller、provider、http dto、vo。
+4. 在 `application` 中定义 command、query、audit、support、executor。
+5. 在 `interfaces` 中定义 controller、provider、http dto、response、assembler。
 6. 在 `infra` 中实现 repository、mapper、rpc、cache。
 7. 在对应 starter 中引入相关模块并完成装配。
 8. 在 `deploy` 中补齐配置样例和镜像脚本。

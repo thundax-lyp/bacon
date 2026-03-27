@@ -128,6 +128,7 @@
 - 工程实现文档如果涉及分层命名，以 `ARCHITECTURE.md` 的工程规则为准：
   - `interfaces.dto` 使用 `*Request`
   - `interfaces.response` 使用 `*Response`
+  - `interfaces.vo` 不再使用
   - `api.dto` 使用 `*DTO`
   - `application.command` / `application.query` / `application.result` 分别使用 `*Command` / `*Query` / `*Result`
 - 枚举值默认使用全大写英文风格

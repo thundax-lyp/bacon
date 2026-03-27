@@ -46,17 +46,20 @@ public class Inventory {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_ON_HAND_QUANTITY, String.valueOf(skuId));
         }
         String normalizedStatus = normalizeStatus(status);
+        // 新建库存时把 reserved/available 一次性归位，后续所有数量变化都只通过领域方法推进。
         return new Inventory(id, tenantId, skuId, DEFAULT_WAREHOUSE_ID, onHandQuantity, 0, onHandQuantity,
                 normalizedStatus, 0L, createdAt);
     }
 
     public void reserve(int quantity, Instant operatedAt) {
+        // 预占只减少可用量，不减少实物在库量；真正扣减要等订单支付成功后单独执行。
         ensureReservable(quantity);
         reservedQuantity += quantity;
         refreshAvailableQuantity(operatedAt);
     }
 
     public void ensureReservable(int quantity) {
+        // 预校验单独暴露给应用层，用于在批量预占前尽早失败，而不是部分修改后再回滚。
         validateQuantity(quantity);
         ensureEnabled();
         if (availableQuantity < quantity) {
@@ -65,6 +68,7 @@ public class Inventory {
     }
 
     public void release(int quantity, Instant operatedAt) {
+        // 释放库存只归还已预占量，不能把尚未预占的数量“释放”回去。
         validateQuantity(quantity);
         if (reservedQuantity < quantity) {
             throw new InventoryDomainException(InventoryErrorCode.RESERVED_QUANTITY_NOT_ENOUGH, String.valueOf(skuId));
@@ -74,6 +78,7 @@ public class Inventory {
     }
 
     public void deduct(int quantity, Instant operatedAt) {
+        // 扣减要求同时满足“已预占”和“在库足够”，避免支付成功后把未锁定库存直接扣成负数。
         validateQuantity(quantity);
         if (reservedQuantity < quantity) {
             throw new InventoryDomainException(InventoryErrorCode.RESERVED_QUANTITY_NOT_ENOUGH, String.valueOf(skuId));
@@ -87,11 +92,13 @@ public class Inventory {
     }
 
     public void updateStatus(String targetStatus, Instant operatedAt) {
+        // 启停库存是运维级操作，不改数量，只更新状态和时间戳。
         this.status = normalizeStatus(targetStatus);
         this.updatedAt = operatedAt;
     }
 
     public void markPersisted(Long persistedVersion) {
+        // 乐观锁版本由持久化层写回，领域对象本身不自增，避免和数据库版本漂移。
         this.version = persistedVersion;
     }
 
@@ -108,6 +115,7 @@ public class Inventory {
     }
 
     private void refreshAvailableQuantity(Instant operatedAt) {
+        // availableQuantity 始终由 onHand - reserved 推导，禁止在其他地方直接赋值。
         availableQuantity = onHandQuantity - reservedQuantity;
         updatedAt = operatedAt;
     }

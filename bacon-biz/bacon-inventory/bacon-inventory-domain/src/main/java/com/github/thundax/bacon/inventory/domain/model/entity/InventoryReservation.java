@@ -69,6 +69,7 @@ public class InventoryReservation {
                                                  Long warehouseId, Instant createdAt, List<InventoryReservationItem> items,
                                                  String reservationStatus, String failureReason, String releaseReason,
                                                  Instant releasedAt, Instant deductedAt) {
+        // 预占单回写时必须带回终态与原因字段，应用层会基于这些字段判断是否还能继续补偿或回放。
         InventoryReservation reservation = new InventoryReservation(id, tenantId, reservationNo, orderNo, warehouseId,
                 createdAt, items);
         reservation.reservationStatus = reservationStatus;
@@ -80,17 +81,20 @@ public class InventoryReservation {
     }
 
     public void reserve() {
+        // 预占单只允许从 CREATED 进入 RESERVED；一旦失败或终结，就不能再次复用同一预占单。
         ensureStatus(STATUS_CREATED);
         this.reservationStatus = STATUS_RESERVED;
     }
 
     public void fail(String reason) {
+        // 预占失败只允许发生在初始处理阶段，避免把已成功预占的单据重新打回失败。
         ensureStatus(STATUS_CREATED);
         this.reservationStatus = STATUS_FAILED;
         this.failureReason = reason;
     }
 
     public void release(String reason, Instant releasedTime) {
+        // 释放动作只允许在 RESERVED 后执行，并且原因必须来自固定枚举，便于上游做补偿分流。
         ensureStatus(STATUS_RESERVED);
         if (!RELEASE_REASONS.contains(reason)) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_RELEASE_REASON, reason);
@@ -101,6 +105,7 @@ public class InventoryReservation {
     }
 
     public void deduct(Instant deductedTime) {
+        // 扣减与释放互斥，只能在仍然持有预占量时完成，避免重复消费同一预占单。
         ensureStatus(STATUS_RESERVED);
         this.reservationStatus = STATUS_DEDUCTED;
         this.deductedAt = deductedTime;
@@ -127,6 +132,7 @@ public class InventoryReservation {
     }
 
     private void ensureStatus(String... expectedStatuses) {
+        // 预占单状态机不做静默幂等，非法重复调用由上层显式识别并决定是否审计或短路。
         for (String expectedStatus : expectedStatuses) {
             if (expectedStatus.equals(reservationStatus)) {
                 return;

@@ -5,13 +5,20 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 库存审计回放任务创建命令。
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryAuditReplayTaskCreateDTO {
 
+    /** 所属租户主键。 */
     private Long tenantId;
+    /** 操作人主键。 */
     private Long operatorId;
+    /** 回放幂等键前缀。 */
     private String replayKeyPrefix;
+    /** 待回放死信主键列表。 */
     private List<Long> deadLetterIds;
 }

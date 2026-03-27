@@ -18,6 +18,7 @@
 - 对象访问地址生成
 - 对象引用标记
 - 用户头像对象管理
+- 商品图片对象管理
 
 ### 2.2 Out Of Scope
 
@@ -51,7 +52,14 @@
 - `UPMS` 不直接保存本地文件路径或 `OSS object key`
 - 用户头像上传、替换、清除通过 `Storage` 能力完成
 
-### 3.4 Cross-Domain Rule
+### 3.4 Inventory
+
+- 商品主数据中的图片字段只保存 `objectId`
+- `Inventory` 不直接保存商品图片访问地址
+- `Inventory` 不直接保存本地文件路径或 `OSS object key`
+- 商品图片上传、替换、清除通过 `Storage` 能力完成
+
+### 3.5 Cross-Domain Rule
 
 - 其他业务域只能依赖 `bacon-storage-api`
 - 其他业务域不得依赖 `Storage` 内部实现
@@ -143,7 +151,7 @@
 - `storageType` 固定为 `LOCAL_FILE`、`OSS`
 - `objectStatus` 固定为 `ACTIVE`、`DELETED`
 - `referenceStatus` 固定为 `UNREFERENCED`、`REFERENCED`
-- `ownerType` 固定至少包含 `UPMS_USER_AVATAR`
+- `ownerType` 固定至少包含 `UPMS_USER_AVATAR`、`INVENTORY_PRODUCT_IMAGE`
 
 ## 5.2 Fixed Fields
 
@@ -239,6 +247,25 @@
 - `avatarUrl` 由 `Storage` 查询结果派生，不单独落在 `UPMS`
 - 头像旧对象在引用解除后由 `Storage` 负责删除策略
 
+### 7.4 Product Image Rule
+
+功能对象：
+
+- `Product.imageObjectId`
+
+功能能力：
+
+- 商品图片上传后返回新的 `objectId`
+- 商品图片替换时更新 `imageObjectId`
+- 商品图片清除时清空 `imageObjectId`
+
+必要补充约束：
+
+- 商品域只保存 `imageObjectId`
+- 商品响应模型固定返回 `imageObjectId` 和 `imageUrl`
+- `imageUrl` 由 `Storage` 查询结果派生，不单独落在商品域
+- 商品图片旧对象在引用解除后由 `Storage` 负责删除策略
+
 ## 8. Key Flows
 
 ### 8.1 Upload Flow
@@ -256,7 +283,14 @@
 3. `UPMS` 调用 `Storage.clearObjectReference(oldObjectId, UPMS_USER_AVATAR, userId)`
 4. `UPMS` 调用 `Storage.markObjectReferenced(newObjectId, UPMS_USER_AVATAR, userId)`
 
-### 8.3 Delete Object Flow
+### 8.3 Replace Product Image Flow
+
+1. 商品域调用 `Storage` 上传新图片
+2. 商品域更新 `Product.imageObjectId`
+3. 商品域调用 `Storage.clearObjectReference(oldObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
+4. 商品域调用 `Storage.markObjectReferenced(newObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
+
+### 8.4 Delete Object Flow
 
 1. 调用删除接口
 2. `Storage` 校验对象是否仍被引用

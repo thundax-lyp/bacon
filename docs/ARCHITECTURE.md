@@ -458,6 +458,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - 当前工程统一使用 `RestClient` 作为同步 HTTP 调用入口；未实际使用的 OpenFeign 模块不得保留在仓库内。
 - `api.dto` 作为跨服务契约对象，需要关注兼容性，新增字段优先向后兼容，避免破坏性变更。
 - `bacon-common-security` 作为微服务基础能力模块使用；`bacon-common-seata` 仅在确有分布式事务需求时启用，不视为默认标配。
+- 如需启用 Seata，只能通过 `bacon-common-seata` 暴露的自动装配接入；业务模块和 starter 不得自行声明 `GlobalTransactionScanner`、`DataSourceProxy` 或重复引入 Seata 基础配置。
 
 ## 禁止事项
 

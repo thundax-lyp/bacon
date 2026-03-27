@@ -56,7 +56,7 @@ class RestTemplateAutoConfigurationTest {
                 .run(context -> {
                     assertThat(context).doesNotHaveBean(RestTemplate.class);
                     assertThat(context).doesNotHaveBean(RestClient.Builder.class);
-                    assertThat(context).doesNotHaveBean(RestClientFactory.class);
+                    assertThat(context).hasSingleBean(RestClientFactory.class);
                 });
     }
 }

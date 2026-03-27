@@ -51,7 +51,6 @@ public class RestTemplateAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(value = "spring.cloud.nacos.discovery.enabled", havingValue = "true", matchIfMissing = true)
     public RestClientFactory restClientFactory(ObjectProvider<RestClient.Builder> restClientBuilderProvider) {
         return new RestClientFactory(restClientBuilderProvider);
     }

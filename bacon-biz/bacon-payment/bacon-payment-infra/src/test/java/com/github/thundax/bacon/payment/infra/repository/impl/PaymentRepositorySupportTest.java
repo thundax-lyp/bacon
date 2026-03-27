@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
+import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentAuditLogDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentCallbackRecordDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentOrderDO;
@@ -18,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -65,6 +68,24 @@ class PaymentRepositorySupportTest {
     }
 
     @Test
+    void shouldThrowConflictWhenStrictUpdateAffectsNoRows() {
+        PaymentRepositorySupport support = new PaymentRepositorySupport(
+                createOrderMapper(null, null, null, 0),
+                createCallbackMapper(null, null, null),
+                createAuditLogMapper(null, null)
+        );
+        PaymentOrder paymentOrder = PaymentOrder.rehydrate(9002L, 1001L, "PAY-10009", "ORD-10009", 2009L,
+                "MOCK", new BigDecimal("66.00"), BigDecimal.ZERO, "strict-conflict",
+                Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
+                null, null, PaymentOrder.STATUS_PAYING, null, null, null);
+        paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));
+
+        PaymentDomainException ex = assertThrows(PaymentDomainException.class, () -> support.saveOrder(paymentOrder));
+
+        assertEquals(PaymentErrorCode.PAYMENT_PERSISTENCE_CONFLICT.code(), ex.getCode());
+    }
+
+    @Test
     void shouldMapStrictReadModelsFromMappers() {
         PaymentOrderDO orderDataObject = new PaymentOrderDO(9101L, 1001L, "PAY-10003", "ORD-10003", 2003L,
                 "MOCK", PaymentOrder.STATUS_PAID, new BigDecimal("128.00"), new BigDecimal("128.00"),
@@ -101,6 +122,14 @@ class PaymentRepositorySupportTest {
     private PaymentOrderMapper createOrderMapper(AtomicReference<PaymentOrderDO> insertedRef,
                                                  AtomicReference<PaymentOrderDO> updatedRef,
                                                  PaymentOrderDO selectedOrder) {
+        return createOrderMapper(insertedRef, updatedRef, selectedOrder, 1);
+    }
+
+    @SuppressWarnings("unchecked")
+    private PaymentOrderMapper createOrderMapper(AtomicReference<PaymentOrderDO> insertedRef,
+                                                 AtomicReference<PaymentOrderDO> updatedRef,
+                                                 PaymentOrderDO selectedOrder,
+                                                 int updateRows) {
         return (PaymentOrderMapper) Proxy.newProxyInstance(PaymentOrderMapper.class.getClassLoader(),
                 new Class[]{PaymentOrderMapper.class}, (proxy, method, args) -> {
                     if ("insert".equals(method.getName())) {
@@ -111,7 +140,7 @@ class PaymentRepositorySupportTest {
                     }
                     if ("updateById".equals(method.getName())) {
                         updatedRef.set((PaymentOrderDO) args[0]);
-                        return 1;
+                        return updateRows;
                     }
                     if ("selectOne".equals(method.getName())) {
                         return selectedOrder;

@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
+import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -45,7 +47,10 @@ public class PaymentRepositorySupport {
         if (dataObject.getId() == null) {
             paymentOrderMapper.insert(dataObject);
         } else {
-            paymentOrderMapper.updateById(dataObject);
+            if (paymentOrderMapper.updateById(dataObject) == 0) {
+                throw new PaymentDomainException(PaymentErrorCode.PAYMENT_PERSISTENCE_CONFLICT,
+                        paymentOrder.getPaymentNo());
+            }
         }
         return toDomain(dataObject);
     }

@@ -11,6 +11,7 @@ public enum PaymentErrorCode implements ErrorCode {
     INVALID_EXPIRED_AT("PAY-400003", "Invalid expired at", HttpStatus.BAD_REQUEST),
     INVALID_CLOSE_REASON("PAY-400004", "Invalid close reason", HttpStatus.BAD_REQUEST),
     INVALID_CALLBACK_REQUEST("PAY-400005", "Invalid callback request", HttpStatus.BAD_REQUEST),
+    PAYMENT_PERSISTENCE_CONFLICT("PAY-409001", "Payment persistence conflict", HttpStatus.CONFLICT),
     PAYMENT_REMOTE_BAD_REQUEST("PAY-400901", "Payment remote bad request", HttpStatus.BAD_REQUEST),
     PAYMENT_REMOTE_UNAUTHORIZED("PAY-401901", "Payment remote unauthorized", HttpStatus.UNAUTHORIZED),
     PAYMENT_REMOTE_FORBIDDEN("PAY-403901", "Payment remote forbidden", HttpStatus.FORBIDDEN),

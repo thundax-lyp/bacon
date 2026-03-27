@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.payment.application.service;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
+import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentChannelPayload;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
-import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import com.github.thundax.bacon.payment.domain.service.PaymentNoGenerator;
 import org.springframework.stereotype.Service;
@@ -16,14 +16,14 @@ import java.time.Instant;
 public class PaymentApplicationService {
 
     private final PaymentOrderRepository paymentOrderRepository;
-    private final PaymentAuditLogRepository paymentAuditLogRepository;
+    private final PaymentAuditLogSupport paymentAuditLogSupport;
     private final PaymentNoGenerator paymentNoGenerator;
 
     public PaymentApplicationService(PaymentOrderRepository paymentOrderRepository,
-                                     PaymentAuditLogRepository paymentAuditLogRepository,
+                                     PaymentAuditLogSupport paymentAuditLogSupport,
                                      PaymentNoGenerator paymentNoGenerator) {
         this.paymentOrderRepository = paymentOrderRepository;
-        this.paymentAuditLogRepository = paymentAuditLogRepository;
+        this.paymentAuditLogSupport = paymentAuditLogSupport;
         this.paymentNoGenerator = paymentNoGenerator;
     }
 
@@ -42,7 +42,7 @@ public class PaymentApplicationService {
                 channelCode, amount, subject, expiredAt, Instant.now());
         paymentOrder.markPaying();
         PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogRepository.save(new PaymentAuditLog(null, tenantId, paymentNo,
+        paymentAuditLogSupport.saveSafely(new PaymentAuditLog(null, tenantId, paymentNo,
                 PaymentAuditLog.ACTION_CREATE, null, paymentOrder.getPaymentStatus(),
                 PaymentAuditLog.OPERATOR_SYSTEM, 0L, persistedOrder.getCreatedAt()));
         return toCreateResult(persistedOrder, buildPayload(persistedOrder), null);

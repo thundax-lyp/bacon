@@ -208,6 +208,7 @@
 - 发号失败时必须直接失败，不得降级为本地临时号段
 - `PaymentOrder.id`、`PaymentCallbackRecord.id`、`PaymentAuditLog.id` 在 `strict` 模式下固定由数据库主键生成
 - `Payment` 应用层不得自行维护本地自增 `id`
+- `strict` 模式下主单更新若未命中任何记录，必须按持久化冲突直接失败，不得伪造成功结果
 - `PaymentOrder.order_no` 全局唯一
 - `PaymentCallbackRecord(tenant_id, channel_code, channel_transaction_no)` 唯一
 - `amount`、`paid_amount` 固定使用两位小数

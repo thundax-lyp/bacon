@@ -2,6 +2,7 @@ package com.github.thundax.bacon.payment.application.service;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -21,12 +22,13 @@ import java.util.concurrent.ConcurrentMap;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 class PaymentApplicationServiceTest {
 
     @Test
     void createPaymentShouldGeneratePaymentNoInsideModule() {
         TestPaymentRepository repository = new TestPaymentRepository();
-        PaymentApplicationService service = new PaymentApplicationService(repository, repository,
+        PaymentApplicationService service = new PaymentApplicationService(repository, new PaymentAuditLogSupport(repository),
                 () -> "PAY-20001");
 
         PaymentCreateResultDTO result = service.createPayment(1001L, "ORD-10001", 2001L, BigDecimal.TEN,
@@ -41,7 +43,7 @@ class PaymentApplicationServiceTest {
     @Test
     void createPaymentShouldBeIdempotentByOrderNo() {
         TestPaymentRepository repository = new TestPaymentRepository();
-        PaymentApplicationService service = new PaymentApplicationService(repository, repository,
+        PaymentApplicationService service = new PaymentApplicationService(repository, new PaymentAuditLogSupport(repository),
                 new SequencePaymentNoGenerator());
 
         PaymentCreateResultDTO first = service.createPayment(1001L, "ORD-10002", 2001L, BigDecimal.ONE,
@@ -57,12 +59,13 @@ class PaymentApplicationServiceTest {
     void callbackAndCloseShouldRespectStateRules() {
         TestPaymentRepository repository = new TestPaymentRepository();
         StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
-        PaymentApplicationService createService = new PaymentApplicationService(repository, repository,
+        PaymentApplicationService createService = new PaymentApplicationService(repository, new PaymentAuditLogSupport(repository),
                 () -> "PAY-20003");
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(repository, repository,
-                repository, orderCommandFacade);
+                new PaymentAuditLogSupport(repository), orderCommandFacade);
         PaymentQueryApplicationService queryService = new PaymentQueryApplicationService(repository, repository);
-        PaymentCloseApplicationService closeService = new PaymentCloseApplicationService(repository, repository);
+        PaymentCloseApplicationService closeService = new PaymentCloseApplicationService(repository,
+                new PaymentAuditLogSupport(repository));
 
         PaymentCreateResultDTO created = createService.createPayment(1001L, "ORD-10003", 2003L, new BigDecimal("18.80"),
                 "MOCK", "callback", Instant.now().plusSeconds(1800));
@@ -84,9 +87,10 @@ class PaymentApplicationServiceTest {
     @Test
     void closePaymentShouldBeIdempotentForClosedPayment() {
         TestPaymentRepository repository = new TestPaymentRepository();
-        PaymentApplicationService createService = new PaymentApplicationService(repository, repository,
+        PaymentApplicationService createService = new PaymentApplicationService(repository, new PaymentAuditLogSupport(repository),
                 () -> "PAY-20004");
-        PaymentCloseApplicationService closeService = new PaymentCloseApplicationService(repository, repository);
+        PaymentCloseApplicationService closeService = new PaymentCloseApplicationService(repository,
+                new PaymentAuditLogSupport(repository));
 
         PaymentCreateResultDTO created = createService.createPayment(1001L, "ORD-10004", 2004L, new BigDecimal("28.00"),
                 "MOCK", "close", Instant.now().plusSeconds(1800));
@@ -99,6 +103,41 @@ class PaymentApplicationServiceTest {
         assertEquals(2, repository.findAuditLogsByPaymentNo(1001L, created.getPaymentNo()).size());
     }
 
+    @Test
+    void createPaymentShouldNotRollbackWhenAuditWriteFails() {
+        TestPaymentRepository repository = new TestPaymentRepository();
+        repository.failAuditSave = true;
+        PaymentApplicationService service = new PaymentApplicationService(repository, new PaymentAuditLogSupport(repository),
+                () -> "PAY-20005");
+
+        PaymentCreateResultDTO result = assertDoesNotThrow(() -> service.createPayment(1001L, "ORD-10005", 2005L,
+                BigDecimal.ONE, "MOCK", "audit-fail", Instant.now().plusSeconds(1800)));
+
+        assertEquals("PAY-20005", result.getPaymentNo());
+        assertEquals(PaymentOrder.STATUS_PAYING, repository.findOrderByPaymentNo(1001L, "PAY-20005").orElseThrow().getPaymentStatus());
+        assertEquals(0, repository.findAuditLogsByPaymentNo(1001L, "PAY-20005").size());
+    }
+
+    @Test
+    void callbackPaidShouldNotRollbackWhenAuditWriteFails() {
+        TestPaymentRepository repository = new TestPaymentRepository();
+        StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
+        PaymentApplicationService createService = new PaymentApplicationService(repository, new PaymentAuditLogSupport(repository),
+                () -> "PAY-20006");
+        createService.createPayment(1001L, "ORD-10006", 2006L, new BigDecimal("18.00"),
+                "MOCK", "audit-fail-callback", Instant.now().plusSeconds(1800));
+        repository.failAuditSave = true;
+        PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(repository, repository,
+                new PaymentAuditLogSupport(repository), orderCommandFacade);
+
+        assertDoesNotThrow(() -> callbackService.callbackPaid("MOCK", 1001L, "PAY-20006", "TXN-20006", "SUCCESS",
+                "{\"tradeStatus\":\"SUCCESS\"}"));
+
+        PaymentOrder paymentOrder = repository.findOrderByPaymentNo(1001L, "PAY-20006").orElseThrow();
+        assertEquals(PaymentOrder.STATUS_PAID, paymentOrder.getPaymentStatus());
+        assertEquals(1, orderCommandFacade.markPaidCount);
+    }
+
     private static final class TestPaymentRepository implements PaymentOrderRepository, PaymentCallbackRecordRepository,
             PaymentAuditLogRepository {
 
@@ -107,6 +146,7 @@ class PaymentApplicationServiceTest {
         private final ConcurrentMap<String, List<PaymentCallbackRecord>> callbacksByPaymentNo = new ConcurrentHashMap<>();
         private final ConcurrentMap<String, PaymentCallbackRecord> callbacksByTxn = new ConcurrentHashMap<>();
         private final ConcurrentMap<String, List<PaymentAuditLog>> auditLogsByPaymentNo = new ConcurrentHashMap<>();
+        private boolean failAuditSave;
 
         @Override
         public PaymentOrder save(PaymentOrder paymentOrder) {
@@ -155,6 +195,9 @@ class PaymentApplicationServiceTest {
 
         @Override
         public void save(PaymentAuditLog auditLog) {
+            if (failAuditSave) {
+                throw new IllegalStateException("audit unavailable");
+            }
             auditLogsByPaymentNo.computeIfAbsent(paymentKey(auditLog.getTenantId(), auditLog.getPaymentNo()),
                     ignored -> new ArrayList<>()).add(auditLog);
         }

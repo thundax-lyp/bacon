@@ -20,6 +20,7 @@ public class SysLogQueryApplicationService {
     public SysLogPageResultDTO pageLogs(SysLogQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+        // 日志分页统一先归一化页码参数，避免调用方传入 0/负数时把仓储查询语义拉偏。
         return new SysLogPageResultDTO(
                 sysLogRepository.pageLogs(query.getTenantId(), query.getModule(), query.getEventType(),
                                 query.getResult(), query.getOperatorName(), pageNo, pageSize).stream()

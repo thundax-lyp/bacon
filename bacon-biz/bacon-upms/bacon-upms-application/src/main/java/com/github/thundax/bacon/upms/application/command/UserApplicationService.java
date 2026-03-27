@@ -130,6 +130,7 @@ public class UserApplicationService {
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt()));
         if (DISABLED_STATUS.equalsIgnoreCase(savedUser.getStatus())) {
+            // 用户被禁用后立即失效现有会话，避免账号状态已停用但旧 access token 还能继续访问。
             sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_DISABLED");
         }
         return toDto(savedUser);
@@ -138,12 +139,14 @@ public class UserApplicationService {
     public void deleteUser(Long tenantId, Long userId) {
         requireUser(tenantId, userId);
         userRepository.deleteUser(tenantId, userId);
+        // 删除用户后同步踢出在线会话，保持账号主数据和认证态的一致性。
         sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_DELETED");
     }
 
     public UserDTO initPassword(Long tenantId, Long userId) {
         requireUser(tenantId, userId);
         User user = userRepository.updatePassword(tenantId, userId, DEFAULT_PASSWORD);
+        // 初始化密码会改变长期凭据，必须强制旧会话下线，避免旧设备继续持有有效登录态。
         sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_PASSWORD_INITIALIZED");
         return toDto(user);
     }
@@ -152,6 +155,7 @@ public class UserApplicationService {
         requireUser(tenantId, userId);
         validateRequired(newPassword, "newPassword");
         User user = userRepository.updatePassword(tenantId, userId, normalize(newPassword));
+        // 重置密码和初始化密码一样，都视为安全事件，统一强制回收当前在线会话。
         sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_PASSWORD_RESET");
         return toDto(user);
     }
@@ -180,6 +184,7 @@ public class UserApplicationService {
         if (commands == null || commands.isEmpty()) {
             return List.of();
         }
+        // 导入复用单条创建逻辑，确保唯一性校验、默认状态和字段归一化规则与手工创建完全一致。
         return commands.stream()
                 .map(command -> createUser(tenantId, command.account(), command.name(), command.phone(),
                         command.departmentId()))

@@ -10,12 +10,10 @@ import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class PaymentCallbackApplicationService {
 
-    private final AtomicLong idGenerator = new AtomicLong(1000L);
     private final PaymentOrderRepository paymentOrderRepository;
     private final PaymentCallbackRecordRepository paymentCallbackRecordRepository;
     private final PaymentAuditLogRepository paymentAuditLogRepository;
@@ -49,7 +47,7 @@ public class PaymentCallbackApplicationService {
                 .findCallbackByChannelTransactionNo(tenantId, channelCode, channelTransactionNo)
                 .orElse(null);
         PaymentCallbackRecord callbackRecord = existing == null
-                ? paymentCallbackRecordRepository.save(new PaymentCallbackRecord(idGenerator.getAndIncrement(), tenantId,
+                ? paymentCallbackRecordRepository.save(new PaymentCallbackRecord(null, tenantId,
                 paymentNo, paymentOrder.getOrderNo(), channelCode, channelTransactionNo, channelStatus, rawPayload, Instant.now()))
                 : existing;
         if (PaymentOrder.STATUS_PAID.equals(paymentOrder.getPaymentStatus())) {
@@ -64,7 +62,7 @@ public class PaymentCallbackApplicationService {
         paymentOrder.markPaid(paymentOrder.getAmount(), paidTime, callbackRecord.getChannelTransactionNo(),
                 callbackRecord.getChannelStatus(), callbackRecord.summarize());
         paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogRepository.save(new PaymentAuditLog(idGenerator.getAndIncrement(), tenantId, paymentNo,
+        paymentAuditLogRepository.save(new PaymentAuditLog(null, tenantId, paymentNo,
                 PaymentAuditLog.ACTION_CALLBACK_PAID, beforeStatus, paymentOrder.getPaymentStatus(),
                 PaymentAuditLog.OPERATOR_CHANNEL, 0L, paidTime));
         orderCommandFacade.markPaid(tenantId, paymentOrder.getOrderNo(), paymentNo, channelCode,
@@ -91,7 +89,7 @@ public class PaymentCallbackApplicationService {
         if (latestRecord == null
                 || !channelStatus.equals(latestRecord.getChannelStatus())
                 || !rawPayload.equals(latestRecord.getRawPayload())) {
-            paymentCallbackRecordRepository.save(new PaymentCallbackRecord(idGenerator.getAndIncrement(), tenantId,
+            paymentCallbackRecordRepository.save(new PaymentCallbackRecord(null, tenantId,
                     paymentNo, paymentOrder.getOrderNo(), channelCode, null, channelStatus, rawPayload, Instant.now()));
         }
         if (PaymentOrder.STATUS_PAID.equals(paymentOrder.getPaymentStatus())) {
@@ -105,7 +103,7 @@ public class PaymentCallbackApplicationService {
         Instant failedTime = Instant.now();
         paymentOrder.markFailed(channelStatus, rawPayload.length() <= 255 ? rawPayload : rawPayload.substring(0, 255));
         paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogRepository.save(new PaymentAuditLog(idGenerator.getAndIncrement(), tenantId, paymentNo,
+        paymentAuditLogRepository.save(new PaymentAuditLog(null, tenantId, paymentNo,
                 PaymentAuditLog.ACTION_CALLBACK_FAILED, beforeStatus, paymentOrder.getPaymentStatus(),
                 PaymentAuditLog.OPERATOR_CHANNEL, 0L, failedTime));
         orderCommandFacade.markPaymentFailed(tenantId, paymentOrder.getOrderNo(), paymentNo, reason, channelStatus, failedTime);

@@ -11,12 +11,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class PaymentApplicationService {
 
-    private final AtomicLong idGenerator = new AtomicLong(1L);
     private final PaymentOrderRepository paymentOrderRepository;
     private final PaymentAuditLogRepository paymentAuditLogRepository;
     private final PaymentNoGenerator paymentNoGenerator;
@@ -40,14 +38,14 @@ public class PaymentApplicationService {
         if (paymentNo == null || paymentNo.isBlank()) {
             throw new IllegalStateException("Payment no generator returned blank value");
         }
-        PaymentOrder paymentOrder = new PaymentOrder(idGenerator.getAndIncrement(), tenantId, paymentNo, orderNo, userId,
+        PaymentOrder paymentOrder = new PaymentOrder(null, tenantId, paymentNo, orderNo, userId,
                 channelCode, amount, subject, expiredAt, Instant.now());
         paymentOrder.markPaying();
-        paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogRepository.save(new PaymentAuditLog(idGenerator.getAndIncrement(), tenantId, paymentNo,
+        PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);
+        paymentAuditLogRepository.save(new PaymentAuditLog(null, tenantId, paymentNo,
                 PaymentAuditLog.ACTION_CREATE, null, paymentOrder.getPaymentStatus(),
-                PaymentAuditLog.OPERATOR_SYSTEM, 0L, paymentOrder.getCreatedAt()));
-        return toCreateResult(paymentOrder, buildPayload(paymentOrder), null);
+                PaymentAuditLog.OPERATOR_SYSTEM, 0L, persistedOrder.getCreatedAt()));
+        return toCreateResult(persistedOrder, buildPayload(persistedOrder), null);
     }
 
     private void validateCreateRequest(BigDecimal amount, String channelCode, Instant expiredAt) {

@@ -36,6 +36,10 @@
 - 支付主表使用 `created_at`、`updated_at`
 - 回调记录表和审计表使用领域时间字段，不额外增加 `created_at`、`updated_at`
 - 当前范围不使用逻辑删除字段
+- 仓储模式固定支持 `strict` 和 `memory`
+- 默认模式固定为 `strict`
+- `strict` 模式固定使用 `MyBatis-Plus DO + Mapper + RepositoryImpl`
+- `memory` 模式只允许显式启用，用于本地调试或无数据库测试
 
 ## 4. Naming Rules
 
@@ -202,6 +206,8 @@
 - `PaymentOrder.payment_no` 全局唯一
 - `PaymentOrder.payment_no` 固定由发号中心客户端在 `Payment` 模块 `infra` 层生成
 - 发号失败时必须直接失败，不得降级为本地临时号段
+- `PaymentOrder.id`、`PaymentCallbackRecord.id`、`PaymentAuditLog.id` 在 `strict` 模式下固定由数据库主键生成
+- `Payment` 应用层不得自行维护本地自增 `id`
 - `PaymentOrder.order_no` 全局唯一
 - `PaymentCallbackRecord(tenant_id, channel_code, channel_transaction_no)` 唯一
 - `amount`、`paid_amount` 固定使用两位小数
@@ -211,6 +217,9 @@
 - 审计日志写入失败不得回滚支付主流程，失败处理遵守工程级数据库规范
 - `PaymentCreateResultDTO`、`PaymentCloseResultDTO` 是命令返回模型，不单独建表
 - `id` 是数据库主键；`payment_no` 是业务单号；二者不得混用
+- 持久化实现固定路径：
+  - `strict` 模式使用 `PaymentRepositorySupport + Payment*RepositoryImpl`
+  - `memory` 模式使用 `InMemoryPaymentRepositorySupport + InMemoryPayment*RepositoryImpl`
 
 ## 10. Query Model Rules
 

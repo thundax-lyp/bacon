@@ -49,6 +49,23 @@ public class PaymentOrder {
         this.paidAmount = BigDecimal.ZERO;
     }
 
+    public static PaymentOrder rehydrate(Long id, Long tenantId, String paymentNo, String orderNo, Long userId,
+                                         String channelCode, BigDecimal amount, BigDecimal paidAmount, String subject,
+                                         Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
+                                         String paymentStatus, String channelTransactionNo, String channelStatus,
+                                         String callbackSummary) {
+        PaymentOrder paymentOrder = new PaymentOrder(id, tenantId, paymentNo, orderNo, userId, channelCode,
+                amount, subject, expiredAt, createdAt);
+        paymentOrder.paidAmount = paidAmount == null ? BigDecimal.ZERO : paidAmount;
+        paymentOrder.paidAt = paidAt;
+        paymentOrder.closedAt = closedAt;
+        paymentOrder.paymentStatus = paymentStatus;
+        paymentOrder.channelTransactionNo = channelTransactionNo;
+        paymentOrder.channelStatus = channelStatus;
+        paymentOrder.callbackSummary = callbackSummary;
+        return paymentOrder;
+    }
+
     public void markPaying() {
         if (STATUS_PAID.equals(paymentStatus) || STATUS_FAILED.equals(paymentStatus) || STATUS_CLOSED.equals(paymentStatus)) {
             return;

@@ -9,13 +9,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class PaymentCloseApplicationService {
 
     private static final Set<String> VALID_REASONS = Set.of("USER_CANCELLED", "SYSTEM_CANCELLED", "TIMEOUT_CLOSED");
-    private final AtomicLong idGenerator = new AtomicLong(2000L);
     private final PaymentOrderRepository paymentOrderRepository;
     private final PaymentAuditLogRepository paymentAuditLogRepository;
 
@@ -47,7 +45,7 @@ public class PaymentCloseApplicationService {
         Instant closedAt = Instant.now();
         paymentOrder.close(closedAt);
         paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogRepository.save(new PaymentAuditLog(idGenerator.getAndIncrement(), tenantId, paymentNo,
+        paymentAuditLogRepository.save(new PaymentAuditLog(null, tenantId, paymentNo,
                 PaymentAuditLog.ACTION_CLOSE, beforeStatus, paymentOrder.getPaymentStatus(),
                 PaymentAuditLog.OPERATOR_SYSTEM, 0L, closedAt));
         return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),

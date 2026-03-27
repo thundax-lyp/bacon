@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 系统日志分页查询对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SysLogQueryDTO {
 
     /** 租户标识。 */

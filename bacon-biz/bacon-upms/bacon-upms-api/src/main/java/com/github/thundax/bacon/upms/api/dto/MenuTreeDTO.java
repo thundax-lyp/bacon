@@ -5,12 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 菜单树跨服务传输对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MenuTreeDTO {
 
     /** 菜单主键。 */

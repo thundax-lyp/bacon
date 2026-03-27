@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 租户分页查询对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TenantPageQueryDTO {
 
     /** 业务租户标识。 */

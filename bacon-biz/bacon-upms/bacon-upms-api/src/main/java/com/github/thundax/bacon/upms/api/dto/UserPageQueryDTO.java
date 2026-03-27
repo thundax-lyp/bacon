@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 用户分页查询对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserPageQueryDTO {
 
     /** 所属租户主键。 */

@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 用户密码变更对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserPasswordChangeDTO {
 
     /** 旧密码。 */

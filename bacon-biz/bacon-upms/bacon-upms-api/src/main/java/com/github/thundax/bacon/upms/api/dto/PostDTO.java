@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 岗位跨服务传输对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PostDTO {
 
     /** 岗位主键。 */

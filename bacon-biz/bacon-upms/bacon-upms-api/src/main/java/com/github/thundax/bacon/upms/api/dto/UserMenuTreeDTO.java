@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 用户菜单树跨服务传输对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserMenuTreeDTO {
 
     /** 菜单主键。 */

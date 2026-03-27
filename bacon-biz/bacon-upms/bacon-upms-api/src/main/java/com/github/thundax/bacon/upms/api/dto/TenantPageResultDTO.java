@@ -5,12 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 租户分页结果对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TenantPageResultDTO {
 
     /** 当前页记录。 */

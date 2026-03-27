@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 用户登录凭据传输对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserLoginCredentialDTO {
 
     /** 所属租户主键。 */

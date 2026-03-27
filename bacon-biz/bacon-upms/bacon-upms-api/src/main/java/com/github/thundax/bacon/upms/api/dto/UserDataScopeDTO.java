@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 用户数据范围传输对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDataScopeDTO {
 
     /** 是否拥有全部数据权限。 */

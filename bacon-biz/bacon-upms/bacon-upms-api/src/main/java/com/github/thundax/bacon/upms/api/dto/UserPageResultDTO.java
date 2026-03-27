@@ -5,12 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 /**
  * 用户分页结果对象。
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserPageResultDTO {
 
     /** 当前页记录。 */

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.application.service;
+package com.github.thundax.bacon.upms.application.audit;
 
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;

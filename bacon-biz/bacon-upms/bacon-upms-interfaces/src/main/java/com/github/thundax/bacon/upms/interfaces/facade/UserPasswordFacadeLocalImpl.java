@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
-import com.github.thundax.bacon.upms.application.service.UserApplicationService;
+import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

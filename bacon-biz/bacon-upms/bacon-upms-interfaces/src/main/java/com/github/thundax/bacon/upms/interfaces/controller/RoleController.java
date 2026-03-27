@@ -5,7 +5,7 @@ import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
-import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
+import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleDataScopeAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleMenuAssignRequest;

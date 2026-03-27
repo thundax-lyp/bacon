@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.application.service;
+package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;

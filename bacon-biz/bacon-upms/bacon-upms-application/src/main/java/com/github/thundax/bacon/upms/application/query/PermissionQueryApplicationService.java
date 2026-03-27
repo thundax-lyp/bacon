@@ -1,7 +1,8 @@
-package com.github.thundax.bacon.upms.application.service;
+package com.github.thundax.bacon.upms.application.query;
 
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
+import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import org.springframework.stereotype.Service;
 

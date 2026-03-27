@@ -2,7 +2,7 @@ package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
-import com.github.thundax.bacon.upms.application.service.RoleApplicationService;
+import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

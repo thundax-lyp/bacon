@@ -3,7 +3,7 @@ package com.github.thundax.bacon.upms.interfaces.facade;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
-import com.github.thundax.bacon.upms.application.service.PermissionQueryApplicationService;
+import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

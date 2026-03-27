@@ -5,7 +5,7 @@ import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
-import com.github.thundax.bacon.upms.application.service.ResourceApplicationService;
+import com.github.thundax.bacon.upms.application.command.ResourceApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.ResourceCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.ResourcePageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.ResourceUpdateRequest;

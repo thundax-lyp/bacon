@@ -5,7 +5,7 @@ import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
-import com.github.thundax.bacon.upms.application.service.TenantApplicationService;
+import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantStatusUpdateRequest;

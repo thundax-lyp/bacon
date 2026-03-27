@@ -5,7 +5,7 @@ import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
-import com.github.thundax.bacon.upms.application.service.PostApplicationService;
+import com.github.thundax.bacon.upms.application.command.PostApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.PostCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostUpdateRequest;

@@ -5,7 +5,7 @@ import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
-import com.github.thundax.bacon.upms.application.service.UserApplicationService;
+import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

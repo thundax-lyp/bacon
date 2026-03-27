@@ -6,7 +6,7 @@ import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.command.UserImportCommand;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
-import com.github.thundax.bacon.upms.application.service.UserApplicationService;
+import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserImportItem;

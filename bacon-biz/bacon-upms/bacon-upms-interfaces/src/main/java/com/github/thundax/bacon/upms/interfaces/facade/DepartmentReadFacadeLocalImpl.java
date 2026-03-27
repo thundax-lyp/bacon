@@ -2,7 +2,7 @@ package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;
-import com.github.thundax.bacon.upms.application.service.DepartmentApplicationService;
+import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

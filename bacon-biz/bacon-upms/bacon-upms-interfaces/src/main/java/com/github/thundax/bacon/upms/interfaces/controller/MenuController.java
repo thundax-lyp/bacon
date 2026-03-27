@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.application.service.MenuApplicationService;
+import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuSortUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuUpdateRequest;

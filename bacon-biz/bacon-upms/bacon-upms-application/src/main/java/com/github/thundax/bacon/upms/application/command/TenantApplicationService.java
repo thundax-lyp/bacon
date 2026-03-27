@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.upms.application.service;
+package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;

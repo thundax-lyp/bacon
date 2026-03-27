@@ -6,7 +6,8 @@ import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
-import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
+import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
+import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -18,13 +19,18 @@ import java.util.UUID;
 public class MultipartUploadApplicationService {
 
     public MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command) {
-        return new MultipartUploadSessionDTO(UUID.randomUUID().toString(), command.getOwnerType(), command.getTenantId(),
-                command.getCategory(), command.getOriginalFilename(), command.getContentType(), command.getTotalSize(),
-                command.getPartSize(), 0, UploadStatusEnum.INITIATED.name());
+        MultipartUploadSession session = MultipartUploadSession.initiate(UUID.randomUUID().toString(),
+                command.getTenantId(), command.getOwnerType(), command.getCategory(), command.getOriginalFilename(),
+                command.getContentType(), command.getTotalSize(), command.getPartSize());
+        return new MultipartUploadSessionDTO(session.getUploadId(), session.getOwnerType(), session.getTenantId(),
+                session.getCategory(), session.getOriginalFilename(), session.getContentType(), session.getTotalSize(),
+                session.getPartSize(), session.getUploadedPartCount(), session.getUploadStatus());
     }
 
     public MultipartUploadPartDTO uploadMultipartPart(UploadMultipartPartCommand command) {
-        return new MultipartUploadPartDTO(command.getUploadId(), command.getPartNumber(), "PENDING");
+        MultipartUploadPart part = MultipartUploadPart.create(command.getUploadId(), command.getPartNumber(),
+                "PART-" + command.getPartNumber(), command.getSize());
+        return new MultipartUploadPartDTO(part.getUploadId(), part.getPartNumber(), part.getEtag());
     }
 
     public StoredObjectDTO completeMultipartUpload(CompleteMultipartUploadCommand command) {

@@ -10,6 +10,11 @@ import java.time.Instant;
 @Getter
 public class StoredObject {
 
+    public static final String OBJECT_STATUS_ACTIVE = "ACTIVE";
+    public static final String OBJECT_STATUS_DELETED = "DELETED";
+    public static final String REFERENCE_STATUS_REFERENCED = "REFERENCED";
+    public static final String REFERENCE_STATUS_UNREFERENCED = "UNREFERENCED";
+
     /** 主键。 */
     private Long id;
     /** 所属租户业务键。 */
@@ -61,18 +66,34 @@ public class StoredObject {
         this.updatedAt = updatedAt;
     }
 
+    public static StoredObject newUploadedObject(String tenantId, String storageType, String bucketName, String objectKey,
+                                                 String originalFilename, String contentType, Long size, String accessUrl,
+                                                 Long createdBy) {
+        Instant now = Instant.now();
+        return new StoredObject(null, tenantId, storageType, bucketName, objectKey, originalFilename, contentType, size,
+                accessUrl, OBJECT_STATUS_ACTIVE, REFERENCE_STATUS_UNREFERENCED, createdBy, now, createdBy, now);
+    }
+
+    public boolean isDeleted() {
+        return OBJECT_STATUS_DELETED.equals(this.objectStatus);
+    }
+
+    public boolean isReferenced() {
+        return REFERENCE_STATUS_REFERENCED.equals(this.referenceStatus);
+    }
+
     public void markReferenced() {
-        this.referenceStatus = "REFERENCED";
+        this.referenceStatus = REFERENCE_STATUS_REFERENCED;
         this.updatedAt = Instant.now();
     }
 
     public void markUnreferenced() {
-        this.referenceStatus = "UNREFERENCED";
+        this.referenceStatus = REFERENCE_STATUS_UNREFERENCED;
         this.updatedAt = Instant.now();
     }
 
     public void markDeleted() {
-        this.objectStatus = "DELETED";
+        this.objectStatus = OBJECT_STATUS_DELETED;
         this.updatedAt = Instant.now();
     }
 

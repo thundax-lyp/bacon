@@ -6,8 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-
 /**
  * 存储审计应用服务。
  */
@@ -25,9 +23,8 @@ public class StorageAuditApplicationService {
     public void record(String tenantId, Long objectId, String ownerType, String ownerId, String actionType,
                        String beforeStatus, String afterStatus) {
         try {
-            storageAuditLogRepository.save(new StorageAuditLog(null, tenantId, objectId, ownerType, ownerId, actionType,
-                    beforeStatus, afterStatus, StorageAuditLog.OPERATOR_TYPE_SYSTEM,
-                    StorageAuditLog.OPERATOR_ID_SYSTEM, Instant.now()));
+            storageAuditLogRepository.save(StorageAuditLog.systemAction(tenantId, objectId, ownerType, ownerId,
+                    actionType, beforeStatus, afterStatus));
         } catch (RuntimeException ex) {
             log.warn("Storage audit log write failed, objectId={}, actionType={}", objectId, actionType, ex);
         }

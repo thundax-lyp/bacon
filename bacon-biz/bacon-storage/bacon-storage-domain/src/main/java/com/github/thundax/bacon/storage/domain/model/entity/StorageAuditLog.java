@@ -11,6 +11,10 @@ import java.time.Instant;
 public class StorageAuditLog {
 
     public static final String ACTION_UPLOAD = "UPLOAD";
+    public static final String ACTION_MULTIPART_INIT = "MULTIPART_INIT";
+    public static final String ACTION_MULTIPART_UPLOAD_PART = "MULTIPART_UPLOAD_PART";
+    public static final String ACTION_MULTIPART_COMPLETE = "MULTIPART_COMPLETE";
+    public static final String ACTION_MULTIPART_ABORT = "MULTIPART_ABORT";
     public static final String ACTION_REFERENCE_ADD = "REFERENCE_ADD";
     public static final String ACTION_REFERENCE_CLEAR = "REFERENCE_CLEAR";
     public static final String ACTION_DELETE = "DELETE";
@@ -54,5 +58,11 @@ public class StorageAuditLog {
         this.operatorType = operatorType;
         this.operatorId = operatorId;
         this.occurredAt = occurredAt;
+    }
+
+    public static StorageAuditLog systemAction(String tenantId, Long objectId, String ownerType, String ownerId,
+                                               String actionType, String beforeStatus, String afterStatus) {
+        return new StorageAuditLog(null, tenantId, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus,
+                OPERATOR_TYPE_SYSTEM, OPERATOR_ID_SYSTEM, Instant.now());
     }
 }

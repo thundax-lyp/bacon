@@ -17,6 +17,19 @@ public class StoredObjectReference {
     /** 引用方业务主键。 */
     private String ownerId;
 
+    public static StoredObjectReference create(Long objectId, String ownerType, String ownerId) {
+        if (objectId == null) {
+            throw new IllegalArgumentException("objectId must not be null");
+        }
+        if (ownerType == null || ownerType.isBlank()) {
+            throw new IllegalArgumentException("ownerType must not be blank");
+        }
+        if (ownerId == null || ownerId.isBlank()) {
+            throw new IllegalArgumentException("ownerId must not be blank");
+        }
+        return new StoredObjectReference(null, objectId, ownerType, ownerId);
+    }
+
     public StoredObjectReference(Long id, Long objectId, String ownerType, String ownerId) {
         this.id = id;
         this.objectId = objectId;

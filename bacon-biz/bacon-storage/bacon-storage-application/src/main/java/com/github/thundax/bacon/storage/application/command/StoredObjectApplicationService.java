@@ -4,8 +4,6 @@ import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
-import com.github.thundax.bacon.storage.api.enums.ObjectStatusEnum;
-import com.github.thundax.bacon.storage.api.enums.ReferenceStatusEnum;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
@@ -16,8 +14,6 @@ import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
 
 /**
  * 存储对象命令应用服务。
@@ -44,10 +40,9 @@ public class StoredObjectApplicationService {
     public StoredObjectDTO uploadObject(UploadObjectCommand command) {
         StoredObjectStorageResult storageResult = storedObjectStorageRepository.upload(command.getCategory(),
                 command.getOriginalFilename(), command.getContentType(), command.getInputStream());
-        StoredObject storedObject = new StoredObject(null, command.getTenantId(), storageResult.getStorageType(),
+        StoredObject storedObject = StoredObject.newUploadedObject(command.getTenantId(), storageResult.getStorageType(),
                 storageResult.getBucketName(), storageResult.getObjectKey(), command.getOriginalFilename(),
-                command.getContentType(), command.getSize(), storageResult.getAccessUrl(), ObjectStatusEnum.ACTIVE.name(),
-                ReferenceStatusEnum.UNREFERENCED.name(), null, Instant.now(), null, Instant.now());
+                command.getContentType(), command.getSize(), storageResult.getAccessUrl(), null);
         StoredObject savedObject = storedObjectRepository.save(storedObject);
         storageAuditApplicationService.record(savedObject.getTenantId(), savedObject.getId(), command.getOwnerType(), null,
                 StorageAuditLog.ACTION_UPLOAD, null, savedObject.getObjectStatus());
@@ -60,7 +55,7 @@ public class StoredObjectApplicationService {
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         String beforeStatus = storedObject.getReferenceStatus();
         if (!storedObjectReferenceRepository.existsByObjectIdAndOwner(objectId, ownerType, ownerId)) {
-            StoredObjectReference reference = new StoredObjectReference(null, objectId, ownerType, ownerId);
+            StoredObjectReference reference = StoredObjectReference.create(objectId, ownerType, ownerId);
             storedObjectReferenceRepository.save(reference);
         }
         storedObject.markReferenced();

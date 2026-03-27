@@ -1,0 +1,136 @@
+package com.github.thundax.bacon.storage.domain.model.entity;
+
+import lombok.Getter;
+
+import java.time.Instant;
+import java.util.Objects;
+
+/**
+ * 分段上传会话实体。
+ */
+@Getter
+public class MultipartUploadSession {
+
+    public static final String STATUS_INITIATED = "INITIATED";
+    public static final String STATUS_UPLOADING = "UPLOADING";
+    public static final String STATUS_COMPLETED = "COMPLETED";
+    public static final String STATUS_ABORTED = "ABORTED";
+
+    /** 主键。 */
+    private Long id;
+    /** 分段上传会话业务键。 */
+    private String uploadId;
+    /** 所属租户业务键。 */
+    private String tenantId;
+    /** 引用方类型。 */
+    private String ownerType;
+    /** 对象分类。 */
+    private String category;
+    /** 原始文件名。 */
+    private String originalFilename;
+    /** 内容类型。 */
+    private String contentType;
+    /** 总文件大小，字节。 */
+    private Long totalSize;
+    /** 固定分段大小，字节。 */
+    private Long partSize;
+    /** 已上传分段数。 */
+    private Integer uploadedPartCount;
+    /** 分段上传状态。 */
+    private String uploadStatus;
+    /** 创建时间。 */
+    private Instant createdAt;
+    /** 更新时间。 */
+    private Instant updatedAt;
+    /** 完成时间。 */
+    private Instant completedAt;
+    /** 取消时间。 */
+    private Instant abortedAt;
+
+    public MultipartUploadSession(Long id, String uploadId, String tenantId, String ownerType, String category,
+                                  String originalFilename, String contentType, Long totalSize, Long partSize,
+                                  Integer uploadedPartCount, String uploadStatus, Instant createdAt, Instant updatedAt,
+                                  Instant completedAt, Instant abortedAt) {
+        this.id = id;
+        this.uploadId = uploadId;
+        this.tenantId = tenantId;
+        this.ownerType = ownerType;
+        this.category = category;
+        this.originalFilename = originalFilename;
+        this.contentType = contentType;
+        this.totalSize = totalSize;
+        this.partSize = partSize;
+        this.uploadedPartCount = uploadedPartCount;
+        this.uploadStatus = uploadStatus;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.completedAt = completedAt;
+        this.abortedAt = abortedAt;
+    }
+
+    public static MultipartUploadSession initiate(String uploadId, String tenantId, String ownerType, String category,
+                                                  String originalFilename, String contentType, Long totalSize,
+                                                  Long partSize) {
+        requireText(uploadId, "uploadId");
+        requireText(ownerType, "ownerType");
+        requirePositive(totalSize, "totalSize");
+        requirePositive(partSize, "partSize");
+        Instant now = Instant.now();
+        return new MultipartUploadSession(null, uploadId, tenantId, ownerType, category, originalFilename, contentType,
+                totalSize, partSize, 0, STATUS_INITIATED, now, now, null, null);
+    }
+
+    public boolean isCompleted() {
+        return STATUS_COMPLETED.equals(this.uploadStatus);
+    }
+
+    public boolean isAborted() {
+        return STATUS_ABORTED.equals(this.uploadStatus);
+    }
+
+    public void recordUploadedPart() {
+        ensureAcceptingUpload();
+        this.uploadedPartCount = Objects.requireNonNullElse(this.uploadedPartCount, 0) + 1;
+        this.uploadStatus = STATUS_UPLOADING;
+        this.updatedAt = Instant.now();
+    }
+
+    public void markCompleted() {
+        ensureAcceptingUpload();
+        Instant now = Instant.now();
+        this.uploadStatus = STATUS_COMPLETED;
+        this.updatedAt = now;
+        this.completedAt = now;
+    }
+
+    public void markAborted() {
+        if (isCompleted()) {
+            throw new IllegalStateException("Completed upload session cannot be aborted");
+        }
+        Instant now = Instant.now();
+        this.uploadStatus = STATUS_ABORTED;
+        this.updatedAt = now;
+        this.abortedAt = now;
+    }
+
+    private void ensureAcceptingUpload() {
+        if (isCompleted()) {
+            throw new IllegalStateException("Upload session is already completed");
+        }
+        if (isAborted()) {
+            throw new IllegalStateException("Upload session is already aborted");
+        }
+    }
+
+    private static void requireText(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be blank");
+        }
+    }
+
+    private static void requirePositive(Long value, String fieldName) {
+        if (value == null || value <= 0L) {
+            throw new IllegalArgumentException(fieldName + " must be positive");
+        }
+    }
+}

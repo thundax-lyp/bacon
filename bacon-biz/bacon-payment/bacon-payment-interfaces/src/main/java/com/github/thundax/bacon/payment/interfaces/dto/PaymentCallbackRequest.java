@@ -23,9 +23,15 @@ public class PaymentCallbackRequest {
     @Schema(description = "支付单号", example = "PAY202603230001")
     private String paymentNo;
 
-    @NotBlank
-    @Schema(description = "回调结果", example = "SUCCESS")
-    private String result;
+    @NotNull
+    @Schema(description = "是否成功", example = "true")
+    private Boolean success;
+
+    @Schema(description = "渠道状态", example = "SUCCESS")
+    private String channelStatus;
+
+    @Schema(description = "原始回调载荷", example = "{\"tradeStatus\":\"SUCCESS\"}")
+    private String rawPayload;
 
     @Schema(description = "失败原因", example = "CHANNEL_TIMEOUT")
     private String reason;
@@ -34,6 +40,6 @@ public class PaymentCallbackRequest {
     private String channelTransactionNo;
 
     public boolean isSuccess() {
-        return "SUCCESS".equalsIgnoreCase(result);
+        return Boolean.TRUE.equals(success);
     }
 }

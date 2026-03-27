@@ -8,6 +8,13 @@ import java.time.Instant;
 @Getter
 public class PaymentOrder {
 
+    public static final String STATUS_CREATED = "CREATED";
+    public static final String STATUS_PAYING = "PAYING";
+    public static final String STATUS_PAID = "PAID";
+    public static final String STATUS_FAILED = "FAILED";
+    public static final String STATUS_CLOSED = "CLOSED";
+    public static final String CHANNEL_MOCK = "MOCK";
+
     private final Long id;
     private final Long tenantId;
     private final String paymentNo;
@@ -38,13 +45,23 @@ public class PaymentOrder {
         this.subject = subject;
         this.expiredAt = expiredAt;
         this.createdAt = createdAt;
-        this.paymentStatus = "PAYING";
+        this.paymentStatus = STATUS_CREATED;
         this.paidAmount = BigDecimal.ZERO;
+    }
+
+    public void markPaying() {
+        if (STATUS_PAID.equals(paymentStatus) || STATUS_FAILED.equals(paymentStatus) || STATUS_CLOSED.equals(paymentStatus)) {
+            return;
+        }
+        this.paymentStatus = STATUS_PAYING;
     }
 
     public void markPaid(BigDecimal paidAmount, Instant paidTime, String channelTransactionNo, String channelStatus,
                          String callbackSummary) {
-        this.paymentStatus = "PAID";
+        if (STATUS_PAID.equals(paymentStatus) || STATUS_FAILED.equals(paymentStatus) || STATUS_CLOSED.equals(paymentStatus)) {
+            return;
+        }
+        this.paymentStatus = STATUS_PAID;
         this.paidAmount = paidAmount;
         this.paidAt = paidTime;
         this.channelTransactionNo = channelTransactionNo;
@@ -53,13 +70,19 @@ public class PaymentOrder {
     }
 
     public void markFailed(String channelStatus, String callbackSummary) {
-        this.paymentStatus = "FAILED";
+        if (STATUS_PAID.equals(paymentStatus) || STATUS_FAILED.equals(paymentStatus) || STATUS_CLOSED.equals(paymentStatus)) {
+            return;
+        }
+        this.paymentStatus = STATUS_FAILED;
         this.channelStatus = channelStatus;
         this.callbackSummary = callbackSummary;
     }
 
     public void close(Instant closeTime) {
-        this.paymentStatus = "CLOSED";
+        if (STATUS_PAID.equals(paymentStatus) || STATUS_FAILED.equals(paymentStatus) || STATUS_CLOSED.equals(paymentStatus)) {
+            return;
+        }
+        this.paymentStatus = STATUS_CLOSED;
         this.closedAt = closeTime;
     }
 }

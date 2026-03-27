@@ -1,8 +1,11 @@
 package com.github.thundax.bacon.payment.application.service;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
+import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
+import com.github.thundax.bacon.payment.domain.model.entity.PaymentChannelPayload;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
-import com.github.thundax.bacon.payment.domain.repository.PaymentRepository;
+import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
+import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import com.github.thundax.bacon.payment.domain.service.PaymentNoGenerator;
 import org.springframework.stereotype.Service;
 
@@ -14,21 +17,62 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PaymentApplicationService {
 
     private final AtomicLong idGenerator = new AtomicLong(1L);
-    private final PaymentRepository paymentRepository;
+    private final PaymentOrderRepository paymentOrderRepository;
+    private final PaymentAuditLogRepository paymentAuditLogRepository;
     private final PaymentNoGenerator paymentNoGenerator;
 
-    public PaymentApplicationService(PaymentRepository paymentRepository, PaymentNoGenerator paymentNoGenerator) {
-        this.paymentRepository = paymentRepository;
+    public PaymentApplicationService(PaymentOrderRepository paymentOrderRepository,
+                                     PaymentAuditLogRepository paymentAuditLogRepository,
+                                     PaymentNoGenerator paymentNoGenerator) {
+        this.paymentOrderRepository = paymentOrderRepository;
+        this.paymentAuditLogRepository = paymentAuditLogRepository;
         this.paymentNoGenerator = paymentNoGenerator;
     }
 
     public PaymentCreateResultDTO createPayment(Long tenantId, String orderNo, Long userId, BigDecimal amount,
                                                 String channelCode, String subject, Instant expiredAt) {
+        validateCreateRequest(amount, channelCode, expiredAt);
+        PaymentOrder existing = paymentOrderRepository.findOrderByOrderNo(tenantId, orderNo).orElse(null);
+        if (existing != null) {
+            return toCreateResult(existing, buildPayload(existing), null);
+        }
         String paymentNo = paymentNoGenerator.nextPaymentNo();
+        if (paymentNo == null || paymentNo.isBlank()) {
+            throw new IllegalStateException("Payment no generator returned blank value");
+        }
         PaymentOrder paymentOrder = new PaymentOrder(idGenerator.getAndIncrement(), tenantId, paymentNo, orderNo, userId,
                 channelCode, amount, subject, expiredAt, Instant.now());
-        paymentRepository.save(paymentOrder);
-        return new PaymentCreateResultDTO(tenantId, paymentNo, orderNo, channelCode, paymentOrder.getPaymentStatus(),
-                "mock://pay/" + paymentNo, expiredAt, null);
+        paymentOrder.markPaying();
+        paymentOrderRepository.save(paymentOrder);
+        paymentAuditLogRepository.save(new PaymentAuditLog(idGenerator.getAndIncrement(), tenantId, paymentNo,
+                PaymentAuditLog.ACTION_CREATE, null, paymentOrder.getPaymentStatus(),
+                PaymentAuditLog.OPERATOR_SYSTEM, 0L, paymentOrder.getCreatedAt()));
+        return toCreateResult(paymentOrder, buildPayload(paymentOrder), null);
+    }
+
+    private void validateCreateRequest(BigDecimal amount, String channelCode, Instant expiredAt) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+        if (!PaymentOrder.CHANNEL_MOCK.equals(channelCode)) {
+            throw new IllegalArgumentException("Unsupported channel code: " + channelCode);
+        }
+        if (expiredAt == null || !expiredAt.isAfter(Instant.now())) {
+            throw new IllegalArgumentException("ExpiredAt must be in the future");
+        }
+    }
+
+    private PaymentChannelPayload buildPayload(PaymentOrder paymentOrder) {
+        return new PaymentChannelPayload(paymentOrder.getPaymentNo(), paymentOrder.getChannelCode(),
+                "mock://pay/" + paymentOrder.getPaymentNo());
+    }
+
+    private PaymentCreateResultDTO toCreateResult(PaymentOrder paymentOrder,
+                                                  PaymentChannelPayload channelPayload,
+                                                  String failureReason) {
+        String payPayload = PaymentOrder.STATUS_PAYING.equals(paymentOrder.getPaymentStatus()) ? channelPayload.getPayUrl() : null;
+        Instant dtoExpiredAt = PaymentOrder.STATUS_PAYING.equals(paymentOrder.getPaymentStatus()) ? paymentOrder.getExpiredAt() : null;
+        return new PaymentCreateResultDTO(paymentOrder.getTenantId(), paymentOrder.getPaymentNo(), paymentOrder.getOrderNo(),
+                paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus(), payPayload, dtoExpiredAt, failureReason);
     }
 }

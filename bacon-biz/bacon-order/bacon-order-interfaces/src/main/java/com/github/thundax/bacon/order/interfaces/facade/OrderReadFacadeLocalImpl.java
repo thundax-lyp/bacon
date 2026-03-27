@@ -4,7 +4,7 @@ import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.facade.OrderReadFacade;
-import com.github.thundax.bacon.order.application.service.OrderQueryApplicationService;
+import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

@@ -6,10 +6,10 @@ import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
-import com.github.thundax.bacon.order.application.service.OrderCancelApplicationService;
-import com.github.thundax.bacon.order.application.service.OrderPaymentResultApplicationService;
-import com.github.thundax.bacon.order.application.service.OrderQueryApplicationService;
-import com.github.thundax.bacon.order.application.service.OrderTimeoutApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
+import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
 import com.github.thundax.bacon.order.interfaces.provider.OrderReadProviderController;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -30,7 +30,7 @@ class OrderInterfaceContractTest {
     @Test
     void wrappedControllerShouldReturnUnifiedSuccessEnvelope() throws Exception {
         OrderController controller = new OrderController(null, new StubOrderQueryApplicationService(),
-                new OrderCancelApplicationService(null, null));
+                new OrderCancelApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice())
                 .build();
@@ -47,7 +47,7 @@ class OrderInterfaceContractTest {
     @Test
     void wrappedControllerShouldReturnBadRequestForIllegalArgument() throws Exception {
         OrderController controller = new OrderController(null, new StubOrderQueryApplicationService(),
-                new OrderCancelApplicationService(null, null));
+                new OrderCancelApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice())
                 .build();
@@ -64,8 +64,8 @@ class OrderInterfaceContractTest {
     void providerControllerShouldKeepRawDtoContract() throws Exception {
         OrderReadProviderController controller = new OrderReadProviderController(
                 new StubOrderQueryApplicationService(),
-                new OrderPaymentResultApplicationService(null, null),
-                new OrderTimeoutApplicationService(null, null));
+                new OrderPaymentResultApplicationService(null, null, null, null),
+                new OrderTimeoutApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
         mockMvc.perform(get("/providers/orders")
@@ -81,8 +81,8 @@ class OrderInterfaceContractTest {
     void providerControllerShouldExposeRawExceptionSemantic() throws Exception {
         OrderReadProviderController controller = new OrderReadProviderController(
                 new StubOrderQueryApplicationService(),
-                new OrderPaymentResultApplicationService(null, null),
-                new OrderTimeoutApplicationService(null, null));
+                new OrderPaymentResultApplicationService(null, null, null, null),
+                new OrderTimeoutApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
         ServletException exception = assertThrows(ServletException.class, () -> mockMvc.perform(get("/providers/orders")

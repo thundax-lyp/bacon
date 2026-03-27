@@ -1,0 +1,116 @@
+package com.github.thundax.bacon.order.application.query;
+
+import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
+import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
+import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
+import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
+import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
+import com.github.thundax.bacon.order.domain.model.entity.Order;
+import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
+import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
+import com.github.thundax.bacon.order.domain.repository.OrderRepository;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
+import org.springframework.stereotype.Service;
+
+@Service
+public class OrderQueryApplicationService {
+
+    private final OrderRepository orderRepository;
+
+    public OrderQueryApplicationService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    public OrderDetailDTO getById(Long tenantId, Long orderId) {
+        OrderDetailDTO dto = orderRepository.findById(orderId)
+                .map(this::toDetail)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+        if (tenantId != null && !tenantId.equals(dto.getTenantId())) {
+            throw new IllegalArgumentException("Order not found: " + orderId);
+        }
+        return dto;
+    }
+
+    public OrderDetailDTO getByOrderNo(Long tenantId, String orderNo) {
+        return orderRepository.findByOrderNo(tenantId, orderNo)
+                .map(this::toDetail)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+    }
+
+    public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
+        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
+        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+        int offset = Math.max(0, (pageNo - 1) * pageSize);
+        OrderPageResult pageResult = orderRepository.pageOrders(new OrderPageQuery(query.getTenantId(),
+                query.getUserId(), query.getOrderNo(), query.getOrderStatus(), query.getPayStatus(),
+                query.getInventoryStatus(), query.getCreatedAtFrom(), query.getCreatedAtTo(), offset, pageSize));
+        List<OrderSummaryDTO> records = pageResult.records().stream()
+                .map(this::toSummary)
+                .toList();
+        return new OrderPageResultDTO(records, pageResult.total(), pageNo, pageSize);
+    }
+
+    private OrderSummaryDTO toSummary(Order order) {
+        return new OrderSummaryDTO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
+                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNo(),
+                order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
+                order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt());
+    }
+
+    private OrderDetailDTO toDetail(Order order) {
+        OrderPaymentSnapshot paymentSnapshot = orderRepository.findPaymentSnapshotByOrderId(order.getTenantId(),
+                order.getId()).orElse(null);
+        OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderId(order.getTenantId(),
+                order.getId()).orElse(null);
+        List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantId(), order.getId()).stream()
+                .map(item -> new OrderItemDTO(item.getSkuId(), item.getSkuName(), item.getQuantity(),
+                        item.getSalePrice(), item.getLineAmount()))
+                .toList();
+        return new OrderDetailDTO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
+                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(),
+                paymentSnapshot == null ? order.getPaymentNo() : paymentSnapshot.paymentNo(),
+                inventorySnapshot == null ? order.getReservationNo() : inventorySnapshot.reservationNo(),
+                order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(), order.getCancelReason(),
+                order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(), itemDtos,
+                buildPaymentSnapshot(order, paymentSnapshot), buildInventorySnapshot(order, inventorySnapshot),
+                order.getPaidAt(), order.getClosedAt());
+    }
+
+    private String buildPaymentSnapshot(Order order, OrderPaymentSnapshot paymentSnapshot) {
+        if (paymentSnapshot == null && order.getPaymentNo() == null) {
+            return null;
+        }
+        String paymentNo = paymentSnapshot == null ? order.getPaymentNo() : paymentSnapshot.paymentNo();
+        String payStatus = paymentSnapshot == null ? order.getPayStatus() : paymentSnapshot.payStatus();
+        String channelCode = paymentSnapshot == null ? order.getPaymentChannelCode() : paymentSnapshot.channelCode();
+        BigDecimal paidAmount = paymentSnapshot == null ? order.getPaidAmount() : paymentSnapshot.paidAmount();
+        String channelStatus = paymentSnapshot == null
+                ? order.getPaymentChannelStatus() : paymentSnapshot.channelStatus();
+        String failureReason = paymentSnapshot == null
+                ? order.getPaymentFailureReason() : paymentSnapshot.failureReason();
+        return "paymentNo=" + paymentNo
+                + ",payStatus=" + payStatus
+                + ",channelCode=" + Objects.toString(channelCode, "N/A")
+                + ",paidAmount=" + Objects.toString(paidAmount, "N/A")
+                + ",channelStatus=" + Objects.toString(channelStatus, "N/A")
+                + ",failureReason=" + Objects.toString(failureReason, "N/A");
+    }
+
+    private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {
+        String reservationNo = Objects.toString(
+                inventorySnapshot == null ? order.getReservationNo() : inventorySnapshot.reservationNo(), "N/A");
+        String inventoryStatus = inventorySnapshot == null ? order.getInventoryStatus() : inventorySnapshot.inventoryStatus();
+        Long warehouseId = inventorySnapshot == null ? order.getWarehouseId() : inventorySnapshot.warehouseId();
+        String failureReason = inventorySnapshot == null
+                ? order.getInventoryFailureReason() : inventorySnapshot.failureReason();
+        return "reservationNo=" + reservationNo
+                + ",inventoryStatus=" + inventoryStatus
+                + ",warehouseId=" + Objects.toString(warehouseId, "N/A")
+                + ",failureReason=" + Objects.toString(failureReason, "N/A");
+    }
+}

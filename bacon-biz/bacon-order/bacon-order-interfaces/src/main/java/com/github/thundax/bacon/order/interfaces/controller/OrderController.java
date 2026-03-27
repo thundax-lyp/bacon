@@ -3,9 +3,9 @@ package com.github.thundax.bacon.order.interfaces.controller;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
-import com.github.thundax.bacon.order.application.service.OrderApplicationService;
-import com.github.thundax.bacon.order.application.service.OrderCancelApplicationService;
-import com.github.thundax.bacon.order.application.service.OrderQueryApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderCreateApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
+import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.interfaces.dto.CancelOrderRequest;
 import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
 import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
@@ -29,13 +29,14 @@ import java.time.Instant;
 @Tag(name = "Order-Management", description = "订单创建、查询与取消接口")
 public class OrderController {
 
-    private final OrderApplicationService orderApplicationService;
+    private final OrderCreateApplicationService orderCreateApplicationService;
     private final OrderQueryApplicationService orderQueryService;
     private final OrderCancelApplicationService orderCancelApplicationService;
 
-    public OrderController(OrderApplicationService orderApplicationService, OrderQueryApplicationService orderQueryService,
+    public OrderController(OrderCreateApplicationService orderCreateApplicationService,
+                           OrderQueryApplicationService orderQueryService,
                            OrderCancelApplicationService orderCancelApplicationService) {
-        this.orderApplicationService = orderApplicationService;
+        this.orderCreateApplicationService = orderCreateApplicationService;
         this.orderQueryService = orderQueryService;
         this.orderCancelApplicationService = orderCancelApplicationService;
     }
@@ -44,7 +45,7 @@ public class OrderController {
     @HasPermission("order:order:create")
     @PostMapping
     public OrderSummaryResponse create(@RequestBody CreateOrderRequest request) {
-        return OrderSummaryResponse.from(orderApplicationService.create(request.toCommand()));
+        return OrderSummaryResponse.from(orderCreateApplicationService.create(request.toCommand()));
     }
 
     @Operation(summary = "按 ID 查询订单")

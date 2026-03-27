@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.order.interfaces.facade;
 
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
-import com.github.thundax.bacon.order.application.service.OrderPaymentResultApplicationService;
-import com.github.thundax.bacon.order.application.service.OrderTimeoutApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
+import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

@@ -3,12 +3,10 @@ package com.github.thundax.bacon.order.application.saga;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
-import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
-import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
-import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
@@ -29,15 +27,18 @@ public class OrderOutboxActionExecutor {
     private final OrderOutboxRepository orderOutboxRepository;
     private final InventoryCommandFacade inventoryCommandFacade;
     private final PaymentCommandFacade paymentCommandFacade;
+    private final OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport;
 
     public OrderOutboxActionExecutor(OrderRepository orderRepository,
                                      OrderOutboxRepository orderOutboxRepository,
                                      InventoryCommandFacade inventoryCommandFacade,
-                                     PaymentCommandFacade paymentCommandFacade) {
+                                     PaymentCommandFacade paymentCommandFacade,
+                                     OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport) {
         this.orderRepository = orderRepository;
         this.orderOutboxRepository = orderOutboxRepository;
         this.inventoryCommandFacade = inventoryCommandFacade;
         this.paymentCommandFacade = paymentCommandFacade;
+        this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
     }
 
     public void enqueueReserveStock(Long tenantId, String orderNo, String channelCode) {
@@ -79,12 +80,12 @@ public class OrderOutboxActionExecutor {
             order.markInventoryFailed(reserveResult.getReservationNo(), reserveResult.getWarehouseId(), reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
             orderRepository.save(order);
-            persistDerivedData(order, "OUTBOX_RESERVE_FAILED", Order.ORDER_STATUS_RESERVING_STOCK);
+            orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_RESERVE_FAILED", Order.ORDER_STATUS_RESERVING_STOCK);
             return;
         }
         order.markInventoryReserved(reserveResult.getReservationNo(), reserveResult.getWarehouseId());
         orderRepository.save(order);
-        persistDerivedData(order, "OUTBOX_RESERVE_OK", Order.ORDER_STATUS_RESERVING_STOCK);
+        orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_RESERVE_OK", Order.ORDER_STATUS_RESERVING_STOCK);
 
         Map<String, String> source = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = source.getOrDefault("channelCode", "MOCK");
@@ -108,7 +109,8 @@ public class OrderOutboxActionExecutor {
                 || !Order.PAY_STATUS_PAYING.equals(paymentResult.getPaymentStatus())) {
             order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
             orderRepository.save(order);
-            persistDerivedData(order, "OUTBOX_CREATE_PAYMENT_FAILED", Order.ORDER_STATUS_RESERVING_STOCK);
+            orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_CREATE_PAYMENT_FAILED",
+                    Order.ORDER_STATUS_RESERVING_STOCK);
 
             Map<String, String> releasePayload = new LinkedHashMap<>();
             releasePayload.put("reason", CLOSE_REASON_PAYMENT_CREATE_FAILED);
@@ -121,7 +123,7 @@ public class OrderOutboxActionExecutor {
         }
         order.markPendingPayment(paymentResult.getPaymentNo(), paymentResult.getChannelCode());
         orderRepository.save(order);
-        persistDerivedData(order, "OUTBOX_CREATE_PAYMENT_OK", Order.ORDER_STATUS_RESERVING_STOCK);
+        orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_CREATE_PAYMENT_OK", Order.ORDER_STATUS_RESERVING_STOCK);
     }
 
     private void executeReleaseStock(OrderOutboxEvent event) {
@@ -137,7 +139,7 @@ public class OrderOutboxActionExecutor {
                     resolveFailureReason(releaseResult.getFailureReason(), reason));
         }
         orderRepository.save(order);
-        persistDerivedData(order, "OUTBOX_RELEASE", order.getOrderStatus());
+        orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_RELEASE", order.getOrderStatus());
     }
 
     private Order findOrder(Long tenantId, String orderNo) {
@@ -147,21 +149,5 @@ public class OrderOutboxActionExecutor {
 
     private String resolveFailureReason(String reason, String defaultReason) {
         return reason == null || reason.isBlank() ? defaultReason : reason;
-    }
-
-    private void persistDerivedData(Order order, String actionType, String beforeStatus) {
-        Instant now = Instant.now();
-        if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
-            orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), order.getId(),
-                    order.getPaymentNo(), order.getPaymentChannelCode(), order.getPayStatus(), order.getPaidAmount(),
-                    order.getPaidAt(), order.getPaymentFailureReason(), order.getPaymentChannelStatus(), now));
-        }
-        if (order.getReservationNo() != null && !order.getReservationNo().isBlank()) {
-            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(null, order.getTenantId(), order.getId(),
-                    order.getReservationNo(), order.getInventoryStatus(), order.getWarehouseId(),
-                    order.getInventoryFailureReason(), now));
-        }
-        orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNo(), actionType,
-                beforeStatus, order.getOrderStatus(), "SYSTEM", 0L, now));
     }
 }

@@ -68,7 +68,7 @@ public class StorageProviderController {
 
     @Operation(summary = "上传大文件分段")
     @PostMapping(value = "/objects/multipart/{uploadId}/parts", consumes = "multipart/form-data")
-    public MultipartUploadPartDTO uploadMultipartPart(@PathVariable String uploadId,
+    public MultipartUploadPartDTO uploadMultipartPart(@PathVariable("uploadId") String uploadId,
                                                       @RequestParam("ownerType") String ownerType,
                                                       @RequestParam("ownerId") String ownerId,
                                                       @RequestParam(value = "tenantId", required = false) String tenantId,
@@ -80,7 +80,7 @@ public class StorageProviderController {
 
     @Operation(summary = "完成大文件分段上传")
     @PostMapping("/objects/multipart/{uploadId}/complete")
-    public StoredObjectDTO completeMultipartUpload(@PathVariable String uploadId,
+    public StoredObjectDTO completeMultipartUpload(@PathVariable("uploadId") String uploadId,
                                                    @RequestParam("ownerType") String ownerType,
                                                    @RequestParam("ownerId") String ownerId,
                                                    @RequestParam(value = "tenantId", required = false) String tenantId) {
@@ -90,7 +90,7 @@ public class StorageProviderController {
 
     @Operation(summary = "取消大文件分段上传")
     @DeleteMapping("/objects/multipart/{uploadId}")
-    public void abortMultipartUpload(@PathVariable String uploadId,
+    public void abortMultipartUpload(@PathVariable("uploadId") String uploadId,
                                      @RequestParam("ownerType") String ownerType,
                                      @RequestParam("ownerId") String ownerId,
                                      @RequestParam(value = "tenantId", required = false) String tenantId) {
@@ -100,13 +100,13 @@ public class StorageProviderController {
 
     @Operation(summary = "查询存储对象")
     @GetMapping("/objects/{objectId}")
-    public StoredObjectDTO getObjectById(@PathVariable Long objectId) {
+    public StoredObjectDTO getObjectById(@PathVariable("objectId") Long objectId) {
         return storedObjectQueryApplicationService.getObjectById(objectId);
     }
 
     @Operation(summary = "建立存储对象引用")
     @PostMapping("/objects/{objectId}/references")
-    public void markObjectReferenced(@PathVariable Long objectId,
+    public void markObjectReferenced(@PathVariable("objectId") Long objectId,
                                      @RequestParam("ownerType") String ownerType,
                                      @RequestParam("ownerId") String ownerId) {
         storedObjectApplicationService.markObjectReferenced(objectId, ownerType, ownerId);
@@ -114,7 +114,7 @@ public class StorageProviderController {
 
     @Operation(summary = "清理存储对象引用")
     @DeleteMapping("/objects/{objectId}/references")
-    public void clearObjectReference(@PathVariable Long objectId,
+    public void clearObjectReference(@PathVariable("objectId") Long objectId,
                                      @RequestParam("ownerType") String ownerType,
                                      @RequestParam("ownerId") String ownerId) {
         storedObjectApplicationService.clearObjectReference(objectId, ownerType, ownerId);
@@ -122,7 +122,7 @@ public class StorageProviderController {
 
     @Operation(summary = "删除存储对象")
     @DeleteMapping("/objects/{objectId}")
-    public void deleteObject(@PathVariable Long objectId) {
+    public void deleteObject(@PathVariable("objectId") Long objectId) {
         storedObjectApplicationService.deleteObject(objectId);
     }
 }

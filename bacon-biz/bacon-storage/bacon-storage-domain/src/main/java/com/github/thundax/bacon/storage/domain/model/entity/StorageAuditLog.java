@@ -17,17 +17,28 @@ public class StorageAuditLog {
     public static final String OPERATOR_TYPE_SYSTEM = "SYSTEM";
     public static final Long OPERATOR_ID_SYSTEM = 0L;
 
-    private final Long id;
-    private final String tenantId;
-    private final Long objectId;
-    private final String ownerType;
-    private final String ownerId;
-    private final String actionType;
-    private final String beforeStatus;
-    private final String afterStatus;
-    private final String operatorType;
-    private final Long operatorId;
-    private final Instant occurredAt;
+    /** 主键。 */
+    private Long id;
+    /** 所属租户业务键。 */
+    private String tenantId;
+    /** 存储对象主键。 */
+    private Long objectId;
+    /** 引用方类型。 */
+    private String ownerType;
+    /** 引用方业务主键。 */
+    private String ownerId;
+    /** 审计动作类型。 */
+    private String actionType;
+    /** 变更前状态。 */
+    private String beforeStatus;
+    /** 变更后状态。 */
+    private String afterStatus;
+    /** 操作人类型。 */
+    private String operatorType;
+    /** 操作人主键。 */
+    private Long operatorId;
+    /** 审计发生时间。 */
+    private Instant occurredAt;
 
     public StorageAuditLog(Long id, String tenantId, Long objectId, String ownerType, String ownerId, String actionType,
                            String beforeStatus, String afterStatus, String operatorType, Long operatorId,

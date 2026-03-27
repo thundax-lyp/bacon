@@ -10,20 +10,35 @@ import java.time.Instant;
 @Getter
 public class StoredObject {
 
-    private final Long id;
-    private final String tenantId;
-    private final String storageType;
-    private final String bucketName;
-    private final String objectKey;
-    private final String originalFilename;
-    private final String contentType;
-    private final Long size;
+    /** 主键。 */
+    private Long id;
+    /** 所属租户业务键。 */
+    private String tenantId;
+    /** 底层存储类型。 */
+    private String storageType;
+    /** 存储桶或本地逻辑目录。 */
+    private String bucketName;
+    /** 底层对象键，全局唯一。 */
+    private String objectKey;
+    /** 原始文件名。 */
+    private String originalFilename;
+    /** 内容类型。 */
+    private String contentType;
+    /** 文件大小，字节。 */
+    private Long size;
+    /** 当前访问地址。 */
     private String accessUrl;
+    /** 对象状态。 */
     private String objectStatus;
+    /** 引用状态。 */
     private String referenceStatus;
-    private final Long createdBy;
-    private final Instant createdAt;
+    /** 创建人。 */
+    private Long createdBy;
+    /** 创建时间。 */
+    private Instant createdAt;
+    /** 更新人。 */
     private Long updatedBy;
+    /** 更新时间。 */
     private Instant updatedAt;
 
     public StoredObject(Long id, String tenantId, String storageType, String bucketName, String objectKey,

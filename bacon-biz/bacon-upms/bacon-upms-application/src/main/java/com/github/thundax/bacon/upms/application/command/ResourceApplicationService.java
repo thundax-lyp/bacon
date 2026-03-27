@@ -53,10 +53,19 @@ public class ResourceApplicationService {
         validateRequired(name, "name");
         validateRequired(resourceType, "resourceType");
         validateRequired(uri, "uri");
-        return toDto(resourceRepository.save(new Resource(currentResource.getId(), currentResource.getCreatedBy(),
-                currentResource.getCreatedAt(), currentResource.getUpdatedBy(), currentResource.getUpdatedAt(),
-                tenantId, normalize(code), normalize(name), normalize(resourceType), normalize(httpMethod),
-                normalize(uri), normalizeNullable(status, currentResource.getStatus()))));
+        return toDto(resourceRepository.save(new Resource(
+                currentResource.getId(),
+                tenantId,
+                normalize(code),
+                normalize(name),
+                normalize(resourceType),
+                normalize(httpMethod),
+                normalize(uri),
+                normalizeNullable(status, currentResource.getStatus()),
+                currentResource.getCreatedBy(),
+                currentResource.getCreatedAt(),
+                currentResource.getUpdatedBy(),
+                currentResource.getUpdatedAt())));
     }
 
     public void deleteResource(Long tenantId, Long resourceId) {

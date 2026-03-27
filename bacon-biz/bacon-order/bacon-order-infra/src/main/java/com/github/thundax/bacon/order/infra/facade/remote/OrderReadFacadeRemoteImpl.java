@@ -23,6 +23,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
 
     @Override
     public OrderDetailDTO getById(Long tenantId, Long orderId) {
+        // provider 查询返回内部 DTO，remote facade 不再包装，保持跨服务读取模型稳定。
         return restClient.get()
                 .uri("/providers/orders/{orderId}?tenantId={tenantId}", orderId, tenantId)
                 .retrieve()
@@ -39,6 +40,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
 
     @Override
     public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
+        // 分页查询只透传当前 provider 实际支持的条件；其余筛选条件应先在契约层明确后再下沉到这里。
         return restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/providers/orders")
                         .queryParam("tenantId", query.getTenantId())

@@ -95,19 +95,40 @@ public class UserApplicationService {
         validateRequired(account, "account");
         validateRequired(name, "name");
         ensureAccountUnique(tenantId, account, userId);
-        User savedUser = userRepository.save(new User(currentUser.getId(), currentUser.getCreatedBy(), currentUser.getCreatedAt(),
-                currentUser.getUpdatedBy(), currentUser.getUpdatedAt(), tenantId, normalize(account), normalize(name),
-                normalize(phone), currentUser.getPasswordHash(), departmentId, currentUser.getStatus(), currentUser.isDeleted()));
+        User savedUser = userRepository.save(new User(
+                currentUser.getId(),
+                tenantId,
+                normalize(account),
+                normalize(name),
+                normalize(phone),
+                currentUser.getPasswordHash(),
+                departmentId,
+                currentUser.getStatus(),
+                currentUser.isDeleted(),
+                currentUser.getCreatedBy(),
+                currentUser.getCreatedAt(),
+                currentUser.getUpdatedBy(),
+                currentUser.getUpdatedAt()));
         return toDto(savedUser);
     }
 
     public UserDTO updateUserStatus(Long tenantId, Long userId, String status) {
         User currentUser = requireUser(tenantId, userId);
         validateRequired(status, "status");
-        User savedUser = userRepository.save(new User(currentUser.getId(), currentUser.getCreatedBy(), currentUser.getCreatedAt(),
-                currentUser.getUpdatedBy(), currentUser.getUpdatedAt(), tenantId, currentUser.getAccount(), currentUser.getName(),
-                currentUser.getPhone(), currentUser.getPasswordHash(), currentUser.getDepartmentId(), normalize(status),
-                currentUser.isDeleted()));
+        User savedUser = userRepository.save(new User(
+                currentUser.getId(),
+                tenantId,
+                currentUser.getAccount(),
+                currentUser.getName(),
+                currentUser.getPhone(),
+                currentUser.getPasswordHash(),
+                currentUser.getDepartmentId(),
+                normalize(status),
+                currentUser.isDeleted(),
+                currentUser.getCreatedBy(),
+                currentUser.getCreatedAt(),
+                currentUser.getUpdatedBy(),
+                currentUser.getUpdatedAt()));
         if (DISABLED_STATUS.equalsIgnoreCase(savedUser.getStatus())) {
             sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_DISABLED");
         }

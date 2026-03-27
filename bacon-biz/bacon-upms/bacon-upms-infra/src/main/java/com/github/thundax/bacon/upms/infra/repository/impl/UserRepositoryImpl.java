@@ -75,11 +75,20 @@ public class UserRepositoryImpl implements UserRepository {
     public User updatePassword(Long tenantId, Long userId, String password) {
         User currentUser = findUserById(tenantId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
-        User updatedUser = new User(currentUser.getId(), currentUser.getCreatedBy(), currentUser.getCreatedAt(),
-                currentUser.getUpdatedBy(), currentUser.getUpdatedAt(), currentUser.getTenantId(), currentUser.getAccount(),
-                currentUser.getName(), currentUser.getPhone(), passwordEncoder.encode(password), currentUser.getDepartmentId(),
+        User updatedUser = new User(
+                currentUser.getId(),
+                currentUser.getTenantId(),
+                currentUser.getAccount(),
+                currentUser.getName(),
+                currentUser.getPhone(),
+                passwordEncoder.encode(password),
+                currentUser.getDepartmentId(),
                 currentUser.getStatus(),
-                currentUser.isDeleted());
+                currentUser.isDeleted(),
+                currentUser.getCreatedBy(),
+                currentUser.getCreatedAt(),
+                currentUser.getUpdatedBy(),
+                currentUser.getUpdatedAt());
         upmsStore.getUsers().put(InMemoryUpmsStore.userKey(tenantId, userId), updatedUser);
         return updatedUser;
     }
@@ -136,10 +145,20 @@ public class UserRepositoryImpl implements UserRepository {
     private User updateUser(User user) {
         User currentUser = findUserById(user.getTenantId(), user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + user.getId()));
-        return new User(currentUser.getId(), currentUser.getCreatedBy(), currentUser.getCreatedAt(), currentUser.getUpdatedBy(),
-                currentUser.getUpdatedAt(), user.getTenantId(), user.getAccount(), user.getName(), user.getPhone(),
-                user.getPasswordHash() == null ? currentUser.getPasswordHash() : user.getPasswordHash(), user.getDepartmentId(),
-                user.getStatus(), user.isDeleted());
+        return new User(
+                currentUser.getId(),
+                user.getTenantId(),
+                user.getAccount(),
+                user.getName(),
+                user.getPhone(),
+                user.getPasswordHash() == null ? currentUser.getPasswordHash() : user.getPasswordHash(),
+                user.getDepartmentId(),
+                user.getStatus(),
+                user.isDeleted(),
+                currentUser.getCreatedBy(),
+                currentUser.getCreatedAt(),
+                currentUser.getUpdatedBy(),
+                currentUser.getUpdatedAt());
     }
 
     private void replaceIdentity(Long tenantId, String identityType, String identityValue, Long userId) {

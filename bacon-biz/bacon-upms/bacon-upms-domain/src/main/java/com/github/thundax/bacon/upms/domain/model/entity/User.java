@@ -4,36 +4,49 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 用户领域实体。
+ */
 @Getter
 public class User {
 
+    /** 用户主键。 */
     private Long id;
-    private String createdBy;
-    private LocalDateTime createdAt;
-    private String updatedBy;
-    private LocalDateTime updatedAt;
+    /** 所属租户主键。 */
     private Long tenantId;
+    /** 登录账号。 */
     private String account;
+    /** 用户名称。 */
     private String name;
+    /** 手机号。 */
     private String phone;
+    /** 密码哈希。 */
     private String passwordHash;
+    /** 所属部门主键。 */
     private Long departmentId;
+    /** 用户状态。 */
     private String status;
+    /** 逻辑删除标记。 */
     private boolean deleted;
+    /** 创建人。 */
+    private String createdBy;
+    /** 创建时间。 */
+    private LocalDateTime createdAt;
+    /** 最后更新人。 */
+    private String updatedBy;
+    /** 最后更新时间。 */
+    private LocalDateTime updatedAt;
 
     public User(Long id, Long tenantId, String account, String name, String phone, String passwordHash,
                 Long departmentId, String status, boolean deleted) {
-        this(id, null, null, null, null, tenantId, account, name, phone, passwordHash, departmentId, status, deleted);
+        this(id, tenantId, account, name, phone, passwordHash, departmentId, status, deleted,
+                null, null, null, null);
     }
 
-    public User(Long id, String createdBy, LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt,
-                Long tenantId, String account, String name, String phone, String passwordHash, Long departmentId,
-                String status, boolean deleted) {
+    public User(Long id, Long tenantId, String account, String name, String phone, String passwordHash,
+                Long departmentId, String status, boolean deleted, String createdBy, LocalDateTime createdAt,
+                String updatedBy, LocalDateTime updatedAt) {
         this.id = id;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
         this.tenantId = tenantId;
         this.account = account;
         this.name = name;
@@ -42,5 +55,9 @@ public class User {
         this.departmentId = departmentId;
         this.status = status;
         this.deleted = deleted;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
+        this.updatedBy = updatedBy;
+        this.updatedAt = updatedAt;
     }
 }

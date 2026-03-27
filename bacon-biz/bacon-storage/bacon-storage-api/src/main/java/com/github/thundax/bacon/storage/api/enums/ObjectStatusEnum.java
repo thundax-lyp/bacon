@@ -6,5 +6,6 @@ package com.github.thundax.bacon.storage.api.enums;
 public enum ObjectStatusEnum {
 
     ACTIVE,
+    DELETING,
     DELETED
 }

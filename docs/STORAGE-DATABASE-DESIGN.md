@@ -48,7 +48,7 @@
 ### 5.1 Fixed Enums
 
 - `storage_type`: `LOCAL_FILE`、`OSS`
-- `object_status`: `ACTIVE`、`DELETED`
+- `object_status`: `ACTIVE`、`DELETING`、`DELETED`
 - `reference_status`: `UNREFERENCED`、`REFERENCED`
 - `upload_status`: `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
 - `owner_type`: 由接入业务域约定并在全局保持稳定
@@ -257,7 +257,8 @@
 - 分段上传取消后必须把 `bacon_storage_multipart_upload.upload_status` 更新为 `ABORTED`
 - 建立业务引用后必须写 `bacon_storage_object_reference`
 - 清理引用后如对象已无任何引用，必须把 `reference_status` 更新为 `UNREFERENCED`
-- 删除对象时必须先删除底层对象，再把 `object_status` 更新为 `DELETED`
+- 删除对象时必须先把 `object_status` 更新为 `DELETING`
+- 删除底层对象成功后必须再把 `object_status` 更新为 `DELETED`
 - 上传、引用变更、删除等关键操作必须写 `bacon_storage_audit_log`
 
 ## 10. Query Model Rules

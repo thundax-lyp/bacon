@@ -11,6 +11,7 @@ import java.time.Instant;
 public class StoredObject {
 
     public static final String OBJECT_STATUS_ACTIVE = "ACTIVE";
+    public static final String OBJECT_STATUS_DELETING = "DELETING";
     public static final String OBJECT_STATUS_DELETED = "DELETED";
     public static final String REFERENCE_STATUS_REFERENCED = "REFERENCED";
     public static final String REFERENCE_STATUS_UNREFERENCED = "UNREFERENCED";
@@ -78,21 +79,36 @@ public class StoredObject {
         return OBJECT_STATUS_DELETED.equals(this.objectStatus);
     }
 
+    public boolean isDeleting() {
+        return OBJECT_STATUS_DELETING.equals(this.objectStatus);
+    }
+
     public boolean isReferenced() {
         return REFERENCE_STATUS_REFERENCED.equals(this.referenceStatus);
     }
 
     public void markReferenced() {
+        ensureActive("Referenced");
         this.referenceStatus = REFERENCE_STATUS_REFERENCED;
         this.updatedAt = Instant.now();
     }
 
     public void markUnreferenced() {
+        ensureActive("Unreferenced");
         this.referenceStatus = REFERENCE_STATUS_UNREFERENCED;
         this.updatedAt = Instant.now();
     }
 
+    public void markDeleting() {
+        ensureActive("Deleting");
+        this.objectStatus = OBJECT_STATUS_DELETING;
+        this.updatedAt = Instant.now();
+    }
+
     public void markDeleted() {
+        if (!isDeleting()) {
+            throw new IllegalStateException("Deleted object must be in DELETING status first");
+        }
         this.objectStatus = OBJECT_STATUS_DELETED;
         this.updatedAt = Instant.now();
     }
@@ -112,5 +128,11 @@ public class StoredObject {
     @Deprecated
     public void refreshAccessUrl(String accessUrl) {
         refreshAccessEndpoint(accessUrl);
+    }
+
+    private void ensureActive(String action) {
+        if (!OBJECT_STATUS_ACTIVE.equals(this.objectStatus)) {
+            throw new IllegalStateException(action + " object must be in ACTIVE status");
+        }
     }
 }

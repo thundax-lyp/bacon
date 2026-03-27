@@ -205,7 +205,7 @@
 ## 5.1 Fixed Enums
 
 - `storageType` 固定为 `LOCAL_FILE`、`OSS`
-- `objectStatus` 固定为 `ACTIVE`、`DELETED`
+- `objectStatus` 固定为 `ACTIVE`、`DELETING`、`DELETED`
 - `referenceStatus` 固定为 `UNREFERENCED`、`REFERENCED`
 - `uploadStatus` 固定为 `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
 - `ownerType` 由接入业务域约定并在全局保持稳定
@@ -270,6 +270,7 @@
 - 对象删除不得直接物理删除仍被引用的对象
 - 对象替换时先建立新对象引用，再解除旧对象引用
 - 同一对象可被多个业务对象引用时，必须通过引用表判断是否允许物理删除
+- 对象进入 `DELETING` 后不得再建立新引用
 - 普通文件上传和大文件分段上传必须使用不同接口和不同应用服务逻辑
 - 大文件上传完成前不得写入正式 `StoredObject`
 - 大文件上传中断、取消、超时后，`Storage` 必须能够清理未完成分段数据
@@ -291,7 +292,7 @@
 - 上传对象时必须先写底层存储，再写 `StoredObject` 主数据
 - 上传成功后返回固定 `StoredObjectDTO`
 - 查询对象时必须返回 `accessEndpoint`
-- 删除对象时必须先校验引用状态
+- 删除对象时必须先校验引用状态，并先把对象状态提交为 `DELETING`
 
 必要补充约束：
 
@@ -299,6 +300,7 @@
 - `originalFilename` 只用于展示，不作为唯一键
 - `contentType` 固定保存上传声明值
 - `size` 固定保存字节大小
+- 物理删除失败时对象状态必须保持为 `DELETING`，供后续重试或补偿
 
 ### 7.2 Multipart Upload Management
 
@@ -389,7 +391,9 @@
 1. 调用删除接口
 2. `Storage` 校验对象是否仍被引用
 3. 仍被引用时拒绝删除
-4. 未被引用时删除底层对象并更新 `StoredObject.objectStatus`
+4. 未被引用时先提交 `StoredObject.objectStatus=DELETING`
+5. `Storage` 删除底层对象
+6. 删除成功后再提交 `StoredObject.objectStatus=DELETED`
 
 ### 8.4 Generic Business Upload And Access Flow
 

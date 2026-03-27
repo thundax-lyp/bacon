@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.application.support.StoredObjectDeletionTransactionService;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
@@ -25,15 +26,18 @@ public class StoredObjectApplicationService {
     private final StoredObjectReferenceRepository storedObjectReferenceRepository;
     private final StoredObjectStorageRepository storedObjectStorageRepository;
     private final StorageAuditApplicationService storageAuditApplicationService;
+    private final StoredObjectDeletionTransactionService storedObjectDeletionTransactionService;
 
     public StoredObjectApplicationService(StoredObjectRepository storedObjectRepository,
                                           StoredObjectReferenceRepository storedObjectReferenceRepository,
                                           StoredObjectStorageRepository storedObjectStorageRepository,
-                                          StorageAuditApplicationService storageAuditApplicationService) {
+                                          StorageAuditApplicationService storageAuditApplicationService,
+                                          StoredObjectDeletionTransactionService storedObjectDeletionTransactionService) {
         this.storedObjectRepository = storedObjectRepository;
         this.storedObjectReferenceRepository = storedObjectReferenceRepository;
         this.storedObjectStorageRepository = storedObjectStorageRepository;
         this.storageAuditApplicationService = storageAuditApplicationService;
+        this.storedObjectDeletionTransactionService = storedObjectDeletionTransactionService;
     }
 
     @Transactional
@@ -78,19 +82,13 @@ public class StoredObjectApplicationService {
                 StorageAuditLog.ACTION_REFERENCE_CLEAR, beforeStatus, storedObject.getReferenceStatus());
     }
 
-    @Transactional
     public void deleteObject(Long objectId) {
-        StoredObject storedObject = storedObjectRepository.findById(objectId)
-                .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
-        if (storedObjectReferenceRepository.existsByObjectId(objectId)) {
-            throw new ConflictException("Stored object is still referenced: " + objectId);
+        StoredObject storedObject = storedObjectDeletionTransactionService.markDeleting(objectId);
+        if (storedObject.isDeleted()) {
+            return;
         }
-        String beforeStatus = storedObject.getObjectStatus();
         storedObjectStorageRepository.delete(storedObject);
-        storedObject.markDeleted();
-        StoredObject savedObject = storedObjectRepository.save(storedObject);
-        storageAuditApplicationService.record(savedObject.getTenantId(), objectId, null, null,
-                StorageAuditLog.ACTION_DELETE, beforeStatus, savedObject.getObjectStatus());
+        storedObjectDeletionTransactionService.markDeleted(objectId);
     }
 
     private StoredObjectDTO toDto(StoredObject storedObject) {

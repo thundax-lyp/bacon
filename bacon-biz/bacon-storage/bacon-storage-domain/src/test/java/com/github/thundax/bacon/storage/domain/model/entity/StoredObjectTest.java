@@ -3,6 +3,7 @@ package com.github.thundax.bacon.storage.domain.model.entity;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StoredObjectTest {
@@ -29,7 +30,21 @@ class StoredObjectTest {
         storedObject.markUnreferenced();
         assertEquals(StoredObject.REFERENCE_STATUS_UNREFERENCED, storedObject.getReferenceStatus());
 
+        storedObject.markDeleting();
+        assertTrue(storedObject.isDeleting());
+
         storedObject.markDeleted();
         assertTrue(storedObject.isDeleted());
+    }
+
+    @Test
+    void shouldRejectReferenceMutationWhenObjectIsDeleting() {
+        StoredObject storedObject = StoredObject.newUploadedObject("tenant-a", "LOCAL_FILE", "default",
+                "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", null);
+
+        storedObject.markDeleting();
+
+        assertThrows(IllegalStateException.class, storedObject::markReferenced);
+        assertThrows(IllegalStateException.class, storedObject::markUnreferenced);
     }
 }

@@ -8,14 +8,25 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+/**
+ * 部门树跨服务传输对象。
+ */
 public class DepartmentTreeDTO {
 
+    /** 部门主键。 */
     private Long id;
+    /** 所属租户主键。 */
     private Long tenantId;
+    /** 部门编码。 */
     private String code;
+    /** 部门名称。 */
     private String name;
+    /** 父部门主键，根部门固定为 0。 */
     private Long parentId;
+    /** 部门负责人用户主键。 */
     private Long leaderUserId;
+    /** 部门状态。 */
     private String status;
+    /** 子部门列表。 */
     private List<DepartmentTreeDTO> children;
 }

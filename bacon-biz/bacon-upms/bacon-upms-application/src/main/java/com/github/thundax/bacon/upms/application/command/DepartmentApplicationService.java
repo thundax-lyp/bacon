@@ -76,9 +76,18 @@ public class DepartmentApplicationService {
         if (departmentId.equals(parentId)) {
             throw new IllegalArgumentException("Department parent cannot be self");
         }
-        return toDto(departmentRepository.save(new Department(currentDepartment.getId(), currentDepartment.getCreatedBy(),
-                currentDepartment.getCreatedAt(), currentDepartment.getUpdatedBy(), currentDepartment.getUpdatedAt(), tenantId,
-                normalize(code), normalize(name), parentId == null ? 0L : parentId, leaderUserId, currentDepartment.getStatus())));
+        return toDto(departmentRepository.save(new Department(
+                currentDepartment.getId(),
+                tenantId,
+                normalize(code),
+                normalize(name),
+                parentId == null ? 0L : parentId,
+                leaderUserId,
+                currentDepartment.getStatus(),
+                currentDepartment.getCreatedBy(),
+                currentDepartment.getCreatedAt(),
+                currentDepartment.getUpdatedBy(),
+                currentDepartment.getUpdatedAt())));
     }
 
     public void deleteDepartment(Long tenantId, Long departmentId) {

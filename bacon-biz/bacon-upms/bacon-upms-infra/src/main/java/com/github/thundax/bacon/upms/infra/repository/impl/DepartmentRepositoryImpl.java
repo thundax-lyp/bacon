@@ -48,8 +48,8 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     @Override
     public Department save(Department department) {
         Department savedDepartment = department.getId() == null
-                ? new Department(upmsStore.nextDepartmentId(), department.getTenantId(), department.getCode(), department.getName(),
-                department.getParentId(), department.getLeaderUserId(), department.getStatus())
+                ? new Department(upmsStore.nextDepartmentId(), department.getTenantId(), department.getCode(),
+                department.getName(), department.getParentId(), department.getLeaderUserId(), department.getStatus())
                 : department;
         upmsStore.getDepartments().entrySet().removeIf(entry ->
                 entry.getValue().getTenantId().equals(savedDepartment.getTenantId())

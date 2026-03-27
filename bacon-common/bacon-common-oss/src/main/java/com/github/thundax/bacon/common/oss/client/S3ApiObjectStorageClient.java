@@ -88,13 +88,14 @@ public class S3ApiObjectStorageClient implements ObjectStorageClient {
     @Override
     public ObjectStorageWriteResult completeMultipartUpload(String objectKey, String uploadId,
                                                             List<ObjectStoragePart> parts) {
+        List<CompletedPart> completedParts = parts.stream()
+                .map(part -> CompletedPart.builder()
+                        .partNumber(part.partNumber())
+                        .eTag(part.etag())
+                        .build())
+                .toList();
         CompletedMultipartUpload multipartUpload = CompletedMultipartUpload.builder()
-                .parts(parts.stream()
-                        .map(part -> CompletedPart.builder()
-                                .partNumber(part.partNumber())
-                                .eTag(part.etag())
-                                .build())
-                        .toList())
+                .parts(completedParts)
                 .build();
         s3Client.completeMultipartUpload(CompleteMultipartUploadRequest.builder()
                 .bucket(properties.getBucketName())

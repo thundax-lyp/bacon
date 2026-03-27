@@ -35,6 +35,7 @@ public class PaymentQueryApplicationService {
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
                 .findLatestCallbackByPaymentNo(paymentOrder.getTenantId(), paymentOrder.getPaymentNo())
                 .orElse(null);
+        // 详情查询优先使用主单快照字段；只有主单还没固化对应信息时，才退回最近回调记录补齐展示字段。
         String channelTransactionNo = paymentOrder.getChannelTransactionNo() != null
                 ? paymentOrder.getChannelTransactionNo()
                 : latestRecord != null ? latestRecord.getChannelTransactionNo() : null;

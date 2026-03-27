@@ -32,6 +32,7 @@ public class PaymentCreateApplicationService {
                                                 String channelCode, String subject, Instant expiredAt) {
         validateCreateRequest(amount, channelCode, expiredAt);
         PaymentOrder existing = paymentOrderRepository.findOrderByOrderNo(tenantId, orderNo).orElse(null);
+        // 按 orderNo 保证创建幂等；同一订单重复创建时直接返回已存在支付单，而不是重新生成 paymentNo。
         if (existing != null) {
             return toCreateResult(existing, buildPayload(existing), null);
         }
@@ -41,6 +42,7 @@ public class PaymentCreateApplicationService {
         }
         PaymentOrder paymentOrder = new PaymentOrder(null, tenantId, paymentNo, orderNo, userId,
                 channelCode, amount, subject, expiredAt, Instant.now());
+        // 创建后立即进入 PAYING，表示渠道拉起参数已经准备好，后续只等待回调或显式关闭。
         paymentOrder.markPaying();
         PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);
         paymentOperationLogSupport.recordCreate(tenantId, paymentNo, paymentOrder.getPaymentStatus(),
@@ -68,6 +70,7 @@ public class PaymentCreateApplicationService {
     private PaymentCreateResultDTO toCreateResult(PaymentOrder paymentOrder,
                                                   PaymentChannelPayload channelPayload,
                                                   String failureReason) {
+        // 只有处于 PAYING 的支付单才继续暴露 payPayload 和过期时间；终态单查询时不再返回重新拉起信息。
         String payPayload = PaymentOrder.STATUS_PAYING.equals(paymentOrder.getPaymentStatus()) ? channelPayload.getPayUrl() : null;
         Instant dtoExpiredAt = PaymentOrder.STATUS_PAYING.equals(paymentOrder.getPaymentStatus()) ? paymentOrder.getExpiredAt() : null;
         return new PaymentCreateResultDTO(paymentOrder.getTenantId(), paymentOrder.getPaymentNo(), paymentOrder.getOrderNo(),

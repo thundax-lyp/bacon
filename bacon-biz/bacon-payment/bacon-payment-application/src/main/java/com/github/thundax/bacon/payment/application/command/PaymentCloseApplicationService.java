@@ -30,6 +30,7 @@ public class PaymentCloseApplicationService {
         }
         PaymentOrder paymentOrder = paymentOrderRepository.findOrderByPaymentNo(tenantId, paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
+        // 已关闭视为幂等成功；已支付和已失败则显式拒绝关闭，避免把终态单误判成可关闭状态。
         if (PaymentOrder.STATUS_CLOSED.equals(paymentOrder.getPaymentStatus())) {
             return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
                     paymentOrder.getPaymentStatus(), "SUCCESS", reason, null);

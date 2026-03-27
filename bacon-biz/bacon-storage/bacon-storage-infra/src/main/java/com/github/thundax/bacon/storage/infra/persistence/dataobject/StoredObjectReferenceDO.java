@@ -5,17 +5,25 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+/**
+ * 存储对象引用关系持久化数据对象。
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_storage_object_reference")
 public class StoredObjectReferenceDO {
 
+    /** 主键。 */
     private Long id;
+    /** 存储对象主键。 */
     @TableField("object_id")
     private Long objectId;
+    /** 引用方类型。 */
     @TableField("owner_type")
     private String ownerType;
+    /** 引用方业务主键。 */
     @TableField("owner_id")
     private String ownerId;
 }

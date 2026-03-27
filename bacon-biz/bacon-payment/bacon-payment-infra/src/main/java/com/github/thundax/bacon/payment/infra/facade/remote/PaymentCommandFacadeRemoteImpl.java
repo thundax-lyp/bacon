@@ -31,6 +31,7 @@ public class PaymentCommandFacadeRemoteImpl implements PaymentCommandFacade {
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "createPaymentFallback")
     public PaymentCreateResultDTO createPayment(Long tenantId, String orderNo, Long userId, BigDecimal amount,
                                                 String channelCode, String subject, Instant expiredAt) {
+        // remote facade 只负责协议转发，不在这里做支付业务兜底；一切失败都交给 fallback 统一翻译。
         return restClient.post()
                 .uri("/providers/payment/create?tenantId={tenantId}&orderNo={orderNo}&userId={userId}"
                                 + "&amount={amount}&channelCode={channelCode}&subject={subject}&expiredAt={expiredAt}",
@@ -55,6 +56,7 @@ public class PaymentCommandFacadeRemoteImpl implements PaymentCommandFacade {
     private PaymentCreateResultDTO createPaymentFallback(Long tenantId, String orderNo, Long userId, BigDecimal amount,
                                                          String channelCode, String subject, Instant expiredAt,
                                                          Throwable throwable) {
+        // fallback 的职责不是返回本地默认值，而是把 retry/circuit/bulkhead/http 异常统一收敛成支付领域异常。
         throw PaymentRemoteExceptionTranslator.translate("createPayment", throwable);
     }
 

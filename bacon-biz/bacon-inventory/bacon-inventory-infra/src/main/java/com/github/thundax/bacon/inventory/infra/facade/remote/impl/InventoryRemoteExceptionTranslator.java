@@ -13,6 +13,7 @@ final class InventoryRemoteExceptionTranslator {
 
     static RuntimeException translate(String operation, Throwable throwable) {
         if (throwable instanceof BaconException baconException) {
+            // 已经具备稳定业务语义的异常直接透传，避免 remote translator 覆盖原有错误码。
             return baconException;
         }
         if (throwable instanceof CallNotPermittedException) {
@@ -23,6 +24,7 @@ final class InventoryRemoteExceptionTranslator {
         }
         if (throwable instanceof RestClientResponseException responseException) {
             int statusCode = responseException.getStatusCode().value();
+            // translator 只关心“库存远程调用失败”的分类，不负责推断 reserve/release/deduct 的业务结果。
             return switch (statusCode) {
                 case 400 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_BAD_REQUEST, operation);
                 case 401 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_UNAUTHORIZED, operation);
@@ -33,6 +35,7 @@ final class InventoryRemoteExceptionTranslator {
                         operation + ", status=" + statusCode);
             };
         }
+        // 无法归类的异常统一落到远程不可用，保持上层重试和告警逻辑简单稳定。
         return new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_UNAVAILABLE, operation);
     }
 }

@@ -13,6 +13,7 @@ public final class PaymentRemoteExceptionTranslator {
 
     public static RuntimeException translate(String operation, Throwable throwable) {
         if (throwable instanceof BaconException baconException) {
+            // 上游已经是仓库统一的业务异常时直接透传，避免远程层二次包装把原始 code/status 冲掉。
             return baconException;
         }
         if (throwable instanceof CallNotPermittedException) {
@@ -23,6 +24,7 @@ public final class PaymentRemoteExceptionTranslator {
         }
         if (throwable instanceof RestClientResponseException responseException) {
             int statusCode = responseException.getStatusCode().value();
+            // 这里只把 HTTP 层故障映射成稳定的“远程访问错误语义”，不会试图替代 payment 域自己的业务判断。
             return switch (statusCode) {
                 case 400 -> new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_BAD_REQUEST, operation);
                 case 401 -> new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_UNAUTHORIZED, operation);
@@ -33,6 +35,7 @@ public final class PaymentRemoteExceptionTranslator {
                         operation + ", status=" + statusCode);
             };
         }
+        // 其余异常统一按“远程不可用”处理，交由上层决定重试、熔断或失败返回。
         return new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE, operation);
     }
 }

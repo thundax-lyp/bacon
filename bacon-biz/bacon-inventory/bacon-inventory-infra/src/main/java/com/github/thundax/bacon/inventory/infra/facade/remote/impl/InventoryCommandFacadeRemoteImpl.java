@@ -30,6 +30,7 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
     @CircuitBreaker(name = "inventoryRemote", fallbackMethod = "reserveStockFallback")
     @Bulkhead(name = "inventoryRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "reserveStockFallback")
     public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
+        // reserve/release/deduct 都只转发 provider 契约，不在 remote facade 里实现任何库存业务降级。
         return restClient.post()
                 .uri("/providers/inventory/reservations/{orderNo}/reserve?tenantId={tenantId}", orderNo, tenantId)
                 .body(new InventoryReserveCommandDTO(items))
@@ -65,6 +66,7 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
                                                                String orderNo,
                                                                List<InventoryReservationItemDTO> items,
                                                                Throwable throwable) {
+        // fallback 统一收敛为库存领域异常，调用方据此决定走补偿、重试还是主流程失败。
         throw InventoryRemoteExceptionTranslator.translate("reserveStock", throwable);
     }
 

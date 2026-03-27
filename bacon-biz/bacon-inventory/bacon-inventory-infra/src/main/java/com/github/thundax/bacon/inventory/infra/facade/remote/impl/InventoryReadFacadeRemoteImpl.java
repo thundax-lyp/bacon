@@ -33,6 +33,7 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
     @CircuitBreaker(name = "inventoryRemote", fallbackMethod = "getAvailableStockFallback")
     @Bulkhead(name = "inventoryRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getAvailableStockFallback")
     public InventoryStockDTO getAvailableStock(Long tenantId, Long skuId) {
+        // 查询链路沿用和命令链路一致的 resilience/fallback 规则，避免读接口出现另一套异常语义。
         return restClient.get()
                 .uri("/providers/inventory/stocks/{skuId}?tenantId={tenantId}", skuId, tenantId)
                 .retrieve()

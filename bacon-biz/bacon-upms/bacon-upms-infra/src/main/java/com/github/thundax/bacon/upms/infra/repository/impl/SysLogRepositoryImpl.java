@@ -46,7 +46,11 @@ public class SysLogRepositoryImpl implements SysLogRepository {
                 sysLogRecord.getHttpMethod(),
                 sysLogRecord.getCostMs(),
                 sysLogRecord.getErrorMessage(),
-                sysLogRecord.getOccurredAt()
+                sysLogRecord.getOccurredAt(),
+                sysLogRecord.getCreatedBy(),
+                sysLogRecord.getCreatedAt(),
+                sysLogRecord.getUpdatedBy(),
+                sysLogRecord.getUpdatedAt()
         );
         inMemoryUpmsStore.getSysLogs().put(id, persistedRecord);
     }

@@ -2,7 +2,8 @@ package com.github.thundax.bacon.payment.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
+import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
+import com.github.thundax.bacon.payment.interfaces.assembler.PaymentDetailResponseAssembler;
 import com.github.thundax.bacon.payment.interfaces.response.PaymentDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,7 +35,7 @@ public class PaymentQueryController {
     @GetMapping("/{paymentNo}")
     public PaymentDetailResponse getByPaymentNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                 @PathVariable @NotBlank String paymentNo) {
-        return PaymentDetailResponse.from(paymentQueryService.getByPaymentNo(tenantId, paymentNo));
+        return PaymentDetailResponseAssembler.from(paymentQueryService.getByPaymentNo(tenantId, paymentNo));
     }
 
     @Operation(summary = "按订单号查询支付单")
@@ -42,6 +43,6 @@ public class PaymentQueryController {
     @GetMapping
     public PaymentDetailResponse getByOrderNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                               @RequestParam("orderNo") @NotBlank String orderNo) {
-        return PaymentDetailResponse.from(paymentQueryService.getByOrderNo(tenantId, orderNo));
+        return PaymentDetailResponseAssembler.from(paymentQueryService.getByOrderNo(tenantId, orderNo));
     }
 }

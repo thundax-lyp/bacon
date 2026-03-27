@@ -3,7 +3,7 @@ package com.github.thundax.bacon.payment.interfaces.controller;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
-import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
+import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import java.math.BigDecimal;

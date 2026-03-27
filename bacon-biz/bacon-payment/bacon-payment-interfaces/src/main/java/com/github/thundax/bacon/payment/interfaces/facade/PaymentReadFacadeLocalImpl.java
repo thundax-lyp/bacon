@@ -2,7 +2,7 @@ package com.github.thundax.bacon.payment.interfaces.facade;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
-import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
+import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 

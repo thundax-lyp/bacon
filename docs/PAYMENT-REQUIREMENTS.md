@@ -149,7 +149,7 @@ Payment 是 Bacon 的统一支付业务域。
 
 固定服务：
 
-- `PaymentApplicationService`
+- `PaymentCreateApplicationService`
 - `PaymentQueryApplicationService`
 - `PaymentCallbackApplicationService`
 - `PaymentCloseApplicationService`

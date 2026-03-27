@@ -3,8 +3,8 @@ package com.github.thundax.bacon.payment.interfaces.facade;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
-import com.github.thundax.bacon.payment.application.service.PaymentApplicationService;
-import com.github.thundax.bacon.payment.application.service.PaymentCloseApplicationService;
+import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
+import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -15,19 +15,19 @@ import java.time.Instant;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
 public class PaymentCommandFacadeLocalImpl implements PaymentCommandFacade {
 
-    private final PaymentApplicationService paymentApplicationService;
+    private final PaymentCreateApplicationService paymentCreateApplicationService;
     private final PaymentCloseApplicationService paymentCloseApplicationService;
 
-    public PaymentCommandFacadeLocalImpl(PaymentApplicationService paymentApplicationService,
+    public PaymentCommandFacadeLocalImpl(PaymentCreateApplicationService paymentCreateApplicationService,
                                          PaymentCloseApplicationService paymentCloseApplicationService) {
-        this.paymentApplicationService = paymentApplicationService;
+        this.paymentCreateApplicationService = paymentCreateApplicationService;
         this.paymentCloseApplicationService = paymentCloseApplicationService;
     }
 
     @Override
     public PaymentCreateResultDTO createPayment(Long tenantId, String orderNo, Long userId, BigDecimal amount,
                                                 String channelCode, String subject, Instant expiredAt) {
-        return paymentApplicationService.createPayment(tenantId, orderNo, userId, amount, channelCode, subject, expiredAt);
+        return paymentCreateApplicationService.createPayment(tenantId, orderNo, userId, amount, channelCode, subject, expiredAt);
     }
 
     @Override

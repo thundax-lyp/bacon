@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.payment.application.service;
+package com.github.thundax.bacon.payment.application.query;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;

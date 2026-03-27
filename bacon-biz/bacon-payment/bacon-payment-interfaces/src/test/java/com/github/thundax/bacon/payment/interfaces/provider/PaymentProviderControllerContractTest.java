@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.payment.interfaces.provider;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
-import com.github.thundax.bacon.payment.application.service.PaymentApplicationService;
-import com.github.thundax.bacon.payment.application.service.PaymentCloseApplicationService;
-import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
+import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
+import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
+import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import jakarta.servlet.ServletException;
@@ -24,7 +24,7 @@ class PaymentProviderControllerContractTest {
     @Test
     void shouldKeepRawProviderPayloadWithoutResponseEnvelope() throws Exception {
         PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new PaymentApplicationService(null, null, null), new PaymentCloseApplicationService(null, null));
+                new PaymentCreateApplicationService(null, null, null), new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
         mockMvc.perform(get("/providers/payment/PAY-10001")
@@ -38,7 +38,7 @@ class PaymentProviderControllerContractTest {
     @Test
     void shouldReturnBadRequestWhenProviderRequiredParamMissing() throws Exception {
         PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new PaymentApplicationService(null, null, null), new PaymentCloseApplicationService(null, null));
+                new PaymentCreateApplicationService(null, null, null), new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
         mockMvc.perform(get("/providers/payment/PAY-10001"))
@@ -48,7 +48,7 @@ class PaymentProviderControllerContractTest {
     @Test
     void shouldExposeRawExceptionSemanticForProvider() {
         PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new PaymentApplicationService(null, null, null), new PaymentCloseApplicationService(null, null));
+                new PaymentCreateApplicationService(null, null, null), new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
         ServletException exception = assertThrows(ServletException.class, () -> mockMvc.perform(

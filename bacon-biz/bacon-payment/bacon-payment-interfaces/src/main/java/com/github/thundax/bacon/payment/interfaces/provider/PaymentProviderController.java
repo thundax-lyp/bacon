@@ -3,9 +3,9 @@ package com.github.thundax.bacon.payment.interfaces.provider;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
-import com.github.thundax.bacon.payment.application.service.PaymentApplicationService;
-import com.github.thundax.bacon.payment.application.service.PaymentCloseApplicationService;
-import com.github.thundax.bacon.payment.application.service.PaymentQueryApplicationService;
+import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
+import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
+import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
@@ -29,14 +29,14 @@ import java.time.Instant;
 public class PaymentProviderController {
 
     private final PaymentQueryApplicationService paymentQueryService;
-    private final PaymentApplicationService paymentApplicationService;
+    private final PaymentCreateApplicationService paymentCreateApplicationService;
     private final PaymentCloseApplicationService paymentCloseApplicationService;
 
     public PaymentProviderController(PaymentQueryApplicationService paymentQueryService,
-                                     PaymentApplicationService paymentApplicationService,
+                                     PaymentCreateApplicationService paymentCreateApplicationService,
                                      PaymentCloseApplicationService paymentCloseApplicationService) {
         this.paymentQueryService = paymentQueryService;
-        this.paymentApplicationService = paymentApplicationService;
+        this.paymentCreateApplicationService = paymentCreateApplicationService;
         this.paymentCloseApplicationService = paymentCloseApplicationService;
     }
 
@@ -63,7 +63,7 @@ public class PaymentProviderController {
                                                 @RequestParam("channelCode") @NotBlank String channelCode,
                                                 @RequestParam("subject") @NotBlank String subject,
                                                 @RequestParam("expiredAt") @NotNull Instant expiredAt) {
-        return paymentApplicationService.createPayment(tenantId, orderNo, userId, amount,
+        return paymentCreateApplicationService.createPayment(tenantId, orderNo, userId, amount,
                 channelCode, subject, expiredAt);
     }
 

@@ -23,4 +23,21 @@ public class PaymentAuditLogSupport {
                     auditLog.getTenantId(), auditLog.getPaymentNo(), auditLog.getActionType(), ex);
         }
     }
+
+    public void recordCreate(Long tenantId, String paymentNo, String afterStatus, java.time.Instant occurredAt) {
+        saveSafely(new PaymentAuditLog(null, tenantId, paymentNo, PaymentAuditLog.ACTION_CREATE, null,
+                afterStatus, PaymentAuditLog.OPERATOR_SYSTEM, 0L, occurredAt));
+    }
+
+    public void recordCallback(String actionType, Long tenantId, String paymentNo, String beforeStatus,
+                               String afterStatus, java.time.Instant occurredAt) {
+        saveSafely(new PaymentAuditLog(null, tenantId, paymentNo, actionType, beforeStatus, afterStatus,
+                PaymentAuditLog.OPERATOR_CHANNEL, 0L, occurredAt));
+    }
+
+    public void recordClose(Long tenantId, String paymentNo, String beforeStatus, String afterStatus,
+                            java.time.Instant occurredAt) {
+        saveSafely(new PaymentAuditLog(null, tenantId, paymentNo, PaymentAuditLog.ACTION_CLOSE, beforeStatus,
+                afterStatus, PaymentAuditLog.OPERATOR_SYSTEM, 0L, occurredAt));
+    }
 }

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.payment.application.service;
+package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
@@ -47,9 +47,7 @@ public class PaymentCloseApplicationService {
         Instant closedAt = Instant.now();
         paymentOrder.close(closedAt);
         paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogSupport.saveSafely(new PaymentAuditLog(null, tenantId, paymentNo,
-                PaymentAuditLog.ACTION_CLOSE, beforeStatus, paymentOrder.getPaymentStatus(),
-                PaymentAuditLog.OPERATOR_SYSTEM, 0L, closedAt));
+        paymentAuditLogSupport.recordClose(tenantId, paymentNo, beforeStatus, paymentOrder.getPaymentStatus(), closedAt);
         return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
                 paymentOrder.getPaymentStatus(), "SUCCESS", reason, null);
     }

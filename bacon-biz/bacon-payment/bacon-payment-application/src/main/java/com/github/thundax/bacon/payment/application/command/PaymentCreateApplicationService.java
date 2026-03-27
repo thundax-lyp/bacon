@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.payment.application.service;
+package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.application.support.PaymentAuditLogSupport;
@@ -15,15 +15,15 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Service
-public class PaymentApplicationService {
+public class PaymentCreateApplicationService {
 
     private final PaymentOrderRepository paymentOrderRepository;
     private final PaymentAuditLogSupport paymentAuditLogSupport;
     private final PaymentNoGenerator paymentNoGenerator;
 
-    public PaymentApplicationService(PaymentOrderRepository paymentOrderRepository,
-                                     PaymentAuditLogSupport paymentAuditLogSupport,
-                                     PaymentNoGenerator paymentNoGenerator) {
+    public PaymentCreateApplicationService(PaymentOrderRepository paymentOrderRepository,
+                                           PaymentAuditLogSupport paymentAuditLogSupport,
+                                           PaymentNoGenerator paymentNoGenerator) {
         this.paymentOrderRepository = paymentOrderRepository;
         this.paymentAuditLogSupport = paymentAuditLogSupport;
         this.paymentNoGenerator = paymentNoGenerator;
@@ -44,9 +44,7 @@ public class PaymentApplicationService {
                 channelCode, amount, subject, expiredAt, Instant.now());
         paymentOrder.markPaying();
         PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);
-        paymentAuditLogSupport.saveSafely(new PaymentAuditLog(null, tenantId, paymentNo,
-                PaymentAuditLog.ACTION_CREATE, null, paymentOrder.getPaymentStatus(),
-                PaymentAuditLog.OPERATOR_SYSTEM, 0L, persistedOrder.getCreatedAt()));
+        paymentAuditLogSupport.recordCreate(tenantId, paymentNo, paymentOrder.getPaymentStatus(), persistedOrder.getCreatedAt());
         return toCreateResult(persistedOrder, buildPayload(persistedOrder), null);
     }
 

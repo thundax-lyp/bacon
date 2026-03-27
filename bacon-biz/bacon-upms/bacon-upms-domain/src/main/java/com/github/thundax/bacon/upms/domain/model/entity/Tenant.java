@@ -4,33 +4,45 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 租户领域实体。
+ */
 @Getter
 public class Tenant {
 
+    /** 租户主键。 */
     private Long id;
-    private String createdBy;
-    private LocalDateTime createdAt;
-    private String updatedBy;
-    private LocalDateTime updatedAt;
+    /** 业务租户标识。 */
     private Long tenantId;
+    /** 租户编码。 */
     private String code;
+    /** 租户名称。 */
     private String name;
+    /** 租户状态。 */
     private String status;
+    /** 创建人。 */
+    private String createdBy;
+    /** 创建时间。 */
+    private LocalDateTime createdAt;
+    /** 最后更新人。 */
+    private String updatedBy;
+    /** 最后更新时间。 */
+    private LocalDateTime updatedAt;
 
     public Tenant(Long id, Long tenantId, String code, String name, String status) {
-        this(id, null, null, null, null, tenantId, code, name, status);
+        this(id, tenantId, code, name, status, null, null, null, null);
     }
 
-    public Tenant(Long id, String createdBy, LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt,
-                  Long tenantId, String code, String name, String status) {
+    public Tenant(Long id, Long tenantId, String code, String name, String status,
+                  String createdBy, LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt) {
         this.id = id;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
         this.tenantId = tenantId;
         this.code = code;
         this.name = name;
         this.status = status;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
+        this.updatedBy = updatedBy;
+        this.updatedAt = updatedAt;
     }
 }

@@ -7,11 +7,19 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+/**
+ * 租户跨服务传输对象。
+ */
 public class TenantDTO {
 
+    /** 租户主键。 */
     private Long id;
+    /** 业务租户标识。 */
     private Long tenantId;
+    /** 租户编码。 */
     private String code;
+    /** 租户名称。 */
     private String name;
+    /** 租户状态。 */
     private String status;
 }

@@ -59,9 +59,16 @@ public class TenantRepositoryImpl implements TenantRepository {
     public Tenant updateTenantStatus(Long tenantId, String status) {
         Tenant currentTenant = findTenantByTenantId(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
-        Tenant updatedTenant = new Tenant(currentTenant.getId(), currentTenant.getCreatedBy(), currentTenant.getCreatedAt(),
-                currentTenant.getUpdatedBy(), currentTenant.getUpdatedAt(), currentTenant.getTenantId(), currentTenant.getCode(),
-                currentTenant.getName(), status);
+        Tenant updatedTenant = new Tenant(
+                currentTenant.getId(),
+                currentTenant.getTenantId(),
+                currentTenant.getCode(),
+                currentTenant.getName(),
+                status,
+                currentTenant.getCreatedBy(),
+                currentTenant.getCreatedAt(),
+                currentTenant.getUpdatedBy(),
+                currentTenant.getUpdatedAt());
         upmsStore.getTenants().put(tenantId, updatedTenant);
         return updatedTenant;
     }

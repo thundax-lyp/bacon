@@ -49,9 +49,16 @@ public class TenantApplicationService {
                 .ifPresent(tenant -> {
                     throw new IllegalArgumentException("Tenant code already exists: " + code);
                 });
-        return toDto(tenantRepository.saveTenant(new Tenant(currentTenant.getId(), currentTenant.getCreatedBy(),
-                currentTenant.getCreatedAt(), currentTenant.getUpdatedBy(), currentTenant.getUpdatedAt(), tenantId,
-                normalize(code), normalize(name), currentTenant.getStatus())));
+        return toDto(tenantRepository.saveTenant(new Tenant(
+                currentTenant.getId(),
+                tenantId,
+                normalize(code),
+                normalize(name),
+                currentTenant.getStatus(),
+                currentTenant.getCreatedBy(),
+                currentTenant.getCreatedAt(),
+                currentTenant.getUpdatedBy(),
+                currentTenant.getUpdatedAt())));
     }
 
     public TenantDTO updateTenantStatus(Long tenantId, String status) {

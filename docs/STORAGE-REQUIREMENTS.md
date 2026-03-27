@@ -68,6 +68,14 @@
 - 单体模式使用本地 `Facade` 实现
 - 微服务模式使用远程 `Facade` 实现，并保持同一契约
 
+### 3.6 External API Exposure Rule
+
+- 面向前端或第三方调用方的接口必须由业务域提供，不得直接暴露 `Storage` 业务语义接口
+- 对外接口路径必须使用业务语义，例如用户头像使用 `/sys/user/{userId}/avatar`，商品图片使用 `/inventory/product/{productId}/image`
+- `Storage` 对外只提供域间能力契约（`bacon-storage-api`），不承诺前端路由结构
+- 业务域负责认证、鉴权、数据可见性、业务主键校验、文件类型与大小校验
+- `Storage` 负责上传、删除、引用关系与访问地址生成，不负责业务权限判断
+
 ## 4. Module Mapping
 
 ### 4.1 `bacon-storage-api`
@@ -365,6 +373,25 @@
 - `imageUrl` 由 `Storage` 查询结果派生，不单独落在 `Inventory`
 - 商品图片旧对象在引用解除后由 `Storage` 负责删除策略
 
+### 7.6 Generic Business Integration Rule
+
+功能对象：
+
+- 任意业务域的资源字段（如 `avatarObjectId`、`imageObjectId`、`attachmentObjectId`）
+
+功能能力：
+
+- 业务域对外提供资源上传、替换、清除、访问入口
+- 业务域内部调用 `Storage` 完成对象存储与引用管理
+- 业务域响应模型按需返回 `objectId` 与派生访问地址
+
+必要补充约束：
+
+- 业务域只持久化 `objectId` 或固定引用字段，不复制 `bucketName`、`objectKey`、`accessUrl`
+- 业务域替换资源时必须先绑定新对象，再解除旧对象引用
+- 业务域清除资源时必须先解除引用，再清空业务字段
+- 前端与第三方调用方不得直接依赖 `Storage` 内部路径
+
 ## 8. Key Flows
 
 ### 8.1 Upload Flow
@@ -391,15 +418,15 @@
 
 1. `UPMS` 调用 `Storage` 上传新头像
 2. `UPMS` 更新 `User.avatarObjectId`
-3. `UPMS` 调用 `Storage.clearObjectReference(oldObjectId, UPMS_USER_AVATAR, userId)`
-4. `UPMS` 调用 `Storage.markObjectReferenced(newObjectId, UPMS_USER_AVATAR, userId)`
+3. `UPMS` 调用 `Storage.markObjectReferenced(newObjectId, UPMS_USER_AVATAR, userId)`
+4. `UPMS` 调用 `Storage.clearObjectReference(oldObjectId, UPMS_USER_AVATAR, userId)`
 
 ### 8.4 Replace Inventory Product Image Flow
 
 1. `Inventory` 商品模块调用 `Storage` 上传新图片
 2. `Inventory` 商品模块更新 `InventoryProduct.imageObjectId`
-3. `Inventory` 商品模块调用 `Storage.clearObjectReference(oldObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
-4. `Inventory` 商品模块调用 `Storage.markObjectReferenced(newObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
+3. `Inventory` 商品模块调用 `Storage.markObjectReferenced(newObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
+4. `Inventory` 商品模块调用 `Storage.clearObjectReference(oldObjectId, INVENTORY_PRODUCT_IMAGE, productId)`
 
 ### 8.5 Delete Object Flow
 
@@ -407,6 +434,15 @@
 2. `Storage` 校验对象是否仍被引用
 3. 仍被引用时拒绝删除
 4. 未被引用时删除底层对象并更新 `StoredObject.objectStatus`
+
+### 8.6 Generic Business Upload And Access Flow
+
+1. 前端调用业务域资源接口（例如 `/sys/user/{userId}/avatar`）
+2. 业务域完成认证、鉴权、数据可见性与业务参数校验
+3. 业务域调用 `Storage` 上传对象并获取 `objectId`
+4. 业务域回写资源字段（如 `avatarObjectId`、`imageObjectId`）
+5. 如为替换场景，业务域先建立新对象引用，再解除旧对象引用
+6. 前端通过业务域接口获取资源访问信息，业务域通过 `Storage` 派生 `accessUrl`
 
 ## 9. Non-Functional Requirements
 

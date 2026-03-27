@@ -47,6 +47,28 @@ CREATE TABLE IF NOT EXISTS `bacon_storage_audit_log` (
     KEY `idx_operator_occurred` (`operator_id`, `occurred_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='存储对象审计日志表';
 
+CREATE TABLE IF NOT EXISTS `bacon_storage_audit_outbox` (
+    `id` BIGINT NOT NULL COMMENT '主键',
+    `tenant_id` VARCHAR(64) DEFAULT NULL COMMENT '所属租户业务键',
+    `object_id` BIGINT DEFAULT NULL COMMENT '存储对象主键',
+    `owner_type` VARCHAR(64) DEFAULT NULL COMMENT '引用方类型',
+    `owner_id` VARCHAR(64) DEFAULT NULL COMMENT '引用方业务主键',
+    `action_type` VARCHAR(64) NOT NULL COMMENT '审计动作类型',
+    `before_status` VARCHAR(32) DEFAULT NULL COMMENT '变更前状态',
+    `after_status` VARCHAR(32) DEFAULT NULL COMMENT '变更后状态',
+    `operator_type` VARCHAR(32) DEFAULT NULL COMMENT '操作人类型',
+    `operator_id` BIGINT DEFAULT NULL COMMENT '操作人主键',
+    `occurred_at` DATETIME(3) NOT NULL COMMENT '审计发生时间',
+    `error_message` VARCHAR(512) DEFAULT NULL COMMENT '失败原因',
+    `status` VARCHAR(32) NOT NULL COMMENT '补偿状态',
+    `retry_count` INT NOT NULL COMMENT '重试次数',
+    `next_retry_at` DATETIME(3) NOT NULL COMMENT '下次重试时间',
+    `updated_at` DATETIME(3) NOT NULL COMMENT '最后更新时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_status_retry` (`status`, `next_retry_at`),
+    KEY `idx_object_occurred` (`object_id`, `occurred_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='存储审计补偿出站表';
+
 CREATE TABLE IF NOT EXISTS `bacon_storage_multipart_upload` (
     `id` BIGINT NOT NULL COMMENT '主键',
     `upload_id` VARCHAR(64) NOT NULL COMMENT '分段上传会话业务键',

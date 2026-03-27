@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.storage.application.support;
 
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditLogRepository;
+import com.github.thundax.bacon.storage.domain.repository.StorageAuditOutboxRepository;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.AfterEach;
@@ -20,6 +21,8 @@ class StorageAuditApplicationServiceTest {
 
     @Mock
     private StorageAuditLogRepository storageAuditLogRepository;
+    @Mock
+    private StorageAuditOutboxRepository storageAuditOutboxRepository;
 
     private SimpleMeterRegistry meterRegistry;
     private StorageAuditApplicationService service;
@@ -28,7 +31,7 @@ class StorageAuditApplicationServiceTest {
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
         Metrics.addRegistry(meterRegistry);
-        service = new StorageAuditApplicationService(storageAuditLogRepository);
+        service = new StorageAuditApplicationService(storageAuditLogRepository, storageAuditOutboxRepository);
     }
 
     @AfterEach
@@ -49,12 +52,30 @@ class StorageAuditApplicationServiceTest {
     }
 
     @Test
-    void shouldIncrementFailMetricWhenAuditLogSaveFails() {
+    void shouldPersistOutboxWhenAuditLogSaveFails() {
         doThrow(new IllegalStateException("force-fail-audit")).when(storageAuditLogRepository).save(any());
 
         service.record("tenant-a", 100L, "GENERIC_ATTACHMENT", "owner-1", "UPLOAD", null, "ACTIVE");
 
+        verify(storageAuditOutboxRepository).save(any());
         assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.write.fail.total")
+                .tag("actionType", "UPLOAD")
+                .counter()
+                .count());
+        assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.outbox.persist.success.total")
+                .tag("actionType", "UPLOAD")
+                .counter()
+                .count());
+    }
+
+    @Test
+    void shouldIncrementOutboxFailMetricWhenOutboxPersistFails() {
+        doThrow(new IllegalStateException("force-fail-audit")).when(storageAuditLogRepository).save(any());
+        doThrow(new IllegalStateException("force-fail-outbox")).when(storageAuditOutboxRepository).save(any());
+
+        service.record("tenant-a", 100L, "GENERIC_ATTACHMENT", "owner-1", "UPLOAD", null, "ACTIVE");
+
+        assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.outbox.persist.fail.total")
                 .tag("actionType", "UPLOAD")
                 .counter()
                 .count());

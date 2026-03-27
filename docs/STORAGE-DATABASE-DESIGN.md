@@ -81,6 +81,7 @@
 | `MultipartUploadSession` | `bacon_storage_multipart_upload` |
 | `MultipartUploadPart` | `bacon_storage_multipart_upload_part` |
 | `StorageAuditLog` | `bacon_storage_audit_log` |
+| `StorageAuditOutbox` | `bacon_storage_audit_outbox` |
 
 ## 7. Table Design
 
@@ -213,7 +214,43 @@
 - `idx_object_key(object_key)`
 - `idx_tenant_status(tenant_id, upload_status, created_at)`
 
-### 7.5 `bacon_storage_multipart_upload_part`
+### 7.5 `bacon_storage_audit_outbox`
+
+表类型：`Runtime Table`
+
+用途：
+
+- 持久化审计写入失败后的补偿事件
+- 支持定时重试任务扫描与回补正式审计日志
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
+| `object_id` | `bigint` | Y | 存储对象主键 |
+| `owner_type` | `varchar(64)` | Y | 引用方类型 |
+| `owner_id` | `varchar(64)` | Y | 引用方业务主键 |
+| `action_type` | `varchar(64)` | N | 审计动作类型 |
+| `before_status` | `varchar(32)` | Y | 变更前状态 |
+| `after_status` | `varchar(32)` | Y | 变更后状态 |
+| `operator_type` | `varchar(32)` | Y | 操作人类型 |
+| `operator_id` | `bigint` | Y | 操作人主键 |
+| `occurred_at` | `datetime(3)` | N | 审计发生时间 |
+| `error_message` | `varchar(512)` | Y | 最近一次失败原因 |
+| `status` | `varchar(32)` | N | 当前补偿状态 |
+| `retry_count` | `int` | N | 已重试次数 |
+| `next_retry_at` | `datetime(3)` | N | 下次重试时间 |
+| `updated_at` | `datetime(3)` | N | 最后更新时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `idx_status_retry(status, next_retry_at)`
+- `idx_object_occurred(object_id, occurred_at)`
+
+### 7.6 `bacon_storage_multipart_upload_part`
 
 表类型：`Runtime Table`
 
@@ -260,6 +297,7 @@
 - 删除对象时必须先把 `object_status` 更新为 `DELETING`
 - 删除底层对象成功后必须再把 `object_status` 更新为 `DELETED`
 - 上传、引用变更、删除等关键操作必须写 `bacon_storage_audit_log`
+- 审计写入失败时必须补写 `bacon_storage_audit_outbox`
 
 ## 10. Query Model Rules
 

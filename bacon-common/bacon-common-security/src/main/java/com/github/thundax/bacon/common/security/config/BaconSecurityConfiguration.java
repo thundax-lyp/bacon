@@ -9,6 +9,7 @@ import com.github.thundax.bacon.common.security.context.SecurityContextCurrentTe
 import com.github.thundax.bacon.common.security.context.SecurityContextCurrentUserResolver;
 import com.github.thundax.bacon.common.security.context.SpringContextCurrentTenantProvider;
 import com.github.thundax.bacon.common.security.context.SpringContextCurrentUserProvider;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -64,15 +65,17 @@ public class BaconSecurityConfiguration {
     @Bean
     @Primary
     @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
-    public SpringContextCurrentUserProvider microCurrentUserProvider() {
-        return new SpringContextCurrentUserProvider();
+    public SpringContextCurrentUserProvider microCurrentUserProvider(
+            ObjectProvider<CurrentUserResolver> currentUserResolver) {
+        return new SpringContextCurrentUserProvider(currentUserResolver);
     }
 
     @Bean
     @Primary
     @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
-    public SpringContextCurrentTenantProvider microCurrentTenantProvider() {
-        return new SpringContextCurrentTenantProvider();
+    public SpringContextCurrentTenantProvider microCurrentTenantProvider(
+            ObjectProvider<CurrentTenantResolver> currentTenantResolver) {
+        return new SpringContextCurrentTenantProvider(currentTenantResolver);
     }
 
     @Bean

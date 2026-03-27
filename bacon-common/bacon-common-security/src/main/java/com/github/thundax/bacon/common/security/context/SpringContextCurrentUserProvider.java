@@ -1,23 +1,23 @@
 package com.github.thundax.bacon.common.security.context;
 
-import com.github.thundax.bacon.common.core.context.SpringContextHolder;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.ObjectProvider;
 
 public class SpringContextCurrentUserProvider implements CurrentUserProvider {
 
     private static final String DEFAULT_AUDITOR = "system";
+    private final ObjectProvider<CurrentUserResolver> currentUserResolver;
+
+    public SpringContextCurrentUserProvider(ObjectProvider<CurrentUserResolver> currentUserResolver) {
+        this.currentUserResolver = currentUserResolver;
+    }
 
     @Override
     public String currentUserId() {
-        try {
-            CurrentUserResolver currentUserResolver = SpringContextHolder.getBean(CurrentUserResolver.class);
-            String currentUserId = currentUserResolver.currentUserId();
-            return currentUserId == null || currentUserId.isBlank() ? DEFAULT_AUDITOR : currentUserId;
-        } catch (NoSuchBeanDefinitionException ex) {
-            return DEFAULT_AUDITOR;
-        } catch (BeansException ex) {
+        CurrentUserResolver resolver = currentUserResolver.getIfAvailable();
+        if (resolver == null) {
             return DEFAULT_AUDITOR;
         }
+        String currentUserId = resolver.currentUserId();
+        return currentUserId == null || currentUserId.isBlank() ? DEFAULT_AUDITOR : currentUserId;
     }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.interfaces.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
@@ -30,7 +31,7 @@ class PaymentQueryControllerContractTest {
         validator.afterPropertiesSet();
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice())
+                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
                 .setValidator(validator)
                 .build();
     }

@@ -2,18 +2,18 @@ package com.github.thundax.bacon.common.security.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.github.thundax.bacon.common.core.context.SpringContextHolder;
 import com.github.thundax.bacon.common.security.context.CurrentTenantProvider;
 import com.github.thundax.bacon.common.security.context.CurrentTenantResolver;
-import com.github.thundax.bacon.common.security.context.MonoCurrentTenantProvider;
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
 import com.github.thundax.bacon.common.security.context.CurrentUserResolver;
-import com.github.thundax.bacon.common.security.context.SecurityContextCurrentTenantResolver;
+import com.github.thundax.bacon.common.security.context.MonoCurrentTenantProvider;
 import com.github.thundax.bacon.common.security.context.MonoCurrentUserProvider;
+import com.github.thundax.bacon.common.security.context.SecurityContextCurrentTenantResolver;
 import com.github.thundax.bacon.common.security.context.SpringContextCurrentTenantProvider;
 import com.github.thundax.bacon.common.security.context.SpringContextCurrentUserProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
@@ -21,7 +21,6 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
@@ -30,17 +29,16 @@ import org.springframework.security.web.SecurityFilterChain;
 class BaconSecurityConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(BaconSecurityConfiguration.class, SpringContextHolderConfiguration.class);
+            .withUserConfiguration(BaconSecurityConfiguration.class);
 
     private final WebApplicationContextRunner webContextRunner = new WebApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(SecurityAutoConfiguration.class,
                     UserDetailsServiceAutoConfiguration.class))
-            .withUserConfiguration(BaconSecurityConfiguration.class, SpringContextHolderConfiguration.class);
+            .withUserConfiguration(BaconSecurityConfiguration.class);
 
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
-        SpringContextHolder.clear();
     }
 
     @Test
@@ -100,27 +98,15 @@ class BaconSecurityConfigurationTest {
 
     @Test
     void shouldResolveCurrentUserFromSpringContextHolderInMicroProvider() {
-        StaticApplicationContext applicationContext = new StaticApplicationContext();
-        applicationContext.registerSingleton("currentUserResolver", StubCurrentUserResolver.class);
-        applicationContext.refresh();
-
-        SpringContextHolder springContextHolder = new SpringContextHolder();
-        springContextHolder.setApplicationContext(applicationContext);
-
-        CurrentUserProvider currentUserProvider = new SpringContextCurrentUserProvider();
+        CurrentUserProvider currentUserProvider = new SpringContextCurrentUserProvider(
+                new SingleObjectProvider<>(new StubCurrentUserResolver()));
         assertThat(currentUserProvider.currentUserId()).isEqualTo("micro-user");
     }
 
     @Test
     void shouldResolveCurrentTenantFromSpringContextHolderInMicroProvider() {
-        StaticApplicationContext applicationContext = new StaticApplicationContext();
-        applicationContext.registerSingleton("currentTenantResolver", StubCurrentTenantResolver.class);
-        applicationContext.refresh();
-
-        SpringContextHolder springContextHolder = new SpringContextHolder();
-        springContextHolder.setApplicationContext(applicationContext);
-
-        CurrentTenantProvider currentTenantProvider = new SpringContextCurrentTenantProvider();
+        CurrentTenantProvider currentTenantProvider = new SpringContextCurrentTenantProvider(
+                new SingleObjectProvider<>(new StubCurrentTenantResolver()));
         assertThat(currentTenantProvider.currentTenantId()).isEqualTo(1001L);
     }
 
@@ -143,15 +129,6 @@ class BaconSecurityConfigurationTest {
         }
     }
 
-    @Configuration(proxyBeanMethods = false)
-    static class SpringContextHolderConfiguration {
-
-        @Bean
-        SpringContextHolder springContextHolder() {
-            return new SpringContextHolder();
-        }
-    }
-
     public static class StubCurrentUserResolver implements CurrentUserResolver {
 
         @Override
@@ -165,6 +142,30 @@ class BaconSecurityConfigurationTest {
         @Override
         public Long currentTenantId() {
             return 1001L;
+        }
+    }
+
+    static final class SingleObjectProvider<T> implements ObjectProvider<T> {
+
+        private final T value;
+
+        SingleObjectProvider(T value) {
+            this.value = value;
+        }
+
+        @Override
+        public T getObject(Object... args) {
+            return value;
+        }
+
+        @Override
+        public T getIfAvailable() {
+            return value;
+        }
+
+        @Override
+        public T getIfUnique() {
+            return value;
         }
     }
 }

@@ -1,20 +1,18 @@
 package com.github.thundax.bacon.common.security.context;
 
-import com.github.thundax.bacon.common.core.context.SpringContextHolder;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.ObjectProvider;
 
 public class SpringContextCurrentTenantProvider implements CurrentTenantProvider {
 
+    private final ObjectProvider<CurrentTenantResolver> currentTenantResolver;
+
+    public SpringContextCurrentTenantProvider(ObjectProvider<CurrentTenantResolver> currentTenantResolver) {
+        this.currentTenantResolver = currentTenantResolver;
+    }
+
     @Override
     public Long currentTenantId() {
-        try {
-            CurrentTenantResolver currentTenantResolver = SpringContextHolder.getBean(CurrentTenantResolver.class);
-            return currentTenantResolver.currentTenantId();
-        } catch (NoSuchBeanDefinitionException ex) {
-            return null;
-        } catch (BeansException ex) {
-            return null;
-        }
+        CurrentTenantResolver resolver = currentTenantResolver.getIfAvailable();
+        return resolver == null ? null : resolver.currentTenantId();
     }
 }

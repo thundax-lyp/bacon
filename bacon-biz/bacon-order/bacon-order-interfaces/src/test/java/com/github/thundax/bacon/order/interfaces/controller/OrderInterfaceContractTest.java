@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.interfaces.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
@@ -32,7 +33,7 @@ class OrderInterfaceContractTest {
         OrderController controller = new OrderController(null, new StubOrderQueryApplicationService(),
                 new OrderCancelApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice())
+                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
                 .build();
 
         mockMvc.perform(get("/api/orders")
@@ -49,7 +50,7 @@ class OrderInterfaceContractTest {
         OrderController controller = new OrderController(null, new StubOrderQueryApplicationService(),
                 new OrderCancelApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice())
+                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
                 .build();
 
         mockMvc.perform(get("/api/orders")

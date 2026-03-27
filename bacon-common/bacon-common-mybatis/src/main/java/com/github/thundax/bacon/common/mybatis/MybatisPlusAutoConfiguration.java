@@ -8,16 +8,16 @@ import com.github.thundax.bacon.common.mybatis.handler.IntegerArrayTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.LongArrayTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.StringArrayTypeHandler;
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
-import com.github.thundax.bacon.common.security.context.SpringContextCurrentUserProvider;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.mybatis.spring.boot.autoconfigure.ConfigurationCustomizer;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.time.Clock;
 
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 public class MybatisPlusAutoConfiguration {
 
     @Bean
@@ -36,8 +36,8 @@ public class MybatisPlusAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public CurrentUserProvider mybatisFallbackCurrentUserProvider() {
-        return new SpringContextCurrentUserProvider();
+    public CurrentUserProvider mybatisFallbackCurrentUserProvider(ObjectProvider<CurrentUserProvider> currentUserProvider) {
+        return currentUserProvider.getIfAvailable(() -> () -> "system");
     }
 
     @Bean

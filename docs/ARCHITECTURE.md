@@ -349,6 +349,7 @@ common      -> 被各层依赖
 - `api` 只定义契约，不依赖 `application`、`domain`、`infra` 实现。
 - `interfaces` 不得直接依赖 `infra`。
 - 一个业务域原则上不得直接依赖另一个业务域的 `application` 实现。
+- `common` 模块中的工程能力必须通过 Spring Boot auto-configuration 暴露，不允许依赖业务 starter 的全局包扫描才生效。
 
 ## 跨域调用约定
 
@@ -440,6 +441,9 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - `bacon-order-starter` 不装配其他业务域的本地 `facade` 实现。
 - 非 `bacon-mono-boot` 的独立服务原则上只拥有本域业务实现，跨域能力通过外部 `api + RemoteImpl` 获取。
 - 各 starter 必须显式声明自身运行模式，不能在微服务 starter 中复用单体装配逻辑。
+- starter 启动类的 `scanBasePackages` 只能覆盖自身应用包和本域业务包；禁止扫描整个 `com.github.thundax.bacon`。
+- starter 不允许手工 `@Import` 已通过 `AutoConfiguration.imports` 暴露的公共自动装配。
+- 未在 `AutoConfiguration.imports` 中注册的公共配置，不得依赖 starter 扫描“顺带生效”。
 
 ### 同步与异步调用边界
 - 查询类跨域调用优先使用同步 `facade`。
@@ -477,6 +481,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - 禁止在 `jetcache` 之外再抽象一套通用缓存门面。
 - 禁止在 `mybatis-plus + mapper + repositoryimpl` 之外再叠加通用 DAO 框架。
 - 禁止在网关模块中继续使用 Spring Cloud 2025 已废弃的旧 gateway starter 名称。
+- 禁止在公共模块中保留无用途的 `*Marker` 占位类；如需包锚点，必须有明确调用点或文档约束。
 
 ## 模块创建清单
 

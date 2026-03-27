@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.common.web.advice;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import jakarta.validation.Valid;
@@ -33,7 +34,7 @@ class ApiResponseWebAdviceTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders.standaloneSetup(new WrappedTestController(), new PlainTestController())
-                .setControllerAdvice(new ApiResponseBodyAdvice(), new GlobalExceptionHandler())
+                .setControllerAdvice(new ApiResponseBodyAdvice(new ObjectMapper()), new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
     }

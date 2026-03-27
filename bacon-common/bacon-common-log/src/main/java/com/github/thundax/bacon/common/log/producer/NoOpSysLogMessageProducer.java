@@ -2,9 +2,7 @@ package com.github.thundax.bacon.common.log.producer;
 
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
-@Component
 @Slf4j
 public class NoOpSysLogMessageProducer implements SysLogMessageProducer {
 

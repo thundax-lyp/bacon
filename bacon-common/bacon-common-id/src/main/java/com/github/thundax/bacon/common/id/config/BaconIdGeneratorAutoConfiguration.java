@@ -3,6 +3,7 @@ package com.github.thundax.bacon.common.id.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.IdProviderType;
+import com.github.thundax.bacon.common.id.event.IdFallbackAlertListener;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorErrorCode;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorException;
 import com.github.thundax.bacon.common.id.provider.LeafIdGenerator;
@@ -99,5 +100,11 @@ public class BaconIdGeneratorAutoConfiguration {
     @ConditionalOnMissingBean
     public SnowflakeIdGenerator snowflakeIdGenerator(BaconIdGeneratorProperties properties) {
         return createSnowflakeIdGenerator(properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public IdFallbackAlertListener idFallbackAlertListener() {
+        return new IdFallbackAlertListener();
     }
 }

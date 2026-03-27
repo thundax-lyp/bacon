@@ -8,18 +8,17 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.context.annotation.Profile;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 @Repository
-@Profile("test")
+@ConditionalOnProperty(name = "bacon.order.repository.mode", havingValue = "memory")
 public class InMemoryOrderRepository implements OrderRepository {
 
     private final Map<Long, Order> storage = new ConcurrentHashMap<>();

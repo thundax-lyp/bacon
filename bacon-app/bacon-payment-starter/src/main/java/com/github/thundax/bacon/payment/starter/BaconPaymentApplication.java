@@ -1,12 +1,9 @@
 package com.github.thundax.bacon.payment.starter;
 
-import com.github.thundax.bacon.common.security.config.BaconSecurityConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Import;
 
-@Import(BaconSecurityConfiguration.class)
-@SpringBootApplication(scanBasePackages = "com.github.thundax.bacon")
+@SpringBootApplication(scanBasePackages = "com.github.thundax.bacon.payment")
 public class BaconPaymentApplication {
 
     public static void main(String[] args) {

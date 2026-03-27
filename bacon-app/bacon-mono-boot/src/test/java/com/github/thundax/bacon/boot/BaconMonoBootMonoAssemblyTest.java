@@ -38,11 +38,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = BaconMonoApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
                 "bacon.runtime.mode=mono",
+                "spring.profiles.active=test",
                 "spring.cloud.nacos.discovery.enabled=false",
                 "spring.cloud.nacos.config.enabled=false",
                 "spring.boot.admin.client.enabled=false",
                 "spring.main.lazy-initialization=true",
+                "bacon.order.repository.mode=memory",
                 "bacon.inventory.repository.mode=memory",
+                "bacon.payment.repository.mode=memory",
                 "spring.autoconfigure.exclude="
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"

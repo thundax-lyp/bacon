@@ -3,32 +3,31 @@ package com.github.thundax.bacon.boot;
 import com.github.thundax.bacon.auth.api.facade.OAuthClientReadFacade;
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.auth.api.facade.TokenVerifyFacade;
-import com.github.thundax.bacon.auth.infra.rpc.OAuthClientReadFacadeRemoteImpl;
-import com.github.thundax.bacon.auth.infra.rpc.SessionCommandFacadeRemoteImpl;
-import com.github.thundax.bacon.auth.infra.rpc.TokenVerifyFacadeRemoteImpl;
+import com.github.thundax.bacon.auth.infra.facade.remote.OAuthClientReadFacadeRemoteImpl;
+import com.github.thundax.bacon.auth.infra.facade.remote.SessionCommandFacadeRemoteImpl;
+import com.github.thundax.bacon.auth.infra.facade.remote.TokenVerifyFacadeRemoteImpl;
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
-import com.github.thundax.bacon.common.security.context.SpringContextCurrentUserProvider;
 import com.github.thundax.bacon.common.test.BaconSpringBootTest;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
-import com.github.thundax.bacon.inventory.infra.facade.impl.InventoryCommandFacadeRemoteImpl;
-import com.github.thundax.bacon.inventory.infra.facade.impl.InventoryReadFacadeRemoteImpl;
+import com.github.thundax.bacon.inventory.infra.facade.remote.impl.InventoryCommandFacadeRemoteImpl;
+import com.github.thundax.bacon.inventory.infra.facade.remote.impl.InventoryReadFacadeRemoteImpl;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.order.api.facade.OrderReadFacade;
-import com.github.thundax.bacon.order.infra.rpc.OrderCommandFacadeRemoteImpl;
-import com.github.thundax.bacon.order.infra.rpc.OrderReadFacadeRemoteImpl;
+import com.github.thundax.bacon.order.infra.facade.remote.OrderCommandFacadeRemoteImpl;
+import com.github.thundax.bacon.order.infra.facade.remote.OrderReadFacadeRemoteImpl;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
-import com.github.thundax.bacon.payment.infra.rpc.PaymentCommandFacadeRemoteImpl;
-import com.github.thundax.bacon.payment.infra.rpc.PaymentReadFacadeRemoteImpl;
+import com.github.thundax.bacon.payment.infra.facade.remote.PaymentCommandFacadeRemoteImpl;
+import com.github.thundax.bacon.payment.infra.facade.remote.PaymentReadFacadeRemoteImpl;
 import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;
 import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
-import com.github.thundax.bacon.upms.infra.rpc.DepartmentReadFacadeRemoteImpl;
-import com.github.thundax.bacon.upms.infra.rpc.PermissionReadFacadeRemoteImpl;
-import com.github.thundax.bacon.upms.infra.rpc.RoleReadFacadeRemoteImpl;
-import com.github.thundax.bacon.upms.infra.rpc.UserReadFacadeRemoteImpl;
+import com.github.thundax.bacon.upms.infra.facade.remote.DepartmentReadFacadeRemoteImpl;
+import com.github.thundax.bacon.upms.infra.facade.remote.PermissionReadFacadeRemoteImpl;
+import com.github.thundax.bacon.upms.infra.facade.remote.RoleReadFacadeRemoteImpl;
+import com.github.thundax.bacon.upms.infra.facade.remote.UserReadFacadeRemoteImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,11 +37,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = BaconMonoApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
                 "bacon.runtime.mode=micro",
+                "spring.profiles.active=test",
                 "spring.cloud.nacos.discovery.enabled=false",
                 "spring.cloud.nacos.config.enabled=false",
                 "spring.boot.admin.client.enabled=false",
                 "spring.main.lazy-initialization=true",
+                "bacon.order.repository.mode=memory",
                 "bacon.inventory.repository.mode=memory",
+                "bacon.payment.repository.mode=memory",
                 "spring.autoconfigure.exclude="
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"
@@ -113,6 +115,6 @@ class BaconMonoBootMicroAssemblyTest extends BaconSpringBootTest {
         assertThat(inventoryCommandFacade).isInstanceOf(InventoryCommandFacadeRemoteImpl.class);
         assertThat(paymentReadFacade).isInstanceOf(PaymentReadFacadeRemoteImpl.class);
         assertThat(paymentCommandFacade).isInstanceOf(PaymentCommandFacadeRemoteImpl.class);
-        assertThat(currentUserProvider).isInstanceOf(SpringContextCurrentUserProvider.class);
+        assertThat(currentUserProvider.currentUserId()).isEqualTo("system");
     }
 }

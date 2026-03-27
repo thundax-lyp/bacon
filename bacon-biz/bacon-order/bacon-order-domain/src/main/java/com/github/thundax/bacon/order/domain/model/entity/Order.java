@@ -3,6 +3,9 @@ package com.github.thundax.bacon.order.domain.model.entity;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+/**
+ * 订单主单领域实体。
+ */
 public class Order {
 
     public static final String ORDER_STATUS_CREATED = "CREATED";
@@ -25,35 +28,64 @@ public class Order {
     public static final String INVENTORY_STATUS_DEDUCTED = "DEDUCTED";
     public static final String INVENTORY_STATUS_FAILED = "FAILED";
 
+    /** 订单主键。 */
     private Long id;
+    /** 所属租户主键。 */
     private final Long tenantId;
+    /** 订单号。 */
     private final String orderNo;
+    /** 下单用户主键。 */
     private final Long userId;
+    /** 订单状态。 */
     private String orderStatus;
+    /** 支付状态。 */
     private String payStatus;
+    /** 库存状态。 */
     private String inventoryStatus;
+    /** 支付单号。 */
     private String paymentNo;
+    /** 库存预占单号。 */
     private String reservationNo;
+    /** 币种编码。 */
     private String currencyCode;
+    /** 订单总金额。 */
     private BigDecimal totalAmount;
+    /** 应付金额。 */
     private BigDecimal payableAmount;
+    /** 订单备注。 */
     private final String remark;
-    private String cancelReason;
-    private String closeReason;
-    private final Instant createdAt;
-    private final Instant expiredAt;
-    private Instant paidAt;
-    private Instant closedAt;
+    /** 支付渠道编码。 */
     private String paymentChannelCode;
+    /** 支付成功金额。 */
     private BigDecimal paidAmount;
+    /** 支付渠道状态。 */
     private String paymentChannelStatus;
+    /** 支付失败原因。 */
     private String paymentFailureReason;
+    /** 支付失败时间。 */
     private Instant paymentFailedAt;
+    /** 仓库主键。 */
     private Long warehouseId;
+    /** 库存失败原因。 */
     private String inventoryFailureReason;
+    /** 库存释放原因。 */
     private String inventoryReleaseReason;
+    /** 取消原因。 */
+    private String cancelReason;
+    /** 关闭原因。 */
+    private String closeReason;
+    /** 创建时间。 */
+    private final Instant createdAt;
+    /** 过期时间。 */
+    private final Instant expiredAt;
+    /** 支付完成时间。 */
+    private Instant paidAt;
+    /** 库存释放时间。 */
     private Instant inventoryReleasedAt;
+    /** 库存扣减时间。 */
     private Instant inventoryDeductedAt;
+    /** 订单关闭时间。 */
+    private Instant closedAt;
 
     public Order(Long id, Long tenantId, String orderNo, Long userId, String currencyCode,
                  BigDecimal totalAmount, BigDecimal payableAmount, String remark, Instant expiredAt) {

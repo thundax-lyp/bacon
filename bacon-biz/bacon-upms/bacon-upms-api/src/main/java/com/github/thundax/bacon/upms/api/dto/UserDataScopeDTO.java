@@ -9,9 +9,15 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+/**
+ * 用户数据范围传输对象。
+ */
 public class UserDataScopeDTO {
 
+    /** 是否拥有全部数据权限。 */
     private boolean allAccess;
+    /** 数据范围类型集合。 */
     private Set<String> scopeTypes;
+    /** 可访问部门主键集合。 */
     private Set<Long> departmentIds;
 }

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.common.test.arch;
+package com.github.thundax.bacon.common.test.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;

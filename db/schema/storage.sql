@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `bacon_storage_object` (
     `original_filename` VARCHAR(255) NOT NULL COMMENT '原始文件名',
     `content_type` VARCHAR(128) NOT NULL COMMENT '内容类型',
     `size` BIGINT NOT NULL COMMENT '文件大小，字节',
-    `access_url` VARCHAR(1024) NOT NULL COMMENT '当前访问地址',
+    `access_endpoint` VARCHAR(1024) NOT NULL COMMENT '当前访问端点',
     `object_status` VARCHAR(32) NOT NULL COMMENT '对象状态',
     `reference_status` VARCHAR(32) NOT NULL COMMENT '引用状态',
     `created_by` BIGINT DEFAULT NULL COMMENT '创建人',

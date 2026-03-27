@@ -705,7 +705,7 @@
 - 所有跨表写入必须校验 `tenant_id` 一致性
 - `bacon_upms_sys_log.operator_id` 可关联 `bacon_upms_user.id`
 - 当前设计不强制 `bacon_upms_sys_log.operator_id` 建立数据库外键
-- `UPMS` 只保存 `avatar_object_id`，不复制 `Storage` 域对象的 `bucket_name`、`object_key`、`access_url`
+- `UPMS` 只保存 `avatar_object_id`，不复制 `Storage` 域对象的 `bucket_name`、`object_key`、`access_endpoint`
 
 ## 9. Persistence Rules
 

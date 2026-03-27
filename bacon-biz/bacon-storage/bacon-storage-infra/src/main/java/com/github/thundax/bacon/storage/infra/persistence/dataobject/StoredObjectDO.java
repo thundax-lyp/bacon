@@ -41,7 +41,7 @@ public class StoredObjectDO {
     @TableField("size")
     private Long size;
     /** 由 Storage 派生的对象访问端点，仅用于展示/下载，不作为业务主数据持久化。 */
-    @TableField("access_url")
+    @TableField("access_endpoint")
     private String accessEndpoint;
     /** 对象状态。 */
     @TableField("object_status")

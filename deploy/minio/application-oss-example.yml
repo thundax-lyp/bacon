@@ -1,0 +1,14 @@
+bacon:
+  storage:
+    type: OSS
+  common:
+    oss:
+      enabled: true
+      type: S3_API
+      endpoint: http://127.0.0.1:9000
+      public-base-url: http://127.0.0.1:9000/bacon-storage
+      bucket-name: bacon-storage
+      access-key: baconminio
+      secret-key: baconminio123
+      region: us-east-1
+      path-style-access: true

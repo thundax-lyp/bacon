@@ -3,7 +3,18 @@ package com.github.thundax.bacon.upms.interfaces.response;
 import com.github.thundax.bacon.upms.api.dto.SysLogPageResultDTO;
 import java.util.List;
 
-public record SysLogPageResponse(List<SysLogResponse> records, long total, int pageNo, int pageSize) {
+/**
+ * 系统日志分页响应对象。
+ */
+public record SysLogPageResponse(
+        /** 当前页记录。 */
+        List<SysLogResponse> records,
+        /** 总记录数。 */
+        long total,
+        /** 当前页码。 */
+        int pageNo,
+        /** 每页大小。 */
+        int pageSize) {
 
     public static SysLogPageResponse from(SysLogPageResultDTO dto) {
         List<SysLogResponse> recordResponses = dto.getRecords() == null

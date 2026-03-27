@@ -3,7 +3,18 @@ package com.github.thundax.bacon.upms.interfaces.response;
 import com.github.thundax.bacon.upms.api.dto.PostPageResultDTO;
 import java.util.List;
 
-public record PostPageResponse(List<PostResponse> records, long total, int pageNo, int pageSize) {
+/**
+ * 岗位分页响应对象。
+ */
+public record PostPageResponse(
+        /** 当前页记录。 */
+        List<PostResponse> records,
+        /** 总记录数。 */
+        long total,
+        /** 当前页码。 */
+        int pageNo,
+        /** 每页大小。 */
+        int pageSize) {
 
     public static PostPageResponse from(PostPageResultDTO dto) {
         List<PostResponse> recordResponses = dto.getRecords() == null

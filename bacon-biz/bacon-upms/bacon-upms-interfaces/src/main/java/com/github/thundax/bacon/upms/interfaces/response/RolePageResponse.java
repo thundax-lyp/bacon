@@ -3,7 +3,18 @@ package com.github.thundax.bacon.upms.interfaces.response;
 import com.github.thundax.bacon.upms.api.dto.RolePageResultDTO;
 import java.util.List;
 
-public record RolePageResponse(List<RoleResponse> records, long total, int pageNo, int pageSize) {
+/**
+ * 角色分页响应对象。
+ */
+public record RolePageResponse(
+        /** 当前页记录。 */
+        List<RoleResponse> records,
+        /** 总记录数。 */
+        long total,
+        /** 当前页码。 */
+        int pageNo,
+        /** 每页大小。 */
+        int pageSize) {
 
     public static RolePageResponse from(RolePageResultDTO dto) {
         List<RoleResponse> recordResponses = dto.getRecords() == null

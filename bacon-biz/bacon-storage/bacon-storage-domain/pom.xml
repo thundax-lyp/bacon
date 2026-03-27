@@ -6,29 +6,23 @@
 
     <parent>
         <groupId>com.github.thundax</groupId>
-        <artifactId>bacon</artifactId>
+        <artifactId>bacon-storage</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>bacon-biz</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>bacon-storage-domain</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>com.github.thundax</groupId>
-            <artifactId>bacon-common-test</artifactId>
+            <artifactId>bacon-common-core</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <modules>
-        <module>bacon-auth</module>
-        <module>bacon-order</module>
-        <module>bacon-upms</module>
-        <module>bacon-inventory</module>
-        <module>bacon-storage</module>
-        <module>bacon-payment</module>
-    </modules>
 </project>

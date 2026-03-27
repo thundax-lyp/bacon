@@ -78,6 +78,22 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
                 .eq(StorageAuditOutboxDO::getId, id));
     }
 
+    @Override
+    public int deleteExpiredDead(Instant updatedBefore, int limit) {
+        List<Long> ids = storageAuditOutboxMapper.selectList(Wrappers.<StorageAuditOutboxDO>lambdaQuery()
+                        .eq(StorageAuditOutboxDO::getStatus, StorageAuditOutbox.STATUS_DEAD)
+                        .lt(StorageAuditOutboxDO::getUpdatedAt, updatedBefore)
+                        .orderByAsc(StorageAuditOutboxDO::getUpdatedAt)
+                        .last("limit " + limit))
+                .stream()
+                .map(StorageAuditOutboxDO::getId)
+                .toList();
+        if (ids.isEmpty()) {
+            return 0;
+        }
+        return storageAuditOutboxMapper.deleteByIds(ids);
+    }
+
     private StorageAuditOutbox toDomain(StorageAuditOutboxDO dataObject) {
         return new StorageAuditOutbox(dataObject.getId(), dataObject.getTenantId(), dataObject.getObjectId(),
                 dataObject.getOwnerType(), dataObject.getOwnerId(), dataObject.getActionType(),

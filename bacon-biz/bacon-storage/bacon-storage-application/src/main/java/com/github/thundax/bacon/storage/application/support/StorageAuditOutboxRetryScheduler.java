@@ -18,5 +18,6 @@ public class StorageAuditOutboxRetryScheduler {
     @Scheduled(fixedDelayString = "${bacon.storage.audit-retry.fixed-delay-millis:10000}")
     public void retryAuditOutbox() {
         storageAuditOutboxRetryService.retryOutbox();
+        storageAuditOutboxRetryService.cleanupExpiredDeadOutbox();
     }
 }

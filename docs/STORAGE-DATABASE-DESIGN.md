@@ -299,6 +299,7 @@
 - 上传、引用变更、删除等关键操作必须写 `bacon_storage_audit_log`
 - 审计写入失败时必须补写 `bacon_storage_audit_outbox`
 - 审计补偿任务重试时必须按 `status + next_retry_at` 扫描 `bacon_storage_audit_outbox`
+- `DEAD` 状态的 `bacon_storage_audit_outbox` 必须按 `updated_at` 保留期定时清理
 
 ## 10. Query Model Rules
 

@@ -94,6 +94,17 @@ class StorageAuditOutboxRetryServiceTest {
                 .tag("actionType", "UPLOAD").counter().count());
     }
 
+    @Test
+    void shouldCleanupExpiredDeadOutbox() {
+        when(storageAuditOutboxRepository.deleteExpiredDead(any(), eq(100))).thenReturn(2);
+
+        int deleted = service.cleanupExpiredDeadOutbox();
+
+        assertEquals(2, deleted);
+        assertEquals(2.0d, meterRegistry.get("bacon.storage.audit.cleanup.dead.total")
+                .counter().count());
+    }
+
     private StorageAuditOutbox outbox(Long id, int retryCount) {
         Instant now = Instant.parse("2026-03-27T12:00:00Z");
         return new StorageAuditOutbox(id, "tenant-a", 100L, "GENERIC_ATTACHMENT", "owner-1",

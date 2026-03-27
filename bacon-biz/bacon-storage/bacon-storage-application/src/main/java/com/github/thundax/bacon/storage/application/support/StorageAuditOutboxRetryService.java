@@ -52,6 +52,20 @@ public class StorageAuditOutboxRetryService {
         return processedCount;
     }
 
+    public int cleanupExpiredDeadOutbox() {
+        if (!properties.isEnabled()) {
+            return 0;
+        }
+        Instant updatedBefore = Instant.now().minusSeconds(Math.max(properties.getDeadRetentionSeconds(), 1L));
+        int deleted = storageAuditOutboxRepository.deleteExpiredDead(updatedBefore,
+                Math.max(properties.getCleanupBatchSize(), 1));
+        if (deleted > 0) {
+            Metrics.counter("bacon.storage.audit.cleanup.dead.total").increment(deleted);
+            log.info("Storage audit dead outbox cleanup completed, deleted={}", deleted);
+        }
+        return deleted;
+    }
+
     protected void retryOne(StorageAuditOutbox item, Instant now) {
         try {
             storageAuditLogRepository.save(new StorageAuditLog(null, item.getTenantId(), item.getObjectId(),

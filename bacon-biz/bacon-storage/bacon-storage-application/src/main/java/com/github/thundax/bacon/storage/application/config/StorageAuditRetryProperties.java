@@ -31,4 +31,10 @@ public class StorageAuditRetryProperties {
 
     /** 最大退避秒数。 */
     private long maxDelaySeconds = 1800L;
+
+    /** DEAD outbox 保留时长。 */
+    private long deadRetentionSeconds = 7L * 24 * 60 * 60;
+
+    /** 单次清理批次大小。 */
+    private int cleanupBatchSize = 100;
 }

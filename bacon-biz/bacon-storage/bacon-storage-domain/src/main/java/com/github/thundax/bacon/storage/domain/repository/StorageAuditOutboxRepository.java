@@ -16,4 +16,6 @@ public interface StorageAuditOutboxRepository {
     void updateForRetry(Long id, int retryCount, Instant nextRetryAt, String errorMessage, String status, Instant updatedAt);
 
     void markDead(Long id, int retryCount, String errorMessage, Instant updatedAt);
+
+    int deleteExpiredDead(Instant updatedBefore, int limit);
 }

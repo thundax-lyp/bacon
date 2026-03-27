@@ -52,6 +52,7 @@ public class OrderOutboxActionExecutor {
     }
 
     public void executeClaimed(OrderOutboxEvent event) {
+        // Outbox 事件是订单创建链路的异步阶段机，事件类型决定当前推进到哪一步。
         if (OrderOutboxEvent.EVENT_RESERVE_STOCK.equals(event.getEventType())) {
             executeReserveStock(event);
             return;
@@ -75,6 +76,7 @@ public class OrderOutboxActionExecutor {
                 .toList();
         InventoryReservationResultDTO reserveResult = inventoryCommandFacade.reserveStock(order.getTenantId(),
                 order.getOrderNo(), reserveItems);
+        // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
         if (!Order.INVENTORY_STATUS_RESERVED.equals(reserveResult.getInventoryStatus())) {
             String reason = resolveFailureReason(reserveResult.getFailureReason(), "inventory reserve failed");
             order.markInventoryFailed(reserveResult.getReservationNo(), reserveResult.getWarehouseId(), reason);
@@ -87,6 +89,7 @@ public class OrderOutboxActionExecutor {
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_RESERVE_OK", Order.ORDER_STATUS_RESERVING_STOCK);
 
+        // 只有库存预占成功后才补发创建支付事件，确保支付链路依赖的库存前置条件已经成立。
         Map<String, String> source = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = source.getOrDefault("channelCode", "MOCK");
         Map<String, String> payload = new LinkedHashMap<>();
@@ -105,6 +108,7 @@ public class OrderOutboxActionExecutor {
         PaymentCreateResultDTO paymentResult = paymentCommandFacade.createPayment(order.getTenantId(), order.getOrderNo(),
                 order.getUserId(), order.getPayableAmount(), channelCode, "order:" + order.getOrderNo(),
                 order.getExpiredAt());
+        // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
         if (paymentResult.getPaymentNo() == null || paymentResult.getPaymentNo().isBlank()
                 || !Order.PAY_STATUS_PAYING.equals(paymentResult.getPaymentStatus())) {
             order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
@@ -131,6 +135,7 @@ public class OrderOutboxActionExecutor {
         String reason = OrderOutboxPayloadCodec.decode(event.getPayload()).getOrDefault("reason", "SYSTEM_CANCELLED");
         InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(order.getTenantId(),
                 order.getOrderNo(), reason);
+        // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
         if (Order.INVENTORY_STATUS_RELEASED.equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());

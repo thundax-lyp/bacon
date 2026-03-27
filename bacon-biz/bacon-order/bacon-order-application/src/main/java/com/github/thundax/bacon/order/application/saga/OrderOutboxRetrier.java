@@ -53,6 +53,7 @@ public class OrderOutboxRetrier {
             return;
         }
         Instant now = Instant.now();
+        // 先释放过期租约，再拉取一批可重试事件，避免节点异常退出后事件永久卡在 PROCESSING。
         orderOutboxRepository.releaseExpiredLease(now);
         int safeBatchSize = Math.max(batchSize, 1);
         Instant leaseUntil = now.plusSeconds(Math.max(leaseSeconds, 1L));
@@ -66,6 +67,7 @@ public class OrderOutboxRetrier {
     private void retryOne(OrderOutboxEvent event, String owner, Instant now) {
         try {
             orderOutboxActionExecutor.executeClaimed(event);
+            // 事件只有在业务动作真正执行成功后才删除，失败统一回到重试/死信分支。
             orderOutboxRepository.deleteClaimed(event.getId(), owner);
         } catch (RuntimeException ex) {
             handleRetryFailure(event, owner, now, ex);
@@ -75,6 +77,7 @@ public class OrderOutboxRetrier {
     private void handleRetryFailure(OrderOutboxEvent event, String owner, Instant now, RuntimeException ex) {
         int nextRetryCount = (event.getRetryCount() == null ? 0 : event.getRetryCount()) + 1;
         String message = truncate(ex.getMessage());
+        // 超过重试上限后把事件移入死信表，后续只允许人工或专门补偿链路接手，不再由定时任务继续重试。
         if (nextRetryCount > maxRetries) {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (orderOutboxRepository.markDeadClaimed(event.getId(), owner, nextRetryCount, deadReason, message, now)) {
@@ -87,6 +90,7 @@ public class OrderOutboxRetrier {
             }
             return;
         }
+        // 未到上限时按指数退避回写下一次重试时间，避免固定频率放大下游故障。
         Instant nextRetryAt = now.plusSeconds(nextDelaySeconds(nextRetryCount));
         orderOutboxRepository.markRetryingClaimed(event.getId(), owner, nextRetryCount, nextRetryAt, message, now);
         log.warn("Order outbox retry failed, outboxId={}, eventType={}, orderNo={}, retryCount={}",

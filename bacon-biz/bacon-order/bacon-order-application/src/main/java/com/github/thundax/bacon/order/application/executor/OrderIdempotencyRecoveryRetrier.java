@@ -27,6 +27,7 @@ public class OrderIdempotencyRecoveryRetrier {
         if (!enabled) {
             return;
         }
+        // 这里只做“卡死租约转 FAILED”的托底恢复，不直接重放业务动作，避免定时任务绕过正常幂等入口。
         int recovered = orderIdempotencyRepository.recoverExpiredProcessing(Instant.now(), RECOVER_MESSAGE);
         if (recovered > 0) {
             log.warn("Recovered expired order idempotency processing records, count={}", recovered);

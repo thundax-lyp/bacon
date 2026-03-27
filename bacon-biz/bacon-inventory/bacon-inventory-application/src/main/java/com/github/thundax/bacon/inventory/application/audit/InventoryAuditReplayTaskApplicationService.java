@@ -32,6 +32,7 @@ public class InventoryAuditReplayTaskApplicationService {
                     "replay-task-empty-dead-letter-ids");
         }
         Instant now = Instant.now();
+        // 回放任务只负责“组织一批死信逐条回放”，真正的单条回放语义仍复用 compensation service。
         InventoryAuditReplayTask task = new InventoryAuditReplayTask(null, createDTO.getTenantId(),
                 "RPT-" + UUID.randomUUID().toString().replace("-", ""), InventoryAuditReplayTask.STATUS_PENDING,
                 createDTO.getDeadLetterIds().size(), 0, 0, 0, createDTO.getReplayKeyPrefix(), OPERATOR_TYPE_MANUAL,
@@ -86,6 +87,7 @@ public class InventoryAuditReplayTaskApplicationService {
             return;
         }
         Instant now = Instant.now();
+        // Worker 每轮都会续租任务，确保长批次处理时不会因为租约过期被其他节点重复接管。
         inventoryAuditReplayTaskRepository.renewAuditReplayTaskLease(task.getId(), processingOwner,
                 now.plusSeconds(Math.max(leaseSeconds, 1L)), now);
 
@@ -96,6 +98,7 @@ public class InventoryAuditReplayTaskApplicationService {
             return;
         }
 
+        // 任务项逐条独立调用单条回放，任何一项失败都只影响自己的结果统计，不中断整批任务推进。
         int processedDelta = 0;
         int successDelta = 0;
         int failedDelta = 0;
@@ -138,6 +141,7 @@ public class InventoryAuditReplayTaskApplicationService {
 
     private void finishTask(Long taskId, String processingOwner) {
         InventoryAuditReplayTask latest = getTaskById(taskId);
+        // 整个任务只要存在失败项就标记 FAILED；只有全部成功才算 SUCCEEDED，便于上层按任务粒度判断是否还需人工介入。
         String status = Integer.valueOf(0).equals(latest.getFailedCount())
                 ? InventoryAuditReplayTask.STATUS_SUCCEEDED
                 : InventoryAuditReplayTask.STATUS_FAILED;
@@ -146,6 +150,7 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     private String buildReplayKey(InventoryAuditReplayTask task, InventoryAuditReplayTaskItem item) {
+        // 优先复用外部提供的回放前缀；否则退化为任务号 + 死信号，确保同一任务内 replayKey 稳定可追踪。
         if (task.getReplayKeyPrefix() == null || task.getReplayKeyPrefix().isBlank()) {
             return "TASK-" + task.getTaskNo() + "-DL-" + item.getDeadLetterId();
         }

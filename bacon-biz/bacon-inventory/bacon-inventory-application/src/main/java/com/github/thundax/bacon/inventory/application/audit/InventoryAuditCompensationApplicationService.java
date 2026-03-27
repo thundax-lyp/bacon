@@ -41,6 +41,7 @@ public class InventoryAuditCompensationApplicationService {
         }
         String resolvedReplayKey = resolveReplayKey(deadLetter, replayKey);
         Instant replayAt = Instant.now();
+        // 回放前先认领死信，确保同一条死信在人工操作和后台任务并发时只会有一个执行者真正进入事务。
         boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(deadLetterId, tenantId, resolvedReplayKey,
                 REPLAY_OPERATOR_TYPE, operatorId, replayAt);
         if (!claimed) {
@@ -56,6 +57,7 @@ public class InventoryAuditCompensationApplicationService {
             log.error("ALERT inventory audit replay tx failed, deadLetterId={}, replayKey={}",
                     deadLetterId, resolvedReplayKey, txException);
             try {
+                // 事务层抛异常后，再走单独的补偿事务把死信状态和失败审计补全，避免原事务整体回滚后没有追踪痕迹。
                 inventoryAuditReplayTransactionService.compensateReplayTxFailure(deadLetter, resolvedReplayKey,
                         REPLAY_OPERATOR_TYPE, operatorId, replayAt, truncatedError);
                 Metrics.counter("bacon.inventory.audit.replay.tx.compensate.success.total").increment();
@@ -74,6 +76,7 @@ public class InventoryAuditCompensationApplicationService {
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             return List.of();
         }
+        // 批量回放本质是对单条回放的串行包装，保证每条死信的认领、事务和失败结果都独立结算。
         List<InventoryAuditReplayResultDTO> results = new ArrayList<>(deadLetterIds.size());
         for (Long deadLetterId : deadLetterIds) {
             String replayKey = replayKeyPrefix == null || replayKeyPrefix.isBlank()

@@ -30,6 +30,7 @@ public class InventoryWriteRetrier {
 
     public <T> T execute(String operation, String businessKey, Supplier<T> action) {
         try {
+            // 这里只重试“明确识别为并发写冲突”的异常，其它业务异常直接原样抛出，避免把不可重试错误误当成临时冲突。
             return writeConflictRetrier.execute(action, this::isConcurrentModified,
                     new InventoryRetryMetricsListener(operation, businessKey));
         } catch (IllegalStateException exception) {

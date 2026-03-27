@@ -56,6 +56,7 @@ public class InventoryAuditOutboxRetrier {
             return;
         }
         Instant now = Instant.now();
+        // 先释放过期租约，再按批次认领可重试 outbox，避免节点崩溃后审计事件长期卡死在 PROCESSING。
         int released = inventoryAuditOutboxRepository.releaseExpiredAuditOutboxLease(now);
         if (released > 0) {
             Metrics.counter("bacon.inventory.audit.retry.lease.released.total").increment(released);
@@ -73,6 +74,7 @@ public class InventoryAuditOutboxRetrier {
 
     private void retryOne(InventoryAuditOutbox item, Instant now, String owner) {
         try {
+            // outbox 重试的目标很单一：把原始审计事件补写回正式审计表，成功后立即删除 outbox。
             inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, item.getTenantId(), item.getOrderNo(),
                     item.getReservationNo(), item.getActionType(), item.getOperatorType(), item.getOperatorId(),
                     item.getOccurredAt()));
@@ -91,6 +93,7 @@ public class InventoryAuditOutboxRetrier {
     private void handleRetryFailure(InventoryAuditOutbox item, Instant now, RuntimeException ex, String owner) {
         int nextRetryCount = (item.getRetryCount() == null ? 0 : item.getRetryCount()) + 1;
         String errorMessage = truncateMessage(ex.getMessage());
+        // 超过重试上限后转死信，后续交给人工回放或回放任务处理，不再让定时任务无限重试。
         if (nextRetryCount > maxRetries) {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (!inventoryAuditOutboxRepository.markAuditOutboxDeadClaimed(item.getId(), owner, nextRetryCount, deadReason, now)) {
@@ -108,6 +111,7 @@ public class InventoryAuditOutboxRetrier {
                     item.getId(), item.getOrderNo(), item.getReservationNo(), item.getActionType(), ex);
             return;
         }
+        // 未到上限时采用指数退避，避免下游持久化异常时用固定频率持续放大故障。
         Instant nextRetryAt = now.plusSeconds(nextDelaySeconds(nextRetryCount));
         if (!inventoryAuditOutboxRepository.updateAuditOutboxForRetryClaimed(item.getId(), owner, nextRetryCount,
                 nextRetryAt, errorMessage, now)) {

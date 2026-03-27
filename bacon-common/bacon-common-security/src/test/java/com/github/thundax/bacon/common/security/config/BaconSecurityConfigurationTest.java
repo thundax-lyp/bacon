@@ -97,14 +97,14 @@ class BaconSecurityConfigurationTest {
     }
 
     @Test
-    void shouldResolveCurrentUserFromSpringContextHolderInMicroProvider() {
+    void shouldResolveCurrentUserFromResolverBackedMicroProvider() {
         CurrentUserProvider currentUserProvider = new SpringContextCurrentUserProvider(
                 new SingleObjectProvider<>(new StubCurrentUserResolver()));
         assertThat(currentUserProvider.currentUserId()).isEqualTo("micro-user");
     }
 
     @Test
-    void shouldResolveCurrentTenantFromSpringContextHolderInMicroProvider() {
+    void shouldResolveCurrentTenantFromResolverBackedMicroProvider() {
         CurrentTenantProvider currentTenantProvider = new SpringContextCurrentTenantProvider(
                 new SingleObjectProvider<>(new StubCurrentTenantResolver()));
         assertThat(currentTenantProvider.currentTenantId()).isEqualTo(1001L);

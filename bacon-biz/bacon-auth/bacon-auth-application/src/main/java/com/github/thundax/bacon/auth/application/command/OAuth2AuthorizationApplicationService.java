@@ -56,6 +56,7 @@ public class OAuth2AuthorizationApplicationService {
         Long tenantId = currentSession.getTenantId();
         Long userId = currentSession.getUserId();
 
+        // authorize 阶段只落授权请求，不直接发 code；真正的授权决定由后续 approve/reject 明确给出。
         String authorizationRequestId = UUID.randomUUID().toString();
         oAuthAuthorizationRepository.saveAuthorizationRequest(new OAuthAuthorizationRequest(
                 authorizationRequestId, clientId, redirectUri, scopes, state, codeChallenge, codeChallengeMethod,
@@ -77,6 +78,7 @@ public class OAuth2AuthorizationApplicationService {
                     + "?error=access_denied&state=" + authorizationRequest.getState(), null);
         }
 
+        // 授权请求一旦 APPROVE 就立即标记已使用，避免同一个 request 被重复换出多个 authorization code。
         String authorizationCode = tokenCodec.randomToken();
         oAuthAuthorizationRepository.saveAuthorizationCode(authorizationCode, authorizationRequest);
         return new AuthorizationDecisionResult(authorizationRequest.getRedirectUri()
@@ -87,6 +89,7 @@ public class OAuth2AuthorizationApplicationService {
                                      String clientSecret, String codeVerifier, String refreshToken) {
         OAuthClient client = validateClient(clientId, clientSecret);
         if ("authorization_code".equals(grantType)) {
+            // authorization_code 交换时复用授权请求里固化的 tenant/user/scopes，避免由客户端自行提交这些敏感上下文。
             OAuthAuthorizationRequest request = oAuthAuthorizationRepository.findAuthorizationRequestByCode(code)
                     .orElseThrow(() -> new IllegalArgumentException("Authorization code invalid"));
             if (!request.getRedirectUri().equals(redirectUri)) {
@@ -98,6 +101,7 @@ public class OAuth2AuthorizationApplicationService {
             OAuthRefreshToken currentRefreshToken = oAuthAuthorizationRepository.findOAuthRefreshTokenByHash(tokenCodec.sha256(refreshToken))
                     .filter(token -> "ACTIVE".equals(token.getTokenStatus()))
                     .orElseThrow(() -> new IllegalArgumentException("OAuth refresh token invalid"));
+            // refresh_token 换新采用轮转模式：旧 refresh token 标记 USED，再签发新的 access/refresh 对。
             currentRefreshToken.markUsed();
             Optional<OAuthAccessToken> accessToken = oAuthAuthorizationRepository.findAccessTokenByHash(currentRefreshToken.getAccessTokenId());
             Set<String> scopes = accessToken.map(OAuthAccessToken::getScopes).orElseGet(LinkedHashSet::new);
@@ -135,6 +139,7 @@ public class OAuth2AuthorizationApplicationService {
         Instant now = Instant.now();
         String accessTokenValue = tokenCodec.randomToken();
         String accessTokenId = tokenCodec.sha256(accessTokenValue);
+        // access token 和 refresh token 在仓储层都使用哈希作为主识别键，避免明文 token 被直接持久化。
         OAuthAccessToken accessToken = new OAuthAccessToken(accessTokenId, accessTokenId, client.getClientId(), tenantId,
                 userId, scopes, now, now.plusSeconds(client.getAccessTokenTtlSeconds()));
         oAuthAuthorizationRepository.saveAccessToken(accessToken);

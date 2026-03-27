@@ -41,6 +41,7 @@ public class TokenApplicationService {
                 .filter(session -> "ACTIVE".equals(session.getSessionStatus()))
                 .orElseThrow(() -> new IllegalArgumentException("Session invalid"));
 
+        // refresh token 采用一次性轮转：旧 token 先失效，再签发新的一对 token，降低长期凭证被重放的窗口。
         refreshTokenSession.markUsed(Instant.now());
 
         String newAccessToken = tokenCodec.issueUserAccessToken(authSession);
@@ -58,6 +59,7 @@ public class TokenApplicationService {
         if (sessionId.isEmpty()) {
             return new SessionValidationDTO(false, null, null, null, null, null, null);
         }
+        // access token 校验最终还是回到会话仓储，确保已吊销或已过期会话即使 JWT 结构合法也不会被继续接受。
         return authSessionRepository.findSessionBySessionId(sessionId.get())
                 .filter(session -> "ACTIVE".equals(session.getSessionStatus()))
                 .filter(session -> session.getExpireAt().isAfter(Instant.now()))
@@ -73,6 +75,7 @@ public class TokenApplicationService {
     public CurrentSessionDTO getSessionContext(String sessionId) {
         AuthSession authSession = authSessionRepository.findSessionBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
+        // 这里返回的是仓储里的当前会话快照，不重新解析 access token，避免出现 token 与服务端会话状态不一致。
         return new CurrentSessionDTO(authSession.getSessionId(), authSession.getTenantId(), authSession.getUserId(),
                 authSession.getIdentityType(), authSession.getLoginType(), authSession.getSessionStatus(),
                 authSession.getIssuedAt(), authSession.getLastAccessTime(), authSession.getExpireAt());

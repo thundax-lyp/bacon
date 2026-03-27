@@ -53,6 +53,8 @@ public class LoginApplicationService {
 
     public UserLoginDTO loginByPassword(PasswordLoginCommand command) {
         Long tenantId = command.getTenantId() == null ? 1001L : command.getTenantId();
+        // 密码登录按“校验验证码 -> 解密密码 -> 查询凭据 -> 校验状态和口令”的顺序执行，
+        // 这样既避免无意义的凭据查询，也保证明文密码只在内存里短暂存在。
         loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
         String plainPassword = loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
         UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(tenantId, "ACCOUNT", command.getAccount());
@@ -95,12 +97,14 @@ public class LoginApplicationService {
                                                  String loginType, Boolean needChangePassword) {
         Instant now = Instant.now();
         String sessionId = UUID.randomUUID().toString();
+        // 会话和 refresh token 分开存储：会话承载当前登录上下文，refresh token 只负责后续换新 access token。
         AuthSession authSession = new AuthSession(idGenerator.getAndIncrement(), sessionId, tenantId, userId,
                 identityType + ":" + identitySeed, identityType, loginType, now, now.plus(ACCESS_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS));
         authSessionRepository.saveSession(authSession);
 
         String accessToken = tokenCodec.issueUserAccessToken(authSession);
         String refreshToken = tokenCodec.randomToken();
+        // refresh token 入库只存哈希，不保留明文，防止仓储泄露时直接复用长期凭证。
         authSessionRepository.saveRefreshToken(
                 new RefreshTokenSession(sessionId, tokenCodec.sha256(refreshToken), now,
                         now.plus(REFRESH_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS)));

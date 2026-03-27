@@ -63,6 +63,7 @@ public class OrderRepositorySupport {
             orderMapper.insert(dataObject);
             order.setId(dataObject.getId());
         } else {
+            // 订单主表只承载主单核心字段；支付和库存侧派生信息不直接塞回主表，而是走快照表分开维护。
             orderMapper.updateById(dataObject);
         }
         return order;
@@ -80,6 +81,7 @@ public class OrderRepositorySupport {
     }
 
     public void saveItems(Long tenantId, Long orderId, List<OrderItem> items) {
+        // 订单项采用“先删后插”的整包替换策略，保持应用层传入的 items 列表就是该订单的权威快照。
         orderItemMapper.delete(Wrappers.<OrderItemDataObject>lambdaQuery()
                 .eq(OrderItemDataObject::getTenantId, tenantId)
                 .eq(OrderItemDataObject::getOrderId, orderId));
@@ -109,6 +111,7 @@ public class OrderRepositorySupport {
                         .eq(OrderPaymentSnapshotDataObject::getOrderId, snapshot.orderId()));
         OrderPaymentSnapshotDataObject dataObject = toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
+        // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
         if (existing == null) {
             orderPaymentSnapshotMapper.insert(dataObject);
             return;
@@ -132,6 +135,7 @@ public class OrderRepositorySupport {
                         .eq(OrderInventorySnapshotDataObject::getOrderId, snapshot.orderId()));
         OrderInventorySnapshotDataObject dataObject = toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
+        // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
         if (existing == null) {
             orderInventorySnapshotMapper.insert(dataObject);
             return;
@@ -176,6 +180,7 @@ public class OrderRepositorySupport {
         List<Long> orderIds = pageOrders.stream()
                 .map(OrderDataObject::getId)
                 .toList();
+        // 分页查询先批量拉主单，再一次性批量拉支付/库存快照，避免逐单 N+1 查询。
         Map<Long, OrderPaymentSnapshotDataObject> paymentSnapshotMap = orderPaymentSnapshotMapper.selectList(
                         Wrappers.<OrderPaymentSnapshotDataObject>lambdaQuery()
                                 .in(OrderPaymentSnapshotDataObject::getOrderId, orderIds))
@@ -227,6 +232,7 @@ public class OrderRepositorySupport {
     }
 
     private Order toDomainWithSnapshots(OrderDataObject dataObject) {
+        // 详情查询需要把主表和两张快照表重新拼成完整领域对象，保证应用层看到的是统一视图。
         OrderPaymentSnapshotDataObject paymentSnapshot = orderPaymentSnapshotMapper.selectOne(
                 Wrappers.<OrderPaymentSnapshotDataObject>lambdaQuery()
                         .eq(OrderPaymentSnapshotDataObject::getTenantId, dataObject.getTenantId())
@@ -240,6 +246,8 @@ public class OrderRepositorySupport {
 
     private Order toDomain(OrderDataObject dataObject, OrderPaymentSnapshotDataObject paymentSnapshot,
                            OrderInventorySnapshotDataObject inventorySnapshot) {
+        // rehydrate 时优先用快照表补回 paymentNo/reservationNo 等派生字段，
+        // 因为这些字段在 strict 持久化模型里并不全部固化在订单主表。
         return Order.rehydrate(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getUserId(), dataObject.getOrderStatus(), dataObject.getPayStatus(),
                 dataObject.getInventoryStatus(),

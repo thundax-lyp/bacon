@@ -42,6 +42,7 @@ public class OrderOutboxRepositorySupport {
         if (dataObject.getRetryCount() == null) {
             dataObject.setRetryCount(0);
         }
+        // outbox 插入即进入可调度状态，后续所有处理权转移都通过 status + processingOwner + leaseUntil 控制。
         outboxEventMapper.insert(dataObject);
         event.setId(dataObject.getId());
     }
@@ -60,6 +61,7 @@ public class OrderOutboxRepositorySupport {
             return List.of();
         }
         java.util.List<OrderOutboxEvent> claimed = new java.util.ArrayList<>(limit);
+        // 先粗查候选，再逐条 CAS 抢占，避免多节点并发扫描时把同一批事件都误认为可处理。
         for (OrderOutboxEventDataObject candidate : candidates) {
             if (claimed.size() >= limit) {
                 break;
@@ -86,6 +88,7 @@ public class OrderOutboxRepositorySupport {
     }
 
     public int releaseExpiredLease(Instant now) {
+        // 租约过期的 PROCESSING 事件统一回到 RETRYING，等待下一轮重试器重新认领。
         return outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDataObject>lambdaUpdate()
                 .eq(OrderOutboxEventDataObject::getStatus, OrderOutboxEvent.STATUS_PROCESSING)
                 .le(OrderOutboxEventDataObject::getLeaseUntil, now)
@@ -98,6 +101,7 @@ public class OrderOutboxRepositorySupport {
 
     public boolean markRetryingClaimed(Long outboxId, String processingOwner, int retryCount,
                                        Instant nextRetryAt, String errorMessage, Instant updatedAt) {
+        // 只有当前 owner 仍持有执行权时才允许改回 RETRYING，避免旧节点回写覆盖新节点状态。
         return outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDataObject>lambdaUpdate()
                 .eq(OrderOutboxEventDataObject::getId, outboxId)
                 .eq(OrderOutboxEventDataObject::getStatus, OrderOutboxEvent.STATUS_PROCESSING)
@@ -114,6 +118,7 @@ public class OrderOutboxRepositorySupport {
 
     public boolean markDeadClaimed(Long outboxId, String processingOwner, int retryCount,
                                    String deadReason, String errorMessage, Instant updatedAt) {
+        // DEAD 也是带 owner 条件的 CAS 更新，确保只有最后一次失败的真实执行者能把事件送进死信。
         return outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDataObject>lambdaUpdate()
                 .eq(OrderOutboxEventDataObject::getId, outboxId)
                 .eq(OrderOutboxEventDataObject::getStatus, OrderOutboxEvent.STATUS_PROCESSING)

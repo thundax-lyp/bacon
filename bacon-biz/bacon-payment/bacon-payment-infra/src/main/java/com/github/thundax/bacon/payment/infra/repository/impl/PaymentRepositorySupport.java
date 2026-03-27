@@ -47,6 +47,7 @@ public class PaymentRepositorySupport {
         if (dataObject.getId() == null) {
             paymentOrderMapper.insert(dataObject);
         } else {
+            // 更新 0 行直接视为持久化冲突，避免应用层把“对象已保存”误判成成功。
             if (paymentOrderMapper.updateById(dataObject) == 0) {
                 throw new PaymentDomainException(PaymentErrorCode.PAYMENT_PERSISTENCE_CONFLICT,
                         paymentOrder.getPaymentNo());
@@ -71,6 +72,7 @@ public class PaymentRepositorySupport {
 
     public PaymentCallbackRecord saveCallbackRecord(PaymentCallbackRecord callbackRecord) {
         PaymentCallbackRecordDO dataObject = toDataObject(callbackRecord);
+        // 回调记录以追加为主；只有明确带 id 的场景才走更新，避免正常回调把历史证据覆盖掉。
         if (dataObject.getId() == null) {
             paymentCallbackRecordMapper.insert(dataObject);
         } else {
@@ -80,6 +82,7 @@ public class PaymentRepositorySupport {
     }
 
     public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(Long tenantId, String paymentNo) {
+        // “最新回调”按 receivedAt + id 倒序取一条，用于查询兜底补全，而不是主单最终状态来源。
         return paymentCallbackRecordMapper.selectList(Wrappers.<PaymentCallbackRecordDO>lambdaQuery()
                         .eq(PaymentCallbackRecordDO::getTenantId, tenantId)
                         .eq(PaymentCallbackRecordDO::getPaymentNo, paymentNo)
@@ -111,6 +114,7 @@ public class PaymentRepositorySupport {
 
     public void saveAuditLog(PaymentAuditLog auditLog) {
         PaymentAuditLogDO dataObject = toDataObject(auditLog);
+        // 支付审计正常情况下只追加；保留 updateById 只是为了兼容少量测试或补数据场景。
         if (dataObject.getId() == null) {
             paymentAuditLogMapper.insert(dataObject);
             return;
@@ -129,6 +133,7 @@ public class PaymentRepositorySupport {
     }
 
     private PaymentOrderDO toDataObject(PaymentOrder paymentOrder, Instant now) {
+        // strict 持久化模型里，主表只固化主单核心字段；渠道交易号、回调摘要等证据留在回调表。
         return new PaymentOrderDO(paymentOrder.getId(), paymentOrder.getTenantId(), paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(), paymentOrder.getUserId(), paymentOrder.getChannelCode(),
                 paymentOrder.getPaymentStatus(), paymentOrder.getAmount(), paymentOrder.getPaidAmount(),
@@ -137,6 +142,7 @@ public class PaymentRepositorySupport {
     }
 
     private PaymentOrder toDomain(PaymentOrderDO dataObject) {
+        // rehydrate 主单时不会从主表反填渠道回调细节，查询层需要时再结合 callback record 补足展示信息。
         return PaymentOrder.rehydrate(dataObject.getId(), dataObject.getTenantId(), dataObject.getPaymentNo(),
                 dataObject.getOrderNo(), dataObject.getUserId(), dataObject.getChannelCode(),
                 dataObject.getAmount(), dataObject.getPaidAmount(), dataObject.getSubject(), dataObject.getCreatedAt(),

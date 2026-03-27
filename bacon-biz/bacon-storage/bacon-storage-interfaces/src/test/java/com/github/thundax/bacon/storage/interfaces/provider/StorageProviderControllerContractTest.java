@@ -19,6 +19,7 @@ import java.time.Instant;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -121,6 +122,50 @@ class StorageProviderControllerContractTest {
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
                         .param("tenantId", "tenant-a"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldExposeGetObjectPath() throws Exception {
+        StoredObjectQueryApplicationService storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
+        StorageProviderController controller = new StorageProviderController(storedObjectApplicationService,
+                multipartUploadApplicationService, storedObjectQueryApplicationService);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        when(storedObjectQueryApplicationService.getObjectById(100L)).thenReturn(new StoredObjectDTO(
+                100L, "LOCAL_FILE", "default", "attachment/a.txt", "a.txt", "text/plain", 3L,
+                "/files/attachment/a.txt", "ACTIVE", "UNREFERENCED", Instant.parse("2026-03-27T10:00:00Z")));
+
+        mockMvc.perform(get("/providers/storage/objects/{objectId}", 100L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(100))
+                .andExpect(jsonPath("$.code").doesNotExist());
+    }
+
+    @Test
+    void shouldExposeMarkReferencePath() throws Exception {
+        doNothing().when(storedObjectApplicationService).markObjectReferenced(100L, "GENERIC_ATTACHMENT", "owner-1");
+
+        mockMvc.perform(post("/providers/storage/objects/{objectId}/references", 100L)
+                        .param("ownerType", "GENERIC_ATTACHMENT")
+                        .param("ownerId", "owner-1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldExposeClearReferencePath() throws Exception {
+        doNothing().when(storedObjectApplicationService).clearObjectReference(100L, "GENERIC_ATTACHMENT", "owner-1");
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}/references", 100L)
+                        .param("ownerType", "GENERIC_ATTACHMENT")
+                        .param("ownerId", "owner-1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldExposeDeleteObjectPath() throws Exception {
+        doNothing().when(storedObjectApplicationService).deleteObject(100L);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}", 100L))
                 .andExpect(status().isOk());
     }
 }

@@ -106,6 +106,56 @@ class StoredObjectFacadeRemoteContractTest {
         server.verify();
     }
 
+    @Test
+    void shouldCallGetObjectProviderPath() {
+        server.expect(requestTo(BASE_URL + "/providers/storage/objects/100"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        StoredObjectFacadeRemoteImpl facade = newFacade();
+        facade.getObjectById(100L);
+
+        server.verify();
+    }
+
+    @Test
+    void shouldCallMarkReferenceProviderPath() {
+        server.expect(requestTo(BASE_URL + "/providers/storage/objects/100/references"
+                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess());
+
+        StoredObjectFacadeRemoteImpl facade = newFacade();
+        facade.markObjectReferenced(100L, "GENERIC_ATTACHMENT", "owner-1");
+
+        server.verify();
+    }
+
+    @Test
+    void shouldCallClearReferenceProviderPath() {
+        server.expect(requestTo(BASE_URL + "/providers/storage/objects/100/references"
+                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andRespond(withSuccess());
+
+        StoredObjectFacadeRemoteImpl facade = newFacade();
+        facade.clearObjectReference(100L, "GENERIC_ATTACHMENT", "owner-1");
+
+        server.verify();
+    }
+
+    @Test
+    void shouldCallDeleteObjectProviderPath() {
+        server.expect(requestTo(BASE_URL + "/providers/storage/objects/100"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andRespond(withSuccess());
+
+        StoredObjectFacadeRemoteImpl facade = newFacade();
+        facade.deleteObject(100L);
+
+        server.verify();
+    }
+
     private StoredObjectFacadeRemoteImpl newFacade() {
         @SuppressWarnings("unchecked")
         ObjectProvider<RestClient.Builder> provider = Mockito.mock(ObjectProvider.class);

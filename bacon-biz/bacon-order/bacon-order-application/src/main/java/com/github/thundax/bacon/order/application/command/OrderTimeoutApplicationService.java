@@ -33,6 +33,7 @@ public class OrderTimeoutApplicationService {
     }
 
     public void closeExpiredOrder(Long tenantId, String orderNo, String reason) {
+        // 超时关单同样走幂等执行器，防止定时任务重复扫描时对同一订单反复关单和释放资源。
         orderIdempotencyExecutor.execute(OrderIdempotencyExecutor.EVENT_CLOSE_EXPIRED, tenantId, orderNo, null,
                 () -> doCloseExpiredOrder(tenantId, orderNo, reason));
     }
@@ -42,6 +43,7 @@ public class OrderTimeoutApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         String beforeStatus = order.getOrderStatus();
         order.closeExpired(reason);
+        // 超时关单的资源回收顺序固定为“先关支付，再释放库存”，与订单生命周期的依赖方向保持一致。
         if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
             paymentCommandFacade.closePayment(tenantId, order.getPaymentNo(), reason);
         }
@@ -57,6 +59,7 @@ public class OrderTimeoutApplicationService {
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
+        // 库存释放异常只体现在派生状态上，主订单仍保持 CLOSED，等待后续补偿或人工处理。
         order.markInventoryFailed(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }

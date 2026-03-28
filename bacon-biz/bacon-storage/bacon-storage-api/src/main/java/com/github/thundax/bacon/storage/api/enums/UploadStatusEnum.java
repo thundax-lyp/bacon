@@ -8,5 +8,9 @@ public enum UploadStatusEnum {
     INITIATED,
     UPLOADING,
     COMPLETED,
-    ABORTED
+    ABORTED;
+
+    public static UploadStatusEnum from(String value) {
+        return value == null ? null : UploadStatusEnum.valueOf(value);
+    }
 }

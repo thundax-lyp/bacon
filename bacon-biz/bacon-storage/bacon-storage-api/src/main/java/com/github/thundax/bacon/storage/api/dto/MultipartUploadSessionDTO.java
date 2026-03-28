@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.storage.api.dto;
 
+import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,5 +34,5 @@ public class MultipartUploadSessionDTO {
     /** 已上传分段数。 */
     private Integer uploadedPartCount;
     /** 分段上传状态。 */
-    private String uploadStatus;
+    private UploadStatusEnum uploadStatus;
 }

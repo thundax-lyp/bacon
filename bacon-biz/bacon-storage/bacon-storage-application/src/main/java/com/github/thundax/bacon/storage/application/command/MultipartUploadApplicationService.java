@@ -8,6 +8,7 @@ import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
+import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
@@ -65,7 +66,7 @@ public class MultipartUploadApplicationService {
         return new MultipartUploadSessionDTO(savedSession.getUploadId(), savedSession.getOwnerType(), savedSession.getOwnerId(),
                 savedSession.getTenantId(), savedSession.getCategory(), savedSession.getOriginalFilename(),
                 savedSession.getContentType(), savedSession.getTotalSize(), savedSession.getPartSize(),
-                savedSession.getUploadedPartCount(), savedSession.getUploadStatus());
+                savedSession.getUploadedPartCount(), UploadStatusEnum.from(savedSession.getUploadStatus()));
     }
 
     @Transactional

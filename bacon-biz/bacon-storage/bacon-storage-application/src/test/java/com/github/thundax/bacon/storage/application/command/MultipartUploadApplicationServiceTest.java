@@ -5,6 +5,7 @@ import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
+import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
@@ -74,6 +75,7 @@ class MultipartUploadApplicationServiceTest {
 
         assertEquals("owner-1", dto.getOwnerId());
         assertEquals("tenant-a", dto.getTenantId());
+        assertEquals(UploadStatusEnum.INITIATED, dto.getUploadStatus());
 
         ArgumentCaptor<MultipartUploadSession> captor = ArgumentCaptor.forClass(MultipartUploadSession.class);
         verify(multipartUploadSessionRepository).save(captor.capture());

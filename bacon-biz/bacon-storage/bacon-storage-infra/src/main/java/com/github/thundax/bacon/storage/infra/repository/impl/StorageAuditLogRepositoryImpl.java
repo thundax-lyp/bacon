@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.storage.infra.persistence.repositoryimpl;
+package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;

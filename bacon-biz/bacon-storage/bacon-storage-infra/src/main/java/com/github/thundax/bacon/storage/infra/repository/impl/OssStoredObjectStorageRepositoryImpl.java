@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.storage.infra.persistence.repositoryimpl;
+package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.github.thundax.bacon.common.oss.client.ObjectStorageClient;
 import com.github.thundax.bacon.common.oss.model.ObjectStoragePart;

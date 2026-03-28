@@ -87,108 +87,18 @@
 - `clearObjectReference(objectId, ownerType, ownerId)`，无返回
 - `deleteObject(objectId)`，无返回
 
-`StoredObjectDTO` 至少包含：
+固定模型：
 
-- `id`
-- `storageType`
-- `bucketName`
-- `objectKey`
-- `originalFilename`
-- `contentType`
-- `size`
-- `accessEndpoint`
-- `objectStatus`
-- `referenceStatus`
-
-管理员全局管理 `StoredObject` 固定查询模型：
-
+- `StoredObjectDTO`
+- `UploadObjectCommand`
+- `MultipartUploadSessionDTO`
+- `MultipartUploadPartDTO`
+- `InitMultipartUploadCommand`
+- `UploadMultipartPartCommand`
+- `CompleteMultipartUploadCommand`
+- `AbortMultipartUploadCommand`
 - `StoredObjectPageQueryDTO`
 - `StoredObjectPageResultDTO`
-
-`StoredObjectPageQueryDTO` 至少包含：
-
-- `tenantId`
-- `storageType`
-- `objectStatus`
-- `referenceStatus`
-- `originalFilename`
-- `objectKey`
-- `pageNo`
-- `pageSize`
-
-`StoredObjectPageResultDTO` 至少包含：
-
-- `records`
-- `total`
-- `pageNo`
-- `pageSize`
-
-其中 `records` 元素固定为 `StoredObjectDTO`
-
-`UploadObjectCommand` 至少包含：
-
-- `ownerType`
-- `tenantId`
-- `category`
-- `originalFilename`
-- `contentType`
-- `size`
-- `inputStream` 或运行时等价输入对象
-
-`MultipartUploadSessionDTO` 至少包含：
-
-- `uploadId`
-- `ownerType`
-- `ownerId`
-- `tenantId`
-- `category`
-- `originalFilename`
-- `contentType`
-- `totalSize`
-- `partSize`
-- `uploadedPartCount`
-- `uploadStatus`
-
-`MultipartUploadPartDTO` 至少包含：
-
-- `uploadId`
-- `partNumber`
-- `etag`
-
-`InitMultipartUploadCommand` 至少包含：
-
-- `ownerType`
-- `ownerId`
-- `tenantId`
-- `category`
-- `originalFilename`
-- `contentType`
-- `totalSize`
-- `partSize`
-
-`UploadMultipartPartCommand` 至少包含：
-
-- `uploadId`
-- `ownerType`
-- `ownerId`
-- `tenantId`
-- `partNumber`
-- `size`
-- `inputStream` 或运行时等价输入对象
-
-`CompleteMultipartUploadCommand` 至少包含：
-
-- `uploadId`
-- `ownerType`
-- `ownerId`
-- `tenantId`
-
-`AbortMultipartUploadCommand` 至少包含：
-
-- `uploadId`
-- `ownerType`
-- `ownerId`
-- `tenantId`
 
 ### 4.2 `bacon-storage-interfaces`
 
@@ -232,6 +142,10 @@
 
 - `StoredObject`
 - `StoredObjectReference`
+- `MultipartUploadSession`
+- `MultipartUploadPart`
+- `StorageAuditLog`
+- `StorageAuditOutbox`
 
 ## 5.1 Fixed Enums
 
@@ -239,9 +153,17 @@
 - `objectStatus` 固定为 `ACTIVE`、`DELETING`、`DELETED`
 - `referenceStatus` 固定为 `UNREFERENCED`、`REFERENCED`
 - `uploadStatus` 固定为 `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
+- `auditActionType` 固定为 `UPLOAD`、`DELETE`、`REFERENCE_MARK`、`REFERENCE_CLEAR`
+- `auditOutboxStatus` 固定为 `PENDING`、`RETRYING`、`SUCCESS`、`DEAD`
 - `ownerType` 由接入业务域约定并在全局保持稳定
 
-## 5.2 Fixed Fields
+## 5.2 Terminology
+
+- `accessEndpoint`：由 `Storage` 派生的对象访问端点，仅用于展示和下载，不作为业务主数据
+- `providerUploadId`：底层 `OSS/S3 API` 分段上传会话标识，只属于 `Storage` 内部运行态
+- 管理员全局管理 `StoredObject`：指 `Storage Provider` 提供的跨域后台管理查询与删除能力，不等于面向前端直接暴露资源接口
+
+## 5.3 Fixed Fields
 
 `StoredObject` 固定字段：
 
@@ -292,6 +214,140 @@
 - `size`
 - `createdAt`
 
+`StorageAuditLog` 固定字段：
+
+- `id`
+- `objectId`
+- `ownerType`
+- `ownerId`
+- `actionType`
+- `createdAt`
+
+`StorageAuditOutbox` 固定字段：
+
+- `id`
+- `objectId`
+- `ownerType`
+- `ownerId`
+- `actionType`
+- `outboxStatus`
+- `retryCount`
+- `nextRetryAt`
+- `lastError`
+- `createdAt`
+
+## 5.4 Fixed Request Contracts
+
+`UploadObjectCommand` 固定字段：
+
+- `ownerType`
+- `tenantId`
+- `category`
+- `originalFilename`
+- `contentType`
+- `size`
+- `inputStream`
+
+`InitMultipartUploadCommand` 固定字段：
+
+- `ownerType`
+- `ownerId`
+- `tenantId`
+- `category`
+- `originalFilename`
+- `contentType`
+- `totalSize`
+- `partSize`
+
+`UploadMultipartPartCommand` 固定字段：
+
+- `uploadId`
+- `ownerType`
+- `ownerId`
+- `tenantId`
+- `partNumber`
+- `size`
+- `inputStream`
+
+`CompleteMultipartUploadCommand` 固定字段：
+
+- `uploadId`
+- `ownerType`
+- `ownerId`
+- `tenantId`
+
+`AbortMultipartUploadCommand` 固定字段：
+
+- `uploadId`
+- `ownerType`
+- `ownerId`
+- `tenantId`
+
+`StoredObjectPageQueryDTO` 固定字段：
+
+- `tenantId`
+- `storageType`
+- `objectStatus`
+- `referenceStatus`
+- `originalFilename`
+- `objectKey`
+- `pageNo`
+- `pageSize`
+
+## 5.5 Fixed Response Contracts
+
+`StoredObjectDTO` 固定字段：
+
+- `id`
+- `storageType`
+- `bucketName`
+- `objectKey`
+- `originalFilename`
+- `contentType`
+- `size`
+- `accessEndpoint`
+- `objectStatus`
+- `referenceStatus`
+- `createdAt`
+
+`MultipartUploadSessionDTO` 固定字段：
+
+- `uploadId`
+- `ownerType`
+- `ownerId`
+- `tenantId`
+- `category`
+- `originalFilename`
+- `contentType`
+- `totalSize`
+- `partSize`
+- `uploadedPartCount`
+- `uploadStatus`
+
+`MultipartUploadPartDTO` 固定字段：
+
+- `uploadId`
+- `partNumber`
+- `etag`
+
+`StoredObjectPageResultDTO` 固定字段：
+
+- `records`
+- `total`
+- `pageNo`
+- `pageSize`
+
+其中 `records` 元素固定为 `StoredObjectDTO`
+
+## 5.6 Uniqueness And Index Rules
+
+- `StoredObject.id` 固定全局唯一
+- `StoredObject.objectKey` 固定全局唯一
+- `StoredObjectReference` 的 `(objectId, ownerType, ownerId)` 固定唯一
+- `MultipartUploadSession.uploadId` 固定全局唯一
+- `MultipartUploadPart` 的 `(uploadId, partNumber)` 固定唯一
+- `StorageAuditOutbox.id` 固定全局唯一
+
 ## 6. Global Constraints
 
 - `StoredObject` 只保存稳定元数据，不保存业务对象完整快照
@@ -339,7 +395,27 @@
 - `DELETING/DELETED` 对象不得再建立新引用
 - 物理删除失败时对象状态必须保持为 `DELETING`，供后续重试或补偿
 
-### 7.2 Multipart Upload Management
+### 7.2 StoredObject Admin Management
+
+功能对象：
+
+- `StoredObject`
+
+功能能力：
+
+- 管理员可按租户、存储类型、对象状态、引用状态、原始文件名、对象键分页查询 `StoredObject`
+- 管理员可查看单个 `StoredObject` 详情
+- 管理员可删除未被引用的 `StoredObject`
+
+必要补充约束：
+
+- 管理员全局管理能力固定通过 `Storage Provider` 提供，不扩展 `StoredObjectFacade`
+- 分页查询固定返回 `StoredObjectPageResultDTO`
+- 分页查询固定按创建时间倒序返回，创建时间相同时按 `id` 倒序返回
+- `pageNo`、`pageSize` 必须先归一化后再进入仓储查询
+- `pageSize` 固定受工程统一上限约束
+
+### 7.3 Multipart Upload Management
 
 功能对象：
 
@@ -367,7 +443,8 @@
 - 上传分段、完成分段、取消分段都必须校验 `tenantId`、`ownerType`、`ownerId` 与初始化会话一致
 - 分段完成前必须校验分片序号连续、已上传分片数一致、分片总大小等于会话 `totalSize`
 - 超时 `INITIATED/UPLOADING` 会话必须由定时任务自动转为 `ABORTED` 并清理底层临时分片数据
-### 7.3 Reference Management
+
+### 7.4 Reference Management
 
 功能对象：
 
@@ -385,7 +462,28 @@
 - 清理引用后，如对象已无任何引用，可进入删除候选状态
 - 引用关系变更不得依赖调用方本地缓存判断
 
-### 7.4 Generic Business Integration Rule
+### 7.5 Storage Audit Management
+
+功能对象：
+
+- `StorageAuditLog`
+- `StorageAuditOutbox`
+
+功能能力：
+
+- 主流程成功时记录存储审计日志
+- 审计写入失败时补写 `StorageAuditOutbox`
+- 定时任务重试失败审计
+- 超过重试上限的 outbox 固定转为 `DEAD`
+
+必要补充约束：
+
+- 审计失败不得阻断上传、删除、引用管理主流程
+- 审计补偿必须保留 `objectId`、`ownerType`、`ownerId`、`actionType`
+- 重试任务必须支持批量扫描与退避重试
+- `DEAD` 状态 outbox 必须定时清理
+
+### 7.6 Generic Business Integration Rule
 
 功能对象：
 
@@ -435,7 +533,15 @@
 5. `Storage` 删除底层对象
 6. 删除成功后再提交 `StoredObject.objectStatus=DELETED`
 
-### 8.4 Generic Business Upload And Access Flow
+### 8.4 Admin Manage StoredObject Flow
+
+1. 管理员调用 `Storage Provider` 分页查询接口
+2. `Storage` 归一化分页参数并按筛选条件查询 `StoredObject`
+3. `Storage` 返回 `StoredObjectPageResultDTO`
+4. 管理员按需调用详情接口获取单个 `StoredObject`
+5. 管理员对未被引用对象调用删除接口
+
+### 8.5 Generic Business Upload And Access Flow
 
 1. 前端调用业务域资源接口
 2. 业务域完成认证、鉴权、数据可见性与业务参数校验

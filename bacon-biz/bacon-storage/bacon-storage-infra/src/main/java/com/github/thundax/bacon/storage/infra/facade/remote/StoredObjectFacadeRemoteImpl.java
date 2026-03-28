@@ -10,6 +10,7 @@ import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.storage.infra.config.StorageRemoteClientProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
@@ -25,8 +26,21 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     private final RestClient restClient;
 
     public StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                        StorageRemoteClientProperties properties,
                                         @Value("${bacon.remote.storage-base-url:http://127.0.0.1:8086/api}") String baseUrl) {
+        this(restClientFactory, baseUrl, properties.getConnectTimeout(), properties.getReadTimeout());
+    }
+
+    StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                 String baseUrl) {
         this.restClient = restClientFactory.create(baseUrl);
+    }
+
+    StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                 String baseUrl,
+                                 java.time.Duration connectTimeout,
+                                 java.time.Duration readTimeout) {
+        this.restClient = restClientFactory.create(baseUrl, connectTimeout, readTimeout);
     }
 
     @Override

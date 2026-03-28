@@ -56,9 +56,10 @@
 
 ### 3.4 External API Exposure Rule
 
-- 面向前端或第三方调用方的接口必须由业务域提供，不得直接暴露 `Storage` 业务语义接口
-- 对外接口路径必须使用业务语义，不得以 `Storage` 资源路径直接对外建模
-- `Storage` 对外只提供域间能力契约（`bacon-storage-api`），不承诺前端路由结构
+- 面向终端用户或第三方调用方的资源业务接口必须由接入业务域提供，不得让外部直接依赖 `Storage Provider`
+- `Storage` 可为平台管理员后台提供受控 `Controller`，用于全局查询与清理 `StoredObject`
+- 管理端前端调用 `Storage Controller`，内部跨域调用 `Storage Provider` 或 `StoredObjectFacade`
+- 终端用户侧对外接口路径应使用业务语义，不得以 `Storage` 资源路径直接对外建模
 - 业务域负责认证、鉴权、数据可见性、业务主键校验、文件类型与大小校验
 - `Storage` 负责上传、删除、引用关系与访问地址生成，不负责业务权限判断
 
@@ -102,9 +103,15 @@
 
 ### 4.2 `bacon-storage-interfaces`
 
+- 管理端 `Controller`
 - `Provider`
 - 本地域内 `Facade` 适配器
-- 不提供面向前端业务语义的外部 `Controller`
+
+管理端 `Controller` 固定支持：
+
+- `GET /api/storage/objects`，分页查询 `StoredObject`
+- `GET /api/storage/objects/{objectId}`，查询 `StoredObject` 详情
+- `DELETE /api/storage/objects/{objectId}`，删除 `StoredObject`
 
 `Provider` 固定支持管理员全局管理 `StoredObject`：
 
@@ -161,7 +168,7 @@
 
 - `accessEndpoint`：由 `Storage` 派生的对象访问端点，仅用于展示和下载，不作为业务主数据
 - `providerUploadId`：底层 `OSS/S3 API` 分段上传会话标识，只属于 `Storage` 内部运行态
-- 管理员全局管理 `StoredObject`：指 `Storage Provider` 提供的跨域后台管理查询与删除能力，不等于面向前端直接暴露资源接口
+- 管理员全局管理 `StoredObject`：指 `Storage Controller` 提供给管理端前端的查询与删除能力，以及 `Storage Provider` 提供给内部服务的原始管理能力
 
 ## 5.3 Fixed Fields
 
@@ -409,7 +416,8 @@
 
 必要补充约束：
 
-- 管理员全局管理能力固定通过 `Storage Provider` 提供，不扩展 `StoredObjectFacade`
+- 管理员前端固定调用 `Storage Controller`，不直接调用 `Storage Provider`
+- 内部跨域管理能力固定通过 `Storage Provider` 提供，不扩展 `StoredObjectFacade`
 - 分页查询固定返回 `StoredObjectPageResultDTO`
 - 分页查询固定按创建时间倒序返回，创建时间相同时按 `id` 倒序返回
 - `pageNo`、`pageSize` 必须先归一化后再进入仓储查询
@@ -500,7 +508,7 @@
 - 业务域只持久化 `objectId` 或固定引用字段，不复制 `bucketName`、`objectKey`、`accessEndpoint`
 - 业务域替换资源时必须先绑定新对象，再解除旧对象引用
 - 业务域清除资源时必须先解除引用，再清空业务字段
-- 前端与第三方调用方不得直接依赖 `Storage` 内部路径
+- 终端用户前端与第三方调用方不得直接依赖 `Storage Provider` 或内部路径
 
 ## 8. Key Flows
 

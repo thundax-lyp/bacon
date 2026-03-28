@@ -115,8 +115,15 @@
 
 `Provider` 固定支持管理员全局管理 `StoredObject`：
 
+- `uploadObject(command)`，返回固定 `StoredObjectDTO`
+- `initMultipartUpload(command)`，返回固定 `MultipartUploadSessionDTO`
+- `uploadMultipartPart(command)`，返回固定 `MultipartUploadPartDTO`
+- `completeMultipartUpload(command)`，返回固定 `StoredObjectDTO`
+- `abortMultipartUpload(command)`，无返回
 - `getObjectById(objectId)`，返回固定 `StoredObjectDTO`
 - `pageObjects(query)`，返回固定 `StoredObjectPageResultDTO`
+- `markObjectReferenced(objectId, ownerType, ownerId)`，无返回
+- `clearObjectReference(objectId, ownerType, ownerId)`，无返回
 - `deleteObject(objectId)`，无返回
 
 ### 4.3 `bacon-storage-application`
@@ -160,8 +167,8 @@
 - `objectStatus` 固定为 `ACTIVE`、`DELETING`、`DELETED`
 - `referenceStatus` 固定为 `UNREFERENCED`、`REFERENCED`
 - `uploadStatus` 固定为 `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
-- `auditActionType` 固定为 `UPLOAD`、`DELETE`、`REFERENCE_MARK`、`REFERENCE_CLEAR`
-- `auditOutboxStatus` 固定为 `PENDING`、`RETRYING`、`SUCCESS`、`DEAD`
+- `auditActionType` 固定为 `UPLOAD`、`DELETE`、`REFERENCE_ADD`、`REFERENCE_CLEAR`
+- `auditOutboxStatus` 固定为 `NEW`、`PROCESSING`、`RETRYING`、`DEAD`
 - `ownerType` 由接入业务域约定并在全局保持稳定
 
 ## 5.2 Terminology
@@ -193,7 +200,6 @@
 - `objectId`
 - `ownerType`
 - `ownerId`
-- `createdAt`
 
 `MultipartUploadSession` 固定字段：
 
@@ -224,24 +230,35 @@
 `StorageAuditLog` 固定字段：
 
 - `id`
+- `tenantId`
 - `objectId`
 - `ownerType`
 - `ownerId`
 - `actionType`
-- `createdAt`
+- `beforeStatus`
+- `afterStatus`
+- `operatorType`
+- `operatorId`
+- `occurredAt`
 
 `StorageAuditOutbox` 固定字段：
 
 - `id`
+- `tenantId`
 - `objectId`
 - `ownerType`
 - `ownerId`
 - `actionType`
-- `outboxStatus`
+- `beforeStatus`
+- `afterStatus`
+- `operatorType`
+- `operatorId`
+- `occurredAt`
+- `errorMessage`
+- `status`
 - `retryCount`
 - `nextRetryAt`
-- `lastError`
-- `createdAt`
+- `updatedAt`
 
 ## 5.4 Fixed Request Contracts
 
@@ -544,11 +561,11 @@
 
 ### 8.4 Admin Manage StoredObject Flow
 
-1. 管理员调用 `Storage Provider` 分页查询接口
+1. 管理员调用 `Storage Controller` 分页查询接口
 2. `Storage` 归一化分页参数并按筛选条件查询 `StoredObject`
 3. `Storage` 返回 `StoredObjectPageResultDTO`
 4. 管理员按需调用详情接口获取单个 `StoredObject`
-5. 管理员对未被引用对象调用删除接口
+5. `Storage Controller` 内部调用应用服务完成删除
 
 ### 8.5 Generic Business Upload And Access Flow
 

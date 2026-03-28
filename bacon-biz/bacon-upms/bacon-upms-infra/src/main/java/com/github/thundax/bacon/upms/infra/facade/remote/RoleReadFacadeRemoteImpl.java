@@ -17,12 +17,14 @@ public class RoleReadFacadeRemoteImpl implements RoleReadFacade {
 
     private static final ParameterizedTypeReference<List<RoleDTO>> LIST_TYPE =
             new ParameterizedTypeReference<>() { };
+    private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
 
     private final RestClient restClient;
 
     public RoleReadFacadeRemoteImpl(RestClientFactory restClientFactory,
-                                    @Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl) {
-        this.restClient = restClientFactory.create(baseUrl);
+                                    @Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl,
+                                    @Value("${bacon.remote.upms.provider-token:}") String providerToken) {
+        this.restClient = restClientFactory.create(baseUrl, PROVIDER_TOKEN_HEADER, providerToken);
     }
 
     @Override

@@ -16,6 +16,15 @@ bacon:
     mode: micro
   remote:
     order-base-url: ${BACON_REMOTE_ORDER_BASE_URL:http://127.0.0.1:8083/api}
+    order:
+      provider-token: ${BACON_REMOTE_ORDER_PROVIDER_TOKEN:}
+  web:
+    internal-api:
+      enabled: true
+      header-name: X-Bacon-Provider-Token
+      token: ${BACON_ORDER_PROVIDER_TOKEN:}
+      include-path-patterns:
+        - /providers/orders/**
 
 management:
   endpoints:

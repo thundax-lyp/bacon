@@ -14,11 +14,14 @@ import java.time.Instant;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
 public class OrderCommandFacadeRemoteImpl implements OrderCommandFacade {
 
+    private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
+
     private final RestClient restClient;
 
     public OrderCommandFacadeRemoteImpl(RestClientFactory restClientFactory,
-                                        @Value("${bacon.remote.order-base-url:http://127.0.0.1:8083/api}") String baseUrl) {
-        this.restClient = restClientFactory.create(baseUrl);
+                                        @Value("${bacon.remote.order-base-url:http://127.0.0.1:8083/api}") String baseUrl,
+                                        @Value("${bacon.remote.order.provider-token:}") String providerToken) {
+        this.restClient = restClientFactory.create(baseUrl, PROVIDER_TOKEN_HEADER, providerToken);
     }
 
     @Override

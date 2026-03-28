@@ -16,6 +16,17 @@ bacon:
     mode: micro
   remote:
     auth-base-url: ${BACON_REMOTE_AUTH_BASE_URL:http://127.0.0.1:8081/api}
+    auth:
+      provider-token: ${BACON_REMOTE_AUTH_PROVIDER_TOKEN:}
+    upms:
+      provider-token: ${BACON_REMOTE_UPMS_PROVIDER_TOKEN:}
+  web:
+    internal-api:
+      enabled: true
+      header-name: X-Bacon-Provider-Token
+      token: ${BACON_UPMS_PROVIDER_TOKEN:}
+      include-path-patterns:
+        - /providers/upms/**
 
 management:
   endpoints:

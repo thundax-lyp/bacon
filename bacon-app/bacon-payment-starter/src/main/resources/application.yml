@@ -10,6 +10,16 @@ spring:
 bacon:
   runtime:
     mode: micro
+  remote:
+    payment:
+      provider-token: ${BACON_REMOTE_PAYMENT_PROVIDER_TOKEN:}
+  web:
+    internal-api:
+      enabled: true
+      header-name: X-Bacon-Provider-Token
+      token: ${BACON_PAYMENT_PROVIDER_TOKEN:}
+      include-path-patterns:
+        - /providers/payment/**
 
 management:
   endpoints:

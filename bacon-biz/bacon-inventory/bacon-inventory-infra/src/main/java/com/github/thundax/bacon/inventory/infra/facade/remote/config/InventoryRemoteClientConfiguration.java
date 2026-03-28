@@ -12,12 +12,15 @@ import org.springframework.web.client.RestClient;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
 public class InventoryRemoteClientConfiguration {
 
+    private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
+
     @Bean("inventoryRemoteRestClient")
     public RestClient inventoryRemoteRestClient(
             RestClientFactory restClientFactory,
             @Value("${bacon.remote.inventory-base-url:http://bacon-inventory-service/api}") String baseUrl,
             @Value("${bacon.remote.inventory.connect-timeout:5s}") Duration connectTimeout,
-            @Value("${bacon.remote.inventory.read-timeout:30s}") Duration readTimeout) {
-        return restClientFactory.create(baseUrl, connectTimeout, readTimeout);
+            @Value("${bacon.remote.inventory.read-timeout:30s}") Duration readTimeout,
+            @Value("${bacon.remote.inventory.provider-token:}") String providerToken) {
+        return restClientFactory.create(baseUrl, connectTimeout, readTimeout, PROVIDER_TOKEN_HEADER, providerToken);
     }
 }

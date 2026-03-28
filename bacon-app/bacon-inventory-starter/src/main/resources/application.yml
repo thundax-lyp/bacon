@@ -26,6 +26,16 @@ bacon:
         base-delay-seconds: ${BACON_INVENTORY_AUDIT_RETRY_BASE_DELAY_SECONDS:30}
         max-delay-seconds: ${BACON_INVENTORY_AUDIT_RETRY_MAX_DELAY_SECONDS:1800}
         lease-seconds: ${BACON_INVENTORY_AUDIT_RETRY_LEASE_SECONDS:60}
+  remote:
+    inventory:
+      provider-token: ${BACON_REMOTE_INVENTORY_PROVIDER_TOKEN:}
+  web:
+    internal-api:
+      enabled: true
+      header-name: X-Bacon-Provider-Token
+      token: ${BACON_INVENTORY_PROVIDER_TOKEN:}
+      include-path-patterns:
+        - /providers/inventory/**
 
 management:
   endpoints:

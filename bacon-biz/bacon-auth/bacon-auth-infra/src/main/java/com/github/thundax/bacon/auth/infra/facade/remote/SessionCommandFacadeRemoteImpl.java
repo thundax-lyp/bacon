@@ -11,11 +11,14 @@ import org.springframework.web.client.RestClient;
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
 public class SessionCommandFacadeRemoteImpl implements SessionCommandFacade {
 
+    private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
+
     private final RestClient restClient;
 
     public SessionCommandFacadeRemoteImpl(RestClientFactory restClientFactory,
-                                          @Value("${bacon.remote.auth-base-url:http://127.0.0.1:8081/api}") String baseUrl) {
-        this.restClient = restClientFactory.create(baseUrl);
+                                          @Value("${bacon.remote.auth-base-url:http://127.0.0.1:8081/api}") String baseUrl,
+                                          @Value("${bacon.remote.auth.provider-token:}") String providerToken) {
+        this.restClient = restClientFactory.create(baseUrl, PROVIDER_TOKEN_HEADER, providerToken);
     }
 
     @Override

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -23,9 +24,22 @@ public class RestClientFactory {
                 .build();
     }
 
+    public RestClient create(String baseUrl, String headerName, String headerValue) {
+        return applyDefaultHeader(builder().baseUrl(baseUrl), headerName, headerValue)
+                .build();
+    }
+
     public RestClient create(String baseUrl, Duration connectTimeout, Duration readTimeout) {
         return builder().baseUrl(baseUrl)
                 .requestFactory(createRequestFactory(connectTimeout, readTimeout))
+                .build();
+    }
+
+    public RestClient create(String baseUrl, Duration connectTimeout, Duration readTimeout,
+                             String headerName, String headerValue) {
+        return applyDefaultHeader(builder().baseUrl(baseUrl)
+                        .requestFactory(createRequestFactory(connectTimeout, readTimeout)),
+                headerName, headerValue)
                 .build();
     }
 
@@ -38,5 +52,12 @@ public class RestClientFactory {
 
     private RestClient.Builder builder() {
         return restClientBuilderProvider.getIfAvailable(RestClient::builder);
+    }
+
+    private RestClient.Builder applyDefaultHeader(RestClient.Builder builder, String headerName, String headerValue) {
+        if (StringUtils.hasText(headerName) && StringUtils.hasText(headerValue)) {
+            builder.defaultHeader(headerName, headerValue.trim());
+        }
+        return builder;
     }
 }

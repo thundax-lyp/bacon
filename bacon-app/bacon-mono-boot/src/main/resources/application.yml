@@ -94,8 +94,13 @@ bacon:
     internal-api:
       enabled: true
       header-name: X-Bacon-Provider-Token
-      token: ${BACON_STORAGE_PROVIDER_TOKEN:}
+      token: ${BACON_INTERNAL_API_TOKEN:}
       include-path-patterns:
+        - /providers/auth/**
+        - /providers/upms/**
+        - /providers/orders/**
+        - /providers/inventory/**
+        - /providers/payment/**
         - /providers/storage/**
 
 management:

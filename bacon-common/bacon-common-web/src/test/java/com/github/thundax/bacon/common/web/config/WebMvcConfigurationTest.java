@@ -20,6 +20,7 @@ class WebMvcConfigurationTest {
         webContextRunner.run(context -> {
             assertThat(context).hasSingleBean(WebMvcConfiguration.class);
             assertThat(context).hasSingleBean(WebMvcConfigurer.class);
+            assertThat(context).hasSingleBean(InternalApiGuardProperties.class);
         });
     }
 

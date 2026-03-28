@@ -21,4 +21,7 @@ public class StorageRemoteClientProperties {
 
     /** 读取超时。 */
     private Duration readTimeout = Duration.ofSeconds(30);
+
+    /** Provider 内部鉴权 token。 */
+    private String providerToken;
 }

@@ -90,6 +90,13 @@ bacon:
       snowflake:
         worker-id: ${BACON_ID_SNOWFLAKE_WORKER_ID:1}
         datacenter-id: ${BACON_ID_SNOWFLAKE_DATACENTER_ID:1}
+  web:
+    internal-api:
+      enabled: true
+      header-name: X-Bacon-Provider-Token
+      token: ${BACON_STORAGE_PROVIDER_TOKEN:}
+      include-path-patterns:
+        - /providers/storage/**
 
 management:
   endpoints:

@@ -17,30 +17,52 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
 public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
 
+    private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
+
     private final RestClient restClient;
+    private final String providerToken;
 
     public StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
                                         StorageRemoteClientProperties properties,
                                         @Value("${bacon.remote.storage-base-url:http://127.0.0.1:8086/api}") String baseUrl) {
-        this(restClientFactory, baseUrl, properties.getConnectTimeout(), properties.getReadTimeout());
+        this(restClientFactory, baseUrl, properties.getConnectTimeout(), properties.getReadTimeout(),
+                properties.getProviderToken());
     }
 
     StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
                                  String baseUrl) {
-        this.restClient = restClientFactory.create(baseUrl);
+        this(restClientFactory, baseUrl, null, null, null);
+    }
+
+    StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                 String baseUrl,
+                                 String providerToken) {
+        this(restClientFactory, baseUrl, null, null, providerToken);
     }
 
     StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
                                  String baseUrl,
                                  java.time.Duration connectTimeout,
                                  java.time.Duration readTimeout) {
-        this.restClient = restClientFactory.create(baseUrl, connectTimeout, readTimeout);
+        this(restClientFactory, baseUrl, connectTimeout, readTimeout, null);
+    }
+
+    StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
+                                 String baseUrl,
+                                 java.time.Duration connectTimeout,
+                                 java.time.Duration readTimeout,
+                                 String providerToken) {
+        this.restClient = connectTimeout == null || readTimeout == null
+                ? restClientFactory.create(baseUrl)
+                : restClientFactory.create(baseUrl, connectTimeout, readTimeout);
+        this.providerToken = providerToken;
     }
 
     @Override
@@ -55,7 +77,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
         }
         bodyBuilder.part("file", new NamedInputStreamResource(command.getInputStream(), command.getOriginalFilename()))
                 .contentType(resolveMediaType(command.getContentType()));
-        return restClient.post()
+        return request(restClient.post())
                 .uri("/providers/storage/objects/upload")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(bodyBuilder.build())
@@ -65,7 +87,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
 
     @Override
     public MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command) {
-        return restClient.post()
+        return request(restClient.post())
                 .uri("/providers/storage/objects/multipart/init?ownerType={ownerType}&ownerId={ownerId}&tenantId={tenantId}&category={category}"
                                 + "&originalFilename={originalFilename}&contentType={contentType}&totalSize={totalSize}&partSize={partSize}",
                         command.getOwnerType(), command.getOwnerId(), command.getTenantId(), command.getCategory(), command.getOriginalFilename(),
@@ -80,7 +102,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
         bodyBuilder.part("partNumber", command.getPartNumber());
         bodyBuilder.part("file", new NamedInputStreamResource(command.getInputStream(), "part-" + command.getPartNumber()))
                 .contentType(MediaType.APPLICATION_OCTET_STREAM);
-        return restClient.post()
+        return request(restClient.post())
                 .uri("/providers/storage/objects/multipart/{uploadId}/parts?ownerType={ownerType}&ownerId={ownerId}&tenantId={tenantId}",
                         command.getUploadId(), command.getOwnerType(), command.getOwnerId(), command.getTenantId())
                 .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -91,7 +113,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
 
     @Override
     public StoredObjectDTO completeMultipartUpload(CompleteMultipartUploadCommand command) {
-        return restClient.post()
+        return request(restClient.post())
                 .uri("/providers/storage/objects/multipart/{uploadId}/complete?ownerType={ownerType}&ownerId={ownerId}&tenantId={tenantId}",
                         command.getUploadId(), command.getOwnerType(), command.getOwnerId(), command.getTenantId())
                 .retrieve()
@@ -100,7 +122,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
 
     @Override
     public void abortMultipartUpload(AbortMultipartUploadCommand command) {
-        restClient.delete()
+        request(restClient.delete())
                 .uri("/providers/storage/objects/multipart/{uploadId}?ownerType={ownerType}&ownerId={ownerId}&tenantId={tenantId}",
                         command.getUploadId(), command.getOwnerType(), command.getOwnerId(), command.getTenantId())
                 .retrieve()
@@ -109,7 +131,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
 
     @Override
     public StoredObjectDTO getObjectById(Long objectId) {
-        return restClient.get()
+        return request(restClient.get())
                 .uri("/providers/storage/objects/{objectId}", objectId)
                 .retrieve()
                 .body(StoredObjectDTO.class);
@@ -117,7 +139,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
 
     @Override
     public void markObjectReferenced(Long objectId, String ownerType, String ownerId) {
-        restClient.post()
+        request(restClient.post())
                 .uri("/providers/storage/objects/{objectId}/references?ownerType={ownerType}&ownerId={ownerId}",
                         objectId, ownerType, ownerId)
                 .retrieve()
@@ -126,7 +148,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
 
     @Override
     public void clearObjectReference(Long objectId, String ownerType, String ownerId) {
-        restClient.delete()
+        request(restClient.delete())
                 .uri("/providers/storage/objects/{objectId}/references?ownerType={ownerType}&ownerId={ownerId}",
                         objectId, ownerType, ownerId)
                 .retrieve()
@@ -135,10 +157,24 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
 
     @Override
     public void deleteObject(Long objectId) {
-        restClient.delete()
+        request(restClient.delete())
                 .uri("/providers/storage/objects/{objectId}", objectId)
                 .retrieve()
                 .toBodilessEntity();
+    }
+
+    private RestClient.RequestBodyUriSpec request(RestClient.RequestBodyUriSpec spec) {
+        if (StringUtils.hasText(providerToken)) {
+            spec.header(PROVIDER_TOKEN_HEADER, providerToken);
+        }
+        return spec;
+    }
+
+    private RestClient.RequestHeadersUriSpec<?> request(RestClient.RequestHeadersUriSpec<?> spec) {
+        if (StringUtils.hasText(providerToken)) {
+            spec.header(PROVIDER_TOKEN_HEADER, providerToken);
+        }
+        return spec;
     }
 
     private MediaType resolveMediaType(String contentType) {

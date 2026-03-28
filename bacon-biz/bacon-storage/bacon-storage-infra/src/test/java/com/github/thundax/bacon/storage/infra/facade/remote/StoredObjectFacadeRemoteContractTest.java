@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -26,6 +27,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class StoredObjectFacadeRemoteContractTest {
 
     private static final String BASE_URL = "http://storage.test/api";
+    private static final String PROVIDER_TOKEN = "storage-token";
 
     private RestClient.Builder restClientBuilder;
     private MockRestServiceServer server;
@@ -39,6 +41,7 @@ class StoredObjectFacadeRemoteContractTest {
     @Test
     void shouldCallUploadProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/upload"))
+                .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
@@ -54,6 +57,7 @@ class StoredObjectFacadeRemoteContractTest {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/init"
                         + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&tenantId=tenant-a&category=attachment"
                         + "&originalFilename=a.txt&contentType=text%2Fplain&totalSize=1024&partSize=8388608"))
+                .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
@@ -68,6 +72,7 @@ class StoredObjectFacadeRemoteContractTest {
     void shouldCallMultipartPartProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/upload-1/parts"
                         + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&tenantId=tenant-a"))
+                .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
@@ -82,6 +87,7 @@ class StoredObjectFacadeRemoteContractTest {
     void shouldCallMultipartCompleteProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/upload-1/complete"
                         + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&tenantId=tenant-a"))
+                .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
@@ -96,6 +102,7 @@ class StoredObjectFacadeRemoteContractTest {
     void shouldCallMultipartAbortProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/upload-1"
                         + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&tenantId=tenant-a"))
+                .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess());
 
@@ -109,6 +116,7 @@ class StoredObjectFacadeRemoteContractTest {
     @Test
     void shouldCallGetObjectProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/100"))
+                .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
@@ -122,6 +130,7 @@ class StoredObjectFacadeRemoteContractTest {
     void shouldCallMarkReferenceProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/100/references"
                         + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
+                .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess());
 
@@ -135,6 +144,7 @@ class StoredObjectFacadeRemoteContractTest {
     void shouldCallClearReferenceProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/100/references"
                         + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
+                .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess());
 
@@ -147,6 +157,7 @@ class StoredObjectFacadeRemoteContractTest {
     @Test
     void shouldCallDeleteObjectProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/100"))
+                .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess());
 
@@ -161,6 +172,6 @@ class StoredObjectFacadeRemoteContractTest {
         ObjectProvider<RestClient.Builder> provider = Mockito.mock(ObjectProvider.class);
         when(provider.getIfAvailable(Mockito.any())).thenReturn(restClientBuilder);
         RestClientFactory factory = new RestClientFactory(provider);
-        return new StoredObjectFacadeRemoteImpl(factory, BASE_URL);
+        return new StoredObjectFacadeRemoteImpl(factory, BASE_URL, PROVIDER_TOKEN);
     }
 }

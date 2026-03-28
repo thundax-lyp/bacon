@@ -1,0 +1,29 @@
+server:
+  port: ${BACON_SERVER_PORT:8086}
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: bacon-storage-service
+  boot:
+    admin:
+      client:
+        enabled: false
+
+bacon:
+  runtime:
+    mode: micro
+  web:
+    internal-api:
+      enabled: true
+      header-name: X-Bacon-Provider-Token
+      token: ${BACON_STORAGE_PROVIDER_TOKEN:}
+      include-path-patterns:
+        - /providers/storage/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

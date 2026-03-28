@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.interfaces.provider;
 
+import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
+import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
@@ -16,6 +18,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Instant;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -28,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class StorageProviderControllerContractTest {
 
+    private static final String PROVIDER_TOKEN = "storage-token";
+
     private MockMvc mockMvc;
     private StoredObjectFacade storedObjectFacade;
 
@@ -37,7 +42,13 @@ class StorageProviderControllerContractTest {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller = new StorageProviderController(storedObjectFacade,
                 storedObjectQueryApplicationService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        InternalApiGuardProperties guardProperties = new InternalApiGuardProperties();
+        guardProperties.setEnabled(true);
+        guardProperties.setToken(PROVIDER_TOKEN);
+        guardProperties.setIncludePathPatterns(List.of("/providers/storage/**"));
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .addInterceptors(new InternalApiGuardInterceptor(guardProperties))
+                .build();
     }
 
     @Test
@@ -51,6 +62,7 @@ class StorageProviderControllerContractTest {
 
         mockMvc.perform(multipart("/providers/storage/objects/upload")
                         .file(file)
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("tenantId", "tenant-a")
                         .param("category", "attachment"))
@@ -66,6 +78,7 @@ class StorageProviderControllerContractTest {
                 "text/plain", 1024L, 8L * 1024 * 1024, 0, UploadStatusEnum.INITIATED));
 
         mockMvc.perform(post("/providers/storage/objects/multipart/init")
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
                         .param("tenantId", "tenant-a")
@@ -88,6 +101,7 @@ class StorageProviderControllerContractTest {
 
         mockMvc.perform(multipart("/providers/storage/objects/multipart/{uploadId}/parts", "upload-1")
                         .file(file)
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
                         .param("tenantId", "tenant-a")
@@ -105,6 +119,7 @@ class StorageProviderControllerContractTest {
                 "http://test/attachment/a.txt", "ACTIVE", "UNREFERENCED", Instant.parse("2026-03-27T10:00:00Z")));
 
         mockMvc.perform(post("/providers/storage/objects/multipart/{uploadId}/complete", "upload-1")
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
                         .param("tenantId", "tenant-a"))
@@ -118,6 +133,7 @@ class StorageProviderControllerContractTest {
         doNothing().when(storedObjectFacade).abortMultipartUpload(any());
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/multipart/{uploadId}", "upload-1")
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
                         .param("tenantId", "tenant-a"))
@@ -129,12 +145,15 @@ class StorageProviderControllerContractTest {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller = new StorageProviderController(storedObjectFacade,
                 storedObjectQueryApplicationService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .addInterceptors(providerGuardInterceptor())
+                .build();
         when(storedObjectQueryApplicationService.getObjectById(100L)).thenReturn(new StoredObjectDTO(
                 100L, "LOCAL_FILE", "default", "attachment/a.txt", "a.txt", "text/plain", 3L,
                 "/files/attachment/a.txt", "ACTIVE", "UNREFERENCED", Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(get("/providers/storage/objects/{objectId}", 100L))
+        mockMvc.perform(get("/providers/storage/objects/{objectId}", 100L)
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(100))
                 .andExpect(jsonPath("$.code").doesNotExist());
@@ -145,13 +164,16 @@ class StorageProviderControllerContractTest {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller = new StorageProviderController(storedObjectFacade,
                 storedObjectQueryApplicationService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .addInterceptors(providerGuardInterceptor())
+                .build();
         when(storedObjectQueryApplicationService.pageObjects(any())).thenReturn(new StoredObjectPageResultDTO(
                 java.util.List.of(new StoredObjectDTO(101L, "LOCAL_FILE", "default", "attachment/e.txt", "e.txt",
                         "text/plain", 5L, "/files/attachment/e.txt", "ACTIVE", "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z"))), 1L, 1, 20));
 
         mockMvc.perform(get("/providers/storage/objects")
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("tenantId", "tenant-a")
                         .param("storageType", "LOCAL_FILE")
                         .param("pageNo", "1")
@@ -167,6 +189,7 @@ class StorageProviderControllerContractTest {
         doNothing().when(storedObjectFacade).markObjectReferenced(100L, "GENERIC_ATTACHMENT", "owner-1");
 
         mockMvc.perform(post("/providers/storage/objects/{objectId}/references", 100L)
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
                 .andExpect(status().isOk());
@@ -177,6 +200,7 @@ class StorageProviderControllerContractTest {
         doNothing().when(storedObjectFacade).clearObjectReference(100L, "GENERIC_ATTACHMENT", "owner-1");
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}/references", 100L)
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
                 .andExpect(status().isOk());
@@ -186,7 +210,29 @@ class StorageProviderControllerContractTest {
     void shouldExposeDeleteObjectPath() throws Exception {
         doNothing().when(storedObjectFacade).deleteObject(100L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}", 100L))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}", 100L)
+                        .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldRejectProviderRequestWhenTokenMissing() throws Exception {
+        mockMvc.perform(get("/providers/storage/objects/{objectId}", 100L))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldRejectProviderRequestWhenTokenInvalid() throws Exception {
+        mockMvc.perform(get("/providers/storage/objects/{objectId}", 100L)
+                        .header("X-Bacon-Provider-Token", "wrong-token"))
+                .andExpect(status().isForbidden());
+    }
+
+    private InternalApiGuardInterceptor providerGuardInterceptor() {
+        InternalApiGuardProperties guardProperties = new InternalApiGuardProperties();
+        guardProperties.setEnabled(true);
+        guardProperties.setToken(PROVIDER_TOKEN);
+        guardProperties.setIncludePathPatterns(List.of("/providers/storage/**"));
+        return new InternalApiGuardInterceptor(guardProperties);
     }
 }

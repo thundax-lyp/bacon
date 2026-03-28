@@ -120,6 +120,31 @@ class MultipartUploadApplicationServiceTest {
     }
 
     @Test
+    void shouldNotIncrementUploadedPartCountWhenReuploadingSamePartNumber() {
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-retry", "tenant-a", "GENERIC_ATTACHMENT",
+                "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",
+                1024L, 512L, 1, MultipartUploadSession.STATUS_UPLOADING, Instant.now(), Instant.now(), null, null);
+        MultipartUploadPart existingPart = new MultipartUploadPart(10L, "upload-retry", 1, "etag-old", 512L, Instant.now());
+        when(multipartUploadSessionRepository.findByUploadId("upload-retry")).thenReturn(Optional.of(session));
+        when(multipartUploadPartRepository.findByUploadIdAndPartNumber("upload-retry", 1))
+                .thenReturn(Optional.of(existingPart), Optional.of(existingPart));
+        when(storedObjectStorageRepository.uploadPart(eq(session), eq(1), eq(512L), org.mockito.ArgumentMatchers.any()))
+                .thenReturn("etag-new");
+        when(multipartUploadPartRepository.save(any(MultipartUploadPart.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.uploadMultipartPart(new UploadMultipartPartCommand("upload-retry", "GENERIC_ATTACHMENT",
+                "owner-1", "tenant-a", 1, 512L, new ByteArrayInputStream(new byte[]{1, 2, 3})));
+
+        assertEquals(1, session.getUploadedPartCount());
+        verify(multipartUploadSessionRepository, never()).save(any(MultipartUploadSession.class));
+        ArgumentCaptor<MultipartUploadPart> captor = ArgumentCaptor.forClass(MultipartUploadPart.class);
+        verify(multipartUploadPartRepository).save(captor.capture());
+        assertEquals(10L, captor.getValue().getId());
+        assertEquals("etag-new", captor.getValue().getEtag());
+    }
+
+    @Test
     void shouldRejectCompleteWhenMultipartIntegrityMismatch() {
         MultipartUploadSession session = new MultipartUploadSession(1L, "upload-2", "tenant-a", "GENERIC_ATTACHMENT",
                 "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",

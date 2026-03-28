@@ -74,12 +74,20 @@ public class MultipartUploadApplicationService {
                 .orElseThrow(() -> new NotFoundException("Multipart upload session not found: " + command.getUploadId()));
         session.assertOwnership(command.getTenantId(), command.getOwnerType(), command.getOwnerId());
         storageUploadLimitValidator.validateMultipartPartUpload(session, command.getSize());
+        boolean existingPartPresent = multipartUploadPartRepository.findByUploadIdAndPartNumber(command.getUploadId(),
+                command.getPartNumber()).isPresent();
         String etag = storedObjectStorageRepository.uploadPart(session, command.getPartNumber(), command.getSize(),
                 command.getInputStream());
-        session.recordUploadedPart();
-        multipartUploadSessionRepository.save(session);
-        MultipartUploadPart part = MultipartUploadPart.create(command.getUploadId(), command.getPartNumber(), etag,
-                command.getSize());
+        if (!existingPartPresent) {
+            session.recordUploadedPart();
+            multipartUploadSessionRepository.save(session);
+        }
+        MultipartUploadPart part = multipartUploadPartRepository.findByUploadIdAndPartNumber(command.getUploadId(),
+                        command.getPartNumber())
+                .map(existingPart -> new MultipartUploadPart(existingPart.getId(), existingPart.getUploadId(),
+                        existingPart.getPartNumber(), etag, command.getSize(), existingPart.getCreatedAt()))
+                .orElseGet(() -> MultipartUploadPart.create(command.getUploadId(), command.getPartNumber(), etag,
+                        command.getSize()));
         MultipartUploadPart savedPart = multipartUploadPartRepository.save(part);
         return new MultipartUploadPartDTO(savedPart.getUploadId(), savedPart.getPartNumber(), savedPart.getEtag());
     }

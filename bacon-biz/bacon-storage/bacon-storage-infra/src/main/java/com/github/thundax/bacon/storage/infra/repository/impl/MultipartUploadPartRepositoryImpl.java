@@ -9,6 +9,7 @@ import com.github.thundax.bacon.storage.infra.persistence.mapper.MultipartUpload
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRepository {
@@ -34,6 +35,13 @@ public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRep
             multipartUploadPartMapper.updateById(dataObject);
         }
         return toDomain(dataObject);
+    }
+
+    @Override
+    public Optional<MultipartUploadPart> findByUploadIdAndPartNumber(String uploadId, Integer partNumber) {
+        return Optional.ofNullable(multipartUploadPartMapper.selectOne(Wrappers.<MultipartUploadPartDO>lambdaQuery()
+                .eq(MultipartUploadPartDO::getUploadId, uploadId)
+                .eq(MultipartUploadPartDO::getPartNumber, partNumber))).map(this::toDomain);
     }
 
     @Override

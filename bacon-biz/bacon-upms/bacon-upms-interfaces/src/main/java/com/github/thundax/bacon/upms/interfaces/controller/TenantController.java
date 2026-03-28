@@ -42,7 +42,8 @@ public class TenantController {
     @GetMapping("/page")
     public TenantPageResponse pageTenants(@Valid @ModelAttribute TenantPageRequest request) {
         return TenantPageResponse.from(tenantApplicationService.pageTenants(new TenantPageQueryDTO(request.getTenantId(),
-                request.getCode(), request.getName(), request.getStatus(), request.getPageNo(), request.getPageSize())));
+                request.getCode(), request.getName(), request.getStatus() == null ? null : request.getStatus().name(),
+                request.getPageNo(), request.getPageSize())));
     }
 
     @Operation(summary = "创建租户")

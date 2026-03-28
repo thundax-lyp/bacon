@@ -43,7 +43,8 @@ public class PostController {
     @GetMapping("/page")
     public PostPageResponse pagePosts(@Valid @ModelAttribute PostPageRequest request) {
         return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(request.getTenantId(),
-                request.getCode(), request.getName(), request.getDepartmentId(), request.getStatus(),
+                request.getCode(), request.getName(), request.getDepartmentId(),
+                request.getStatus() == null ? null : request.getStatus().name(),
                 request.getPageNo(), request.getPageSize())));
     }
 

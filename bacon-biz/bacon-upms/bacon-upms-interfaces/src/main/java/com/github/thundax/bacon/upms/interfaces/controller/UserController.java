@@ -54,7 +54,8 @@ public class UserController {
     @GetMapping("/page")
     public UserPageResponse pageUsers(@Valid @ModelAttribute UserPageRequest request) {
         return UserPageResponse.from(userApplicationService.pageUsers(new UserPageQueryDTO(request.getTenantId(),
-                request.getAccount(), request.getName(), request.getPhone(), request.getStatus(), request.getPageNo(),
+                request.getAccount(), request.getName(), request.getPhone(),
+                request.getStatus() == null ? null : request.getStatus().name(), request.getPageNo(),
                 request.getPageSize())));
     }
 
@@ -166,7 +167,8 @@ public class UserController {
     @GetMapping("/export")
     public List<UserResponse> exportUsers(@ModelAttribute UserPageRequest request) {
         return userApplicationService.exportUsers(new UserPageQueryDTO(request.getTenantId(), request.getAccount(),
-                request.getName(), request.getPhone(), request.getStatus(), 1, Integer.MAX_VALUE))
+                request.getName(), request.getPhone(), request.getStatus() == null ? null : request.getStatus().name(),
+                1, Integer.MAX_VALUE))
                 .stream()
                 .map(UserResponse::from)
                 .toList();

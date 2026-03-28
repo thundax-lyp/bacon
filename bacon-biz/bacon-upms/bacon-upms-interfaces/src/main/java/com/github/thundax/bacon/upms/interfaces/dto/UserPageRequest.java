@@ -15,7 +15,7 @@ public class UserPageRequest {
     private String account;
     private String name;
     private String phone;
-    private String status;
+    private UpmsStatusQueryEnum status;
 
     @Min(1)
     private Integer pageNo;

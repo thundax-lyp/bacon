@@ -14,8 +14,8 @@ public class RolePageRequest {
     private Long tenantId;
     private String code;
     private String name;
-    private String roleType;
-    private String status;
+    private UpmsRoleTypeQueryEnum roleType;
+    private UpmsStatusQueryEnum status;
 
     @Min(1)
     private Integer pageNo;

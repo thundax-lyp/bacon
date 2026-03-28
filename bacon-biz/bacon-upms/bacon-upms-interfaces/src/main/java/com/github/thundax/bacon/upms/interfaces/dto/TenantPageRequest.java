@@ -14,7 +14,7 @@ public class TenantPageRequest {
     private Long tenantId;
     private String code;
     private String name;
-    private String status;
+    private UpmsStatusQueryEnum status;
 
     @Min(1)
     private Integer pageNo;

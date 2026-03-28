@@ -43,8 +43,10 @@ public class ResourceController {
     @GetMapping("/page")
     public ResourcePageResponse pageResources(@Valid @ModelAttribute ResourcePageRequest request) {
         return ResourcePageResponse.from(resourceApplicationService.pageResources(new ResourcePageQueryDTO(
-                request.getTenantId(), request.getCode(), request.getName(), request.getResourceType(),
-                request.getStatus(), request.getPageNo(), request.getPageSize()
+                request.getTenantId(), request.getCode(), request.getName(),
+                request.getResourceType() == null ? null : request.getResourceType().name(),
+                request.getStatus() == null ? null : request.getStatus().name(),
+                request.getPageNo(), request.getPageSize()
         )));
     }
 

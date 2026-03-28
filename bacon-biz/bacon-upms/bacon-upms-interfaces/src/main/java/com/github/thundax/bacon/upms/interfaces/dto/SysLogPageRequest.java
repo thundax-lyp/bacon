@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
+import com.github.thundax.bacon.common.log.LogEventType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ public class SysLogPageRequest {
 
     private String tenantId;
     private String module;
-    private String eventType;
+    private LogEventType eventType;
     private String result;
     private String operatorName;
 

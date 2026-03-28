@@ -14,8 +14,8 @@ public class ResourcePageRequest {
     private Long tenantId;
     private String code;
     private String name;
-    private String resourceType;
-    private String status;
+    private UpmsResourceTypeQueryEnum resourceType;
+    private UpmsStatusQueryEnum status;
 
     @Min(1)
     private Integer pageNo;

@@ -15,7 +15,7 @@ public class PostPageRequest {
     private String code;
     private String name;
     private Long departmentId;
-    private String status;
+    private UpmsStatusQueryEnum status;
 
     @Min(1)
     private Integer pageNo;

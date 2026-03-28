@@ -7,11 +7,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @ConditionalOnBean(InMemoryOrderOutboxSupport.class)
-public class InMemoryOrderOutboxDeadLetterRepository implements OrderOutboxDeadLetterRepository {
+public class InMemoryOrderOutboxDeadLetterRepositoryImpl implements OrderOutboxDeadLetterRepository {
 
     private final InMemoryOrderOutboxSupport support;
 
-    public InMemoryOrderOutboxDeadLetterRepository(InMemoryOrderOutboxSupport support) {
+    public InMemoryOrderOutboxDeadLetterRepositoryImpl(InMemoryOrderOutboxSupport support) {
         this.support = support;
     }
 

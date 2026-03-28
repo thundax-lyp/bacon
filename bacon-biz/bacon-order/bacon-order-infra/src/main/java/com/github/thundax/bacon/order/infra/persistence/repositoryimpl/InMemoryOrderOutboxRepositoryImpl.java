@@ -9,11 +9,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @ConditionalOnBean(InMemoryOrderOutboxSupport.class)
-public class InMemoryOrderOutboxRepository implements OrderOutboxRepository {
+public class InMemoryOrderOutboxRepositoryImpl implements OrderOutboxRepository {
 
     private final InMemoryOrderOutboxSupport support;
 
-    public InMemoryOrderOutboxRepository(InMemoryOrderOutboxSupport support) {
+    public InMemoryOrderOutboxRepositoryImpl(InMemoryOrderOutboxSupport support) {
         this.support = support;
     }
 

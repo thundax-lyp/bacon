@@ -23,11 +23,11 @@ import java.util.UUID;
  */
 @Repository
 @ConditionalOnProperty(name = "bacon.storage.type", havingValue = "OSS")
-public class OssStoredObjectStorageRepository implements StoredObjectStorageRepository {
+public class OssStoredObjectStorageRepositoryImpl implements StoredObjectStorageRepository {
 
     private final ObjectStorageClient objectStorageClient;
 
-    public OssStoredObjectStorageRepository(ObjectStorageClient objectStorageClient) {
+    public OssStoredObjectStorageRepositoryImpl(ObjectStorageClient objectStorageClient) {
         this.objectStorageClient = objectStorageClient;
     }
 

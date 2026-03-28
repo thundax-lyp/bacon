@@ -21,7 +21,7 @@ class OrderIdempotencyExecutorTest {
 
     @Test
     void duplicateSuccessShouldShortCircuit() {
-        OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(new InMemoryOrderIdempotencyRepository());
+        OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(new InMemoryOrderIdempotencyRepositoryImpl());
         AtomicInteger executedTimes = new AtomicInteger(0);
 
         executor.execute(OrderIdempotencyExecutor.EVENT_CANCEL, 1001L, "ORD-1", null, executedTimes::incrementAndGet);
@@ -32,7 +32,7 @@ class OrderIdempotencyExecutorTest {
 
     @Test
     void failedRecordShouldAllowRetry() {
-        OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(new InMemoryOrderIdempotencyRepository());
+        OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(new InMemoryOrderIdempotencyRepositoryImpl());
         AtomicInteger executedTimes = new AtomicInteger(0);
 
         assertThrows(IllegalStateException.class, () -> executor.execute(OrderIdempotencyExecutor.EVENT_MARK_PAID,
@@ -49,7 +49,7 @@ class OrderIdempotencyExecutorTest {
 
     @Test
     void expiredProcessingShouldBeReclaimed() {
-        InMemoryOrderIdempotencyRepository repository = new InMemoryOrderIdempotencyRepository();
+        InMemoryOrderIdempotencyRepositoryImpl repository = new InMemoryOrderIdempotencyRepositoryImpl();
         OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(repository);
         AtomicInteger executedTimes = new AtomicInteger(0);
 
@@ -66,7 +66,7 @@ class OrderIdempotencyExecutorTest {
 
     @Test
     void concurrentDuplicateRequestsShouldExecuteBusinessActionOnlyOnce() throws InterruptedException {
-        OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(new InMemoryOrderIdempotencyRepository());
+        OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(new InMemoryOrderIdempotencyRepositoryImpl());
         AtomicInteger executedTimes = new AtomicInteger(0);
         int threadCount = 8;
         CountDownLatch ready = new CountDownLatch(threadCount);
@@ -98,7 +98,7 @@ class OrderIdempotencyExecutorTest {
         assertEquals(1, executedTimes.get());
     }
 
-    private static final class InMemoryOrderIdempotencyRepository implements OrderIdempotencyRepository {
+    private static final class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyRepository {
 
         private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();
         private final AtomicLong idGenerator = new AtomicLong(1);

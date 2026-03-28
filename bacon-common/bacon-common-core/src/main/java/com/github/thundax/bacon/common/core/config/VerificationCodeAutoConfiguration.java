@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.common.core.config;
 
 import com.github.thundax.bacon.common.core.service.VerificationCodeService;
-import com.github.thundax.bacon.common.core.service.impl.CacheVerificationCodeService;
+import com.github.thundax.bacon.common.core.service.impl.CacheVerificationCodeServiceImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +20,6 @@ public class VerificationCodeAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(VerificationCodeService.class)
     public VerificationCodeService verificationCodeService() {
-        return new CacheVerificationCodeService();
+        return new CacheVerificationCodeServiceImpl();
     }
 }

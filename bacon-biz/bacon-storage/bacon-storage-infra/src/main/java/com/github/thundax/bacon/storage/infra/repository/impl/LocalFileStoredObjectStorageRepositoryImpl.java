@@ -26,13 +26,13 @@ import java.util.UUID;
 
 @Repository
 @ConditionalOnProperty(name = "bacon.storage.type", havingValue = "LOCAL_FILE", matchIfMissing = true)
-public class LocalFileStoredObjectStorageRepository implements StoredObjectStorageRepository {
+public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectStorageRepository {
 
     private final String rootPath;
     private final String bucketName;
     private final String publicBaseUrl;
 
-    public LocalFileStoredObjectStorageRepository(
+    public LocalFileStoredObjectStorageRepositoryImpl(
             @Value("${bacon.storage.local.root-path:${java.io.tmpdir}/bacon/storage}") String rootPath,
             @Value("${bacon.storage.local.bucket-name:default}") String bucketName,
             @Value("${bacon.storage.local.public-base-url:/storage/files}") String publicBaseUrl) {

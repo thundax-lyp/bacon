@@ -8,9 +8,9 @@ import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.service.RsaKeyPair;
 import org.junit.jupiter.api.Test;
 
-class DefaultRsaCryptoServiceTest {
+class DefaultRsaCryptoServiceImplTest {
 
-    private final DefaultRsaCryptoService rsaCryptoService = new DefaultRsaCryptoService();
+    private final DefaultRsaCryptoServiceImpl rsaCryptoService = new DefaultRsaCryptoServiceImpl();
 
     @Test
     void shouldEncryptAndDecrypt() {

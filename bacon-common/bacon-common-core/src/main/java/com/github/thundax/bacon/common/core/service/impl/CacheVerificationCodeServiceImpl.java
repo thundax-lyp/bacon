@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * 基于 JetCache 的验证码服务，适用于短信、邮件、图形验证码等短时一次性验证码场景。
  */
-public class CacheVerificationCodeService implements VerificationCodeService {
+public class CacheVerificationCodeServiceImpl implements VerificationCodeService {
 
     private static final int DEFAULT_CODE_LENGTH = 6;
     private static final Duration DEFAULT_TTL = Duration.ofMinutes(5);
@@ -29,14 +29,14 @@ public class CacheVerificationCodeService implements VerificationCodeService {
 
     private final Cache<String, String> verificationCodeCache;
 
-    public CacheVerificationCodeService() {
+    public CacheVerificationCodeServiceImpl() {
         this(LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
                 .limit(DEFAULT_CACHE_LIMIT)
                 .expireAfterWrite(DEFAULT_TTL.toSeconds(), TimeUnit.SECONDS)
                 .buildCache());
     }
 
-    CacheVerificationCodeService(Cache<String, String> verificationCodeCache) {
+    CacheVerificationCodeServiceImpl(Cache<String, String> verificationCodeCache) {
         this.verificationCodeCache = verificationCodeCache;
     }
 

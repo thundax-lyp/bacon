@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
  * 基于 JCA 的 RSA 服务，提供登录场景所需的密钥生成与加解密能力。
  */
 @Service
-public class DefaultRsaCryptoService implements RsaCryptoService {
+public class DefaultRsaCryptoServiceImpl implements RsaCryptoService {
 
     private static final String ALGORITHM = "RSA";
     private static final String TRANSFORMATION = "RSA/ECB/PKCS1Padding";

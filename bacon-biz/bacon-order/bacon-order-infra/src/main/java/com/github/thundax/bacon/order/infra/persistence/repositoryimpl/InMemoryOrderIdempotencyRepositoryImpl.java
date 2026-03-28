@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @ConditionalOnProperty(name = "bacon.order.repository.mode", havingValue = "memory")
-public class InMemoryOrderIdempotencyRepository implements OrderIdempotencyRepository {
+public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyRepository {
 
     private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1000L);

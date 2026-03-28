@@ -12,13 +12,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-class CacheVerificationCodeServiceTest {
+class CacheVerificationCodeServiceImplTest {
 
     static {
         System.setProperty("java.awt.headless", "true");
     }
 
-    private CacheVerificationCodeService verificationCodeService;
+    private CacheVerificationCodeServiceImpl verificationCodeService;
 
     @BeforeEach
     void setUp() {
@@ -26,7 +26,7 @@ class CacheVerificationCodeServiceTest {
                 .limit(100)
                 .expireAfterWrite(10, java.util.concurrent.TimeUnit.MINUTES)
                 .buildCache();
-        verificationCodeService = new CacheVerificationCodeService(cache);
+        verificationCodeService = new CacheVerificationCodeServiceImpl(cache);
     }
 
     @Test

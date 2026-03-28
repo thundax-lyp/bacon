@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @ConditionalOnProperty(name = "bacon.order.repository.mode", havingValue = "memory")
-public class InMemoryOrderRepository implements OrderRepository {
+public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     private final Map<Long, Order> storage = new ConcurrentHashMap<>();
     private final Map<Long, List<OrderItem>> itemsStorage = new ConcurrentHashMap<>();

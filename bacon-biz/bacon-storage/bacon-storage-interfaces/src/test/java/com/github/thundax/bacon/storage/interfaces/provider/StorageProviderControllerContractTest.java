@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.interfaces.provider;
 
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
+import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.application.command.MultipartUploadApplicationService;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
@@ -138,6 +139,28 @@ class StorageProviderControllerContractTest {
         mockMvc.perform(get("/providers/storage/objects/{objectId}", 100L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(100))
+                .andExpect(jsonPath("$.code").doesNotExist());
+    }
+
+    @Test
+    void shouldExposePageObjectsPath() throws Exception {
+        StoredObjectQueryApplicationService storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
+        StorageProviderController controller = new StorageProviderController(storedObjectApplicationService,
+                multipartUploadApplicationService, storedObjectQueryApplicationService);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        when(storedObjectQueryApplicationService.pageObjects(any())).thenReturn(new StoredObjectPageResultDTO(
+                java.util.List.of(new StoredObjectDTO(101L, "LOCAL_FILE", "default", "attachment/e.txt", "e.txt",
+                        "text/plain", 5L, "/files/attachment/e.txt", "ACTIVE", "UNREFERENCED",
+                        Instant.parse("2026-03-27T10:00:00Z"))), 1L, 1, 20));
+
+        mockMvc.perform(get("/providers/storage/objects")
+                        .param("tenantId", "tenant-a")
+                        .param("storageType", "LOCAL_FILE")
+                        .param("pageNo", "1")
+                        .param("pageSize", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.records[0].id").value(101))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 

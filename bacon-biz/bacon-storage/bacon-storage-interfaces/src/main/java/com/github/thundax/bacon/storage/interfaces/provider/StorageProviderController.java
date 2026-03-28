@@ -5,6 +5,8 @@ import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
+import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
@@ -102,6 +104,12 @@ public class StorageProviderController {
     @GetMapping("/objects/{objectId}")
     public StoredObjectDTO getObjectById(@PathVariable("objectId") Long objectId) {
         return storedObjectQueryApplicationService.getObjectById(objectId);
+    }
+
+    @Operation(summary = "分页查询存储对象")
+    @GetMapping("/objects")
+    public StoredObjectPageResultDTO pageObjects(StoredObjectPageQueryDTO query) {
+        return storedObjectQueryApplicationService.pageObjects(query);
     }
 
     @Operation(summary = "建立存储对象引用")

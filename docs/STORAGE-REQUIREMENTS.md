@@ -15,6 +15,7 @@
 - 大文件分段上传
 - 文件删除
 - 文件元数据查询
+- 管理员全局管理 `StoredObject`
 - 存储后端切换
 - 对象访问地址生成
 - 对象引用标记
@@ -68,6 +69,7 @@
 - 跨域 `Facade`
 - `DTO`
 - 对外共享枚举
+- 内部管理分页查询 `DTO`
 
 固定接口：
 
@@ -97,6 +99,31 @@
 - `accessEndpoint`
 - `objectStatus`
 - `referenceStatus`
+
+管理员全局管理 `StoredObject` 固定查询模型：
+
+- `StoredObjectPageQueryDTO`
+- `StoredObjectPageResultDTO`
+
+`StoredObjectPageQueryDTO` 至少包含：
+
+- `tenantId`
+- `storageType`
+- `objectStatus`
+- `referenceStatus`
+- `originalFilename`
+- `objectKey`
+- `pageNo`
+- `pageSize`
+
+`StoredObjectPageResultDTO` 至少包含：
+
+- `records`
+- `total`
+- `pageNo`
+- `pageSize`
+
+其中 `records` 元素固定为 `StoredObjectDTO`
 
 `UploadObjectCommand` 至少包含：
 
@@ -168,6 +195,12 @@
 - `Provider`
 - 本地域内 `Facade` 适配器
 - 不提供面向前端业务语义的外部 `Controller`
+
+`Provider` 固定支持管理员全局管理 `StoredObject`：
+
+- `getObjectById(objectId)`，返回固定 `StoredObjectDTO`
+- `pageObjects(query)`，返回固定 `StoredObjectPageResultDTO`
+- `deleteObject(objectId)`，无返回
 
 ### 4.3 `bacon-storage-application`
 

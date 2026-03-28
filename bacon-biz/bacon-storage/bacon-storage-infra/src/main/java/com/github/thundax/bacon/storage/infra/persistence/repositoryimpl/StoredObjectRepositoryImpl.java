@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.storage.infra.repository.impl;
+package com.github.thundax.bacon.storage.infra.persistence.repositoryimpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.storage.infra.repository.impl;
+package com.github.thundax.bacon.storage.infra.persistence.repositoryimpl;
 
 import com.github.thundax.bacon.common.core.exception.SystemException;
 import com.github.thundax.bacon.storage.api.enums.StorageTypeEnum;

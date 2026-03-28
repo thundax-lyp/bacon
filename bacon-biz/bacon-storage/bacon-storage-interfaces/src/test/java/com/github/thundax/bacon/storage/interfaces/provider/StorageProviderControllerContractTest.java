@@ -4,8 +4,8 @@ import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.application.command.MultipartUploadApplicationService;
-import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,16 +29,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class StorageProviderControllerContractTest {
 
     private MockMvc mockMvc;
-    private MultipartUploadApplicationService multipartUploadApplicationService;
-    private StoredObjectApplicationService storedObjectApplicationService;
+    private StoredObjectFacade storedObjectFacade;
 
     @BeforeEach
     void setUp() {
-        storedObjectApplicationService = Mockito.mock(StoredObjectApplicationService.class);
-        multipartUploadApplicationService = Mockito.mock(MultipartUploadApplicationService.class);
+        storedObjectFacade = Mockito.mock(StoredObjectFacade.class);
         StoredObjectQueryApplicationService storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
-        StorageProviderController controller = new StorageProviderController(storedObjectApplicationService,
-                multipartUploadApplicationService, storedObjectQueryApplicationService);
+        StorageProviderController controller = new StorageProviderController(storedObjectFacade,
+                storedObjectQueryApplicationService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
@@ -47,7 +45,7 @@ class StorageProviderControllerContractTest {
         StoredObjectDTO dto = new StoredObjectDTO(1L, "LOCAL_FILE", "default", "attachment/a.txt", "a.txt",
                 "text/plain", 3L, "/files/attachment/a.txt", "ACTIVE", "UNREFERENCED",
                 Instant.parse("2026-03-27T10:00:00Z"));
-        when(storedObjectApplicationService.uploadObject(any())).thenReturn(dto);
+        when(storedObjectFacade.uploadObject(any())).thenReturn(dto);
 
         MockMultipartFile file = new MockMultipartFile("file", "a.txt", "text/plain", new byte[]{1, 2, 3});
 
@@ -63,9 +61,9 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartInitPath() throws Exception {
-        when(multipartUploadApplicationService.initMultipartUpload(any())).thenReturn(new MultipartUploadSessionDTO(
+        when(storedObjectFacade.initMultipartUpload(any())).thenReturn(new MultipartUploadSessionDTO(
                 "upload-1", "GENERIC_ATTACHMENT", "owner-1", "tenant-a", "attachment", "a.txt",
-                "text/plain", 1024L, 8L * 1024 * 1024, 0, "INITIATED"));
+                "text/plain", 1024L, 8L * 1024 * 1024, 0, UploadStatusEnum.INITIATED));
 
         mockMvc.perform(post("/providers/storage/objects/multipart/init")
                         .param("ownerType", "GENERIC_ATTACHMENT")
@@ -83,7 +81,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartPartUploadPath() throws Exception {
-        when(multipartUploadApplicationService.uploadMultipartPart(any()))
+        when(storedObjectFacade.uploadMultipartPart(any()))
                 .thenReturn(new MultipartUploadPartDTO("upload-1", 1, "etag-1"));
         MockMultipartFile file = new MockMultipartFile("file", "part-1.bin",
                 "application/octet-stream", new byte[]{1, 2, 3});
@@ -102,7 +100,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartCompletePath() throws Exception {
-        when(multipartUploadApplicationService.completeMultipartUpload(any())).thenReturn(new StoredObjectDTO(
+        when(storedObjectFacade.completeMultipartUpload(any())).thenReturn(new StoredObjectDTO(
                 2L, "OSS", "bucket", "attachment/a.txt", "a.txt", "text/plain", 1024L,
                 "http://test/attachment/a.txt", "ACTIVE", "UNREFERENCED", Instant.parse("2026-03-27T10:00:00Z")));
 
@@ -117,7 +115,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartAbortPath() throws Exception {
-        doNothing().when(multipartUploadApplicationService).abortMultipartUpload(any());
+        doNothing().when(storedObjectFacade).abortMultipartUpload(any());
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/multipart/{uploadId}", "upload-1")
                         .param("ownerType", "GENERIC_ATTACHMENT")
@@ -129,8 +127,8 @@ class StorageProviderControllerContractTest {
     @Test
     void shouldExposeGetObjectPath() throws Exception {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
-        StorageProviderController controller = new StorageProviderController(storedObjectApplicationService,
-                multipartUploadApplicationService, storedObjectQueryApplicationService);
+        StorageProviderController controller = new StorageProviderController(storedObjectFacade,
+                storedObjectQueryApplicationService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         when(storedObjectQueryApplicationService.getObjectById(100L)).thenReturn(new StoredObjectDTO(
                 100L, "LOCAL_FILE", "default", "attachment/a.txt", "a.txt", "text/plain", 3L,
@@ -145,8 +143,8 @@ class StorageProviderControllerContractTest {
     @Test
     void shouldExposePageObjectsPath() throws Exception {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
-        StorageProviderController controller = new StorageProviderController(storedObjectApplicationService,
-                multipartUploadApplicationService, storedObjectQueryApplicationService);
+        StorageProviderController controller = new StorageProviderController(storedObjectFacade,
+                storedObjectQueryApplicationService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         when(storedObjectQueryApplicationService.pageObjects(any())).thenReturn(new StoredObjectPageResultDTO(
                 java.util.List.of(new StoredObjectDTO(101L, "LOCAL_FILE", "default", "attachment/e.txt", "e.txt",
@@ -166,7 +164,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMarkReferencePath() throws Exception {
-        doNothing().when(storedObjectApplicationService).markObjectReferenced(100L, "GENERIC_ATTACHMENT", "owner-1");
+        doNothing().when(storedObjectFacade).markObjectReferenced(100L, "GENERIC_ATTACHMENT", "owner-1");
 
         mockMvc.perform(post("/providers/storage/objects/{objectId}/references", 100L)
                         .param("ownerType", "GENERIC_ATTACHMENT")
@@ -176,7 +174,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeClearReferencePath() throws Exception {
-        doNothing().when(storedObjectApplicationService).clearObjectReference(100L, "GENERIC_ATTACHMENT", "owner-1");
+        doNothing().when(storedObjectFacade).clearObjectReference(100L, "GENERIC_ATTACHMENT", "owner-1");
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}/references", 100L)
                         .param("ownerType", "GENERIC_ATTACHMENT")
@@ -186,7 +184,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeDeleteObjectPath() throws Exception {
-        doNothing().when(storedObjectApplicationService).deleteObject(100L);
+        doNothing().when(storedObjectFacade).deleteObject(100L);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}", 100L))
                 .andExpect(status().isOk());

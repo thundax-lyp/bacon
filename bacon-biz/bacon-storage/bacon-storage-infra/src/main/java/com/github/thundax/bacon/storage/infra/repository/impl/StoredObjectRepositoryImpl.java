@@ -46,6 +46,17 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     @Override
+    public List<StoredObject> listByObjectStatus(String objectStatus, int limit) {
+        return storedObjectMapper.selectList(Wrappers.<StoredObjectDO>lambdaQuery()
+                        .eq(StoredObjectDO::getObjectStatus, objectStatus)
+                        .orderByAsc(StoredObjectDO::getUpdatedAt, StoredObjectDO::getId)
+                        .last("limit " + limit))
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
     public StoredObjectPageResult pageObjects(StoredObjectPageQuery query) {
         LambdaQueryWrapper<StoredObjectDO> countWrapper = buildQueryWrapper(query);
         long total = storedObjectMapper.selectCount(countWrapper);

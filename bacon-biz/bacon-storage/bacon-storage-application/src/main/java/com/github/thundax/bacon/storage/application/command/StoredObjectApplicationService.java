@@ -14,12 +14,14 @@ import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectSto
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 存储对象命令应用服务。
  */
+@Slf4j
 @Service
 public class StoredObjectApplicationService {
 
@@ -97,8 +99,14 @@ public class StoredObjectApplicationService {
         if (storedObject.isDeleted()) {
             return;
         }
-        storedObjectStorageRepository.delete(storedObject);
-        storedObjectDeletionTransactionService.markDeleted(objectId);
+        try {
+            storedObjectStorageRepository.delete(storedObject);
+            storedObjectDeletionTransactionService.markDeleted(objectId);
+        } catch (RuntimeException ex) {
+            log.warn("Stored object physical delete failed, objectId={}, objectKey={}, storageType={}",
+                    storedObject.getId(), storedObject.getObjectKey(), storedObject.getStorageType(), ex);
+            throw ex;
+        }
     }
 
     private StoredObjectDTO toDto(StoredObject storedObject) {

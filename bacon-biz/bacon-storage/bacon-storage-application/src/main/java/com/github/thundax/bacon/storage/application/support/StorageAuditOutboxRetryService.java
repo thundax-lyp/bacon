@@ -46,6 +46,9 @@ public class StorageAuditOutboxRetryService {
                 RETRYABLE_STATUSES, now, Math.max(properties.getBatchSize(), 1));
         int processedCount = 0;
         for (StorageAuditOutbox item : outboxItems) {
+            if (!storageAuditOutboxRepository.claimForProcessing(item.getId(), RETRYABLE_STATUSES, now, now)) {
+                continue;
+            }
             retryOne(item, now);
             processedCount++;
         }

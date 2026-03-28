@@ -50,6 +50,17 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
     }
 
     @Override
+    public boolean claimForProcessing(Long id, List<String> statuses, Instant retryBefore, Instant updatedAt) {
+        StorageAuditOutboxDO update = new StorageAuditOutboxDO();
+        update.setStatus(StorageAuditOutbox.STATUS_PROCESSING);
+        update.setUpdatedAt(updatedAt);
+        return storageAuditOutboxMapper.update(update, Wrappers.<StorageAuditOutboxDO>lambdaUpdate()
+                .eq(StorageAuditOutboxDO::getId, id)
+                .in(StorageAuditOutboxDO::getStatus, statuses)
+                .le(StorageAuditOutboxDO::getNextRetryAt, retryBefore)) > 0;
+    }
+
+    @Override
     public void deleteById(Long id) {
         storageAuditOutboxMapper.deleteById(id);
     }

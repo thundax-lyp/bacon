@@ -57,6 +57,7 @@ class StorageAuditOutboxRetryServiceTest {
     void shouldDeleteOutboxWhenRetrySucceeds() {
         StorageAuditOutbox item = outbox(100L, 0);
         when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
+        when(storageAuditOutboxRepository.claimForProcessing(eq(100L), any(), any(), any())).thenReturn(true);
 
         int processed = service.retryOutbox();
 
@@ -71,6 +72,7 @@ class StorageAuditOutboxRetryServiceTest {
     void shouldMarkRetryWhenRetryFailsBelowMaxRetries() {
         StorageAuditOutbox item = outbox(101L, 0);
         when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
+        when(storageAuditOutboxRepository.claimForProcessing(eq(101L), any(), any(), any())).thenReturn(true);
         doThrow(new IllegalStateException("retry-fail")).when(storageAuditLogRepository).save(any());
 
         service.retryOutbox();
@@ -85,6 +87,7 @@ class StorageAuditOutboxRetryServiceTest {
     void shouldMarkDeadWhenRetryExhausted() {
         StorageAuditOutbox item = outbox(102L, 2);
         when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
+        when(storageAuditOutboxRepository.claimForProcessing(eq(102L), any(), any(), any())).thenReturn(true);
         doThrow(new IllegalStateException("retry-fail")).when(storageAuditLogRepository).save(any());
 
         service.retryOutbox();
@@ -103,6 +106,19 @@ class StorageAuditOutboxRetryServiceTest {
         assertEquals(2, deleted);
         assertEquals(2.0d, meterRegistry.get("bacon.storage.audit.cleanup.dead.total")
                 .counter().count());
+    }
+
+    @Test
+    void shouldSkipOutboxWhenClaimFails() {
+        StorageAuditOutbox item = outbox(103L, 0);
+        when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
+        when(storageAuditOutboxRepository.claimForProcessing(eq(103L), any(), any(), any())).thenReturn(false);
+
+        int processed = service.retryOutbox();
+
+        assertEquals(0, processed);
+        verify(storageAuditLogRepository, org.mockito.Mockito.never()).save(any());
+        verify(storageAuditOutboxRepository, org.mockito.Mockito.never()).deleteById(103L);
     }
 
     private StorageAuditOutbox outbox(Long id, int retryCount) {

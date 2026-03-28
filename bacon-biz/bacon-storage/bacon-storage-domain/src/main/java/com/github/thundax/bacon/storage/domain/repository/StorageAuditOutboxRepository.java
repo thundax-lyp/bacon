@@ -11,6 +11,8 @@ public interface StorageAuditOutboxRepository {
 
     List<StorageAuditOutbox> listRetryable(List<String> statuses, Instant retryBefore, int limit);
 
+    boolean claimForProcessing(Long id, List<String> statuses, Instant retryBefore, Instant updatedAt);
+
     void deleteById(Long id);
 
     void updateForRetry(Long id, int retryCount, Instant nextRetryAt, String errorMessage, String status, Instant updatedAt);

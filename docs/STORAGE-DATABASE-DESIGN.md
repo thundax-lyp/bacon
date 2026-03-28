@@ -16,6 +16,7 @@
 - `MultipartUploadSession`
 - `MultipartUploadPart`
 - `StorageAuditLog`
+- `StorageAuditOutbox`
 
 当前范围不建表的对象：
 
@@ -51,6 +52,8 @@
 - `object_status`: `ACTIVE`、`DELETING`、`DELETED`
 - `reference_status`: `UNREFERENCED`、`REFERENCED`
 - `upload_status`: `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
+- `action_type`: `UPLOAD`、`REFERENCE_ADD`、`REFERENCE_CLEAR`、`DELETE`
+- `status`: `NEW`、`PROCESSING`、`RETRYING`、`DEAD`
 - `owner_type`: 由接入业务域约定并在全局保持稳定
 
 ### 5.2 Fixed Length Rules
@@ -66,11 +69,15 @@
 - `reference_status`: `varchar(32)`
 - `owner_type`: `varchar(64)`
 - `owner_id`: `varchar(64)`
+- `action_type`: `varchar(64)`
+- `operator_type`: `varchar(32)`
 - `upload_id`: `varchar(64)`
 - `provider_upload_id`: `varchar(128)`
 - `category`: `varchar(64)`
 - `upload_status`: `varchar(32)`
 - `etag`: `varchar(128)`
+- `error_message`: `varchar(512)`
+- `status`: `varchar(32)`
 
 ## 6. Table Mapping
 
@@ -137,6 +144,7 @@
 | `object_id` | `bigint` | N | 存储对象主键 |
 | `owner_type` | `varchar(64)` | N | 引用方类型 |
 | `owner_id` | `varchar(64)` | N | 引用方业务主键 |
+
 索引与约束：
 
 - `pk(id)`

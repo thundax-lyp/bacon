@@ -417,6 +417,7 @@
 必要补充约束：
 
 - 管理员前端固定调用 `Storage Controller`，不直接调用 `Storage Provider`
+- `Storage Controller` 的 `storageType`、`objectStatus`、`referenceStatus` 查询参数固定按枚举解析，非法值返回 `400`
 - 内部跨域管理能力固定通过 `Storage Provider` 提供，不扩展 `StoredObjectFacade`
 - 分页查询固定返回 `StoredObjectPageResultDTO`
 - 分页查询固定按创建时间倒序返回，创建时间相同时按 `id` 倒序返回

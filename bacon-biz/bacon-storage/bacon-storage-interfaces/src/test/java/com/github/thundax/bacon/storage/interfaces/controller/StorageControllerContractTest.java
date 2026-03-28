@@ -89,4 +89,14 @@ class StorageControllerContractTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }
+
+    @Test
+    void shouldRejectIllegalEnumValueForAdminFrontend() throws Exception {
+        mockMvc.perform(get("/api/storage/objects")
+                        .param("storageType", "INVALID")
+                        .param("pageNo", "1")
+                        .param("pageSize", "20"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
 }

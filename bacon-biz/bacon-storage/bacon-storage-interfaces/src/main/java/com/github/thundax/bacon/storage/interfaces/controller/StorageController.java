@@ -41,7 +41,10 @@ public class StorageController {
     @GetMapping
     public StoredObjectPageResponse pageObjects(@Valid @ModelAttribute StoredObjectPageRequest request) {
         return StoredObjectPageResponse.from(storedObjectQueryApplicationService.pageObjects(new StoredObjectPageQueryDTO(
-                request.getTenantId(), request.getStorageType(), request.getObjectStatus(), request.getReferenceStatus(),
+                request.getTenantId(),
+                request.getStorageType() == null ? null : request.getStorageType().name(),
+                request.getObjectStatus() == null ? null : request.getObjectStatus().name(),
+                request.getReferenceStatus() == null ? null : request.getReferenceStatus().name(),
                 request.getOriginalFilename(), request.getObjectKey(), request.getPageNo(), request.getPageSize())));
     }
 

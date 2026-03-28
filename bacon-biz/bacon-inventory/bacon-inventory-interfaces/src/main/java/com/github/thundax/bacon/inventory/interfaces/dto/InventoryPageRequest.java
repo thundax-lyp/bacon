@@ -16,7 +16,7 @@ public class InventoryPageRequest {
     @Positive
     private Long skuId;
 
-    private String status;
+    private InventoryStatusQueryEnum status;
 
     @Min(1)
     private Integer pageNo;

@@ -66,12 +66,22 @@ class InventoryControllerContractTest {
     @Test
     void shouldReturnPagedInventoryWhenRequestIsValid() throws Exception {
         mockMvc.perform(get("/inventories/page")
+                        .param("status", "ENABLED")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1))
                 .andExpect(jsonPath("$.pageNo").value(1))
                 .andExpect(jsonPath("$.records[0].skuId").value(101));
+    }
+
+    @Test
+    void shouldRejectPageRequestWithIllegalStatus() throws Exception {
+        mockMvc.perform(get("/inventories/page")
+                        .param("status", "INVALID")
+                        .param("pageNo", "1")
+                        .param("pageSize", "20"))
+                .andExpect(status().isBadRequest());
     }
 
     private static final class StubInventoryRepository implements InventoryStockRepository,

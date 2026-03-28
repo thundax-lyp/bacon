@@ -77,7 +77,7 @@ public class InventoryController {
     public InventoryPageResponse pageInventories(@CurrentTenant Long tenantId,
                                                  @Valid @ModelAttribute InventoryPageRequest request) {
         return InventoryPageResponse.from(inventoryQueryService.pageInventories(new InventoryPageQueryDTO(
-                tenantId, request.getSkuId(), request.getStatus(), request.getPageNo(),
+                tenantId, request.getSkuId(), request.getStatus() == null ? null : request.getStatus().name(), request.getPageNo(),
                 request.getPageSize())));
     }
 

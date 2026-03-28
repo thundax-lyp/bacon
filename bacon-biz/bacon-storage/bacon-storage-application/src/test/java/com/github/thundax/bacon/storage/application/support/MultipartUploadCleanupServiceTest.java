@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -65,6 +66,27 @@ class MultipartUploadCleanupServiceTest {
         assertEquals(MultipartUploadSession.STATUS_ABORTED, sessionCaptor.getValue().getUploadStatus());
         verify(storedObjectStorageRepository).abortMultipartUpload(session);
         verify(multipartUploadPartRepository).deleteByUploadId("upload-expired");
+    }
+
+    @Test
+    void shouldCleanupAlreadyAbortedSessionsWithoutSavingAgain() {
+        MultipartUploadSession session = new MultipartUploadSession(2L, "upload-aborted", "tenant-a",
+                "GENERIC_ATTACHMENT", "owner-2", "attachment", "b.png", "image/png", "attachment/key-b.png",
+                "provider-2", 2048L, 1024L, 1, MultipartUploadSession.STATUS_ABORTED,
+                Instant.now().minusSeconds(7200), Instant.now().minusSeconds(7200), null, Instant.now().minusSeconds(7100));
+        when(multipartUploadSessionRepository.listExpiredSessions(any(), any(), eq(100)))
+                .thenAnswer(invocation -> {
+                    List<String> statuses = invocation.getArgument(0);
+                    assertTrue(statuses.contains(MultipartUploadSession.STATUS_ABORTED));
+                    return List.of(session);
+                });
+
+        int cleanedCount = service.cleanupExpiredSessions();
+
+        assertEquals(1, cleanedCount);
+        verify(storedObjectStorageRepository).abortMultipartUpload(session);
+        verify(multipartUploadPartRepository).deleteByUploadId("upload-aborted");
+        verify(multipartUploadSessionRepository, never()).save(any(MultipartUploadSession.class));
     }
 
     @Test

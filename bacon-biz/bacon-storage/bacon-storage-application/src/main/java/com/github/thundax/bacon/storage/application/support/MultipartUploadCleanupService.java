@@ -20,7 +20,8 @@ public class MultipartUploadCleanupService {
 
     private static final List<String> EXPIRED_UPLOAD_STATUSES = List.of(
             MultipartUploadSession.STATUS_INITIATED,
-            MultipartUploadSession.STATUS_UPLOADING
+            MultipartUploadSession.STATUS_UPLOADING,
+            MultipartUploadSession.STATUS_ABORTED
     );
 
     private final MultipartUploadSessionRepository multipartUploadSessionRepository;
@@ -61,8 +62,10 @@ public class MultipartUploadCleanupService {
     protected void cleanupSingleSession(MultipartUploadSession session) {
         storedObjectStorageRepository.abortMultipartUpload(session);
         multipartUploadPartRepository.deleteByUploadId(session.getUploadId());
-        session.markAborted();
-        multipartUploadSessionRepository.save(session);
+        if (!session.isAborted()) {
+            session.markAborted();
+            multipartUploadSessionRepository.save(session);
+        }
         log.info("Multipart upload expired cleanup completed, uploadId={}, ownerType={}, ownerId={}",
                 session.getUploadId(), session.getOwnerType(), session.getOwnerId());
     }

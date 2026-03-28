@@ -63,11 +63,12 @@ public class StoredObjectApplicationService {
         StoredObject storedObject = storedObjectRepository.findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         ensureAvailable(storedObject, objectId);
-        String beforeStatus = storedObject.getReferenceStatus();
-        if (!storedObjectReferenceRepository.existsByObjectIdAndOwner(objectId, ownerType, ownerId)) {
-            StoredObjectReference reference = StoredObjectReference.create(objectId, ownerType, ownerId);
-            storedObjectReferenceRepository.save(reference);
+        if (storedObjectReferenceRepository.existsByObjectIdAndOwner(objectId, ownerType, ownerId)) {
+            return;
         }
+        String beforeStatus = storedObject.getReferenceStatus();
+        StoredObjectReference reference = StoredObjectReference.create(objectId, ownerType, ownerId);
+        storedObjectReferenceRepository.save(reference);
         storedObject.markReferenced();
         StoredObject savedObject = storedObjectRepository.save(storedObject);
         storageAuditApplicationService.record(savedObject.getTenantId(), objectId, ownerType, ownerId,
@@ -78,6 +79,9 @@ public class StoredObjectApplicationService {
     public void clearObjectReference(Long objectId, String ownerType, String ownerId) {
         StoredObject storedObject = storedObjectRepository.findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
+        if (!storedObjectReferenceRepository.existsByObjectIdAndOwner(objectId, ownerType, ownerId)) {
+            return;
+        }
         String beforeStatus = storedObject.getReferenceStatus();
         storedObjectReferenceRepository.deleteByObjectIdAndOwner(objectId, ownerType, ownerId);
         if (!storedObjectReferenceRepository.existsByObjectId(objectId)) {

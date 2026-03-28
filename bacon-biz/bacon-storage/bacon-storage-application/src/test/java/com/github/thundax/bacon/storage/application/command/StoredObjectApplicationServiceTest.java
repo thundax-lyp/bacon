@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,5 +84,34 @@ class StoredObjectApplicationServiceTest {
         assertThrows(NotFoundException.class,
                 () -> service.markObjectReferenced(102L, "GENERIC_ATTACHMENT", "owner-1"));
         verify(storedObjectReferenceRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void shouldSkipDuplicateReferenceAuditWhenReferenceAlreadyExists() {
+        StoredObject storedObject = StoredObject.newUploadedObject("tenant-a", "LOCAL_FILE", "default",
+                "attachment/object-d.bin", "d.bin", "application/octet-stream", 1024L, "/files/d.bin", null);
+        when(storedObjectRepository.findById(103L)).thenReturn(Optional.of(storedObject));
+        when(storedObjectReferenceRepository.existsByObjectIdAndOwner(103L, "GENERIC_ATTACHMENT", "owner-1"))
+                .thenReturn(true);
+
+        service.markObjectReferenced(103L, "GENERIC_ATTACHMENT", "owner-1");
+
+        verify(storedObjectReferenceRepository, never()).save(any());
+        verify(storedObjectRepository, never()).save(any());
+        verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldSkipMissingReferenceClearAudit() {
+        StoredObject storedObject = StoredObject.newUploadedObject("tenant-a", "LOCAL_FILE", "default",
+                "attachment/object-e.bin", "e.bin", "application/octet-stream", 1024L, "/files/e.bin", null);
+        when(storedObjectRepository.findById(104L)).thenReturn(Optional.of(storedObject));
+        when(storedObjectReferenceRepository.existsByObjectIdAndOwner(104L, "GENERIC_ATTACHMENT", "owner-2"))
+                .thenReturn(false);
+
+        service.clearObjectReference(104L, "GENERIC_ATTACHMENT", "owner-2");
+
+        verify(storedObjectReferenceRepository, never()).deleteByObjectIdAndOwner(any(), any(), any());
+        verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());
     }
 }

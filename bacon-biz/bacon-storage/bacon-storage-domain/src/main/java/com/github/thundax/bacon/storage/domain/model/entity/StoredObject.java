@@ -118,18 +118,6 @@ public class StoredObject {
         this.updatedAt = Instant.now();
     }
 
-    /** 兼容旧命名，后续请使用 getAccessEndpoint。 */
-    @Deprecated
-    public String getAccessUrl() {
-        return accessEndpoint;
-    }
-
-    /** 兼容旧命名，后续请使用 refreshAccessEndpoint。 */
-    @Deprecated
-    public void refreshAccessUrl(String accessUrl) {
-        refreshAccessEndpoint(accessUrl);
-    }
-
     private void ensureActive(String action) {
         if (!OBJECT_STATUS_ACTIVE.equals(this.objectStatus)) {
             throw new IllegalStateException(action + " object must be in ACTIVE status");

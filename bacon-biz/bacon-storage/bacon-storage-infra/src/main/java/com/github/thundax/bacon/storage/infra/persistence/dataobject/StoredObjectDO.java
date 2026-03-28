@@ -61,16 +61,4 @@ public class StoredObjectDO {
     /** 更新时间。 */
     @TableField("updated_at")
     private Instant updatedAt;
-
-    /** 兼容旧命名，后续请使用 getAccessEndpoint。 */
-    @Deprecated
-    public String getAccessUrl() {
-        return accessEndpoint;
-    }
-
-    /** 兼容旧命名，后续请使用 setAccessEndpoint。 */
-    @Deprecated
-    public void setAccessUrl(String accessUrl) {
-        this.accessEndpoint = accessUrl;
-    }
 }

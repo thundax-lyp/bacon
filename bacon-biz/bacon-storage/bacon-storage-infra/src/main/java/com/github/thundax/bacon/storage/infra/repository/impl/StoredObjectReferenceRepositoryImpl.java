@@ -7,6 +7,7 @@ import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceR
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StoredObjectReferenceDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.StoredObjectReferenceMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.dao.DuplicateKeyException;
 
 @Repository
 public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenceRepository {
@@ -23,23 +24,23 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     @Override
-    public StoredObjectReference save(StoredObjectReference storedObjectReference) {
+    public boolean saveIfAbsent(StoredObjectReference storedObjectReference) {
         StoredObjectReferenceDO dataObject = toDataObject(storedObjectReference);
-        if (dataObject.getId() == null) {
-            dataObject.setId(idGenerator.nextId(BIZ_TAG));
+        dataObject.setId(dataObject.getId() == null ? idGenerator.nextId(BIZ_TAG) : dataObject.getId());
+        try {
             storedObjectReferenceMapper.insert(dataObject);
-        } else {
-            storedObjectReferenceMapper.updateById(dataObject);
+            return true;
+        } catch (DuplicateKeyException ex) {
+            return false;
         }
-        return toDomain(dataObject);
     }
 
     @Override
-    public void deleteByObjectIdAndOwner(Long objectId, String ownerType, String ownerId) {
-        storedObjectReferenceMapper.delete(Wrappers.<StoredObjectReferenceDO>lambdaQuery()
+    public boolean deleteByObjectIdAndOwner(Long objectId, String ownerType, String ownerId) {
+        return storedObjectReferenceMapper.delete(Wrappers.<StoredObjectReferenceDO>lambdaQuery()
                 .eq(StoredObjectReferenceDO::getObjectId, objectId)
                 .eq(StoredObjectReferenceDO::getOwnerType, ownerType)
-                .eq(StoredObjectReferenceDO::getOwnerId, ownerId));
+                .eq(StoredObjectReferenceDO::getOwnerId, ownerId)) > 0;
     }
 
     @Override
@@ -59,10 +60,5 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     private StoredObjectReferenceDO toDataObject(StoredObjectReference storedObjectReference) {
         return new StoredObjectReferenceDO(storedObjectReference.getId(), storedObjectReference.getObjectId(),
                 storedObjectReference.getOwnerType(), storedObjectReference.getOwnerId());
-    }
-
-    private StoredObjectReference toDomain(StoredObjectReferenceDO dataObject) {
-        return new StoredObjectReference(dataObject.getId(), dataObject.getObjectId(), dataObject.getOwnerType(),
-                dataObject.getOwnerId());
     }
 }

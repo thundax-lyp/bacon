@@ -4,9 +4,9 @@ import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReferenc
 
 public interface StoredObjectReferenceRepository {
 
-    StoredObjectReference save(StoredObjectReference storedObjectReference);
+    boolean saveIfAbsent(StoredObjectReference storedObjectReference);
 
-    void deleteByObjectIdAndOwner(Long objectId, String ownerType, String ownerId);
+    boolean deleteByObjectIdAndOwner(Long objectId, String ownerType, String ownerId);
 
     boolean existsByObjectIdAndOwner(Long objectId, String ownerType, String ownerId);
 

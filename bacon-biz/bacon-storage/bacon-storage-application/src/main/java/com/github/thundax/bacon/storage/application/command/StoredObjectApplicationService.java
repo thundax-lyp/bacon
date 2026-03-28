@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.storage.application.command;
 
-import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
@@ -65,14 +64,13 @@ public class StoredObjectApplicationService {
         StoredObject storedObject = storedObjectRepository.findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         ensureAvailable(storedObject, objectId);
-        if (storedObjectReferenceRepository.existsByObjectIdAndOwner(objectId, ownerType, ownerId)) {
-            return;
-        }
         String beforeStatus = storedObject.getReferenceStatus();
         StoredObjectReference reference = StoredObjectReference.create(objectId, ownerType, ownerId);
-        storedObjectReferenceRepository.save(reference);
-        storedObject.markReferenced();
-        StoredObject savedObject = storedObjectRepository.save(storedObject);
+        boolean created = storedObjectReferenceRepository.saveIfAbsent(reference);
+        StoredObject savedObject = syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(objectId));
+        if (!created) {
+            return;
+        }
         storageAuditApplicationService.record(savedObject.getTenantId(), objectId, ownerType, ownerId,
                 StorageAuditLog.ACTION_REFERENCE_ADD, beforeStatus, savedObject.getReferenceStatus());
     }
@@ -81,17 +79,14 @@ public class StoredObjectApplicationService {
     public void clearObjectReference(Long objectId, String ownerType, String ownerId) {
         StoredObject storedObject = storedObjectRepository.findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
-        if (!storedObjectReferenceRepository.existsByObjectIdAndOwner(objectId, ownerType, ownerId)) {
+        String beforeStatus = storedObject.getReferenceStatus();
+        boolean deleted = storedObjectReferenceRepository.deleteByObjectIdAndOwner(objectId, ownerType, ownerId);
+        StoredObject savedObject = syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(objectId));
+        if (!deleted) {
             return;
         }
-        String beforeStatus = storedObject.getReferenceStatus();
-        storedObjectReferenceRepository.deleteByObjectIdAndOwner(objectId, ownerType, ownerId);
-        if (!storedObjectReferenceRepository.existsByObjectId(objectId)) {
-            storedObject.markUnreferenced();
-            storedObject = storedObjectRepository.save(storedObject);
-        }
-        storageAuditApplicationService.record(storedObject.getTenantId(), objectId, ownerType, ownerId,
-                StorageAuditLog.ACTION_REFERENCE_CLEAR, beforeStatus, storedObject.getReferenceStatus());
+        storageAuditApplicationService.record(savedObject.getTenantId(), objectId, ownerType, ownerId,
+                StorageAuditLog.ACTION_REFERENCE_CLEAR, beforeStatus, savedObject.getReferenceStatus());
     }
 
     public void deleteObject(Long objectId) {
@@ -120,5 +115,17 @@ public class StoredObjectApplicationService {
         if (storedObject.isDeleting() || storedObject.isDeleted()) {
             throw new NotFoundException("Stored object is unavailable: " + objectId);
         }
+    }
+
+    private StoredObject syncReferenceStatus(StoredObject storedObject, boolean referenced) {
+        if (referenced && !storedObject.isReferenced()) {
+            storedObject.markReferenced();
+            return storedObjectRepository.save(storedObject);
+        }
+        if (!referenced && storedObject.isReferenced()) {
+            storedObject.markUnreferenced();
+            return storedObjectRepository.save(storedObject);
+        }
+        return storedObject;
     }
 }

@@ -5,7 +5,10 @@ import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSessi
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,17 +37,26 @@ class MultipartUploadCleanupServiceTest {
     @Mock
     private StoredObjectStorageRepository storedObjectStorageRepository;
 
+    private SimpleMeterRegistry meterRegistry;
     private StorageMultipartCleanupProperties properties;
     private MultipartUploadCleanupService service;
 
     @BeforeEach
     void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
+        Metrics.addRegistry(meterRegistry);
         properties = new StorageMultipartCleanupProperties();
         properties.setEnabled(true);
         properties.setTimeoutSeconds(3600);
         properties.setBatchSize(100);
         service = new MultipartUploadCleanupService(multipartUploadSessionRepository, multipartUploadPartRepository,
                 storedObjectStorageRepository, properties);
+    }
+
+    @AfterEach
+    void tearDown() {
+        Metrics.removeRegistry(meterRegistry);
+        meterRegistry.close();
     }
 
     @Test
@@ -66,6 +78,8 @@ class MultipartUploadCleanupServiceTest {
         assertEquals(MultipartUploadSession.STATUS_ABORTED, sessionCaptor.getValue().getUploadStatus());
         verify(storedObjectStorageRepository).abortMultipartUpload(session);
         verify(multipartUploadPartRepository).deleteByUploadId("upload-expired");
+        assertEquals(1.0d, meterRegistry.get("bacon.storage.multipart.cleanup.success.total")
+                .tag("uploadStatus", MultipartUploadSession.STATUS_UPLOADING).counter().count());
     }
 
     @Test
@@ -87,6 +101,26 @@ class MultipartUploadCleanupServiceTest {
         verify(storedObjectStorageRepository).abortMultipartUpload(session);
         verify(multipartUploadPartRepository).deleteByUploadId("upload-aborted");
         verify(multipartUploadSessionRepository, never()).save(any(MultipartUploadSession.class));
+        assertEquals(1.0d, meterRegistry.get("bacon.storage.multipart.cleanup.success.total")
+                .tag("uploadStatus", MultipartUploadSession.STATUS_ABORTED).counter().count());
+    }
+
+    @Test
+    void shouldRecordCleanupFailureMetricWhenAbortFails() {
+        MultipartUploadSession session = new MultipartUploadSession(3L, "upload-failed", "tenant-a",
+                "GENERIC_ATTACHMENT", "owner-3", "attachment", "c.png", "image/png", "attachment/key-c.png",
+                "provider-3", 2048L, 1024L, 1, MultipartUploadSession.STATUS_UPLOADING,
+                Instant.now().minusSeconds(7200), Instant.now().minusSeconds(7200), null, null);
+        when(multipartUploadSessionRepository.listExpiredSessions(any(), any(), eq(100)))
+                .thenReturn(List.of(session));
+        org.mockito.Mockito.doThrow(new IllegalStateException("abort-fail"))
+                .when(storedObjectStorageRepository).abortMultipartUpload(session);
+
+        int cleanedCount = service.cleanupExpiredSessions();
+
+        assertEquals(0, cleanedCount);
+        assertEquals(1.0d, meterRegistry.get("bacon.storage.multipart.cleanup.fail.total")
+                .tag("uploadStatus", MultipartUploadSession.STATUS_UPLOADING).counter().count());
     }
 
     @Test

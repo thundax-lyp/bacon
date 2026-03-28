@@ -5,6 +5,7 @@ import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSessi
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
+import io.micrometer.core.instrument.Metrics;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -48,13 +49,22 @@ public class MultipartUploadCleanupService {
                 EXPIRED_UPLOAD_STATUSES, expireBefore, properties.getBatchSize());
         int cleanedCount = 0;
         for (MultipartUploadSession session : expiredSessions) {
+            String uploadStatus = session.getUploadStatus();
             try {
                 cleanupSingleSession(session);
+                Metrics.counter("bacon.storage.multipart.cleanup.success.total",
+                        "uploadStatus", uploadStatus).increment();
                 cleanedCount++;
             } catch (RuntimeException ex) {
+                Metrics.counter("bacon.storage.multipart.cleanup.fail.total",
+                        "uploadStatus", uploadStatus).increment();
                 log.warn("Multipart upload expired cleanup failed, uploadId={}, ownerType={}, ownerId={}",
                         session.getUploadId(), session.getOwnerType(), session.getOwnerId(), ex);
             }
+        }
+        if (!expiredSessions.isEmpty()) {
+            log.info("Multipart upload expired cleanup batch scanned, candidateCount={}, cleanedCount={}",
+                    expiredSessions.size(), cleanedCount);
         }
         return cleanedCount;
     }

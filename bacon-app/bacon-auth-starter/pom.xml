@@ -67,6 +67,14 @@
             <groupId>de.codecentric</groupId>
             <artifactId>spring-boot-admin-starter-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.thundax</groupId>
+            <artifactId>bacon-auth-infra</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

@@ -12,6 +12,9 @@ spring:
         enabled: false
 
 bacon:
+  auth:
+    repository:
+      mode: ${BACON_AUTH_REPOSITORY_MODE:strict}
   runtime:
     mode: micro
   remote:

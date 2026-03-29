@@ -6,10 +6,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(classes = BaconAuthApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
+                "spring.profiles.active=test",
                 "spring.main.lazy-initialization=true",
                 "spring.cloud.nacos.discovery.enabled=false",
                 "spring.cloud.nacos.config.enabled=false",
                 "spring.boot.admin.client.enabled=false",
+                "bacon.auth.repository.mode=memory",
                 "spring.autoconfigure.exclude="
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"

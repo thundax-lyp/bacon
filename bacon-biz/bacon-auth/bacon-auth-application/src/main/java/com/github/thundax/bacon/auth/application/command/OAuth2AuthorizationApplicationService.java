@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class OAuth2AuthorizationApplicationService {
@@ -27,15 +28,18 @@ public class OAuth2AuthorizationApplicationService {
     private final OAuthAuthorizationRepository oAuthAuthorizationRepository;
     private final SessionApplicationService sessionApplicationService;
     private final TokenCodec tokenCodec;
+    private final PasswordEncoder passwordEncoder;
 
     public OAuth2AuthorizationApplicationService(OAuthClientRepository oAuthClientRepository,
                                                  OAuthAuthorizationRepository oAuthAuthorizationRepository,
                                                  SessionApplicationService sessionApplicationService,
-                                                 TokenCodec tokenCodec) {
+                                                 TokenCodec tokenCodec,
+                                                 PasswordEncoder passwordEncoder) {
         this.oAuthClientRepository = oAuthClientRepository;
         this.oAuthAuthorizationRepository = oAuthAuthorizationRepository;
         this.sessionApplicationService = sessionApplicationService;
         this.tokenCodec = tokenCodec;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public AuthorizationView authorize(String accessToken, String clientId, String redirectUri, String scope, String state,
@@ -162,7 +166,10 @@ public class OAuth2AuthorizationApplicationService {
 
     private OAuthClient validateClient(String clientId, String clientSecret) {
         OAuthClient client = loadClient(clientId);
-        if (!client.getClientSecret().equals(clientSecret)) {
+        String storedSecret = client.getClientSecret();
+        boolean plainSecretMatches = storedSecret.equals(clientSecret);
+        boolean hashedSecretMatches = passwordEncoder.matches(clientSecret, storedSecret);
+        if (!plainSecretMatches && !hashedSecretMatches) {
             throw new IllegalArgumentException("OAuth client secret invalid");
         }
         return client;

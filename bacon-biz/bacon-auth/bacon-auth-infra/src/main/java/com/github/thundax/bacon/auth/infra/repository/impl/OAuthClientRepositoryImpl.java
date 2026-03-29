@@ -1,22 +1,62 @@
 package com.github.thundax.bacon.auth.infra.repository.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
+import com.github.thundax.bacon.auth.infra.persistence.dataobject.OAuthClientDO;
+import com.github.thundax.bacon.auth.infra.persistence.mapper.OAuthClientMapper;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @Repository
+@ConditionalOnProperty(name = "bacon.auth.repository.mode", havingValue = "strict", matchIfMissing = true)
 public class OAuthClientRepositoryImpl implements OAuthClientRepository {
 
-    private final InMemoryAuthStore authStore;
+    private static final TypeReference<LinkedHashSet<String>> STRING_SET_TYPE = new TypeReference<>() { };
 
-    public OAuthClientRepositoryImpl(InMemoryAuthStore authStore) {
-        this.authStore = authStore;
+    private final OAuthClientMapper oAuthClientMapper;
+    private final ObjectMapper objectMapper;
+
+    public OAuthClientRepositoryImpl(OAuthClientMapper oAuthClientMapper, ObjectMapper objectMapper) {
+        this.oAuthClientMapper = oAuthClientMapper;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public Optional<OAuthClient> findByClientId(String clientId) {
-        return Optional.ofNullable(authStore.getClients().get(clientId));
+        return Optional.ofNullable(oAuthClientMapper.selectOne(Wrappers.<OAuthClientDO>lambdaQuery()
+                .eq(OAuthClientDO::getClientId, clientId)
+                .last("limit 1"))).map(this::toDomain);
+    }
+
+    private OAuthClient toDomain(OAuthClientDO dataObject) {
+        return new OAuthClient(dataObject.getId(), dataObject.getClientId(), dataObject.getClientSecretHash(),
+                dataObject.getClientName(), dataObject.getClientType(), readStringSet(dataObject.getGrantTypes()),
+                readStringSet(dataObject.getScopes()), readStringSet(dataObject.getRedirectUris()),
+                dataObject.getAccessTokenTtlSeconds(), dataObject.getRefreshTokenTtlSeconds(),
+                Boolean.TRUE.equals(dataObject.getEnabled()), dataObject.getContact(), dataObject.getRemark(),
+                defaultInstant(dataObject.getCreatedAt()), defaultInstant(dataObject.getUpdatedAt()));
+    }
+
+    private Set<String> readStringSet(String json) {
+        if (json == null || json.isBlank()) {
+            return new LinkedHashSet<>();
+        }
+        try {
+            return objectMapper.readValue(json, STRING_SET_TYPE);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed to deserialize oauth client set field", ex);
+        }
+    }
+
+    private Instant defaultInstant(Instant value) {
+        return value == null ? Instant.EPOCH : value;
     }
 }

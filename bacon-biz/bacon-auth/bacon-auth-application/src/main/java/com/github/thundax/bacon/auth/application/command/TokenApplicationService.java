@@ -43,6 +43,7 @@ public class TokenApplicationService {
 
         // refresh token 采用一次性轮转：旧 token 先失效，再签发新的一对 token，降低长期凭证被重放的窗口。
         refreshTokenSession.markUsed(Instant.now());
+        authSessionRepository.saveRefreshToken(refreshTokenSession);
 
         String newAccessToken = tokenCodec.issueUserAccessToken(authSession);
         String newRefreshToken = tokenCodec.randomToken();
@@ -65,6 +66,7 @@ public class TokenApplicationService {
                 .filter(session -> session.getExpireAt().isAfter(Instant.now()))
                 .map(session -> {
                     session.touch(Instant.now());
+                    authSessionRepository.saveSession(session);
                     return new SessionValidationDTO(true, session.getTenantId(), session.getUserId(),
                             session.getSessionId(), session.getIdentityId(), session.getIdentityType(),
                             session.getExpireAt());

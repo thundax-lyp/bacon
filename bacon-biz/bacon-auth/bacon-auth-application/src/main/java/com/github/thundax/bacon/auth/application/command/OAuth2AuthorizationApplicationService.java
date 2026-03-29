@@ -77,6 +77,7 @@ public class OAuth2AuthorizationApplicationService {
             throw new IllegalArgumentException("Decision invalid");
         }
         authorizationRequest.markUsed();
+        oAuthAuthorizationRepository.saveAuthorizationRequest(authorizationRequest);
         if ("REJECT".equalsIgnoreCase(decision)) {
             return new AuthorizationDecisionResult(authorizationRequest.getRedirectUri()
                     + "?error=access_denied&state=" + authorizationRequest.getState(), null);
@@ -107,6 +108,7 @@ public class OAuth2AuthorizationApplicationService {
                     .orElseThrow(() -> new IllegalArgumentException("OAuth refresh token invalid"));
             // refresh_token 换新采用轮转模式：旧 refresh token 标记 USED，再签发新的 access/refresh 对。
             currentRefreshToken.markUsed();
+            oAuthAuthorizationRepository.saveOAuthRefreshToken(currentRefreshToken);
             Optional<OAuthAccessToken> accessToken = oAuthAuthorizationRepository.findAccessTokenByHash(currentRefreshToken.getAccessTokenId());
             Set<String> scopes = accessToken.map(OAuthAccessToken::getScopes).orElseGet(LinkedHashSet::new);
             return issueOAuthTokens(client, currentRefreshToken.getTenantId(), currentRefreshToken.getUserId(), scopes);
@@ -127,8 +129,14 @@ public class OAuth2AuthorizationApplicationService {
 
     public void revoke(String token, String clientId, String clientSecret) {
         validateClient(clientId, clientSecret);
-        oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(token)).ifPresent(OAuthAccessToken::revoke);
-        oAuthAuthorizationRepository.findOAuthRefreshTokenByHash(tokenCodec.sha256(token)).ifPresent(OAuthRefreshToken::revoke);
+        oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(token)).ifPresent(accessToken -> {
+            accessToken.revoke();
+            oAuthAuthorizationRepository.saveAccessToken(accessToken);
+        });
+        oAuthAuthorizationRepository.findOAuthRefreshTokenByHash(tokenCodec.sha256(token)).ifPresent(refreshToken -> {
+            refreshToken.revoke();
+            oAuthAuthorizationRepository.saveOAuthRefreshToken(refreshToken);
+        });
     }
 
     public OAuth2UserinfoDTO userinfo(String accessToken) {

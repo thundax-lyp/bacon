@@ -39,6 +39,7 @@ public class SessionApplicationService {
         AuthSession authSession = authSessionRepository.findSessionBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
         authSession.logout(Instant.now());
+        authSessionRepository.saveSession(authSession);
         authSessionRepository.invalidateRefreshTokensBySessionId(sessionId);
         authAuditApplicationService.record("LOGOUT", "SUCCESS", sessionId);
     }
@@ -47,6 +48,7 @@ public class SessionApplicationService {
         List<AuthSession> sessions = authSessionRepository.findSessionsByTenantIdAndUserId(tenantId, userId);
         sessions.forEach(session -> {
             session.invalidate(reason);
+            authSessionRepository.saveSession(session);
             authSessionRepository.invalidateRefreshTokensBySessionId(session.getSessionId());
         });
         authAuditApplicationService.record("INVALIDATE_USER_SESSIONS", "SUCCESS", tenantId + ":" + userId);
@@ -56,6 +58,7 @@ public class SessionApplicationService {
         List<AuthSession> sessions = authSessionRepository.findSessionsByTenantId(tenantId);
         sessions.forEach(session -> {
             session.invalidate(reason);
+            authSessionRepository.saveSession(session);
             authSessionRepository.invalidateRefreshTokensBySessionId(session.getSessionId());
         });
         authAuditApplicationService.record("INVALIDATE_TENANT_SESSIONS", "SUCCESS", String.valueOf(tenantId));
@@ -65,6 +68,7 @@ public class SessionApplicationService {
         AuthSession authSession = authSessionRepository.findSessionBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
         authSession.invalidate(reason);
+        authSessionRepository.saveSession(authSession);
         authSessionRepository.invalidateRefreshTokensBySessionId(sessionId);
         authAuditApplicationService.record("INVALIDATE_SESSION", "SUCCESS", sessionId);
     }

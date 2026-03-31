@@ -7,7 +7,7 @@ import com.github.thundax.bacon.upms.api.dto.UserDTO;
  */
 public record UserResponse(
         /** 用户主键。 */
-        Long id,
+        String id,
         /** 所属租户编号。 */
         String tenantNo,
         /** 登录账号。 */

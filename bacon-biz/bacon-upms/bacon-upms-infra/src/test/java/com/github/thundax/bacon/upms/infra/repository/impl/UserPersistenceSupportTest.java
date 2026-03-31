@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
@@ -40,10 +41,11 @@ class UserPersistenceSupportTest {
         ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
         User newUser = new User(null, 1L, "alice", "Alice", 9001L, "13800000001", "ENC", 11L,
                 UserStatus.ENABLED);
+        UserId generatedId = UserId.of("U101");
 
         when(userMapper.insert(any(UserDO.class))).thenAnswer(invocation -> {
             UserDO dataObject = invocation.getArgument(0);
-            dataObject.setId(101L);
+            dataObject.setId(generatedId);
             return 1;
         });
 
@@ -53,7 +55,7 @@ class UserPersistenceSupportTest {
         assertThat(captor.getValue().getCreatedAt()).isNotNull();
         assertThat(captor.getValue().getUpdatedAt()).isNotNull();
         assertThat(captor.getValue().getAvatarObjectId()).isEqualTo(9001L);
-        assertThat(savedUser.getId()).isEqualTo(101L);
+        assertThat(savedUser.getId()).isEqualTo(generatedId);
         assertThat(savedUser.getAccount()).isEqualTo("alice");
         assertThat(savedUser.getAvatarObjectId()).isEqualTo(9001L);
     }

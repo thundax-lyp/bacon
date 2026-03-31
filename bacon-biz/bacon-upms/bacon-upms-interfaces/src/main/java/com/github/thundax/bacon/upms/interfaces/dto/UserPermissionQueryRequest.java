@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class UserPermissionQueryRequest {
 
     private String tenantNo;
-    private Long userId;
+    private String userId;
 }

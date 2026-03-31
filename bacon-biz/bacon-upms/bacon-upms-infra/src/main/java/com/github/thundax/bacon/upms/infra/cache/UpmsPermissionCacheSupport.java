@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.cache;
 
 import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.CreateCache;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import java.util.Collection;
 import java.util.List;
@@ -67,7 +68,7 @@ public class UpmsPermissionCacheSupport {
         return copyMenus(loadedMenus);
     }
 
-    public List<Menu> getUserMenuTree(Long tenantId, Long userId, Supplier<List<Menu>> loader) {
+    public List<Menu> getUserMenuTree(Long tenantId, UserId userId, Supplier<List<Menu>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
         List<Menu> cachedMenus = userMenuTreeCache.get(cacheKey);
         if (cachedMenus != null) {
@@ -78,7 +79,7 @@ public class UpmsPermissionCacheSupport {
         return copyMenus(loadedMenus);
     }
 
-    public Set<String> getUserPermissionCodes(Long tenantId, Long userId, Supplier<Set<String>> loader) {
+    public Set<String> getUserPermissionCodes(Long tenantId, UserId userId, Supplier<Set<String>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
         Set<String> cachedCodes = userPermissionCodeCache.get(cacheKey);
         if (cachedCodes != null) {
@@ -89,7 +90,7 @@ public class UpmsPermissionCacheSupport {
         return loadedCodes;
     }
 
-    public Set<Long> getUserDepartmentIds(Long tenantId, Long userId, Supplier<Set<Long>> loader) {
+    public Set<Long> getUserDepartmentIds(Long tenantId, UserId userId, Supplier<Set<Long>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
         Set<Long> cachedDepartmentIds = userDepartmentIdsCache.get(cacheKey);
         if (cachedDepartmentIds != null) {
@@ -100,7 +101,7 @@ public class UpmsPermissionCacheSupport {
         return loadedDepartmentIds;
     }
 
-    public Set<String> getUserScopeTypes(Long tenantId, Long userId, Supplier<Set<String>> loader) {
+    public Set<String> getUserScopeTypes(Long tenantId, UserId userId, Supplier<Set<String>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
         Set<String> cachedScopeTypes = userScopeTypesCache.get(cacheKey);
         if (cachedScopeTypes != null) {
@@ -115,22 +116,22 @@ public class UpmsPermissionCacheSupport {
         tenantPermissionVersionCache.put(tenantId, System.nanoTime());
     }
 
-    public void evictUserPermission(Long tenantId, Long userId) {
+    public void evictUserPermission(Long tenantId, UserId userId) {
         userPermissionVersionCache.put(buildUserVersionKey(tenantId, userId), System.nanoTime());
     }
 
-    public void evictUsersPermission(Long tenantId, Collection<Long> userIds) {
+    public void evictUsersPermission(Long tenantId, Collection<UserId> userIds) {
         if (userIds == null || userIds.isEmpty()) {
             return;
         }
         userIds.stream().distinct().forEach(userId -> evictUserPermission(tenantId, userId));
     }
 
-    private String buildUserCacheKey(Long tenantId, Long userId) {
+    private String buildUserCacheKey(Long tenantId, UserId userId) {
         return tenantId + ":" + userId + ":" + getTenantPermissionVersion(tenantId) + ":" + getUserPermissionVersion(tenantId, userId);
     }
 
-    private String buildUserVersionKey(Long tenantId, Long userId) {
+    private String buildUserVersionKey(Long tenantId, UserId userId) {
         return tenantId + ":" + userId;
     }
 
@@ -139,7 +140,7 @@ public class UpmsPermissionCacheSupport {
         return version == null ? INITIAL_VERSION : version;
     }
 
-    private long getUserPermissionVersion(Long tenantId, Long userId) {
+    private long getUserPermissionVersion(Long tenantId, UserId userId) {
         Long version = userPermissionVersionCache.get(buildUserVersionKey(tenantId, userId));
         return version == null ? INITIAL_VERSION : version;
     }

@@ -47,7 +47,7 @@ public class UpmsProviderController {
 
     @Operation(summary = "按用户 ID 查询用户")
     @GetMapping("/users/{userId}")
-    public UserDTO getUserById(@RequestParam("tenantNo") String tenantNo, @PathVariable Long userId) {
+    public UserDTO getUserById(@RequestParam("tenantNo") String tenantNo, @PathVariable String userId) {
         return userApplicationService.getUserById(tenantNo, userId);
     }
 
@@ -70,7 +70,7 @@ public class UpmsProviderController {
     @Operation(summary = "当前用户修改密码")
     @PostMapping("/users/{userId}/password/change")
     public void changePassword(@RequestParam("tenantNo") String tenantNo,
-                               @PathVariable Long userId,
+                               @PathVariable String userId,
                                @RequestBody UserPasswordChangeDTO request) {
         userApplicationService.changePassword(tenantNo, userId, request.getOldPassword(), request.getNewPassword());
     }
@@ -108,25 +108,25 @@ public class UpmsProviderController {
 
     @Operation(summary = "查询用户角色列表")
     @GetMapping("/roles")
-    public List<RoleDTO> getRolesByUserId(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") Long userId) {
+    public List<RoleDTO> getRolesByUserId(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") String userId) {
         return roleApplicationService.getRolesByUserId(tenantNo, userId);
     }
 
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
-    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") Long userId) {
+    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") String userId) {
         return permissionQueryService.getUserMenuTree(tenantNo, userId);
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
-    public Set<String> getUserPermissionCodes(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") Long userId) {
+    public Set<String> getUserPermissionCodes(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") String userId) {
         return permissionQueryService.getUserPermissionCodes(tenantNo, userId);
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @GetMapping("/permissions/data-scope")
-    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") Long userId) {
+    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") String userId) {
         return permissionQueryService.getUserDataScope(tenantNo, userId);
     }
 }

@@ -47,7 +47,7 @@ public class AuthProviderController {
     @Operation(summary = "失效指定用户会话")
     @PostMapping("/sessions/invalidate/user")
     public void invalidateUserSessions(@RequestParam("tenantNo") String tenantNo,
-                                       @RequestParam("userId") Long userId,
+                                       @RequestParam("userId") String userId,
                                        @RequestParam("reason") String reason) {
         sessionApplicationService.invalidateUserSessions(tenantNo, userId, reason);
     }

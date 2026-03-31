@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class DepartmentDO {
     @TableField("parent_id")
     private Long parentId;
     @TableField("leader_user_id")
-    private Long leaderUserId;
+    private UserId leaderUserId;
     @TableField("status")
     private String status;
     @TableField("created_by")

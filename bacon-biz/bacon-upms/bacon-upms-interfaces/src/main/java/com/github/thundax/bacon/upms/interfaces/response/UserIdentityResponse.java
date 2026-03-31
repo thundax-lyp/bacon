@@ -11,7 +11,7 @@ public record UserIdentityResponse(
         /** 所属租户编号。 */
         String tenantNo,
         /** 关联用户主键。 */
-        Long userId,
+        String userId,
         /** 身份标识类型。 */
         String identityType,
         /** 身份标识值。 */

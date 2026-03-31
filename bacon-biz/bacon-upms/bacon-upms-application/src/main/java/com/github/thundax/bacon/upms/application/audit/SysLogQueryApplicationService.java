@@ -41,7 +41,8 @@ public class SysLogQueryApplicationService {
     private SysLogDTO toDto(SysLogRecord record) {
         return new SysLogDTO(record.getId(), record.getTenantId(), record.getTraceId(), record.getRequestId(),
                 record.getModule(), record.getAction(), record.getEventType(), record.getResult(),
-                record.getOperatorId(), record.getOperatorName(), record.getClientIp(), record.getRequestUri(),
+                record.getOperatorId() == null ? null : record.getOperatorId().value(), record.getOperatorName(),
+                record.getClientIp(), record.getRequestUri(),
                 record.getHttpMethod(), record.getCostMs(), record.getErrorMessage(), record.getOccurredAt());
     }
 

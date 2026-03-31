@@ -28,7 +28,7 @@ public class OAuthAuthorizationRequest {
     /** 所属租户编号。 */
     private final String tenantNo;
     /** 用户主键。 */
-    private final Long userId;
+    private final String userId;
     /** 过期时间。 */
     private final Instant expireAt;
     /** 是否已使用。 */
@@ -36,7 +36,7 @@ public class OAuthAuthorizationRequest {
 
     public OAuthAuthorizationRequest(String authorizationRequestId, String clientId, String redirectUri,
                                      Set<String> scopes, String state, String codeChallenge,
-                                     String codeChallengeMethod, String tenantNo, Long userId, Instant expireAt) {
+                                     String codeChallengeMethod, String tenantNo, String userId, Instant expireAt) {
         this.authorizationRequestId = authorizationRequestId;
         this.clientId = clientId;
         this.redirectUri = redirectUri;

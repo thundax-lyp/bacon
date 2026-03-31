@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import java.util.List;
 import java.util.Optional;
@@ -9,7 +10,7 @@ public interface RoleRepository {
 
     Optional<Role> findRoleById(Long tenantId, Long roleId);
 
-    List<Role> findRolesByUserId(Long tenantId, Long userId);
+    List<Role> findRolesByUserId(Long tenantId, UserId userId);
 
     List<Role> pageRoles(Long tenantId, String code, String name, String roleType, String status, int pageNo, int pageSize);
 

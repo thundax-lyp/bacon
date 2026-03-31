@@ -19,7 +19,7 @@ public class CurrentSessionDTO {
     /** 所属租户编号。 */
     private String tenantNo;
     /** 用户主键。 */
-    private Long userId;
+    private String userId;
     /** 身份标识类型。 */
     private String identityType;
     /** 登录方式类型。 */

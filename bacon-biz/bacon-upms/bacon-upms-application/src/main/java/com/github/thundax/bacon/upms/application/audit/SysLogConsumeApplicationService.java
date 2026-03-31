@@ -1,11 +1,10 @@
 package com.github.thundax.bacon.upms.application.audit;
 
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
-
-import static java.lang.Long.parseLong;
 
 @Service
 public class SysLogConsumeApplicationService {
@@ -26,7 +25,7 @@ public class SysLogConsumeApplicationService {
                 sysLogDTO.getAction(),
                 sysLogDTO.getEventType().name(),
                 sysLogDTO.getResult().name(),
-                parseLong(sysLogDTO.getOperatorId()),
+                UserId.of(sysLogDTO.getOperatorId()),
                 sysLogDTO.getOperatorName(),
                 sysLogDTO.getClientIp(),
                 sysLogDTO.getRequestUri(),

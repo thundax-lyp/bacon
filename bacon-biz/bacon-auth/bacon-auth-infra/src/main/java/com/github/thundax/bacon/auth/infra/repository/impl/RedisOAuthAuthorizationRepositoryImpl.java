@@ -102,7 +102,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private String codeChallenge;
         private String codeChallengeMethod;
         private String tenantNo;
-        private Long userId;
+        private String userId;
         private Instant expireAt;
         private boolean used;
 
@@ -132,7 +132,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private String tokenHash;
         private String clientId;
         private String tenantNo;
-        private Long userId;
+        private String userId;
         private Set<String> scopes;
         private Instant issuedAt;
         private Instant expireAt;
@@ -163,7 +163,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private String accessTokenId;
         private String clientId;
         private String tenantNo;
-        private Long userId;
+        private String userId;
         private Instant issuedAt;
         private Instant expireAt;
         private String tokenStatus;

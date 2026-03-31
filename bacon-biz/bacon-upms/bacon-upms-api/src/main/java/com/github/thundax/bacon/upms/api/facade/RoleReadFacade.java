@@ -8,5 +8,5 @@ public interface RoleReadFacade {
 
     RoleDTO getRoleById(String tenantNo, Long roleId);
 
-    List<RoleDTO> getRolesByUserId(String tenantNo, Long userId);
+    List<RoleDTO> getRolesByUserId(String tenantNo, String userId);
 }

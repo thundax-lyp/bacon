@@ -24,7 +24,7 @@ public class DepartmentTreeDTO {
     /** 父部门主键，根部门固定为 0。 */
     private Long parentId;
     /** 部门负责人用户主键。 */
-    private Long leaderUserId;
+    private String leaderUserId;
     /** 部门状态。 */
     private String status;
     /** 子部门列表。 */

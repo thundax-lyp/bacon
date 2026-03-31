@@ -34,7 +34,7 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/menu-tree")
-    public List<UserMenuTreeResponse> getUserMenuTree(@PathVariable Long userId,
+    public List<UserMenuTreeResponse> getUserMenuTree(@PathVariable String userId,
                                                       @ModelAttribute TenantScopedRequest request) {
         return permissionQueryService.getUserMenuTree(request.getTenantNo(), userId).stream()
                 .map(UserMenuTreeResponse::from)
@@ -45,7 +45,7 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户权限码", eventType = LogEventType.QUERY)
     @GetMapping("/permission-codes")
-    public Set<String> getUserPermissionCodes(@PathVariable Long userId,
+    public Set<String> getUserPermissionCodes(@PathVariable String userId,
                                               @ModelAttribute TenantScopedRequest request) {
         return permissionQueryService.getUserPermissionCodes(request.getTenantNo(), userId);
     }
@@ -54,7 +54,7 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户数据范围", eventType = LogEventType.QUERY)
     @GetMapping("/data-scope")
-    public UserDataScopeResponse getUserDataScope(@PathVariable Long userId,
+    public UserDataScopeResponse getUserDataScope(@PathVariable String userId,
                                                   @ModelAttribute TenantScopedRequest request) {
         return UserDataScopeResponse.from(permissionQueryService.getUserDataScope(request.getTenantNo(), userId));
     }

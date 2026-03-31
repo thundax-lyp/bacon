@@ -18,7 +18,7 @@ public record DepartmentTreeResponse(
         /** 父部门主键，根部门固定为 0。 */
         Long parentId,
         /** 部门负责人用户主键。 */
-        Long leaderUserId,
+        String leaderUserId,
         /** 部门状态。 */
         String status,
         /** 子部门列表。 */

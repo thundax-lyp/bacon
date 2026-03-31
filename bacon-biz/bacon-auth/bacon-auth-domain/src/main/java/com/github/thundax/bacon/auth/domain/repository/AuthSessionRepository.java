@@ -12,7 +12,7 @@ public interface AuthSessionRepository {
 
     Optional<AuthSession> findSessionBySessionId(String sessionId);
 
-    List<AuthSession> findSessionsByTenantNoAndUserId(String tenantNo, Long userId);
+    List<AuthSession> findSessionsByTenantNoAndUserId(String tenantNo, String userId);
 
     List<AuthSession> findSessionsByTenantNo(String tenantNo);
 

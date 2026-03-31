@@ -46,7 +46,7 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantNoAndUserId(String tenantNo, Long userId) {
+    public List<AuthSession> findSessionsByTenantNoAndUserId(String tenantNo, String userId) {
         return loadSessionsByIndex(AuthRedisKeyHelper.userSessions(tenantNo, userId));
     }
 
@@ -116,7 +116,7 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
         private Long id;
         private String sessionId;
         private String tenantNo;
-        private Long userId;
+        private String userId;
         private String identityId;
         private String identityType;
         private String loginType;

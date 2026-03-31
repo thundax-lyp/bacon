@@ -21,6 +21,10 @@ public abstract class BaseId<T> implements Identifier<T>, Serializable {
             throw new IllegalArgumentException("id value type mismatch: expected " + type.getName()
                     + " but was " + value.getClass().getName());
         }
+        validate(value);
+    }
+
+    protected void validate(T value) {
     }
 
     @Override

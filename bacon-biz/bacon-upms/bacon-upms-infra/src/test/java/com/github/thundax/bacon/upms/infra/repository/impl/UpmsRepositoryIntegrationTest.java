@@ -9,6 +9,9 @@ import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.common.id.core.DefaultIds;
+import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -33,6 +36,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.h2.jdbcx.JdbcDataSource;
@@ -86,7 +90,7 @@ class UpmsRepositoryIntegrationTest {
                         code varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
                         parent_id bigint NULL,
-                        leader_user_id bigint NULL,
+                        leader_user_id varchar(64) NULL,
                         status varchar(16) NOT NULL,
                         created_by varchar(64) NULL,
                         created_at timestamp NULL,
@@ -97,7 +101,7 @@ class UpmsRepositoryIntegrationTest {
                     """);
             statement.execute("""
                     CREATE TABLE bacon_upms_user (
-                        id bigint NOT NULL AUTO_INCREMENT,
+                        id varchar(64) NOT NULL,
                         tenant_id bigint NOT NULL,
                         account varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
@@ -118,7 +122,7 @@ class UpmsRepositoryIntegrationTest {
                     CREATE TABLE bacon_upms_user_identity (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id bigint NOT NULL,
-                        user_id bigint NOT NULL,
+                        user_id varchar(64) NOT NULL,
                         identity_type varchar(32) NOT NULL,
                         identity_value varchar(128) NOT NULL,
                         enabled boolean NOT NULL,
@@ -133,7 +137,7 @@ class UpmsRepositoryIntegrationTest {
                     CREATE TABLE bacon_upms_user_credential (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id bigint NOT NULL,
-                        user_id bigint NOT NULL,
+                        user_id varchar(64) NOT NULL,
                         identity_id bigint NULL,
                         credential_type varchar(32) NOT NULL,
                         factor_level varchar(16) NOT NULL,
@@ -205,7 +209,7 @@ class UpmsRepositoryIntegrationTest {
                     CREATE TABLE bacon_upms_user_role_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id bigint NOT NULL,
-                        user_id bigint NOT NULL,
+                        user_id varchar(64) NOT NULL,
                         role_id bigint NOT NULL,
                         PRIMARY KEY (id)
                     )
@@ -258,11 +262,11 @@ class UpmsRepositoryIntegrationTest {
         CONTEXT.close();
     }
 
-    private boolean isUserDeleted(Long userId) {
+    private boolean isUserDeleted(String userId) {
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(
-                     "SELECT deleted FROM bacon_upms_user WHERE id = " + userId)) {
+                     "SELECT deleted FROM bacon_upms_user WHERE id = '" + userId + "'")) {
             if (!resultSet.next()) {
                 return false;
             }
@@ -292,6 +296,7 @@ class UpmsRepositoryIntegrationTest {
 
         User persistedUser = userRepository.findUserByAccount(1001L, "alice").orElseThrow();
         assertNotNull(persistedUser.getId());
+        assertTrue(persistedUser.getId().value().startsWith("U"));
         assertEquals(901L, persistedUser.getAvatarObjectId());
         assertNotNull(persistedUser.getPasswordHash());
         assertTrue(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice").isPresent());
@@ -341,7 +346,7 @@ class UpmsRepositoryIntegrationTest {
         assertFalse(userRepository.findUserIdentity(1001L, "ACCOUNT", "bob").isPresent());
         assertTrue(roleRepository.findRolesByUserId(1001L, updatedUser.getId()).isEmpty());
         assertFalse(departmentRepository.existsUserInDepartment(1001L, department.getId()));
-        assertTrue(isUserDeleted(updatedUser.getId()));
+        assertTrue(isUserDeleted(updatedUser.getId().value()));
     }
 
     @Test
@@ -432,6 +437,7 @@ class UpmsRepositoryIntegrationTest {
         SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
             MybatisSqlSessionFactoryBean factoryBean = new MybatisSqlSessionFactoryBean();
             factoryBean.setDataSource(dataSource);
+            factoryBean.setTypeHandlersPackage("com.github.thundax.bacon.common.mybatis.handler");
             return factoryBean.getObject();
         }
 
@@ -535,8 +541,16 @@ class UpmsRepositoryIntegrationTest {
         UserRepositoryImpl userRepositoryImpl(UserPersistenceSupport userPersistenceSupport,
                                               RoleRepositoryImpl roleRepository,
                                               PasswordEncoder passwordEncoder,
-                                              UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
-            return new UserRepositoryImpl(userPersistenceSupport, roleRepository, passwordEncoder, upmsPermissionCacheSupport);
+                                              UpmsPermissionCacheSupport upmsPermissionCacheSupport,
+                                              Ids ids) {
+            return new UserRepositoryImpl(userPersistenceSupport, roleRepository, passwordEncoder,
+                    upmsPermissionCacheSupport, ids);
+        }
+
+        @Bean
+        Ids ids() {
+            AtomicLong sequence = new AtomicLong(100L);
+            return new DefaultIds(bizTag -> sequence.incrementAndGet());
         }
 
         @Bean

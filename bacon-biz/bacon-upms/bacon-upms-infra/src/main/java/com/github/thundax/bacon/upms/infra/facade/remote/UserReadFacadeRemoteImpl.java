@@ -26,7 +26,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
     }
 
     @Override
-    public UserDTO getUserById(String tenantNo, Long userId) {
+    public UserDTO getUserById(String tenantNo, String userId) {
         // 用户主数据读取按 tenantNo + userId 定位，避免在调用侧绕过租户边界。
         return restClient.get()
                 .uri("/providers/upms/users/{userId}?tenantNo={tenantNo}", userId, tenantNo)

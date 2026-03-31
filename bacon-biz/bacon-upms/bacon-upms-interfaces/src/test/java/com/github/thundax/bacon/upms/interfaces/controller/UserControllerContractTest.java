@@ -34,14 +34,14 @@ class UserControllerContractTest {
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
         when(tenantRequestResolver.resolveTenantId("tenant-demo")).thenReturn(1001L);
-        when(userApplicationService.updateAvatar(eq(1001L), eq(101L), eq("avatar.png"), eq("image/png"), eq(4L),
+        when(userApplicationService.updateAvatar(eq(1001L), eq("U101"), eq("avatar.png"), eq("image/png"), eq(4L),
                 org.mockito.ArgumentMatchers.any()))
-                .thenReturn(new UserDTO(101L, "tenant-demo", "alice", "Alice", 9001L, "13800000001", 11L,
+                .thenReturn(new UserDTO("U101", "tenant-demo", "alice", "Alice", 9001L, "13800000001", 11L,
                         "https://cdn.example.com/avatar/9001.png", "ENABLED"));
 
         MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[]{1, 2, 3, 4});
 
-        mockMvc.perform(multipart("/upms/users/{userId}/avatar", 101L)
+        mockMvc.perform(multipart("/upms/users/{userId}/avatar", "U101")
                         .file(file)
                         .param("tenantNo", "tenant-demo")
                         .with(request -> {
@@ -49,7 +49,7 @@ class UserControllerContractTest {
                             return request;
                         }))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(101L))
+                .andExpect(jsonPath("$.id").value("U101"))
                 .andExpect(jsonPath("$.avatarObjectId").value(9001L))
                 .andExpect(jsonPath("$.avatarUrl").value("https://cdn.example.com/avatar/9001.png"));
     }
@@ -57,10 +57,10 @@ class UserControllerContractTest {
     @Test
     void shouldRedirectAvatarRequestToStorageAccessUrl() throws Exception {
         when(tenantRequestResolver.resolveTenantId("tenant-demo")).thenReturn(1001L);
-        when(userApplicationService.getAvatarAccessUrl(1001L, 101L))
+        when(userApplicationService.getAvatarAccessUrl(1001L, "U101"))
                 .thenReturn(Optional.of("https://cdn.example.com/avatar/9001.png"));
 
-        mockMvc.perform(get("/upms/users/{userId}/avatar", 101L)
+        mockMvc.perform(get("/upms/users/{userId}/avatar", "U101")
                         .param("tenantNo", "tenant-demo"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", "https://cdn.example.com/avatar/9001.png"));

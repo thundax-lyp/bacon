@@ -19,7 +19,7 @@ public class SessionValidationDTO {
     /** 所属租户编号。 */
     private String tenantNo;
     /** 用户主键。 */
-    private Long userId;
+    private String userId;
     /** 会话标识。 */
     private String sessionId;
     /** 身份标识值。 */

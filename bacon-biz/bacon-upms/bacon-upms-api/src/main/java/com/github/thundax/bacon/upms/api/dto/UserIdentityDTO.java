@@ -17,7 +17,7 @@ public class UserIdentityDTO {
     /** 所属租户编号。 */
     private String tenantNo;
     /** 关联用户主键。 */
-    private Long userId;
+    private String userId;
     /** 身份标识类型。 */
     private String identityType;
     /** 身份标识值。 */

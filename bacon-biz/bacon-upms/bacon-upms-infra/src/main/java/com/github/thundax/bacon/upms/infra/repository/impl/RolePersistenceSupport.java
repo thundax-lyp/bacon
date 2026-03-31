@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
@@ -62,7 +63,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    List<Role> findRolesByUserId(Long tenantId, Long userId) {
+    List<Role> findRolesByUserId(Long tenantId, UserId userId) {
         List<Long> roleIds = userRoleRelMapper.selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
                         .eq(UserRoleRelDO::getTenantId, tenantId)
                         .eq(UserRoleRelDO::getUserId, userId))
@@ -81,7 +82,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    List<Long> findAssignedUserIds(Long tenantId, Long roleId) {
+    List<UserId> findAssignedUserIds(Long tenantId, Long roleId) {
         return userRoleRelMapper.selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
                         .eq(UserRoleRelDO::getTenantId, tenantId)
                         .eq(UserRoleRelDO::getRoleId, roleId))
@@ -151,7 +152,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .eq(DataPermissionRuleDO::getRoleId, roleId));
     }
 
-    void replaceUserRoles(Long tenantId, Long userId, Collection<Long> roleIds) {
+    void replaceUserRoles(Long tenantId, UserId userId, Collection<Long> roleIds) {
         userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery()
                 .eq(UserRoleRelDO::getTenantId, tenantId)
                 .eq(UserRoleRelDO::getUserId, userId));
@@ -163,7 +164,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
     }
 
-    void deleteUserRolesByUser(Long tenantId, Long userId) {
+    void deleteUserRolesByUser(Long tenantId, UserId userId) {
         userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery()
                 .eq(UserRoleRelDO::getTenantId, tenantId)
                 .eq(UserRoleRelDO::getUserId, userId));

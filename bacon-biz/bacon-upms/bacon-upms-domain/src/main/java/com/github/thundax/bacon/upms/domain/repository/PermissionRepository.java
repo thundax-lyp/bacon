@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 
 import java.util.List;
@@ -9,13 +10,13 @@ public interface PermissionRepository {
 
     List<Menu> listMenus(Long tenantId);
 
-    List<Menu> getUserMenuTree(Long tenantId, Long userId);
+    List<Menu> getUserMenuTree(Long tenantId, UserId userId);
 
-    Set<String> getUserPermissionCodes(Long tenantId, Long userId);
+    Set<String> getUserPermissionCodes(Long tenantId, UserId userId);
 
-    Set<Long> getUserDepartmentIds(Long tenantId, Long userId);
+    Set<Long> getUserDepartmentIds(Long tenantId, UserId userId);
 
-    Set<String> getUserScopeTypes(Long tenantId, Long userId);
+    Set<String> getUserScopeTypes(Long tenantId, UserId userId);
 
-    boolean hasAllAccess(Long tenantId, Long userId);
+    boolean hasAllAccess(Long tenantId, UserId userId);
 }

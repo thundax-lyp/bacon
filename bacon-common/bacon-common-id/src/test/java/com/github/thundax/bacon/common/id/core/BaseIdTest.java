@@ -39,4 +39,11 @@ class BaseIdTest {
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("id value must not be null");
     }
+
+    @Test
+    void shouldRejectBlankStringValue() {
+        assertThatThrownBy(() -> UserId.of(" "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("id cannot be blank");
+    }
 }

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,7 +21,7 @@ public class UserCredentialDO {
     @TableField("tenant_id")
     private Long tenantId;
     @TableField("user_id")
-    private Long userId;
+    private UserId userId;
     @TableField("identity_id")
     private Long identityId;
     @TableField("credential_type")

@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
@@ -29,19 +31,22 @@ public class UserRepositoryImpl implements UserRepository {
     private final RoleRepositoryImpl roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UpmsPermissionCacheSupport cacheSupport;
+    private final Ids ids;
 
     public UserRepositoryImpl(UserPersistenceSupport support,
                               RoleRepositoryImpl roleRepository,
                               PasswordEncoder passwordEncoder,
-                              UpmsPermissionCacheSupport cacheSupport) {
+                              UpmsPermissionCacheSupport cacheSupport,
+                              Ids ids) {
         this.support = support;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.cacheSupport = cacheSupport;
+        this.ids = ids;
     }
 
     @Override
-    public Optional<User> findUserById(Long tenantId, Long userId) {
+    public Optional<User> findUserById(Long tenantId, UserId userId) {
         return support.findUserById(tenantId, userId);
     }
 
@@ -56,7 +61,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<UserCredential> findUserCredential(Long tenantId, Long userId, String credentialType) {
+    public Optional<UserCredential> findUserCredential(Long tenantId, UserId userId, String credentialType) {
         return support.findUserCredential(tenantId, userId, credentialType);
     }
 
@@ -87,7 +92,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User updatePassword(Long tenantId, Long userId, String password, boolean needChangePassword) {
+    public User updatePassword(Long tenantId, UserId userId, String password, boolean needChangePassword) {
         User currentUser = findUserById(tenantId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         User updatedUser = new User(
@@ -111,7 +116,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<Role> assignRoles(Long tenantId, Long userId, List<Long> roleIds) {
+    public List<Role> assignRoles(Long tenantId, UserId userId, List<Long> roleIds) {
         List<Role> roles = roleIds.stream()
                 .map(roleId -> roleRepository.findRoleById(tenantId, roleId)
                         .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId)))
@@ -122,7 +127,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void deleteUser(Long tenantId, Long userId) {
+    public void deleteUser(Long tenantId, UserId userId) {
         support.deleteUser(tenantId, userId);
         roleRepository.clearUserRoles(tenantId, userId);
         support.deleteUserIdentitiesByUser(tenantId, userId);
@@ -131,7 +136,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private User createUser(User user) {
-        return new User(null, user.getTenantId(), user.getAccount(), user.getName(), user.getAvatarObjectId(),
+        return new User(ids.userId(), user.getTenantId(), user.getAccount(), user.getName(), user.getAvatarObjectId(),
                 user.getPhone(), passwordEncoder.encode(DEFAULT_PASSWORD), user.getDepartmentId(),
                 user.getStatus());
     }

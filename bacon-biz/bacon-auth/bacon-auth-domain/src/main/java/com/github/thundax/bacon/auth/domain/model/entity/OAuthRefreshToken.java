@@ -21,7 +21,7 @@ public class OAuthRefreshToken {
     /** 所属租户编号。 */
     private final String tenantNo;
     /** 用户主键。 */
-    private final Long userId;
+    private final String userId;
     /** 签发时间。 */
     private final Instant issuedAt;
     /** 过期时间。 */
@@ -30,7 +30,7 @@ public class OAuthRefreshToken {
     private String tokenStatus;
 
     public OAuthRefreshToken(String tokenId, String tokenHash, String accessTokenId, String clientId, String tenantNo,
-                             Long userId, Instant issuedAt, Instant expireAt) {
+                             String userId, Instant issuedAt, Instant expireAt) {
         this.tokenId = tokenId;
         this.tokenHash = tokenHash;
         this.accessTokenId = accessTokenId;

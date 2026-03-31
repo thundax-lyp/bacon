@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
@@ -27,7 +28,7 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public List<Role> findRolesByUserId(Long tenantId, Long userId) {
+    public List<Role> findRolesByUserId(Long tenantId, UserId userId) {
         return support.findRolesByUserId(tenantId, userId);
     }
 
@@ -68,7 +69,7 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public void deleteRole(Long tenantId, Long roleId) {
-        List<Long> assignedUserIds = support.findAssignedUserIds(tenantId, roleId);
+        List<UserId> assignedUserIds = support.findAssignedUserIds(tenantId, roleId);
         support.deleteRole(tenantId, roleId);
         cacheSupport.evictUsersPermission(tenantId, assignedUserIds);
     }
@@ -128,12 +129,12 @@ public class RoleRepositoryImpl implements RoleRepository {
         return safeDepartmentIds;
     }
 
-    void bindUserRoles(Long tenantId, Long userId, List<Role> assignedRoles) {
+    void bindUserRoles(Long tenantId, UserId userId, List<Role> assignedRoles) {
         support.replaceUserRoles(tenantId, userId, assignedRoles.stream().map(Role::getId).toList());
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 
-    void clearUserRoles(Long tenantId, Long userId) {
+    void clearUserRoles(Long tenantId, UserId userId) {
         support.deleteUserRolesByUser(tenantId, userId);
         cacheSupport.evictUserPermission(tenantId, userId);
     }

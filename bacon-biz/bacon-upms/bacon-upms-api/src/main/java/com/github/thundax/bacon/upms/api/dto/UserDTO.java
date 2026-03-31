@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class UserDTO {
 
     /** 用户主键。 */
-    private Long id;
+    private String id;
     /** 所属租户编号。 */
     private String tenantNo;
     /** 登录账号。 */

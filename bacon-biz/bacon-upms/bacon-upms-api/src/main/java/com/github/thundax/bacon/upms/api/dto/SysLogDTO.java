@@ -30,7 +30,7 @@ public class SysLogDTO {
     /** 执行结果。 */
     private String result;
     /** 操作人主键。 */
-    private Long operatorId;
+    private String operatorId;
     /** 操作人名称。 */
     private String operatorName;
     /** 客户端 IP。 */

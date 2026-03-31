@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
@@ -9,13 +10,13 @@ import java.util.Optional;
 
 public interface UserRepository {
 
-    Optional<User> findUserById(Long tenantId, Long userId);
+    Optional<User> findUserById(Long tenantId, UserId userId);
 
     Optional<User> findUserByAccount(Long tenantId, String account);
 
     Optional<UserIdentity> findUserIdentity(Long tenantId, String identityType, String identityValue);
 
-    Optional<UserCredential> findUserCredential(Long tenantId, Long userId, String credentialType);
+    Optional<UserCredential> findUserCredential(Long tenantId, UserId userId, String credentialType);
 
     List<User> pageUsers(Long tenantId, String account, String name, String phone, String status, int pageNo, int pageSize);
 
@@ -25,9 +26,9 @@ public interface UserRepository {
 
     User save(User user);
 
-    User updatePassword(Long tenantId, Long userId, String passwordHash, boolean needChangePassword);
+    User updatePassword(Long tenantId, UserId userId, String passwordHash, boolean needChangePassword);
 
-    List<Role> assignRoles(Long tenantId, Long userId, List<Long> roleIds);
+    List<Role> assignRoles(Long tenantId, UserId userId, List<Long> roleIds);
 
-    void deleteUser(Long tenantId, Long userId);
+    void deleteUser(Long tenantId, UserId userId);
 }

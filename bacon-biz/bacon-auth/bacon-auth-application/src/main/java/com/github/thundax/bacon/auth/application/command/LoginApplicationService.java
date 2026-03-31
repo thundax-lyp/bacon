@@ -65,15 +65,15 @@ public class LoginApplicationService {
     }
 
     public UserLoginDTO loginBySms(String phone, String smsCaptcha) {
-        return createLoginSession("1001", 2002L, phone, "PHONE", "SMS", null);
+        return createLoginSession("1001", "U2002", phone, "PHONE", "SMS", null);
     }
 
     public UserLoginDTO loginByWecom(String code) {
-        return createLoginSession("1001", 2003L, code, "WECOM", "WECOM", null);
+        return createLoginSession("1001", "U2003", code, "WECOM", "WECOM", null);
     }
 
     public UserLoginDTO loginByGithub(String code) {
-        return createLoginSession("1001", 2004L, code, "GITHUB", "GITHUB", null);
+        return createLoginSession("1001", "U2004", code, "GITHUB", "GITHUB", null);
     }
 
     private void validatePasswordLoginCredential(UserLoginCredentialDTO credential, String plainPassword) {
@@ -98,7 +98,7 @@ public class LoginApplicationService {
         }
     }
 
-    private UserLoginDTO createLoginSession(String tenantNo, Long userId, String identitySeed, String identityType,
+    private UserLoginDTO createLoginSession(String tenantNo, String userId, String identitySeed, String identityType,
                                                  String loginType, Boolean needChangePassword) {
         Instant now = Instant.now();
         String sessionId = UUID.randomUUID().toString();

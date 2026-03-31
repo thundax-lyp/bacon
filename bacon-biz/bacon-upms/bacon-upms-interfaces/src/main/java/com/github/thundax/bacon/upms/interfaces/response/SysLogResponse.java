@@ -24,7 +24,7 @@ public record SysLogResponse(
         /** 执行结果。 */
         String result,
         /** 操作人主键。 */
-        Long operatorId,
+        String operatorId,
         /** 操作人名称。 */
         String operatorName,
         /** 客户端 IP。 */

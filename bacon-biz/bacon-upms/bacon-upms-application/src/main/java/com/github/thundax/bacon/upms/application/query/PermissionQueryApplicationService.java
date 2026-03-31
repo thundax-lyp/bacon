@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.application.query;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
@@ -27,32 +28,32 @@ public class PermissionQueryApplicationService {
         this.tenantRepository = tenantRepository;
     }
 
-    public List<UserMenuTreeDTO> getUserMenuTree(Long tenantId, Long userId) {
+    public List<UserMenuTreeDTO> getUserMenuTree(Long tenantId, UserId userId) {
         // 菜单树的最终组装仍由 MenuApplicationService 负责，这里只聚合权限仓储结果，不重复实现树构建规则。
         return menuApplicationService.toMenuTree(permissionRepository.getUserMenuTree(tenantId, userId));
     }
 
-    public List<UserMenuTreeDTO> getUserMenuTree(String tenantNo, Long userId) {
-        return getUserMenuTree(resolveTenantIdByTenantNo(tenantNo), userId);
+    public List<UserMenuTreeDTO> getUserMenuTree(String tenantNo, String userId) {
+        return getUserMenuTree(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId));
     }
 
-    public Set<String> getUserPermissionCodes(Long tenantId, Long userId) {
+    public Set<String> getUserPermissionCodes(Long tenantId, UserId userId) {
         return permissionRepository.getUserPermissionCodes(tenantId, userId);
     }
 
-    public Set<String> getUserPermissionCodes(String tenantNo, Long userId) {
-        return getUserPermissionCodes(resolveTenantIdByTenantNo(tenantNo), userId);
+    public Set<String> getUserPermissionCodes(String tenantNo, String userId) {
+        return getUserPermissionCodes(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId));
     }
 
-    public UserDataScopeDTO getUserDataScope(Long tenantId, Long userId) {
+    public UserDataScopeDTO getUserDataScope(Long tenantId, UserId userId) {
         // 数据权限由多个维度组合而成：是否全量、范围类型集合、部门集合；查询层只做聚合，不引入额外推导。
         return new UserDataScopeDTO(permissionRepository.hasAllAccess(tenantId, userId),
                 permissionRepository.getUserScopeTypes(tenantId, userId),
                 permissionRepository.getUserDepartmentIds(tenantId, userId));
     }
 
-    public UserDataScopeDTO getUserDataScope(String tenantNo, Long userId) {
-        return getUserDataScope(resolveTenantIdByTenantNo(tenantNo), userId);
+    public UserDataScopeDTO getUserDataScope(String tenantNo, String userId) {
+        return getUserDataScope(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId));
     }
 
     private Long resolveTenantIdByTenantNo(String tenantNo) {

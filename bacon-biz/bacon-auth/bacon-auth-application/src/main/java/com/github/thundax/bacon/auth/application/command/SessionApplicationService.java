@@ -44,7 +44,7 @@ public class SessionApplicationService {
         authAuditApplicationService.record("LOGOUT", "SUCCESS", sessionId);
     }
 
-    public void invalidateUserSessions(String tenantNo, Long userId, String reason) {
+    public void invalidateUserSessions(String tenantNo, String userId, String reason) {
         List<AuthSession> sessions = authSessionRepository.findSessionsByTenantNoAndUserId(tenantNo, userId);
         sessions.forEach(session -> {
             session.invalidate(reason);

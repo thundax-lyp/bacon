@@ -58,7 +58,7 @@ public class OAuth2AuthorizationApplicationService {
         }
         var currentSession = sessionApplicationService.currentSession(accessToken);
         String tenantNo = currentSession.getTenantNo();
-        Long userId = currentSession.getUserId();
+        String userId = currentSession.getUserId();
 
         // authorize 阶段只落授权请求，不直接发 code；真正的授权决定由后续 approve/reject 明确给出。
         String authorizationRequestId = UUID.randomUUID().toString();
@@ -144,10 +144,10 @@ public class OAuth2AuthorizationApplicationService {
                 .filter(current -> "ACTIVE".equals(current.getTokenStatus()))
                 .orElseThrow(() -> new IllegalArgumentException("OAuth access token invalid"));
         String name = token.getScopes().contains("profile") ? "demo-user-" + token.getUserId() : null;
-        return new OAuth2UserinfoDTO(String.valueOf(token.getUserId()), token.getTenantNo(), name);
+        return new OAuth2UserinfoDTO(token.getUserId(), token.getTenantNo(), name);
     }
 
-    private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, String tenantNo, Long userId, Set<String> scopes) {
+    private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, String tenantNo, String userId, Set<String> scopes) {
         Instant now = Instant.now();
         String accessTokenValue = tokenCodec.randomToken();
         String accessTokenId = tokenCodec.sha256(accessTokenValue);

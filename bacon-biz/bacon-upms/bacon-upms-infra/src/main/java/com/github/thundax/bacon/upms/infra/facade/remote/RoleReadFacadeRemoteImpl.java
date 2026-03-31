@@ -37,7 +37,7 @@ public class RoleReadFacadeRemoteImpl implements RoleReadFacade {
     }
 
     @Override
-    public List<RoleDTO> getRolesByUserId(String tenantNo, Long userId) {
+    public List<RoleDTO> getRolesByUserId(String tenantNo, String userId) {
         // 用户角色列表直接以 upms 聚合结果为准，调用方不再本地拼接用户-角色关系。
         return restClient.get()
                 .uri("/providers/upms/roles?tenantNo={tenantNo}&userId={userId}", tenantNo, userId)

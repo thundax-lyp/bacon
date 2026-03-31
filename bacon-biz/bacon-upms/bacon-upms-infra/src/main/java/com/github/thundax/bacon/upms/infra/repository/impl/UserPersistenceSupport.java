@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
@@ -33,7 +34,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.userCredentialMapper = userCredentialMapper;
     }
 
-    Optional<User> findUserById(Long tenantId, Long userId) {
+    Optional<User> findUserById(Long tenantId, UserId userId) {
         return Optional.ofNullable(userMapper.selectOne(Wrappers.<UserDO>lambdaQuery()
                         .eq(UserDO::getTenantId, tenantId)
                         .eq(UserDO::getId, userId)
@@ -58,7 +59,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    Optional<UserCredential> findUserCredential(Long tenantId, Long userId, String credentialType) {
+    Optional<UserCredential> findUserCredential(Long tenantId, UserId userId, String credentialType) {
         return Optional.ofNullable(userCredentialMapper.selectOne(Wrappers.<UserCredentialDO>lambdaQuery()
                         .eq(UserCredentialDO::getTenantId, tenantId)
                         .eq(UserCredentialDO::getUserId, userId)
@@ -95,7 +96,9 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     User saveUser(User user) {
         UserDO userDO = toDataObject(user);
         LocalDateTime now = LocalDateTime.now();
-        if (userDO.getId() == null) {
+        boolean insert = userDO.getId() == null || userMapper.selectById(userDO.getId()) == null;
+        if (insert) {
+            userDO.setDeleted(false);
             userDO.setCreatedAt(now);
             userDO.setUpdatedAt(now);
             userMapper.insert(userDO);
@@ -106,7 +109,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return toDomain(userDO);
     }
 
-    void deleteUser(Long tenantId, Long userId) {
+    void deleteUser(Long tenantId, UserId userId) {
         UserDO userDO = userMapper.selectOne(Wrappers.<UserDO>lambdaQuery()
                 .eq(UserDO::getTenantId, tenantId)
                 .eq(UserDO::getId, userId)
@@ -119,13 +122,13 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         userMapper.updateById(userDO);
     }
 
-    void deleteUserIdentitiesByUser(Long tenantId, Long userId) {
+    void deleteUserIdentitiesByUser(Long tenantId, UserId userId) {
         userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery()
                 .eq(UserIdentityDO::getTenantId, tenantId)
                 .eq(UserIdentityDO::getUserId, userId));
     }
 
-    void deleteUserIdentitiesByUserAndType(Long tenantId, Long userId, String identityType) {
+    void deleteUserIdentitiesByUserAndType(Long tenantId, UserId userId, String identityType) {
         userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery()
                 .eq(UserIdentityDO::getTenantId, tenantId)
                 .eq(UserIdentityDO::getUserId, userId)
@@ -160,7 +163,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return toDomain(dataObject);
     }
 
-    void deleteUserCredentialsByUser(Long tenantId, Long userId) {
+    void deleteUserCredentialsByUser(Long tenantId, UserId userId) {
         userCredentialMapper.delete(Wrappers.<UserCredentialDO>lambdaQuery()
                 .eq(UserCredentialDO::getTenantId, tenantId)
                 .eq(UserCredentialDO::getUserId, userId));

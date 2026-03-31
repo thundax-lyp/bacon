@@ -12,7 +12,7 @@ public record CurrentSessionResponse(
         /** 所属租户编号。 */
         String tenantNo,
         /** 用户主键。 */
-        Long userId,
+        String userId,
         /** 身份标识类型。 */
         String identityType,
         /** 登录方式类型。 */

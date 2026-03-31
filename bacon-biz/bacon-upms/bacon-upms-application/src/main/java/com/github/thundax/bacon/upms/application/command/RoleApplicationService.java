@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.application.command;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
@@ -34,15 +35,15 @@ public class RoleApplicationService {
         return getRoleById(resolveTenantIdByTenantNo(tenantNo), roleId);
     }
 
-    public List<RoleDTO> getRolesByUserId(Long tenantId, Long userId) {
+    public List<RoleDTO> getRolesByUserId(Long tenantId, UserId userId) {
         String tenantNo = resolveTenantNoByTenantId(tenantId);
         return roleRepository.findRolesByUserId(tenantId, userId).stream()
                 .map(role -> toDto(role, tenantNo))
                 .toList();
     }
 
-    public List<RoleDTO> getRolesByUserId(String tenantNo, Long userId) {
-        return getRolesByUserId(resolveTenantIdByTenantNo(tenantNo), userId);
+    public List<RoleDTO> getRolesByUserId(String tenantNo, String userId) {
+        return getRolesByUserId(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId));
     }
 
     public RolePageResultDTO pageRoles(RolePageQueryDTO query) {

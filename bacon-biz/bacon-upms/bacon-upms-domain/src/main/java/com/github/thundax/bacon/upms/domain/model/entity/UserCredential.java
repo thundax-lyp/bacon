@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -11,7 +12,7 @@ public class UserCredential {
 
     private Long id;
     private Long tenantId;
-    private Long userId;
+    private UserId userId;
     private Long identityId;
     private String credentialType;
     private String factorLevel;
@@ -29,7 +30,7 @@ public class UserCredential {
     private String updatedBy;
     private Instant updatedAt;
 
-    public UserCredential(Long id, Long tenantId, Long userId, Long identityId, String credentialType,
+    public UserCredential(Long id, Long tenantId, UserId userId, Long identityId, String credentialType,
                           String factorLevel, String credentialValue, String status, boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
                           Instant expiresAt, Instant lastVerifiedAt) {
@@ -38,7 +39,7 @@ public class UserCredential {
                 lastVerifiedAt, null, null, null, null);
     }
 
-    public UserCredential(Long id, Long tenantId, Long userId, Long identityId, String credentialType,
+    public UserCredential(Long id, Long tenantId, UserId userId, Long identityId, String credentialType,
                           String factorLevel, String credentialValue, String status, boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
                           Instant expiresAt, Instant lastVerifiedAt, String createdBy,

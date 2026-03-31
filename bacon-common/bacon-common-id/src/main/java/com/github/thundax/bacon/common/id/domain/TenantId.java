@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.common.id.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.github.thundax.bacon.common.id.core.BaseId;
+import com.github.thundax.bacon.common.id.core.BaseStringId;
 
-public final class TenantId extends BaseId<String> {
+public final class TenantId extends BaseStringId {
 
     private TenantId(String value) {
-        super(value, String.class);
+        super(value);
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)

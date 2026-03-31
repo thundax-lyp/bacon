@@ -17,7 +17,7 @@ public class AuthSession {
     /** 所属租户编号。 */
     private final String tenantNo;
     /** 用户主键。 */
-    private final Long userId;
+    private final String userId;
     /** 身份标识值。 */
     private final String identityId;
     /** 身份标识类型。 */
@@ -37,7 +37,7 @@ public class AuthSession {
     /** 失效原因。 */
     private String invalidateReason;
 
-    public AuthSession(Long id, String sessionId, String tenantNo, Long userId, String identityId, String identityType,
+    public AuthSession(Long id, String sessionId, String tenantNo, String userId, String identityId, String identityType,
                        String loginType, Instant issuedAt, Instant expireAt) {
         this.id = id;
         this.sessionId = sessionId;

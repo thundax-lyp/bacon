@@ -17,7 +17,7 @@ public record UserLoginResponse(
         /** 会话标识。 */
         String sessionId,
         /** 用户主键。 */
-        Long userId,
+        String userId,
         /** 所属租户编号。 */
         String tenantNo,
         /** 是否需要修改密码。 */

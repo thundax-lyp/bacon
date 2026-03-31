@@ -17,7 +17,7 @@ public class UserLoginCredentialDTO {
     /** 所属租户编号。 */
     private String tenantNo;
     /** 用户主键。 */
-    private Long userId;
+    private String userId;
     /** 登录账号。 */
     private String account;
     /** 手机号。 */

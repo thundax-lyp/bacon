@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.application.command;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
@@ -80,16 +81,16 @@ public class DepartmentApplicationService {
                 .toList();
     }
 
-    public DepartmentDTO createDepartment(Long tenantId, String code, String name, Long parentId, Long leaderUserId) {
+    public DepartmentDTO createDepartment(Long tenantId, String code, String name, Long parentId, String leaderUserId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         validateParent(tenantId, parentId);
         return toDto(departmentRepository.save(new Department(null, tenantId, normalize(code), normalize(name),
-                parentId == null ? 0L : parentId, leaderUserId, UpmsStatusEnum.ENABLED.value())));
+                parentId == null ? 0L : parentId, toUserId(leaderUserId), UpmsStatusEnum.ENABLED.value())));
     }
 
     public DepartmentDTO updateDepartment(Long tenantId, Long departmentId, String code, String name, Long parentId,
-                                          Long leaderUserId) {
+                                          String leaderUserId) {
         Department currentDepartment = departmentRepository.findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
         validateRequired(code, "code");
@@ -104,7 +105,7 @@ public class DepartmentApplicationService {
                 normalize(code),
                 normalize(name),
                 parentId == null ? 0L : parentId,
-                leaderUserId,
+                toUserId(leaderUserId),
                 currentDepartment.getStatus(),
                 currentDepartment.getCreatedBy(),
                 currentDepartment.getCreatedAt(),
@@ -131,7 +132,8 @@ public class DepartmentApplicationService {
     private DepartmentDTO toDto(Department department, String tenantNo) {
         return new DepartmentDTO(department.getId(), tenantNo,
                 department.getCode(), department.getName(),
-                department.getParentId(), department.getLeaderUserId(), department.getStatus());
+                department.getParentId(), department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
+                department.getStatus());
     }
 
     private DepartmentTreeDTO toTreeDto(Department department) {
@@ -141,7 +143,12 @@ public class DepartmentApplicationService {
     private DepartmentTreeDTO toTreeDto(Department department, String tenantNo) {
         return new DepartmentTreeDTO(department.getId(), tenantNo,
                 department.getCode(), department.getName(),
-                department.getParentId(), department.getLeaderUserId(), department.getStatus(), new java.util.ArrayList<>());
+                department.getParentId(), department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
+                department.getStatus(), new java.util.ArrayList<>());
+    }
+
+    private UserId toUserId(String userId) {
+        return userId == null || userId.isBlank() ? null : UserId.of(userId.trim());
     }
 
     private void validateParent(Long tenantId, Long parentId) {

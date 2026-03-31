@@ -22,7 +22,7 @@ public class SessionCommandFacadeRemoteImpl implements SessionCommandFacade {
     }
 
     @Override
-    public void invalidateUserSessions(String tenantNo, Long userId, String reason) {
+    public void invalidateUserSessions(String tenantNo, String userId, String reason) {
         // 会话失效走 provider 命令端点，不吞异常；调用方据此决定是回滚主流程还是继续补偿。
         restClient.post()
                 .uri("/providers/auth/sessions/invalidate/user?tenantNo={tenantNo}&userId={userId}&reason={reason}",

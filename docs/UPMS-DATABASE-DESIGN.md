@@ -34,6 +34,7 @@
 - `Order`、`Inventory`、`Payment` 业务表
 - 导入导出临时文件表
 - `StoredObject` 主表与引用表
+- 进程内统一 `Store`、统一内存数据库镜像、全量主数据常驻集合
 
 ## 3. Database Rules
 
@@ -54,6 +55,9 @@
 - 审计表使用 `occurred_at`，不使用逻辑删除
 - 访问日志表使用 `occurred_at`，不使用逻辑删除
 - 当前设计不单独引入 `version` 字段
+- 正式仓储固定以本文件定义的数据表为唯一真相源
+- 不允许把 `User`、`Role`、`Menu`、`Resource`、`Tenant`、授权关系等主数据仅保存在 JVM 内存结构中
+- 缓存或本地内存状态只能保存可重建的派生读结果，不得替代表数据
 
 ## 4. Naming Rules
 
@@ -739,12 +743,21 @@
 - 审计查询主表固定为 `bacon_upms_audit_log`
 - 访问日志查询主表固定为 `bacon_upms_sys_log`
 - 高频读模型由 `Mapper` 查询组装，不新增冗余快照表
+- 用户、角色、部门、岗位、菜单、资源、租户的分页查询固定由数据库完成过滤、排序和分页
+- 不允许通过 `select all + application/repository 内存过滤` 实现正式分页查询
+- 菜单树、权限码、数据权限上下文允许先查关系表再在查询层组装结果，但输入集合必须来自受控数据库查询，不得来自手工维护的进程内全量集合
+- 缓存未命中时，查询固定回源本节定义的主表与关系表重建结果
+- 不做启动时全租户、全用户、全角色、全菜单预加载
 
 ## 11. Cache Mapping Rules
 
 - `upms:menu-tree:{tenantId}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_role_menu_rel`、`bacon_upms_user_role_rel`
 - `upms:perm-codes:{tenantId}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_resource`、`bacon_upms_role_menu_rel`、`bacon_upms_role_resource_rel`、`bacon_upms_user_role_rel`
 - `upms:data-scope:{tenantId}:{userId}` 来源于 `bacon_upms_role`、`bacon_upms_data_permission_rule`、`bacon_upms_role_data_scope_rel`、`bacon_upms_user_role_rel`
+- 上述缓存都是数据库查询结果的派生缓存，不单独建“缓存主表”
+- 缓存丢失后固定允许从数据库全量重算单个 `(tenantId, userId)` 结果
+- 不允许把租户全量菜单、租户全量权限码、平台全量授权主数据整体序列化后作为单键缓存
+- 不允许在 `RepositoryImpl` 内额外维护与这些缓存重复的长期本地 `Map` 真相源
 
 ## 12. Open Items
 

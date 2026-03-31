@@ -166,10 +166,9 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键，全局唯一 |
-| `code` | `varchar(64)` | N | 租户编码，全局唯一 |
+| `tenant_id` | `varchar(64)` | N | 租户编号，全局唯一 |
 | `name` | `varchar(128)` | N | 租户名称 |
-| `status` | `varchar(16)` | N | 状态，取值见 `status` |
+| `status` | `varchar(16)` | N | 状态，取值固定为 `ENABLED`、`DISABLED` |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `updated_by` | `varchar(64)` | Y | 更新人标识 |
@@ -179,7 +178,6 @@
 
 - `pk(id)`
 - `uk_tenant_id(tenant_id)`
-- `uk_code(code)`
 
 ### 7.2 `bacon_upms_user`
 
@@ -669,7 +667,7 @@
 推荐摘要字段：
 
 - `User`: `id`、`account`、`name`、`phoneMasked`、`departmentId`、`status`、`deleted`
-- `Tenant`: `tenantNo`、`code`、`name`、`status`
+- `Tenant`: `tenantNo`、`name`、`status`
 - `Department`: `id`、`code`、`name`、`parentId`、`leaderUserId`、`status`
 - `Post`: `id`、`code`、`name`、`sort`、`status`
 - `Role`: `id`、`code`、`name`、`roleType`、`dataScopeType`、`status`、`builtIn`
@@ -767,7 +765,7 @@
 - `User.account` 全局唯一，逻辑删除后也不得复用
 - `User.avatar_object_id` 允许为空
 - `User.avatar_object_id` 不为空时必须指向状态为 `ACTIVE` 的 `StoredObject`
-- `Tenant.code`、`Department.code`、`Post.code`、`Role.code`、`Resource.code` 全局唯一
+- `Tenant.tenantNo`、`Department.code`、`Post.code`、`Role.code`、`Resource.code` 全局唯一
 - `Menu.permission_code`、`Resource.permission_code` 全局唯一
 - `Resource(path, method)` 全局唯一
 - `UserIdentity(identity_type, identity_value)` 全局唯一

@@ -221,6 +221,7 @@ OrderId orderId = ids.orderId();
 - `UPMS` 中租户表主键固定使用 `tenant_id varchar(64)`
 - `tenantNo` 仅允许作为兼容性接口命名存在，不再作为独立于 `TenantId` 的第二套领域标识
 - 所有跨租户关联字段中的 `tenant_id` 与 `TenantId` 语义保持一致
+- 数据交互对象（如 `TenantDTO` / `TenantResponse`）只暴露 `TenantId`，旧的 `tenantNo` 属性已经移除，若暂时还存在 `tenantNo` 参数名必须在边界层立刻转换为 `TenantId`。
 
 ## 10. Non-Functional Requirements
 

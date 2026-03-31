@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import java.util.List;
@@ -8,31 +9,31 @@ import java.util.Set;
 
 public interface RoleRepository {
 
-    Optional<Role> findRoleById(Long tenantId, Long roleId);
+    Optional<Role> findRoleById(TenantId tenantId, Long roleId);
 
-    List<Role> findRolesByUserId(Long tenantId, UserId userId);
+    List<Role> findRolesByUserId(TenantId tenantId, UserId userId);
 
-    List<Role> pageRoles(Long tenantId, String code, String name, String roleType, String status, int pageNo, int pageSize);
+    List<Role> pageRoles(TenantId tenantId, String code, String name, String roleType, String status, int pageNo, int pageSize);
 
-    long countRoles(Long tenantId, String code, String name, String roleType, String status);
+    long countRoles(TenantId tenantId, String code, String name, String roleType, String status);
 
     Role save(Role role);
 
-    Role updateStatus(Long tenantId, Long roleId, String status);
+    Role updateStatus(TenantId tenantId, Long roleId, String status);
 
-    void deleteRole(Long tenantId, Long roleId);
+    void deleteRole(TenantId tenantId, Long roleId);
 
-    Set<Long> getAssignedMenus(Long tenantId, Long roleId);
+    Set<Long> getAssignedMenus(TenantId tenantId, Long roleId);
 
-    Set<Long> assignMenus(Long tenantId, Long roleId, Set<Long> menuIds);
+    Set<Long> assignMenus(TenantId tenantId, Long roleId, Set<Long> menuIds);
 
-    Set<String> getAssignedResources(Long tenantId, Long roleId);
+    Set<String> getAssignedResources(TenantId tenantId, Long roleId);
 
-    Set<String> assignResources(Long tenantId, Long roleId, Set<String> resourceCodes);
+    Set<String> assignResources(TenantId tenantId, Long roleId, Set<String> resourceCodes);
 
-    String getAssignedDataScopeType(Long tenantId, Long roleId);
+    String getAssignedDataScopeType(TenantId tenantId, Long roleId);
 
-    Set<Long> getAssignedDataScopeDepartments(Long tenantId, Long roleId);
+    Set<Long> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId);
 
-    Set<Long> assignDataScope(Long tenantId, Long roleId, String dataScopeType, Set<Long> departmentIds);
+    Set<Long> assignDataScope(TenantId tenantId, Long roleId, String dataScopeType, Set<Long> departmentIds);
 }

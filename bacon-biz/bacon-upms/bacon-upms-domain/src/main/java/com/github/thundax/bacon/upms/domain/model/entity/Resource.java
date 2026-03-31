@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -12,7 +13,7 @@ public class Resource {
     /** 资源主键。 */
     private Long id;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private TenantId tenantId;
     /** 资源编码。 */
     private String code;
     /** 资源名称。 */
@@ -34,12 +35,12 @@ public class Resource {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Resource(Long id, Long tenantId, String code, String name, String resourceType,
+    public Resource(Long id, TenantId tenantId, String code, String name, String resourceType,
                     String httpMethod, String uri, String status) {
         this(id, tenantId, code, name, resourceType, httpMethod, uri, status, null, null, null, null);
     }
 
-    public Resource(Long id, Long tenantId, String code, String name, String resourceType, String httpMethod,
+    public Resource(Long id, TenantId tenantId, String code, String name, String resourceType, String httpMethod,
                     String uri, String status, String createdBy, Instant createdAt, String updatedBy,
                     Instant updatedAt) {
         this.id = id;

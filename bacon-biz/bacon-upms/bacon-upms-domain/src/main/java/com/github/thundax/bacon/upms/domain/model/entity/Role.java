@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -13,7 +14,7 @@ public class Role {
     /** 角色主键。 */
     private Long id;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private TenantId tenantId;
     /** 角色编码。 */
     private String code;
     /** 角色名称。 */
@@ -33,12 +34,12 @@ public class Role {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Role(Long id, Long tenantId, String code, String name, String roleType,
+    public Role(Long id, TenantId tenantId, String code, String name, String roleType,
                 String dataScopeType, String status) {
         this(id, tenantId, code, name, roleType, dataScopeType, status, null, null, null, null);
     }
 
-    public Role(Long id, Long tenantId, String code, String name, String roleType, String dataScopeType,
+    public Role(Long id, TenantId tenantId, String code, String name, String roleType, String dataScopeType,
                 String status, String createdBy, Instant createdAt, String updatedBy,
                 Instant updatedAt) {
         this.id = id;

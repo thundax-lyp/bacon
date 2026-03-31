@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface TenantRepository {
 
-    Optional<Tenant> findTenantById(Long tenantId);
+    Optional<Tenant> findTenantById(TenantId tenantId);
 
     Optional<Tenant> findTenantByTenantId(TenantId tenantId);
 

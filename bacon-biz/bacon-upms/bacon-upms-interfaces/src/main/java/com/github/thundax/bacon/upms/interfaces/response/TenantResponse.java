@@ -7,15 +7,14 @@ import com.github.thundax.bacon.upms.api.dto.TenantDTO;
  */
 public record TenantResponse(
         /** 租户主键。 */
-        Long id,
-        /** 租户编号。 */
-        String tenantNo,
+        String id,
         /** 租户名称。 */
         String name,
         /** 租户状态。 */
         String status) {
 
     public static TenantResponse from(TenantDTO dto) {
-        return new TenantResponse(dto.getId(), dto.getTenantNo(), dto.getName(), dto.getStatus());
+        String tenantId = dto.getId() == null ? null : dto.getId().value();
+        return new TenantResponse(tenantId, dto.getName(), dto.getStatus());
     }
 }

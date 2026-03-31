@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -10,25 +11,25 @@ import java.util.Optional;
 
 public interface UserRepository {
 
-    Optional<User> findUserById(Long tenantId, UserId userId);
+    Optional<User> findUserById(TenantId tenantId, UserId userId);
 
-    Optional<User> findUserByAccount(Long tenantId, String account);
+    Optional<User> findUserByAccount(TenantId tenantId, String account);
 
-    Optional<UserIdentity> findUserIdentity(Long tenantId, String identityType, String identityValue);
+    Optional<UserIdentity> findUserIdentity(TenantId tenantId, String identityType, String identityValue);
 
-    Optional<UserCredential> findUserCredential(Long tenantId, UserId userId, String credentialType);
+    Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, String credentialType);
 
-    List<User> pageUsers(Long tenantId, String account, String name, String phone, String status, int pageNo, int pageSize);
+    List<User> pageUsers(TenantId tenantId, String account, String name, String phone, String status, int pageNo, int pageSize);
 
-    long countUsers(Long tenantId, String account, String name, String phone, String status);
+    long countUsers(TenantId tenantId, String account, String name, String phone, String status);
 
-    List<User> listUsers(Long tenantId, String account, String name, String phone, String status);
+    List<User> listUsers(TenantId tenantId, String account, String name, String phone, String status);
 
     User save(User user);
 
-    User updatePassword(Long tenantId, UserId userId, String passwordHash, boolean needChangePassword);
+    User updatePassword(TenantId tenantId, UserId userId, String passwordHash, boolean needChangePassword);
 
-    List<Role> assignRoles(Long tenantId, UserId userId, List<Long> roleIds);
+    List<Role> assignRoles(TenantId tenantId, UserId userId, List<Long> roleIds);
 
-    void deleteUser(Long tenantId, UserId userId);
+    void deleteUser(TenantId tenantId, UserId userId);
 }

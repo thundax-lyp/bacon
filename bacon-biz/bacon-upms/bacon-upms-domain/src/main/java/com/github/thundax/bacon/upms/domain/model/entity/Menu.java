@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,7 +16,7 @@ public class Menu {
     /** 菜单主键。 */
     private Long id;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private TenantId tenantId;
     /** 菜单类型。 */
     private String menuType;
     /** 菜单名称。 */

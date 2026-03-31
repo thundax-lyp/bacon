@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.persistence.dataobject;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -19,7 +20,7 @@ public class UserDO {
     @TableId(type = IdType.INPUT)
     private UserId id;
     @TableField("tenant_id")
-    private Long tenantId;
+    private TenantId tenantId;
     @TableField("account")
     private String account;
     @TableField("name")

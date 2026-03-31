@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import lombok.Getter;
@@ -15,7 +16,7 @@ public class User {
     /** 用户主键。 */
     private UserId id;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private TenantId tenantId;
     /** 登录账号。 */
     private String account;
     /** 用户名称。 */
@@ -39,25 +40,25 @@ public class User {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public User(UserId id, Long tenantId, String account, String name, String phone, String passwordHash,
+    public User(UserId id, TenantId tenantId, String account, String name, String phone, String passwordHash,
                 Long departmentId, UserStatus status) {
         this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status);
     }
 
-    public User(UserId id, Long tenantId, String account, String name, Long avatarObjectId, String phone,
+    public User(UserId id, TenantId tenantId, String account, String name, Long avatarObjectId, String phone,
                 String passwordHash, Long departmentId, UserStatus status) {
         this(id, tenantId, account, name, avatarObjectId, phone, passwordHash, departmentId, status,
                 null, null, null, null);
     }
 
-    public User(UserId id, Long tenantId, String account, String name, String phone, String passwordHash,
+    public User(UserId id, TenantId tenantId, String account, String name, String phone, String passwordHash,
                 Long departmentId, UserStatus status, String createdBy, Instant createdAt,
                 String updatedBy, Instant updatedAt) {
         this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status,
                 createdBy, createdAt, updatedBy, updatedAt);
     }
 
-    public User(UserId id, Long tenantId, String account, String name, Long avatarObjectId, String phone,
+    public User(UserId id, TenantId tenantId, String account, String name, Long avatarObjectId, String phone,
                 String passwordHash, Long departmentId, UserStatus status, String createdBy,
                 Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;

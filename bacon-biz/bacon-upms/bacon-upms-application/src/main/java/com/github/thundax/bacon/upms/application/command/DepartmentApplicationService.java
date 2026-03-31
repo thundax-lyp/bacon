@@ -28,38 +28,26 @@ public class DepartmentApplicationService {
         this.tenantRepository = tenantRepository;
     }
 
-    public DepartmentDTO getDepartmentById(Long tenantId, Long departmentId) {
+    public DepartmentDTO getDepartmentById(TenantId tenantId, Long departmentId) {
         return toDto(departmentRepository.findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId)));
     }
 
-    public DepartmentDTO getDepartmentById(String tenantNo, Long departmentId) {
-        return getDepartmentById(resolveTenantIdByTenantNo(tenantNo), departmentId);
-    }
-
-    public DepartmentDTO getDepartmentByCode(Long tenantId, String departmentCode) {
+    public DepartmentDTO getDepartmentByCode(TenantId tenantId, String departmentCode) {
         return toDto(departmentRepository.findDepartmentByCode(tenantId, departmentCode)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentCode)));
     }
 
-    public DepartmentDTO getDepartmentByCode(String tenantNo, String departmentCode) {
-        return getDepartmentByCode(resolveTenantIdByTenantNo(tenantNo), departmentCode);
-    }
-
-    public List<DepartmentDTO> listDepartmentsByIds(Long tenantId, Set<Long> departmentIds) {
-        String tenantNo = resolveTenantNoByTenantId(tenantId);
+    public List<DepartmentDTO> listDepartmentsByIds(TenantId tenantId, Set<Long> departmentIds) {
+        String tenantIdValue = tenantId.value();
         return departmentRepository.listDepartmentsByIds(tenantId, departmentIds).stream()
-                .map(department -> toDto(department, tenantNo))
+                .map(department -> toDto(department, tenantIdValue))
                 .toList();
     }
 
-    public List<DepartmentDTO> listDepartmentsByIds(String tenantNo, Set<Long> departmentIds) {
-        return listDepartmentsByIds(resolveTenantIdByTenantNo(tenantNo), departmentIds);
-    }
-
-    public List<DepartmentTreeDTO> getDepartmentTree(Long tenantId) {
+    public List<DepartmentTreeDTO> getDepartmentTree(TenantId tenantId) {
         List<Department> departments = departmentRepository.listDepartmentTree(tenantId);
-        String tenantNo = resolveTenantNoByTenantId(tenantId);
+        String tenantIdValue = tenantId.value();
         // 先平铺映射成节点表，再按 parentId 二次挂接，避免 repository 被迫返回固定层级结构。
         Map<Long, DepartmentTreeDTO> treeNodeMap = departments.stream()
                 .map(department -> toTreeDto(department, tenantNo))
@@ -81,7 +69,7 @@ public class DepartmentApplicationService {
                 .toList();
     }
 
-    public DepartmentDTO createDepartment(Long tenantId, String code, String name, Long parentId, String leaderUserId) {
+    public DepartmentDTO createDepartment(TenantId tenantId, String code, String name, Long parentId, String leaderUserId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         validateParent(tenantId, parentId);
@@ -89,7 +77,7 @@ public class DepartmentApplicationService {
                 parentId == null ? 0L : parentId, toUserId(leaderUserId), UpmsStatusEnum.ENABLED.value())));
     }
 
-    public DepartmentDTO updateDepartment(Long tenantId, Long departmentId, String code, String name, Long parentId,
+    public DepartmentDTO updateDepartment(TenantId tenantId, Long departmentId, String code, String name, Long parentId,
                                           String leaderUserId) {
         Department currentDepartment = departmentRepository.findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
@@ -113,7 +101,7 @@ public class DepartmentApplicationService {
                 currentDepartment.getUpdatedAt())));
     }
 
-    public void deleteDepartment(Long tenantId, Long departmentId) {
+    public void deleteDepartment(TenantId tenantId, Long departmentId) {
         departmentRepository.findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
         if (departmentRepository.existsChildDepartment(tenantId, departmentId)) {
@@ -126,22 +114,22 @@ public class DepartmentApplicationService {
     }
 
     private DepartmentDTO toDto(Department department) {
-        return toDto(department, resolveTenantNoByTenantId(department.getTenantId()));
+        return toDto(department, department.getTenantId().value());
     }
 
-    private DepartmentDTO toDto(Department department, String tenantNo) {
-        return new DepartmentDTO(department.getId(), tenantNo,
+    private DepartmentDTO toDto(Department department, String tenantIdValue) {
+        return new DepartmentDTO(department.getId(), tenantIdValue,
                 department.getCode(), department.getName(),
                 department.getParentId(), department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
                 department.getStatus());
     }
 
     private DepartmentTreeDTO toTreeDto(Department department) {
-        return toTreeDto(department, resolveTenantNoByTenantId(department.getTenantId()));
+        return toTreeDto(department, department.getTenantId().value());
     }
 
-    private DepartmentTreeDTO toTreeDto(Department department, String tenantNo) {
-        return new DepartmentTreeDTO(department.getId(), tenantNo,
+    private DepartmentTreeDTO toTreeDto(Department department, String tenantIdValue) {
+        return new DepartmentTreeDTO(department.getId(), tenantIdValue,
                 department.getCode(), department.getName(),
                 department.getParentId(), department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
                 department.getStatus(), new java.util.ArrayList<>());
@@ -151,7 +139,7 @@ public class DepartmentApplicationService {
         return userId == null || userId.isBlank() ? null : UserId.of(userId.trim());
     }
 
-    private void validateParent(Long tenantId, Long parentId) {
+    private void validateParent(TenantId tenantId, Long parentId) {
         // 0/NULL 统一视为根节点，避免调用方在“无父节点”语义上出现多套约定。
         if (parentId == null || parentId == 0L) {
             return;

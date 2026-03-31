@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.persistence.dataobject;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -17,7 +18,7 @@ public class RoleResourceRelDO {
     @TableId(type = IdType.AUTO)
     private Long id;
     @TableField("tenant_id")
-    private Long tenantId;
+    private TenantId tenantId;
     @TableField("role_id")
     private Long roleId;
     @TableField("resource_id")

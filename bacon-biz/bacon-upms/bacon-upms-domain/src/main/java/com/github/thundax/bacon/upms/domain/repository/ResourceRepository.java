@@ -1,19 +1,20 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import java.util.List;
 import java.util.Optional;
 
 public interface ResourceRepository {
 
-    Optional<Resource> findById(Long tenantId, Long resourceId);
+    Optional<Resource> findById(TenantId tenantId, Long resourceId);
 
-    List<Resource> pageResources(Long tenantId, String code, String name, String resourceType, String status,
+    List<Resource> pageResources(TenantId tenantId, String code, String name, String resourceType, String status,
                                  int pageNo, int pageSize);
 
-    long countResources(Long tenantId, String code, String name, String resourceType, String status);
+    long countResources(TenantId tenantId, String code, String name, String resourceType, String status);
 
     Resource save(Resource resource);
 
-    void delete(Long tenantId, Long resourceId);
+    void delete(TenantId tenantId, Long resourceId);
 }

@@ -13,9 +13,7 @@ import java.time.Instant;
 public class Tenant {
 
     /** 租户主键。 */
-    private Long id;
-    /** 租户编号。 */
-    private TenantId tenantId;
+    private TenantId id;
     /** 租户名称。 */
     private String name;
     /** 租户状态。 */
@@ -29,32 +27,27 @@ public class Tenant {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Tenant(Long id, String tenantNo, String name, TenantStatus status) {
-        this(id, TenantId.of(tenantNo), name, status, null, null, null, null);
+    public Tenant(String tenantId, String name, TenantStatus status) {
+        this(TenantId.of(tenantId), name, status, null, null, null, null);
     }
 
-    public Tenant(Long id, String tenantNo, String name, TenantStatus status,
+    public Tenant(String tenantId, String name, TenantStatus status,
                   String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
-        this(id, TenantId.of(tenantNo), name, status, createdBy, createdAt, updatedBy, updatedAt);
+        this(TenantId.of(tenantId), name, status, createdBy, createdAt, updatedBy, updatedAt);
     }
 
-    public Tenant(Long id, TenantId tenantId, String name, TenantStatus status) {
-        this(id, tenantId, name, status, null, null, null, null);
+    public Tenant(TenantId id, String name, TenantStatus status) {
+        this(id, name, status, null, null, null, null);
     }
 
-    public Tenant(Long id, TenantId tenantId, String name, TenantStatus status,
+    public Tenant(TenantId id, String name, TenantStatus status,
                   String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
-        this.tenantId = tenantId;
         this.name = name;
         this.status = status;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
         this.updatedBy = updatedBy;
         this.updatedAt = updatedAt;
-    }
-
-    public String getTenantNo() {
-        return tenantId.value();
     }
 }

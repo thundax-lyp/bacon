@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import lombok.Getter;
 
@@ -14,7 +15,7 @@ public class UserIdentity {
     /** 身份标识主键。 */
     private Long id;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private TenantId tenantId;
     /** 关联用户主键。 */
     private UserId userId;
     /** 身份标识类型。 */
@@ -32,12 +33,12 @@ public class UserIdentity {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserIdentity(Long id, Long tenantId, UserId userId, String identityType,
+    public UserIdentity(Long id, TenantId tenantId, UserId userId, String identityType,
                         String identityValue, boolean enabled) {
         this(id, tenantId, userId, identityType, identityValue, enabled, null, null, null, null);
     }
 
-    public UserIdentity(Long id, Long tenantId, UserId userId, String identityType,
+    public UserIdentity(Long id, TenantId tenantId, UserId userId, String identityType,
                         String identityValue, boolean enabled, String createdBy, Instant createdAt,
                         String updatedBy, Instant updatedAt) {
         this.id = id;

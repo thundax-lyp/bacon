@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -54,13 +55,13 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final TenantDO toDataObject(Tenant tenant) {
-        return new TenantDO(tenant.getId(), tenant.getTenantNo(), tenant.getName(),
+        return new TenantDO(tenant.getId(), tenant.getName(),
                 tenant.getStatus().value(), tenant.getCreatedBy(), toLocalDateTime(tenant.getCreatedAt()), tenant.getUpdatedBy(),
                 toLocalDateTime(tenant.getUpdatedAt()));
     }
 
     protected final Tenant toDomain(TenantDO tenantDO) {
-        return new Tenant(tenantDO.getId(), tenantDO.getTenantNo(), tenantDO.getName(),
+        return new Tenant(tenantDO.getId(), tenantDO.getName(),
                 TenantStatus.fromValue(tenantDO.getStatus()), tenantDO.getCreatedBy(), toInstant(tenantDO.getCreatedAt()), tenantDO.getUpdatedBy(),
                 toInstant(tenantDO.getUpdatedAt()));
     }

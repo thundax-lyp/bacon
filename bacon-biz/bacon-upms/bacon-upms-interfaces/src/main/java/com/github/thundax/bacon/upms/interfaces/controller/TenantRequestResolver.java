@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +13,7 @@ class TenantRequestResolver {
         this.tenantApplicationService = tenantApplicationService;
     }
 
-    Long resolveTenantId(String tenantNo) {
-        return tenantApplicationService.getTenantByTenantNo(tenantNo).getId();
+    TenantId resolveTenantId(String tenantNo) {
+        return TenantId.of(tenantApplicationService.getTenantByTenantNo(tenantNo).getId());
     }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import lombok.Getter;
 
@@ -14,7 +15,7 @@ public class Department {
     /** 部门主键。 */
     private Long id;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private TenantId tenantId;
     /** 部门编码。 */
     private String code;
     /** 部门名称。 */
@@ -34,12 +35,12 @@ public class Department {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Department(Long id, Long tenantId, String code, String name, Long parentId,
+    public Department(Long id, TenantId tenantId, String code, String name, Long parentId,
                       UserId leaderUserId, String status) {
         this(id, tenantId, code, name, parentId, leaderUserId, status, null, null, null, null);
     }
 
-    public Department(Long id, Long tenantId, String code, String name, Long parentId, UserId leaderUserId,
+    public Department(Long id, TenantId tenantId, String code, String name, Long parentId, UserId leaderUserId,
                       String status, String createdBy, Instant createdAt, String updatedBy,
                       Instant updatedAt) {
         this.id = id;

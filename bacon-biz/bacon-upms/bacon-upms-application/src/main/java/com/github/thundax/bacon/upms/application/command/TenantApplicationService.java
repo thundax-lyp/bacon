@@ -43,7 +43,7 @@ public class TenantApplicationService {
         tenantRepository.findTenantByTenantId(tenantId).ifPresent(tenant -> {
             throw new IllegalArgumentException("Tenant tenantNo already exists: " + tenantId.value());
         });
-        return toDto(tenantRepository.saveTenant(new Tenant(null, tenantId, normalize(name),
+        return toDto(tenantRepository.saveTenant(new Tenant(tenantId, normalize(name),
                 TenantStatus.ENABLED)));
     }
 
@@ -56,7 +56,6 @@ public class TenantApplicationService {
         validateRequired(name, "name");
         return toDto(tenantRepository.saveTenant(new Tenant(
                 currentTenant.getId(),
-                currentTenant.getTenantId(),
                 normalize(name),
                 currentTenant.getStatus(),
                 currentTenant.getCreatedBy(),
@@ -76,7 +75,7 @@ public class TenantApplicationService {
         Tenant tenant = tenantRepository.updateTenantStatus(tenantId, status.value());
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
         if (TenantStatus.DISABLED == tenant.getStatus()) {
-            sessionCommandFacade.invalidateTenantSessions(tenant.getTenantNo(), "TENANT_DISABLED");
+            sessionCommandFacade.invalidateTenantSessions(tenant.getId().value(), "TENANT_DISABLED");
         }
         return toDto(tenant);
     }
@@ -95,7 +94,7 @@ public class TenantApplicationService {
     }
 
     private TenantDTO toDto(Tenant tenant) {
-        return new TenantDTO(tenant.getId(), tenant.getTenantNo(), tenant.getName(), tenant.getStatus().value());
+        return new TenantDTO(tenant.getId(), tenant.getName(), tenant.getStatus().value());
     }
 
     private void validateRequired(String value, String fieldName) {

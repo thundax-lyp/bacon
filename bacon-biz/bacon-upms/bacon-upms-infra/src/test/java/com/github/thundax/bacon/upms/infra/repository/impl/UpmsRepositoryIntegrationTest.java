@@ -89,7 +89,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_department (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         code varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
                         parent_id bigint NULL,
@@ -105,7 +105,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_user (
                         id varchar(64) NOT NULL,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         account varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
                         avatar_object_id bigint NULL,
@@ -124,7 +124,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_user_identity (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         user_id varchar(64) NOT NULL,
                         identity_type varchar(32) NOT NULL,
                         identity_value varchar(128) NOT NULL,
@@ -139,7 +139,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_user_credential (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         user_id varchar(64) NOT NULL,
                         identity_id bigint NULL,
                         credential_type varchar(32) NOT NULL,
@@ -163,7 +163,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_role (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         code varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
                         role_type varchar(32) NOT NULL,
@@ -179,7 +179,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_menu (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         menu_type varchar(32) NOT NULL,
                         name varchar(128) NOT NULL,
                         parent_id bigint NULL,
@@ -194,7 +194,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_resource (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         code varchar(128) NOT NULL,
                         name varchar(128) NOT NULL,
                         resource_type varchar(32) NOT NULL,
@@ -211,7 +211,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_user_role_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         user_id varchar(64) NOT NULL,
                         role_id bigint NOT NULL,
                         PRIMARY KEY (id)
@@ -220,7 +220,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_role_menu_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         role_id bigint NOT NULL,
                         menu_id bigint NOT NULL,
                         PRIMARY KEY (id)
@@ -229,7 +229,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_role_resource_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         role_id bigint NOT NULL,
                         resource_id bigint NOT NULL,
                         PRIMARY KEY (id)
@@ -238,7 +238,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_data_permission_rule (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         role_id bigint NOT NULL,
                         data_scope_type varchar(32) NOT NULL,
                         created_by varchar(64) NULL,
@@ -251,7 +251,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_upms_role_data_scope_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         role_id bigint NOT NULL,
                         department_id bigint NOT NULL,
                         PRIMARY KEY (id)

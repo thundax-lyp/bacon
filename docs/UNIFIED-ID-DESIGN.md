@@ -92,7 +92,7 @@
 - `BaseId<T>` 必须保持不可变
 - `BaseId<T>` 的底层值当前固定优先支持 `String` 与 `Long`
 - `UserId` 当前固定使用 `String`
-- `TenantId` 当前优先承载租户业务标识，例如 `T001`
+- `TenantId` 当前固定承载租户领域主标识，例如 `T001`
 - `RoleId`、`SkuId`、`OrderId` 可按业务演进分别承载字符串型或数值型值，但一个具体类型在同一阶段只能固定一种底层值类型
 - `BaseId<T>` 不得直接依赖 `MyBatis`、`JPA`、`Spring MVC`
 - 框架适配逻辑固定放在 `converter` 或 `handler`，不得回灌到领域模型
@@ -187,7 +187,7 @@ OrderId orderId = ids.orderId();
 
 - `UserId` 固定使用 `varchar(64)`
 - `RoleId`、`SkuId`、`OrderId` 若底层值为 `Long`，数据库字段继续使用 `bigint`
-- `TenantId` 若底层值为 `String`，数据库字段继续使用 `varchar`
+- `TenantId` 固定使用 `varchar(64)`
 - 统一 ID 体系优先改变 Java 类型系统，不强制改变既有列类型
 
 ### 9.3 UserId Rules
@@ -211,6 +211,16 @@ OrderId orderId = ids.orderId();
 - 数据库改造必须按业务域单独设计和迁移
 - 不允许为了引入 `BaseId` 在全库做一次性大迁移
 - 文档、代码、数据库三者必须先统一“这是主键、业务单号还是领域标识”
+
+### 9.5 TenantId Rules
+
+- `TenantId` 当前固定为文本型统一 ID
+- `TenantId` 的 Java 底层类型固定为 `String`
+- `TenantId` 在 `UPMS` 中直接作为 `Tenant` 聚合主标识
+- `Tenant` 的目标领域模型固定为 `Tenant { TenantId id; ... }`
+- `UPMS` 中租户表主键固定使用 `tenant_id varchar(64)`
+- `tenantNo` 仅允许作为兼容性接口命名存在，不再作为独立于 `TenantId` 的第二套领域标识
+- 所有跨租户关联字段中的 `tenant_id` 与 `TenantId` 语义保持一致
 
 ## 10. Non-Functional Requirements
 
@@ -242,5 +252,4 @@ OrderId orderId = ids.orderId();
 ## 12. Open Items
 
 - `RoleId`、`SkuId`、`OrderId` 首批是否统一收敛为 `Long`
-- `TenantId` 是否直接替代现有 `tenantNo` 命名，还是保留“字段名仍为 `tenantNo`、Java 类型升级为 `TenantId`”
 - `DataObject` 首阶段是否允许继续保留基础类型字段，以降低一次性改造范围

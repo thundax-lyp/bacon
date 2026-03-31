@@ -45,6 +45,7 @@
 - 排序规则使用数据库默认值
 - 时间字段统一使用 `datetime(3)`
 - 主键字段默认使用 `bigint`
+- `Tenant` 主键固定使用 `tenant_id varchar(64)`，不再保留独立 `bigint id`
 - `UserId` 相关字段固定使用 `varchar(64)`，包括 `bacon_upms_user.id` 及所有直接引用用户主体主键的关联字段
 - 布尔字段统一使用 `tinyint(1)`
 - 枚举字段统一使用 `varchar`
@@ -64,7 +65,8 @@
 ## 4. Naming Rules
 
 - 表名前缀固定使用 `bacon_upms_`
-- 主键列统一命名为 `id`
+- 主键列默认统一命名为 `id`
+- `bacon_upms_tenant` 作为统一文本型租户主标识例外，主键列固定命名为 `tenant_id`
 - 租户隔离列统一命名为 `tenant_id`
 - 状态字段统一命名为 `status`
 - 逻辑删除字段统一命名为 `deleted`
@@ -169,8 +171,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户编号，全局唯一 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，固定使用 `TenantId` |
 | `name` | `varchar(128)` | N | 租户名称 |
 | `status` | `varchar(16)` | N | 状态，取值固定为 `ENABLED`、`DISABLED` |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |
@@ -180,8 +181,7 @@
 
 索引与约束：
 
-- `pk(id)`
-- `uk_tenant_id(tenant_id)`
+- `pk(tenant_id)`
 
 ### 7.2 `bacon_upms_user`
 
@@ -197,7 +197,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `varchar(64)` | N | 用户主键，固定使用 `UserId` |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `account` | `varchar(64)` | N | 用户账号，全局唯一 |
 | `name` | `varchar(128)` | N | 用户名称 |
 | `phone` | `varchar(32)` | Y | 手机号 |
@@ -232,7 +232,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `identity_type` | `varchar(16)` | N | 标识类型，取值见 `identity_type` |
 | `identity_value` | `varchar(255)` | N | 标识值 |
@@ -262,7 +262,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `identity_id` | `bigint` | Y | 关联身份标识主键；社交登录可为空 |
 | `credential_type` | `varchar(32)` | N | 凭据类型，取值见 `credential_type` |
@@ -302,7 +302,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `code` | `varchar(64)` | N | 部门编码，全局唯一 |
 | `name` | `varchar(128)` | N | 部门名称 |
 | `parent_id` | `bigint` | Y | 上级部门主键 |
@@ -333,7 +333,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `code` | `varchar(64)` | N | 岗位编码，全局唯一 |
 | `name` | `varchar(128)` | N | 岗位名称 |
 | `sort` | `int` | N | 排序值，越小越靠前 |
@@ -363,7 +363,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `code` | `varchar(64)` | N | 角色编码，全局唯一 |
 | `name` | `varchar(128)` | N | 角色名称 |
 | `role_type` | `varchar(32)` | N | 角色类型，取值见 `role_type` |
@@ -396,7 +396,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `menu_type` | `varchar(16)` | N | 菜单类型，取值见 `menu_type` |
 | `name` | `varchar(128)` | N | 菜单名称 |
 | `parent_id` | `bigint` | Y | 上级菜单主键 |
@@ -433,7 +433,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `code` | `varchar(64)` | N | 资源编码，全局唯一 |
 | `name` | `varchar(128)` | N | 资源名称 |
 | `resource_type` | `varchar(16)` | N | 资源类型，取值见 `resource_type` |
@@ -470,7 +470,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `role_id` | `bigint` | N | 角色主键 |
 
@@ -494,7 +494,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `post_id` | `bigint` | N | 岗位主键 |
 
@@ -518,7 +518,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `role_id` | `bigint` | N | 角色主键 |
 | `menu_id` | `bigint` | N | 菜单主键 |
 
@@ -542,7 +542,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `role_id` | `bigint` | N | 角色主键 |
 | `resource_id` | `bigint` | N | 资源主键 |
 
@@ -567,7 +567,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `role_id` | `bigint` | N | 角色主键 |
 | `data_scope_type` | `varchar(32)` | N | 数据范围类型，取值见 `data_scope_type` |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |
@@ -594,7 +594,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `role_id` | `bigint` | N | 角色主键 |
 | `department_id` | `bigint` | N | 部门主键 |
 
@@ -617,7 +617,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `operator_id` | `varchar(64)` | Y | 操作人用户主键，引用 `bacon_upms_user.id` |
 | `object_type` | `varchar(64)` | N | 审计对象类型，取值见 `audit_object_type` |
 | `object_id` | `varchar(64)` | N | 对象标识 |
@@ -671,7 +671,7 @@
 推荐摘要字段：
 
 - `User`: `id`、`account`、`name`、`phoneMasked`、`departmentId`、`status`、`deleted`
-- `Tenant`: `tenantNo`、`name`、`status`
+- `Tenant`: `tenantId`、`name`、`status`
 - `Department`: `id`、`code`、`name`、`parentId`、`leaderUserId`、`status`
 - `Post`: `id`、`code`、`name`、`sort`、`status`
 - `Role`: `id`、`code`、`name`、`roleType`、`dataScopeType`、`status`、`builtIn`
@@ -701,7 +701,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | Y | 租户业务键 |
+| `tenant_id` | `varchar(64)` | Y | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `trace_id` | `varchar(64)` | N | 链路标识 |
 | `request_id` | `varchar(64)` | N | 请求标识 |
 | `module` | `varchar(64)` | N | 模块标识 |
@@ -770,7 +770,7 @@
 - `User.id` 固定使用 `UserId`，当前格式建议为 `U` 前缀加数值序列，数据库类型固定为 `varchar(64)`
 - `User.avatar_object_id` 允许为空
 - `User.avatar_object_id` 不为空时必须指向状态为 `ACTIVE` 的 `StoredObject`
-- `Tenant.tenantNo`、`Department.code`、`Post.code`、`Role.code`、`Resource.code` 全局唯一
+- `Tenant.tenantId`、`Department.code`、`Post.code`、`Role.code`、`Resource.code` 全局唯一
 - `Menu.permission_code`、`Resource.permission_code` 全局唯一
 - `Resource(path, method)` 全局唯一
 - `UserIdentity(identity_type, identity_value)` 全局唯一
@@ -803,11 +803,11 @@
 
 ## 11. Cache Mapping Rules
 
-- `upms:menu-tree:{tenantNo}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_role_menu_rel`、`bacon_upms_user_role_rel`
-- `upms:perm-codes:{tenantNo}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_resource`、`bacon_upms_role_menu_rel`、`bacon_upms_role_resource_rel`、`bacon_upms_user_role_rel`
-- `upms:data-scope:{tenantNo}:{userId}` 来源于 `bacon_upms_role`、`bacon_upms_data_permission_rule`、`bacon_upms_role_data_scope_rel`、`bacon_upms_user_role_rel`
+- `upms:menu-tree:{tenantId}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_role_menu_rel`、`bacon_upms_user_role_rel`
+- `upms:perm-codes:{tenantId}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_resource`、`bacon_upms_role_menu_rel`、`bacon_upms_role_resource_rel`、`bacon_upms_user_role_rel`
+- `upms:data-scope:{tenantId}:{userId}` 来源于 `bacon_upms_role`、`bacon_upms_data_permission_rule`、`bacon_upms_role_data_scope_rel`、`bacon_upms_user_role_rel`
 - 上述缓存都是数据库查询结果的派生缓存，不单独建“缓存主表”
-- 缓存丢失后固定允许从数据库全量重算单个 `(tenantNo, userId)` 结果
+- 缓存丢失后固定允许从数据库全量重算单个 `(tenantId, userId)` 结果
 - 不允许把租户全量菜单、租户全量权限码、平台全量授权主数据整体序列化后作为单键缓存
 - 不允许在 `RepositoryImpl` 内额外维护与这些缓存重复的长期本地 `Map` 真相源
 

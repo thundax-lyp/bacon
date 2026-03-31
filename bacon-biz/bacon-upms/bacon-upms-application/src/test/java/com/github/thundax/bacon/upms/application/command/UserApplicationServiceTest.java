@@ -4,9 +4,11 @@ import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
+import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageResultDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
@@ -146,6 +148,35 @@ class UserApplicationServiceTest {
         when(storedObjectFacade.getObjectById(501L)).thenReturn(storedObject);
 
         assertThat(service.getAvatarAccessUrl(1001L, 101L)).contains("https://cdn.example.com/avatar/501.png");
+    }
+
+    @Test
+    void shouldReturnLoginCredentialPasswordFromAccountIdentity() {
+        User user = new User(101L, 1001L, "alice", "Alice", null, "13800000001", "{noop}user", 11L,
+                UserStatus.ENABLED);
+        UserIdentity accountIdentity = new UserIdentity(201L, 1001L, 101L, "ACCOUNT", "alice", true,
+                "{noop}identity");
+        when(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice")).thenReturn(Optional.of(accountIdentity));
+        when(userRepository.findUserById(1001L, 101L)).thenReturn(Optional.of(user));
+
+        UserLoginCredentialDTO credential = service.getUserLoginCredential(1001L, "ACCOUNT", "alice");
+
+        assertThat(credential.getPasswordHash()).isEqualTo("{noop}identity");
+    }
+
+    @Test
+    void shouldValidateOldPasswordAgainstAccountIdentity() {
+        User user = new User(101L, 1001L, "alice", "Alice", null, "13800000001", "{noop}user", 11L,
+                UserStatus.ENABLED);
+        UserIdentity accountIdentity = new UserIdentity(201L, 1001L, 101L, "ACCOUNT", "alice", true,
+                "{noop}identity");
+        when(userRepository.findUserById(1001L, 101L)).thenReturn(Optional.of(user));
+        when(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice")).thenReturn(Optional.of(accountIdentity));
+        when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);
+
+        service.changePassword(1001L, 101L, "old-password", "new-password");
+
+        verify(userRepository).updatePassword(1001L, 101L, "new-password");
     }
 
     private byte[] createImageBytes(String format, int width, int height) throws Exception {

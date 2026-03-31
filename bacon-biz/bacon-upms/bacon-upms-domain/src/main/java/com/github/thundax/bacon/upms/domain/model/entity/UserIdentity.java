@@ -22,6 +22,8 @@ public class UserIdentity {
     private String identityValue;
     /** 启用标记。 */
     private boolean enabled;
+    /** 密码哈希。 */
+    private String passwordHash;
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
@@ -33,18 +35,31 @@ public class UserIdentity {
 
     public UserIdentity(Long id, Long tenantId, Long userId, String identityType,
                         String identityValue, boolean enabled) {
-        this(id, tenantId, userId, identityType, identityValue, enabled, null, null, null, null);
+        this(id, tenantId, userId, identityType, identityValue, enabled, null, null, null, null, null);
+    }
+
+    public UserIdentity(Long id, Long tenantId, Long userId, String identityType,
+                        String identityValue, boolean enabled, String passwordHash) {
+        this(id, tenantId, userId, identityType, identityValue, enabled, passwordHash, null, null, null, null);
     }
 
     public UserIdentity(Long id, Long tenantId, Long userId, String identityType,
                         String identityValue, boolean enabled, String createdBy, LocalDateTime createdAt,
                         String updatedBy, LocalDateTime updatedAt) {
+        this(id, tenantId, userId, identityType, identityValue, enabled, null, createdBy, createdAt, updatedBy,
+                updatedAt);
+    }
+
+    public UserIdentity(Long id, Long tenantId, Long userId, String identityType,
+                        String identityValue, boolean enabled, String passwordHash, String createdBy,
+                        LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.userId = userId;
         this.identityType = identityType;
         this.identityValue = identityValue;
         this.enabled = enabled;
+        this.passwordHash = passwordHash;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
         this.updatedBy = updatedBy;

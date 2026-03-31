@@ -83,7 +83,7 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
         return new UserLoginCredentialDTO(user.getTenantId(), user.getId(), user.getAccount(), user.getPhone(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
-                user.getStatus().value(), user.getPasswordHash());
+                user.getStatus().value(), userIdentity.getPasswordHash());
     }
 
     public TenantDTO getTenantByTenantId(Long tenantId) {
@@ -194,9 +194,11 @@ public class UserApplicationService {
 
     public void changePassword(Long tenantId, Long userId, String oldPassword, String newPassword) {
         User user = requireUser(tenantId, userId);
+        UserIdentity accountIdentity = userRepository.findUserIdentity(tenantId, "ACCOUNT", user.getAccount())
+                .orElseThrow(() -> new IllegalArgumentException("Account identity not found: " + user.getAccount()));
         validateRequired(oldPassword, "oldPassword");
         validateRequired(newPassword, "newPassword");
-        if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+        if (!passwordEncoder.matches(oldPassword, accountIdentity.getPasswordHash())) {
             throw new IllegalArgumentException("Old password invalid");
         }
         userRepository.updatePassword(tenantId, userId, normalize(newPassword));

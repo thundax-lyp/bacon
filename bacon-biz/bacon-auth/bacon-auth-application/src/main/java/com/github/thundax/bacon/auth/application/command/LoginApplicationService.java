@@ -83,9 +83,6 @@ public class LoginApplicationService {
         if (!credential.isIdentityEnabled()) {
             throw new BadRequestException("Current account is disabled");
         }
-        if (credential.isDeleted()) {
-            throw new BadRequestException("Current account has been deleted");
-        }
         if (!UpmsStatusEnum.ENABLED.matches(credential.getStatus())) {
             throw new BadRequestException("Current user is not enabled");
         }

@@ -66,7 +66,7 @@ public class UserRepositoryImpl implements UserRepository {
     public User save(User user) {
         User savedUser = user.getId() == null ? createUser(user) : updateUser(user);
         savedUser = support.saveUser(savedUser);
-        replaceIdentity(savedUser.getTenantId(), "ACCOUNT", savedUser.getAccount(), savedUser.getId());
+        replaceAccountIdentity(savedUser);
         replacePhoneIdentity(savedUser);
         return savedUser;
     }
@@ -89,7 +89,9 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt());
-        return support.saveUser(updatedUser);
+        User savedUser = support.saveUser(updatedUser);
+        replaceAccountIdentity(savedUser);
+        return savedUser;
     }
 
     @Override
@@ -136,9 +138,10 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getUpdatedAt());
     }
 
-    private void replaceIdentity(Long tenantId, String identityType, String identityValue, Long userId) {
-        support.deleteUserIdentitiesByUserAndType(tenantId, userId, identityType);
-        support.saveUserIdentity(new UserIdentity(null, tenantId, userId, identityType, identityValue, true));
+    private void replaceAccountIdentity(User user) {
+        support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), "ACCOUNT");
+        support.saveUserIdentity(new UserIdentity(null, user.getTenantId(), user.getId(), "ACCOUNT",
+                user.getAccount(), true, user.getPasswordHash()));
     }
 
     private void replacePhoneIdentity(User user) {

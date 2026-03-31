@@ -65,13 +65,14 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final UserIdentityDO toDataObject(UserIdentity userIdentity) {
         return new UserIdentityDO(userIdentity.getId(), userIdentity.getTenantId(), userIdentity.getUserId(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
-                userIdentity.getCreatedBy(), userIdentity.getCreatedAt(), userIdentity.getUpdatedBy(), userIdentity.getUpdatedAt());
+                userIdentity.getPasswordHash(), userIdentity.getCreatedBy(), userIdentity.getCreatedAt(),
+                userIdentity.getUpdatedBy(), userIdentity.getUpdatedAt());
     }
 
     protected final UserIdentity toDomain(UserIdentityDO dataObject) {
         return new UserIdentity(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(), dataObject.getIdentityType(),
-                dataObject.getIdentityValue(), Boolean.TRUE.equals(dataObject.getEnabled()), dataObject.getCreatedBy(),
-                dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
+                dataObject.getIdentityValue(), Boolean.TRUE.equals(dataObject.getEnabled()), dataObject.getPasswordHash(),
+                dataObject.getCreatedBy(), dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
     }
 
     protected final DepartmentDO toDataObject(Department department) {

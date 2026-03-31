@@ -120,6 +120,7 @@ class UpmsRepositoryIntegrationTest {
                         identity_type varchar(32) NOT NULL,
                         identity_value varchar(128) NOT NULL,
                         enabled boolean NOT NULL,
+                        password_hash varchar(255) NULL,
                         created_by varchar(64) NULL,
                         created_at timestamp NULL,
                         updated_by varchar(64) NULL,
@@ -269,6 +270,8 @@ class UpmsRepositoryIntegrationTest {
         assertEquals(901L, persistedUser.getAvatarObjectId());
         assertNotNull(persistedUser.getPasswordHash());
         assertTrue(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice").isPresent());
+        assertEquals(persistedUser.getPasswordHash(),
+                userRepository.findUserIdentity(1001L, "ACCOUNT", "alice").orElseThrow().getPasswordHash());
         assertTrue(userRepository.findUserIdentity(1001L, "PHONE", "13800000001").isPresent());
         assertEquals(1L, userRepository.countUsers(1001L, "ali", null, null, "ENABLED"));
 
@@ -300,6 +303,8 @@ class UpmsRepositoryIntegrationTest {
 
         assertFalse(userRepository.findUserIdentity(1001L, "PHONE", "13800000002").isPresent());
         assertTrue(userRepository.findUserIdentity(1001L, "PHONE", "13900000003").isPresent());
+        assertEquals(updatedUser.getPasswordHash(),
+                userRepository.findUserIdentity(1001L, "ACCOUNT", "bob").orElseThrow().getPasswordHash());
         assertEquals(1002L, userRepository.findUserById(1001L, updatedUser.getId()).orElseThrow().getAvatarObjectId());
         assertTrue(departmentRepository.existsUserInDepartment(1001L, department.getId()));
 
@@ -310,6 +315,25 @@ class UpmsRepositoryIntegrationTest {
         assertTrue(roleRepository.findRolesByUserId(1001L, updatedUser.getId()).isEmpty());
         assertFalse(departmentRepository.existsUserInDepartment(1001L, department.getId()));
         assertTrue(isUserDeleted(updatedUser.getId()));
+    }
+
+    @Test
+    void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
+        Department department = departmentRepository.save(new Department(null, 1001L, "OPS", "Operations", 0L, null, "ACTIVE"));
+        User createdUser = userRepository.save(new User(null, 1001L, "carol", "Carol", null, "13600000001", null,
+                department.getId(), UserStatus.ENABLED));
+
+        String originalPasswordHash = userRepository.findUserIdentity(1001L, "ACCOUNT", "carol")
+                .orElseThrow()
+                .getPasswordHash();
+
+        User updatedUser = userRepository.updatePassword(1001L, createdUser.getId(), "654321");
+
+        String updatedPasswordHash = userRepository.findUserIdentity(1001L, "ACCOUNT", "carol")
+                .orElseThrow()
+                .getPasswordHash();
+        assertNotEquals(originalPasswordHash, updatedPasswordHash);
+        assertEquals(updatedUser.getPasswordHash(), updatedPasswordHash);
     }
 
     @Test

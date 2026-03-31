@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleResourceRelDO;
@@ -26,14 +27,14 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.roleResourceRelMapper = roleResourceRelMapper;
     }
 
-    Optional<Resource> findResourceById(Long tenantId, Long resourceId) {
+    Optional<Resource> findResourceById(TenantId tenantId, Long resourceId) {
         return Optional.ofNullable(resourceMapper.selectOne(Wrappers.<ResourceDO>lambdaQuery()
                         .eq(ResourceDO::getTenantId, tenantId)
                         .eq(ResourceDO::getId, resourceId)))
                 .map(this::toDomain);
     }
 
-    List<Resource> listResources(Long tenantId, String code, String name, String resourceType, String status,
+    List<Resource> listResources(TenantId tenantId, String code, String name, String resourceType, String status,
                                  int pageNo, int pageSize) {
         return resourceMapper.selectList(Wrappers.<ResourceDO>lambdaQuery()
                         .eq(tenantId != null, ResourceDO::getTenantId, tenantId)
@@ -48,7 +49,7 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countResources(Long tenantId, String code, String name, String resourceType, String status) {
+    long countResources(TenantId tenantId, String code, String name, String resourceType, String status) {
         return Optional.ofNullable(resourceMapper.selectCount(Wrappers.<ResourceDO>lambdaQuery()
                         .eq(tenantId != null, ResourceDO::getTenantId, tenantId)
                         .like(hasText(code), ResourceDO::getCode, code)
@@ -72,7 +73,7 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
         return toDomain(dataObject);
     }
 
-    void deleteResource(Long tenantId, Long resourceId) {
+    void deleteResource(TenantId tenantId, Long resourceId) {
         resourceMapper.delete(Wrappers.<ResourceDO>lambdaQuery()
                 .eq(ResourceDO::getTenantId, tenantId)
                 .eq(ResourceDO::getId, resourceId));

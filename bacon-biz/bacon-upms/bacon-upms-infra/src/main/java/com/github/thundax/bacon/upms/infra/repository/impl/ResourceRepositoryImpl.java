@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
@@ -21,18 +22,18 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     }
 
     @Override
-    public Optional<Resource> findById(Long tenantId, Long resourceId) {
+    public Optional<Resource> findById(TenantId tenantId, Long resourceId) {
         return support.findResourceById(tenantId, resourceId);
     }
 
     @Override
-    public List<Resource> pageResources(Long tenantId, String code, String name, String resourceType, String status,
+    public List<Resource> pageResources(TenantId tenantId, String code, String name, String resourceType, String status,
                                         int pageNo, int pageSize) {
         return support.listResources(tenantId, code, name, resourceType, status, pageNo, pageSize);
     }
 
     @Override
-    public long countResources(Long tenantId, String code, String name, String resourceType, String status) {
+    public long countResources(TenantId tenantId, String code, String name, String resourceType, String status) {
         return support.countResources(tenantId, code, name, resourceType, status);
     }
 
@@ -44,7 +45,7 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     }
 
     @Override
-    public void delete(Long tenantId, Long resourceId) {
+    public void delete(TenantId tenantId, Long resourceId) {
         support.deleteResource(tenantId, resourceId);
         cacheSupport.evictTenantPermission(tenantId);
     }

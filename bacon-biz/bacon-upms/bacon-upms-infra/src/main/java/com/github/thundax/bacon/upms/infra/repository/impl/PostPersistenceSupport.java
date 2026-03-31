@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.PostDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.PostMapper;
@@ -22,14 +23,15 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.postMapper = postMapper;
     }
 
-    Optional<Post> findPostById(Long tenantId, Long postId) {
+    Optional<Post> findPostById(TenantId tenantId, Long postId) {
         return Optional.ofNullable(postMapper.selectOne(Wrappers.<PostDO>lambdaQuery()
                         .eq(PostDO::getTenantId, tenantId)
                         .eq(PostDO::getId, postId)))
                 .map(this::toDomain);
     }
 
-    List<Post> listPosts(Long tenantId, String code, String name, Long departmentId, String status, int pageNo, int pageSize) {
+    List<Post> listPosts(TenantId tenantId, String code, String name, Long departmentId, String status, int pageNo,
+                         int pageSize) {
         return postMapper.selectList(Wrappers.<PostDO>lambdaQuery()
                         .eq(tenantId != null, PostDO::getTenantId, tenantId)
                         .like(hasText(code), PostDO::getCode, code)
@@ -43,7 +45,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countPosts(Long tenantId, String code, String name, Long departmentId, String status) {
+    long countPosts(TenantId tenantId, String code, String name, Long departmentId, String status) {
         return Optional.ofNullable(postMapper.selectCount(Wrappers.<PostDO>lambdaQuery()
                         .eq(tenantId != null, PostDO::getTenantId, tenantId)
                         .like(hasText(code), PostDO::getCode, code)
@@ -67,7 +69,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return toDomain(dataObject);
     }
 
-    void deletePost(Long tenantId, Long postId) {
+    void deletePost(TenantId tenantId, Long postId) {
         postMapper.delete(Wrappers.<PostDO>lambdaQuery()
                 .eq(PostDO::getTenantId, tenantId)
                 .eq(PostDO::getId, postId));

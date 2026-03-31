@@ -31,6 +31,7 @@ import com.github.thundax.bacon.upms.infra.facade.remote.UserReadFacadeRemoteImp
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,7 +43,6 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "spring.cloud.nacos.config.enabled=false",
                 "spring.boot.admin.client.enabled=false",
                 "spring.main.lazy-initialization=true",
-                "bacon.order.repository.mode=memory",
                 "bacon.payment.repository.mode=memory",
                 "spring.autoconfigure.exclude="
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
@@ -55,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "bacon.remote.inventory-base-url=http://127.0.0.1:18085",
                 "bacon.remote.payment-base-url=http://127.0.0.1:18086"
         })
+@Import(OrderRepositoryTestConfiguration.class)
 class BaconMonoBootMicroAssemblyTest extends BaconSpringBootTest {
 
     @Autowired

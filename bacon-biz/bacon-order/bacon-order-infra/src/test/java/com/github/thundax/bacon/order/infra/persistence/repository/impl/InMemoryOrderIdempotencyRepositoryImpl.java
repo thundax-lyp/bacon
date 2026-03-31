@@ -7,11 +7,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(name = "bacon.order.repository.mode", havingValue = "memory")
 public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyRepository {
 
     private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();

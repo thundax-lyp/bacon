@@ -14,11 +14,9 @@ import java.util.Optional;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(name = "bacon.order.repository.mode", havingValue = "memory")
 public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     private final Map<Long, Order> storage = new ConcurrentHashMap<>();

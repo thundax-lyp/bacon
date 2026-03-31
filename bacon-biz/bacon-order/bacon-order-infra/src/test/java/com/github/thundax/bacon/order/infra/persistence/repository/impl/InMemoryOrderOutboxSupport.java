@@ -9,11 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(name = "bacon.order.repository.mode", havingValue = "memory")
 public class InMemoryOrderOutboxSupport {
 
     private final AtomicLong outboxIdGenerator = new AtomicLong(1000L);

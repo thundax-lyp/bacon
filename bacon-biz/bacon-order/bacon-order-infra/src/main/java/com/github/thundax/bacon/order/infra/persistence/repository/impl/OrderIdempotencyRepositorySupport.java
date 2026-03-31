@@ -9,12 +9,10 @@ import java.util.Optional;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(name = "bacon.order.repository.mode", havingValue = "strict", matchIfMissing = true)
 @ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 public class OrderIdempotencyRepositorySupport {
 

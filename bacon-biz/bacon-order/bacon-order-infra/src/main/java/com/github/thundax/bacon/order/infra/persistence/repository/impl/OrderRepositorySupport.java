@@ -28,12 +28,10 @@ import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "bacon.order.repository.mode", havingValue = "strict", matchIfMissing = true)
 @ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 public class OrderRepositorySupport {
 

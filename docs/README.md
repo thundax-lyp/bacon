@@ -25,6 +25,11 @@
   - 何时加载：几乎所有实现任务的第一步。
   - 不解决的问题：具体业务规则、具体表结构、具体接口字段。
 
+- [`UNIFIED-ID-DESIGN.md`](./UNIFIED-ID-DESIGN.md)
+  - 用途：统一 `BaseId + 泛型 + 工厂 + 转换器` 方案，定义领域 ID、数据库主键、业务单号的边界与接入规则。
+  - 何时加载：涉及 `UserId`、`TenantId`、`OrderId`、`SkuId` 等统一 ID 体系设计、实现或评审时。
+  - 不解决的问题：单一业务域的具体业务流程与接口字段语义。
+
 ### 3.2 Documentation Rules
 
 - [`DOCUMENT-RULES.md`](./DOCUMENT-RULES.md)

@@ -313,6 +313,9 @@ bacon-biz/bacon-order
 
 ## 对象约定
 
+- 领域内的强类型标识统一遵循 [`UNIFIED-ID-DESIGN.md`](./UNIFIED-ID-DESIGN.md)
+- 数据库主键、业务单号、领域 ID 必须分开建模，不得在代码语义上混用
+- `OrderId`、`UserId`、`RoleId`、`TenantId`、`SkuId` 等领域 ID 属于类型安全建模；`orderNo`、`paymentNo`、`reservationNo` 仍属于业务单号
 - HTTP 入参对象放在 `interfaces.dto`，统一使用 `*Request`
 - 前端 Controller 返回对象放在 `interfaces.response`，统一使用 `*Response`
 - `interfaces.vo` 不再允许存在，新代码统一使用 `interfaces.response`

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.persistence.dataobject;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -32,7 +33,7 @@ public class UserDO {
     @TableField("password_hash")
     private String passwordHash;
     @TableField("department_id")
-    private Long departmentId;
+    private DepartmentId departmentId;
     @TableField("status")
     private String status;
     @TableField("deleted")

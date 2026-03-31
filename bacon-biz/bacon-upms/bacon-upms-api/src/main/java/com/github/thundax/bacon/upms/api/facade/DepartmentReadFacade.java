@@ -7,9 +7,9 @@ import java.util.Set;
 
 public interface DepartmentReadFacade {
 
-    DepartmentDTO getDepartmentById(String tenantId, Long departmentId);
+    DepartmentDTO getDepartmentById(String tenantId, String departmentId);
 
     DepartmentDTO getDepartmentByCode(String tenantId, String departmentCode);
 
-    List<DepartmentDTO> listDepartmentsByIds(String tenantId, Set<Long> departmentIds);
+    List<DepartmentDTO> listDepartmentsByIds(String tenantId, Set<String> departmentIds);
 }

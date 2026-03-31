@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -234,7 +235,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .orElse("SELF");
     }
 
-    Set<Long> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId) {
+    Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId) {
         return roleDataScopeRelMapper.selectList(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
                         .eq(RoleDataScopeRelDO::getTenantId, tenantId)
                         .eq(RoleDataScopeRelDO::getRoleId, roleId))
@@ -243,7 +244,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
     }
 
-    void replaceRoleDataScope(TenantId tenantId, Long roleId, String dataScopeType, Collection<Long> departmentIds) {
+    void replaceRoleDataScope(TenantId tenantId, Long roleId, String dataScopeType, Collection<DepartmentId> departmentIds) {
         LocalDateTime now = LocalDateTime.now();
         upsertDataPermissionRule(tenantId, roleId, dataScopeType, now);
         roleDataScopeRelMapper.delete(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
@@ -252,7 +253,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         if (departmentIds == null || departmentIds.isEmpty()) {
             return;
         }
-        for (Long departmentId : new LinkedHashSet<>(departmentIds)) {
+        for (DepartmentId departmentId : new LinkedHashSet<>(departmentIds)) {
             roleDataScopeRelMapper.insert(new RoleDataScopeRelDO(null, tenantId, roleId, departmentId));
         }
     }

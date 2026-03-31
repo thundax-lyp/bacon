@@ -19,5 +19,5 @@ public class UserDataScopeDTO {
     /** 数据范围类型集合。 */
     private Set<String> scopeTypes;
     /** 可访问部门主键集合。 */
-    private Set<Long> departmentIds;
+    private Set<String> departmentIds;
 }

@@ -19,7 +19,7 @@ public record UserResponse(
         /** 手机号。 */
         String phone,
         /** 所属部门主键。 */
-        Long departmentId,
+        String departmentId,
         /** 头像访问地址。 */
         String avatarUrl,
         /** 用户状态。 */

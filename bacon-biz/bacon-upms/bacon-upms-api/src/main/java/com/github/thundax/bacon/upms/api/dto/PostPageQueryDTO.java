@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.api.dto;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,7 +21,7 @@ public class PostPageQueryDTO {
     /** 岗位名称。 */
     private String name;
     /** 所属部门主键。 */
-    private Long departmentId;
+    private DepartmentId departmentId;
     /** 岗位状态。 */
     private String status;
     /** 页码，从 1 开始。 */

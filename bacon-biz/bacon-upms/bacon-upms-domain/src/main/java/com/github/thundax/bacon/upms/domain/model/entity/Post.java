@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import java.time.Instant;
 import lombok.Getter;
@@ -19,7 +20,7 @@ public class Post {
     /** 岗位名称。 */
     private String name;
     /** 所属部门主键。 */
-    private Long departmentId;
+    private DepartmentId departmentId;
     /** 岗位状态。 */
     private String status;
     /** 创建人。 */
@@ -31,11 +32,11 @@ public class Post {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Post(Long id, TenantId tenantId, String code, String name, Long departmentId, String status) {
+    public Post(Long id, TenantId tenantId, String code, String name, DepartmentId departmentId, String status) {
         this(id, tenantId, code, name, departmentId, status, null, null, null, null);
     }
 
-    public Post(Long id, TenantId tenantId, String code, String name, Long departmentId, String status,
+    public Post(Long id, TenantId tenantId, String code, String name, DepartmentId departmentId, String status,
                 String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;

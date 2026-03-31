@@ -12,7 +12,7 @@ public record UserDataScopeResponse(
         /** 数据范围类型集合。 */
         Set<String> scopeTypes,
         /** 可访问部门主键集合。 */
-        Set<Long> departmentIds) {
+        Set<String> departmentIds) {
 
     public static UserDataScopeResponse from(UserDataScopeDTO dto) {
         return new UserDataScopeResponse(dto.isAllAccess(), dto.getScopeTypes(), dto.getDepartmentIds());

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
@@ -149,7 +150,9 @@ public class RoleController {
         TenantId tenantId = tenantRequestResolver.resolveTenantId(request.getTenantId());
         return new RoleDataScopeResponse(
                 roleApplicationService.getAssignedDataScopeType(tenantId, roleId),
-                roleApplicationService.getAssignedDataScopeDepartments(tenantId, roleId)
+                roleApplicationService.getAssignedDataScopeDepartments(tenantId, roleId).stream()
+                        .map(DepartmentId::value)
+                        .collect(java.util.stream.Collectors.toSet())
         );
     }
 
@@ -157,9 +160,9 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "配置角色数据权限", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/data-scope")
-    public Set<Long> assignDataScope(@PathVariable Long roleId, @RequestBody RoleDataScopeAssignRequest request) {
+    public Set<String> assignDataScope(@PathVariable Long roleId, @RequestBody RoleDataScopeAssignRequest request) {
         return roleApplicationService.assignDataScope(
                 tenantRequestResolver.resolveTenantId(request.tenantId()), roleId, request.dataScopeType(),
-                request.departmentIds());
+                request.departmentIds()).stream().map(DepartmentId::value).collect(java.util.stream.Collectors.toSet());
     }
 }

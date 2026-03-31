@@ -29,7 +29,7 @@ public class DepartmentReadFacadeRemoteImpl implements DepartmentReadFacade {
     }
 
     @Override
-    public DepartmentDTO getDepartmentById(String tenantId, Long departmentId) {
+    public DepartmentDTO getDepartmentById(String tenantId, String departmentId) {
         // 部门读取固定带 tenantId，调用侧不再暴露旧的租户技术主键。
         return restClient.get()
                 .uri("/providers/upms/departments/{departmentId}?tenantId={tenantId}", departmentId, tenantId)
@@ -46,7 +46,7 @@ public class DepartmentReadFacadeRemoteImpl implements DepartmentReadFacade {
     }
 
     @Override
-    public List<DepartmentDTO> listDepartmentsByIds(String tenantId, Set<Long> departmentIds) {
+    public List<DepartmentDTO> listDepartmentsByIds(String tenantId, Set<String> departmentIds) {
         // 批量部门查询通过重复 queryParam 传主键数组，保持 provider 端可以直接按集合解析。
         return restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/providers/upms/departments")

@@ -25,7 +25,7 @@ public class UserDTO {
     /** 手机号。 */
     private String phone;
     /** 所属部门主键。 */
-    private Long departmentId;
+    private String departmentId;
     /** 头像访问地址。 */
     private String avatarUrl;
     /** 用户状态。 */

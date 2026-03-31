@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
@@ -47,7 +48,10 @@ public class PostController {
     public PostPageResponse pagePosts(@Valid @ModelAttribute PostPageRequest request) {
         return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(
                 tenantRequestResolver.resolveTenantId(request.getTenantId()),
-                request.getCode(), request.getName(), request.getDepartmentId(),
+                request.getCode(), request.getName(),
+                request.getDepartmentId() == null || request.getDepartmentId().isBlank()
+                        ? null
+                        : DepartmentId.of(request.getDepartmentId().trim()),
                 request.getStatus() == null ? null : request.getStatus().name(),
                 request.getPageNo(), request.getPageSize())));
     }

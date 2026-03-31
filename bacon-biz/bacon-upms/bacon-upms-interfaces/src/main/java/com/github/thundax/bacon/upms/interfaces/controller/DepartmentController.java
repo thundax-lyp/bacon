@@ -63,7 +63,7 @@ public class DepartmentController {
     @HasPermission("sys:department:view")
     @SysLog(module = "UPMS", action = "查询部门详情", eventType = LogEventType.QUERY)
     @GetMapping("/{departmentId}")
-    public DepartmentResponse getDepartmentById(@PathVariable Long departmentId,
+    public DepartmentResponse getDepartmentById(@PathVariable String departmentId,
                                                 @ModelAttribute TenantScopedRequest request) {
         return DepartmentResponse.from(
                 departmentApplicationService.getDepartmentById(request.getTenantId(), departmentId)
@@ -95,7 +95,7 @@ public class DepartmentController {
     @HasPermission("sys:department:update")
     @SysLog(module = "UPMS", action = "修改部门", eventType = LogEventType.UPDATE)
     @PutMapping("/{departmentId}")
-    public DepartmentResponse updateDepartment(@PathVariable Long departmentId, @RequestBody DepartmentUpdateRequest request) {
+    public DepartmentResponse updateDepartment(@PathVariable String departmentId, @RequestBody DepartmentUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartment(
                 tenantRequestResolver.resolveTenantId(request.tenantId()), departmentId,
                 request.code(), request.name(), request.parentId(), request.leaderUserId()));
@@ -105,7 +105,7 @@ public class DepartmentController {
     @HasPermission("sys:department:delete")
     @SysLog(module = "UPMS", action = "删除部门", eventType = LogEventType.DELETE)
     @DeleteMapping("/{departmentId}")
-    public void deleteDepartment(@PathVariable Long departmentId, @ModelAttribute TenantScopedRequest request) {
+    public void deleteDepartment(@PathVariable String departmentId, @ModelAttribute TenantScopedRequest request) {
         departmentApplicationService.deleteDepartment(tenantRequestResolver.resolveTenantId(request.getTenantId()), departmentId);
     }
 }

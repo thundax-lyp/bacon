@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -47,7 +48,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     @Override
-    public Set<Long> getUserDepartmentIds(TenantId tenantId, UserId userId) {
+    public Set<DepartmentId> getUserDepartmentIds(TenantId tenantId, UserId userId) {
         return cacheSupport.getUserDepartmentIds(tenantId, userId, () -> loadUserDepartmentIds(tenantId, userId));
     }
 
@@ -97,8 +98,8 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         return Set.copyOf(permissionCodes);
     }
 
-    private Set<Long> loadUserDepartmentIds(TenantId tenantId, UserId userId) {
-        Set<Long> departmentIds = new HashSet<>();
+    private Set<DepartmentId> loadUserDepartmentIds(TenantId tenantId, UserId userId) {
+        Set<DepartmentId> departmentIds = new HashSet<>();
         roleRepository.findRolesByUserId(tenantId, userId)
                 .forEach(role -> departmentIds.addAll(roleRepository.getAssignedDataScopeDepartments(role.getTenantId(), role.getId())));
         return Set.copyOf(departmentIds);

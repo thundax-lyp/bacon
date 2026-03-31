@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.application.command;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
@@ -42,14 +43,14 @@ public class PostApplicationService {
         return toDto(requirePost(tenantId, postId));
     }
 
-    public PostDTO createPost(TenantId tenantId, String code, String name, Long departmentId) {
+    public PostDTO createPost(TenantId tenantId, String code, String name, String departmentId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         return toDto(postRepository.save(new Post(null, tenantId, normalize(code), normalize(name),
-                departmentId, UpmsStatusEnum.ENABLED.value())));
+                toDepartmentId(departmentId), UpmsStatusEnum.ENABLED.value())));
     }
 
-    public PostDTO updatePost(TenantId tenantId, Long postId, String code, String name, Long departmentId, String status) {
+    public PostDTO updatePost(TenantId tenantId, Long postId, String code, String name, String departmentId, String status) {
         Post currentPost = requirePost(tenantId, postId);
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -58,7 +59,7 @@ public class PostApplicationService {
                 tenantId,
                 normalize(code),
                 normalize(name),
-                departmentId,
+                toDepartmentId(departmentId),
                 normalizeNullable(status, currentPost.getStatus()),
                 currentPost.getCreatedBy(),
                 currentPost.getCreatedAt(),
@@ -82,7 +83,11 @@ public class PostApplicationService {
 
     private PostDTO toDto(Post post, String tenantIdValue) {
         return new PostDTO(post.getId(), tenantIdValue, post.getCode(), post.getName(),
-                post.getDepartmentId(), post.getStatus());
+                post.getDepartmentId() == null ? null : post.getDepartmentId().value(), post.getStatus());
+    }
+
+    private DepartmentId toDepartmentId(String departmentId) {
+        return departmentId == null || departmentId.isBlank() ? null : DepartmentId.of(departmentId.trim());
     }
 
     private void validateRequired(String value, String fieldName) {

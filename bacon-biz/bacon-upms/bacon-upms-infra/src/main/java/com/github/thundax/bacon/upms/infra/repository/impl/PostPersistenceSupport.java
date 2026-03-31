@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.PostDO;
@@ -30,7 +31,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    List<Post> listPosts(TenantId tenantId, String code, String name, Long departmentId, String status, int pageNo,
+    List<Post> listPosts(TenantId tenantId, String code, String name, DepartmentId departmentId, String status, int pageNo,
                          int pageSize) {
         return postMapper.selectList(Wrappers.<PostDO>lambdaQuery()
                         .eq(tenantId != null, PostDO::getTenantId, tenantId)
@@ -45,7 +46,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countPosts(TenantId tenantId, String code, String name, Long departmentId, String status) {
+    long countPosts(TenantId tenantId, String code, String name, DepartmentId departmentId, String status) {
         return Optional.ofNullable(postMapper.selectCount(Wrappers.<PostDO>lambdaQuery()
                         .eq(tenantId != null, PostDO::getTenantId, tenantId)
                         .like(hasText(code), PostDO::getCode, code)

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -33,7 +34,7 @@ public interface RoleRepository {
 
     String getAssignedDataScopeType(TenantId tenantId, Long roleId);
 
-    Set<Long> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId);
+    Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId);
 
-    Set<Long> assignDataScope(TenantId tenantId, Long roleId, String dataScopeType, Set<Long> departmentIds);
+    Set<DepartmentId> assignDataScope(TenantId tenantId, Long roleId, String dataScopeType, Set<DepartmentId> departmentIds);
 }

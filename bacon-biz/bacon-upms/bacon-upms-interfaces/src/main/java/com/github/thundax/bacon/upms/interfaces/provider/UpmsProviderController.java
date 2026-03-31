@@ -83,7 +83,7 @@ public class UpmsProviderController {
 
     @Operation(summary = "按部门 ID 查询部门")
     @GetMapping("/departments/{departmentId}")
-    public DepartmentDTO getDepartmentById(@RequestParam("tenantId") String tenantId, @PathVariable Long departmentId) {
+    public DepartmentDTO getDepartmentById(@RequestParam("tenantId") String tenantId, @PathVariable String departmentId) {
         return departmentApplicationService.getDepartmentById(tenantId, departmentId);
     }
 
@@ -96,7 +96,7 @@ public class UpmsProviderController {
     @Operation(summary = "批量查询部门")
     @GetMapping("/departments")
     public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("tenantId") String tenantId,
-                                                    @RequestParam("departmentIds") Set<Long> departmentIds) {
+                                                    @RequestParam("departmentIds") Set<String> departmentIds) {
         return departmentApplicationService.listDepartmentsByIds(tenantId, departmentIds);
     }
 

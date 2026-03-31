@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.cache;
 
 import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.CreateCache;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -34,7 +35,7 @@ public class UpmsPermissionCacheSupport {
     private Cache<String, Set<String>> userPermissionCodeCache;
 
     @CreateCache(name = "upms:permission:userDepartments:", expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
-    private Cache<String, Set<Long>> userDepartmentIdsCache;
+    private Cache<String, Set<DepartmentId>> userDepartmentIdsCache;
 
     @CreateCache(name = "upms:permission:userScopes:", expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
     private Cache<String, Set<String>> userScopeTypesCache;
@@ -47,7 +48,7 @@ public class UpmsPermissionCacheSupport {
                                       Cache<String, List<Menu>> tenantMenuTreeCache,
                                       Cache<String, List<Menu>> userMenuTreeCache,
                                       Cache<String, Set<String>> userPermissionCodeCache,
-                                      Cache<String, Set<Long>> userDepartmentIdsCache,
+                                      Cache<String, Set<DepartmentId>> userDepartmentIdsCache,
                                       Cache<String, Set<String>> userScopeTypesCache) {
         this.tenantPermissionVersionCache = tenantPermissionVersionCache;
         this.userPermissionVersionCache = userPermissionVersionCache;
@@ -91,13 +92,13 @@ public class UpmsPermissionCacheSupport {
         return loadedCodes;
     }
 
-    public Set<Long> getUserDepartmentIds(TenantId tenantId, UserId userId, Supplier<Set<Long>> loader) {
+    public Set<DepartmentId> getUserDepartmentIds(TenantId tenantId, UserId userId, Supplier<Set<DepartmentId>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
-        Set<Long> cachedDepartmentIds = userDepartmentIdsCache.get(cacheKey);
+        Set<DepartmentId> cachedDepartmentIds = userDepartmentIdsCache.get(cacheKey);
         if (cachedDepartmentIds != null) {
             return Set.copyOf(cachedDepartmentIds);
         }
-        Set<Long> loadedDepartmentIds = immutableLongSet(loader.get());
+        Set<DepartmentId> loadedDepartmentIds = immutableDepartmentIdSet(loader.get());
         userDepartmentIdsCache.put(cacheKey, loadedDepartmentIds);
         return loadedDepartmentIds;
     }
@@ -146,7 +147,7 @@ public class UpmsPermissionCacheSupport {
         return version == null ? INITIAL_VERSION : version;
     }
 
-    private Set<Long> immutableLongSet(Set<Long> values) {
+    private Set<DepartmentId> immutableDepartmentIdSet(Set<DepartmentId> values) {
         return values == null || values.isEmpty() ? Set.of() : Set.copyOf(values);
     }
 

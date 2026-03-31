@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 public class DepartmentBatchQueryRequest {
 
     private String tenantId;
-    private Set<Long> departmentIds;
+    private Set<String> departmentIds;
 }

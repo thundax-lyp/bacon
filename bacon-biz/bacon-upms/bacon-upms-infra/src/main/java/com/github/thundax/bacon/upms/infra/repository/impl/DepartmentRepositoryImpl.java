@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
@@ -22,7 +23,7 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Optional<Department> findDepartmentById(TenantId tenantId, Long departmentId) {
+    public Optional<Department> findDepartmentById(TenantId tenantId, DepartmentId departmentId) {
         return support.findDepartmentById(tenantId, departmentId);
     }
 
@@ -32,7 +33,7 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public List<Department> listDepartmentsByIds(TenantId tenantId, Set<Long> departmentIds) {
+    public List<Department> listDepartmentsByIds(TenantId tenantId, Set<DepartmentId> departmentIds) {
         return support.listDepartmentsByIds(tenantId, departmentIds);
     }
 
@@ -47,17 +48,17 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public void deleteDepartment(TenantId tenantId, Long departmentId) {
+    public void deleteDepartment(TenantId tenantId, DepartmentId departmentId) {
         support.deleteDepartment(tenantId, departmentId);
     }
 
     @Override
-    public boolean existsChildDepartment(TenantId tenantId, Long departmentId) {
+    public boolean existsChildDepartment(TenantId tenantId, DepartmentId departmentId) {
         return support.existsChildDepartment(tenantId, departmentId);
     }
 
     @Override
-    public boolean existsUserInDepartment(TenantId tenantId, Long departmentId) {
+    public boolean existsUserInDepartment(TenantId tenantId, DepartmentId departmentId) {
         return userRepository.hasActiveUserInDepartment(tenantId, departmentId);
     }
 }

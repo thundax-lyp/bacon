@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.application.query;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
@@ -49,7 +50,7 @@ public class PermissionQueryApplicationService {
         // 数据权限由多个维度组合而成：是否全量、范围类型集合、部门集合；查询层只做聚合，不引入额外推导。
         return new UserDataScopeDTO(permissionRepository.hasAllAccess(tenantId, userId),
                 permissionRepository.getUserScopeTypes(tenantId, userId),
-                permissionRepository.getUserDepartmentIds(tenantId, userId));
+                permissionRepository.getUserDepartmentIds(tenantId, userId).stream().map(DepartmentId::value).collect(java.util.stream.Collectors.toSet()));
     }
 
     public UserDataScopeDTO getUserDataScope(String tenantId, String userId) {

@@ -7,7 +7,7 @@ import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
  */
 public record DepartmentResponse(
         /** 部门主键。 */
-        Long id,
+        String id,
         /** 所属租户编号。 */
         String tenantId,
         /** 部门编码。 */
@@ -15,7 +15,7 @@ public record DepartmentResponse(
         /** 部门名称。 */
         String name,
         /** 父部门主键，根部门固定为 0。 */
-        Long parentId,
+        String parentId,
         /** 部门负责人用户主键。 */
         String leaderUserId,
         /** 部门状态。 */

@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
@@ -127,16 +128,16 @@ public class UserApplicationService {
                 pageNo, pageSize);
     }
 
-    public UserDTO createUser(TenantId tenantId, String account, String name, String phone, Long departmentId) {
+    public UserDTO createUser(TenantId tenantId, String account, String name, String phone, String departmentId) {
         validateRequired(account, "account");
         validateRequired(name, "name");
         ensureAccountUnique(tenantId, account, null);
         User savedUser = userRepository.save(new User(null, tenantId, normalize(account), normalize(name), normalize(phone),
-                null, departmentId, UserStatus.ENABLED));
+                null, toDepartmentId(departmentId), UserStatus.ENABLED));
         return toDetailedDto(savedUser);
     }
 
-    public UserDTO updateUser(TenantId tenantId, String userId, String account, String name, String phone, Long departmentId) {
+    public UserDTO updateUser(TenantId tenantId, String userId, String account, String name, String phone, String departmentId) {
         UserId domainUserId = UserId.of(userId);
         User currentUser = requireUser(tenantId, domainUserId);
         validateRequired(account, "account");
@@ -150,7 +151,7 @@ public class UserApplicationService {
                 currentUser.getAvatarObjectId(),
                 normalize(phone),
                 currentUser.getPasswordHash(),
-                departmentId,
+                toDepartmentId(departmentId),
                 currentUser.getStatus(),
                 currentUser.getCreatedBy(),
                 currentUser.getCreatedAt(),
@@ -337,7 +338,12 @@ public class UserApplicationService {
 
     private UserDTO toDto(User user, String avatarUrl, String tenantIdValue) {
         return new UserDTO(user.getId().value(), tenantIdValue, user.getAccount(), user.getName(),
-                user.getAvatarObjectId(), user.getPhone(), user.getDepartmentId(), avatarUrl, user.getStatus().value());
+                user.getAvatarObjectId(), user.getPhone(),
+                user.getDepartmentId() == null ? null : user.getDepartmentId().value(), avatarUrl, user.getStatus().value());
+    }
+
+    private DepartmentId toDepartmentId(String departmentId) {
+        return departmentId == null || departmentId.isBlank() ? null : DepartmentId.of(departmentId.trim());
     }
 
     private RoleDTO toRoleDto(Role role, String tenantIdValue) {

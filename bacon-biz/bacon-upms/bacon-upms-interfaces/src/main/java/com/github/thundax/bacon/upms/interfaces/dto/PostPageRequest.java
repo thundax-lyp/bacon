@@ -14,7 +14,7 @@ public class PostPageRequest {
     private String tenantId;
     private String code;
     private String name;
-    private Long departmentId;
+    private String departmentId;
     private UpmsStatusQueryEnum status;
 
     @Min(1)

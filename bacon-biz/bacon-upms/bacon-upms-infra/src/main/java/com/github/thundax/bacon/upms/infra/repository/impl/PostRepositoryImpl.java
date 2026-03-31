@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
@@ -24,13 +25,13 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> pagePosts(TenantId tenantId, String code, String name, Long departmentId, String status,
+    public List<Post> pagePosts(TenantId tenantId, String code, String name, DepartmentId departmentId, String status,
                                 int pageNo, int pageSize) {
         return support.listPosts(tenantId, code, name, departmentId, status, pageNo, pageSize);
     }
 
     @Override
-    public long countPosts(TenantId tenantId, String code, String name, Long departmentId, String status) {
+    public long countPosts(TenantId tenantId, String code, String name, DepartmentId departmentId, String status) {
         return support.countPosts(tenantId, code, name, departmentId, status);
     }
 

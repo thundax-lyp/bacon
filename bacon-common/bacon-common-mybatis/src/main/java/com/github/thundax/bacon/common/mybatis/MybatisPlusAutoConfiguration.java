@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.mybatis.fill.MybatisPlusMetaObjectHandler;
+import com.github.thundax.bacon.common.mybatis.handler.DepartmentIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.OrderIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.IntegerArrayTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.LongArrayTypeHandler;
@@ -67,6 +69,7 @@ public class MybatisPlusAutoConfiguration {
         registry.register(String[].class, StringArrayTypeHandler.class);
         registry.register(Long[].class, LongArrayTypeHandler.class);
         registry.register(Integer[].class, IntegerArrayTypeHandler.class);
+        registry.register(DepartmentId.class, DepartmentIdTypeHandler.class);
         registry.register(UserId.class, UserIdTypeHandler.class);
         registry.register(RoleId.class, RoleIdTypeHandler.class);
         registry.register(OrderId.class, OrderIdTypeHandler.class);

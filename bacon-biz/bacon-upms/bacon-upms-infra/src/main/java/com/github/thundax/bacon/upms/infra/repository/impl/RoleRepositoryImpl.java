@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -113,15 +114,15 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public Set<Long> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId) {
+    public Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId) {
         findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         return support.getAssignedDataScopeDepartments(tenantId, roleId);
     }
 
     @Override
-    public Set<Long> assignDataScope(TenantId tenantId, Long roleId, String dataScopeType, Set<Long> departmentIds) {
+    public Set<DepartmentId> assignDataScope(TenantId tenantId, Long roleId, String dataScopeType, Set<DepartmentId> departmentIds) {
         findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
-        Set<Long> safeDepartmentIds = departmentIds == null ? Set.of() : Set.copyOf(departmentIds);
+        Set<DepartmentId> safeDepartmentIds = departmentIds == null ? Set.of() : Set.copyOf(departmentIds);
         support.replaceRoleDataScope(tenantId, roleId, dataScopeType, safeDepartmentIds);
         Role currentRole = findRoleById(tenantId, roleId).orElseThrow();
         support.saveRole(new Role(currentRole.getId(), currentRole.getTenantId(), currentRole.getCode(), currentRole.getName(),

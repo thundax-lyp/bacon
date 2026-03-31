@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.application.command;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -120,13 +121,13 @@ public class RoleApplicationService {
         return roleRepository.getAssignedDataScopeType(tenantId, roleId);
     }
 
-    public Set<Long> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId) {
+    public Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId) {
         return roleRepository.getAssignedDataScopeDepartments(tenantId, roleId);
     }
 
-    public Set<Long> assignDataScope(TenantId tenantId, Long roleId, String dataScopeType, Set<Long> departmentIds) {
+    public Set<DepartmentId> assignDataScope(TenantId tenantId, Long roleId, String dataScopeType, Set<String> departmentIds) {
         validateRequired(dataScopeType, "dataScopeType");
-        return roleRepository.assignDataScope(tenantId, roleId, normalize(dataScopeType), departmentIds);
+        return roleRepository.assignDataScope(tenantId, roleId, normalize(dataScopeType), toDepartmentIds(departmentIds));
     }
 
     private RoleDTO toDto(Role role) {
@@ -153,6 +154,14 @@ public class RoleApplicationService {
         return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
+    }
+
+    private Set<DepartmentId> toDepartmentIds(Set<String> departmentIds) {
+        return departmentIds == null ? Set.of() : departmentIds.stream()
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .map(DepartmentId::of)
+                .collect(java.util.stream.Collectors.toSet());
     }
 
 }

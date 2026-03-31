@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import lombok.Getter;
 
@@ -28,7 +29,7 @@ public class User {
     /** 密码哈希。 */
     private String passwordHash;
     /** 所属部门主键。 */
-    private Long departmentId;
+    private DepartmentId departmentId;
     /** 用户状态。 */
     private UserStatus status;
     /** 创建人。 */
@@ -41,25 +42,25 @@ public class User {
     private Instant updatedAt;
 
     public User(UserId id, TenantId tenantId, String account, String name, String phone, String passwordHash,
-                Long departmentId, UserStatus status) {
+                DepartmentId departmentId, UserStatus status) {
         this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status);
     }
 
     public User(UserId id, TenantId tenantId, String account, String name, Long avatarObjectId, String phone,
-                String passwordHash, Long departmentId, UserStatus status) {
+                String passwordHash, DepartmentId departmentId, UserStatus status) {
         this(id, tenantId, account, name, avatarObjectId, phone, passwordHash, departmentId, status,
                 null, null, null, null);
     }
 
     public User(UserId id, TenantId tenantId, String account, String name, String phone, String passwordHash,
-                Long departmentId, UserStatus status, String createdBy, Instant createdAt,
+                DepartmentId departmentId, UserStatus status, String createdBy, Instant createdAt,
                 String updatedBy, Instant updatedAt) {
         this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status,
                 createdBy, createdAt, updatedBy, updatedAt);
     }
 
     public User(UserId id, TenantId tenantId, String account, String name, Long avatarObjectId, String phone,
-                String passwordHash, Long departmentId, UserStatus status, String createdBy,
+                String passwordHash, DepartmentId departmentId, UserStatus status, String createdBy,
                 Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;

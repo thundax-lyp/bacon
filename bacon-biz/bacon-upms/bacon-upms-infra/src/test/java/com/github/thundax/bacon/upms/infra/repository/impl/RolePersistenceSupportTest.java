@@ -1,26 +1,16 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.github.thundax.bacon.upms.domain.model.entity.Resource;
-import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleDataScopeRelDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleResourceRelDO;
-import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DataPermissionRuleMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.DepartmentMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.MenuMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.PostMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.ResourceMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleDataScopeRelMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMenuRelMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleResourceRelMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.SysLogRecordMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.TenantMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
 import java.util.List;
 import java.util.Set;
@@ -29,8 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,22 +28,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class UpmsRepositorySupportTest {
+class RolePersistenceSupportTest {
 
     @Mock
-    private TenantMapper tenantMapper;
-    @Mock
-    private UserMapper userMapper;
-    @Mock
-    private UserIdentityMapper userIdentityMapper;
-    @Mock
-    private DepartmentMapper departmentMapper;
-    @Mock
-    private PostMapper postMapper;
-    @Mock
     private RoleMapper roleMapper;
-    @Mock
-    private MenuMapper menuMapper;
     @Mock
     private ResourceMapper resourceMapper;
     @Mock
@@ -66,36 +44,13 @@ class UpmsRepositorySupportTest {
     private DataPermissionRuleMapper dataPermissionRuleMapper;
     @Mock
     private RoleDataScopeRelMapper roleDataScopeRelMapper;
-    @Mock
-    private SysLogRecordMapper sysLogRecordMapper;
 
-    private UpmsRepositorySupport support;
+    private RolePersistenceSupport support;
 
     @BeforeEach
     void setUp() {
-        support = new UpmsRepositorySupport(tenantMapper, userMapper, userIdentityMapper, departmentMapper, postMapper,
-                roleMapper, menuMapper, resourceMapper, userRoleRelMapper, roleMenuRelMapper, roleResourceRelMapper,
-                dataPermissionRuleMapper, roleDataScopeRelMapper, sysLogRecordMapper);
-    }
-
-    @Test
-    void shouldInsertUserAndMapGeneratedId() {
-        ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
-        User newUser = new User(null, 1L, "alice", "Alice", "13800000001", "ENC", 11L, "ACTIVE", false);
-
-        when(userMapper.insert(any(UserDO.class))).thenAnswer(invocation -> {
-            UserDO dataObject = invocation.getArgument(0);
-            dataObject.setId(101L);
-            return 1;
-        });
-
-        User savedUser = support.saveUser(newUser);
-
-        verify(userMapper).insert(captor.capture());
-        assertThat(captor.getValue().getCreatedAt()).isNotNull();
-        assertThat(captor.getValue().getUpdatedAt()).isNotNull();
-        assertThat(savedUser.getId()).isEqualTo(101L);
-        assertThat(savedUser.getAccount()).isEqualTo("alice");
+        support = new RolePersistenceSupport(roleMapper, resourceMapper, userRoleRelMapper, roleMenuRelMapper,
+                roleResourceRelMapper, dataPermissionRuleMapper, roleDataScopeRelMapper);
     }
 
     @Test

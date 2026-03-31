@@ -15,16 +15,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(UpmsRepositorySupport.class)
+@ConditionalOnBean(SysLogPersistenceSupport.class)
 public class SysLogRepositoryImpl implements SysLogRepository {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_INSTANT;
     private static final Path SYS_LOG_FILE = Path.of("logs", "upms-sys-log.log");
 
-    private final UpmsRepositorySupport support;
+    private final SysLogPersistenceSupport support;
     private final AtomicLong logIdSequence = new AtomicLong(1L);
 
-    public SysLogRepositoryImpl(UpmsRepositorySupport support) {
+    public SysLogRepositoryImpl(SysLogPersistenceSupport support) {
         this.support = support;
     }
 

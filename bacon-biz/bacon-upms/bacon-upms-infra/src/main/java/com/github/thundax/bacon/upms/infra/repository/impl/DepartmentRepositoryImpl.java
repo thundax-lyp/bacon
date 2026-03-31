@@ -9,13 +9,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(UpmsRepositorySupport.class)
+@ConditionalOnBean({DepartmentPersistenceSupport.class, UserPersistenceSupport.class})
 public class DepartmentRepositoryImpl implements DepartmentRepository {
 
-    private final UpmsRepositorySupport support;
+    private final DepartmentPersistenceSupport support;
     private final UserRepositoryImpl userRepository;
 
-    public DepartmentRepositoryImpl(UpmsRepositorySupport support, UserRepositoryImpl userRepository) {
+    public DepartmentRepositoryImpl(DepartmentPersistenceSupport support, UserRepositoryImpl userRepository) {
         this.support = support;
         this.userRepository = userRepository;
     }

@@ -13,7 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(UpmsRepositorySupport.class)
+@ConditionalOnBean({MenuPersistenceSupport.class, RolePersistenceSupport.class})
 public class PermissionRepositoryImpl implements PermissionRepository {
 
     private final MenuRepositoryImpl menuRepository;

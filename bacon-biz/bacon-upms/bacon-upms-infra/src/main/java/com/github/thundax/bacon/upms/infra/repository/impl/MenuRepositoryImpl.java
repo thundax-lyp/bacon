@@ -8,13 +8,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(UpmsRepositorySupport.class)
+@ConditionalOnBean({MenuPersistenceSupport.class, RolePersistenceSupport.class})
 public class MenuRepositoryImpl implements MenuRepository {
 
-    private final UpmsRepositorySupport support;
+    private final MenuPersistenceSupport support;
     private final RoleRepositoryImpl roleRepository;
 
-    public MenuRepositoryImpl(UpmsRepositorySupport support, RoleRepositoryImpl roleRepository) {
+    public MenuRepositoryImpl(MenuPersistenceSupport support, RoleRepositoryImpl roleRepository) {
         this.support = support;
         this.roleRepository = roleRepository;
     }

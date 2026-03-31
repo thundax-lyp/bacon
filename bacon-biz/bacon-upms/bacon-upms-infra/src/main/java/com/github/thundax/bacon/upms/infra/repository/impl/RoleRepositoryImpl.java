@@ -9,12 +9,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(UpmsRepositorySupport.class)
+@ConditionalOnBean(RolePersistenceSupport.class)
 public class RoleRepositoryImpl implements RoleRepository {
 
-    private final UpmsRepositorySupport support;
+    private final RolePersistenceSupport support;
 
-    public RoleRepositoryImpl(UpmsRepositorySupport support) {
+    public RoleRepositoryImpl(RolePersistenceSupport support) {
         this.support = support;
     }
 

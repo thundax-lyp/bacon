@@ -8,12 +8,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(UpmsRepositorySupport.class)
+@ConditionalOnBean(ResourcePersistenceSupport.class)
 public class ResourceRepositoryImpl implements ResourceRepository {
 
-    private final UpmsRepositorySupport support;
+    private final ResourcePersistenceSupport support;
 
-    public ResourceRepositoryImpl(UpmsRepositorySupport support) {
+    public ResourceRepositoryImpl(ResourcePersistenceSupport support) {
         this.support = support;
     }
 

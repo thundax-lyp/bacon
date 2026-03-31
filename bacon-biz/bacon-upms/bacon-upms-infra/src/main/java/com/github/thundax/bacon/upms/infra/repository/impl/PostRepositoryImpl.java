@@ -8,12 +8,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(UpmsRepositorySupport.class)
+@ConditionalOnBean(PostPersistenceSupport.class)
 public class PostRepositoryImpl implements PostRepository {
 
-    private final UpmsRepositorySupport support;
+    private final PostPersistenceSupport support;
 
-    public PostRepositoryImpl(UpmsRepositorySupport support) {
+    public PostRepositoryImpl(PostPersistenceSupport support) {
         this.support = support;
     }
 

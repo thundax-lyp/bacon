@@ -11,16 +11,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(UpmsRepositorySupport.class)
+@ConditionalOnBean({UserPersistenceSupport.class, RolePersistenceSupport.class})
 public class UserRepositoryImpl implements UserRepository {
 
     private static final String DEFAULT_PASSWORD = "123456";
 
-    private final UpmsRepositorySupport support;
+    private final UserPersistenceSupport support;
     private final RoleRepositoryImpl roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserRepositoryImpl(UpmsRepositorySupport support, RoleRepositoryImpl roleRepository, PasswordEncoder passwordEncoder) {
+    public UserRepositoryImpl(UserPersistenceSupport support, RoleRepositoryImpl roleRepository, PasswordEncoder passwordEncoder) {
         this.support = support;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;

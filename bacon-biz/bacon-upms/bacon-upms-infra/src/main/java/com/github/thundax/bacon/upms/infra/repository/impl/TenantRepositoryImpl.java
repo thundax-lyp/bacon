@@ -8,12 +8,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(UpmsRepositorySupport.class)
+@ConditionalOnBean(TenantPersistenceSupport.class)
 public class TenantRepositoryImpl implements TenantRepository {
 
-    private final UpmsRepositorySupport support;
+    private final TenantPersistenceSupport support;
 
-    public TenantRepositoryImpl(UpmsRepositorySupport support) {
+    public TenantRepositoryImpl(TenantPersistenceSupport support) {
         this.support = support;
     }
 

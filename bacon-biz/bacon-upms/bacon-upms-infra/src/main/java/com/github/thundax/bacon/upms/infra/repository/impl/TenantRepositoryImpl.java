@@ -19,7 +19,7 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public Optional<Tenant> findTenantById(Long tenantId) {
+    public Optional<Tenant> findTenantById(TenantId tenantId) {
         return support.findTenantById(tenantId);
     }
 
@@ -40,10 +40,7 @@ public class TenantRepositoryImpl implements TenantRepository {
 
     @Override
     public Tenant saveTenant(Tenant tenant) {
-        return support.saveTenant(tenant.getId() == null
-                ? new Tenant(null, tenant.getTenantNo(), tenant.getName(), tenant.getStatus(),
-                tenant.getCreatedBy(), tenant.getCreatedAt(), tenant.getUpdatedBy(), tenant.getUpdatedAt())
-                : tenant);
+        return support.saveTenant(tenant);
     }
 
     @Override
@@ -52,7 +49,6 @@ public class TenantRepositoryImpl implements TenantRepository {
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
         return support.saveTenant(new Tenant(
                 currentTenant.getId(),
-                currentTenant.getTenantId(),
                 currentTenant.getName(),
                 com.github.thundax.bacon.upms.domain.model.enums.TenantStatus.fromValue(status),
                 currentTenant.getCreatedBy(),

@@ -22,26 +22,24 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.tenantMapper = tenantMapper;
     }
 
-    Optional<Tenant> findTenantById(Long tenantId) {
+    Optional<Tenant> findTenantById(TenantId tenantId) {
         return Optional.ofNullable(tenantId)
                 .map(tenantMapper::selectById)
                 .map(this::toDomain);
     }
 
     Optional<Tenant> findTenantByTenantId(TenantId tenantId) {
-        String tenantIdValue = tenantId == null ? null : tenantId.value();
         return Optional.ofNullable(tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(TenantDO::getTenantNo, trim(tenantIdValue))))
+                        .eq(TenantDO::getId, tenantId)))
                 .map(this::toDomain);
     }
 
     List<Tenant> listTenants(TenantId tenantId, String name, String status, int pageNo, int pageSize) {
-        String tenantIdValue = tenantId == null ? null : tenantId.value();
         return tenantMapper.selectList(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(hasText(tenantIdValue), TenantDO::getTenantNo, trim(tenantIdValue))
+                        .eq(tenantId != null, TenantDO::getId, tenantId)
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))
-                        .orderByAsc(TenantDO::getTenantNo)
+                        .orderByAsc(TenantDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
                 .map(this::toDomain)
@@ -49,9 +47,8 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     long countTenants(TenantId tenantId, String name, String status) {
-        String tenantIdValue = tenantId == null ? null : tenantId.value();
         return Optional.ofNullable(tenantMapper.selectCount(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(hasText(tenantIdValue), TenantDO::getTenantNo, trim(tenantIdValue))
+                        .eq(tenantId != null, TenantDO::getId, tenantId)
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))))
                 .orElse(0L);

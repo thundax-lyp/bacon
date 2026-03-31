@@ -44,7 +44,8 @@
 - 字符集固定使用 `utf8mb4`
 - 排序规则使用数据库默认值
 - 时间字段统一使用 `datetime(3)`
-- 主键字段统一使用 `bigint`
+- 主键字段默认使用 `bigint`
+- `UserId` 相关字段固定使用 `varchar(64)`，包括 `bacon_upms_user.id` 及所有直接引用用户主体主键的关联字段
 - 布尔字段统一使用 `tinyint(1)`
 - 枚举字段统一使用 `varchar`
 - `UPMS` 不涉及金额字段
@@ -93,6 +94,9 @@
 ### 5.2 Fixed Length Rules
 
 - `tenant_id`: `varchar(64)`
+- `user_id`: `varchar(64)`
+- `leader_user_id`: `varchar(64)`
+- `operator_id`: `varchar(64)`
 - `code`: `varchar(64)`
 - `account`: `varchar(64)`
 - `phone`: `varchar(32)`
@@ -192,7 +196,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `varchar(64)` | N | 用户主键，固定使用 `UserId` |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `account` | `varchar(64)` | N | 用户账号，全局唯一 |
 | `name` | `varchar(128)` | N | 用户名称 |
@@ -229,7 +233,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | N | 用户主键 |
+| `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `identity_type` | `varchar(16)` | N | 标识类型，取值见 `identity_type` |
 | `identity_value` | `varchar(255)` | N | 标识值 |
 | `enabled` | `tinyint(1)` | N | 是否可用于认证 |
@@ -259,7 +263,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | N | 用户主键 |
+| `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `identity_id` | `bigint` | Y | 关联身份标识主键；社交登录可为空 |
 | `credential_type` | `varchar(32)` | N | 凭据类型，取值见 `credential_type` |
 | `factor_level` | `varchar(16)` | N | 因子级别，取值见 `factor_level` |
@@ -302,7 +306,7 @@
 | `code` | `varchar(64)` | N | 部门编码，全局唯一 |
 | `name` | `varchar(128)` | N | 部门名称 |
 | `parent_id` | `bigint` | Y | 上级部门主键 |
-| `leader_user_id` | `bigint` | Y | 负责人用户主键 |
+| `leader_user_id` | `varchar(64)` | Y | 负责人用户主键，引用 `bacon_upms_user.id` |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |
@@ -467,7 +471,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | N | 用户主键 |
+| `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `role_id` | `bigint` | N | 角色主键 |
 
 索引与约束：
@@ -491,7 +495,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | N | 用户主键 |
+| `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `post_id` | `bigint` | N | 岗位主键 |
 
 索引与约束：
@@ -614,7 +618,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `operator_id` | `bigint` | Y | 操作人用户主键 |
+| `operator_id` | `varchar(64)` | Y | 操作人用户主键，引用 `bacon_upms_user.id` |
 | `object_type` | `varchar(64)` | N | 审计对象类型，取值见 `audit_object_type` |
 | `object_id` | `varchar(64)` | N | 对象标识 |
 | `action_type` | `varchar(64)` | N | 操作类型 |
@@ -704,7 +708,7 @@
 | `action` | `varchar(128)` | N | 操作描述 |
 | `event_type` | `varchar(32)` | N | 事件类型，取值见 `sys_log_event_type` |
 | `result` | `varchar(32)` | N | 执行结果，取值见 `sys_log_result` |
-| `operator_id` | `bigint` | Y | 操作人用户主键 |
+| `operator_id` | `varchar(64)` | Y | 操作人用户主键，引用 `bacon_upms_user.id` |
 | `operator_name` | `varchar(64)` | Y | 操作人名称 |
 | `client_ip` | `varchar(64)` | Y | 客户端IP |
 | `request_uri` | `varchar(255)` | Y | 请求URI |
@@ -763,6 +767,7 @@
 - `User`、`Department`、`Post`、`Role`、`Menu`、`Resource` 统一逻辑删除
 - `Tenant`、关系表、规则表、审计表当前不使用逻辑删除
 - `User.account` 全局唯一，逻辑删除后也不得复用
+- `User.id` 固定使用 `UserId`，当前格式建议为 `U` 前缀加数值序列，数据库类型固定为 `varchar(64)`
 - `User.avatar_object_id` 允许为空
 - `User.avatar_object_id` 不为空时必须指向状态为 `ACTIVE` 的 `StoredObject`
 - `Tenant.tenantNo`、`Department.code`、`Post.code`、`Role.code`、`Resource.code` 全局唯一

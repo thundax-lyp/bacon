@@ -15,20 +15,20 @@ class BaseIdTest {
 
     @Test
     void shouldKeepTypeSafetyWhenComparingIds() {
-        UserId userId = UserId.of(1001L);
-        UserId sameUserId = UserId.of(1001L);
+        UserId userId = UserId.of("U1001");
+        UserId sameUserId = UserId.of("U1001");
         RoleId roleId = RoleId.of(1001L);
 
         assertThat(userId).isEqualTo(sameUserId);
         assertThat(userId.hashCode()).isEqualTo(sameUserId.hashCode());
         assertThat(userId).isNotEqualTo(roleId);
-        assertThat(userId.asString()).isEqualTo("1001");
+        assertThat(userId.asString()).isEqualTo("U1001");
     }
 
     @Test
     void shouldSerializeAndDeserializeConcreteIdsWithJackson() throws Exception {
-        assertThat(objectMapper.writeValueAsString(UserId.of(1001L))).isEqualTo("1001");
-        assertThat(objectMapper.readValue("1001", UserId.class)).isEqualTo(UserId.of(1001L));
+        assertThat(objectMapper.writeValueAsString(UserId.of("U1001"))).isEqualTo("\"U1001\"");
+        assertThat(objectMapper.readValue("\"U1001\"", UserId.class)).isEqualTo(UserId.of("U1001"));
         assertThat(objectMapper.writeValueAsString(TenantId.of("T001"))).isEqualTo("\"T001\"");
         assertThat(objectMapper.readValue("\"T001\"", TenantId.class)).isEqualTo(TenantId.of("T001"));
     }

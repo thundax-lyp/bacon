@@ -31,20 +31,20 @@ class BaseIdTypeHandlerTest {
                     return defaultValue(method.getReturnType());
                 });
 
-        handler.setNonNullParameter(preparedStatement, 1, UserId.of(1001L), null);
+        handler.setNonNullParameter(preparedStatement, 1, UserId.of("U1001"), null);
 
-        assertThat(writtenValue.get()).isEqualTo(1001L);
+        assertThat(writtenValue.get()).isEqualTo("U1001");
     }
 
     @Test
     void shouldReadLongIdentifierFromResultSet() throws Exception {
         UserIdTypeHandler handler = new UserIdTypeHandler();
-        ResultSet resultSet = resultSet(Map.of("user_id", 1001L, 1, "1002"));
-        CallableStatement callableStatement = callableStatement(Map.of(1, 1003));
+        ResultSet resultSet = resultSet(Map.of("user_id", "U1001", 1, "U1002"));
+        CallableStatement callableStatement = callableStatement(Map.of(1, "U1003"));
 
-        assertThat(handler.getNullableResult(resultSet, "user_id")).isEqualTo(UserId.of(1001L));
-        assertThat(handler.getNullableResult(resultSet, 1)).isEqualTo(UserId.of(1002L));
-        assertThat(handler.getNullableResult(callableStatement, 1)).isEqualTo(UserId.of(1003L));
+        assertThat(handler.getNullableResult(resultSet, "user_id")).isEqualTo(UserId.of("U1001"));
+        assertThat(handler.getNullableResult(resultSet, 1)).isEqualTo(UserId.of("U1002"));
+        assertThat(handler.getNullableResult(callableStatement, 1)).isEqualTo(UserId.of("U1003"));
     }
 
     @Test

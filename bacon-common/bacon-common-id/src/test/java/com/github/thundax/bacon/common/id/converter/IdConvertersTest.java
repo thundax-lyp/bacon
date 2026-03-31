@@ -10,13 +10,13 @@ class IdConvertersTest {
 
     @Test
     void shouldConvertBetweenValueAndIdentifier() {
-        Long nullableUserIdValue = IdConverters.toValue((UserId) null);
-        UserId nullableUserId = IdConverters.fromValue((Long) null, UserId::of);
+        String nullableUserIdValue = IdConverters.toValue((UserId) null);
+        UserId nullableUserId = IdConverters.fromValue((String) null, UserId::of);
 
-        assertThat(IdConverters.toValue(UserId.of(1001L))).isEqualTo(1001L);
+        assertThat(IdConverters.toValue(UserId.of("U1001"))).isEqualTo("U1001");
         assertThat(IdConverters.toValue(TenantId.of("T001"))).isEqualTo("T001");
         assertThat(nullableUserIdValue).isNull();
-        assertThat(IdConverters.fromValue(1001L, UserId::of)).isEqualTo(UserId.of(1001L));
+        assertThat(IdConverters.fromValue("U1001", UserId::of)).isEqualTo(UserId.of("U1001"));
         assertThat(IdConverters.fromValue("T001", TenantId::of)).isEqualTo(TenantId.of("T001"));
         assertThat(nullableUserId).isNull();
     }

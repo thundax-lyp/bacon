@@ -20,7 +20,7 @@ public class DefaultIds implements Ids {
 
     @Override
     public UserId userId() {
-        return UserId.of(idGenerator.nextId(USER_ID_BIZ_TAG));
+        return UserId.of("U" + idGenerator.nextId(USER_ID_BIZ_TAG));
     }
 
     @Override

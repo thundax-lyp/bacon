@@ -91,8 +91,9 @@
 - 统一 ID 体系优先采用“单值包装 + 强类型”模型
 - `BaseId<T>` 必须保持不可变
 - `BaseId<T>` 的底层值当前固定优先支持 `String` 与 `Long`
+- `UserId` 当前固定使用 `String`
 - `TenantId` 当前优先承载租户业务标识，例如 `T001`
-- `UserId`、`RoleId`、`SkuId`、`OrderId` 可按业务演进分别承载字符串型或数值型值，但一个具体类型在同一阶段只能固定一种底层值类型
+- `RoleId`、`SkuId`、`OrderId` 可按业务演进分别承载字符串型或数值型值，但一个具体类型在同一阶段只能固定一种底层值类型
 - `BaseId<T>` 不得直接依赖 `MyBatis`、`JPA`、`Spring MVC`
 - 框架适配逻辑固定放在 `converter` 或 `handler`，不得回灌到领域模型
 - `domain` 中允许出现具体 ID 类型，不允许出现框架注解污染领域对象
@@ -105,7 +106,7 @@
 固定写法：
 
 ```java
-UserId userId = UserId.of(1001L);
+UserId userId = UserId.of("U1001");
 TenantId tenantId = TenantId.of("T001");
 OrderId orderId = ids.orderId();
 ```
@@ -115,7 +116,7 @@ OrderId orderId = ids.orderId();
 - `UserId.of(...)`、`TenantId.of(...)`、`OrderId.of(...)` 必须为静态工厂
 - 构造器固定非公开，避免绕过校验
 - 判等必须基于“具体类型 + 底层值”
-- `UserId.of(1L)` 不得与 `RoleId.of(1L)` 判等
+- `UserId.of("U1001")` 不得与 `RoleId.of(1001L)` 判等
 
 ### 7.2 Unified Factory Entry
 
@@ -139,7 +140,7 @@ OrderId orderId = ids.orderId();
 ### 7.3 Jackson Rules
 
 - 统一 ID 对外序列化为单一基础值
-- `UserId(1001)` 序列化后固定为 `1001` 或 `"1001"`，由具体 ID 底层值类型决定
+- `UserId("U1001")` 序列化后固定为 `"U1001"`
 - `Jackson` 反序列化必须支持从基础值恢复具体 ID 类型
 - 不允许把统一 ID 序列化成 `{"value":1001}` 这类额外包裹结构
 
@@ -184,11 +185,20 @@ OrderId orderId = ids.orderId();
 
 ### 9.2 Fixed Persistence Mapping
 
-- `UserId`、`RoleId`、`SkuId`、`OrderId` 若底层值为 `Long`，数据库字段继续使用 `bigint`
+- `UserId` 固定使用 `varchar(64)`
+- `RoleId`、`SkuId`、`OrderId` 若底层值为 `Long`，数据库字段继续使用 `bigint`
 - `TenantId` 若底层值为 `String`，数据库字段继续使用 `varchar`
 - 统一 ID 体系优先改变 Java 类型系统，不强制改变既有列类型
 
-### 9.3 Adjustment Rules
+### 9.3 UserId Rules
+
+- `UserId` 当前固定为文本型统一 ID
+- `UserId` 的 Java 底层类型固定为 `String`
+- `UserId` 的数据库字段当前固定建议使用 `varchar(64)`
+- `UserId` 默认生成规则可采用 `U` 前缀加数值序列，例如 `U1001`
+- `UserId` 作为 `UPMS` 用户主体主标识时，允许作为表主键和关联字段直接落库
+
+### 9.4 Adjustment Rules
 
 仅在以下场景允许调整数据库结构：
 
@@ -224,13 +234,13 @@ OrderId orderId = ids.orderId();
 示例目标：
 
 ```java
-UserId userId = UserId.of(1001L);
+UserId userId = UserId.of("U1001");
 TenantId tenantId = TenantId.of("T001");
 OrderId orderId = ids.orderId();
 ```
 
 ## 12. Open Items
 
-- `UserId`、`RoleId`、`SkuId`、`OrderId` 首批是否统一收敛为 `Long`
+- `RoleId`、`SkuId`、`OrderId` 首批是否统一收敛为 `Long`
 - `TenantId` 是否直接替代现有 `tenantNo` 命名，还是保留“字段名仍为 `tenantNo`、Java 类型升级为 `TenantId`”
 - `DataObject` 首阶段是否允许继续保留基础类型字段，以降低一次性改造范围

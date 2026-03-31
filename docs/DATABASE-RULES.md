@@ -33,7 +33,8 @@
 - 字符集固定使用 `utf8mb4`
 - 排序规则使用数据库实例可用的 `utf8mb4` 排序规则（推荐 `utf8mb4_unicode_ci`）
 - 时间字段统一使用 `datetime(3)`
-- 主键字段统一使用 `bigint`
+- 主键字段默认使用 `bigint`
+- 当某业务域已明确采用统一文本型领域主标识，且该标识需要作为跨域稳定用户主体标识时，可在业务域数据库设计文档中显式声明主键字段使用 `varchar`
 - 布尔字段统一使用 `tinyint(1)`
 - 金额字段统一使用 `decimal(18,2)`
 - 枚举字段统一使用 `varchar`
@@ -97,6 +98,7 @@
 ## 6. Common Field Rules
 
 - `created_by`、`updated_by` 的类型统一使用 `bigint`
+- 如审计人或操作人字段明确复用文本型统一 ID，可在业务域数据库设计文档中显式声明使用 `varchar`
 - `deleted` 的类型统一使用 `tinyint(1)`
 - 使用领域时间字段的表，不再额外重复声明 `created_at` / `updated_at`
 - 运行态表是否需要 `updated_at`，取决于该表是否存在持续更新语义

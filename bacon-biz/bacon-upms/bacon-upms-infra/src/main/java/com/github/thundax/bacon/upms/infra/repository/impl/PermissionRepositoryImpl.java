@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -31,36 +32,36 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     @Override
-    public List<Menu> listMenus(Long tenantId) {
+    public List<Menu> listMenus(TenantId tenantId) {
         return cacheSupport.getTenantMenuTree(tenantId, () -> buildMenuTree(menuRepository.listMenus(tenantId)));
     }
 
     @Override
-    public List<Menu> getUserMenuTree(Long tenantId, UserId userId) {
+    public List<Menu> getUserMenuTree(TenantId tenantId, UserId userId) {
         return cacheSupport.getUserMenuTree(tenantId, userId, () -> loadUserMenuTree(tenantId, userId));
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(Long tenantId, UserId userId) {
+    public Set<String> getUserPermissionCodes(TenantId tenantId, UserId userId) {
         return cacheSupport.getUserPermissionCodes(tenantId, userId, () -> loadUserPermissionCodes(tenantId, userId));
     }
 
     @Override
-    public Set<Long> getUserDepartmentIds(Long tenantId, UserId userId) {
+    public Set<Long> getUserDepartmentIds(TenantId tenantId, UserId userId) {
         return cacheSupport.getUserDepartmentIds(tenantId, userId, () -> loadUserDepartmentIds(tenantId, userId));
     }
 
     @Override
-    public Set<String> getUserScopeTypes(Long tenantId, UserId userId) {
+    public Set<String> getUserScopeTypes(TenantId tenantId, UserId userId) {
         return cacheSupport.getUserScopeTypes(tenantId, userId, () -> loadUserScopeTypes(tenantId, userId));
     }
 
     @Override
-    public boolean hasAllAccess(Long tenantId, UserId userId) {
+    public boolean hasAllAccess(TenantId tenantId, UserId userId) {
         return getUserScopeTypes(tenantId, userId).contains("ALL");
     }
 
-    private List<Menu> loadUserMenuTree(Long tenantId, UserId userId) {
+    private List<Menu> loadUserMenuTree(TenantId tenantId, UserId userId) {
         List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
         if (roles.isEmpty()) {
             return List.of();
@@ -76,7 +77,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         return buildMenuTree(menus);
     }
 
-    private Set<String> loadUserPermissionCodes(Long tenantId, UserId userId) {
+    private Set<String> loadUserPermissionCodes(TenantId tenantId, UserId userId) {
         List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
         if (roles.isEmpty()) {
             return Set.of();
@@ -96,14 +97,14 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         return Set.copyOf(permissionCodes);
     }
 
-    private Set<Long> loadUserDepartmentIds(Long tenantId, UserId userId) {
+    private Set<Long> loadUserDepartmentIds(TenantId tenantId, UserId userId) {
         Set<Long> departmentIds = new HashSet<>();
         roleRepository.findRolesByUserId(tenantId, userId)
                 .forEach(role -> departmentIds.addAll(roleRepository.getAssignedDataScopeDepartments(role.getTenantId(), role.getId())));
         return Set.copyOf(departmentIds);
     }
 
-    private Set<String> loadUserScopeTypes(Long tenantId, UserId userId) {
+    private Set<String> loadUserScopeTypes(TenantId tenantId, UserId userId) {
         Set<String> scopeTypes = new HashSet<>();
         roleRepository.findRolesByUserId(tenantId, userId)
                 .forEach(role -> scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getTenantId(), role.getId())));

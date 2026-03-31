@@ -10,7 +10,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "bacon.inventory.repository.mode", havingValue = "memory")
+@Profile("test")
 public class InMemoryInventoryRepositorySupport {
 
     private final AtomicLong inventoryIdGenerator = new AtomicLong(1000L);

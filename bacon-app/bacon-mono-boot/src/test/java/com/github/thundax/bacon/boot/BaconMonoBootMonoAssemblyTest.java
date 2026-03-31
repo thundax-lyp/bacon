@@ -44,7 +44,6 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "spring.boot.admin.client.enabled=false",
                 "spring.main.lazy-initialization=true",
                 "bacon.order.repository.mode=memory",
-                "bacon.inventory.repository.mode=memory",
                 "bacon.payment.repository.mode=memory",
                 "spring.autoconfigure.exclude="
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"

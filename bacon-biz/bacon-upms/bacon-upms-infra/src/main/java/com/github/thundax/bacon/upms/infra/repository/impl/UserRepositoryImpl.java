@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -199,7 +200,7 @@ public class UserRepositoryImpl implements UserRepository {
                 currentCredential == null ? null : currentCredential.getUpdatedAt()));
     }
 
-    boolean hasActiveUserInDepartment(Long tenantId, Long departmentId) {
+    boolean hasActiveUserInDepartment(TenantId tenantId, Long departmentId) {
         return support.hasActiveUserInDepartment(tenantId, departmentId);
     }
 }

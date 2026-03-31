@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
@@ -169,7 +170,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .eq(UserCredentialDO::getUserId, userId));
     }
 
-    boolean hasActiveUserInDepartment(Long tenantId, Long departmentId) {
+    boolean hasActiveUserInDepartment(TenantId tenantId, Long departmentId) {
         return Optional.ofNullable(userMapper.selectCount(Wrappers.<UserDO>lambdaQuery()
                         .eq(UserDO::getTenantId, tenantId)
                         .eq(UserDO::getDepartmentId, departmentId)

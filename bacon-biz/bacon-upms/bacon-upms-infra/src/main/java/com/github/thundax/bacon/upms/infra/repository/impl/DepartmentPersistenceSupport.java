@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DepartmentMapper;
@@ -23,21 +24,21 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.departmentMapper = departmentMapper;
     }
 
-    Optional<Department> findDepartmentById(Long tenantId, Long departmentId) {
+    Optional<Department> findDepartmentById(TenantId tenantId, Long departmentId) {
         return Optional.ofNullable(departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
                         .eq(DepartmentDO::getTenantId, tenantId)
                         .eq(DepartmentDO::getId, departmentId)))
                 .map(this::toDomain);
     }
 
-    Optional<Department> findDepartmentByCode(Long tenantId, String code) {
+    Optional<Department> findDepartmentByCode(TenantId tenantId, String code) {
         return Optional.ofNullable(departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
                         .eq(DepartmentDO::getTenantId, tenantId)
                         .eq(DepartmentDO::getCode, code)))
                 .map(this::toDomain);
     }
 
-    List<Department> listDepartmentsByIds(Long tenantId, Set<Long> departmentIds) {
+    List<Department> listDepartmentsByIds(TenantId tenantId, Set<Long> departmentIds) {
         if (departmentIds == null || departmentIds.isEmpty()) {
             return List.of();
         }
@@ -50,7 +51,7 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    List<Department> listDepartmentTree(Long tenantId) {
+    List<Department> listDepartmentTree(TenantId tenantId) {
         return departmentMapper.selectList(Wrappers.<DepartmentDO>lambdaQuery()
                         .eq(DepartmentDO::getTenantId, tenantId)
                         .orderByAsc(DepartmentDO::getId))
@@ -73,13 +74,13 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return toDomain(dataObject);
     }
 
-    void deleteDepartment(Long tenantId, Long departmentId) {
+    void deleteDepartment(TenantId tenantId, Long departmentId) {
         departmentMapper.delete(Wrappers.<DepartmentDO>lambdaQuery()
                 .eq(DepartmentDO::getTenantId, tenantId)
                 .eq(DepartmentDO::getId, departmentId));
     }
 
-    boolean existsChildDepartment(Long tenantId, Long departmentId) {
+    boolean existsChildDepartment(TenantId tenantId, Long departmentId) {
         return Optional.ofNullable(departmentMapper.selectCount(Wrappers.<DepartmentDO>lambdaQuery()
                         .eq(DepartmentDO::getTenantId, tenantId)
                         .eq(DepartmentDO::getParentId, departmentId)))

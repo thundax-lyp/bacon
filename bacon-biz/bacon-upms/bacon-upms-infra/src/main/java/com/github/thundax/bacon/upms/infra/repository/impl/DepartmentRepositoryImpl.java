@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import java.util.List;
@@ -21,22 +22,22 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Optional<Department> findDepartmentById(Long tenantId, Long departmentId) {
+    public Optional<Department> findDepartmentById(TenantId tenantId, Long departmentId) {
         return support.findDepartmentById(tenantId, departmentId);
     }
 
     @Override
-    public Optional<Department> findDepartmentByCode(Long tenantId, String departmentCode) {
+    public Optional<Department> findDepartmentByCode(TenantId tenantId, String departmentCode) {
         return support.findDepartmentByCode(tenantId, departmentCode);
     }
 
     @Override
-    public List<Department> listDepartmentsByIds(Long tenantId, Set<Long> departmentIds) {
+    public List<Department> listDepartmentsByIds(TenantId tenantId, Set<Long> departmentIds) {
         return support.listDepartmentsByIds(tenantId, departmentIds);
     }
 
     @Override
-    public List<Department> listDepartmentTree(Long tenantId) {
+    public List<Department> listDepartmentTree(TenantId tenantId) {
         return support.listDepartmentTree(tenantId);
     }
 
@@ -46,17 +47,17 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public void deleteDepartment(Long tenantId, Long departmentId) {
+    public void deleteDepartment(TenantId tenantId, Long departmentId) {
         support.deleteDepartment(tenantId, departmentId);
     }
 
     @Override
-    public boolean existsChildDepartment(Long tenantId, Long departmentId) {
+    public boolean existsChildDepartment(TenantId tenantId, Long departmentId) {
         return support.existsChildDepartment(tenantId, departmentId);
     }
 
     @Override
-    public boolean existsUserInDepartment(Long tenantId, Long departmentId) {
+    public boolean existsUserInDepartment(TenantId tenantId, Long departmentId) {
         return userRepository.hasActiveUserInDepartment(tenantId, departmentId);
     }
 }

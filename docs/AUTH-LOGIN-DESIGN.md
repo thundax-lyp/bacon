@@ -80,7 +80,7 @@
 
 `PasswordLoginRequest`
 
-- `tenantNo`
+- `tenantId`
 - `account`
 - `password`
 - `rsaKeyId`
@@ -110,7 +110,7 @@
 
 `UserLoginCredentialDTO`
 
-- `tenantNo`
+- `tenantId`
 - `userId`
 - `account`
 - `phone`
@@ -171,7 +171,7 @@
 
 功能能力：
 
-- `Auth` 接收 `tenantNo + account + password + rsaKeyId + captchaKey + captchaCode`
+- `Auth` 接收 `tenantId + account + password + rsaKeyId + captchaKey + captchaCode`
 - 先校验并消费验证码
 - 再读取缓存中的 `RSA` 私钥并解密密码
 - 再通过 `UserReadFacade#getUserLoginCredential` 获取用户凭据
@@ -205,7 +205,7 @@
 
 必要补充约束：
 
-- 固定按 `tenantNo + identityType + identityValue` 查询
+- 固定按 `tenantId + identityType + identityValue` 查询
 - 当前账号密码登录固定使用 `identityType = ACCOUNT`
 - `DTO` 契约在 `mono-app` 与微服务模式下保持一致
 

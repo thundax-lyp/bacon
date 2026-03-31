@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import java.util.Optional;
@@ -20,6 +21,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class UserControllerContractTest {
 
+    private static final TenantId TENANT_ID = TenantId.of("tenant-demo");
+
     private UserApplicationService userApplicationService;
     private TenantRequestResolver tenantRequestResolver;
     private MockMvc mockMvc;
@@ -33,8 +36,8 @@ class UserControllerContractTest {
 
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
-        when(tenantRequestResolver.resolveTenantId("tenant-demo")).thenReturn(1001L);
-        when(userApplicationService.updateAvatar(eq(1001L), eq("U101"), eq("avatar.png"), eq("image/png"), eq(4L),
+        when(tenantRequestResolver.resolveTenantId("tenant-demo")).thenReturn(TENANT_ID);
+        when(userApplicationService.updateAvatar(eq(TENANT_ID), eq("U101"), eq("avatar.png"), eq("image/png"), eq(4L),
                 org.mockito.ArgumentMatchers.any()))
                 .thenReturn(new UserDTO("U101", "tenant-demo", "alice", "Alice", 9001L, "13800000001", 11L,
                         "https://cdn.example.com/avatar/9001.png", "ENABLED"));
@@ -56,8 +59,8 @@ class UserControllerContractTest {
 
     @Test
     void shouldRedirectAvatarRequestToStorageAccessUrl() throws Exception {
-        when(tenantRequestResolver.resolveTenantId("tenant-demo")).thenReturn(1001L);
-        when(userApplicationService.getAvatarAccessUrl(1001L, "U101"))
+        when(tenantRequestResolver.resolveTenantId("tenant-demo")).thenReturn(TENANT_ID);
+        when(userApplicationService.getAvatarAccessUrl(TENANT_ID, "U101"))
                 .thenReturn(Optional.of("https://cdn.example.com/avatar/9001.png"));
 
         mockMvc.perform(get("/upms/users/{userId}/avatar", "U101")

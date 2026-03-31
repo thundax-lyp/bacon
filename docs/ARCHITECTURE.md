@@ -275,6 +275,20 @@ bacon-biz/bacon-order
 - 可以依赖数据库、中间件、SDK，但不能反向让 `domain` 依赖这些技术细节。
 - `Order`、`Payment`、`Inventory` 的业务单号生成固定由 `infra` 层集成发号中心客户端完成。
 
+### 仓储与缓存规则
+
+- 面向正式业务链路的 `RepositoryImpl`，固定以数据库持久化模型为真相源。
+- 进程内 `Map`、`List`、`AtomicLong`、统一 `Store` 对象只允许作为测试夹具、演示实现或极小范围的瞬时计算状态，不得作为生产级仓储主存储。
+- `memory` 仓储实现固定放在测试代码或明确的演示装配中，不得默认参与 `starter`、`mono-app` 或微服务正式装配。
+- SaaS 场景下，用户、角色、菜单、资源、租户、订单、库存、支付等业务主数据不得依赖“进程启动后逐步写入内存”形成唯一数据源。
+- 仓储分页、条件过滤、排序、聚合查询必须优先下推到持久化层完成，不允许在 `application` 或 `RepositoryImpl` 中先 `listAll` 再做全量内存过滤。
+- 缓存只承载数据库结果的派生读模型、索引或热点聚合结果，不得取代数据库成为唯一真相源。
+- 缓存失效或缓存未命中时，系统必须能够回源到持久化仓储重建结果。
+- 授权、菜单树、权限码、数据权限等高频读场景允许使用缓存，但缓存内容必须来自明确的持久化查询结果，不得来自手工维护的全局内存集合。
+- 如确需做本地短期缓存，只允许缓存单次查询结果、受控热点键或号段等有限状态，不允许维护跨租户、跨对象的大而全常驻镜像。
+- 仓储之间不得通过共享“统一内存数据库”读写彼此主数据；跨聚合查询应通过持久化查询、查询模型或受控 Facade/read service 完成。
+- 任何测试专用预置数据不得写在正式 `RepositoryImpl` 或正式 `Store`/`Helper` 的构造方法中。
+
 ## 业务单号策略
 
 - `Order`、`Payment`、`Inventory` 的业务单号固定使用发号中心方案。
@@ -608,9 +622,11 @@ bacon-biz/bacon-<domain>/
     - 由 `bacon-common-mybatis` 统一封装分页、通用字段填充、基础配置
     - 业务域 `infra.persistence` 只保留 mapper、dataobject、repositoryimpl 等实现
     - 持久化统一主实现采用 `mybatis-plus + mapper + repositoryimpl`，不再叠加 DAO 基础框架
+    - 生产级仓储固定以 `mybatis-plus + mapper + repositoryimpl` 为主实现；内存仓储只允许出现在测试或演示场景
 - `jetcache`
     - 由 `bacon-common-cache` 统一封装缓存配置、key 规范、过期策略和序列化策略
     - 缓存统一主实现采用 `jetcache`，不再额外封装一套通用缓存门面
+    - `jetcache` 只做派生读缓存与热点数据缓存，不承担业务主数据真相源职责
 - `springdoc`
     - 由 `bacon-common-swagger` 统一封装分组、鉴权头、文档开关
     - 各 starter 按需启用，不在业务模块内重复配置

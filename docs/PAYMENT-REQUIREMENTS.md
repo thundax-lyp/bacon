@@ -73,12 +73,12 @@ Payment 是 Bacon 的统一支付业务域。
 
 `PaymentReadFacade` 固定方法：
 
-- `getByPaymentNo(tenantNo, paymentNo)`，返回固定 `PaymentDetailDTO`
-- `getByOrderNo(tenantNo, orderNo)`，返回固定 `PaymentDetailDTO`
+- `getByPaymentNo(tenantId, paymentNo)`，返回固定 `PaymentDetailDTO`
+- `getByOrderNo(tenantId, orderNo)`，返回固定 `PaymentDetailDTO`
 
 `PaymentSummaryDTO` 至少包含：
 
-- `tenantNo`
+- `tenantId`
 - `paymentNo`
 - `orderNo`
 - `userId`
@@ -101,17 +101,17 @@ Payment 是 Bacon 的统一支付业务域。
 
 `PaymentCommandFacade` 固定方法：
 
-- `createPayment(tenantNo, orderNo, userId, amount, channelCode, subject, expiredAt)`，返回固定 `PaymentCreateResultDTO`
-- `closePayment(tenantNo, paymentNo, reason)`，返回固定 `PaymentCloseResultDTO`
+- `createPayment(tenantId, orderNo, userId, amount, channelCode, subject, expiredAt)`，返回固定 `PaymentCreateResultDTO`
+- `closePayment(tenantId, paymentNo, reason)`，返回固定 `PaymentCloseResultDTO`
 
 固定约束：
 
-- 支付成功回调后，`Payment` 调用 `OrderCommandFacade.markPaid(tenantNo, orderNo, paymentNo, channelCode, paidAmount, paidTime)`
-- 支付失败回调后，`Payment` 调用 `OrderCommandFacade.markPaymentFailed(tenantNo, orderNo, paymentNo, reason, channelStatus, failedTime)`
+- 支付成功回调后，`Payment` 调用 `OrderCommandFacade.markPaid(tenantId, orderNo, paymentNo, channelCode, paidAmount, paidTime)`
+- 支付失败回调后，`Payment` 调用 `OrderCommandFacade.markPaymentFailed(tenantId, orderNo, paymentNo, reason, channelStatus, failedTime)`
 
 `PaymentCreateResultDTO` 至少包含：
 
-- `tenantNo`
+- `tenantId`
 - `paymentNo`
 - `orderNo`
 - `channelCode`
@@ -122,7 +122,7 @@ Payment 是 Bacon 的统一支付业务域。
 
 `PaymentCloseResultDTO` 至少包含：
 
-- `tenantNo`
+- `tenantId`
 - `paymentNo`
 - `orderNo`
 - `paymentStatus`
@@ -199,10 +199,10 @@ Payment 是 Bacon 的统一支付业务域。
 
 ## 5.3 Fixed Fields
 
-- `PaymentOrder` 至少包含 `id`、`tenantNo`、`paymentNo`、`orderNo`、`userId`、`channelCode`、`paymentStatus`、`amount`、`paidAmount`、`subject`、`expiredAt`、`createdAt`、`paidAt`、`closedAt`
+- `PaymentOrder` 至少包含 `id`、`tenantId`、`paymentNo`、`orderNo`、`userId`、`channelCode`、`paymentStatus`、`amount`、`paidAmount`、`subject`、`expiredAt`、`createdAt`、`paidAt`、`closedAt`
 - `PaymentChannelPayload` 至少包含 `paymentNo`、`channelCode`、`payUrl`
-- `PaymentCallbackRecord` 至少包含 `id`、`tenantNo`、`paymentNo`、`orderNo`、`channelCode`、`channelTransactionNo`、`channelStatus`、`rawPayload`、`receivedAt`
-- `PaymentAuditLog` 至少包含 `id`、`tenantNo`、`paymentNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
+- `PaymentCallbackRecord` 至少包含 `id`、`tenantId`、`paymentNo`、`orderNo`、`channelCode`、`channelTransactionNo`、`channelStatus`、`rawPayload`、`receivedAt`
+- `PaymentAuditLog` 至少包含 `id`、`tenantId`、`paymentNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
 
 固定约束：
 
@@ -225,9 +225,9 @@ Payment 是 Bacon 的统一支付业务域。
 
 ## 5.4 Fixed Request Contracts
 
-- `CreatePaymentRequest` 至少包含 `tenantNo`、`orderNo`、`userId`、`amount`、`channelCode`、`subject`、`expiredAt`
-- `ClosePaymentRequest` 至少包含 `tenantNo`、`paymentNo`、`reason`
-- `PaymentCallbackRequest` 至少包含 `tenantNo`、`paymentNo`、`success`、`channelTransactionNo`、`channelStatus`、`rawPayload`、`reason`
+- `CreatePaymentRequest` 至少包含 `tenantId`、`orderNo`、`userId`、`amount`、`channelCode`、`subject`、`expiredAt`
+- `ClosePaymentRequest` 至少包含 `tenantId`、`paymentNo`、`reason`
+- `PaymentCallbackRequest` 至少包含 `tenantId`、`paymentNo`、`success`、`channelTransactionNo`、`channelStatus`、`rawPayload`、`reason`
 
 固定约束：
 
@@ -241,9 +241,9 @@ Payment 是 Bacon 的统一支付业务域。
 - `PaymentOrder.paymentNo` 全局唯一
 - `PaymentOrder.orderNo` 全局唯一
 - `PaymentCallbackRecord.id` 全局唯一
-- `PaymentCallbackRecord` 必须保证 `(tenantNo, channelCode, channelTransactionNo)` 唯一
-- `PaymentOrder` 必须建立 `(tenantNo, userId, createdAt)` 索引
-- `PaymentOrder` 必须建立 `(tenantNo, paymentStatus, expiredAt)` 索引
+- `PaymentCallbackRecord` 必须保证 `(tenantId, channelCode, channelTransactionNo)` 唯一
+- `PaymentOrder` 必须建立 `(tenantId, userId, createdAt)` 索引
+- `PaymentOrder` 必须建立 `(tenantId, paymentStatus, expiredAt)` 索引
 
 ## 6. Global Constraints
 
@@ -359,8 +359,8 @@ Payment 是 Bacon 的统一支付业务域。
 - 记录支付单创建
 - 记录支付回调
 - 记录支付关闭
-- 审计日志至少支持按 `tenantNo`、`paymentNo`、`actionType`、`occurredAt` 查询
-- 当前范围固定提供按 `tenantNo + paymentNo` 查询支付审计日志的应用服务、外部查询接口和内部 provider 查询接口
+- 审计日志至少支持按 `tenantId`、`paymentNo`、`actionType`、`occurredAt` 查询
+- 当前范围固定提供按 `tenantId + paymentNo` 查询支付审计日志的应用服务、外部查询接口和内部 provider 查询接口
 
 ## 8. Key Flows
 

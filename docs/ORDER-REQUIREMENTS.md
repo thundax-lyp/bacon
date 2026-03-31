@@ -88,13 +88,13 @@ Order 是 Bacon 的统一订单业务域。
 
 `OrderReadFacade` 固定方法：
 
-- `getById(tenantNo, orderId)`，返回固定 `OrderDetailDTO`
-- `getByOrderNo(tenantNo, orderNo)`，返回固定 `OrderDetailDTO`
+- `getById(tenantId, orderId)`，返回固定 `OrderDetailDTO`
+- `getByOrderNo(tenantId, orderNo)`，返回固定 `OrderDetailDTO`
 - `pageOrders(query)`，返回固定分页结果，记录项使用 `OrderSummaryDTO`
 
 `pageOrders(query)` 的 `query` 至少包含：
 
-- `tenantNo`
+- `tenantId`
 - `userId`
 - `orderNo`
 - `orderStatus`
@@ -120,7 +120,7 @@ Order 是 Bacon 的统一订单业务域。
 `OrderSummaryDTO` 至少包含：
 
 - `id`
-- `tenantNo`
+- `tenantId`
 - `orderNo`
 - `userId`
 - `orderStatus`
@@ -147,9 +147,9 @@ Order 是 Bacon 的统一订单业务域。
 
 `OrderCommandFacade` 固定方法：
 
-- `markPaid(tenantNo, orderNo, paymentNo, channelCode, paidAmount, paidTime)`
-- `markPaymentFailed(tenantNo, orderNo, paymentNo, reason, channelStatus, failedTime)`
-- `closeExpiredOrder(tenantNo, orderNo, reason)`
+- `markPaid(tenantId, orderNo, paymentNo, channelCode, paidAmount, paidTime)`
+- `markPaymentFailed(tenantId, orderNo, paymentNo, reason, channelStatus, failedTime)`
+- `closeExpiredOrder(tenantId, orderNo, reason)`
 
 固定约束：
 
@@ -235,13 +235,13 @@ Order 是 Bacon 的统一订单业务域。
 
 ## 5.3 Fixed Fields
 
-- `Order` 至少包含 `id`、`tenantNo`、`orderNo`、`userId`、`orderStatus`、`payStatus`、`inventoryStatus`、`currencyCode`、`totalAmount`、`payableAmount`、`remark`、`cancelReason`、`closeReason`、`createdAt`、`expiredAt`、`paidAt`、`closedAt`
-- `OrderItem` 至少包含 `id`、`tenantNo`、`orderId`、`skuId`、`skuName`、`quantity`、`salePrice`、`lineAmount`
+- `Order` 至少包含 `id`、`tenantId`、`orderNo`、`userId`、`orderStatus`、`payStatus`、`inventoryStatus`、`currencyCode`、`totalAmount`、`payableAmount`、`remark`、`cancelReason`、`closeReason`、`createdAt`、`expiredAt`、`paidAt`、`closedAt`
+- `OrderItem` 至少包含 `id`、`tenantId`、`orderId`、`skuId`、`skuName`、`quantity`、`salePrice`、`lineAmount`
 - `OrderAmount` 至少包含 `totalAmount`、`payableAmount`、`currencyCode`
 - `OrderSnapshot` 至少包含 `order`、`items`、`paymentSnapshot`、`inventorySnapshot`
 - `OrderPaymentSnapshot` 至少包含 `orderId`、`paymentNo`、`channelCode`、`payStatus`、`paidAmount`、`paidTime`、`failureReason`、`channelStatus`
 - `OrderInventorySnapshot` 至少包含 `orderId`、`reservationNo`、`inventoryStatus`、`warehouseId`、`failureReason`
-- `OrderAuditLog` 至少包含 `id`、`tenantNo`、`orderNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
+- `OrderAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
 
 ### 5.3.1 Snapshot Mapping Rule
 
@@ -254,11 +254,11 @@ Order 是 Bacon 的统一订单业务域。
 
 ## 5.4 Fixed Request Contracts
 
-- `CreateOrderRequest` 至少包含 `tenantNo`、`userId`、`currencyCode`、`channelCode`、`items`、`remark`
+- `CreateOrderRequest` 至少包含 `tenantId`、`userId`、`currencyCode`、`channelCode`、`items`、`remark`
 - `CreateOrderRequest.items` 至少包含 `skuId`、`skuName`、`quantity`、`salePrice`
-- `CancelOrderRequest` 至少包含 `tenantNo`、`orderNo`、`reason`、`operatorType`、`operatorId`
-- `CloseExpiredOrderRequest` 至少包含 `tenantNo`、`orderNo`、`reason`
-- `OrderPageQuery` 至少包含 `tenantNo`、`userId`、`orderNo`、`orderStatus`、`payStatus`、`inventoryStatus`、`createdAtFrom`、`createdAtTo`、`pageNo`、`pageSize`
+- `CancelOrderRequest` 至少包含 `tenantId`、`orderNo`、`reason`、`operatorType`、`operatorId`
+- `CloseExpiredOrderRequest` 至少包含 `tenantId`、`orderNo`、`reason`
+- `OrderPageQuery` 至少包含 `tenantId`、`userId`、`orderNo`、`orderStatus`、`payStatus`、`inventoryStatus`、`createdAtFrom`、`createdAtTo`、`pageNo`、`pageSize`
 
 固定约束：
 
@@ -272,16 +272,16 @@ Order 是 Bacon 的统一订单业务域。
 - `OrderItem.id` 全局唯一
 - `OrderPaymentSnapshot.paymentNo` 全局唯一
 - `OrderInventorySnapshot.reservationNo` 全局唯一
-- `Order` 必须建立 `(tenantNo, userId, createdAt)` 索引
-- `Order` 必须建立 `(tenantNo, orderStatus, createdAt)` 索引
-- `Order` 必须建立 `(tenantNo, expiredAt, orderStatus)` 索引
-- `OrderItem` 必须建立 `(tenantNo, orderId)` 索引
+- `Order` 必须建立 `(tenantId, userId, createdAt)` 索引
+- `Order` 必须建立 `(tenantId, orderStatus, createdAt)` 索引
+- `Order` 必须建立 `(tenantId, expiredAt, orderStatus)` 索引
+- `OrderItem` 必须建立 `(tenantId, orderId)` 索引
 
 ## 6. Global Constraints
 
 ### 6.1 Tenant And Identity
 
-- `Order` 必须带 `tenantNo`
+- `Order` 必须带 `tenantId`
 - `Order` 必须带 `userId`
 - 不允许跨租户访问订单
 - `orderNo` 是跨域调用唯一业务键
@@ -345,10 +345,10 @@ Order 是 Bacon 的统一订单业务域。
 ### 6.6 Idempotency Rule
 
 - 创建订单按 `orderNo` 幂等
-- 取消订单按 `tenantNo + orderNo + paymentNo + eventType` 幂等
-- 超时关闭按 `tenantNo + orderNo + paymentNo + eventType` 幂等
-- `markPaid` 按 `tenantNo + orderNo + paymentNo + eventType` 幂等
-- `markPaymentFailed` 按 `tenantNo + orderNo + paymentNo + eventType` 幂等
+- 取消订单按 `tenantId + orderNo + paymentNo + eventType` 幂等
+- 超时关闭按 `tenantId + orderNo + paymentNo + eventType` 幂等
+- `markPaid` 按 `tenantId + orderNo + paymentNo + eventType` 幂等
+- `markPaymentFailed` 按 `tenantId + orderNo + paymentNo + eventType` 幂等
 - 非支付事件（取消、超时关闭）的 `paymentNo` 固定使用空字符串参与幂等键计算
 - 幂等记录 `PROCESSING` 状态必须带租约字段 `processingOwner + leaseUntil`
 - 命令请求遇到未过期 `PROCESSING` 记录时可短路返回；遇到已过期记录时必须先抢占租约后再执行
@@ -421,7 +421,7 @@ Order 是 Bacon 的统一订单业务域。
 
 固定约束：
 
-- 详情查询通过 `getById(tenantNo, orderId)` 或 `getByOrderNo(tenantNo, orderNo)` 执行
+- 详情查询通过 `getById(tenantId, orderId)` 或 `getByOrderNo(tenantId, orderNo)` 执行
 - 列表查询请求遵守 `OrderPageQuery`
 - 分页结果字段遵守 `OrderPageResultDTO`
 - 分页查询必须下推到 `OrderRepository`，禁止应用层全量拉取后内存过滤

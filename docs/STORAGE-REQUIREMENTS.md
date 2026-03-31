@@ -182,7 +182,7 @@
 `StoredObject` 固定字段：
 
 - `id`
-- `tenantNo`
+- `tenantId`
 - `storageType`
 - `bucketName`
 - `objectKey`
@@ -206,7 +206,7 @@
 - `uploadId`
 - `ownerType`
 - `ownerId`
-- `tenantNo`
+- `tenantId`
 - `category`
 - `originalFilename`
 - `contentType`
@@ -230,7 +230,7 @@
 `StorageAuditLog` 固定字段：
 
 - `id`
-- `tenantNo`
+- `tenantId`
 - `objectId`
 - `ownerType`
 - `ownerId`
@@ -244,7 +244,7 @@
 `StorageAuditOutbox` 固定字段：
 
 - `id`
-- `tenantNo`
+- `tenantId`
 - `objectId`
 - `ownerType`
 - `ownerId`
@@ -265,7 +265,7 @@
 `UploadObjectCommand` 固定字段：
 
 - `ownerType`
-- `tenantNo`
+- `tenantId`
 - `category`
 - `originalFilename`
 - `contentType`
@@ -276,7 +276,7 @@
 
 - `ownerType`
 - `ownerId`
-- `tenantNo`
+- `tenantId`
 - `category`
 - `originalFilename`
 - `contentType`
@@ -288,7 +288,7 @@
 - `uploadId`
 - `ownerType`
 - `ownerId`
-- `tenantNo`
+- `tenantId`
 - `partNumber`
 - `size`
 - `inputStream`
@@ -298,18 +298,18 @@
 - `uploadId`
 - `ownerType`
 - `ownerId`
-- `tenantNo`
+- `tenantId`
 
 `AbortMultipartUploadCommand` 固定字段：
 
 - `uploadId`
 - `ownerType`
 - `ownerId`
-- `tenantNo`
+- `tenantId`
 
 `StoredObjectPageQueryDTO` 固定字段：
 
-- `tenantNo`
+- `tenantId`
 - `storageType`
 - `objectStatus`
 - `referenceStatus`
@@ -339,7 +339,7 @@
 - `uploadId`
 - `ownerType`
 - `ownerId`
-- `tenantNo`
+- `tenantId`
 - `category`
 - `originalFilename`
 - `contentType`
@@ -386,7 +386,7 @@
 - 大文件上传完成前不得写入正式 `StoredObject`
 - 大文件上传中断、取消、超时后，`Storage` 必须能够清理未完成分段数据
 - 大文件分段上传初始化后，`Storage` 必须持久化本次上传使用的 `objectKey`
-- 大文件分段上传初始化后，`Storage` 必须持久化 `ownerType`、`ownerId`、`tenantNo`，后续所有分段操作都必须校验归属一致
+- 大文件分段上传初始化后，`Storage` 必须持久化 `ownerType`、`ownerId`、`tenantId`，后续所有分段操作都必须校验归属一致
 - 当底层为 `OSS/S3 API` 时，`Storage` 必须持久化 provider 分段上传会话标识，供后续分片上传、完成和取消复用
 - `providerUploadId` 属于 `Storage` 内部运行态字段，不得暴露为业务域主数据
 - 单次普通上传最大文件大小必须由 `Storage` 配置统一控制
@@ -466,7 +466,7 @@
 - 分段上传完成后才允许写入正式 `StoredObject`
 - 分段上传取消或超时后不得生成正式 `StoredObject`
 - 合并完成后必须清理临时分段数据
-- 上传分段、完成分段、取消分段都必须校验 `tenantNo`、`ownerType`、`ownerId` 与初始化会话一致
+- 上传分段、完成分段、取消分段都必须校验 `tenantId`、`ownerType`、`ownerId` 与初始化会话一致
 - 分段完成前必须校验分片序号连续、已上传分片数一致、分片总大小等于会话 `totalSize`
 - 超时 `INITIATED/UPLOADING` 会话必须由定时任务自动转为 `ABORTED` 并清理底层临时分片数据
 

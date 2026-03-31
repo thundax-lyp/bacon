@@ -82,13 +82,13 @@ Inventory 是 Bacon 的统一库存业务域。
 
 `InventoryReadFacade` 固定方法：
 
-- `getAvailableStock(tenantNo, skuId)`，返回固定 `InventoryStockDTO`
-- `batchGetAvailableStock(tenantNo, skuIds)`，返回 `List<InventoryStockDTO>`
-- `getReservationByOrderNo(tenantNo, orderNo)`，返回固定 `InventoryReservationDTO`
+- `getAvailableStock(tenantId, skuId)`，返回固定 `InventoryStockDTO`
+- `batchGetAvailableStock(tenantId, skuIds)`，返回 `List<InventoryStockDTO>`
+- `getReservationByOrderNo(tenantId, orderNo)`，返回固定 `InventoryReservationDTO`
 
 `InventoryStockDTO` 至少包含：
 
-- `tenantNo`
+- `tenantId`
 - `skuId`
 - `warehouseId`
 - `onHandQuantity`
@@ -99,7 +99,7 @@ Inventory 是 Bacon 的统一库存业务域。
 
 `InventoryReservationDTO` 至少包含：
 
-- `tenantNo`
+- `tenantId`
 - `orderNo`
 - `reservationNo`
 - `reservationStatus`
@@ -118,13 +118,13 @@ Inventory 是 Bacon 的统一库存业务域。
 
 `InventoryCommandFacade` 固定方法：
 
-- `reserveStock(tenantNo, orderNo, items)`，返回固定 `InventoryReservationResultDTO`
-- `releaseReservedStock(tenantNo, orderNo, reason)`，返回固定 `InventoryReservationResultDTO`
-- `deductReservedStock(tenantNo, orderNo)`，返回固定 `InventoryReservationResultDTO`
+- `reserveStock(tenantId, orderNo, items)`，返回固定 `InventoryReservationResultDTO`
+- `releaseReservedStock(tenantId, orderNo, reason)`，返回固定 `InventoryReservationResultDTO`
+- `deductReservedStock(tenantId, orderNo)`，返回固定 `InventoryReservationResultDTO`
 
 `InventoryReservationResultDTO` 至少包含：
 
-- `tenantNo`
+- `tenantId`
 - `orderNo`
 - `reservationNo`
 - `reservationStatus`
@@ -217,11 +217,11 @@ Inventory 是 Bacon 的统一库存业务域。
 
 ## 5.3 Fixed Fields
 
-- `Inventory` 至少包含 `id`、`tenantNo`、`skuId`、`warehouseId`、`onHandQuantity`、`reservedQuantity`、`availableQuantity`、`status`、`updatedAt`
-- `InventoryReservation` 至少包含 `id`、`tenantNo`、`reservationNo`、`orderNo`、`reservationStatus`、`warehouseId`、`failureReason`、`releaseReason`、`createdAt`、`releasedAt`、`deductedAt`
-- `InventoryReservationItem` 至少包含 `id`、`tenantNo`、`reservationNo`、`skuId`、`quantity`
-- `InventoryLedger` 至少包含 `id`、`tenantNo`、`orderNo`、`reservationNo`、`skuId`、`warehouseId`、`ledgerType`、`quantity`、`occurredAt`
-- `InventoryAuditLog` 至少包含 `id`、`tenantNo`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`
+- `Inventory` 至少包含 `id`、`tenantId`、`skuId`、`warehouseId`、`onHandQuantity`、`reservedQuantity`、`availableQuantity`、`status`、`updatedAt`
+- `InventoryReservation` 至少包含 `id`、`tenantId`、`reservationNo`、`orderNo`、`reservationStatus`、`warehouseId`、`failureReason`、`releaseReason`、`createdAt`、`releasedAt`、`deductedAt`
+- `InventoryReservationItem` 至少包含 `id`、`tenantId`、`reservationNo`、`skuId`、`quantity`
+- `InventoryLedger` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`skuId`、`warehouseId`、`ledgerType`、`quantity`、`occurredAt`
+- `InventoryAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`
 
 固定约束：
 
@@ -233,33 +233,33 @@ Inventory 是 Bacon 的统一库存业务域。
 
 ## 5.4 Fixed Request Contracts
 
-- `ReserveStockRequest` 至少包含 `tenantNo`、`orderNo`、`items`
+- `ReserveStockRequest` 至少包含 `tenantId`、`orderNo`、`items`
 - `ReserveStockRequest.items` 至少包含 `skuId`、`quantity`
-- `ReleaseReservedStockRequest` 至少包含 `tenantNo`、`orderNo`、`reason`
-- `DeductReservedStockRequest` 至少包含 `tenantNo`、`orderNo`
+- `ReleaseReservedStockRequest` 至少包含 `tenantId`、`orderNo`、`reason`
+- `DeductReservedStockRequest` 至少包含 `tenantId`、`orderNo`
 
 ## 5.5 Uniqueness And Index Rules
 
 - `Inventory.id` 全局唯一
 - `Inventory.id` 由持久化层生成，应用层不得自行发号
-- 当前范围 `Inventory` 必须保证 `(tenantNo, skuId)` 唯一
+- 当前范围 `Inventory` 必须保证 `(tenantId, skuId)` 唯一
 - `InventoryReservation.id` 全局唯一
 - `InventoryReservation.id` 由持久化层生成，应用层不得自行发号
 - `InventoryReservation.reservationNo` 全局唯一
-- `InventoryReservation` 必须保证 `(tenantNo, orderNo)` 唯一
+- `InventoryReservation` 必须保证 `(tenantId, orderNo)` 唯一
 - `InventoryReservationItem.id` 全局唯一
 - `InventoryReservationItem.id` 由持久化层生成，应用层不得自行发号
-- `InventoryReservationItem` 必须保证 `(tenantNo, reservationNo, skuId)` 唯一
+- `InventoryReservationItem` 必须保证 `(tenantId, reservationNo, skuId)` 唯一
 - `InventoryLedger.id` 全局唯一
-- `InventoryLedger` 必须建立 `(tenantNo, orderNo, ledgerType)` 索引
-- `Inventory` 必须建立 `(tenantNo, skuId)` 索引
+- `InventoryLedger` 必须建立 `(tenantId, orderNo, ledgerType)` 索引
+- `Inventory` 必须建立 `(tenantId, skuId)` 索引
 - `Inventory` 必须具备版本控制字段，用于并发写入冲突检测
 
 ## 6. Global Constraints
 
 ### 6.1 Quantity Rule
 
-- 当前范围固定单仓模型，同一 `tenantNo + skuId` 只允许一条 `Inventory` 记录
+- 当前范围固定单仓模型，同一 `tenantId + skuId` 只允许一条 `Inventory` 记录
 - `warehouseId` 必须使用系统固定默认仓标识
 - `onHandQuantity` 不得小于 `0`
 - `reservedQuantity` 不得小于 `0`
@@ -338,7 +338,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - `reserveStock`、`releaseReservedStock`、`deductReservedStock` 必须在明确事务边界内执行
 - 单次库存命令必须保证 `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的写入原子性
 - 正式持久化实现必须对 `Inventory` 写入启用乐观锁或等价并发控制
-- `InventoryReservation` 的 `(tenantNo, orderNo)` 唯一约束必须作为库存预占幂等的最终兜底
+- `InventoryReservation` 的 `(tenantId, orderNo)` 唯一约束必须作为库存预占幂等的最终兜底
 - 并发写冲突时，不得静默覆盖库存数量，必须返回明确失败或抛出可识别异常
 - 并发冲突重试的退避等待不得在活动事务中执行，禁止在事务内 `Thread.sleep`
 - 并发冲突重试必须在事务外层编排，每次重试尝试都必须开启新的短事务

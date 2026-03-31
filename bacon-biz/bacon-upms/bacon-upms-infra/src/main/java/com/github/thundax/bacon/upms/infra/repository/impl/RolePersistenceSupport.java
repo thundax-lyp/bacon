@@ -243,7 +243,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
     }
 
-    void replaceRoleDataScope(Long tenantId, Long roleId, String dataScopeType, Collection<Long> departmentIds) {
+    void replaceRoleDataScope(TenantId tenantId, Long roleId, String dataScopeType, Collection<Long> departmentIds) {
         LocalDateTime now = LocalDateTime.now();
         upsertDataPermissionRule(tenantId, roleId, dataScopeType, now);
         roleDataScopeRelMapper.delete(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
@@ -257,13 +257,13 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
     }
 
-    void removeMenuFromAssignments(Long tenantId, Long menuId) {
+    void removeMenuFromAssignments(TenantId tenantId, Long menuId) {
         roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery()
                 .eq(RoleMenuRelDO::getTenantId, tenantId)
                 .eq(RoleMenuRelDO::getMenuId, menuId));
     }
 
-    private void upsertDataPermissionRule(Long tenantId, Long roleId, String dataScopeType, LocalDateTime now) {
+    private void upsertDataPermissionRule(TenantId tenantId, Long roleId, String dataScopeType, LocalDateTime now) {
         DataPermissionRuleDO existing = dataPermissionRuleMapper.selectOne(Wrappers.<DataPermissionRuleDO>lambdaQuery()
                 .eq(DataPermissionRuleDO::getTenantId, tenantId)
                 .eq(DataPermissionRuleDO::getRoleId, roleId));

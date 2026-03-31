@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
@@ -22,6 +23,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UserPersistenceSupportTest {
 
+    private static final TenantId TENANT_ID = TenantId.of("1001");
+
     @Mock
     private UserMapper userMapper;
     @Mock
@@ -39,7 +42,7 @@ class UserPersistenceSupportTest {
     @Test
     void shouldInsertUserAndMapGeneratedId() {
         ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
-        User newUser = new User(null, 1L, "alice", "Alice", 9001L, "13800000001", "ENC", 11L,
+        User newUser = new User(null, TENANT_ID, "alice", "Alice", 9001L, "13800000001", "ENC", 11L,
                 UserStatus.ENABLED);
         UserId generatedId = UserId.of("U101");
 

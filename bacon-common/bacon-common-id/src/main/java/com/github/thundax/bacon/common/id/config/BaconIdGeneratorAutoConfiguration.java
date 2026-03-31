@@ -2,8 +2,10 @@ package com.github.thundax.bacon.common.id.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
+import com.github.thundax.bacon.common.id.core.DefaultIds;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.IdProviderType;
+import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.event.IdFallbackAlertListener;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorErrorCode;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorException;
@@ -88,6 +90,12 @@ public class BaconIdGeneratorAutoConfiguration {
     @ConditionalOnMissingBean
     public SnowflakeIdGenerator snowflakeIdGenerator(BaconIdGeneratorProperties properties) {
         return createSnowflakeIdGenerator(properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public Ids ids(IdGenerator idGenerator) {
+        return new DefaultIds(idGenerator);
     }
 
     @Bean

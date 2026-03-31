@@ -5,10 +5,20 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
 import com.github.thundax.bacon.common.mybatis.fill.MybatisPlusMetaObjectHandler;
+import com.github.thundax.bacon.common.mybatis.handler.OrderIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.IntegerArrayTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.LongArrayTypeHandler;
+import com.github.thundax.bacon.common.mybatis.handler.RoleIdTypeHandler;
+import com.github.thundax.bacon.common.mybatis.handler.SkuIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.StringArrayTypeHandler;
+import com.github.thundax.bacon.common.mybatis.handler.TenantIdTypeHandler;
+import com.github.thundax.bacon.common.mybatis.handler.UserIdTypeHandler;
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
+import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.RoleId;
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -57,5 +67,10 @@ public class MybatisPlusAutoConfiguration {
         registry.register(String[].class, StringArrayTypeHandler.class);
         registry.register(Long[].class, LongArrayTypeHandler.class);
         registry.register(Integer[].class, IntegerArrayTypeHandler.class);
+        registry.register(UserId.class, UserIdTypeHandler.class);
+        registry.register(RoleId.class, RoleIdTypeHandler.class);
+        registry.register(OrderId.class, OrderIdTypeHandler.class);
+        registry.register(SkuId.class, SkuIdTypeHandler.class);
+        registry.register(TenantId.class, TenantIdTypeHandler.class);
     }
 }

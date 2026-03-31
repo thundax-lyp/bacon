@@ -244,6 +244,14 @@ bacon-biz/bacon-order
 
 ## 分层职责
 
+## 时间建模规则
+
+- 表达绝对时间点的领域属性统一使用 `Instant`
+- 典型字段包括 `createdAt`、`updatedAt`、`occurredAt`、`expireAt`、`issuedAt`、`paidAt`、`closedAt`、`lockedUntil`
+- `LocalDateTime` 只用于表达不带时区换算的本地业务时间，例如营业时间、排班时间、租户本地日历时间
+- `infra` 负责 `Instant` 与数据库 `datetime(3)` 之间的统一 `UTC` 转换
+- `api` / `dto` / `response` 不得重新把上述绝对时间点退化为无时区语义的本地时间对象
+
 ### interfaces
 - 面向统一接入协议层，承载 HTTP、消息消费以及服务提供方的 provider 入口适配。
 - 对外暴露 HTTP 接口、MQ consumer，并承载服务提供方的 provider 入口。

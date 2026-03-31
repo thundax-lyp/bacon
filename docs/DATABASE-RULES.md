@@ -102,6 +102,10 @@
 - 运行态表是否需要 `updated_at`，取决于该表是否存在持续更新语义
 - 单纯快照表可只保留 `updated_at`
 - 明细表是否需要时间字段，取决于是否存在独立生命周期；没有则不加
+- Java 领域模型中表达绝对时间点的字段统一使用 `Instant`
+- `createdAt`、`updatedAt`、`occurredAt`、`expireAt`、`issuedAt`、`releasedAt`、`deductedAt`、`lockedUntil` 统一视为绝对时间点
+- `LocalDateTime` 只用于表达本地业务时间，不用于跨服务传递或持久化真相时间点
+- `infra` 持久化层负责 `Instant` 与数据库 `datetime(3)` 的 `UTC` 转换
 
 ## 7. Relationship Rules
 

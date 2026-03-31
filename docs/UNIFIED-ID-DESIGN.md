@@ -18,7 +18,7 @@
 
 不在当前范围：
 
-- 一次性替换仓库内所有现有 `Long id`、`String tenantNo`、`String orderNo`
+- 一次性替换仓库内所有现有 `Long id`、`String tenantId`、`String orderNo`
 - 修改所有业务域接口契约
 - 引入新的分布式发号中心
 - 为每个业务域单独设计一套专用 ID 框架
@@ -180,7 +180,7 @@ OrderId orderId = ids.orderId();
 ### 9.1 Current Database Baseline
 
 - 现有数据库设计中，主键 `id` 大量使用 `bigint`
-- `tenantNo`、`orderNo`、`paymentNo`、`reservationNo` 等业务标识使用 `varchar`
+- `tenantId`、`orderNo`、`paymentNo`、`reservationNo` 等业务标识使用 `varchar`
 - 当前数据库结构本身不需要为了引入 `BaseId` 立即改表
 
 ### 9.2 Fixed Persistence Mapping
@@ -219,7 +219,7 @@ OrderId orderId = ids.orderId();
 - `TenantId` 在 `UPMS` 中直接作为 `Tenant` 聚合主标识
 - `Tenant` 的目标领域模型固定为 `Tenant { TenantId id; ... }`
 - `UPMS` 中租户表主键固定使用 `tenant_id varchar(64)`
-- `tenantId` 固定作为 `UPMS` 对外接口中的租户参数名
+- `tenantId` 固定作为 `UPMS`、`Auth` 对外接口中的租户参数名
 - 所有跨租户关联字段中的 `tenant_id` 与 `TenantId` 语义保持一致
 - 数据交互对象（如 `TenantDTO` / `TenantResponse`）只暴露 `TenantId`
 

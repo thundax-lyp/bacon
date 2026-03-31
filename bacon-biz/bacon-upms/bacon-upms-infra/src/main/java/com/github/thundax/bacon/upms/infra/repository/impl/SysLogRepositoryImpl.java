@@ -10,7 +10,9 @@ import java.nio.file.StandardOpenOption;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Repository;
 
@@ -20,12 +22,8 @@ public class SysLogRepositoryImpl implements SysLogRepository {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_INSTANT;
     private static final Path SYS_LOG_FILE = Path.of("logs", "upms-sys-log.log");
 
-    private final InMemoryUpmsStore inMemoryUpmsStore;
+    private final Map<Long, SysLogRecord> sysLogs = new ConcurrentHashMap<>();
     private final AtomicLong logIdSequence = new AtomicLong(1L);
-
-    public SysLogRepositoryImpl(InMemoryUpmsStore inMemoryUpmsStore) {
-        this.inMemoryUpmsStore = inMemoryUpmsStore;
-    }
 
     @Override
     public void saveToDatabase(SysLogRecord sysLogRecord) {
@@ -52,7 +50,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
                 sysLogRecord.getUpdatedBy(),
                 sysLogRecord.getUpdatedAt()
         );
-        inMemoryUpmsStore.getSysLogs().put(id, persistedRecord);
+        sysLogs.put(id, persistedRecord);
     }
 
     @Override
@@ -77,7 +75,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
 
     @Override
     public Optional<SysLogRecord> findById(Long logId) {
-        return Optional.ofNullable(inMemoryUpmsStore.getSysLogs().get(logId));
+        return Optional.ofNullable(sysLogs.get(logId));
     }
 
     @Override
@@ -96,7 +94,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
 
     private List<SysLogRecord> filteredLogs(String tenantId, String module, String eventType, String result,
                                             String operatorName) {
-        return inMemoryUpmsStore.getSysLogs().values().stream()
+        return sysLogs.values().stream()
                 .filter(record -> tenantId == null || tenantId.equals(record.getTenantId()))
                 .filter(record -> module == null || module.equalsIgnoreCase(record.getModule()))
                 .filter(record -> eventType == null || eventType.equalsIgnoreCase(record.getEventType()))

@@ -4,21 +4,21 @@ import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class PostRepositoryImpl implements PostRepository {
 
-    private final InMemoryUpmsStore upmsStore;
-
-    public PostRepositoryImpl(InMemoryUpmsStore upmsStore) {
-        this.upmsStore = upmsStore;
-    }
+    private final Map<String, Post> posts = new ConcurrentHashMap<>();
+    private final AtomicLong postIdSequence = new AtomicLong(6002L);
 
     @Override
     public Optional<Post> findById(Long tenantId, Long postId) {
-        return Optional.ofNullable(upmsStore.getPosts().get(InMemoryUpmsStore.postKey(tenantId, postId)));
+        return Optional.ofNullable(posts.get(UpmsRepositoryHelper.postKey(tenantId, postId)));
     }
 
     @Override
@@ -37,22 +37,22 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public Post save(Post post) {
-        Long postId = post.getId() == null ? upmsStore.nextPostId() : post.getId();
+        Long postId = post.getId() == null ? postIdSequence.getAndIncrement() : post.getId();
         Post savedPost = post.getId() == null
                 ? new Post(postId, post.getTenantId(), post.getCode(), post.getName(),
                 post.getDepartmentId(), post.getStatus())
                 : post;
-        upmsStore.getPosts().put(InMemoryUpmsStore.postKey(savedPost.getTenantId(), savedPost.getId()), savedPost);
+        posts.put(UpmsRepositoryHelper.postKey(savedPost.getTenantId(), savedPost.getId()), savedPost);
         return savedPost;
     }
 
     @Override
     public void delete(Long tenantId, Long postId) {
-        upmsStore.getPosts().remove(InMemoryUpmsStore.postKey(tenantId, postId));
+        posts.remove(UpmsRepositoryHelper.postKey(tenantId, postId));
     }
 
     private List<Post> filteredPosts(Long tenantId, String code, String name, Long departmentId, String status) {
-        return upmsStore.getPosts().values().stream()
+        return posts.values().stream()
                 .filter(post -> tenantId == null || tenantId.equals(post.getTenantId()))
                 .filter(post -> code == null || post.getCode().contains(code))
                 .filter(post -> name == null || post.getName().contains(name))

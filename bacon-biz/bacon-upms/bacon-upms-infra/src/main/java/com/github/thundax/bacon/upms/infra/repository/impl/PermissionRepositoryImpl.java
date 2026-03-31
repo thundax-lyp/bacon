@@ -1,44 +1,42 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
-import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class PermissionRepositoryImpl implements PermissionRepository {
 
-    private final InMemoryUpmsStore upmsStore;
+    private final MenuRepositoryImpl menuRepository;
+    private final RoleRepositoryImpl roleRepository;
 
-    public PermissionRepositoryImpl(InMemoryUpmsStore upmsStore) {
-        this.upmsStore = upmsStore;
+    public PermissionRepositoryImpl(MenuRepositoryImpl menuRepository, RoleRepositoryImpl roleRepository) {
+        this.menuRepository = menuRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
     public List<Menu> listMenus(Long tenantId) {
-        return buildMenuTree(upmsStore.getMenus().values().stream()
-                .filter(menu -> menu.getTenantId().equals(tenantId))
-                .toList());
+        return buildMenuTree(menuRepository.listMenus(tenantId));
     }
 
     @Override
     public List<Menu> getUserMenuTree(Long tenantId, Long userId) {
-        List<Role> roles = upmsStore.getUserRoles().getOrDefault(InMemoryUpmsStore.userKey(tenantId, userId), List.of());
+        List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
         if (roles.isEmpty()) {
-            return upmsStore.getUserMenus().getOrDefault(InMemoryUpmsStore.userKey(tenantId, userId), List.of());
+            return List.of();
         }
         Set<Long> menuIds = new HashSet<>();
-        roles.forEach(role -> menuIds.addAll(upmsStore.getRoleMenus()
-                .getOrDefault(InMemoryUpmsStore.roleKey(role.getTenantId(), role.getId()), Set.of())));
+        roles.forEach(role -> menuIds.addAll(roleRepository.getAssignedMenus(role.getTenantId(), role.getId())));
         List<Menu> menus = menuIds.stream()
-                .map(menuId -> upmsStore.getMenus().get(InMemoryUpmsStore.menuKey(tenantId, menuId)))
+                .map(menuId -> menuRepository.findMenuById(tenantId, menuId).orElse(null))
                 .filter(java.util.Objects::nonNull)
                 .toList();
         return buildMenuTree(menus);
@@ -46,37 +44,42 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 
     @Override
     public Set<String> getUserPermissionCodes(Long tenantId, Long userId) {
-        List<Role> roles = upmsStore.getUserRoles().getOrDefault(InMemoryUpmsStore.userKey(tenantId, userId), List.of());
+        List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
         if (roles.isEmpty()) {
-            return upmsStore.getUserPermissions().getOrDefault(InMemoryUpmsStore.userKey(tenantId, userId), Set.of());
+            return Set.of();
         }
         Set<String> permissionCodes = new HashSet<>();
         roles.forEach(role -> {
-            String roleKey = InMemoryUpmsStore.roleKey(role.getTenantId(), role.getId());
-            upmsStore.getRoleMenus().getOrDefault(roleKey, Set.of()).forEach(menuId -> {
-                Menu menu = upmsStore.getMenus().get(InMemoryUpmsStore.menuKey(tenantId, menuId));
+            roleRepository.getAssignedMenus(role.getTenantId(), role.getId()).forEach(menuId -> {
+                Menu menu = menuRepository.findMenuById(tenantId, menuId).orElse(null);
                 if (menu != null && menu.getPermissionCode() != null && !menu.getPermissionCode().isBlank()) {
                     permissionCodes.add(menu.getPermissionCode());
                 }
             });
-            permissionCodes.addAll(upmsStore.getRoleResources().getOrDefault(roleKey, Set.of()));
+            permissionCodes.addAll(roleRepository.getAssignedResources(role.getTenantId(), role.getId()));
         });
         return permissionCodes;
     }
 
     @Override
     public Set<Long> getUserDepartmentIds(Long tenantId, Long userId) {
-        return upmsStore.getUserDepartmentScopes().getOrDefault(InMemoryUpmsStore.userKey(tenantId, userId), Set.of());
+        Set<Long> departmentIds = new HashSet<>();
+        roleRepository.findRolesByUserId(tenantId, userId)
+                .forEach(role -> departmentIds.addAll(roleRepository.getAssignedDataScopeDepartments(role.getTenantId(), role.getId())));
+        return departmentIds;
     }
 
     @Override
     public Set<String> getUserScopeTypes(Long tenantId, Long userId) {
-        return upmsStore.getUserScopeTypes().getOrDefault(InMemoryUpmsStore.userKey(tenantId, userId), Set.of());
+        Set<String> scopeTypes = new HashSet<>();
+        roleRepository.findRolesByUserId(tenantId, userId)
+                .forEach(role -> scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getTenantId(), role.getId())));
+        return scopeTypes;
     }
 
     @Override
     public boolean hasAllAccess(Long tenantId, Long userId) {
-        return upmsStore.getUserAllAccess().getOrDefault(InMemoryUpmsStore.userKey(tenantId, userId), false);
+        return getUserScopeTypes(tenantId, userId).contains("ALL");
     }
 
     private List<Menu> buildMenuTree(List<Menu> flatMenus) {

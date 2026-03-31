@@ -4,26 +4,26 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class TenantRepositoryImpl implements TenantRepository {
 
-    private final InMemoryUpmsStore upmsStore;
-
-    public TenantRepositoryImpl(InMemoryUpmsStore upmsStore) {
-        this.upmsStore = upmsStore;
-    }
+    private final Map<Long, Tenant> tenants = new ConcurrentHashMap<>();
+    private final AtomicLong tenantIdSequence = new AtomicLong(1002L);
 
     @Override
     public Optional<Tenant> findTenantByTenantId(Long tenantId) {
-        return Optional.ofNullable(upmsStore.getTenants().get(tenantId));
+        return Optional.ofNullable(tenants.get(tenantId));
     }
 
     @Override
     public Optional<Tenant> findTenantByCode(String code) {
-        return upmsStore.getTenants().values().stream()
+        return tenants.values().stream()
                 .filter(tenant -> tenant.getCode().equals(code))
                 .findFirst();
     }
@@ -46,12 +46,12 @@ public class TenantRepositoryImpl implements TenantRepository {
     public Tenant saveTenant(Tenant tenant) {
         Tenant savedTenant;
         if (tenant.getId() == null) {
-            Long generatedTenantId = upmsStore.nextTenantId();
+            Long generatedTenantId = tenantIdSequence.getAndIncrement();
             savedTenant = new Tenant(generatedTenantId, generatedTenantId, tenant.getCode(), tenant.getName(), tenant.getStatus());
         } else {
             savedTenant = tenant;
         }
-        upmsStore.getTenants().put(savedTenant.getTenantId(), savedTenant);
+        tenants.put(savedTenant.getTenantId(), savedTenant);
         return savedTenant;
     }
 
@@ -69,12 +69,12 @@ public class TenantRepositoryImpl implements TenantRepository {
                 currentTenant.getCreatedAt(),
                 currentTenant.getUpdatedBy(),
                 currentTenant.getUpdatedAt());
-        upmsStore.getTenants().put(tenantId, updatedTenant);
+        tenants.put(tenantId, updatedTenant);
         return updatedTenant;
     }
 
     private List<Tenant> filteredTenants(Long tenantId, String code, String name, String status) {
-        return upmsStore.getTenants().values().stream()
+        return tenants.values().stream()
                 .filter(tenant -> tenantId == null || tenantId.equals(tenant.getTenantId()))
                 .filter(tenant -> matchContains(tenant.getCode(), code))
                 .filter(tenant -> matchContains(tenant.getName(), name))

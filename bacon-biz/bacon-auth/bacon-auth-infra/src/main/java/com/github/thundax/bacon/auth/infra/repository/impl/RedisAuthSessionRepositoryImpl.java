@@ -31,12 +31,12 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
     public AuthSession saveSession(AuthSession authSession) {
         String sessionKey = AuthRedisKeyHelper.session(authSession.getSessionId());
         redisTemplate.opsForValue().set(sessionKey, SessionSnapshot.fromDomain(authSession), ttl(authSession.getExpireAt()));
-        redisTemplate.opsForSet().add(AuthRedisKeyHelper.userSessions(authSession.getTenantId(), authSession.getUserId()),
+        redisTemplate.opsForSet().add(AuthRedisKeyHelper.userSessions(authSession.getTenantNo(), authSession.getUserId()),
                 authSession.getSessionId());
-        redisTemplate.expire(AuthRedisKeyHelper.userSessions(authSession.getTenantId(), authSession.getUserId()),
+        redisTemplate.expire(AuthRedisKeyHelper.userSessions(authSession.getTenantNo(), authSession.getUserId()),
                 ttl(authSession.getExpireAt()));
-        redisTemplate.opsForSet().add(AuthRedisKeyHelper.tenantSessions(authSession.getTenantId()), authSession.getSessionId());
-        redisTemplate.expire(AuthRedisKeyHelper.tenantSessions(authSession.getTenantId()), ttl(authSession.getExpireAt()));
+        redisTemplate.opsForSet().add(AuthRedisKeyHelper.tenantSessions(authSession.getTenantNo()), authSession.getSessionId());
+        redisTemplate.expire(AuthRedisKeyHelper.tenantSessions(authSession.getTenantNo()), ttl(authSession.getExpireAt()));
         return authSession;
     }
 
@@ -46,13 +46,13 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantIdAndUserId(Long tenantId, Long userId) {
-        return loadSessionsByIndex(AuthRedisKeyHelper.userSessions(tenantId, userId));
+    public List<AuthSession> findSessionsByTenantNoAndUserId(String tenantNo, Long userId) {
+        return loadSessionsByIndex(AuthRedisKeyHelper.userSessions(tenantNo, userId));
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantId(Long tenantId) {
-        return loadSessionsByIndex(AuthRedisKeyHelper.tenantSessions(tenantId));
+    public List<AuthSession> findSessionsByTenantNo(String tenantNo) {
+        return loadSessionsByIndex(AuthRedisKeyHelper.tenantSessions(tenantNo));
     }
 
     @Override
@@ -115,7 +115,7 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
     private static class SessionSnapshot {
         private Long id;
         private String sessionId;
-        private Long tenantId;
+        private String tenantNo;
         private Long userId;
         private String identityId;
         private String identityType;
@@ -128,7 +128,7 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
         private String invalidateReason;
 
         private static SessionSnapshot fromDomain(AuthSession authSession) {
-            return new SessionSnapshot(authSession.getId(), authSession.getSessionId(), authSession.getTenantId(),
+            return new SessionSnapshot(authSession.getId(), authSession.getSessionId(), authSession.getTenantNo(),
                     authSession.getUserId(), authSession.getIdentityId(), authSession.getIdentityType(),
                     authSession.getLoginType(), authSession.getIssuedAt(), authSession.getExpireAt(),
                     authSession.getSessionStatus(), authSession.getLastAccessTime(), authSession.getLogoutAt(),
@@ -136,7 +136,7 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
         }
 
         private AuthSession toDomain() {
-            AuthSession authSession = new AuthSession(id, sessionId, tenantId, userId, identityId, identityType,
+            AuthSession authSession = new AuthSession(id, sessionId, tenantNo, userId, identityId, identityType,
                     loginType, issuedAt, expireAt);
             if (!"ACTIVE".equals(sessionStatus)) {
                 if ("LOGGED_OUT".equals(sessionStatus) && logoutAt != null) {

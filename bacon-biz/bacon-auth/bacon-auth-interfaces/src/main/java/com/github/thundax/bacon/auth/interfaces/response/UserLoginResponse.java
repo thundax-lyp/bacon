@@ -18,14 +18,14 @@ public record UserLoginResponse(
         String sessionId,
         /** 用户主键。 */
         Long userId,
-        /** 所属租户主键。 */
-        Long tenantId,
+        /** 所属租户编号。 */
+        String tenantNo,
         /** 是否需要修改密码。 */
         Boolean needChangePassword) {
 
     public static UserLoginResponse from(UserLoginDTO dto) {
         return new UserLoginResponse(dto.getAccessToken(), dto.getRefreshToken(), dto.getTokenType(),
-                dto.getExpiresIn(), dto.getSessionId(), dto.getUserId(), dto.getTenantId(),
+                dto.getExpiresIn(), dto.getSessionId(), dto.getUserId(), dto.getTenantNo(),
                 dto.getNeedChangePassword());
     }
 }

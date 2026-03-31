@@ -10,11 +10,11 @@ public record OAuth2UserinfoResponse(
         /** 用户主体标识。 */
         String sub,
         /** 租户标识。 */
-        @JsonProperty("tenant_id") String tenantId,
+        @JsonProperty("tenant_id") String tenantNo,
         /** 用户名称。 */
         String name) {
 
     public static OAuth2UserinfoResponse from(OAuth2UserinfoDTO dto) {
-        return new OAuth2UserinfoResponse(dto.getSub(), dto.getTenantId(), dto.getName());
+        return new OAuth2UserinfoResponse(dto.getSub(), dto.getTenantNo(), dto.getName());
     }
 }

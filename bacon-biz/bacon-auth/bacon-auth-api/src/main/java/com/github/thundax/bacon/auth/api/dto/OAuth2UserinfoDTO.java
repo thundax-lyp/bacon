@@ -17,7 +17,7 @@ public class OAuth2UserinfoDTO {
     private String sub;
     /** 租户标识。 */
     @JsonProperty("tenant_id")
-    private String tenantId;
+    private String tenantNo;
     /** 用户名称。 */
     private String name;
 }

@@ -44,24 +44,24 @@ public class SessionApplicationService {
         authAuditApplicationService.record("LOGOUT", "SUCCESS", sessionId);
     }
 
-    public void invalidateUserSessions(Long tenantId, Long userId, String reason) {
-        List<AuthSession> sessions = authSessionRepository.findSessionsByTenantIdAndUserId(tenantId, userId);
+    public void invalidateUserSessions(String tenantNo, Long userId, String reason) {
+        List<AuthSession> sessions = authSessionRepository.findSessionsByTenantNoAndUserId(tenantNo, userId);
         sessions.forEach(session -> {
             session.invalidate(reason);
             authSessionRepository.saveSession(session);
             authSessionRepository.invalidateRefreshTokensBySessionId(session.getSessionId());
         });
-        authAuditApplicationService.record("INVALIDATE_USER_SESSIONS", "SUCCESS", tenantId + ":" + userId);
+        authAuditApplicationService.record("INVALIDATE_USER_SESSIONS", "SUCCESS", tenantNo + ":" + userId);
     }
 
-    public void invalidateTenantSessions(Long tenantId, String reason) {
-        List<AuthSession> sessions = authSessionRepository.findSessionsByTenantId(tenantId);
+    public void invalidateTenantSessions(String tenantNo, String reason) {
+        List<AuthSession> sessions = authSessionRepository.findSessionsByTenantNo(tenantNo);
         sessions.forEach(session -> {
             session.invalidate(reason);
             authSessionRepository.saveSession(session);
             authSessionRepository.invalidateRefreshTokensBySessionId(session.getSessionId());
         });
-        authAuditApplicationService.record("INVALIDATE_TENANT_SESSIONS", "SUCCESS", String.valueOf(tenantId));
+        authAuditApplicationService.record("INVALIDATE_TENANT_SESSIONS", "SUCCESS", tenantNo);
     }
 
     public void invalidateSession(String sessionId, String reason) {

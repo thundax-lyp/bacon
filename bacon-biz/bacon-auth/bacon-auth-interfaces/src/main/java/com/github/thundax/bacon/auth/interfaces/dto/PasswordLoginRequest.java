@@ -2,7 +2,6 @@ package com.github.thundax.bacon.auth.interfaces.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -15,9 +14,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "账号密码登录请求")
 public class PasswordLoginRequest {
 
-    @Schema(description = "租户 ID", example = "1001")
-    @NotNull(message = "tenantId: must not be null")
-    private Long tenantId;
+    @Schema(description = "租户编号", example = "tenant-demo")
+    @NotBlank(message = "tenantNo: must not be blank")
+    private String tenantNo;
 
     @Schema(description = "登录账号", example = "admin")
     @NotBlank(message = "account: must not be blank")

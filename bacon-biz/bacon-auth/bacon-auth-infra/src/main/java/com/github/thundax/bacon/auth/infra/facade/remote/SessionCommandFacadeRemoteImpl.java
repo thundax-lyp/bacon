@@ -22,20 +22,20 @@ public class SessionCommandFacadeRemoteImpl implements SessionCommandFacade {
     }
 
     @Override
-    public void invalidateUserSessions(Long tenantId, Long userId, String reason) {
+    public void invalidateUserSessions(String tenantNo, Long userId, String reason) {
         // 会话失效走 provider 命令端点，不吞异常；调用方据此决定是回滚主流程还是继续补偿。
         restClient.post()
-                .uri("/providers/auth/sessions/invalidate/user?tenantId={tenantId}&userId={userId}&reason={reason}",
-                        tenantId, userId, reason)
+                .uri("/providers/auth/sessions/invalidate/user?tenantNo={tenantNo}&userId={userId}&reason={reason}",
+                        tenantNo, userId, reason)
                 .retrieve()
                 .toBodilessEntity();
     }
 
     @Override
-    public void invalidateTenantSessions(Long tenantId, String reason) {
+    public void invalidateTenantSessions(String tenantNo, String reason) {
         // 租户级失效属于批量安全操作，remote facade 只转发命令，不在客户端侧做分批或降级。
         restClient.post()
-                .uri("/providers/auth/sessions/invalidate/tenant?tenantId={tenantId}&reason={reason}", tenantId, reason)
+                .uri("/providers/auth/sessions/invalidate/tenant?tenantNo={tenantNo}&reason={reason}", tenantNo, reason)
                 .retrieve()
                 .toBodilessEntity();
     }

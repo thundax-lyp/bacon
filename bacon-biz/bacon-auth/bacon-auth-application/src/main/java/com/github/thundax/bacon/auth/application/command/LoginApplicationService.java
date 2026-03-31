@@ -53,27 +53,28 @@ public class LoginApplicationService {
     }
 
     public UserLoginDTO loginByPassword(PasswordLoginCommand command) {
-        Long tenantId = command.getTenantId() == null ? 1001L : command.getTenantId();
+        String tenantNo = normalizeTenantNo(command.getTenantNo());
         // 密码登录按“校验验证码 -> 解密密码 -> 查询凭据 -> 校验状态和口令”的顺序执行，
         // 这样既避免无意义的凭据查询，也保证明文密码只在内存里短暂存在。
         loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
         String plainPassword = loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
-        UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(tenantId, "ACCOUNT", command.getAccount());
+        UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(parseLegacyTenantKey(tenantNo), "ACCOUNT",
+                command.getAccount());
         validatePasswordLoginCredential(credential, plainPassword);
-        return createLoginSession(credential.getTenantId(), credential.getUserId(), credential.getIdentityValue(),
+        return createLoginSession(tenantNo, credential.getUserId(), credential.getIdentityValue(),
                 credential.getIdentityType(), "PASSWORD", credential.isNeedChangePassword());
     }
 
     public UserLoginDTO loginBySms(String phone, String smsCaptcha) {
-        return createLoginSession(1001L, 2002L, phone, "PHONE", "SMS", null);
+        return createLoginSession("1001", 2002L, phone, "PHONE", "SMS", null);
     }
 
     public UserLoginDTO loginByWecom(String code) {
-        return createLoginSession(1001L, 2003L, code, "WECOM", "WECOM", null);
+        return createLoginSession("1001", 2003L, code, "WECOM", "WECOM", null);
     }
 
     public UserLoginDTO loginByGithub(String code) {
-        return createLoginSession(1001L, 2004L, code, "GITHUB", "GITHUB", null);
+        return createLoginSession("1001", 2004L, code, "GITHUB", "GITHUB", null);
     }
 
     private void validatePasswordLoginCredential(UserLoginCredentialDTO credential, String plainPassword) {
@@ -98,12 +99,12 @@ public class LoginApplicationService {
         }
     }
 
-    private UserLoginDTO createLoginSession(Long tenantId, Long userId, String identitySeed, String identityType,
+    private UserLoginDTO createLoginSession(String tenantNo, Long userId, String identitySeed, String identityType,
                                                  String loginType, Boolean needChangePassword) {
         Instant now = Instant.now();
         String sessionId = UUID.randomUUID().toString();
         // 会话和 refresh token 分开存储：会话承载当前登录上下文，refresh token 只负责后续换新 access token。
-        AuthSession authSession = new AuthSession(idGenerator.getAndIncrement(), sessionId, tenantId, userId,
+        AuthSession authSession = new AuthSession(idGenerator.getAndIncrement(), sessionId, tenantNo, userId,
                 identityType + ":" + identitySeed, identityType, loginType, now, now.plus(ACCESS_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS));
         authSessionRepository.saveSession(authSession);
 
@@ -116,6 +117,21 @@ public class LoginApplicationService {
 
         authAuditApplicationService.record("LOGIN_" + loginType, "SUCCESS", sessionId);
         return new UserLoginDTO(accessToken, refreshToken, "Bearer", ACCESS_TOKEN_TTL_SECONDS, sessionId,
-                userId, tenantId, needChangePassword);
+                userId, tenantNo, needChangePassword);
+    }
+
+    private String normalizeTenantNo(String tenantNo) {
+        if (tenantNo == null || tenantNo.isBlank()) {
+            throw new BadRequestException("tenantNo must not be blank");
+        }
+        return tenantNo.trim();
+    }
+
+    private Long parseLegacyTenantKey(String tenantNo) {
+        try {
+            return Long.valueOf(tenantNo);
+        } catch (NumberFormatException ex) {
+            throw new BadRequestException("Current login chain still requires numeric tenantNo");
+        }
     }
 }

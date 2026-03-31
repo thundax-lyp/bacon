@@ -16,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,17 +65,6 @@ class TenantApplicationServiceTest {
         TenantDTO result = service.updateTenantStatus("1001", UpmsStatusEnum.DISABLED);
 
         assertThat(result.getStatus()).isEqualTo("DISABLED");
-        verify(sessionCommandFacade).invalidateTenantSessions(1001L, "TENANT_DISABLED");
-    }
-
-    @Test
-    void shouldRejectNonNumericTenantNoWhenInvalidatingLegacySessions() {
-        when(tenantRepository.updateTenantStatus("tenant-demo", "DISABLED"))
-                .thenReturn(new Tenant(1L, "tenant-demo", "Demo Tenant", TenantStatus.DISABLED));
-
-        assertThatThrownBy(() -> service.updateTenantStatus("tenant-demo", UpmsStatusEnum.DISABLED))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Current auth session invalidation still requires numeric tenantNo: tenant-demo");
-        verify(sessionCommandFacade, never()).invalidateTenantSessions(any(Long.class), any(String.class));
+        verify(sessionCommandFacade).invalidateTenantSessions("1001", "TENANT_DISABLED");
     }
 }

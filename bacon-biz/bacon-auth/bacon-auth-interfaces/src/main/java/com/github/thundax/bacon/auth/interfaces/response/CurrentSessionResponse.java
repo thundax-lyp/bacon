@@ -9,8 +9,8 @@ import java.time.Instant;
 public record CurrentSessionResponse(
         /** 会话标识。 */
         String sessionId,
-        /** 所属租户主键。 */
-        Long tenantId,
+        /** 所属租户编号。 */
+        String tenantNo,
         /** 用户主键。 */
         Long userId,
         /** 身份标识类型。 */
@@ -27,7 +27,7 @@ public record CurrentSessionResponse(
         Instant expireAt) {
 
     public static CurrentSessionResponse from(CurrentSessionDTO dto) {
-        return new CurrentSessionResponse(dto.getSessionId(), dto.getTenantId(), dto.getUserId(),
+        return new CurrentSessionResponse(dto.getSessionId(), dto.getTenantNo(), dto.getUserId(),
                 dto.getIdentityType(), dto.getLoginType(), dto.getSessionStatus(), dto.getIssuedAt(),
                 dto.getLastAccessTime(), dto.getExpireAt());
     }

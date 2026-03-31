@@ -63,7 +63,7 @@ public class TenantApplicationService {
         Tenant tenant = tenantRepository.updateTenantStatus(tenantNo, status.value());
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
         if (TenantStatus.DISABLED == tenant.getStatus()) {
-            sessionCommandFacade.invalidateTenantSessions(parseLegacyTenantSessionKey(tenant.getTenantNo()), "TENANT_DISABLED");
+            sessionCommandFacade.invalidateTenantSessions(tenant.getTenantNo(), "TENANT_DISABLED");
         }
         return toDto(tenant);
     }
@@ -89,14 +89,6 @@ public class TenantApplicationService {
 
     private String normalize(String value) {
         return value == null ? null : value.trim();
-    }
-
-    private Long parseLegacyTenantSessionKey(String tenantNo) {
-        try {
-            return Long.valueOf(tenantNo);
-        } catch (NumberFormatException ex) {
-            throw new IllegalStateException("Current auth session invalidation still requires numeric tenantNo: " + tenantNo, ex);
-        }
     }
 
 }

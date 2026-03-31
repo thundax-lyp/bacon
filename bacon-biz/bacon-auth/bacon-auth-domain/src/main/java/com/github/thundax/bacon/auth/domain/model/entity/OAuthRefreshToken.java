@@ -18,8 +18,8 @@ public class OAuthRefreshToken {
     private final String accessTokenId;
     /** 客户端标识。 */
     private final String clientId;
-    /** 所属租户主键。 */
-    private final Long tenantId;
+    /** 所属租户编号。 */
+    private final String tenantNo;
     /** 用户主键。 */
     private final Long userId;
     /** 签发时间。 */
@@ -29,13 +29,13 @@ public class OAuthRefreshToken {
     /** 令牌状态。 */
     private String tokenStatus;
 
-    public OAuthRefreshToken(String tokenId, String tokenHash, String accessTokenId, String clientId, Long tenantId,
+    public OAuthRefreshToken(String tokenId, String tokenHash, String accessTokenId, String clientId, String tenantNo,
                              Long userId, Instant issuedAt, Instant expireAt) {
         this.tokenId = tokenId;
         this.tokenHash = tokenHash;
         this.accessTokenId = accessTokenId;
         this.clientId = clientId;
-        this.tenantId = tenantId;
+        this.tenantNo = tenantNo;
         this.userId = userId;
         this.issuedAt = issuedAt;
         this.expireAt = expireAt;

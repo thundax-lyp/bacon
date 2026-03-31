@@ -13,12 +13,12 @@ final class AuthRedisKeyHelper {
         return "auth:refresh-token:" + refreshTokenHash;
     }
 
-    static String userSessions(Long tenantId, Long userId) {
-        return "auth:user-sessions:" + tenantId + ":" + userId;
+    static String userSessions(String tenantNo, Long userId) {
+        return "auth:user-sessions:" + tenantNo + ":" + userId;
     }
 
-    static String tenantSessions(Long tenantId) {
-        return "auth:tenant-sessions:" + tenantId;
+    static String tenantSessions(String tenantNo) {
+        return "auth:tenant-sessions:" + tenantNo;
     }
 
     static String sessionRefreshTokens(String sessionId) {

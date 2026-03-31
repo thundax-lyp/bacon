@@ -159,7 +159,7 @@ public class UserApplicationService {
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt()));
         if (UserStatus.DISABLED == savedUser.getStatus()) {
-            sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_DISABLED");
+            sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId), userId, "USER_DISABLED");
         }
         return toDetailedDto(savedUser);
     }
@@ -179,13 +179,13 @@ public class UserApplicationService {
             storedObjectFacade.clearObjectReference(currentUser.getAvatarObjectId(), USER_AVATAR_OWNER_TYPE,
                     String.valueOf(userId));
         }
-        sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_DELETED");
+        sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId), userId, "USER_DELETED");
     }
 
     public UserDTO initPassword(Long tenantId, Long userId) {
         requireUser(tenantId, userId);
         User user = userRepository.updatePassword(tenantId, userId, DEFAULT_PASSWORD, true);
-        sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_PASSWORD_INITIALIZED");
+        sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId), userId, "USER_PASSWORD_INITIALIZED");
         return toDetailedDto(user);
     }
 
@@ -193,7 +193,7 @@ public class UserApplicationService {
         requireUser(tenantId, userId);
         validateRequired(newPassword, "newPassword");
         User user = userRepository.updatePassword(tenantId, userId, normalize(newPassword), true);
-        sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_PASSWORD_RESET");
+        sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId), userId, "USER_PASSWORD_RESET");
         return toDetailedDto(user);
     }
 

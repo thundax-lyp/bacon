@@ -136,7 +136,7 @@ class UserApplicationServiceTest {
 
         verify(userRepository).deleteUser(1001L, 101L);
         verify(storedObjectFacade).clearObjectReference(501L, "UPMS_USER_AVATAR", "101");
-        verify(sessionCommandFacade).invalidateUserSessions(1001L, 101L, "USER_DELETED");
+        verify(sessionCommandFacade).invalidateUserSessions("1001", 101L, "USER_DELETED");
     }
 
     @Test

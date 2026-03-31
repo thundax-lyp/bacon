@@ -21,6 +21,9 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.TenantDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredentialDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserIdentityDO;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 abstract class AbstractUpmsPersistenceSupport {
@@ -40,41 +43,51 @@ abstract class AbstractUpmsPersistenceSupport {
         return value == null ? null : value.trim();
     }
 
+    protected final LocalDateTime toLocalDateTime(Instant value) {
+        return value == null ? null : LocalDateTime.ofInstant(value, ZoneOffset.UTC);
+    }
+
+    protected final Instant toInstant(LocalDateTime value) {
+        return value == null ? null : value.toInstant(ZoneOffset.UTC);
+    }
+
     protected final TenantDO toDataObject(Tenant tenant) {
         return new TenantDO(tenant.getId(), tenant.getTenantId(), tenant.getCode(), tenant.getName(),
-                tenant.getStatus(), tenant.getCreatedBy(), tenant.getCreatedAt(), tenant.getUpdatedBy(), tenant.getUpdatedAt());
+                tenant.getStatus(), tenant.getCreatedBy(), toLocalDateTime(tenant.getCreatedAt()), tenant.getUpdatedBy(),
+                toLocalDateTime(tenant.getUpdatedAt()));
     }
 
     protected final Tenant toDomain(TenantDO tenantDO) {
         return new Tenant(tenantDO.getId(), tenantDO.getTenantId(), tenantDO.getCode(), tenantDO.getName(),
-                tenantDO.getStatus(), tenantDO.getCreatedBy(), tenantDO.getCreatedAt(), tenantDO.getUpdatedBy(),
-                tenantDO.getUpdatedAt());
+                tenantDO.getStatus(), tenantDO.getCreatedBy(), toInstant(tenantDO.getCreatedAt()), tenantDO.getUpdatedBy(),
+                toInstant(tenantDO.getUpdatedAt()));
     }
 
     protected final UserDO toDataObject(User user) {
         return new UserDO(user.getId(), user.getTenantId(), user.getAccount(), user.getName(), user.getAvatarObjectId(),
                 user.getPhone(), user.getPasswordHash(), user.getDepartmentId(), user.getStatus().value(),
-                false, user.getCreatedBy(), user.getCreatedAt(), user.getUpdatedBy(), user.getUpdatedAt());
+                false, user.getCreatedBy(), toLocalDateTime(user.getCreatedAt()), user.getUpdatedBy(),
+                toLocalDateTime(user.getUpdatedAt()));
     }
 
     protected final User toDomain(UserDO userDO) {
         return new User(userDO.getId(), userDO.getTenantId(), userDO.getAccount(), userDO.getName(),
                 userDO.getAvatarObjectId(), userDO.getPhone(), userDO.getPasswordHash(), userDO.getDepartmentId(),
-                UserStatus.valueOf(userDO.getStatus()), userDO.getCreatedBy(), userDO.getCreatedAt(),
-                userDO.getUpdatedBy(), userDO.getUpdatedAt());
+                UserStatus.valueOf(userDO.getStatus()), userDO.getCreatedBy(), toInstant(userDO.getCreatedAt()),
+                userDO.getUpdatedBy(), toInstant(userDO.getUpdatedAt()));
     }
 
     protected final UserIdentityDO toDataObject(UserIdentity userIdentity) {
         return new UserIdentityDO(userIdentity.getId(), userIdentity.getTenantId(), userIdentity.getUserId(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
-                userIdentity.getCreatedBy(), userIdentity.getCreatedAt(), userIdentity.getUpdatedBy(),
-                userIdentity.getUpdatedAt());
+                userIdentity.getCreatedBy(), toLocalDateTime(userIdentity.getCreatedAt()), userIdentity.getUpdatedBy(),
+                toLocalDateTime(userIdentity.getUpdatedAt()));
     }
 
     protected final UserIdentity toDomain(UserIdentityDO dataObject) {
         return new UserIdentity(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(), dataObject.getIdentityType(),
                 dataObject.getIdentityValue(), Boolean.TRUE.equals(dataObject.getEnabled()), dataObject.getCreatedBy(),
-                dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
+                toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 
     protected final UserCredentialDO toDataObject(UserCredential userCredential) {
@@ -83,8 +96,8 @@ abstract class AbstractUpmsPersistenceSupport {
                 userCredential.getCredentialValue(), userCredential.getStatus(), userCredential.isNeedChangePassword(),
                 userCredential.getFailedCount(), userCredential.getFailedLimit(), userCredential.getLockReason(),
                 userCredential.getLockedUntil(), userCredential.getExpiresAt(), userCredential.getLastVerifiedAt(),
-                userCredential.getCreatedBy(), userCredential.getCreatedAt(), userCredential.getUpdatedBy(),
-                userCredential.getUpdatedAt());
+                userCredential.getCreatedBy(), toLocalDateTime(userCredential.getCreatedAt()), userCredential.getUpdatedBy(),
+                toLocalDateTime(userCredential.getUpdatedAt()));
     }
 
     protected final UserCredential toDomain(UserCredentialDO dataObject) {
@@ -94,42 +107,44 @@ abstract class AbstractUpmsPersistenceSupport {
                 dataObject.getFailedCount() == null ? 0 : dataObject.getFailedCount(),
                 dataObject.getFailedLimit() == null ? 0 : dataObject.getFailedLimit(), dataObject.getLockReason(),
                 dataObject.getLockedUntil(), dataObject.getExpiresAt(), dataObject.getLastVerifiedAt(),
-                dataObject.getCreatedBy(), dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
+                dataObject.getCreatedBy(), toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(),
+                toInstant(dataObject.getUpdatedAt()));
     }
 
     protected final DepartmentDO toDataObject(Department department) {
         return new DepartmentDO(department.getId(), department.getTenantId(), department.getCode(), department.getName(),
                 department.getParentId(), department.getLeaderUserId(), department.getStatus(), department.getCreatedBy(),
-                department.getCreatedAt(), department.getUpdatedBy(), department.getUpdatedAt());
+                toLocalDateTime(department.getCreatedAt()), department.getUpdatedBy(), toLocalDateTime(department.getUpdatedAt()));
     }
 
     protected final Department toDomain(DepartmentDO dataObject) {
         return new Department(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
                 dataObject.getParentId(), dataObject.getLeaderUserId(), dataObject.getStatus(), dataObject.getCreatedBy(),
-                dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
+                toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 
     protected final PostDO toDataObject(Post post) {
         return new PostDO(post.getId(), post.getTenantId(), post.getCode(), post.getName(), post.getDepartmentId(),
-                post.getStatus(), post.getCreatedBy(), post.getCreatedAt(), post.getUpdatedBy(), post.getUpdatedAt());
+                post.getStatus(), post.getCreatedBy(), toLocalDateTime(post.getCreatedAt()), post.getUpdatedBy(),
+                toLocalDateTime(post.getUpdatedAt()));
     }
 
     protected final Post toDomain(PostDO dataObject) {
         return new Post(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
-                dataObject.getDepartmentId(), dataObject.getStatus(), dataObject.getCreatedBy(), dataObject.getCreatedAt(),
-                dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
+                dataObject.getDepartmentId(), dataObject.getStatus(), dataObject.getCreatedBy(),
+                toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 
     protected final RoleDO toDataObject(Role role) {
         return new RoleDO(role.getId(), role.getTenantId(), role.getCode(), role.getName(), role.getRoleType(),
-                role.getDataScopeType(), role.getStatus(), role.getCreatedBy(), role.getCreatedAt(), role.getUpdatedBy(),
-                role.getUpdatedAt());
+                role.getDataScopeType(), role.getStatus(), role.getCreatedBy(), toLocalDateTime(role.getCreatedAt()),
+                role.getUpdatedBy(), toLocalDateTime(role.getUpdatedAt()));
     }
 
     protected final Role toDomain(RoleDO dataObject) {
         return new Role(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
                 dataObject.getRoleType(), dataObject.getDataScopeType(), dataObject.getStatus(), dataObject.getCreatedBy(),
-                dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
+                toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 
     protected final MenuDO toDataObject(Menu menu) {
@@ -146,13 +161,15 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final ResourceDO toDataObject(Resource resource) {
         return new ResourceDO(resource.getId(), resource.getTenantId(), resource.getCode(), resource.getName(),
                 resource.getResourceType(), resource.getHttpMethod(), resource.getUri(), resource.getStatus(),
-                resource.getCreatedBy(), resource.getCreatedAt(), resource.getUpdatedBy(), resource.getUpdatedAt());
+                resource.getCreatedBy(), toLocalDateTime(resource.getCreatedAt()), resource.getUpdatedBy(),
+                toLocalDateTime(resource.getUpdatedAt()));
     }
 
     protected final Resource toDomain(ResourceDO dataObject) {
         return new Resource(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
                 dataObject.getResourceType(), dataObject.getHttpMethod(), dataObject.getUri(), dataObject.getStatus(),
-                dataObject.getCreatedBy(), dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
+                dataObject.getCreatedBy(), toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(),
+                toInstant(dataObject.getUpdatedAt()));
     }
 
     protected final SysLogRecordDO toDataObject(SysLogRecord sysLogRecord) {
@@ -161,7 +178,8 @@ abstract class AbstractUpmsPersistenceSupport {
                 sysLogRecord.getResult(), sysLogRecord.getOperatorId(), sysLogRecord.getOperatorName(), sysLogRecord.getClientIp(),
                 sysLogRecord.getRequestUri(), sysLogRecord.getHttpMethod(), sysLogRecord.getCostMs(),
                 sysLogRecord.getErrorMessage(), sysLogRecord.getOccurredAt(), sysLogRecord.getCreatedBy(),
-                sysLogRecord.getCreatedAt(), sysLogRecord.getUpdatedBy(), sysLogRecord.getUpdatedAt());
+                toLocalDateTime(sysLogRecord.getCreatedAt()), sysLogRecord.getUpdatedBy(),
+                toLocalDateTime(sysLogRecord.getUpdatedAt()));
     }
 
     protected final SysLogRecord toDomain(SysLogRecordDO dataObject) {
@@ -169,7 +187,7 @@ abstract class AbstractUpmsPersistenceSupport {
                 dataObject.getRequestId(), dataObject.getModule(), dataObject.getAction(), dataObject.getEventType(),
                 dataObject.getResult(), dataObject.getOperatorId(), dataObject.getOperatorName(), dataObject.getClientIp(),
                 dataObject.getRequestUri(), dataObject.getHttpMethod(), dataObject.getCostMs(), dataObject.getErrorMessage(),
-                dataObject.getOccurredAt(), dataObject.getCreatedBy(), dataObject.getCreatedAt(), dataObject.getUpdatedBy(),
-                dataObject.getUpdatedAt());
+                dataObject.getOccurredAt(), dataObject.getCreatedBy(), toInstant(dataObject.getCreatedAt()),
+                dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 }

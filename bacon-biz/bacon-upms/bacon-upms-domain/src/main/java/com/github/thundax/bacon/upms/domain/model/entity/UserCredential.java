@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import lombok.Getter;
 
@@ -25,9 +26,9 @@ public class UserCredential {
     private LocalDateTime expiresAt;
     private LocalDateTime lastVerifiedAt;
     private String createdBy;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     private String updatedBy;
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     public UserCredential(Long id, Long tenantId, Long userId, Long identityId, String credentialType,
                           String factorLevel, String credentialValue, String status, boolean needChangePassword,
@@ -42,7 +43,7 @@ public class UserCredential {
                           String factorLevel, String credentialValue, String status, boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, LocalDateTime lockedUntil,
                           LocalDateTime expiresAt, LocalDateTime lastVerifiedAt, String createdBy,
-                          LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt) {
+                          Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.userId = userId;

@@ -2,7 +2,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 角色领域实体。
@@ -27,11 +27,11 @@ public class Role {
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     /** 最后更新人。 */
     private String updatedBy;
     /** 最后更新时间。 */
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     public Role(Long id, Long tenantId, String code, String name, String roleType,
                 String dataScopeType, String status) {
@@ -39,8 +39,8 @@ public class Role {
     }
 
     public Role(Long id, Long tenantId, String code, String name, String roleType, String dataScopeType,
-                String status, String createdBy, LocalDateTime createdAt, String updatedBy,
-                LocalDateTime updatedAt) {
+                String status, String createdBy, Instant createdAt, String updatedBy,
+                Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.code = code;

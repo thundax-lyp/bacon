@@ -3,7 +3,6 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import lombok.Getter;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 /**
  * 系统日志领域实体。
@@ -46,11 +45,11 @@ public class SysLogRecord {
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     /** 最后更新人。 */
     private String updatedBy;
     /** 最后更新时间。 */
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     public SysLogRecord(Long id, String tenantId, String traceId, String requestId, String module,
                         String action, String eventType, String result, Long operatorId, String operatorName,
@@ -63,8 +62,8 @@ public class SysLogRecord {
     public SysLogRecord(Long id, String tenantId, String traceId, String requestId, String module,
                         String action, String eventType, String result, Long operatorId, String operatorName,
                         String clientIp, String requestUri, String httpMethod, Long costMs,
-                        String errorMessage, Instant occurredAt, String createdBy, LocalDateTime createdAt,
-                        String updatedBy, LocalDateTime updatedAt) {
+                        String errorMessage, Instant occurredAt, String createdBy, Instant createdAt,
+                        String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.traceId = traceId;

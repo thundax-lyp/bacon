@@ -2,7 +2,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 用户身份标识领域实体。
@@ -25,11 +25,11 @@ public class UserIdentity {
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     /** 最后更新人。 */
     private String updatedBy;
     /** 最后更新时间。 */
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     public UserIdentity(Long id, Long tenantId, Long userId, String identityType,
                         String identityValue, boolean enabled) {
@@ -37,8 +37,8 @@ public class UserIdentity {
     }
 
     public UserIdentity(Long id, Long tenantId, Long userId, String identityType,
-                        String identityValue, boolean enabled, String createdBy, LocalDateTime createdAt,
-                        String updatedBy, LocalDateTime updatedAt) {
+                        String identityValue, boolean enabled, String createdBy, Instant createdAt,
+                        String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.userId = userId;

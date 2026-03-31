@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Getter;
 
 /**
@@ -28,11 +28,11 @@ public class Resource {
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     /** 最后更新人。 */
     private String updatedBy;
     /** 最后更新时间。 */
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     public Resource(Long id, Long tenantId, String code, String name, String resourceType,
                     String httpMethod, String uri, String status) {
@@ -40,8 +40,8 @@ public class Resource {
     }
 
     public Resource(Long id, Long tenantId, String code, String name, String resourceType, String httpMethod,
-                    String uri, String status, String createdBy, LocalDateTime createdAt, String updatedBy,
-                    LocalDateTime updatedAt) {
+                    String uri, String status, String createdBy, Instant createdAt, String updatedBy,
+                    Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.code = code;

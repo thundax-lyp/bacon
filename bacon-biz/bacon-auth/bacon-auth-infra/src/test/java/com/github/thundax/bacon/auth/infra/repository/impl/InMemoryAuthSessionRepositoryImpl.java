@@ -3,14 +3,14 @@ package com.github.thundax.bacon.auth.infra.repository.impl;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
+import org.springframework.context.annotation.Profile;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-@ConditionalOnProperty(name = "bacon.auth.repository.mode", havingValue = "memory")
+@Profile("test")
 public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository {
 
     private final TestAuthMemoryStore authStore;

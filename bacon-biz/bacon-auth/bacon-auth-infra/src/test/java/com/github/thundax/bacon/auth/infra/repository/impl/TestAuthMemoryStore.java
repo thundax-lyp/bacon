@@ -10,11 +10,11 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(name = "bacon.auth.repository.mode", havingValue = "memory")
+@Profile("test")
 public class TestAuthMemoryStore {
 
     private final Map<String, AuthSession> sessions = new ConcurrentHashMap<>();

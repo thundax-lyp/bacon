@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
                 "spring.cloud.nacos.discovery.enabled=false",
                 "spring.cloud.nacos.config.enabled=false",
                 "spring.boot.admin.client.enabled=false",
-                "bacon.auth.repository.mode=memory",
                 "spring.autoconfigure.exclude="
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"

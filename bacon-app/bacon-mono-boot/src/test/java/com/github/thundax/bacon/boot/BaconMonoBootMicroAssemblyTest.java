@@ -42,7 +42,6 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "spring.cloud.nacos.config.enabled=false",
                 "spring.boot.admin.client.enabled=false",
                 "spring.main.lazy-initialization=true",
-                "bacon.auth.repository.mode=memory",
                 "bacon.order.repository.mode=memory",
                 "bacon.inventory.repository.mode=memory",
                 "bacon.payment.repository.mode=memory",

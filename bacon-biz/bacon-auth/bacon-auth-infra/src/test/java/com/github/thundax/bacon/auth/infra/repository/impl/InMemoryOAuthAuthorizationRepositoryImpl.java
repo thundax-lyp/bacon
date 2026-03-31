@@ -4,13 +4,13 @@ import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
+import org.springframework.context.annotation.Profile;
 
 import java.util.Optional;
 
 @Repository
-@ConditionalOnProperty(name = "bacon.auth.repository.mode", havingValue = "memory")
+@Profile("test")
 public class InMemoryOAuthAuthorizationRepositoryImpl implements OAuthAuthorizationRepository {
 
     private final TestAuthMemoryStore authStore;

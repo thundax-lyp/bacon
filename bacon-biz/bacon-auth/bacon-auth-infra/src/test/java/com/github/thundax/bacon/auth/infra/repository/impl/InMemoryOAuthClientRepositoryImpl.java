@@ -3,11 +3,11 @@ package com.github.thundax.bacon.auth.infra.repository.impl;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(name = "bacon.auth.repository.mode", havingValue = "memory")
+@Profile("test")
 public class InMemoryOAuthClientRepositoryImpl implements OAuthClientRepository {
 
     private final TestAuthMemoryStore authStore;

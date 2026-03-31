@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
@@ -25,12 +26,12 @@ public class MenuRepositoryImpl implements MenuRepository {
     }
 
     @Override
-    public List<Menu> listMenus(Long tenantId) {
+    public List<Menu> listMenus(TenantId tenantId) {
         return support.listMenus(tenantId);
     }
 
     @Override
-    public Optional<Menu> findMenuById(Long tenantId, Long menuId) {
+    public Optional<Menu> findMenuById(TenantId tenantId, Long menuId) {
         return support.findMenuById(tenantId, menuId);
     }
 
@@ -42,7 +43,7 @@ public class MenuRepositoryImpl implements MenuRepository {
     }
 
     @Override
-    public Menu updateSort(Long tenantId, Long menuId, Integer sort) {
+    public Menu updateSort(TenantId tenantId, Long menuId, Integer sort) {
         Menu currentMenu = findMenuById(tenantId, menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
         return support.saveMenu(new Menu(currentMenu.getId(), currentMenu.getTenantId(), currentMenu.getMenuType(),
@@ -51,14 +52,14 @@ public class MenuRepositoryImpl implements MenuRepository {
     }
 
     @Override
-    public void deleteMenu(Long tenantId, Long menuId) {
+    public void deleteMenu(TenantId tenantId, Long menuId) {
         support.deleteMenu(tenantId, menuId);
         roleRepository.removeMenuFromAssignments(tenantId, menuId);
         cacheSupport.evictTenantPermission(tenantId);
     }
 
     @Override
-    public boolean existsChildMenu(Long tenantId, Long menuId) {
+    public boolean existsChildMenu(TenantId tenantId, Long menuId) {
         return support.existsChildMenu(tenantId, menuId);
     }
 }

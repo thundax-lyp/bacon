@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.infra.persistence.repositoryimpl;
+package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
@@ -8,12 +8,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(OrderOutboxRepositorySupport.class)
-public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
+@ConditionalOnBean(InMemoryOrderOutboxSupport.class)
+public class InMemoryOrderOutboxRepositoryImpl implements OrderOutboxRepository {
 
-    private final OrderOutboxRepositorySupport support;
+    private final InMemoryOrderOutboxSupport support;
 
-    public OrderOutboxRepositoryImpl(OrderOutboxRepositorySupport support) {
+    public InMemoryOrderOutboxRepositoryImpl(InMemoryOrderOutboxSupport support) {
         this.support = support;
     }
 
@@ -24,7 +24,7 @@ public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
 
     @Override
     public List<OrderOutboxEvent> claimRetryableOutbox(Instant now, int limit, String processingOwner,
-                                                        Instant leaseUntil) {
+                                                       Instant leaseUntil) {
         return support.claimRetryableOutbox(now, limit, processingOwner, leaseUntil);
     }
 

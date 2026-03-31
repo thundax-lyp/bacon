@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.infra.persistence.repositoryimpl;
+package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.order.domain.model.entity.Order;

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.infra.persistence.repositoryimpl;
+package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;

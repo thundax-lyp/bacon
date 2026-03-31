@@ -62,7 +62,7 @@
 
 - `uploadMultipartPart`、`completeMultipartUpload`、`abortMultipartUpload` 必须校验分片会话归属
 - 归属校验至少固定包含：
-  - `tenantId`
+  - `tenantNo`
   - `ownerType`
   - `ownerId`
 - 仅凭 `uploadId` 不得继续写分片、完成上传或取消上传

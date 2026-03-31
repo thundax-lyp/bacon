@@ -669,7 +669,7 @@
 推荐摘要字段：
 
 - `User`: `id`、`account`、`name`、`phoneMasked`、`departmentId`、`status`、`deleted`
-- `Tenant`: `tenantId`、`code`、`name`、`status`
+- `Tenant`: `tenantNo`、`code`、`name`、`status`
 - `Department`: `id`、`code`、`name`、`parentId`、`leaderUserId`、`status`
 - `Post`: `id`、`code`、`name`、`sort`、`status`
 - `Role`: `id`、`code`、`name`、`roleType`、`dataScopeType`、`status`、`builtIn`
@@ -800,11 +800,11 @@
 
 ## 11. Cache Mapping Rules
 
-- `upms:menu-tree:{tenantId}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_role_menu_rel`、`bacon_upms_user_role_rel`
-- `upms:perm-codes:{tenantId}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_resource`、`bacon_upms_role_menu_rel`、`bacon_upms_role_resource_rel`、`bacon_upms_user_role_rel`
-- `upms:data-scope:{tenantId}:{userId}` 来源于 `bacon_upms_role`、`bacon_upms_data_permission_rule`、`bacon_upms_role_data_scope_rel`、`bacon_upms_user_role_rel`
+- `upms:menu-tree:{tenantNo}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_role_menu_rel`、`bacon_upms_user_role_rel`
+- `upms:perm-codes:{tenantNo}:{userId}` 来源于 `bacon_upms_menu`、`bacon_upms_resource`、`bacon_upms_role_menu_rel`、`bacon_upms_role_resource_rel`、`bacon_upms_user_role_rel`
+- `upms:data-scope:{tenantNo}:{userId}` 来源于 `bacon_upms_role`、`bacon_upms_data_permission_rule`、`bacon_upms_role_data_scope_rel`、`bacon_upms_user_role_rel`
 - 上述缓存都是数据库查询结果的派生缓存，不单独建“缓存主表”
-- 缓存丢失后固定允许从数据库全量重算单个 `(tenantId, userId)` 结果
+- 缓存丢失后固定允许从数据库全量重算单个 `(tenantNo, userId)` 结果
 - 不允许把租户全量菜单、租户全量权限码、平台全量授权主数据整体序列化后作为单键缓存
 - 不允许在 `RepositoryImpl` 内额外维护与这些缓存重复的长期本地 `Map` 真相源
 

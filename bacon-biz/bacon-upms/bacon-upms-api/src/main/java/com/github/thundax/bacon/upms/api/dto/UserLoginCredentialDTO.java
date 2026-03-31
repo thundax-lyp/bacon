@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.api.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,9 +37,9 @@ public class UserLoginCredentialDTO {
     /** 是否需要修改密码。 */
     private boolean needChangePassword;
     /** 凭据过期时间。 */
-    private LocalDateTime credentialExpiresAt;
+    private Instant credentialExpiresAt;
     /** 锁定截止时间。 */
-    private LocalDateTime lockedUntil;
+    private Instant lockedUntil;
     /** 是否需要多因子认证。 */
     private boolean mfaRequired;
     /** 二因子类型列表。 */

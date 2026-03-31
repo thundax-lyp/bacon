@@ -6,7 +6,8 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -185,7 +186,7 @@ public class UserRepositoryImpl implements UserRepository {
                 PASSWORD_FAILED_LIMIT,
                 null,
                 null,
-                LocalDateTime.now().plusDays(PASSWORD_EXPIRE_DAYS),
+                Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS),
                 currentCredential == null ? null : currentCredential.getLastVerifiedAt(),
                 currentCredential == null ? null : currentCredential.getCreatedBy(),
                 currentCredential == null ? null : currentCredential.getCreatedAt(),

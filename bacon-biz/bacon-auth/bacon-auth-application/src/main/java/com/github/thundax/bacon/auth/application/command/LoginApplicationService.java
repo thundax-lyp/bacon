@@ -13,7 +13,6 @@ import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
-import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -91,7 +90,7 @@ public class LoginApplicationService {
             throw new BadRequestException("Current credential is not active");
         }
         if (credential.getCredentialExpiresAt() != null
-                && credential.getCredentialExpiresAt().isBefore(LocalDateTime.now())) {
+                && credential.getCredentialExpiresAt().isBefore(Instant.now())) {
             throw new BadRequestException("Current credential has expired");
         }
         if (!passwordEncoder.matches(plainPassword, credential.getPasswordHash())) {

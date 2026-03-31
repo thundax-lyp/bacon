@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import lombok.Getter;
 
 /**
@@ -22,9 +21,9 @@ public class UserCredential {
     private int failedCount;
     private int failedLimit;
     private String lockReason;
-    private LocalDateTime lockedUntil;
-    private LocalDateTime expiresAt;
-    private LocalDateTime lastVerifiedAt;
+    private Instant lockedUntil;
+    private Instant expiresAt;
+    private Instant lastVerifiedAt;
     private String createdBy;
     private Instant createdAt;
     private String updatedBy;
@@ -32,8 +31,8 @@ public class UserCredential {
 
     public UserCredential(Long id, Long tenantId, Long userId, Long identityId, String credentialType,
                           String factorLevel, String credentialValue, String status, boolean needChangePassword,
-                          int failedCount, int failedLimit, String lockReason, LocalDateTime lockedUntil,
-                          LocalDateTime expiresAt, LocalDateTime lastVerifiedAt) {
+                          int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
+                          Instant expiresAt, Instant lastVerifiedAt) {
         this(id, tenantId, userId, identityId, credentialType, factorLevel, credentialValue, status,
                 needChangePassword, failedCount, failedLimit, lockReason, lockedUntil, expiresAt,
                 lastVerifiedAt, null, null, null, null);
@@ -41,8 +40,8 @@ public class UserCredential {
 
     public UserCredential(Long id, Long tenantId, Long userId, Long identityId, String credentialType,
                           String factorLevel, String credentialValue, String status, boolean needChangePassword,
-                          int failedCount, int failedLimit, String lockReason, LocalDateTime lockedUntil,
-                          LocalDateTime expiresAt, LocalDateTime lastVerifiedAt, String createdBy,
+                          int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
+                          Instant expiresAt, Instant lastVerifiedAt, String createdBy,
                           Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;

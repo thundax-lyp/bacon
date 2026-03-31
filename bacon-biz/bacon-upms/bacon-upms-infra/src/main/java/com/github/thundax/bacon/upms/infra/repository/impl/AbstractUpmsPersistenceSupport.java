@@ -95,7 +95,8 @@ abstract class AbstractUpmsPersistenceSupport {
                 userCredential.getIdentityId(), userCredential.getCredentialType(), userCredential.getFactorLevel(),
                 userCredential.getCredentialValue(), userCredential.getStatus(), userCredential.isNeedChangePassword(),
                 userCredential.getFailedCount(), userCredential.getFailedLimit(), userCredential.getLockReason(),
-                userCredential.getLockedUntil(), userCredential.getExpiresAt(), userCredential.getLastVerifiedAt(),
+                toLocalDateTime(userCredential.getLockedUntil()), toLocalDateTime(userCredential.getExpiresAt()),
+                toLocalDateTime(userCredential.getLastVerifiedAt()),
                 userCredential.getCreatedBy(), toLocalDateTime(userCredential.getCreatedAt()), userCredential.getUpdatedBy(),
                 toLocalDateTime(userCredential.getUpdatedAt()));
     }
@@ -106,7 +107,8 @@ abstract class AbstractUpmsPersistenceSupport {
                 dataObject.getCredentialValue(), dataObject.getStatus(), Boolean.TRUE.equals(dataObject.getNeedChangePassword()),
                 dataObject.getFailedCount() == null ? 0 : dataObject.getFailedCount(),
                 dataObject.getFailedLimit() == null ? 0 : dataObject.getFailedLimit(), dataObject.getLockReason(),
-                dataObject.getLockedUntil(), dataObject.getExpiresAt(), dataObject.getLastVerifiedAt(),
+                toInstant(dataObject.getLockedUntil()), toInstant(dataObject.getExpiresAt()),
+                toInstant(dataObject.getLastVerifiedAt()),
                 dataObject.getCreatedBy(), toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(),
                 toInstant(dataObject.getUpdatedAt()));
     }

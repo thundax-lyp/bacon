@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DepartmentBatchQueryRequest {
 
-    private Long tenantId;
+    private String tenantNo;
     private Set<Long> departmentIds;
 }

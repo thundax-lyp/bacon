@@ -32,9 +32,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostController {
 
     private final PostApplicationService postApplicationService;
+    private final TenantRequestResolver tenantRequestResolver;
 
-    public PostController(PostApplicationService postApplicationService) {
+    public PostController(PostApplicationService postApplicationService,
+                          TenantRequestResolver tenantRequestResolver) {
         this.postApplicationService = postApplicationService;
+        this.tenantRequestResolver = tenantRequestResolver;
     }
 
     @Operation(summary = "分页查询岗位")
@@ -42,7 +45,8 @@ public class PostController {
     @SysLog(module = "UPMS", action = "分页查询岗位", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public PostPageResponse pagePosts(@Valid @ModelAttribute PostPageRequest request) {
-        return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(request.getTenantId(),
+        return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(
+                tenantRequestResolver.resolveTenantId(request.getTenantNo()),
                 request.getCode(), request.getName(), request.getDepartmentId(),
                 request.getStatus() == null ? null : request.getStatus().name(),
                 request.getPageNo(), request.getPageSize())));
@@ -53,7 +57,8 @@ public class PostController {
     @SysLog(module = "UPMS", action = "查询岗位详情", eventType = LogEventType.QUERY)
     @GetMapping("/{postId}")
     public PostResponse getPostById(@PathVariable Long postId, @ModelAttribute TenantScopedRequest request) {
-        return PostResponse.from(postApplicationService.getPostById(request.getTenantId(), postId));
+        return PostResponse.from(postApplicationService.getPostById(
+                tenantRequestResolver.resolveTenantId(request.getTenantNo()), postId));
     }
 
     @Operation(summary = "创建岗位")
@@ -61,7 +66,8 @@ public class PostController {
     @SysLog(module = "UPMS", action = "创建岗位", eventType = LogEventType.CREATE)
     @PostMapping
     public PostResponse createPost(@RequestBody PostCreateRequest request) {
-        return PostResponse.from(postApplicationService.createPost(request.tenantId(), request.code(), request.name(),
+        return PostResponse.from(postApplicationService.createPost(
+                tenantRequestResolver.resolveTenantId(request.tenantNo()), request.code(), request.name(),
                 request.departmentId()));
     }
 
@@ -70,7 +76,8 @@ public class PostController {
     @SysLog(module = "UPMS", action = "修改岗位", eventType = LogEventType.UPDATE)
     @PutMapping("/{postId}")
     public PostResponse updatePost(@PathVariable Long postId, @RequestBody PostUpdateRequest request) {
-        return PostResponse.from(postApplicationService.updatePost(request.tenantId(), postId, request.code(),
+        return PostResponse.from(postApplicationService.updatePost(
+                tenantRequestResolver.resolveTenantId(request.tenantNo()), postId, request.code(),
                 request.name(), request.departmentId(), request.status()));
     }
 
@@ -79,6 +86,6 @@ public class PostController {
     @SysLog(module = "UPMS", action = "删除岗位", eventType = LogEventType.DELETE)
     @DeleteMapping("/{postId}")
     public void deletePost(@PathVariable Long postId, @ModelAttribute TenantScopedRequest request) {
-        postApplicationService.deletePost(request.getTenantId(), postId);
+        postApplicationService.deletePost(tenantRequestResolver.resolveTenantId(request.getTenantNo()), postId);
     }
 }

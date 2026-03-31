@@ -1,4 +1,4 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-public record MenuSortUpdateRequest(Long tenantId, Integer sort) {
+public record MenuSortUpdateRequest(String tenantNo, Integer sort) {
 }

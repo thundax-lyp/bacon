@@ -31,9 +31,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class DepartmentController {
 
     private final DepartmentApplicationService departmentApplicationService;
+    private final TenantRequestResolver tenantRequestResolver;
 
-    public DepartmentController(DepartmentApplicationService departmentApplicationService) {
+    public DepartmentController(DepartmentApplicationService departmentApplicationService,
+                                TenantRequestResolver tenantRequestResolver) {
         this.departmentApplicationService = departmentApplicationService;
+        this.tenantRequestResolver = tenantRequestResolver;
     }
 
     @Operation(summary = "查询部门树")
@@ -41,7 +44,7 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "查询部门树", eventType = LogEventType.QUERY)
     @GetMapping("/tree")
     public List<DepartmentTreeResponse> getDepartmentTree(@ModelAttribute TenantScopedRequest request) {
-        return departmentApplicationService.getDepartmentTree(request.getTenantId()).stream()
+        return departmentApplicationService.getDepartmentTree(tenantRequestResolver.resolveTenantId(request.getTenantNo())).stream()
                 .map(DepartmentTreeResponse::from)
                 .toList();
     }
@@ -51,7 +54,8 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "创建部门", eventType = LogEventType.CREATE)
     @PostMapping
     public DepartmentResponse createDepartment(@RequestBody DepartmentCreateRequest request) {
-        return DepartmentResponse.from(departmentApplicationService.createDepartment(request.tenantId(), request.code(),
+        return DepartmentResponse.from(departmentApplicationService.createDepartment(
+                tenantRequestResolver.resolveTenantId(request.tenantNo()), request.code(),
                 request.name(), request.parentId(), request.leaderUserId()));
     }
 
@@ -62,7 +66,7 @@ public class DepartmentController {
     public DepartmentResponse getDepartmentById(@PathVariable Long departmentId,
                                                 @ModelAttribute TenantScopedRequest request) {
         return DepartmentResponse.from(
-                departmentApplicationService.getDepartmentById(request.getTenantId(), departmentId)
+                departmentApplicationService.getDepartmentById(request.getTenantNo(), departmentId)
         );
     }
 
@@ -73,7 +77,7 @@ public class DepartmentController {
     public DepartmentResponse getDepartmentByCode(@PathVariable String departmentCode,
                                                   @ModelAttribute TenantScopedRequest request) {
         return DepartmentResponse.from(
-                departmentApplicationService.getDepartmentByCode(request.getTenantId(), departmentCode)
+                departmentApplicationService.getDepartmentByCode(request.getTenantNo(), departmentCode)
         );
     }
 
@@ -82,7 +86,7 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "批量查询部门", eventType = LogEventType.QUERY)
     @GetMapping
     public List<DepartmentResponse> listDepartmentsByIds(@ModelAttribute DepartmentBatchQueryRequest request) {
-        return departmentApplicationService.listDepartmentsByIds(request.getTenantId(), request.getDepartmentIds()).stream()
+        return departmentApplicationService.listDepartmentsByIds(request.getTenantNo(), request.getDepartmentIds()).stream()
                 .map(DepartmentResponse::from)
                 .toList();
     }
@@ -92,7 +96,8 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "修改部门", eventType = LogEventType.UPDATE)
     @PutMapping("/{departmentId}")
     public DepartmentResponse updateDepartment(@PathVariable Long departmentId, @RequestBody DepartmentUpdateRequest request) {
-        return DepartmentResponse.from(departmentApplicationService.updateDepartment(request.tenantId(), departmentId,
+        return DepartmentResponse.from(departmentApplicationService.updateDepartment(
+                tenantRequestResolver.resolveTenantId(request.tenantNo()), departmentId,
                 request.code(), request.name(), request.parentId(), request.leaderUserId()));
     }
 
@@ -101,6 +106,6 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "删除部门", eventType = LogEventType.DELETE)
     @DeleteMapping("/{departmentId}")
     public void deleteDepartment(@PathVariable Long departmentId, @ModelAttribute TenantScopedRequest request) {
-        departmentApplicationService.deleteDepartment(request.getTenantId(), departmentId);
+        departmentApplicationService.deleteDepartment(tenantRequestResolver.resolveTenantId(request.getTenantNo()), departmentId);
     }
 }

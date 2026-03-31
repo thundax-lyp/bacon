@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TenantScopedRequest {
 
-    private Long tenantId;
+    private String tenantNo;
 }

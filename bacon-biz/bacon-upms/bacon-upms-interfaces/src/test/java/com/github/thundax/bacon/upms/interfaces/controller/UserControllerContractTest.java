@@ -21,16 +21,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class UserControllerContractTest {
 
     private UserApplicationService userApplicationService;
+    private TenantRequestResolver tenantRequestResolver;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         userApplicationService = mock(UserApplicationService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService)).build();
+        tenantRequestResolver = mock(TenantRequestResolver.class);
+        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService, tenantRequestResolver)).build();
     }
 
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
+        when(tenantRequestResolver.resolveTenantId("tenant-demo")).thenReturn(1001L);
         when(userApplicationService.updateAvatar(eq(1001L), eq(101L), eq("avatar.png"), eq("image/png"), eq(4L),
                 org.mockito.ArgumentMatchers.any()))
                 .thenReturn(new UserDTO(101L, 1001L, "alice", "Alice", 9001L, "13800000001", 11L,
@@ -40,7 +43,7 @@ class UserControllerContractTest {
 
         mockMvc.perform(multipart("/upms/users/{userId}/avatar", 101L)
                         .file(file)
-                        .param("tenantId", "1001")
+                        .param("tenantNo", "tenant-demo")
                         .with(request -> {
                             request.setMethod("PUT");
                             return request;
@@ -53,11 +56,12 @@ class UserControllerContractTest {
 
     @Test
     void shouldRedirectAvatarRequestToStorageAccessUrl() throws Exception {
+        when(tenantRequestResolver.resolveTenantId("tenant-demo")).thenReturn(1001L);
         when(userApplicationService.getAvatarAccessUrl(1001L, 101L))
                 .thenReturn(Optional.of("https://cdn.example.com/avatar/9001.png"));
 
         mockMvc.perform(get("/upms/users/{userId}/avatar", 101L)
-                        .param("tenantId", "1001"))
+                        .param("tenantNo", "tenant-demo"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", "https://cdn.example.com/avatar/9001.png"));
     }

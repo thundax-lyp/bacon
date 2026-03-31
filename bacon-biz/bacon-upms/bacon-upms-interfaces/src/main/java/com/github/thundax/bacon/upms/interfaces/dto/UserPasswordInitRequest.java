@@ -1,4 +1,4 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-public record UserPasswordInitRequest(Long tenantId) {
+public record UserPasswordInitRequest(String tenantNo) {
 }

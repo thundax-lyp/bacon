@@ -92,11 +92,10 @@ public class UserApplicationService {
                 passwordCredential.getCredentialValue());
     }
 
-    public TenantDTO getTenantByTenantId(Long tenantId) {
-        Tenant tenant = tenantRepository.findTenantByTenantId(tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
-        return new TenantDTO(tenant.getId(), tenant.getTenantId(), tenant.getCode(), tenant.getName(),
-                tenant.getStatus());
+    public TenantDTO getTenantByTenantNo(String tenantNo) {
+        Tenant tenant = tenantRepository.findTenantByTenantNo(tenantNo)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
+        return new TenantDTO(tenant.getId(), tenant.getTenantNo(), tenant.getName(), tenant.getStatus().value());
     }
 
     public UserPageResultDTO pageUsers(UserPageQueryDTO query) {

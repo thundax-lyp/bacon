@@ -10,6 +10,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.MenuDO;
@@ -52,14 +53,14 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final TenantDO toDataObject(Tenant tenant) {
-        return new TenantDO(tenant.getId(), tenant.getTenantId(), tenant.getCode(), tenant.getName(),
-                tenant.getStatus(), tenant.getCreatedBy(), toLocalDateTime(tenant.getCreatedAt()), tenant.getUpdatedBy(),
+        return new TenantDO(tenant.getId(), tenant.getTenantNo(), tenant.getName(),
+                tenant.getStatus().value(), tenant.getCreatedBy(), toLocalDateTime(tenant.getCreatedAt()), tenant.getUpdatedBy(),
                 toLocalDateTime(tenant.getUpdatedAt()));
     }
 
     protected final Tenant toDomain(TenantDO tenantDO) {
-        return new Tenant(tenantDO.getId(), tenantDO.getTenantId(), tenantDO.getCode(), tenantDO.getName(),
-                tenantDO.getStatus(), tenantDO.getCreatedBy(), toInstant(tenantDO.getCreatedAt()), tenantDO.getUpdatedBy(),
+        return new Tenant(tenantDO.getId(), tenantDO.getTenantNo(), tenantDO.getName(),
+                TenantStatus.fromValue(tenantDO.getStatus()), tenantDO.getCreatedBy(), toInstant(tenantDO.getCreatedAt()), tenantDO.getUpdatedBy(),
                 toInstant(tenantDO.getUpdatedAt()));
     }
 

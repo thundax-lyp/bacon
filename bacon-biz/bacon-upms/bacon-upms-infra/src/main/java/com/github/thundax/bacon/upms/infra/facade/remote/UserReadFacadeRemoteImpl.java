@@ -55,10 +55,10 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
     }
 
     @Override
-    public TenantDTO getTenantByTenantId(Long tenantId) {
-        // tenant 查询不需要额外 query 参数，直接以路径 tenantId 作为唯一租户定位键。
+    public TenantDTO getTenantByTenantNo(String tenantNo) {
+        // tenant 查询固定按 tenantNo 读取，不再暴露重复的租户编码语义。
         return restClient.get()
-                .uri("/providers/upms/tenants/{tenantId}", tenantId)
+                .uri("/providers/upms/tenants/{tenantNo}", tenantNo)
                 .retrieve()
                 .body(TenantDTO.class);
     }

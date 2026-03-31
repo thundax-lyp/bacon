@@ -12,10 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TenantPageQueryDTO {
 
-    /** 业务租户标识。 */
-    private Long tenantId;
-    /** 租户编码。 */
-    private String code;
+    /** 租户编号。 */
+    private String tenantNo;
     /** 租户名称。 */
     private String name;
     /** 租户状态。 */

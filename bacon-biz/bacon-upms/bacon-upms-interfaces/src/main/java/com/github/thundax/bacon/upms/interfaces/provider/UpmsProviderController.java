@@ -75,10 +75,10 @@ public class UpmsProviderController {
         userApplicationService.changePassword(tenantId, userId, request.getOldPassword(), request.getNewPassword());
     }
 
-    @Operation(summary = "按租户 ID 查询租户")
-    @GetMapping("/tenants/{tenantId}")
-    public TenantDTO getTenant(@PathVariable Long tenantId) {
-        return userApplicationService.getTenantByTenantId(tenantId);
+    @Operation(summary = "按租户编号查询租户")
+    @GetMapping("/tenants/{tenantNo}")
+    public TenantDTO getTenant(@PathVariable String tenantNo) {
+        return userApplicationService.getTenantByTenantNo(tenantNo);
     }
 
     @Operation(summary = "按部门 ID 查询部门")

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -12,14 +13,12 @@ public class Tenant {
 
     /** 租户主键。 */
     private Long id;
-    /** 业务租户标识。 */
-    private Long tenantId;
-    /** 租户编码。 */
-    private String code;
+    /** 租户编号。 */
+    private String tenantNo;
     /** 租户名称。 */
     private String name;
     /** 租户状态。 */
-    private String status;
+    private TenantStatus status;
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
@@ -29,15 +28,14 @@ public class Tenant {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Tenant(Long id, Long tenantId, String code, String name, String status) {
-        this(id, tenantId, code, name, status, null, null, null, null);
+    public Tenant(Long id, String tenantNo, String name, TenantStatus status) {
+        this(id, tenantNo, name, status, null, null, null, null);
     }
 
-    public Tenant(Long id, Long tenantId, String code, String name, String status,
+    public Tenant(Long id, String tenantNo, String name, TenantStatus status,
                   String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
-        this.tenantId = tenantId;
-        this.code = code;
+        this.tenantNo = tenantNo;
         this.name = name;
         this.status = status;
         this.createdBy = createdBy;

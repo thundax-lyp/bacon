@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.TenantDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.TenantMapper;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import javax.sql.DataSource;
@@ -22,35 +21,27 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.tenantMapper = tenantMapper;
     }
 
-    Optional<Tenant> findTenantByTenantId(Long tenantId) {
+    Optional<Tenant> findTenantByTenantNo(String tenantNo) {
         return Optional.ofNullable(tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(TenantDO::getTenantId, tenantId)))
+                        .eq(TenantDO::getTenantNo, trim(tenantNo))))
                 .map(this::toDomain);
     }
 
-    Optional<Tenant> findTenantByCode(String code) {
-        return Optional.ofNullable(tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(TenantDO::getCode, code)))
-                .map(this::toDomain);
-    }
-
-    List<Tenant> listTenants(Long tenantId, String code, String name, String status, int pageNo, int pageSize) {
+    List<Tenant> listTenants(String tenantNo, String name, String status, int pageNo, int pageSize) {
         return tenantMapper.selectList(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(tenantId != null, TenantDO::getTenantId, tenantId)
-                        .like(hasText(code), TenantDO::getCode, code)
+                        .eq(hasText(tenantNo), TenantDO::getTenantNo, trim(tenantNo))
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))
-                        .orderByAsc(TenantDO::getTenantId)
+                        .orderByAsc(TenantDO::getTenantNo)
                         .last(limit(pageNo, pageSize)))
                 .stream()
                 .map(this::toDomain)
                 .toList();
     }
 
-    long countTenants(Long tenantId, String code, String name, String status) {
+    long countTenants(String tenantNo, String name, String status) {
         return Optional.ofNullable(tenantMapper.selectCount(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(tenantId != null, TenantDO::getTenantId, tenantId)
-                        .like(hasText(code), TenantDO::getCode, code)
+                        .eq(hasText(tenantNo), TenantDO::getTenantNo, trim(tenantNo))
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))))
                 .orElse(0L);
@@ -58,7 +49,7 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Tenant saveTenant(Tenant tenant) {
         TenantDO tenantDO = toDataObject(tenant);
-        LocalDateTime now = LocalDateTime.now();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.Clock.systemUTC());
         if (tenantDO.getId() == null) {
             tenantDO.setCreatedAt(now);
             tenantDO.setUpdatedAt(now);

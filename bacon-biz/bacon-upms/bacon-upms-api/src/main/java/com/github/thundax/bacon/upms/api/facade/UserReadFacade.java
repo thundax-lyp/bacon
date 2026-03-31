@@ -13,5 +13,5 @@ public interface UserReadFacade {
 
     UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue);
 
-    TenantDTO getTenantByTenantId(Long tenantId);
+    TenantDTO getTenantByTenantNo(String tenantNo);
 }

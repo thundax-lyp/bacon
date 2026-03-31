@@ -35,7 +35,7 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     }
 
     @Override
-    public TenantDTO getTenantByTenantId(Long tenantId) {
-        return userApplicationService.getTenantByTenantId(tenantId);
+    public TenantDTO getTenantByTenantNo(String tenantNo) {
+        return userApplicationService.getTenantByTenantNo(tenantNo);
     }
 }

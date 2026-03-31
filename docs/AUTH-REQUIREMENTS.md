@@ -251,6 +251,8 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `token payload` 仅指用户登录态 `JWT claims`
 - `authorization code` 仅指第三方应用 `OAuth2` 授权码
 - `session` 仅指用户登录会话，不指第三方应用授权码或第三方令牌
+- `tenantNo` 当前作为 `Auth` 对外契约字段名保留，但其承载值固定为 `TenantId` 文本值
+- `userId` 在 `Auth` 中固定承载 `UserId` 文本值
 
 ## 5.3 Fixed Response Contracts
 

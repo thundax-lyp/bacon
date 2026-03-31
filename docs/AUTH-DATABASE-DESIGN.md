@@ -38,6 +38,8 @@
 - 排序规则使用数据库实例可用的 `utf8mb4` 排序规则（推荐 `utf8mb4_unicode_ci`）
 - 时间字段统一使用 `datetime(3)`
 - 主键字段统一使用 `bigint`
+- `tenant_id` 固定承载 `TenantId` 文本值，数据库类型固定使用 `varchar(64)`
+- `user_id` 及所有直接承载 `UserId` 的字段固定使用 `varchar(64)`
 - 布尔字段统一使用 `tinyint(1)`
 - 枚举字段统一使用 `varchar`
 - `Auth` 运行态数据按租户隔离；凡是租户相关运行态数据必须包含 `tenant_id`
@@ -119,8 +121,8 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `session_id` | `varchar(64)` | N | 会话业务键，全局唯一 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | N | 用户主键 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键，承载 `TenantId` 文本值 |
+| `user_id` | `varchar(64)` | N | 用户主键，承载 `UserId` 文本值 |
 | `identity_id` | `bigint` | N | 身份主键 |
 | `identity_type` | `varchar(16)` | N | 身份类型，取值见 `identity_type` |
 | `login_type` | `varchar(16)` | N | 登录方式，取值见 `login_type` |
@@ -190,9 +192,9 @@
 | `enabled` | `tinyint(1)` | N | 是否启用 |
 | `contact` | `varchar(128)` | Y | 联系人 |
 | `remark` | `varchar(255)` | Y | 备注 |
-| `created_by` | `bigint` | Y | 创建人用户主键 |
+| `created_by` | `varchar(64)` | Y | 创建人用户主键，承载 `UserId` 文本值 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人用户主键 |
+| `updated_by` | `varchar(64)` | Y | 更新人用户主键，承载 `UserId` 文本值 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -216,8 +218,8 @@
 | `id` | `bigint` | N | 主键 |
 | `authorization_code` | `varchar(128)` | N | 授权码，全局唯一 |
 | `client_id` | `varchar(64)` | N | 客户端标识 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | N | 用户主键 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键，承载 `TenantId` 文本值 |
+| `user_id` | `varchar(64)` | N | 用户主键，承载 `UserId` 文本值 |
 | `redirect_uri` | `varchar(512)` | N | 本次授权使用的回调地址 |
 | `scopes` | `json` | N | 本次授权通过的范围集合，保存字符串数组 |
 | `code_challenge` | `varchar(128)` | N | PKCE `code_challenge` |
@@ -253,8 +255,8 @@
 | `token_id` | `varchar(64)` | N | 访问令牌业务键，全局唯一 |
 | `token_hash` | `varchar(255)` | N | 访问令牌哈希，全局唯一 |
 | `client_id` | `varchar(64)` | N | 客户端标识 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | N | 用户主键 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键，承载 `TenantId` 文本值 |
+| `user_id` | `varchar(64)` | N | 用户主键，承载 `UserId` 文本值 |
 | `scopes` | `json` | N | 本令牌范围集合，保存字符串数组 |
 | `issued_at` | `datetime(3)` | N | 签发时间 |
 | `expire_at` | `datetime(3)` | N | 过期时间 |
@@ -285,8 +287,8 @@
 | `token_hash` | `varchar(255)` | N | 刷新令牌哈希，全局唯一 |
 | `access_token_id` | `varchar(64)` | N | 对应访问令牌业务键，关联 `bacon_auth_oauth_access_token.token_id` |
 | `client_id` | `varchar(64)` | N | 客户端标识 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | N | 用户主键 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键，承载 `TenantId` 文本值 |
+| `user_id` | `varchar(64)` | N | 用户主键，承载 `UserId` 文本值 |
 | `issued_at` | `datetime(3)` | N | 签发时间 |
 | `expire_at` | `datetime(3)` | N | 过期时间 |
 | `token_status` | `varchar(16)` | N | 令牌状态，取值见 `oauth_token_status` |
@@ -313,8 +315,8 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `client_id` | `varchar(64)` | N | 客户端标识 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | N | 用户主键 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键，承载 `TenantId` 文本值 |
+| `user_id` | `varchar(64)` | N | 用户主键，承载 `UserId` 文本值 |
 | `granted_scopes` | `json` | N | 已同意的范围集合，保存字符串数组 |
 | `granted_at` | `datetime(3)` | N | 授权时间 |
 
@@ -337,8 +339,8 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `user_id` | `bigint` | Y | 用户主键；匿名或未定位用户时可为空 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键，承载 `TenantId` 文本值 |
+| `user_id` | `varchar(64)` | Y | 用户主键；匿名或未定位用户时可为空，承载 `UserId` 文本值 |
 | `identity_id` | `bigint` | Y | 身份主键 |
 | `identity_type` | `varchar(16)` | Y | 身份类型 |
 | `session_id` | `varchar(64)` | Y | 关联会话业务键 |

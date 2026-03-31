@@ -14,6 +14,7 @@
 - `Tenant`
 - `User`
 - `UserIdentity`
+- `UserCredential`
 - `Department`
 - `Post`
 - `Role`
@@ -75,7 +76,10 @@
 ### 5.1 Fixed Enums
 
 - `status`: `ENABLED`、`DISABLED`
-- `identity_type`: `ACCOUNT`、`PHONE`、`WECOM`、`GITHUB`
+- `identity_type`: `ACCOUNT`、`PHONE`、`GITHUB`、`WECHAT`、`WECOM`
+- `credential_type`: `PASSWORD`、`TOTP`
+- `credential_status`: `ACTIVE`、`LOCKED`、`EXPIRED`、`DISABLED`
+- `factor_level`: `PRIMARY`、`SECONDARY`
 - `role_type`: `SYSTEM_ROLE`、`TENANT_ROLE`、`CUSTOM_ROLE`
 - `data_scope_type`: `ALL`、`DEPARTMENT`、`DEPARTMENT_AND_CHILDREN`、`SELF`、`CUSTOM`
 - `menu_type`: `DIRECTORY`、`MENU`、`BUTTON`
@@ -112,6 +116,11 @@
 - `result_status`: `varchar(32)`
 - `identity_value`: `varchar(255)`
 - `password_hash`: `varchar(255)`
+- `credential_value`: `varchar(1024)`
+- `credential_type`: `varchar(32)`
+- `credential_status`: `varchar(16)`
+- `factor_level`: `varchar(16)`
+- `lock_reason`: `varchar(64)`
 - `trace_id`: `varchar(64)`
 - `request_id`: `varchar(64)`
 - `client_ip`: `varchar(64)`
@@ -126,6 +135,7 @@
 | `Tenant` | `bacon_upms_tenant` |
 | `User` | `bacon_upms_user` |
 | `UserIdentity` | `bacon_upms_user_identity` |
+| `UserCredential` | `bacon_upms_user_credential` |
 | `Department` | `bacon_upms_department` |
 | `Post` | `bacon_upms_post` |
 | `Role` | `bacon_upms_role` |
@@ -178,7 +188,7 @@
 用途：
 
 - 持久化用户主体
-- 保存密码哈希、状态和组织归属
+- 保存业务主体属性、状态和组织归属
 
 字段定义：
 
@@ -191,8 +201,6 @@
 | `phone` | `varchar(32)` | Y | 手机号 |
 | `department_id` | `bigint` | Y | 部门主键 |
 | `avatar_object_id` | `bigint` | Y | 用户头像对象主键，引用 `Storage` 域 `StoredObject` |
-| `password_hash` | `varchar(255)` | N | 密码哈希，固定保存 `BCrypt` 哈希值 |
-| `need_change_password` | `tinyint(1)` | N | 首次登录是否必须改密 |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |
@@ -215,6 +223,7 @@
 
 - 持久化登录标识
 - 一个 `User` 可绑定多个 `UserIdentity`
+- 持久化本地账号标识与外部身份绑定关系
 
 字段定义：
 
@@ -234,10 +243,50 @@
 索引与约束：
 
 - `pk(id)`
-- `uk_identity(identity_type, identity_value)`
+- `uk_identity(tenant_id, identity_type, identity_value)`
 - `idx_tenant_user(tenant_id, user_id)`
 
-### 7.4 `bacon_upms_department`
+### 7.4 `bacon_upms_user_credential`
+
+表类型：`Master Table`
+
+用途：
+
+- 持久化用户认证因子
+- 承载密码哈希、多因子凭据、凭据锁定、密码过期、首次登录强制改密等认证生命周期状态
+
+字段定义：
+
+| Column | Type | Null | Description |
+|----|----|----|----|
+| `id` | `bigint` | N | 主键 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `user_id` | `bigint` | N | 用户主键 |
+| `identity_id` | `bigint` | Y | 关联身份标识主键；社交登录可为空 |
+| `credential_type` | `varchar(32)` | N | 凭据类型，取值见 `credential_type` |
+| `factor_level` | `varchar(16)` | N | 因子级别，取值见 `factor_level` |
+| `credential_value` | `varchar(1024)` | N | 凭据值；`PASSWORD` 固定保存 `BCrypt` 哈希，`TOTP` 固定保存加密后的密钥材料 |
+| `status` | `varchar(16)` | N | 凭据状态，取值见 `credential_status` |
+| `need_change_password` | `tinyint(1)` | N | 当前密码是否必须修改；仅 `PASSWORD` 使用 |
+| `failed_count` | `int` | N | 连续失败次数 |
+| `failed_limit` | `int` | N | 锁定阈值 |
+| `lock_reason` | `varchar(64)` | Y | 锁定原因 |
+| `locked_until` | `datetime(3)` | Y | 锁定截止时间 |
+| `expires_at` | `datetime(3)` | Y | 凭据过期时间 |
+| `last_verified_at` | `datetime(3)` | Y | 最近一次成功校验时间 |
+| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_at` | `datetime(3)` | N | 创建时间 |
+| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_at` | `datetime(3)` | N | 更新时间 |
+
+索引与约束：
+
+- `pk(id)`
+- `uk_identity_credential(identity_id, credential_type)`
+- `idx_tenant_user_status(tenant_id, user_id, status)`
+- `idx_tenant_identity_factor(tenant_id, identity_id, factor_level, status)`
+
+### 7.5 `bacon_upms_department`
 
 表类型：`Master Table`
 
@@ -269,7 +318,7 @@
 - `uk_code(code)`
 - `idx_tenant_parent_status(tenant_id, parent_id, status)`
 
-### 7.5 `bacon_upms_post`
+### 7.6 `bacon_upms_post`
 
 表类型：`Master Table`
 
@@ -298,7 +347,7 @@
 - `pk(id)`
 - `uk_code(code)`
 
-### 7.6 `bacon_upms_role`
+### 7.7 `bacon_upms_role`
 
 表类型：`Master Table`
 
@@ -331,7 +380,7 @@
 - `uk_code(code)`
 - `idx_tenant_role_type_status(tenant_id, role_type, status)`
 
-### 7.7 `bacon_upms_menu`
+### 7.8 `bacon_upms_menu`
 
 表类型：`Master Table`
 
@@ -369,7 +418,7 @@
 - `uk_permission_code(permission_code)`
 - `idx_tenant_parent_status_visible(tenant_id, parent_id, status, visible)`
 
-### 7.8 `bacon_upms_resource`
+### 7.9 `bacon_upms_resource`
 
 表类型：`Master Table`
 
@@ -406,7 +455,7 @@
 - `uk_permission_code(permission_code)`
 - `idx_tenant_resource_type_status(tenant_id, resource_type, status)`
 
-### 7.9 `bacon_upms_user_role_rel`
+### 7.10 `bacon_upms_user_role_rel`
 
 表类型：`Relation Table`
 
@@ -430,7 +479,7 @@
 - `idx_tenant_user(tenant_id, user_id)`
 - `idx_tenant_role(tenant_id, role_id)`
 
-### 7.10 `bacon_upms_user_post_rel`
+### 7.11 `bacon_upms_user_post_rel`
 
 表类型：`Relation Table`
 
@@ -454,7 +503,7 @@
 - `idx_tenant_user(tenant_id, user_id)`
 - `idx_tenant_post(tenant_id, post_id)`
 
-### 7.11 `bacon_upms_role_menu_rel`
+### 7.12 `bacon_upms_role_menu_rel`
 
 表类型：`Relation Table`
 
@@ -478,7 +527,7 @@
 - `idx_tenant_role(tenant_id, role_id)`
 - `idx_tenant_menu(tenant_id, menu_id)`
 
-### 7.12 `bacon_upms_role_resource_rel`
+### 7.13 `bacon_upms_role_resource_rel`
 
 表类型：`Relation Table`
 
@@ -502,7 +551,7 @@
 - `idx_tenant_role(tenant_id, role_id)`
 - `idx_tenant_resource(tenant_id, resource_id)`
 
-### 7.13 `bacon_upms_data_permission_rule`
+### 7.14 `bacon_upms_data_permission_rule`
 
 表类型：`Master Table`
 
@@ -530,7 +579,7 @@
 - `uk_role(tenant_id, role_id)`
 - `idx_tenant_role(tenant_id, role_id)`
 
-### 7.14 `bacon_upms_role_data_scope_rel`
+### 7.15 `bacon_upms_role_data_scope_rel`
 
 表类型：`Relation Table`
 
@@ -552,7 +601,7 @@
 - `pk(id)`
 - `uk_role_department(tenant_id, role_id, department_id)`
 
-### 7.15 `bacon_upms_audit_log`
+### 7.16 `bacon_upms_audit_log`
 
 表类型：`Audit Log Table`
 
@@ -634,7 +683,7 @@
 - `USER_IMPORT`: `successCount`、`failedCount`、`failureRows`
 - `USER_EXPORT`: `exportCount`、`queryScope`
 
-### 7.16 `bacon_upms_sys_log`
+### 7.17 `bacon_upms_sys_log`
 
 表类型：`Access Log Table`
 

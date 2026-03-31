@@ -51,7 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
                         + "org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration,"
                         + "com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration"
         })
-@Import(OrderRepositoryTestConfiguration.class)
+@Import({OrderRepositoryTestConfiguration.class, PaymentRepositoryTestConfiguration.class})
 class BaconMonoBootMonoAssemblyTest extends BaconSpringBootTest {
 
     @Autowired

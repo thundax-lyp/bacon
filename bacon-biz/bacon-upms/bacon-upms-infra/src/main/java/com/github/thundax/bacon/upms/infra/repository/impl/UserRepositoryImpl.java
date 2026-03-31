@@ -4,74 +4,62 @@ import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@ConditionalOnBean(UpmsRepositorySupport.class)
 public class UserRepositoryImpl implements UserRepository {
 
     private static final String DEFAULT_PASSWORD = "123456";
 
-    private final Map<String, User> users = new ConcurrentHashMap<>();
-    private final Map<String, UserIdentity> userIdentities = new ConcurrentHashMap<>();
-    private final AtomicLong userIdSequence = new AtomicLong(2002L);
-    private final AtomicLong userIdentityIdSequence = new AtomicLong(3002L);
+    private final UpmsRepositorySupport support;
     private final RoleRepositoryImpl roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserRepositoryImpl(RoleRepositoryImpl roleRepository, PasswordEncoder passwordEncoder) {
+    public UserRepositoryImpl(UpmsRepositorySupport support, RoleRepositoryImpl roleRepository, PasswordEncoder passwordEncoder) {
+        this.support = support;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public Optional<User> findUserById(Long tenantId, Long userId) {
-        return Optional.ofNullable(users.get(UpmsRepositoryHelper.userKey(tenantId, userId)));
+        return support.findUserById(tenantId, userId);
     }
 
     @Override
     public Optional<User> findUserByAccount(Long tenantId, String account) {
-        return users.values().stream()
-                .filter(user -> user.getTenantId().equals(tenantId))
-                .filter(user -> !user.isDeleted())
-                .filter(user -> user.getAccount().equals(account))
-                .findFirst();
+        return support.findUserByAccount(tenantId, account);
     }
 
     @Override
     public Optional<UserIdentity> findUserIdentity(Long tenantId, String identityType, String identityValue) {
-        return Optional.ofNullable(userIdentities.get(UpmsRepositoryHelper.identityKey(tenantId, identityType, identityValue)));
+        return support.findUserIdentity(tenantId, identityType, identityValue);
     }
 
     @Override
     public List<User> pageUsers(Long tenantId, String account, String name, String phone, String status, int pageNo, int pageSize) {
-        int offset = (pageNo - 1) * pageSize;
-        return filteredUsers(tenantId, account, name, phone, status).stream()
-                .skip(offset)
-                .limit(pageSize)
-                .toList();
+        return support.listUsers(tenantId, account, name, phone, status, pageNo, pageSize);
     }
 
     @Override
     public long countUsers(Long tenantId, String account, String name, String phone, String status) {
-        return filteredUsers(tenantId, account, name, phone, status).size();
+        return support.countUsers(tenantId, account, name, phone, status);
     }
 
     @Override
     public List<User> listUsers(Long tenantId, String account, String name, String phone, String status) {
-        return filteredUsers(tenantId, account, name, phone, status);
+        return support.listUsers(tenantId, account, name, phone, status, 1, Integer.MAX_VALUE);
     }
 
     @Override
     public User save(User user) {
         User savedUser = user.getId() == null ? createUser(user) : updateUser(user);
-        users.put(UpmsRepositoryHelper.userKey(savedUser.getTenantId(), savedUser.getId()), savedUser);
+        savedUser = support.saveUser(savedUser);
         replaceIdentity(savedUser.getTenantId(), "ACCOUNT", savedUser.getAccount(), savedUser.getId());
         replacePhoneIdentity(savedUser);
         return savedUser;
@@ -95,8 +83,7 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt());
-        users.put(UpmsRepositoryHelper.userKey(tenantId, userId), updatedUser);
-        return updatedUser;
+        return support.saveUser(updatedUser);
     }
 
     @Override
@@ -111,35 +98,13 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void deleteUser(Long tenantId, Long userId) {
-        users.remove(UpmsRepositoryHelper.userKey(tenantId, userId));
+        support.deleteUser(tenantId, userId);
         roleRepository.clearUserRoles(tenantId, userId);
-        userIdentities.entrySet().removeIf(entry ->
-                entry.getValue().getTenantId().equals(tenantId) && entry.getValue().getUserId().equals(userId));
-    }
-
-    private List<User> filteredUsers(Long tenantId, String account, String name, String phone, String status) {
-        return users.values().stream()
-                .filter(user -> user.getTenantId().equals(tenantId))
-                .filter(user -> !user.isDeleted())
-                .filter(user -> matchContains(user.getAccount(), account))
-                .filter(user -> matchContains(user.getName(), name))
-                .filter(user -> matchContains(user.getPhone(), phone))
-                .filter(user -> matchEquals(user.getStatus(), status))
-                .sorted(Comparator.comparing(User::getId))
-                .toList();
-    }
-
-    private boolean matchContains(String actual, String expected) {
-        return expected == null || expected.isBlank() || (actual != null && actual.contains(expected.trim()));
-    }
-
-    private boolean matchEquals(String actual, String expected) {
-        return expected == null || expected.isBlank() || (actual != null && actual.equalsIgnoreCase(expected.trim()));
+        support.deleteUserIdentitiesByUser(tenantId, userId);
     }
 
     private User createUser(User user) {
-        Long userId = userIdSequence.getAndIncrement();
-        return new User(userId, user.getTenantId(), user.getAccount(), user.getName(), user.getPhone(),
+        return new User(null, user.getTenantId(), user.getAccount(), user.getName(), user.getPhone(),
                 passwordEncoder.encode(DEFAULT_PASSWORD), user.getDepartmentId(), user.getStatus(), false);
     }
 
@@ -163,30 +128,18 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private void replaceIdentity(Long tenantId, String identityType, String identityValue, Long userId) {
-        userIdentities.entrySet().removeIf(entry ->
-                entry.getValue().getTenantId().equals(tenantId)
-                        && entry.getValue().getUserId().equals(userId)
-                        && entry.getValue().getIdentityType().equals(identityType));
-        userIdentities.put(UpmsRepositoryHelper.identityKey(tenantId, identityType, identityValue),
-                new UserIdentity(userIdentityIdSequence.getAndIncrement(), tenantId, userId, identityType, identityValue, true));
+        support.deleteUserIdentitiesByUserAndType(tenantId, userId, identityType);
+        support.saveUserIdentity(new UserIdentity(null, tenantId, userId, identityType, identityValue, true));
     }
 
     private void replacePhoneIdentity(User user) {
-        userIdentities.entrySet().removeIf(entry ->
-                entry.getValue().getTenantId().equals(user.getTenantId())
-                        && entry.getValue().getUserId().equals(user.getId())
-                        && entry.getValue().getIdentityType().equals("PHONE"));
+        support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), "PHONE");
         if (user.getPhone() != null && !user.getPhone().isBlank()) {
-            userIdentities.put(UpmsRepositoryHelper.identityKey(user.getTenantId(), "PHONE", user.getPhone()),
-                    new UserIdentity(userIdentityIdSequence.getAndIncrement(), user.getTenantId(), user.getId(), "PHONE",
-                            user.getPhone(), true));
+            support.saveUserIdentity(new UserIdentity(null, user.getTenantId(), user.getId(), "PHONE", user.getPhone(), true));
         }
     }
 
     boolean hasActiveUserInDepartment(Long tenantId, Long departmentId) {
-        return users.values().stream()
-                .filter(user -> user.getTenantId().equals(tenantId))
-                .filter(user -> !user.isDeleted())
-                .anyMatch(user -> departmentId.equals(user.getDepartmentId()));
+        return support.hasActiveUserInDepartment(tenantId, departmentId);
     }
 }

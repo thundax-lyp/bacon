@@ -2,64 +2,54 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@ConditionalOnBean(UpmsRepositorySupport.class)
 public class TenantRepositoryImpl implements TenantRepository {
 
-    private final Map<Long, Tenant> tenants = new ConcurrentHashMap<>();
-    private final AtomicLong tenantIdSequence = new AtomicLong(1002L);
+    private final UpmsRepositorySupport support;
+
+    public TenantRepositoryImpl(UpmsRepositorySupport support) {
+        this.support = support;
+    }
 
     @Override
     public Optional<Tenant> findTenantByTenantId(Long tenantId) {
-        return Optional.ofNullable(tenants.get(tenantId));
+        return support.findTenantByTenantId(tenantId);
     }
 
     @Override
     public Optional<Tenant> findTenantByCode(String code) {
-        return tenants.values().stream()
-                .filter(tenant -> tenant.getCode().equals(code))
-                .findFirst();
+        return support.findTenantByCode(code);
     }
 
     @Override
     public List<Tenant> pageTenants(Long tenantId, String code, String name, String status, int pageNo, int pageSize) {
-        int offset = (pageNo - 1) * pageSize;
-        return filteredTenants(tenantId, code, name, status).stream()
-                .skip(offset)
-                .limit(pageSize)
-                .toList();
+        return support.listTenants(tenantId, code, name, status, pageNo, pageSize);
     }
 
     @Override
     public long countTenants(Long tenantId, String code, String name, String status) {
-        return filteredTenants(tenantId, code, name, status).size();
+        return support.countTenants(tenantId, code, name, status);
     }
 
     @Override
     public Tenant saveTenant(Tenant tenant) {
-        Tenant savedTenant;
-        if (tenant.getId() == null) {
-            Long generatedTenantId = tenantIdSequence.getAndIncrement();
-            savedTenant = new Tenant(generatedTenantId, generatedTenantId, tenant.getCode(), tenant.getName(), tenant.getStatus());
-        } else {
-            savedTenant = tenant;
-        }
-        tenants.put(savedTenant.getTenantId(), savedTenant);
-        return savedTenant;
+        return support.saveTenant(tenant.getId() == null
+                ? new Tenant(null, null, tenant.getCode(), tenant.getName(), tenant.getStatus(),
+                tenant.getCreatedBy(), tenant.getCreatedAt(), tenant.getUpdatedBy(), tenant.getUpdatedAt())
+                : tenant);
     }
 
     @Override
     public Tenant updateTenantStatus(Long tenantId, String status) {
         Tenant currentTenant = findTenantByTenantId(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
-        Tenant updatedTenant = new Tenant(
+        return support.saveTenant(new Tenant(
                 currentTenant.getId(),
                 currentTenant.getTenantId(),
                 currentTenant.getCode(),
@@ -68,26 +58,6 @@ public class TenantRepositoryImpl implements TenantRepository {
                 currentTenant.getCreatedBy(),
                 currentTenant.getCreatedAt(),
                 currentTenant.getUpdatedBy(),
-                currentTenant.getUpdatedAt());
-        tenants.put(tenantId, updatedTenant);
-        return updatedTenant;
-    }
-
-    private List<Tenant> filteredTenants(Long tenantId, String code, String name, String status) {
-        return tenants.values().stream()
-                .filter(tenant -> tenantId == null || tenantId.equals(tenant.getTenantId()))
-                .filter(tenant -> matchContains(tenant.getCode(), code))
-                .filter(tenant -> matchContains(tenant.getName(), name))
-                .filter(tenant -> matchEquals(tenant.getStatus(), status))
-                .sorted(Comparator.comparing(Tenant::getTenantId))
-                .toList();
-    }
-
-    private boolean matchContains(String actual, String expected) {
-        return expected == null || expected.isBlank() || (actual != null && actual.contains(expected.trim()));
-    }
-
-    private boolean matchEquals(String actual, String expected) {
-        return expected == null || expected.isBlank() || (actual != null && actual.equalsIgnoreCase(expected.trim()));
+                currentTenant.getUpdatedAt()));
     }
 }

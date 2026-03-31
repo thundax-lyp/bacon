@@ -8,22 +8,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@ConditionalOnBean(UpmsRepositorySupport.class)
 public class SysLogRepositoryImpl implements SysLogRepository {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_INSTANT;
     private static final Path SYS_LOG_FILE = Path.of("logs", "upms-sys-log.log");
 
-    private final Map<Long, SysLogRecord> sysLogs = new ConcurrentHashMap<>();
+    private final UpmsRepositorySupport support;
     private final AtomicLong logIdSequence = new AtomicLong(1L);
+
+    public SysLogRepositoryImpl(UpmsRepositorySupport support) {
+        this.support = support;
+    }
 
     @Override
     public void saveToDatabase(SysLogRecord sysLogRecord) {
@@ -50,7 +53,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
                 sysLogRecord.getUpdatedBy(),
                 sysLogRecord.getUpdatedAt()
         );
-        sysLogs.put(id, persistedRecord);
+        support.saveSysLog(persistedRecord);
     }
 
     @Override
@@ -75,34 +78,18 @@ public class SysLogRepositoryImpl implements SysLogRepository {
 
     @Override
     public Optional<SysLogRecord> findById(Long logId) {
-        return Optional.ofNullable(sysLogs.get(logId));
+        return support.findSysLogById(logId);
     }
 
     @Override
     public List<SysLogRecord> pageLogs(String tenantId, String module, String eventType, String result,
                                        String operatorName, int pageNo, int pageSize) {
-        return filteredLogs(tenantId, module, eventType, result, operatorName).stream()
-                .skip((long) (pageNo - 1) * pageSize)
-                .limit(pageSize)
-                .toList();
+        return support.listSysLogs(tenantId, module, eventType, result, operatorName, pageNo, pageSize);
     }
 
     @Override
     public long countLogs(String tenantId, String module, String eventType, String result, String operatorName) {
-        return filteredLogs(tenantId, module, eventType, result, operatorName).size();
-    }
-
-    private List<SysLogRecord> filteredLogs(String tenantId, String module, String eventType, String result,
-                                            String operatorName) {
-        return sysLogs.values().stream()
-                .filter(record -> tenantId == null || tenantId.equals(record.getTenantId()))
-                .filter(record -> module == null || module.equalsIgnoreCase(record.getModule()))
-                .filter(record -> eventType == null || eventType.equalsIgnoreCase(record.getEventType()))
-                .filter(record -> result == null || result.equalsIgnoreCase(record.getResult()))
-                .filter(record -> operatorName == null || (record.getOperatorName() != null
-                        && record.getOperatorName().contains(operatorName)))
-                .sorted(Comparator.comparing(SysLogRecord::getId).reversed())
-                .toList();
+        return support.countSysLogs(tenantId, module, eventType, result, operatorName);
     }
 
     private String formatLine(SysLogRecord sysLogRecord) {

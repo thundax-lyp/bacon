@@ -54,7 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "bacon.remote.inventory-base-url=http://127.0.0.1:18085",
                 "bacon.remote.payment-base-url=http://127.0.0.1:18086"
         })
-@Import({OrderRepositoryTestConfiguration.class, PaymentRepositoryTestConfiguration.class})
+@Import({OrderRepositoryTestConfiguration.class, PaymentRepositoryTestConfiguration.class, UpmsRepositoryTestConfiguration.class})
 class BaconMonoBootMicroAssemblyTest extends BaconSpringBootTest {
 
     @Autowired

@@ -1,0 +1,38 @@
+package com.github.thundax.bacon.upms.infra.persistence.dataobject;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@TableName("bacon_upms_user_identity")
+public class UserIdentityDO {
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
+    @TableField("tenant_id")
+    private Long tenantId;
+    @TableField("user_id")
+    private Long userId;
+    @TableField("identity_type")
+    private String identityType;
+    @TableField("identity_value")
+    private String identityValue;
+    @TableField("enabled")
+    private Boolean enabled;
+    @TableField("created_by")
+    private String createdBy;
+    @TableField("created_at")
+    private LocalDateTime createdAt;
+    @TableField("updated_by")
+    private String updatedBy;
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
+}

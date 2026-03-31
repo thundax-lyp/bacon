@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -14,7 +15,7 @@ public class Tenant {
     /** 租户主键。 */
     private Long id;
     /** 租户编号。 */
-    private String tenantNo;
+    private TenantNo tenantNo;
     /** 租户名称。 */
     private String name;
     /** 租户状态。 */
@@ -29,10 +30,19 @@ public class Tenant {
     private Instant updatedAt;
 
     public Tenant(Long id, String tenantNo, String name, TenantStatus status) {
-        this(id, tenantNo, name, status, null, null, null, null);
+        this(id, new TenantNo(tenantNo), name, status, null, null, null, null);
     }
 
     public Tenant(Long id, String tenantNo, String name, TenantStatus status,
+                  String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
+        this(id, new TenantNo(tenantNo), name, status, createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public Tenant(Long id, TenantNo tenantNo, String name, TenantStatus status) {
+        this(id, tenantNo, name, status, null, null, null, null);
+    }
+
+    public Tenant(Long id, TenantNo tenantNo, String name, TenantStatus status,
                   String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantNo = tenantNo;
@@ -42,5 +52,13 @@ public class Tenant {
         this.createdAt = createdAt;
         this.updatedBy = updatedBy;
         this.updatedAt = updatedAt;
+    }
+
+    public String getTenantNo() {
+        return tenantNo.value();
+    }
+
+    public TenantNo getTenantNoValue() {
+        return tenantNo;
     }
 }

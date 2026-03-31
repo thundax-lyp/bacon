@@ -303,7 +303,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
-| `code` | `varchar(64)` | N | 部门编码，全局唯一 |
+| `code` | `varchar(64)` | N | 部门编码，租户内唯一 |
 | `name` | `varchar(128)` | N | 部门名称 |
 | `parent_id` | `bigint` | Y | 上级部门主键 |
 | `leader_user_id` | `varchar(64)` | Y | 负责人用户主键，引用 `bacon_upms_user.id` |
@@ -317,7 +317,7 @@
 索引与约束：
 
 - `pk(id)`
-- `uk_code(code)`
+- `uk_tenant_code(tenant_id, code)`
 - `idx_tenant_parent_status(tenant_id, parent_id, status)`
 
 ### 7.6 `bacon_upms_post`
@@ -770,7 +770,7 @@
 - `User.id` 固定使用 `UserId`，当前格式建议为 `U` 前缀加数值序列，数据库类型固定为 `varchar(64)`
 - `User.avatar_object_id` 允许为空
 - `User.avatar_object_id` 不为空时必须指向状态为 `ACTIVE` 的 `StoredObject`
-- `Tenant.tenantId`、`Department.code`、`Post.code`、`Role.code`、`Resource.code` 全局唯一
+- `Tenant.tenantId`、`Post.code`、`Role.code`、`Resource.code` 全局唯一；`Department.code` 固定为租户内唯一
 - `Menu.permission_code`、`Resource.permission_code` 全局唯一
 - `Resource(path, method)` 全局唯一
 - `UserIdentity(identity_type, identity_value)` 全局唯一

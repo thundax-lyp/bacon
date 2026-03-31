@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_department` (
     `updated_by` varchar(64) DEFAULT NULL,
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_code` (`code`),
+    UNIQUE KEY `uk_tenant_code` (`tenant_id`, `code`),
     KEY `idx_tenant_parent_status` (`tenant_id`, `parent_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

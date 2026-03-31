@@ -35,7 +35,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.userCredentialMapper = userCredentialMapper;
     }
 
-    Optional<User> findUserById(Long tenantId, UserId userId) {
+    Optional<User> findUserById(TenantId tenantId, UserId userId) {
         return Optional.ofNullable(userMapper.selectOne(Wrappers.<UserDO>lambdaQuery()
                         .eq(UserDO::getTenantId, tenantId)
                         .eq(UserDO::getId, userId)
@@ -43,7 +43,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    Optional<User> findUserByAccount(Long tenantId, String account) {
+    Optional<User> findUserByAccount(TenantId tenantId, String account) {
         return Optional.ofNullable(userMapper.selectOne(Wrappers.<UserDO>lambdaQuery()
                         .eq(UserDO::getTenantId, tenantId)
                         .eq(UserDO::getAccount, account)
@@ -51,7 +51,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    Optional<UserIdentity> findUserIdentity(Long tenantId, String identityType, String identityValue) {
+    Optional<UserIdentity> findUserIdentity(TenantId tenantId, String identityType, String identityValue) {
         return Optional.ofNullable(userIdentityMapper.selectOne(Wrappers.<UserIdentityDO>lambdaQuery()
                         .eq(UserIdentityDO::getTenantId, tenantId)
                         .eq(UserIdentityDO::getIdentityType, identityType)
@@ -60,7 +60,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    Optional<UserCredential> findUserCredential(Long tenantId, UserId userId, String credentialType) {
+    Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, String credentialType) {
         return Optional.ofNullable(userCredentialMapper.selectOne(Wrappers.<UserCredentialDO>lambdaQuery()
                         .eq(UserCredentialDO::getTenantId, tenantId)
                         .eq(UserCredentialDO::getUserId, userId)
@@ -68,7 +68,8 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    List<User> listUsers(Long tenantId, String account, String name, String phone, String status, int pageNo, int pageSize) {
+    List<User> listUsers(TenantId tenantId, String account, String name, String phone, String status, int pageNo,
+                         int pageSize) {
         return userMapper.selectList(Wrappers.<UserDO>lambdaQuery()
                         .eq(UserDO::getTenantId, tenantId)
                         .eq(UserDO::getDeleted, false)
@@ -83,7 +84,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countUsers(Long tenantId, String account, String name, String phone, String status) {
+    long countUsers(TenantId tenantId, String account, String name, String phone, String status) {
         return Optional.ofNullable(userMapper.selectCount(Wrappers.<UserDO>lambdaQuery()
                         .eq(UserDO::getTenantId, tenantId)
                         .eq(UserDO::getDeleted, false)
@@ -110,7 +111,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return toDomain(userDO);
     }
 
-    void deleteUser(Long tenantId, UserId userId) {
+    void deleteUser(TenantId tenantId, UserId userId) {
         UserDO userDO = userMapper.selectOne(Wrappers.<UserDO>lambdaQuery()
                 .eq(UserDO::getTenantId, tenantId)
                 .eq(UserDO::getId, userId)
@@ -123,13 +124,13 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         userMapper.updateById(userDO);
     }
 
-    void deleteUserIdentitiesByUser(Long tenantId, UserId userId) {
+    void deleteUserIdentitiesByUser(TenantId tenantId, UserId userId) {
         userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery()
                 .eq(UserIdentityDO::getTenantId, tenantId)
                 .eq(UserIdentityDO::getUserId, userId));
     }
 
-    void deleteUserIdentitiesByUserAndType(Long tenantId, UserId userId, String identityType) {
+    void deleteUserIdentitiesByUserAndType(TenantId tenantId, UserId userId, String identityType) {
         userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery()
                 .eq(UserIdentityDO::getTenantId, tenantId)
                 .eq(UserIdentityDO::getUserId, userId)
@@ -164,7 +165,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return toDomain(dataObject);
     }
 
-    void deleteUserCredentialsByUser(Long tenantId, UserId userId) {
+    void deleteUserCredentialsByUser(TenantId tenantId, UserId userId) {
         userCredentialMapper.delete(Wrappers.<UserCredentialDO>lambdaQuery()
                 .eq(UserCredentialDO::getTenantId, tenantId)
                 .eq(UserCredentialDO::getUserId, userId));

@@ -47,37 +47,38 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> findUserById(Long tenantId, UserId userId) {
+    public Optional<User> findUserById(TenantId tenantId, UserId userId) {
         return support.findUserById(tenantId, userId);
     }
 
     @Override
-    public Optional<User> findUserByAccount(Long tenantId, String account) {
+    public Optional<User> findUserByAccount(TenantId tenantId, String account) {
         return support.findUserByAccount(tenantId, account);
     }
 
     @Override
-    public Optional<UserIdentity> findUserIdentity(Long tenantId, String identityType, String identityValue) {
+    public Optional<UserIdentity> findUserIdentity(TenantId tenantId, String identityType, String identityValue) {
         return support.findUserIdentity(tenantId, identityType, identityValue);
     }
 
     @Override
-    public Optional<UserCredential> findUserCredential(Long tenantId, UserId userId, String credentialType) {
+    public Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, String credentialType) {
         return support.findUserCredential(tenantId, userId, credentialType);
     }
 
     @Override
-    public List<User> pageUsers(Long tenantId, String account, String name, String phone, String status, int pageNo, int pageSize) {
+    public List<User> pageUsers(TenantId tenantId, String account, String name, String phone, String status, int pageNo,
+                                int pageSize) {
         return support.listUsers(tenantId, account, name, phone, status, pageNo, pageSize);
     }
 
     @Override
-    public long countUsers(Long tenantId, String account, String name, String phone, String status) {
+    public long countUsers(TenantId tenantId, String account, String name, String phone, String status) {
         return support.countUsers(tenantId, account, name, phone, status);
     }
 
     @Override
-    public List<User> listUsers(Long tenantId, String account, String name, String phone, String status) {
+    public List<User> listUsers(TenantId tenantId, String account, String name, String phone, String status) {
         return support.listUsers(tenantId, account, name, phone, status, 1, Integer.MAX_VALUE);
     }
 
@@ -93,7 +94,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User updatePassword(Long tenantId, UserId userId, String password, boolean needChangePassword) {
+    public User updatePassword(TenantId tenantId, UserId userId, String password, boolean needChangePassword) {
         User currentUser = findUserById(tenantId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         User updatedUser = new User(
@@ -117,7 +118,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<Role> assignRoles(Long tenantId, UserId userId, List<Long> roleIds) {
+    public List<Role> assignRoles(TenantId tenantId, UserId userId, List<Long> roleIds) {
         List<Role> roles = roleIds.stream()
                 .map(roleId -> roleRepository.findRoleById(tenantId, roleId)
                         .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId)))
@@ -128,7 +129,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void deleteUser(Long tenantId, UserId userId) {
+    public void deleteUser(TenantId tenantId, UserId userId) {
         support.deleteUser(tenantId, userId);
         roleRepository.clearUserRoles(tenantId, userId);
         support.deleteUserIdentitiesByUser(tenantId, userId);

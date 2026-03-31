@@ -14,20 +14,24 @@
 - 登录验证码校验
 - 登录密码 `RSA` 公钥下发与私钥缓存
 - 登录密码 `BCrypt` 验证
+- 密码过期校验
+- 首次登录强制改密判定
+- 多因子认证挑战编排
+- 凭据锁定校验与失败写回
 - `Auth` 调用 `UPMS` 读取登录凭据
 - `mono-app` 与微服务双模式装配
 
 不在当前范围：
 
 - 短信登录改造
-- 第三方登录改造
+- 第三方登录流程细节改造
 - 图形验证码图片生成与前端渲染
 - `OAuth2` 协议端点改造
 
 ## 3. Bounded Context
 
 - `Auth` 负责登录流程编排、验证码消费、`RSA` 私钥管理、会话签发、认证审计
-- `UPMS` 负责用户主数据、身份标识、密码哈希主数据
+- `UPMS` 负责用户主数据、身份标识、凭据主数据
 - `common-core` 负责通用 `RSA` 加解密服务、验证码服务、`PasswordEncoder` 装配
 
 职责边界固定如下：
@@ -35,6 +39,7 @@
 - `Auth` 不持有用户密码哈希主数据
 - `Auth` 不直接访问 `UPMS` 仓储实现
 - `Auth` 只能通过 `UserReadFacade` 读取登录所需凭据
+- `Auth` 只能通过 `UserCredentialCommandFacade` 写回失败次数和锁定清零
 - `UPMS` 不参与验证码校验与登录会话签发
 
 ## 4. Module Mapping
@@ -45,6 +50,7 @@
   - `VerificationCodeService`
 - `bacon-biz/bacon-upms/bacon-upms-api`
   - `UserReadFacade#getUserLoginCredential`
+  - `UserCredentialCommandFacade`
   - `UserLoginCredentialDTO`
 - `bacon-biz/bacon-upms/bacon-upms-application`
   - 组装用户登录凭据读模型
@@ -108,8 +114,15 @@
 - `userId`
 - `account`
 - `phone`
+- `credentialId`
+- `credentialType`
+- `credentialStatus`
+- `needChangePassword`
+- `credentialExpiresAt`
+- `lockedUntil`
+- `mfaRequired`
+- `secondFactorTypes`
 - `status`
-- `deleted`
 - `identityType`
 - `identityValue`
 - `identityEnabled`
@@ -127,6 +140,7 @@
 - `BCrypt cost factor` 固定为 `12`
 - 密码明文禁止进入日志、审计日志、异常消息
 - `Auth` 与 `UPMS` 的跨域调用固定依赖 `UserReadFacade`
+- 登录失败累计与成功清零固定通过 `UserCredentialCommandFacade`
 
 ## 7. Functional Requirements
 
@@ -161,14 +175,21 @@
 - 先校验并消费验证码
 - 再读取缓存中的 `RSA` 私钥并解密密码
 - 再通过 `UserReadFacade#getUserLoginCredential` 获取用户凭据
-- 最后执行 `BCrypt` 验密并签发会话
+- 先校验身份状态、凭据锁定状态、凭据过期状态
+- 再执行 `BCrypt` 验密
+- 主因子成功后如 `mfaRequired = true`，必须进入二因子挑战流程
+- 全部认证因子成功后才允许签发会话
 
 必要补充约束：
 
 - 验证码错误时直接失败
 - `RSA` 私钥不存在、过期、解密失败时直接失败
-- 身份标识不存在、未启用、用户停用、用户已删除时直接失败
-- 密码哈希不匹配时直接失败
+- 身份标识不存在、未启用、用户停用时直接失败
+- 凭据已锁定、已过期、已禁用时直接失败
+- 密码哈希不匹配时必须写回失败次数
+- 密码哈希匹配后必须清零失败次数
+- `needChangePassword = true` 时，登录成功响应必须返回 `needChangePassword = true`
+- `mfaRequired = true` 时，固定先完成二因子校验，再创建 `AuthSession`
 
 ### 7.3 Cross-Domain Read Contract
 
@@ -206,10 +227,12 @@
 4. `Auth` 读取并消费缓存中的 `RSA` 私钥
 5. `Auth` 解密得到明文密码
 6. `Auth` 通过 `UserReadFacade` 获取 `UserLoginCredentialDTO`
-7. `Auth` 校验身份启用状态、用户状态、删除状态
+7. `Auth` 校验身份启用状态、用户状态、凭据锁定状态、凭据过期状态
 8. `Auth` 使用 `PasswordEncoder` 执行 `BCrypt` 验密
-9. `Auth` 创建 `AuthSession` 与 `RefreshTokenSession`
-10. `Auth` 返回 `UserLoginResponse`
+9. `Auth` 成功后通过 `UserCredentialCommandFacade` 清零失败次数
+10. 如 `mfaRequired = true`，`Auth` 发起二因子挑战并完成二因子校验
+11. `Auth` 创建 `AuthSession` 与 `RefreshTokenSession`
+12. `Auth` 返回 `UserLoginResponse`
 
 ### 8.3 Mono And Micro Support
 

@@ -14,6 +14,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - 账号密码登录
 - 手机短信登录
 - 企业微信扫码登录
+- 微信登录
 - `GitHub OAuth2` 登录
 - 向第三方应用提供 `OAuth2` 授权服务
 - 访问令牌签发
@@ -22,6 +23,10 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - 登出
 - 当前会话查询
 - 当前用户本人修改密码
+- 首次登录强制改密校验
+- 密码过期校验
+- 多因子认证登录编排
+- 凭据锁定校验
 - 登录失败处理
 - 会话校验
 - 会话失效
@@ -38,7 +43,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - SSO
 - `OpenID Connect Discovery`
 - 动态 `OAuthClient` 注册
-- 除 `GitHub OAuth2` 外的其他社交登录
+- 除 `GitHub OAuth2`、微信登录、企业微信扫码外的其他社交登录
 - C 端账号体系
 
 ## 3. Bounded Context
@@ -47,6 +52,8 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 - `Auth` 负责登录、令牌签发、令牌刷新、登出、会话校验和认证流程
 - `Auth` 负责用户本人修改密码
+- `Auth` 负责多因子认证流程编排
+- `Auth` 负责凭据失败后的锁定写回编排
 - `Auth` 负责向第三方应用提供标准 `OAuth2` 授权能力
 - `Auth` 负责认证审计日志
 - `Auth` 不拥有 `User`、`UserIdentity`、`Tenant`、`Role`、`Menu`、`Resource` 主数据
@@ -55,9 +62,9 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 ### 3.2 UPMS
 
-- `UPMS` 负责 `User`、`UserIdentity`、`Tenant`、`Department`、`Post`、`Role`、`Menu`、`Resource`
+- `UPMS` 负责 `User`、`UserIdentity`、`UserCredential`、`Tenant`、`Department`、`Post`、`Role`、`Menu`、`Resource`
 - `UPMS` 负责授权关系、数据权限、只读查询能力
-- `UPMS` 负责密码数据存储
+- `UPMS` 负责密码数据、凭据状态、多因子因子配置和凭据锁定主数据
 - `UPMS` 负责管理员初始化密码、重置密码、修改密码
 - `UPMS` 负责用户状态、租户状态、授权结果和数据权限结果
 
@@ -82,7 +89,8 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `Auth` 不得依赖 `UPMS` 内部实现
 - `Auth` 不得在 `token payload` 中保存权限数据
 - `Auth` 认证成功后必须通过 `UserIdentity` 定位唯一 `User`
-- `Auth` 读取 `User`、`UserIdentity`、`Tenant` 状态时，只能通过 `UserReadFacade`
+- `Auth` 读取 `User`、`UserIdentity`、`UserCredential`、`Tenant` 状态时，只能通过 `UserReadFacade`
+- `Auth` 写回凭据失败次数和锁定清零时，只能通过 `UserCredentialCommandFacade`
 - `Auth` 认证成功后如需权限数据，只能通过 `PermissionReadFacade` 读取
 - `UPMS` 触发的用户停用、用户删除、管理员初始化密码、管理员重置密码、管理员修改密码、租户停用，必须通过 `Auth` 暴露的会话失效契约触发即时失效
 - 单体模式使用本地 `Facade` 实现
@@ -227,8 +235,9 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 ## 5.1 Fixed Enums
 
-- `identityType` 固定为 `ACCOUNT`、`PHONE`、`WECOM`、`GITHUB`
-- `loginType` 固定为 `PASSWORD`、`SMS`、`WECOM`、`GITHUB`
+- `identityType` 固定为 `ACCOUNT`、`PHONE`、`GITHUB`、`WECHAT`、`WECOM`
+- `loginType` 固定为 `PASSWORD`、`SMS`、`WECHAT`、`WECOM`、`GITHUB`
+- `secondFactorType` 固定为 `TOTP`
 - `sessionStatus` 固定为 `ACTIVE`、`LOGGED_OUT`、`INVALIDATED`、`EXPIRED`
 - 用户登录态 `tokenStatus` 固定为 `ACTIVE`、`USED`、`INVALIDATED`、`EXPIRED`
 - 第三方 `OAuth2 tokenStatus` 固定为 `ACTIVE`、`USED`、`REVOKED`、`EXPIRED`

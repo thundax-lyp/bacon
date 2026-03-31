@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_tenant` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
-    `id` bigint NOT NULL,
+    `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `account` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
-    `user_id` bigint NOT NULL,
+    `user_id` varchar(64) NOT NULL,
     `identity_type` varchar(16) NOT NULL,
     `identity_value` varchar(255) NOT NULL,
     `enabled` tinyint(1) NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_department` (
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
     `parent_id` bigint DEFAULT NULL,
-    `leader_user_id` bigint DEFAULT NULL,
+    `leader_user_id` varchar(64) DEFAULT NULL,
     `status` varchar(16) NOT NULL,
     `deleted` tinyint(1) NOT NULL,
     `created_by` varchar(64) DEFAULT NULL,
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_resource` (
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_role_rel` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
-    `user_id` bigint NOT NULL,
+    `user_id` varchar(64) NOT NULL,
     `role_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_role` (`tenant_id`, `user_id`, `role_id`),
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_role_rel` (
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_post_rel` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
-    `user_id` bigint NOT NULL,
+    `user_id` varchar(64) NOT NULL,
     `post_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_post` (`tenant_id`, `user_id`, `post_id`),
@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_data_scope_rel` (
 CREATE TABLE IF NOT EXISTS `bacon_upms_audit_log` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
-    `operator_id` bigint DEFAULT NULL,
+    `operator_id` varchar(64) DEFAULT NULL,
     `object_type` varchar(64) NOT NULL,
     `object_id` varchar(64) NOT NULL,
     `action_type` varchar(64) NOT NULL,
@@ -244,7 +244,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_sys_log` (
     `action` varchar(128) NOT NULL,
     `event_type` varchar(32) NOT NULL,
     `result` varchar(32) NOT NULL,
-    `operator_id` bigint DEFAULT NULL,
+    `operator_id` varchar(64) DEFAULT NULL,
     `operator_name` varchar(64) DEFAULT NULL,
     `client_ip` varchar(64) DEFAULT NULL,
     `request_uri` varchar(255) DEFAULT NULL,

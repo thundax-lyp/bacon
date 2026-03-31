@@ -96,7 +96,7 @@ db/
 
 - `account`: `admin`
 - `password`: `Admin@123456`
-- `user_id`: `2000001`
+- `user_id`: `'2000001'`
 - `tenant_id`: `T1000001`
 - `role_code`: `SUPER_ADMIN`
 

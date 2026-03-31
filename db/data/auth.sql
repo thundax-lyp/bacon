@@ -16,7 +16,7 @@ INSERT INTO `bacon_auth_oauth_client` (
     JSON_ARRAY('http://127.0.0.1:5173/login/oauth2/code/bacon'),
     7200, 2592000,
     1, 'platform-admin@bacon.local', 'Seeded admin console OAuth2 client',
-    2000001, '2026-03-21 09:00:00.000', 2000001, '2026-03-21 09:00:00.000'
+    '2000001', '2026-03-21 09:00:00.000', '2000001', '2026-03-21 09:00:00.000'
 ) ON DUPLICATE KEY UPDATE
     `client_secret_hash` = VALUES(`client_secret_hash`),
     `client_name` = VALUES(`client_name`),
@@ -35,7 +35,7 @@ INSERT INTO `bacon_auth_oauth_client` (
 INSERT INTO `bacon_auth_oauth_consent` (
     `id`, `client_id`, `tenant_id`, `user_id`, `granted_scopes`, `granted_at`
 ) VALUES (
-    3000101, 'bacon-admin-web', 'T1000001', 2000001,
+    3000101, 'bacon-admin-web', 'T1000001', '2000001',
     JSON_ARRAY('openid', 'profile', 'tenant.read', 'user.read'),
     '2026-03-21 09:10:00.000'
 ) ON DUPLICATE KEY UPDATE
@@ -47,7 +47,7 @@ INSERT INTO `bacon_auth_audit_log` (
     `session_id`, `client_id`, `action_type`, `result_status`,
     `failure_reason`, `request_ip`, `user_agent`, `occurred_at`
 ) VALUES (
-    3000201, 'T1000001', 2000001, 2100001, 'ACCOUNT',
+    3000201, 'T1000001', '2000001', 2100001, 'ACCOUNT',
     NULL, 'bacon-admin-web', 'SEED_INIT', 'SUCCESS',
     NULL, '127.0.0.1', 'db-seed', '2026-03-21 09:15:00.000'
 ) ON DUPLICATE KEY UPDATE

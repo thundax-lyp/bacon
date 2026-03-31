@@ -13,6 +13,7 @@ import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
+import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -61,7 +62,7 @@ public class LoginApplicationService {
         UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(tenantId, "ACCOUNT", command.getAccount());
         validatePasswordLoginCredential(credential, plainPassword);
         return createLoginSession(credential.getTenantId(), credential.getUserId(), credential.getIdentityValue(),
-                credential.getIdentityType(), "PASSWORD", false);
+                credential.getIdentityType(), "PASSWORD", credential.isNeedChangePassword());
     }
 
     public UserLoginDTO loginBySms(String phone, String smsCaptcha) {
@@ -85,6 +86,13 @@ public class LoginApplicationService {
         }
         if (!UpmsStatusEnum.ENABLED.matches(credential.getStatus())) {
             throw new BadRequestException("Current user is not enabled");
+        }
+        if (!"ACTIVE".equals(credential.getCredentialStatus())) {
+            throw new BadRequestException("Current credential is not active");
+        }
+        if (credential.getCredentialExpiresAt() != null
+                && credential.getCredentialExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Current credential has expired");
         }
         if (!passwordEncoder.matches(plainPassword, credential.getPasswordHash())) {
             throw new BadRequestException("Invalid account or password");

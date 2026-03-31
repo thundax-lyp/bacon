@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
+import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +25,14 @@ class UserPersistenceSupportTest {
     private UserMapper userMapper;
     @Mock
     private UserIdentityMapper userIdentityMapper;
+    @Mock
+    private UserCredentialMapper userCredentialMapper;
 
     private UserPersistenceSupport support;
 
     @BeforeEach
     void setUp() {
-        support = new UserPersistenceSupport(userMapper, userIdentityMapper);
+        support = new UserPersistenceSupport(userMapper, userIdentityMapper, userCredentialMapper);
     }
 
     @Test

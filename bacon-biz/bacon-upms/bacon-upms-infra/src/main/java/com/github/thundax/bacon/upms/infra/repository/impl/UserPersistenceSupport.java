@@ -2,9 +2,12 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
+import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredentialDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserIdentityDO;
+import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
 import java.time.LocalDateTime;
@@ -21,10 +24,13 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     private final UserMapper userMapper;
     private final UserIdentityMapper userIdentityMapper;
+    private final UserCredentialMapper userCredentialMapper;
 
-    UserPersistenceSupport(UserMapper userMapper, UserIdentityMapper userIdentityMapper) {
+    UserPersistenceSupport(UserMapper userMapper, UserIdentityMapper userIdentityMapper,
+                           UserCredentialMapper userCredentialMapper) {
         this.userMapper = userMapper;
         this.userIdentityMapper = userIdentityMapper;
+        this.userCredentialMapper = userCredentialMapper;
     }
 
     Optional<User> findUserById(Long tenantId, Long userId) {
@@ -49,6 +55,14 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(UserIdentityDO::getIdentityType, identityType)
                         .eq(UserIdentityDO::getIdentityValue, identityValue)
                         .eq(UserIdentityDO::getEnabled, true)))
+                .map(this::toDomain);
+    }
+
+    Optional<UserCredential> findUserCredential(Long tenantId, Long userId, String credentialType) {
+        return Optional.ofNullable(userCredentialMapper.selectOne(Wrappers.<UserCredentialDO>lambdaQuery()
+                        .eq(UserCredentialDO::getTenantId, tenantId)
+                        .eq(UserCredentialDO::getUserId, userId)
+                        .eq(UserCredentialDO::getCredentialType, credentialType)))
                 .map(this::toDomain);
     }
 
@@ -130,6 +144,26 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
             userIdentityMapper.updateById(dataObject);
         }
         return toDomain(dataObject);
+    }
+
+    UserCredential saveUserCredential(UserCredential userCredential) {
+        UserCredentialDO dataObject = toDataObject(userCredential);
+        LocalDateTime now = LocalDateTime.now();
+        if (dataObject.getId() == null) {
+            dataObject.setCreatedAt(now);
+            dataObject.setUpdatedAt(now);
+            userCredentialMapper.insert(dataObject);
+        } else {
+            dataObject.setUpdatedAt(now);
+            userCredentialMapper.updateById(dataObject);
+        }
+        return toDomain(dataObject);
+    }
+
+    void deleteUserCredentialsByUser(Long tenantId, Long userId) {
+        userCredentialMapper.delete(Wrappers.<UserCredentialDO>lambdaQuery()
+                .eq(UserCredentialDO::getTenantId, tenantId)
+                .eq(UserCredentialDO::getUserId, userId));
     }
 
     boolean hasActiveUserInDepartment(Long tenantId, Long departmentId) {

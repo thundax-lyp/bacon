@@ -25,6 +25,7 @@ import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMenuRelMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleResourceRelMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
+import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
 import java.sql.Connection;
@@ -70,6 +71,7 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("DROP TABLE IF EXISTS bacon_upms_role_resource_rel");
             statement.execute("DROP TABLE IF EXISTS bacon_upms_role_menu_rel");
             statement.execute("DROP TABLE IF EXISTS bacon_upms_user_role_rel");
+            statement.execute("DROP TABLE IF EXISTS bacon_upms_user_credential");
             statement.execute("DROP TABLE IF EXISTS bacon_upms_user_identity");
             statement.execute("DROP TABLE IF EXISTS bacon_upms_resource");
             statement.execute("DROP TABLE IF EXISTS bacon_upms_menu");
@@ -120,7 +122,30 @@ class UpmsRepositoryIntegrationTest {
                         identity_type varchar(32) NOT NULL,
                         identity_value varchar(128) NOT NULL,
                         enabled boolean NOT NULL,
-                        password_hash varchar(255) NULL,
+                        created_by varchar(64) NULL,
+                        created_at timestamp NULL,
+                        updated_by varchar(64) NULL,
+                        updated_at timestamp NULL,
+                        PRIMARY KEY (id)
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE bacon_upms_user_credential (
+                        id bigint NOT NULL AUTO_INCREMENT,
+                        tenant_id bigint NOT NULL,
+                        user_id bigint NOT NULL,
+                        identity_id bigint NULL,
+                        credential_type varchar(32) NOT NULL,
+                        factor_level varchar(16) NOT NULL,
+                        credential_value varchar(255) NOT NULL,
+                        status varchar(16) NOT NULL,
+                        need_change_password boolean NOT NULL,
+                        failed_count int NOT NULL,
+                        failed_limit int NOT NULL,
+                        lock_reason varchar(64) NULL,
+                        locked_until timestamp NULL,
+                        expires_at timestamp NULL,
+                        last_verified_at timestamp NULL,
                         created_by varchar(64) NULL,
                         created_at timestamp NULL,
                         updated_by varchar(64) NULL,
@@ -271,7 +296,9 @@ class UpmsRepositoryIntegrationTest {
         assertNotNull(persistedUser.getPasswordHash());
         assertTrue(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice").isPresent());
         assertEquals(persistedUser.getPasswordHash(),
-                userRepository.findUserIdentity(1001L, "ACCOUNT", "alice").orElseThrow().getPasswordHash());
+                userRepository.findUserCredential(1001L, persistedUser.getId(), "PASSWORD").orElseThrow().getCredentialValue());
+        assertTrue(userRepository.findUserCredential(1001L, persistedUser.getId(), "PASSWORD").orElseThrow()
+                .isNeedChangePassword());
         assertTrue(userRepository.findUserIdentity(1001L, "PHONE", "13800000001").isPresent());
         assertEquals(1L, userRepository.countUsers(1001L, "ali", null, null, "ENABLED"));
 
@@ -304,7 +331,7 @@ class UpmsRepositoryIntegrationTest {
         assertFalse(userRepository.findUserIdentity(1001L, "PHONE", "13800000002").isPresent());
         assertTrue(userRepository.findUserIdentity(1001L, "PHONE", "13900000003").isPresent());
         assertEquals(updatedUser.getPasswordHash(),
-                userRepository.findUserIdentity(1001L, "ACCOUNT", "bob").orElseThrow().getPasswordHash());
+                userRepository.findUserCredential(1001L, updatedUser.getId(), "PASSWORD").orElseThrow().getCredentialValue());
         assertEquals(1002L, userRepository.findUserById(1001L, updatedUser.getId()).orElseThrow().getAvatarObjectId());
         assertTrue(departmentRepository.existsUserInDepartment(1001L, department.getId()));
 
@@ -323,17 +350,19 @@ class UpmsRepositoryIntegrationTest {
         User createdUser = userRepository.save(new User(null, 1001L, "carol", "Carol", null, "13600000001", null,
                 department.getId(), UserStatus.ENABLED));
 
-        String originalPasswordHash = userRepository.findUserIdentity(1001L, "ACCOUNT", "carol")
+        String originalPasswordHash = userRepository.findUserCredential(1001L, createdUser.getId(), "PASSWORD")
                 .orElseThrow()
-                .getPasswordHash();
+                .getCredentialValue();
 
-        User updatedUser = userRepository.updatePassword(1001L, createdUser.getId(), "654321");
+        User updatedUser = userRepository.updatePassword(1001L, createdUser.getId(), "654321", false);
 
-        String updatedPasswordHash = userRepository.findUserIdentity(1001L, "ACCOUNT", "carol")
+        String updatedPasswordHash = userRepository.findUserCredential(1001L, createdUser.getId(), "PASSWORD")
                 .orElseThrow()
-                .getPasswordHash();
+                .getCredentialValue();
         assertNotEquals(originalPasswordHash, updatedPasswordHash);
         assertEquals(updatedUser.getPasswordHash(), updatedPasswordHash);
+        assertFalse(userRepository.findUserCredential(1001L, createdUser.getId(), "PASSWORD").orElseThrow()
+                .isNeedChangePassword());
     }
 
     @Test
@@ -446,8 +475,9 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        UserPersistenceSupport userPersistenceSupport(UserMapper userMapper, UserIdentityMapper userIdentityMapper) {
-            return new UserPersistenceSupport(userMapper, userIdentityMapper);
+        UserPersistenceSupport userPersistenceSupport(UserMapper userMapper, UserIdentityMapper userIdentityMapper,
+                                                     UserCredentialMapper userCredentialMapper) {
+            return new UserPersistenceSupport(userMapper, userIdentityMapper, userCredentialMapper);
         }
 
         @Bean

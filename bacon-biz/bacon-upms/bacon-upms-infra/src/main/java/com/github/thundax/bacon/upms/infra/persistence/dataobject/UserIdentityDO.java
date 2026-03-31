@@ -27,8 +27,6 @@ public class UserIdentityDO {
     private String identityValue;
     @TableField("enabled")
     private Boolean enabled;
-    @TableField("password_hash")
-    private String passwordHash;
     @TableField("created_by")
     private String createdBy;
     @TableField("created_at")

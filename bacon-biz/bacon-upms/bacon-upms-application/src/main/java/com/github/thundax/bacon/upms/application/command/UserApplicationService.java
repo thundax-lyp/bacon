@@ -16,6 +16,7 @@ import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
@@ -79,11 +80,16 @@ public class UserApplicationService {
     public UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue) {
         UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, identityType, identityValue)
                 .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
+        UserCredential passwordCredential = userRepository.findUserCredential(tenantId, userIdentity.getUserId(), "PASSWORD")
+                .orElseThrow(() -> new IllegalArgumentException("Password credential not found"));
         User user = userRepository.findUserById(userIdentity.getTenantId(), userIdentity.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
         return new UserLoginCredentialDTO(user.getTenantId(), user.getId(), user.getAccount(), user.getPhone(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
-                user.getStatus().value(), userIdentity.getPasswordHash());
+                passwordCredential.getId(), passwordCredential.getCredentialType(), passwordCredential.getStatus(),
+                passwordCredential.isNeedChangePassword(), passwordCredential.getExpiresAt(),
+                passwordCredential.getLockedUntil(), false, List.of(), user.getStatus().value(),
+                passwordCredential.getCredentialValue());
     }
 
     public TenantDTO getTenantByTenantId(Long tenantId) {
@@ -179,7 +185,7 @@ public class UserApplicationService {
 
     public UserDTO initPassword(Long tenantId, Long userId) {
         requireUser(tenantId, userId);
-        User user = userRepository.updatePassword(tenantId, userId, DEFAULT_PASSWORD);
+        User user = userRepository.updatePassword(tenantId, userId, DEFAULT_PASSWORD, true);
         sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_PASSWORD_INITIALIZED");
         return toDetailedDto(user);
     }
@@ -187,21 +193,21 @@ public class UserApplicationService {
     public UserDTO resetPassword(Long tenantId, Long userId, String newPassword) {
         requireUser(tenantId, userId);
         validateRequired(newPassword, "newPassword");
-        User user = userRepository.updatePassword(tenantId, userId, normalize(newPassword));
+        User user = userRepository.updatePassword(tenantId, userId, normalize(newPassword), true);
         sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_PASSWORD_RESET");
         return toDetailedDto(user);
     }
 
     public void changePassword(Long tenantId, Long userId, String oldPassword, String newPassword) {
         User user = requireUser(tenantId, userId);
-        UserIdentity accountIdentity = userRepository.findUserIdentity(tenantId, "ACCOUNT", user.getAccount())
-                .orElseThrow(() -> new IllegalArgumentException("Account identity not found: " + user.getAccount()));
+        UserCredential passwordCredential = userRepository.findUserCredential(tenantId, userId, "PASSWORD")
+                .orElseThrow(() -> new IllegalArgumentException("Password credential not found: " + userId));
         validateRequired(oldPassword, "oldPassword");
         validateRequired(newPassword, "newPassword");
-        if (!passwordEncoder.matches(oldPassword, accountIdentity.getPasswordHash())) {
+        if (!passwordEncoder.matches(oldPassword, passwordCredential.getCredentialValue())) {
             throw new IllegalArgumentException("Old password invalid");
         }
-        userRepository.updatePassword(tenantId, userId, normalize(newPassword));
+        userRepository.updatePassword(tenantId, userId, normalize(newPassword), false);
     }
 
     public List<RoleDTO> assignRoles(Long tenantId, Long userId, List<Long> roleIds) {

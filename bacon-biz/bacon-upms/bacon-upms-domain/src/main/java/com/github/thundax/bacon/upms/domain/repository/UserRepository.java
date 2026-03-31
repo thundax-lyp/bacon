@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.domain.repository;
 
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,8 @@ public interface UserRepository {
 
     Optional<UserIdentity> findUserIdentity(Long tenantId, String identityType, String identityValue);
 
+    Optional<UserCredential> findUserCredential(Long tenantId, Long userId, String credentialType);
+
     List<User> pageUsers(Long tenantId, String account, String name, String phone, String status, int pageNo, int pageSize);
 
     long countUsers(Long tenantId, String account, String name, String phone, String status);
@@ -22,7 +25,7 @@ public interface UserRepository {
 
     User save(User user);
 
-    User updatePassword(Long tenantId, Long userId, String passwordHash);
+    User updatePassword(Long tenantId, Long userId, String passwordHash, boolean needChangePassword);
 
     List<Role> assignRoles(Long tenantId, Long userId, List<Long> roleIds);
 

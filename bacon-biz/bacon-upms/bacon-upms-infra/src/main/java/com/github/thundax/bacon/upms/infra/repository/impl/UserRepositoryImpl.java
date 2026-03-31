@@ -2,9 +2,11 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -16,6 +18,11 @@ import org.springframework.stereotype.Repository;
 public class UserRepositoryImpl implements UserRepository {
 
     private static final String DEFAULT_PASSWORD = "123456";
+    private static final String PASSWORD_CREDENTIAL_TYPE = "PASSWORD";
+    private static final String PRIMARY_FACTOR_LEVEL = "PRIMARY";
+    private static final String ACTIVE_CREDENTIAL_STATUS = "ACTIVE";
+    private static final int PASSWORD_FAILED_LIMIT = 5;
+    private static final long PASSWORD_EXPIRE_DAYS = 90L;
 
     private final UserPersistenceSupport support;
     private final RoleRepositoryImpl roleRepository;
@@ -48,6 +55,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public Optional<UserCredential> findUserCredential(Long tenantId, Long userId, String credentialType) {
+        return support.findUserCredential(tenantId, userId, credentialType);
+    }
+
+    @Override
     public List<User> pageUsers(Long tenantId, String account, String name, String phone, String status, int pageNo, int pageSize) {
         return support.listUsers(tenantId, account, name, phone, status, pageNo, pageSize);
     }
@@ -64,15 +76,17 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User save(User user) {
+        boolean newUser = user.getId() == null;
         User savedUser = user.getId() == null ? createUser(user) : updateUser(user);
         savedUser = support.saveUser(savedUser);
-        replaceAccountIdentity(savedUser);
+        UserIdentity accountIdentity = replaceAccountIdentity(savedUser);
+        upsertPasswordCredential(savedUser, accountIdentity, newUser, false);
         replacePhoneIdentity(savedUser);
         return savedUser;
     }
 
     @Override
-    public User updatePassword(Long tenantId, Long userId, String password) {
+    public User updatePassword(Long tenantId, Long userId, String password, boolean needChangePassword) {
         User currentUser = findUserById(tenantId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         User updatedUser = new User(
@@ -90,7 +104,8 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt());
         User savedUser = support.saveUser(updatedUser);
-        replaceAccountIdentity(savedUser);
+        UserIdentity accountIdentity = replaceAccountIdentity(savedUser);
+        upsertPasswordCredential(savedUser, accountIdentity, false, needChangePassword);
         return savedUser;
     }
 
@@ -110,6 +125,7 @@ public class UserRepositoryImpl implements UserRepository {
         support.deleteUser(tenantId, userId);
         roleRepository.clearUserRoles(tenantId, userId);
         support.deleteUserIdentitiesByUser(tenantId, userId);
+        support.deleteUserCredentialsByUser(tenantId, userId);
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 
@@ -138,10 +154,10 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getUpdatedAt());
     }
 
-    private void replaceAccountIdentity(User user) {
+    private UserIdentity replaceAccountIdentity(User user) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), "ACCOUNT");
-        support.saveUserIdentity(new UserIdentity(null, user.getTenantId(), user.getId(), "ACCOUNT",
-                user.getAccount(), true, user.getPasswordHash()));
+        return support.saveUserIdentity(new UserIdentity(null, user.getTenantId(), user.getId(), "ACCOUNT",
+                user.getAccount(), true));
     }
 
     private void replacePhoneIdentity(User user) {
@@ -149,6 +165,32 @@ public class UserRepositoryImpl implements UserRepository {
         if (user.getPhone() != null && !user.getPhone().isBlank()) {
             support.saveUserIdentity(new UserIdentity(null, user.getTenantId(), user.getId(), "PHONE", user.getPhone(), true));
         }
+    }
+
+    private void upsertPasswordCredential(User user, UserIdentity accountIdentity, boolean newUser,
+                                          boolean needChangePassword) {
+        UserCredential currentCredential = support.findUserCredential(user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
+                .orElse(null);
+        support.saveUserCredential(new UserCredential(
+                currentCredential == null ? null : currentCredential.getId(),
+                user.getTenantId(),
+                user.getId(),
+                accountIdentity.getId(),
+                PASSWORD_CREDENTIAL_TYPE,
+                PRIMARY_FACTOR_LEVEL,
+                user.getPasswordHash(),
+                ACTIVE_CREDENTIAL_STATUS,
+                newUser || needChangePassword,
+                0,
+                PASSWORD_FAILED_LIMIT,
+                null,
+                null,
+                LocalDateTime.now().plusDays(PASSWORD_EXPIRE_DAYS),
+                currentCredential == null ? null : currentCredential.getLastVerifiedAt(),
+                currentCredential == null ? null : currentCredential.getCreatedBy(),
+                currentCredential == null ? null : currentCredential.getCreatedAt(),
+                currentCredential == null ? null : currentCredential.getUpdatedBy(),
+                currentCredential == null ? null : currentCredential.getUpdatedAt()));
     }
 
     boolean hasActiveUserInDepartment(Long tenantId, Long departmentId) {

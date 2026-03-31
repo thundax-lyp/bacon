@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
@@ -18,6 +19,7 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.SysLogRecordDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.TenantDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
+import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredentialDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserIdentityDO;
 import java.util.List;
 
@@ -65,13 +67,33 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final UserIdentityDO toDataObject(UserIdentity userIdentity) {
         return new UserIdentityDO(userIdentity.getId(), userIdentity.getTenantId(), userIdentity.getUserId(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
-                userIdentity.getPasswordHash(), userIdentity.getCreatedBy(), userIdentity.getCreatedAt(),
-                userIdentity.getUpdatedBy(), userIdentity.getUpdatedAt());
+                userIdentity.getCreatedBy(), userIdentity.getCreatedAt(), userIdentity.getUpdatedBy(),
+                userIdentity.getUpdatedAt());
     }
 
     protected final UserIdentity toDomain(UserIdentityDO dataObject) {
         return new UserIdentity(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(), dataObject.getIdentityType(),
-                dataObject.getIdentityValue(), Boolean.TRUE.equals(dataObject.getEnabled()), dataObject.getPasswordHash(),
+                dataObject.getIdentityValue(), Boolean.TRUE.equals(dataObject.getEnabled()), dataObject.getCreatedBy(),
+                dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
+    }
+
+    protected final UserCredentialDO toDataObject(UserCredential userCredential) {
+        return new UserCredentialDO(userCredential.getId(), userCredential.getTenantId(), userCredential.getUserId(),
+                userCredential.getIdentityId(), userCredential.getCredentialType(), userCredential.getFactorLevel(),
+                userCredential.getCredentialValue(), userCredential.getStatus(), userCredential.isNeedChangePassword(),
+                userCredential.getFailedCount(), userCredential.getFailedLimit(), userCredential.getLockReason(),
+                userCredential.getLockedUntil(), userCredential.getExpiresAt(), userCredential.getLastVerifiedAt(),
+                userCredential.getCreatedBy(), userCredential.getCreatedAt(), userCredential.getUpdatedBy(),
+                userCredential.getUpdatedAt());
+    }
+
+    protected final UserCredential toDomain(UserCredentialDO dataObject) {
+        return new UserCredential(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(),
+                dataObject.getIdentityId(), dataObject.getCredentialType(), dataObject.getFactorLevel(),
+                dataObject.getCredentialValue(), dataObject.getStatus(), Boolean.TRUE.equals(dataObject.getNeedChangePassword()),
+                dataObject.getFailedCount() == null ? 0 : dataObject.getFailedCount(),
+                dataObject.getFailedLimit() == null ? 0 : dataObject.getFailedLimit(), dataObject.getLockReason(),
+                dataObject.getLockedUntil(), dataObject.getExpiresAt(), dataObject.getLastVerifiedAt(),
                 dataObject.getCreatedBy(), dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
     }
 

@@ -5,6 +5,7 @@ import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
@@ -164,7 +165,7 @@ public class DepartmentApplicationService {
 
     private Long resolveTenantIdByTenantNo(String tenantNo) {
         validateRequired(tenantNo, "tenantNo");
-        return tenantRepository.findTenantByTenantNo(normalize(tenantNo))
+        return tenantRepository.findTenantByTenantNo(new TenantNo(tenantNo))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
     }

@@ -19,6 +19,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -107,7 +108,7 @@ public class UserApplicationService {
     }
 
     public TenantDTO getTenantByTenantNo(String tenantNo) {
-        Tenant tenant = tenantRepository.findTenantByTenantNo(tenantNo)
+        Tenant tenant = tenantRepository.findTenantByTenantNo(new TenantNo(tenantNo))
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
         return new TenantDTO(tenant.getId(), tenant.getTenantNo(), tenant.getName(), tenant.getStatus().value());
     }
@@ -302,7 +303,7 @@ public class UserApplicationService {
 
     private Long resolveTenantIdByTenantNo(String tenantNo) {
         validateRequired(tenantNo, "tenantNo");
-        return tenantRepository.findTenantByTenantNo(normalize(tenantNo))
+        return tenantRepository.findTenantByTenantNo(new TenantNo(tenantNo))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
     }

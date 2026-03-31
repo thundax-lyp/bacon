@@ -13,6 +13,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -165,7 +166,7 @@ class UserApplicationServiceTest {
         UserIdentity accountIdentity = new UserIdentity(201L, 1001L, 101L, "ACCOUNT", "alice", true);
         UserCredential passwordCredential = new UserCredential(301L, 1001L, 101L, 201L, "PASSWORD", "PRIMARY",
                 "{noop}identity", "ACTIVE", true, 0, 5, null, null, null, null);
-        when(tenantRepository.findTenantByTenantNo("tenant-demo"))
+        when(tenantRepository.findTenantByTenantNo(new TenantNo("tenant-demo")))
                 .thenReturn(Optional.of(new Tenant(1001L, "tenant-demo", "Demo Tenant", TenantStatus.ENABLED)));
         when(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice")).thenReturn(Optional.of(accountIdentity));
         when(userRepository.findUserCredential(1001L, 101L, "PASSWORD")).thenReturn(Optional.of(passwordCredential));
@@ -189,7 +190,7 @@ class UserApplicationServiceTest {
         when(userRepository.findUserById(1001L, 101L)).thenReturn(Optional.of(user));
         when(userRepository.findUserCredential(1001L, 101L, "PASSWORD")).thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);
-        when(tenantRepository.findTenantByTenantNo("tenant-demo"))
+        when(tenantRepository.findTenantByTenantNo(new TenantNo("tenant-demo")))
                 .thenReturn(Optional.of(new Tenant(1001L, "tenant-demo", "Demo Tenant", TenantStatus.ENABLED)));
 
         service.changePassword("tenant-demo", 101L, "old-password", "new-password");

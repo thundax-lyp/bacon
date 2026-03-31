@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.TenantDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.TenantMapper;
 import java.util.List;
@@ -27,15 +28,17 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    Optional<Tenant> findTenantByTenantNo(String tenantNo) {
+    Optional<Tenant> findTenantByTenantNo(TenantNo tenantNo) {
+        String tenantNoValue = tenantNo == null ? null : tenantNo.value();
         return Optional.ofNullable(tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(TenantDO::getTenantNo, trim(tenantNo))))
+                        .eq(TenantDO::getTenantNo, trim(tenantNoValue))))
                 .map(this::toDomain);
     }
 
-    List<Tenant> listTenants(String tenantNo, String name, String status, int pageNo, int pageSize) {
+    List<Tenant> listTenants(TenantNo tenantNo, String name, String status, int pageNo, int pageSize) {
+        String tenantNoValue = tenantNo == null ? null : tenantNo.value();
         return tenantMapper.selectList(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(hasText(tenantNo), TenantDO::getTenantNo, trim(tenantNo))
+                        .eq(hasText(tenantNoValue), TenantDO::getTenantNo, trim(tenantNoValue))
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))
                         .orderByAsc(TenantDO::getTenantNo)
@@ -45,9 +48,10 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countTenants(String tenantNo, String name, String status) {
+    long countTenants(TenantNo tenantNo, String name, String status) {
+        String tenantNoValue = tenantNo == null ? null : tenantNo.value();
         return Optional.ofNullable(tenantMapper.selectCount(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(hasText(tenantNo), TenantDO::getTenantNo, trim(tenantNo))
+                        .eq(hasText(tenantNoValue), TenantDO::getTenantNo, trim(tenantNoValue))
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))))
                 .orElse(0L);

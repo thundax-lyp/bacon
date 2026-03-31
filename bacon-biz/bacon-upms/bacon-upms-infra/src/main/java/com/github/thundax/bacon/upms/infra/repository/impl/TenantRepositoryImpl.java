@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.List;
 import java.util.Optional;
@@ -23,17 +24,17 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public Optional<Tenant> findTenantByTenantNo(String tenantNo) {
+    public Optional<Tenant> findTenantByTenantNo(TenantNo tenantNo) {
         return support.findTenantByTenantNo(tenantNo);
     }
 
     @Override
-    public List<Tenant> pageTenants(String tenantNo, String name, String status, int pageNo, int pageSize) {
+    public List<Tenant> pageTenants(TenantNo tenantNo, String name, String status, int pageNo, int pageSize) {
         return support.listTenants(tenantNo, name, status, pageNo, pageSize);
     }
 
     @Override
-    public long countTenants(String tenantNo, String name, String status) {
+    public long countTenants(TenantNo tenantNo, String name, String status) {
         return support.countTenants(tenantNo, name, status);
     }
 
@@ -46,9 +47,9 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public Tenant updateTenantStatus(String tenantNo, String status) {
+    public Tenant updateTenantStatus(TenantNo tenantNo, String status) {
         Tenant currentTenant = findTenantByTenantNo(tenantNo)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo.value()));
         return support.saveTenant(new Tenant(
                 currentTenant.getId(),
                 currentTenant.getTenantNo(),

@@ -7,6 +7,7 @@ import com.github.thundax.bacon.upms.api.dto.RolePageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import java.util.List;
 import java.util.Set;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
@@ -148,7 +149,7 @@ public class RoleApplicationService {
 
     private Long resolveTenantIdByTenantNo(String tenantNo) {
         validateRequired(tenantNo, "tenantNo");
-        return tenantRepository.findTenantByTenantNo(normalize(tenantNo))
+        return tenantRepository.findTenantByTenantNo(new TenantNo(tenantNo))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
     }

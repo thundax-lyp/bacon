@@ -28,6 +28,7 @@ import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
@@ -231,6 +232,20 @@ class UpmsRepositoryIntegrationTest {
         CONTEXT.close();
     }
 
+    private boolean isUserDeleted(Long userId) {
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(
+                     "SELECT deleted FROM bacon_upms_user WHERE id = " + userId)) {
+            if (!resultSet.next()) {
+                return false;
+            }
+            return resultSet.getBoolean(1);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to query user deleted flag", ex);
+        }
+    }
+
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
         Department rootDepartment = departmentRepository.save(new Department(null, 1001L, "ROOT", "Headquarters", 0L, null, "ACTIVE"));
@@ -294,6 +309,7 @@ class UpmsRepositoryIntegrationTest {
         assertFalse(userRepository.findUserIdentity(1001L, "ACCOUNT", "bob").isPresent());
         assertTrue(roleRepository.findRolesByUserId(1001L, updatedUser.getId()).isEmpty());
         assertFalse(departmentRepository.existsUserInDepartment(1001L, department.getId()));
+        assertTrue(isUserDeleted(updatedUser.getId()));
     }
 
     @Test

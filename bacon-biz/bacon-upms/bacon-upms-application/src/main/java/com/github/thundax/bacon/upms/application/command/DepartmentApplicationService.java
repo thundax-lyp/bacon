@@ -176,10 +176,4 @@ public class DepartmentApplicationService {
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
-
-    private String resolveTenantNoByTenantId(TenantId tenantId) {
-        return tenantRepository.findTenantById(tenantId)
-                .map(tenant -> tenant.getId().value())
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
-    }
 }

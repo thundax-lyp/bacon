@@ -25,11 +25,11 @@ public class PostApplicationService {
     public PostPageResultDTO pagePosts(PostPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String tenantNo = resolveTenantNoByTenantId(query.getTenantId());
+        String tenantIdValue = query.getTenantId().value();
         return new PostPageResultDTO(
                 postRepository.pagePosts(query.getTenantId(), query.getCode(), query.getName(),
                         query.getDepartmentId(), query.getStatus(), pageNo, pageSize).stream()
-                        .map(post -> toDto(post, tenantNo))
+                        .map(post -> toDto(post, tenantIdValue))
                         .toList(),
                 postRepository.countPosts(query.getTenantId(), query.getCode(), query.getName(),
                         query.getDepartmentId(), query.getStatus()),
@@ -77,18 +77,12 @@ public class PostApplicationService {
     }
 
     private PostDTO toDto(Post post) {
-        return toDto(post, resolveTenantNoByTenantId(post.getTenantId()));
+        return toDto(post, post.getTenantId().value());
     }
 
-    private PostDTO toDto(Post post, String tenantNo) {
-        return new PostDTO(post.getId(), tenantNo, post.getCode(), post.getName(),
+    private PostDTO toDto(Post post, String tenantIdValue) {
+        return new PostDTO(post.getId(), tenantIdValue, post.getCode(), post.getName(),
                 post.getDepartmentId(), post.getStatus());
-    }
-
-    private String resolveTenantNoByTenantId(TenantId tenantId) {
-        return tenantRepository.findTenantById(tenantId)
-                .map(tenant -> tenant.getId().value())
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
     private void validateRequired(String value, String fieldName) {

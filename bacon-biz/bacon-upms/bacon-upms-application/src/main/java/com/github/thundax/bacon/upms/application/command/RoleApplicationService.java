@@ -36,9 +36,9 @@ public class RoleApplicationService {
     }
 
     public List<RoleDTO> getRolesByUserId(TenantId tenantId, UserId userId) {
-        String tenantNo = resolveTenantNoByTenantId(tenantId);
+        String tenantIdValue = tenantId.value();
         return roleRepository.findRolesByUserId(tenantId, userId).stream()
-                .map(role -> toDto(role, tenantNo))
+                .map(role -> toDto(role, tenantIdValue))
                 .toList();
     }
 
@@ -49,10 +49,10 @@ public class RoleApplicationService {
     public RolePageResultDTO pageRoles(RolePageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String tenantNo = resolveTenantNoByTenantId(query.getTenantId());
+        String tenantIdValue = query.getTenantId().value();
         return new RolePageResultDTO(roleRepository.pageRoles(query.getTenantId(), query.getCode(), query.getName(),
                 query.getRoleType(), query.getStatus(), pageNo, pageSize).stream()
-                .map(role -> toDto(role, tenantNo))
+                .map(role -> toDto(role, tenantIdValue))
                 .toList(),
                 roleRepository.countRoles(query.getTenantId(), query.getCode(), query.getName(), query.getRoleType(),
                         query.getStatus()),
@@ -130,11 +130,11 @@ public class RoleApplicationService {
     }
 
     private RoleDTO toDto(Role role) {
-        return toDto(role, resolveTenantNoByTenantId(role.getTenantId()));
+        return toDto(role, role.getTenantId().value());
     }
 
-    private RoleDTO toDto(Role role, String tenantNo) {
-        return new RoleDTO(role.getId(), tenantNo, role.getCode(), role.getName(),
+    private RoleDTO toDto(Role role, String tenantIdValue) {
+        return new RoleDTO(role.getId(), tenantIdValue, role.getCode(), role.getName(),
                 role.getRoleType(), role.getDataScopeType(), role.getStatus());
     }
 
@@ -153,12 +153,6 @@ public class RoleApplicationService {
         return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
-    }
-
-    private String resolveTenantNoByTenantId(TenantId tenantId) {
-        return tenantRepository.findTenantById(tenantId)
-                .map(tenant -> tenant.getId().value())
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
 }

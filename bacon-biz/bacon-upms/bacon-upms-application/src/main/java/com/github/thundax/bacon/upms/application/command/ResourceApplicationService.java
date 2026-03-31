@@ -25,11 +25,11 @@ public class ResourceApplicationService {
     public ResourcePageResultDTO pageResources(ResourcePageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String tenantNo = resolveTenantNoByTenantId(query.getTenantId());
+        String tenantIdValue = query.getTenantId().value();
         return new ResourcePageResultDTO(
                 resourceRepository.pageResources(query.getTenantId(), query.getCode(), query.getName(),
                         query.getResourceType(), query.getStatus(), pageNo, pageSize).stream()
-                        .map(resource -> toDto(resource, tenantNo))
+                        .map(resource -> toDto(resource, tenantIdValue))
                         .toList(),
                 resourceRepository.countResources(query.getTenantId(), query.getCode(), query.getName(),
                         query.getResourceType(), query.getStatus()),
@@ -85,19 +85,13 @@ public class ResourceApplicationService {
     }
 
     private ResourceDTO toDto(Resource resource) {
-        return toDto(resource, resolveTenantNoByTenantId(resource.getTenantId()));
+        return toDto(resource, resource.getTenantId().value());
     }
 
-    private ResourceDTO toDto(Resource resource, String tenantNo) {
-        return new ResourceDTO(resource.getId(), tenantNo, resource.getCode(),
+    private ResourceDTO toDto(Resource resource, String tenantIdValue) {
+        return new ResourceDTO(resource.getId(), tenantIdValue, resource.getCode(),
                 resource.getName(),
                 resource.getResourceType(), resource.getHttpMethod(), resource.getUri(), resource.getStatus());
-    }
-
-    private String resolveTenantNoByTenantId(TenantId tenantId) {
-        return tenantRepository.findTenantById(tenantId)
-                .map(tenant -> tenant.getId().value())
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
     private void validateRequired(String value, String fieldName) {

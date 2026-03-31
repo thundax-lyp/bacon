@@ -32,8 +32,8 @@ public class MenuApplicationService {
 
     public List<MenuTreeDTO> getMenuTree(TenantId tenantId) {
         // 菜单树读取直接复用权限仓储结果，避免命令侧和权限侧各维护一套树装配逻辑。
-        String tenantNo = resolveTenantNoByTenantId(tenantId);
-        return permissionRepository.listMenus(tenantId).stream().map(menu -> toTreeDto(menu, tenantNo)).toList();
+        String tenantIdValue = tenantId.value();
+        return permissionRepository.listMenus(tenantId).stream().map(menu -> toTreeDto(menu, tenantIdValue)).toList();
     }
 
     public MenuTreeDTO createMenu(TenantId tenantId, String menuType, String name, Long parentId, String routePath,
@@ -84,22 +84,16 @@ public class MenuApplicationService {
     }
 
     private MenuTreeDTO toTreeDto(Menu menu) {
-        return toTreeDto(menu, resolveTenantNoByTenantId(menu.getTenantId()));
+        return toTreeDto(menu, menu.getTenantId().value());
     }
 
-    private MenuTreeDTO toTreeDto(Menu menu, String tenantNo) {
-        return new MenuTreeDTO(menu.getId(), tenantNo, menu.getMenuType(),
+    private MenuTreeDTO toTreeDto(Menu menu, String tenantIdValue) {
+        return new MenuTreeDTO(menu.getId(), tenantIdValue, menu.getMenuType(),
                 menu.getName(), menu.getParentId(),
                 menu.getRoutePath(), menu.getComponentName(), menu.getIcon(), menu.getSort(), menu.getPermissionCode(),
                 menu.getChildren() == null ? List.of() : menu.getChildren().stream()
-                        .map(child -> toTreeDto(child, tenantNo))
+                        .map(child -> toTreeDto(child, tenantIdValue))
                         .toList());
-    }
-
-    private String resolveTenantNoByTenantId(TenantId tenantId) {
-        return tenantRepository.findTenantById(tenantId)
-                .map(tenant -> tenant.getId().value())
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
     private void validateParent(TenantId tenantId, Long parentId) {

@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
-import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
@@ -38,18 +38,18 @@ public class PostApplicationService {
         );
     }
 
-    public PostDTO getPostById(Long tenantId, Long postId) {
+    public PostDTO getPostById(TenantId tenantId, Long postId) {
         return toDto(requirePost(tenantId, postId));
     }
 
-    public PostDTO createPost(Long tenantId, String code, String name, Long departmentId) {
+    public PostDTO createPost(TenantId tenantId, String code, String name, Long departmentId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         return toDto(postRepository.save(new Post(null, tenantId, normalize(code), normalize(name),
                 departmentId, UpmsStatusEnum.ENABLED.value())));
     }
 
-    public PostDTO updatePost(Long tenantId, Long postId, String code, String name, Long departmentId, String status) {
+    public PostDTO updatePost(TenantId tenantId, Long postId, String code, String name, Long departmentId, String status) {
         Post currentPost = requirePost(tenantId, postId);
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -66,12 +66,12 @@ public class PostApplicationService {
                 currentPost.getUpdatedAt())));
     }
 
-    public void deletePost(Long tenantId, Long postId) {
+    public void deletePost(TenantId tenantId, Long postId) {
         requirePost(tenantId, postId);
         postRepository.delete(tenantId, postId);
     }
 
-    private Post requirePost(Long tenantId, Long postId) {
+    private Post requirePost(TenantId tenantId, Long postId) {
         return postRepository.findById(tenantId, postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
     }
@@ -85,10 +85,10 @@ public class PostApplicationService {
                 post.getDepartmentId(), post.getStatus());
     }
 
-    private String resolveTenantNoByTenantId(Long tenantId) {
+    private String resolveTenantNoByTenantId(TenantId tenantId) {
         return tenantRepository.findTenantById(tenantId)
-                .map(Tenant::getTenantNo)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
+                .map(tenant -> tenant.getId().value())
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
     private void validateRequired(String value, String fieldName) {

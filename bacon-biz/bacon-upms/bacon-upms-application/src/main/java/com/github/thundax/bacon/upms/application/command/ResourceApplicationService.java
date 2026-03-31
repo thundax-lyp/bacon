@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
-import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
@@ -38,11 +38,11 @@ public class ResourceApplicationService {
         );
     }
 
-    public ResourceDTO getResourceById(Long tenantId, Long resourceId) {
+    public ResourceDTO getResourceById(TenantId tenantId, Long resourceId) {
         return toDto(requireResource(tenantId, resourceId));
     }
 
-    public ResourceDTO createResource(Long tenantId, String code, String name, String resourceType,
+    public ResourceDTO createResource(TenantId tenantId, String code, String name, String resourceType,
                                       String httpMethod, String uri) {
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -52,7 +52,7 @@ public class ResourceApplicationService {
                 normalize(resourceType), normalize(httpMethod), normalize(uri), UpmsStatusEnum.ENABLED.value())));
     }
 
-    public ResourceDTO updateResource(Long tenantId, Long resourceId, String code, String name, String resourceType,
+    public ResourceDTO updateResource(TenantId tenantId, Long resourceId, String code, String name, String resourceType,
                                       String httpMethod, String uri, String status) {
         Resource currentResource = requireResource(tenantId, resourceId);
         validateRequired(code, "code");
@@ -74,12 +74,12 @@ public class ResourceApplicationService {
                 currentResource.getUpdatedAt())));
     }
 
-    public void deleteResource(Long tenantId, Long resourceId) {
+    public void deleteResource(TenantId tenantId, Long resourceId) {
         requireResource(tenantId, resourceId);
         resourceRepository.delete(tenantId, resourceId);
     }
 
-    private Resource requireResource(Long tenantId, Long resourceId) {
+    private Resource requireResource(TenantId tenantId, Long resourceId) {
         return resourceRepository.findById(tenantId, resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + resourceId));
     }
@@ -94,10 +94,10 @@ public class ResourceApplicationService {
                 resource.getResourceType(), resource.getHttpMethod(), resource.getUri(), resource.getStatus());
     }
 
-    private String resolveTenantNoByTenantId(Long tenantId) {
+    private String resolveTenantNoByTenantId(TenantId tenantId) {
         return tenantRepository.findTenantById(tenantId)
-                .map(Tenant::getTenantNo)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
+                .map(tenant -> tenant.getId().value())
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
     private void validateRequired(String value, String fieldName) {

@@ -26,7 +26,7 @@ public class RoleApplicationService {
         this.tenantRepository = tenantRepository;
     }
 
-    public RoleDTO getRoleById(Long tenantId, Long roleId) {
+    public RoleDTO getRoleById(TenantId tenantId, Long roleId) {
         return toDto(roleRepository.findRoleById(tenantId, roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId)));
     }
@@ -35,7 +35,7 @@ public class RoleApplicationService {
         return getRoleById(resolveTenantIdByTenantNo(tenantNo), roleId);
     }
 
-    public List<RoleDTO> getRolesByUserId(Long tenantId, UserId userId) {
+    public List<RoleDTO> getRolesByUserId(TenantId tenantId, UserId userId) {
         String tenantNo = resolveTenantNoByTenantId(tenantId);
         return roleRepository.findRolesByUserId(tenantId, userId).stream()
                 .map(role -> toDto(role, tenantNo))
@@ -59,7 +59,7 @@ public class RoleApplicationService {
                 pageNo, pageSize);
     }
 
-    public RoleDTO createRole(Long tenantId, String code, String name, String roleType, String dataScopeType) {
+    public RoleDTO createRole(TenantId tenantId, String code, String name, String roleType, String dataScopeType) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         validateRequired(roleType, "roleType");
@@ -68,7 +68,7 @@ public class RoleApplicationService {
                 normalize(dataScopeType), UpmsStatusEnum.ENABLED.value())));
     }
 
-    public RoleDTO updateRole(Long tenantId, Long roleId, String code, String name, String roleType, String dataScopeType) {
+    public RoleDTO updateRole(TenantId tenantId, Long roleId, String code, String name, String roleType, String dataScopeType) {
         Role currentRole = roleRepository.findRoleById(tenantId, roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         validateRequired(code, "code");
@@ -89,42 +89,42 @@ public class RoleApplicationService {
                 currentRole.getUpdatedAt())));
     }
 
-    public RoleDTO updateRoleStatus(Long tenantId, Long roleId, String status) {
+    public RoleDTO updateRoleStatus(TenantId tenantId, Long roleId, String status) {
         validateRequired(status, "status");
         return toDto(roleRepository.updateStatus(tenantId, roleId, normalize(status)));
     }
 
-    public void deleteRole(Long tenantId, Long roleId) {
+    public void deleteRole(TenantId tenantId, Long roleId) {
         roleRepository.findRoleById(tenantId, roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         roleRepository.deleteRole(tenantId, roleId);
     }
 
-    public Set<Long> getAssignedMenus(Long tenantId, Long roleId) {
+    public Set<Long> getAssignedMenus(TenantId tenantId, Long roleId) {
         return roleRepository.getAssignedMenus(tenantId, roleId);
     }
 
-    public Set<Long> assignMenus(Long tenantId, Long roleId, Set<Long> menuIds) {
+    public Set<Long> assignMenus(TenantId tenantId, Long roleId, Set<Long> menuIds) {
         return roleRepository.assignMenus(tenantId, roleId, menuIds);
     }
 
-    public Set<String> getAssignedResources(Long tenantId, Long roleId) {
+    public Set<String> getAssignedResources(TenantId tenantId, Long roleId) {
         return roleRepository.getAssignedResources(tenantId, roleId);
     }
 
-    public Set<String> assignResources(Long tenantId, Long roleId, Set<String> resourceCodes) {
+    public Set<String> assignResources(TenantId tenantId, Long roleId, Set<String> resourceCodes) {
         return roleRepository.assignResources(tenantId, roleId, resourceCodes);
     }
 
-    public String getAssignedDataScopeType(Long tenantId, Long roleId) {
+    public String getAssignedDataScopeType(TenantId tenantId, Long roleId) {
         return roleRepository.getAssignedDataScopeType(tenantId, roleId);
     }
 
-    public Set<Long> getAssignedDataScopeDepartments(Long tenantId, Long roleId) {
+    public Set<Long> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId) {
         return roleRepository.getAssignedDataScopeDepartments(tenantId, roleId);
     }
 
-    public Set<Long> assignDataScope(Long tenantId, Long roleId, String dataScopeType, Set<Long> departmentIds) {
+    public Set<Long> assignDataScope(TenantId tenantId, Long roleId, String dataScopeType, Set<Long> departmentIds) {
         validateRequired(dataScopeType, "dataScopeType");
         return roleRepository.assignDataScope(tenantId, roleId, normalize(dataScopeType), departmentIds);
     }
@@ -148,17 +148,17 @@ public class RoleApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private Long resolveTenantIdByTenantNo(String tenantNo) {
+    private TenantId resolveTenantIdByTenantNo(String tenantNo) {
         validateRequired(tenantNo, "tenantNo");
         return tenantRepository.findTenantByTenantId(TenantId.of(tenantNo))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
     }
 
-    private String resolveTenantNoByTenantId(Long tenantId) {
+    private String resolveTenantNoByTenantId(TenantId tenantId) {
         return tenantRepository.findTenantById(tenantId)
-                .map(Tenant::getTenantNo)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
+                .map(tenant -> tenant.getId().value())
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
 }

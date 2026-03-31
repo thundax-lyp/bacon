@@ -14,6 +14,6 @@ class TenantRequestResolver {
     }
 
     TenantId resolveTenantId(String tenantNo) {
-        return TenantId.of(tenantApplicationService.getTenantByTenantNo(tenantNo).getId());
+        return tenantApplicationService.getTenantByTenantNo(tenantNo).getId();
     }
 }

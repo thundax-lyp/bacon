@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.application.command;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.MenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
-import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
@@ -30,13 +30,13 @@ public class MenuApplicationService {
         return menus.stream().map(this::toDto).toList();
     }
 
-    public List<MenuTreeDTO> getMenuTree(Long tenantId) {
+    public List<MenuTreeDTO> getMenuTree(TenantId tenantId) {
         // 菜单树读取直接复用权限仓储结果，避免命令侧和权限侧各维护一套树装配逻辑。
         String tenantNo = resolveTenantNoByTenantId(tenantId);
         return permissionRepository.listMenus(tenantId).stream().map(menu -> toTreeDto(menu, tenantNo)).toList();
     }
 
-    public MenuTreeDTO createMenu(Long tenantId, String menuType, String name, Long parentId, String routePath,
+    public MenuTreeDTO createMenu(TenantId tenantId, String menuType, String name, Long parentId, String routePath,
                                   String componentName, String icon, Integer sort, String permissionCode) {
         validateRequired(menuType, "menuType");
         validateRequired(name, "name");
@@ -46,7 +46,7 @@ public class MenuApplicationService {
                 sort == null ? 0 : sort, normalize(permissionCode), List.of())));
     }
 
-    public MenuTreeDTO updateMenu(Long tenantId, Long menuId, String menuType, String name, Long parentId, String routePath,
+    public MenuTreeDTO updateMenu(TenantId tenantId, Long menuId, String menuType, String name, Long parentId, String routePath,
                                   String componentName, String icon, Integer sort, String permissionCode) {
         Menu currentMenu = menuRepository.findMenuById(tenantId, menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
@@ -61,7 +61,7 @@ public class MenuApplicationService {
                 sort == null ? currentMenu.getSort() : sort, normalize(permissionCode), List.of())));
     }
 
-    public void deleteMenu(Long tenantId, Long menuId) {
+    public void deleteMenu(TenantId tenantId, Long menuId) {
         menuRepository.findMenuById(tenantId, menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
         if (menuRepository.existsChildMenu(tenantId, menuId)) {
@@ -70,7 +70,7 @@ public class MenuApplicationService {
         menuRepository.deleteMenu(tenantId, menuId);
     }
 
-    public MenuTreeDTO updateMenuSort(Long tenantId, Long menuId, Integer sort) {
+    public MenuTreeDTO updateMenuSort(TenantId tenantId, Long menuId, Integer sort) {
         if (sort == null) {
             throw new IllegalArgumentException("sort must not be null");
         }
@@ -96,13 +96,13 @@ public class MenuApplicationService {
                         .toList());
     }
 
-    private String resolveTenantNoByTenantId(Long tenantId) {
+    private String resolveTenantNoByTenantId(TenantId tenantId) {
         return tenantRepository.findTenantById(tenantId)
-                .map(Tenant::getTenantNo)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
+                .map(tenant -> tenant.getId().value())
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
-    private void validateParent(Long tenantId, Long parentId) {
+    private void validateParent(TenantId tenantId, Long parentId) {
         // 菜单根节点同样用 0/NULL 语义，和部门树保持一致，减少前端和接口的分支判断。
         if (parentId == null || parentId == 0L) {
             return;

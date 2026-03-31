@@ -17,7 +17,7 @@ public class SessionValidationDTO {
     /** 是否有效。 */
     private boolean valid;
     /** 所属租户编号。 */
-    private String tenantNo;
+    private String tenantId;
     /** 用户主键。 */
     private String userId;
     /** 会话标识。 */

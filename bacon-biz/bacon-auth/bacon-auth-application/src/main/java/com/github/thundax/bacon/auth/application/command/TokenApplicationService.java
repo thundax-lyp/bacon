@@ -67,7 +67,7 @@ public class TokenApplicationService {
                 .map(session -> {
                     session.touch(Instant.now());
                     authSessionRepository.saveSession(session);
-                    return new SessionValidationDTO(true, session.getTenantNo(), session.getUserId(),
+                    return new SessionValidationDTO(true, session.getTenantId(), session.getUserId(),
                             session.getSessionId(), session.getIdentityId(), session.getIdentityType(),
                             session.getExpireAt());
                 })
@@ -78,7 +78,7 @@ public class TokenApplicationService {
         AuthSession authSession = authSessionRepository.findSessionBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
         // 这里返回的是仓储里的当前会话快照，不重新解析 access token，避免出现 token 与服务端会话状态不一致。
-        return new CurrentSessionDTO(authSession.getSessionId(), authSession.getTenantNo(), authSession.getUserId(),
+        return new CurrentSessionDTO(authSession.getSessionId(), authSession.getTenantId(), authSession.getUserId(),
                 authSession.getIdentityType(), authSession.getLoginType(), authSession.getSessionStatus(),
                 authSession.getIssuedAt(), authSession.getLastAccessTime(), authSession.getExpireAt());
     }

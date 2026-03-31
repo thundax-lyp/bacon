@@ -16,13 +16,13 @@ public class SessionCommandFacadeLocalImpl implements SessionCommandFacade {
     }
 
     @Override
-    public void invalidateUserSessions(String tenantNo, String userId, String reason) {
-        sessionApplicationService.invalidateUserSessions(tenantNo, userId, reason);
+    public void invalidateUserSessions(String tenantId, String userId, String reason) {
+        sessionApplicationService.invalidateUserSessions(tenantId, userId, reason);
     }
 
     @Override
-    public void invalidateTenantSessions(String tenantNo, String reason) {
-        sessionApplicationService.invalidateTenantSessions(tenantNo, reason);
+    public void invalidateTenantSessions(String tenantId, String reason) {
+        sessionApplicationService.invalidateTenantSessions(tenantId, reason);
     }
 
     @Override

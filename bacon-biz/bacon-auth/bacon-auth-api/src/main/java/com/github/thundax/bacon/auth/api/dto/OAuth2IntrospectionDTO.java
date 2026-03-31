@@ -24,7 +24,7 @@ public class OAuth2IntrospectionDTO {
     private String sub;
     /** 租户标识。 */
     @JsonProperty("tenant_id")
-    private String tenantNo;
+    private String tenantId;
     /** 过期时间戳。 */
     private long exp;
 }

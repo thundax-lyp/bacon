@@ -53,14 +53,14 @@ public class LoginApplicationService {
     }
 
     public UserLoginDTO loginByPassword(PasswordLoginCommand command) {
-        String tenantNo = normalizeTenantNo(command.getTenantNo());
+        String tenantId = normalizeTenantId(command.getTenantId());
         // 密码登录按“校验验证码 -> 解密密码 -> 查询凭据 -> 校验状态和口令”的顺序执行，
         // 这样既避免无意义的凭据查询，也保证明文密码只在内存里短暂存在。
         loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
         String plainPassword = loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
-        UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(tenantNo, "ACCOUNT", command.getAccount());
+        UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(tenantId, "ACCOUNT", command.getAccount());
         validatePasswordLoginCredential(credential, plainPassword);
-        return createLoginSession(tenantNo, credential.getUserId(), credential.getIdentityValue(),
+        return createLoginSession(tenantId, credential.getUserId(), credential.getIdentityValue(),
                 credential.getIdentityType(), "PASSWORD", credential.isNeedChangePassword());
     }
 
@@ -98,12 +98,12 @@ public class LoginApplicationService {
         }
     }
 
-    private UserLoginDTO createLoginSession(String tenantNo, String userId, String identitySeed, String identityType,
+    private UserLoginDTO createLoginSession(String tenantId, String userId, String identitySeed, String identityType,
                                                  String loginType, Boolean needChangePassword) {
         Instant now = Instant.now();
         String sessionId = UUID.randomUUID().toString();
         // 会话和 refresh token 分开存储：会话承载当前登录上下文，refresh token 只负责后续换新 access token。
-        AuthSession authSession = new AuthSession(idGenerator.getAndIncrement(), sessionId, tenantNo, userId,
+        AuthSession authSession = new AuthSession(idGenerator.getAndIncrement(), sessionId, tenantId, userId,
                 identityType + ":" + identitySeed, identityType, loginType, now, now.plus(ACCESS_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS));
         authSessionRepository.saveSession(authSession);
 
@@ -116,13 +116,13 @@ public class LoginApplicationService {
 
         authAuditApplicationService.record("LOGIN_" + loginType, "SUCCESS", sessionId);
         return new UserLoginDTO(accessToken, refreshToken, "Bearer", ACCESS_TOKEN_TTL_SECONDS, sessionId,
-                userId, tenantNo, needChangePassword);
+                userId, tenantId, needChangePassword);
     }
 
-    private String normalizeTenantNo(String tenantNo) {
-        if (tenantNo == null || tenantNo.isBlank()) {
-            throw new BadRequestException("tenantNo must not be blank");
+    private String normalizeTenantId(String tenantId) {
+        if (tenantId == null || tenantId.isBlank()) {
+            throw new BadRequestException("tenantId must not be blank");
         }
-        return tenantNo.trim();
+        return tenantId.trim();
     }
 }

@@ -101,7 +101,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private String state;
         private String codeChallenge;
         private String codeChallengeMethod;
-        private String tenantNo;
+        private String tenantId;
         private String userId;
         private Instant expireAt;
         private boolean used;
@@ -110,13 +110,13 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
             return new AuthorizationRequestSnapshot(authorizationRequest.getAuthorizationRequestId(),
                     authorizationRequest.getClientId(), authorizationRequest.getRedirectUri(), authorizationRequest.getScopes(),
                     authorizationRequest.getState(), authorizationRequest.getCodeChallenge(),
-                    authorizationRequest.getCodeChallengeMethod(), authorizationRequest.getTenantNo(),
+                    authorizationRequest.getCodeChallengeMethod(), authorizationRequest.getTenantId(),
                     authorizationRequest.getUserId(), authorizationRequest.getExpireAt(), authorizationRequest.isUsed());
         }
 
         private OAuthAuthorizationRequest toDomain() {
             OAuthAuthorizationRequest request = new OAuthAuthorizationRequest(authorizationRequestId, clientId, redirectUri,
-                    scopes, state, codeChallenge, codeChallengeMethod, tenantNo, userId, expireAt);
+                    scopes, state, codeChallenge, codeChallengeMethod, tenantId, userId, expireAt);
             if (used) {
                 request.markUsed();
             }
@@ -131,7 +131,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private String tokenId;
         private String tokenHash;
         private String clientId;
-        private String tenantNo;
+        private String tenantId;
         private String userId;
         private Set<String> scopes;
         private Instant issuedAt;
@@ -140,12 +140,12 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
 
         private static AccessTokenSnapshot fromDomain(OAuthAccessToken accessToken) {
             return new AccessTokenSnapshot(accessToken.getTokenId(), accessToken.getTokenHash(), accessToken.getClientId(),
-                    accessToken.getTenantNo(), accessToken.getUserId(), accessToken.getScopes(),
+                    accessToken.getTenantId(), accessToken.getUserId(), accessToken.getScopes(),
                     accessToken.getIssuedAt(), accessToken.getExpireAt(), accessToken.getTokenStatus());
         }
 
         private OAuthAccessToken toDomain() {
-            OAuthAccessToken accessToken = new OAuthAccessToken(tokenId, tokenHash, clientId, tenantNo, userId, scopes,
+            OAuthAccessToken accessToken = new OAuthAccessToken(tokenId, tokenHash, clientId, tenantId, userId, scopes,
                     issuedAt, expireAt);
             if ("REVOKED".equals(tokenStatus)) {
                 accessToken.revoke();
@@ -162,7 +162,7 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private String tokenHash;
         private String accessTokenId;
         private String clientId;
-        private String tenantNo;
+        private String tenantId;
         private String userId;
         private Instant issuedAt;
         private Instant expireAt;
@@ -170,13 +170,13 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
 
         private static RefreshTokenSnapshot fromDomain(OAuthRefreshToken refreshToken) {
             return new RefreshTokenSnapshot(refreshToken.getTokenId(), refreshToken.getTokenHash(),
-                    refreshToken.getAccessTokenId(), refreshToken.getClientId(), refreshToken.getTenantNo(),
+                    refreshToken.getAccessTokenId(), refreshToken.getClientId(), refreshToken.getTenantId(),
                     refreshToken.getUserId(), refreshToken.getIssuedAt(), refreshToken.getExpireAt(),
                     refreshToken.getTokenStatus());
         }
 
         private OAuthRefreshToken toDomain() {
-            OAuthRefreshToken refreshToken = new OAuthRefreshToken(tokenId, tokenHash, accessTokenId, clientId, tenantNo,
+            OAuthRefreshToken refreshToken = new OAuthRefreshToken(tokenId, tokenHash, accessTokenId, clientId, tenantId,
                     userId, issuedAt, expireAt);
             if ("USED".equals(tokenStatus)) {
                 refreshToken.markUsed();

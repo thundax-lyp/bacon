@@ -32,9 +32,9 @@ public class PasswordApplicationService {
             throw new IllegalArgumentException("New password must differ from old password");
         }
         CurrentSessionDTO currentSession = sessionApplicationService.currentSession(accessToken);
-        userPasswordFacade.changePassword(currentSession.getTenantNo(), currentSession.getUserId(),
+        userPasswordFacade.changePassword(currentSession.getTenantId(), currentSession.getUserId(),
                 oldPassword, newPassword);
-        sessionApplicationService.invalidateUserSessions(currentSession.getTenantNo(), currentSession.getUserId(),
+        sessionApplicationService.invalidateUserSessions(currentSession.getTenantId(), currentSession.getUserId(),
                 "SELF_PASSWORD_CHANGED");
     }
 }

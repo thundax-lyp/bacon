@@ -57,14 +57,14 @@ public class OAuth2AuthorizationApplicationService {
             throw new UnauthorizedException("Login required before OAuth2 authorization");
         }
         var currentSession = sessionApplicationService.currentSession(accessToken);
-        String tenantNo = currentSession.getTenantNo();
+        String tenantId = currentSession.getTenantId();
         String userId = currentSession.getUserId();
 
         // authorize 阶段只落授权请求，不直接发 code；真正的授权决定由后续 approve/reject 明确给出。
         String authorizationRequestId = UUID.randomUUID().toString();
         oAuthAuthorizationRepository.saveAuthorizationRequest(new OAuthAuthorizationRequest(
                 authorizationRequestId, clientId, redirectUri, scopes, state, codeChallenge, codeChallengeMethod,
-                tenantNo, userId, Instant.now().plusSeconds(300)));
+                tenantId, userId, Instant.now().plusSeconds(300)));
         return new AuthorizationView(authorizationRequestId, client.getClientId(), client.getClientName(), scope, state);
     }
 
@@ -100,7 +100,7 @@ public class OAuth2AuthorizationApplicationService {
             if (!request.getRedirectUri().equals(redirectUri)) {
                 throw new IllegalArgumentException("Redirect uri invalid");
             }
-            return issueOAuthTokens(client, request.getTenantNo(), request.getUserId(), request.getScopes());
+            return issueOAuthTokens(client, request.getTenantId(), request.getUserId(), request.getScopes());
         }
         if ("refresh_token".equals(grantType)) {
             OAuthRefreshToken currentRefreshToken = oAuthAuthorizationRepository.findOAuthRefreshTokenByHash(tokenCodec.sha256(refreshToken))
@@ -111,7 +111,7 @@ public class OAuth2AuthorizationApplicationService {
             oAuthAuthorizationRepository.saveOAuthRefreshToken(currentRefreshToken);
             Optional<OAuthAccessToken> accessToken = oAuthAuthorizationRepository.findAccessTokenByHash(currentRefreshToken.getAccessTokenId());
             Set<String> scopes = accessToken.map(OAuthAccessToken::getScopes).orElseGet(LinkedHashSet::new);
-            return issueOAuthTokens(client, currentRefreshToken.getTenantNo(), currentRefreshToken.getUserId(), scopes);
+            return issueOAuthTokens(client, currentRefreshToken.getTenantId(), currentRefreshToken.getUserId(), scopes);
         }
         throw new IllegalArgumentException("Grant type unsupported");
     }
@@ -123,7 +123,7 @@ public class OAuth2AuthorizationApplicationService {
                 .filter(accessToken -> accessToken.getExpireAt().isAfter(Instant.now()))
                 .map(accessToken -> new OAuth2IntrospectionDTO(true, accessToken.getClientId(),
                         String.join(" ", accessToken.getScopes()), String.valueOf(accessToken.getUserId()),
-                        accessToken.getTenantNo(), accessToken.getExpireAt().getEpochSecond()))
+                        accessToken.getTenantId(), accessToken.getExpireAt().getEpochSecond()))
                 .orElse(new OAuth2IntrospectionDTO(false, clientId, "", "", "", 0L));
     }
 
@@ -144,22 +144,22 @@ public class OAuth2AuthorizationApplicationService {
                 .filter(current -> "ACTIVE".equals(current.getTokenStatus()))
                 .orElseThrow(() -> new IllegalArgumentException("OAuth access token invalid"));
         String name = token.getScopes().contains("profile") ? "demo-user-" + token.getUserId() : null;
-        return new OAuth2UserinfoDTO(token.getUserId(), token.getTenantNo(), name);
+        return new OAuth2UserinfoDTO(token.getUserId(), token.getTenantId(), name);
     }
 
-    private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, String tenantNo, String userId, Set<String> scopes) {
+    private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, String tenantId, String userId, Set<String> scopes) {
         Instant now = Instant.now();
         String accessTokenValue = tokenCodec.randomToken();
         String accessTokenId = tokenCodec.sha256(accessTokenValue);
         // access token 和 refresh token 在仓储层都使用哈希作为主识别键，避免明文 token 被直接持久化。
-        OAuthAccessToken accessToken = new OAuthAccessToken(accessTokenId, accessTokenId, client.getClientId(), tenantNo,
+        OAuthAccessToken accessToken = new OAuthAccessToken(accessTokenId, accessTokenId, client.getClientId(), tenantId,
                 userId, scopes, now, now.plusSeconds(client.getAccessTokenTtlSeconds()));
         oAuthAuthorizationRepository.saveAccessToken(accessToken);
 
         String refreshTokenValue = tokenCodec.randomToken();
         String refreshTokenHash = tokenCodec.sha256(refreshTokenValue);
         OAuthRefreshToken refreshToken = new OAuthRefreshToken(refreshTokenHash, refreshTokenHash, accessTokenId,
-                client.getClientId(), tenantNo, userId, now, now.plusSeconds(client.getRefreshTokenTtlSeconds()));
+                client.getClientId(), tenantId, userId, now, now.plusSeconds(client.getRefreshTokenTtlSeconds()));
         oAuthAuthorizationRepository.saveOAuthRefreshToken(refreshToken);
 
         return new OAuth2TokenDTO(accessTokenValue, "Bearer", client.getAccessTokenTtlSeconds(),

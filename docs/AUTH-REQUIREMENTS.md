@@ -119,7 +119,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 - `valid`
 - `userId`
-- `tenantNo`
+- `tenantId`
 - `sessionId`
 - `identityId`
 - `identityType`
@@ -128,14 +128,14 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 - `sessionId`
 - `userId`
-- `tenantNo`
+- `tenantId`
 - `sessionStatus`
 - `lastAccessTime`
 
 `SessionCommandFacade` 固定方法：
 
-- `invalidateUserSessions(tenantNo, userId, reason)`
-- `invalidateTenantSessions(tenantNo, reason)`
+- `invalidateUserSessions(tenantId, userId, reason)`
+- `invalidateTenantSessions(tenantId, reason)`
 - `invalidateSession(sessionId, reason)`
 
 `OAuthClientReadFacade` 固定方法：
@@ -251,12 +251,12 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `token payload` 仅指用户登录态 `JWT claims`
 - `authorization code` 仅指第三方应用 `OAuth2` 授权码
 - `session` 仅指用户登录会话，不指第三方应用授权码或第三方令牌
-- `tenantNo` 当前作为 `Auth` 对外契约字段名保留，但其承载值固定为 `TenantId` 文本值
+- `tenantId` 固定承载 `TenantId` 文本值
 - `userId` 在 `Auth` 中固定承载 `UserId` 文本值
 
 ## 5.3 Fixed Response Contracts
 
-- `UserLoginResponse` 至少包含 `accessToken`、`refreshToken`、`tokenType`、`expiresIn`、`sessionId`、`userId`、`tenantNo`
+- `UserLoginResponse` 至少包含 `accessToken`、`refreshToken`、`tokenType`、`expiresIn`、`sessionId`、`userId`、`tenantId`
 - `UserLoginResponse.needChangePassword` 只在账号密码登录场景返回
 - `UserTokenRefreshResponse` 至少包含 `accessToken`、`refreshToken`、`tokenType`、`expiresIn`、`sessionId`
 - `OAuthClientDTO` 至少包含 `clientId`、`clientName`、`grantTypes`、`scopes`、`redirectUris`、`enabled`
@@ -264,20 +264,20 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `OAuth2IntrospectionResponse` 至少包含 `active`、`client_id`、`scope`、`sub`、`tenant_id`、`exp`
 - `OAuth2UserinfoResponse` 至少包含 `sub`、`tenant_id`
 - `OAuth2UserinfoResponse.name` 只在授予 `profile` 时返回
-- `SessionValidationResponse` 至少包含 `valid`、`tenantNo`、`userId`、`sessionId`、`identityType`、`expireAt`
-- `CurrentSessionResponse` 至少包含 `sessionId`、`tenantNo`、`userId`、`identityType`、`loginType`、`sessionStatus`、`issuedAt`、`lastAccessTime`、`expireAt`
+- `SessionValidationResponse` 至少包含 `valid`、`tenantId`、`userId`、`sessionId`、`identityType`、`expireAt`
+- `CurrentSessionResponse` 至少包含 `sessionId`、`tenantId`、`userId`、`identityType`、`loginType`、`sessionStatus`、`issuedAt`、`lastAccessTime`、`expireAt`
 
 ## 5.4 Fixed Fields
 
-- `AuthSession` 至少包含 `id`、`sessionId`、`tenantNo`、`userId`、`identityId`、`identityType`、`sessionStatus`、`loginType`、`issuedAt`、`lastAccessTime`、`expireAt`、`logoutAt`、`invalidateReason`
-- `AccessTokenClaims` 至少包含 `sub`、`sessionId`、`tenantNo`、`userId`、`identityId`、`identityType`、`iat`、`exp`、`iss`
+- `AuthSession` 至少包含 `id`、`sessionId`、`tenantId`、`userId`、`identityId`、`identityType`、`sessionStatus`、`loginType`、`issuedAt`、`lastAccessTime`、`expireAt`、`logoutAt`、`invalidateReason`
+- `AccessTokenClaims` 至少包含 `sub`、`sessionId`、`tenantId`、`userId`、`identityId`、`identityType`、`iat`、`exp`、`iss`
 - `RefreshTokenSession` 至少包含 `sessionId`、`refreshTokenHash`、`tokenStatus`、`issuedAt`、`expireAt`、`usedAt`
 - `OAuthClient` 至少包含 `id`、`clientId`、`clientSecret`、`clientName`、`clientType`、`grantTypes`、`scopes`、`redirectUris`、`accessTokenTtlSeconds`、`refreshTokenTtlSeconds`、`enabled`、`contact`、`remark`、`createdAt`、`updatedAt`
-- `OAuthAuthorizationCode` 至少包含 `authorizationCode`、`clientId`、`tenantNo`、`userId`、`redirectUri`、`scopes`、`codeChallenge`、`codeChallengeMethod`、`issuedAt`、`expireAt`、`used`
-- `OAuthAccessToken` 至少包含 `tokenId`、`tokenHash`、`clientId`、`tenantNo`、`userId`、`scopes`、`issuedAt`、`expireAt`、`tokenStatus`
-- `OAuthRefreshToken` 至少包含 `tokenId`、`tokenHash`、`accessTokenId`、`clientId`、`tenantNo`、`userId`、`issuedAt`、`expireAt`、`tokenStatus`
-- `OAuthConsent` 至少包含 `clientId`、`tenantNo`、`userId`、`grantedScopes`、`grantedAt`
-- `AuthAuditLog` 至少包含 `id`、`tenantNo`、`userId`、`identityId`、`identityType`、`sessionId`、`clientId`、`actionType`、`resultStatus`、`failureReason`、`requestIp`、`userAgent`、`occurredAt`
+- `OAuthAuthorizationCode` 至少包含 `authorizationCode`、`clientId`、`tenantId`、`userId`、`redirectUri`、`scopes`、`codeChallenge`、`codeChallengeMethod`、`issuedAt`、`expireAt`、`used`
+- `OAuthAccessToken` 至少包含 `tokenId`、`tokenHash`、`clientId`、`tenantId`、`userId`、`scopes`、`issuedAt`、`expireAt`、`tokenStatus`
+- `OAuthRefreshToken` 至少包含 `tokenId`、`tokenHash`、`accessTokenId`、`clientId`、`tenantId`、`userId`、`issuedAt`、`expireAt`、`tokenStatus`
+- `OAuthConsent` 至少包含 `clientId`、`tenantId`、`userId`、`grantedScopes`、`grantedAt`
+- `AuthAuditLog` 至少包含 `id`、`tenantId`、`userId`、`identityId`、`identityType`、`sessionId`、`clientId`、`actionType`、`resultStatus`、`failureReason`、`requestIp`、`userAgent`、`occurredAt`
 
 ## 5.5 Uniqueness And Index Rules
 
@@ -290,18 +290,18 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `OAuthRefreshToken.tokenId` 全局唯一
 - `OAuthRefreshToken.tokenHash` 全局唯一
 
-- `AuthSession` 必须建立 `(tenantNo, userId, sessionStatus)` 索引
+- `AuthSession` 必须建立 `(tenantId, userId, sessionStatus)` 索引
 - `RefreshTokenSession` 必须建立 `(sessionId, tokenStatus)` 索引
 - `OAuthAuthorizationCode` 必须建立 `(clientId, userId, expireAt)` 索引
 - `OAuthAccessToken` 必须建立 `(clientId, userId, tokenStatus)` 索引
-- `AuthAuditLog` 必须建立 `(tenantNo, occurredAt)`、`(userId, occurredAt)`、`(clientId, occurredAt)` 索引
+- `AuthAuditLog` 必须建立 `(tenantId, occurredAt)`、`(userId, occurredAt)`、`(clientId, occurredAt)` 索引
 
 ## 6. Global Constraints
 
 ### 6.1 Tenant And Identity
 
 - `Tenant` 是一级隔离边界
-- `AuthSession` 必须带 `tenantNo`
+- `AuthSession` 必须带 `tenantId`
 - `AuthSession` 必须带 `userId`
 - `AuthSession` 必须带 `identityId`
 - `AuthSession` 必须带 `identityType`
@@ -326,7 +326,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - 用户登录态 `refresh token TTL` 固定为 `604800` 秒
 - `access token` 与 `refresh token` 必须绑定同一 `sessionId`
 - `token payload` 只保存身份信息和会话定位信息，不保存权限数据
-- `token payload` 至少包含 `userId`、`tenantNo`、`sessionId`、`identityId`、`identityType`、`issuedAt`、`expireAt`
+- `token payload` 至少包含 `userId`、`tenantId`、`sessionId`、`identityId`、`identityType`、`issuedAt`、`expireAt`
 - `JWT iss` 固定为 `bacon-auth`
 - `refresh token` 不得明文落日志
 - 同一 `refresh token` 只能成功使用一次
@@ -356,7 +356,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `OAuth2 refresh token` 固定为一次性使用
 - `OAuth2 refresh token` 成功换发后，旧 `OAuth2 refresh token` 立即失效
 - 授权码必须一次性使用
-- 授权码必须绑定 `clientId`、`userId`、`tenantNo`、`redirectUri`、`scopes`
+- 授权码必须绑定 `clientId`、`userId`、`tenantId`、`redirectUri`、`scopes`
 - 未注册的 `redirectUri` 必须拒绝授权
 - 已停用 `OAuthClient` 不得发起授权和换发令牌
 - 第三方应用访问令牌校验必须支持令牌有效性查询
@@ -373,14 +373,14 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - 未授予 `profile` 时，不得返回 `name`
 - 当前 `userinfo` 最多返回 `sub`、`tenant_id`、`name`
 - `userinfo.sub` 固定映射为 `User.id`
-- `userinfo.tenant_id` 固定映射为当前用户所属 `tenantNo`
+- `userinfo.tenant_id` 固定映射为当前用户所属 `tenantId`
 
 ### 6.6 OAuth2 Authorization Request Context
 
 - `GET /oauth2/authorize` 成功校验后，必须生成服务端授权请求上下文
 - 授权请求上下文固定使用 `authorizationRequestId` 标识
 - `authorizationRequestId` 全局唯一
-- 授权请求上下文必须绑定 `clientId`、`redirectUri`、`scope`、`state`、`codeChallenge`、`codeChallengeMethod`、`tenantNo`、`userId`
+- 授权请求上下文必须绑定 `clientId`、`redirectUri`、`scope`、`state`、`codeChallenge`、`codeChallengeMethod`、`tenantId`、`userId`
 - 授权请求上下文 `TTL` 固定为 `300` 秒
 - `POST /oauth2/authorize/decision` 必须基于 `authorizationRequestId` 提交授权决定
 - `POST /oauth2/authorize/decision` 不得直接信任前端重复提交的 `redirectUri`、`codeChallenge`、`codeChallengeMethod`
@@ -392,7 +392,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - 每次成功登录必须创建新的 `AuthSession`
 - 单用户并发会话数不设固定上限
 - `AuthSession` 必须记录创建时间、最后访问时间、失效原因
-- `AuthSession` 必须支持按 `tenantNo`、`userId`、`sessionId` 查询
+- `AuthSession` 必须支持按 `tenantId`、`userId`、`sessionId` 查询
 - 会话校验必须同时校验令牌签名、过期时间和服务端会话状态
 - 用户显式登出后，当前会话立即失效
 - 用户停用后，全部活动会话立即失效
@@ -632,7 +632,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 必须记录的字段：
 
-- `tenantNo`
+- `tenantId`
 - `userId`
 - `identityId`
 - `identityType`
@@ -649,7 +649,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 补充约束：
 
 - 审计日志必须持久化存储
-- 审计日志必须可按 `tenantNo`、`userId`、`identityType`、操作类型、结果状态、时间范围查询
+- 审计日志必须可按 `tenantId`、`userId`、`identityType`、操作类型、结果状态、时间范围查询
 - 审计日志不得记录明文密码、哈希值、短信验证码、用户登录态 `refresh token`、`OAuth2 access token`、`OAuth2 refresh token`
 - 审计日志写入失败不得影响主业务提交结果
 
@@ -664,8 +664,8 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 - `auth:session:{sessionId}`
 - `auth:refresh-token:{refreshTokenHash}`
-- `auth:user-sessions:{tenantNo}:{userId}`
-- `auth:tenant-sessions:{tenantNo}`
+- `auth:user-sessions:{tenantId}:{userId}`
+- `auth:tenant-sessions:{tenantId}`
 - `auth:oauth-client:{clientId}`
 - `auth:oauth-code:{authorizationCode}`
 - `auth:oauth-access-token:{accessTokenId}`
@@ -775,7 +775,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 1. 用户登录成功
 2. 前端调用 `UPMS` 菜单树、权限码、数据权限上下文只读接口
-3. `UPMS` 根据 `tenantNo`、`userId` 返回最新授权结果
+3. `UPMS` 根据 `tenantId`、`userId` 返回最新授权结果
 4. 前端按返回结果渲染导航和按钮权限
 
 ### 8.7 OAuth2 Userinfo Read

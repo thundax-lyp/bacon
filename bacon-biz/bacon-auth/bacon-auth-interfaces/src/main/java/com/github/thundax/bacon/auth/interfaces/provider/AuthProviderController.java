@@ -46,17 +46,17 @@ public class AuthProviderController {
 
     @Operation(summary = "失效指定用户会话")
     @PostMapping("/sessions/invalidate/user")
-    public void invalidateUserSessions(@RequestParam("tenantNo") String tenantNo,
+    public void invalidateUserSessions(@RequestParam("tenantId") String tenantId,
                                        @RequestParam("userId") String userId,
                                        @RequestParam("reason") String reason) {
-        sessionApplicationService.invalidateUserSessions(tenantNo, userId, reason);
+        sessionApplicationService.invalidateUserSessions(tenantId, userId, reason);
     }
 
     @Operation(summary = "失效指定租户会话")
     @PostMapping("/sessions/invalidate/tenant")
-    public void invalidateTenantSessions(@RequestParam("tenantNo") String tenantNo,
+    public void invalidateTenantSessions(@RequestParam("tenantId") String tenantId,
                                          @RequestParam("reason") String reason) {
-        sessionApplicationService.invalidateTenantSessions(tenantNo, reason);
+        sessionApplicationService.invalidateTenantSessions(tenantId, reason);
     }
 
     @Operation(summary = "失效指定会话")

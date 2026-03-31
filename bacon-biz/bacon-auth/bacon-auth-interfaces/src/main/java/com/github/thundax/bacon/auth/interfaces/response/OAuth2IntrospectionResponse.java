@@ -16,12 +16,12 @@ public record OAuth2IntrospectionResponse(
         /** 用户主体标识。 */
         String sub,
         /** 租户标识。 */
-        @JsonProperty("tenant_id") String tenantNo,
+        @JsonProperty("tenant_id") String tenantId,
         /** 过期时间戳。 */
         long exp) {
 
     public static OAuth2IntrospectionResponse from(OAuth2IntrospectionDTO dto) {
         return new OAuth2IntrospectionResponse(dto.isActive(), dto.getClientId(), dto.getScope(), dto.getSub(),
-                dto.getTenantNo(), dto.getExp());
+                dto.getTenantId(), dto.getExp());
     }
 }

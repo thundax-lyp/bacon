@@ -19,13 +19,13 @@ public record UserLoginResponse(
         /** 用户主键。 */
         String userId,
         /** 所属租户编号。 */
-        String tenantNo,
+        String tenantId,
         /** 是否需要修改密码。 */
         Boolean needChangePassword) {
 
     public static UserLoginResponse from(UserLoginDTO dto) {
         return new UserLoginResponse(dto.getAccessToken(), dto.getRefreshToken(), dto.getTokenType(),
-                dto.getExpiresIn(), dto.getSessionId(), dto.getUserId(), dto.getTenantNo(),
+                dto.getExpiresIn(), dto.getSessionId(), dto.getUserId(), dto.getTenantId(),
                 dto.getNeedChangePassword());
     }
 }

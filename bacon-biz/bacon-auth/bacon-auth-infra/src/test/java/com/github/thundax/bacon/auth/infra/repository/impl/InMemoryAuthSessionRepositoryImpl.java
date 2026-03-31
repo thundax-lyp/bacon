@@ -31,17 +31,17 @@ public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository 
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantNoAndUserId(String tenantNo, String userId) {
+    public List<AuthSession> findSessionsByTenantIdAndUserId(String tenantId, String userId) {
         return authStore.getSessions().values().stream()
-                .filter(session -> tenantNo.equals(session.getTenantNo()))
+                .filter(session -> tenantId.equals(session.getTenantId()))
                 .filter(session -> userId.equals(session.getUserId()))
                 .toList();
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantNo(String tenantNo) {
+    public List<AuthSession> findSessionsByTenantId(String tenantId) {
         return authStore.getSessions().values().stream()
-                .filter(session -> tenantNo.equals(session.getTenantNo()))
+                .filter(session -> tenantId.equals(session.getTenantId()))
                 .toList();
     }
 

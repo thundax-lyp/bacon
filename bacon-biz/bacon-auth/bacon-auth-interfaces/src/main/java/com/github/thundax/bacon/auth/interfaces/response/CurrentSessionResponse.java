@@ -10,7 +10,7 @@ public record CurrentSessionResponse(
         /** 会话标识。 */
         String sessionId,
         /** 所属租户编号。 */
-        String tenantNo,
+        String tenantId,
         /** 用户主键。 */
         String userId,
         /** 身份标识类型。 */
@@ -27,7 +27,7 @@ public record CurrentSessionResponse(
         Instant expireAt) {
 
     public static CurrentSessionResponse from(CurrentSessionDTO dto) {
-        return new CurrentSessionResponse(dto.getSessionId(), dto.getTenantNo(), dto.getUserId(),
+        return new CurrentSessionResponse(dto.getSessionId(), dto.getTenantId(), dto.getUserId(),
                 dto.getIdentityType(), dto.getLoginType(), dto.getSessionStatus(), dto.getIssuedAt(),
                 dto.getLastAccessTime(), dto.getExpireAt());
     }

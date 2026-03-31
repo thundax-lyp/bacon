@@ -11,12 +11,10 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "bacon.payment.repository.mode", havingValue = "memory")
 public class InMemoryPaymentRepositorySupport {
 
     private final AtomicLong paymentOrderIdGenerator = new AtomicLong(1000L);

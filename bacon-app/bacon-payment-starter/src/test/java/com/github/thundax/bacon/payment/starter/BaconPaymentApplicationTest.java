@@ -16,7 +16,6 @@ import org.springframework.boot.test.context.SpringBootTest;
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"
                         + "org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration,"
                         + "com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration",
-                "bacon.payment.repository.mode=memory",
                 "bacon.remote.order-base-url=http://127.0.0.1:18084",
                 "bacon.remote.payment-base-url=http://127.0.0.1:18086"
         })

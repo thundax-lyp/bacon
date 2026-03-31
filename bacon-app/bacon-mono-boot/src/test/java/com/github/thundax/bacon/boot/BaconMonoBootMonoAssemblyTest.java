@@ -44,7 +44,6 @@ import static org.assertj.core.api.Assertions.assertThat;
                 "spring.cloud.nacos.config.enabled=false",
                 "spring.boot.admin.client.enabled=false",
                 "spring.main.lazy-initialization=true",
-                "bacon.payment.repository.mode=memory",
                 "spring.autoconfigure.exclude="
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"

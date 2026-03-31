@@ -34,7 +34,7 @@ public class PermissionQueryApplicationService {
     }
 
     public List<UserMenuTreeDTO> getUserMenuTree(String tenantId, String userId) {
-        return getUserMenuTree(resolveTenantIdByTenantId(tenantId), UserId.of(userId));
+        return getUserMenuTree(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
     public Set<String> getUserPermissionCodes(TenantId tenantId, UserId userId) {
@@ -42,7 +42,7 @@ public class PermissionQueryApplicationService {
     }
 
     public Set<String> getUserPermissionCodes(String tenantId, String userId) {
-        return getUserPermissionCodes(resolveTenantIdByTenantId(tenantId), UserId.of(userId));
+        return getUserPermissionCodes(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
     public UserDataScopeDTO getUserDataScope(TenantId tenantId, UserId userId) {
@@ -53,10 +53,10 @@ public class PermissionQueryApplicationService {
     }
 
     public UserDataScopeDTO getUserDataScope(String tenantId, String userId) {
-        return getUserDataScope(resolveTenantIdByTenantId(tenantId), UserId.of(userId));
+        return getUserDataScope(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
-    private TenantId resolveTenantIdByTenantId(String tenantId) {
+    private TenantId requireExistingTenantId(String tenantId) {
         if (tenantId == null || tenantId.isBlank()) {
             throw new IllegalArgumentException("tenantId must not be blank");
         }

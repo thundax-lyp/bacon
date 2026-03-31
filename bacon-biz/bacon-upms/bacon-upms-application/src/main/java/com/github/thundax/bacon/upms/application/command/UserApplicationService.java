@@ -73,7 +73,7 @@ public class UserApplicationService {
     }
 
     public UserDTO getUserById(String tenantId, String userId) {
-        return getUserById(resolveTenantIdByTenantId(tenantId), UserId.of(userId));
+        return getUserById(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
     public UserIdentityDTO getUserIdentity(TenantId tenantId, String identityType, String identityValue) {
@@ -85,7 +85,7 @@ public class UserApplicationService {
     }
 
     public UserIdentityDTO getUserIdentity(String tenantId, String identityType, String identityValue) {
-        return getUserIdentity(resolveTenantIdByTenantId(tenantId), identityType, identityValue);
+        return getUserIdentity(requireExistingTenantId(tenantId), identityType, identityValue);
     }
 
     public UserLoginCredentialDTO getUserLoginCredential(TenantId tenantId, String identityType, String identityValue) {
@@ -105,7 +105,7 @@ public class UserApplicationService {
     }
 
     public UserLoginCredentialDTO getUserLoginCredential(String tenantId, String identityType, String identityValue) {
-        return getUserLoginCredential(resolveTenantIdByTenantId(tenantId), identityType, identityValue);
+        return getUserLoginCredential(requireExistingTenantId(tenantId), identityType, identityValue);
     }
 
     public TenantDTO getTenantByTenantId(String tenantId) {
@@ -234,7 +234,7 @@ public class UserApplicationService {
     }
 
     public void changePassword(String tenantId, String userId, String oldPassword, String newPassword) {
-        changePassword(resolveTenantIdByTenantId(tenantId), UserId.of(userId), oldPassword, newPassword);
+        changePassword(requireExistingTenantId(tenantId), UserId.of(userId), oldPassword, newPassword);
     }
 
     public List<RoleDTO> assignRoles(TenantId tenantId, String userId, List<Long> roleIds) {
@@ -312,7 +312,7 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
     }
 
-    private TenantId resolveTenantIdByTenantId(String tenantId) {
+    private TenantId requireExistingTenantId(String tenantId) {
         validateRequired(tenantId, "tenantId");
         return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .map(Tenant::getId)

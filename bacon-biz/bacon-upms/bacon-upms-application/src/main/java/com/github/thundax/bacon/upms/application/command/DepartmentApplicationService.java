@@ -34,7 +34,7 @@ public class DepartmentApplicationService {
     }
 
     public DepartmentDTO getDepartmentById(String tenantId, Long departmentId) {
-        return getDepartmentById(resolveTenantIdByTenantId(tenantId), departmentId);
+        return getDepartmentById(requireExistingTenantId(tenantId), departmentId);
     }
 
     public DepartmentDTO getDepartmentByCode(TenantId tenantId, String departmentCode) {
@@ -43,7 +43,7 @@ public class DepartmentApplicationService {
     }
 
     public DepartmentDTO getDepartmentByCode(String tenantId, String departmentCode) {
-        return getDepartmentByCode(resolveTenantIdByTenantId(tenantId), departmentCode);
+        return getDepartmentByCode(requireExistingTenantId(tenantId), departmentCode);
     }
 
     public List<DepartmentDTO> listDepartmentsByIds(TenantId tenantId, Set<Long> departmentIds) {
@@ -54,7 +54,7 @@ public class DepartmentApplicationService {
     }
 
     public List<DepartmentDTO> listDepartmentsByIds(String tenantId, Set<Long> departmentIds) {
-        return listDepartmentsByIds(resolveTenantIdByTenantId(tenantId), departmentIds);
+        return listDepartmentsByIds(requireExistingTenantId(tenantId), departmentIds);
     }
 
     public List<DepartmentTreeDTO> getDepartmentTree(TenantId tenantId) {
@@ -170,7 +170,7 @@ public class DepartmentApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private TenantId resolveTenantIdByTenantId(String tenantId) {
+    private TenantId requireExistingTenantId(String tenantId) {
         validateRequired(tenantId, "tenantId");
         return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .map(Tenant::getId)

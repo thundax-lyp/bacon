@@ -4,6 +4,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
+import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -19,11 +20,16 @@ public class UserRepositoryImpl implements UserRepository {
     private final UserPersistenceSupport support;
     private final RoleRepositoryImpl roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UpmsPermissionCacheSupport cacheSupport;
 
-    public UserRepositoryImpl(UserPersistenceSupport support, RoleRepositoryImpl roleRepository, PasswordEncoder passwordEncoder) {
+    public UserRepositoryImpl(UserPersistenceSupport support,
+                              RoleRepositoryImpl roleRepository,
+                              PasswordEncoder passwordEncoder,
+                              UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.cacheSupport = cacheSupport;
     }
 
     @Override
@@ -93,6 +99,7 @@ public class UserRepositoryImpl implements UserRepository {
                         .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId)))
                 .toList();
         roleRepository.bindUserRoles(tenantId, userId, roles);
+        cacheSupport.evictUserPermission(tenantId, userId);
         return roles;
     }
 
@@ -101,6 +108,7 @@ public class UserRepositoryImpl implements UserRepository {
         support.deleteUser(tenantId, userId);
         roleRepository.clearUserRoles(tenantId, userId);
         support.deleteUserIdentitiesByUser(tenantId, userId);
+        cacheSupport.evictUserPermission(tenantId, userId);
     }
 
     private User createUser(User user) {

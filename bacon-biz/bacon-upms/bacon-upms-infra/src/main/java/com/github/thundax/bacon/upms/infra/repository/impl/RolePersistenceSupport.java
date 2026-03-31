@@ -81,6 +81,16 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
+    List<Long> findAssignedUserIds(Long tenantId, Long roleId) {
+        return userRoleRelMapper.selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
+                        .eq(UserRoleRelDO::getTenantId, tenantId)
+                        .eq(UserRoleRelDO::getRoleId, roleId))
+                .stream()
+                .map(UserRoleRelDO::getUserId)
+                .distinct()
+                .toList();
+    }
+
     List<Role> listRoles(Long tenantId, String code, String name, String roleType, String status, int pageNo, int pageSize) {
         return roleMapper.selectList(Wrappers.<RoleDO>lambdaQuery()
                         .eq(RoleDO::getTenantId, tenantId)

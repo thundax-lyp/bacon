@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
+import com.alicp.jetcache.Cache;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
@@ -12,6 +14,7 @@ import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
+import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DataPermissionRuleMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DepartmentMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.MenuMapper;
@@ -34,7 +37,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,8 +49,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UpmsRepositoryIntegrationTest {
 
-    private static final AnnotationConfigApplicationContext CONTEXT =
-            new AnnotationConfigApplicationContext(TestConfig.class);
+    private static final org.springframework.context.annotation.AnnotationConfigApplicationContext CONTEXT =
+            new org.springframework.context.annotation.AnnotationConfigApplicationContext(TestConfig.class);
 
     private final DataSource dataSource = CONTEXT.getBean(DataSource.class);
     private final UserRepository userRepository = CONTEXT.getBean(UserRepository.class);
@@ -242,6 +244,8 @@ class UpmsRepositoryIntegrationTest {
         roleRepository.assignDataScope(1001L, role.getId(), "CUSTOM", Set.of(rootDepartment.getId(), childDepartment.getId()));
         userRepository.assignRoles(1001L, user.getId(), List.of(role.getId()));
 
+        assertEquals(1, permissionRepository.listMenus(1001L).size());
+
         User persistedUser = userRepository.findUserByAccount(1001L, "alice").orElseThrow();
         assertNotNull(persistedUser.getId());
         assertNotNull(persistedUser.getPasswordHash());
@@ -300,6 +304,13 @@ class UpmsRepositoryIntegrationTest {
         roleRepository.assignResources(1001L, role.getId(), Set.of(oldResource.getCode()));
         roleRepository.assignDataScope(1001L, role.getId(), "CUSTOM", Set.of(root.getId()));
 
+        User user = userRepository.save(new User(null, 1001L, "manager", "Manager", "13700000001", null, child.getId(), "ACTIVE", false));
+        userRepository.assignRoles(1001L, user.getId(), List.of(role.getId()));
+
+        assertEquals(Set.of("upms:old:view", "upms:old:edit"), permissionRepository.getUserPermissionCodes(1001L, user.getId()));
+        assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(1001L, user.getId()));
+        assertEquals(1, permissionRepository.getUserMenuTree(1001L, user.getId()).size());
+
         roleRepository.assignMenus(1001L, role.getId(), Set.of(newMenu.getId()));
         roleRepository.assignResources(1001L, role.getId(), Set.of(newResource.getCode()));
         roleRepository.assignDataScope(1001L, role.getId(), "ALL", Set.of(child.getId()));
@@ -308,6 +319,8 @@ class UpmsRepositoryIntegrationTest {
         assertEquals(Set.of(newResource.getCode()), roleRepository.getAssignedResources(1001L, role.getId()));
         assertEquals("ALL", roleRepository.getAssignedDataScopeType(1001L, role.getId()));
         assertEquals(Set.of(child.getId()), roleRepository.getAssignedDataScopeDepartments(1001L, role.getId()));
+        assertEquals(Set.of("upms:new:view", "upms:new:edit"), permissionRepository.getUserPermissionCodes(1001L, user.getId()));
+        assertEquals(Set.of("ALL"), permissionRepository.getUserScopeTypes(1001L, user.getId()));
         assertTrue(departmentRepository.existsChildDepartment(1001L, root.getId()));
         assertEquals(Set.of(root.getId(), child.getId()),
                 departmentRepository.listDepartmentsByIds(1001L, Set.of(root.getId(), child.getId())).stream()
@@ -319,6 +332,7 @@ class UpmsRepositoryIntegrationTest {
 
         assertTrue(roleRepository.getAssignedMenus(1001L, role.getId()).isEmpty());
         assertTrue(roleRepository.getAssignedResources(1001L, role.getId()).isEmpty());
+        assertTrue(permissionRepository.getUserPermissionCodes(1001L, user.getId()).isEmpty());
         assertNotEquals(oldMenu.getId(), newMenu.getId());
         assertNotEquals(oldResource.getId(), newResource.getId());
     }
@@ -326,6 +340,8 @@ class UpmsRepositoryIntegrationTest {
     @Configuration(proxyBeanMethods = false)
     @MapperScan("com.github.thundax.bacon.upms.infra.persistence.mapper")
     static class TestConfig {
+
+        private static final int TEST_CACHE_LIMIT = 1_000;
 
         @Bean
         DataSource dataSource() {
@@ -356,6 +372,25 @@ class UpmsRepositoryIntegrationTest {
                     return encodedPassword.equals(encode(rawPassword));
                 }
             };
+        }
+
+        @Bean
+        UpmsPermissionCacheSupport upmsPermissionCacheSupport() {
+            return new UpmsPermissionCacheSupport(
+                    buildCache(),
+                    buildCache(),
+                    buildCache(),
+                    buildCache(),
+                    buildCache(),
+                    buildCache(),
+                    buildCache()
+            );
+        }
+
+        private <K, V> Cache<K, V> buildCache() {
+            return LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
+                    .limit(TEST_CACHE_LIMIT)
+                    .buildCache();
         }
 
         @Bean
@@ -402,13 +437,15 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        RoleRepositoryImpl roleRepository(RolePersistenceSupport rolePersistenceSupport) {
-            return new RoleRepositoryImpl(rolePersistenceSupport);
+        RoleRepositoryImpl roleRepository(RolePersistenceSupport rolePersistenceSupport,
+                                          UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new RoleRepositoryImpl(rolePersistenceSupport, upmsPermissionCacheSupport);
         }
 
         @Bean
-        ResourceRepository resourceRepository(ResourcePersistenceSupport resourcePersistenceSupport) {
-            return new ResourceRepositoryImpl(resourcePersistenceSupport);
+        ResourceRepository resourceRepository(ResourcePersistenceSupport resourcePersistenceSupport,
+                                            UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new ResourceRepositoryImpl(resourcePersistenceSupport, upmsPermissionCacheSupport);
         }
 
         @Bean
@@ -420,18 +457,23 @@ class UpmsRepositoryIntegrationTest {
         @Bean
         UserRepositoryImpl userRepositoryImpl(UserPersistenceSupport userPersistenceSupport,
                                               RoleRepositoryImpl roleRepository,
-                                              PasswordEncoder passwordEncoder) {
-            return new UserRepositoryImpl(userPersistenceSupport, roleRepository, passwordEncoder);
+                                              PasswordEncoder passwordEncoder,
+                                              UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new UserRepositoryImpl(userPersistenceSupport, roleRepository, passwordEncoder, upmsPermissionCacheSupport);
         }
 
         @Bean
-        PermissionRepository permissionRepository(MenuRepositoryImpl menuRepository, RoleRepositoryImpl roleRepository) {
-            return new PermissionRepositoryImpl(menuRepository, roleRepository);
+        PermissionRepository permissionRepository(MenuRepositoryImpl menuRepository,
+                                                  RoleRepositoryImpl roleRepository,
+                                                  UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new PermissionRepositoryImpl(menuRepository, roleRepository, upmsPermissionCacheSupport);
         }
 
         @Bean
-        MenuRepositoryImpl menuRepositoryImpl(MenuPersistenceSupport menuPersistenceSupport, RoleRepositoryImpl roleRepository) {
-            return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository);
+        MenuRepositoryImpl menuRepositoryImpl(MenuPersistenceSupport menuPersistenceSupport,
+                                              RoleRepositoryImpl roleRepository,
+                                              UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport);
         }
     }
 }

@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
+import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -12,9 +13,11 @@ import org.springframework.stereotype.Repository;
 public class ResourceRepositoryImpl implements ResourceRepository {
 
     private final ResourcePersistenceSupport support;
+    private final UpmsPermissionCacheSupport cacheSupport;
 
-    public ResourceRepositoryImpl(ResourcePersistenceSupport support) {
+    public ResourceRepositoryImpl(ResourcePersistenceSupport support, UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;
+        this.cacheSupport = cacheSupport;
     }
 
     @Override
@@ -35,11 +38,14 @@ public class ResourceRepositoryImpl implements ResourceRepository {
 
     @Override
     public Resource save(Resource resource) {
-        return support.saveResource(resource);
+        Resource savedResource = support.saveResource(resource);
+        cacheSupport.evictTenantPermission(savedResource.getTenantId());
+        return savedResource;
     }
 
     @Override
     public void delete(Long tenantId, Long resourceId) {
         support.deleteResource(tenantId, resourceId);
+        cacheSupport.evictTenantPermission(tenantId);
     }
 }

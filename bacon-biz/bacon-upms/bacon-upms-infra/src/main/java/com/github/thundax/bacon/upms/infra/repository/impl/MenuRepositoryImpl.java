@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
+import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -13,10 +14,14 @@ public class MenuRepositoryImpl implements MenuRepository {
 
     private final MenuPersistenceSupport support;
     private final RoleRepositoryImpl roleRepository;
+    private final UpmsPermissionCacheSupport cacheSupport;
 
-    public MenuRepositoryImpl(MenuPersistenceSupport support, RoleRepositoryImpl roleRepository) {
+    public MenuRepositoryImpl(MenuPersistenceSupport support,
+                              RoleRepositoryImpl roleRepository,
+                              UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;
         this.roleRepository = roleRepository;
+        this.cacheSupport = cacheSupport;
     }
 
     @Override
@@ -31,7 +36,9 @@ public class MenuRepositoryImpl implements MenuRepository {
 
     @Override
     public Menu save(Menu menu) {
-        return support.saveMenu(menu);
+        Menu savedMenu = support.saveMenu(menu);
+        cacheSupport.evictTenantPermission(savedMenu.getTenantId());
+        return savedMenu;
     }
 
     @Override
@@ -47,6 +54,7 @@ public class MenuRepositoryImpl implements MenuRepository {
     public void deleteMenu(Long tenantId, Long menuId) {
         support.deleteMenu(tenantId, menuId);
         roleRepository.removeMenuFromAssignments(tenantId, menuId);
+        cacheSupport.evictTenantPermission(tenantId);
     }
 
     @Override

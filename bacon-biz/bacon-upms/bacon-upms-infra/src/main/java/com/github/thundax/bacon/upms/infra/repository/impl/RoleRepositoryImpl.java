@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
+import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -13,9 +14,11 @@ import org.springframework.stereotype.Repository;
 public class RoleRepositoryImpl implements RoleRepository {
 
     private final RolePersistenceSupport support;
+    private final UpmsPermissionCacheSupport cacheSupport;
 
-    public RoleRepositoryImpl(RolePersistenceSupport support) {
+    public RoleRepositoryImpl(RolePersistenceSupport support, UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;
+        this.cacheSupport = cacheSupport;
     }
 
     @Override
@@ -40,7 +43,9 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public Role save(Role role) {
-        return support.saveRole(role);
+        Role savedRole = support.saveRole(role);
+        cacheSupport.evictUsersPermission(savedRole.getTenantId(), support.findAssignedUserIds(savedRole.getTenantId(), savedRole.getId()));
+        return savedRole;
     }
 
     @Override
@@ -63,7 +68,9 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public void deleteRole(Long tenantId, Long roleId) {
+        List<Long> assignedUserIds = support.findAssignedUserIds(tenantId, roleId);
         support.deleteRole(tenantId, roleId);
+        cacheSupport.evictUsersPermission(tenantId, assignedUserIds);
     }
 
     @Override
@@ -77,6 +84,7 @@ public class RoleRepositoryImpl implements RoleRepository {
         findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         Set<Long> safeMenuIds = menuIds == null ? Set.of() : Set.copyOf(menuIds);
         support.replaceRoleMenus(tenantId, roleId, safeMenuIds);
+        cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
         return safeMenuIds;
     }
 
@@ -91,6 +99,7 @@ public class RoleRepositoryImpl implements RoleRepository {
         findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         Set<String> safeResourceCodes = resourceCodes == null ? Set.of() : Set.copyOf(resourceCodes);
         support.replaceRoleResources(tenantId, roleId, safeResourceCodes);
+        cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
         return safeResourceCodes;
     }
 
@@ -115,15 +124,18 @@ public class RoleRepositoryImpl implements RoleRepository {
         support.saveRole(new Role(currentRole.getId(), currentRole.getTenantId(), currentRole.getCode(), currentRole.getName(),
                 currentRole.getRoleType(), dataScopeType, currentRole.getStatus(), currentRole.getCreatedBy(),
                 currentRole.getCreatedAt(), currentRole.getUpdatedBy(), currentRole.getUpdatedAt()));
+        cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
         return safeDepartmentIds;
     }
 
     void bindUserRoles(Long tenantId, Long userId, List<Role> assignedRoles) {
         support.replaceUserRoles(tenantId, userId, assignedRoles.stream().map(Role::getId).toList());
+        cacheSupport.evictUserPermission(tenantId, userId);
     }
 
     void clearUserRoles(Long tenantId, Long userId) {
         support.deleteUserRolesByUser(tenantId, userId);
+        cacheSupport.evictUserPermission(tenantId, userId);
     }
 
     void removeMenuFromAssignments(Long tenantId, Long menuId) {

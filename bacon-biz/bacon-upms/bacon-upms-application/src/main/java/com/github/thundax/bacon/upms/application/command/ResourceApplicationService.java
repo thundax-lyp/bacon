@@ -6,25 +6,30 @@ import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
+import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
+import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ResourceApplicationService {
 
     private final ResourceRepository resourceRepository;
+    private final TenantRepository tenantRepository;
 
-    public ResourceApplicationService(ResourceRepository resourceRepository) {
+    public ResourceApplicationService(ResourceRepository resourceRepository, TenantRepository tenantRepository) {
         this.resourceRepository = resourceRepository;
+        this.tenantRepository = tenantRepository;
     }
 
     public ResourcePageResultDTO pageResources(ResourcePageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+        String tenantNo = resolveTenantNoByTenantId(query.getTenantId());
         return new ResourcePageResultDTO(
                 resourceRepository.pageResources(query.getTenantId(), query.getCode(), query.getName(),
                         query.getResourceType(), query.getStatus(), pageNo, pageSize).stream()
-                        .map(this::toDto)
+                        .map(resource -> toDto(resource, tenantNo))
                         .toList(),
                 resourceRepository.countResources(query.getTenantId(), query.getCode(), query.getName(),
                         query.getResourceType(), query.getStatus()),
@@ -80,8 +85,19 @@ public class ResourceApplicationService {
     }
 
     private ResourceDTO toDto(Resource resource) {
-        return new ResourceDTO(resource.getId(), resource.getTenantId(), resource.getCode(), resource.getName(),
+        return toDto(resource, resolveTenantNoByTenantId(resource.getTenantId()));
+    }
+
+    private ResourceDTO toDto(Resource resource, String tenantNo) {
+        return new ResourceDTO(resource.getId(), tenantNo, resource.getCode(),
+                resource.getName(),
                 resource.getResourceType(), resource.getHttpMethod(), resource.getUri(), resource.getStatus());
+    }
+
+    private String resolveTenantNoByTenantId(Long tenantId) {
+        return tenantRepository.findTenantById(tenantId)
+                .map(Tenant::getTenantNo)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 
     private void validateRequired(String value, String fieldName) {

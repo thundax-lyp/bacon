@@ -6,6 +6,8 @@ import java.util.Optional;
 
 public interface TenantRepository {
 
+    Optional<Tenant> findTenantById(Long tenantId);
+
     Optional<Tenant> findTenantByTenantNo(String tenantNo);
 
     List<Tenant> pageTenants(String tenantNo, String name, String status, int pageNo, int pageSize);

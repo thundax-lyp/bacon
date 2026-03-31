@@ -9,8 +9,8 @@ import java.time.Instant;
 public record SysLogResponse(
         /** 日志主键。 */
         Long id,
-        /** 租户标识。 */
-        String tenantId,
+        /** 租户编号。 */
+        String tenantNo,
         /** 链路追踪标识。 */
         String traceId,
         /** 请求标识。 */
@@ -41,7 +41,7 @@ public record SysLogResponse(
         Instant occurredAt) {
 
     public static SysLogResponse from(SysLogDTO dto) {
-        return new SysLogResponse(dto.getId(), dto.getTenantId(), dto.getTraceId(), dto.getRequestId(),
+        return new SysLogResponse(dto.getId(), dto.getTenantNo(), dto.getTraceId(), dto.getRequestId(),
                 dto.getModule(), dto.getAction(), dto.getEventType(), dto.getResult(), dto.getOperatorId(),
                 dto.getOperatorName(), dto.getClientIp(), dto.getRequestUri(), dto.getHttpMethod(),
                 dto.getCostMs(), dto.getErrorMessage(), dto.getOccurredAt());

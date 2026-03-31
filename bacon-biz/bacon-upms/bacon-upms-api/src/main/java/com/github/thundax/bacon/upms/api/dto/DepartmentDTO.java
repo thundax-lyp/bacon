@@ -14,8 +14,8 @@ public class DepartmentDTO {
 
     /** 部门主键。 */
     private Long id;
-    /** 所属租户主键。 */
-    private Long tenantId;
+    /** 所属租户编号。 */
+    private String tenantNo;
     /** 部门编码。 */
     private String code;
     /** 部门名称。 */

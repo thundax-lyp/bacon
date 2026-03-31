@@ -18,6 +18,11 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
+    public Optional<Tenant> findTenantById(Long tenantId) {
+        return support.findTenantById(tenantId);
+    }
+
+    @Override
     public Optional<Tenant> findTenantByTenantNo(String tenantNo) {
         return support.findTenantByTenantNo(tenantNo);
     }

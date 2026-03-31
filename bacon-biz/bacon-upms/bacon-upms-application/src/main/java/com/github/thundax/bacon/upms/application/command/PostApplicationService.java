@@ -6,25 +6,30 @@ import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
+import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
+import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PostApplicationService {
 
     private final PostRepository postRepository;
+    private final TenantRepository tenantRepository;
 
-    public PostApplicationService(PostRepository postRepository) {
+    public PostApplicationService(PostRepository postRepository, TenantRepository tenantRepository) {
         this.postRepository = postRepository;
+        this.tenantRepository = tenantRepository;
     }
 
     public PostPageResultDTO pagePosts(PostPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+        String tenantNo = resolveTenantNoByTenantId(query.getTenantId());
         return new PostPageResultDTO(
                 postRepository.pagePosts(query.getTenantId(), query.getCode(), query.getName(),
                         query.getDepartmentId(), query.getStatus(), pageNo, pageSize).stream()
-                        .map(this::toDto)
+                        .map(post -> toDto(post, tenantNo))
                         .toList(),
                 postRepository.countPosts(query.getTenantId(), query.getCode(), query.getName(),
                         query.getDepartmentId(), query.getStatus()),
@@ -72,8 +77,18 @@ public class PostApplicationService {
     }
 
     private PostDTO toDto(Post post) {
-        return new PostDTO(post.getId(), post.getTenantId(), post.getCode(), post.getName(),
+        return toDto(post, resolveTenantNoByTenantId(post.getTenantId()));
+    }
+
+    private PostDTO toDto(Post post, String tenantNo) {
+        return new PostDTO(post.getId(), tenantNo, post.getCode(), post.getName(),
                 post.getDepartmentId(), post.getStatus());
+    }
+
+    private String resolveTenantNoByTenantId(Long tenantId) {
+        return tenantRepository.findTenantById(tenantId)
+                .map(Tenant::getTenantNo)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 
     private void validateRequired(String value, String fieldName) {

@@ -3,8 +3,10 @@ package com.github.thundax.bacon.upms.application.command;
 import com.github.thundax.bacon.upms.api.dto.MenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
+import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,10 +16,13 @@ public class MenuApplicationService {
 
     private final MenuRepository menuRepository;
     private final PermissionRepository permissionRepository;
+    private final TenantRepository tenantRepository;
 
-    public MenuApplicationService(MenuRepository menuRepository, PermissionRepository permissionRepository) {
+    public MenuApplicationService(MenuRepository menuRepository, PermissionRepository permissionRepository,
+                                  TenantRepository tenantRepository) {
         this.menuRepository = menuRepository;
         this.permissionRepository = permissionRepository;
+        this.tenantRepository = tenantRepository;
     }
 
     public List<UserMenuTreeDTO> toMenuTree(List<Menu> menus) {
@@ -27,7 +32,8 @@ public class MenuApplicationService {
 
     public List<MenuTreeDTO> getMenuTree(Long tenantId) {
         // 菜单树读取直接复用权限仓储结果，避免命令侧和权限侧各维护一套树装配逻辑。
-        return permissionRepository.listMenus(tenantId).stream().map(this::toTreeDto).toList();
+        String tenantNo = resolveTenantNoByTenantId(tenantId);
+        return permissionRepository.listMenus(tenantId).stream().map(menu -> toTreeDto(menu, tenantNo)).toList();
     }
 
     public MenuTreeDTO createMenu(Long tenantId, String menuType, String name, Long parentId, String routePath,
@@ -78,9 +84,22 @@ public class MenuApplicationService {
     }
 
     private MenuTreeDTO toTreeDto(Menu menu) {
-        return new MenuTreeDTO(menu.getId(), menu.getTenantId(), menu.getMenuType(), menu.getName(), menu.getParentId(),
+        return toTreeDto(menu, resolveTenantNoByTenantId(menu.getTenantId()));
+    }
+
+    private MenuTreeDTO toTreeDto(Menu menu, String tenantNo) {
+        return new MenuTreeDTO(menu.getId(), tenantNo, menu.getMenuType(),
+                menu.getName(), menu.getParentId(),
                 menu.getRoutePath(), menu.getComponentName(), menu.getIcon(), menu.getSort(), menu.getPermissionCode(),
-                menu.getChildren() == null ? List.of() : menu.getChildren().stream().map(this::toTreeDto).toList());
+                menu.getChildren() == null ? List.of() : menu.getChildren().stream()
+                        .map(child -> toTreeDto(child, tenantNo))
+                        .toList());
+    }
+
+    private String resolveTenantNoByTenantId(Long tenantId) {
+        return tenantRepository.findTenantById(tenantId)
+                .map(Tenant::getTenantNo)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 
     private void validateParent(Long tenantId, Long parentId) {

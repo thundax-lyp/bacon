@@ -45,8 +45,9 @@ public class DepartmentApplicationService {
     }
 
     public List<DepartmentDTO> listDepartmentsByIds(Long tenantId, Set<Long> departmentIds) {
+        String tenantNo = resolveTenantNoByTenantId(tenantId);
         return departmentRepository.listDepartmentsByIds(tenantId, departmentIds).stream()
-                .map(this::toDto)
+                .map(department -> toDto(department, tenantNo))
                 .toList();
     }
 
@@ -56,9 +57,10 @@ public class DepartmentApplicationService {
 
     public List<DepartmentTreeDTO> getDepartmentTree(Long tenantId) {
         List<Department> departments = departmentRepository.listDepartmentTree(tenantId);
+        String tenantNo = resolveTenantNoByTenantId(tenantId);
         // 先平铺映射成节点表，再按 parentId 二次挂接，避免 repository 被迫返回固定层级结构。
         Map<Long, DepartmentTreeDTO> treeNodeMap = departments.stream()
-                .map(this::toTreeDto)
+                .map(department -> toTreeDto(department, tenantNo))
                 .collect(Collectors.toMap(DepartmentTreeDTO::getId, Function.identity()));
 
         departments.forEach(department -> {
@@ -122,12 +124,22 @@ public class DepartmentApplicationService {
     }
 
     private DepartmentDTO toDto(Department department) {
-        return new DepartmentDTO(department.getId(), department.getTenantId(), department.getCode(), department.getName(),
+        return toDto(department, resolveTenantNoByTenantId(department.getTenantId()));
+    }
+
+    private DepartmentDTO toDto(Department department, String tenantNo) {
+        return new DepartmentDTO(department.getId(), tenantNo,
+                department.getCode(), department.getName(),
                 department.getParentId(), department.getLeaderUserId(), department.getStatus());
     }
 
     private DepartmentTreeDTO toTreeDto(Department department) {
-        return new DepartmentTreeDTO(department.getId(), department.getTenantId(), department.getCode(), department.getName(),
+        return toTreeDto(department, resolveTenantNoByTenantId(department.getTenantId()));
+    }
+
+    private DepartmentTreeDTO toTreeDto(Department department, String tenantNo) {
+        return new DepartmentTreeDTO(department.getId(), tenantNo,
+                department.getCode(), department.getName(),
                 department.getParentId(), department.getLeaderUserId(), department.getStatus(), new java.util.ArrayList<>());
     }
 
@@ -155,5 +167,11 @@ public class DepartmentApplicationService {
         return tenantRepository.findTenantByTenantNo(normalize(tenantNo))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
+    }
+
+    private String resolveTenantNoByTenantId(Long tenantId) {
+        return tenantRepository.findTenantById(tenantId)
+                .map(Tenant::getTenantNo)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 }

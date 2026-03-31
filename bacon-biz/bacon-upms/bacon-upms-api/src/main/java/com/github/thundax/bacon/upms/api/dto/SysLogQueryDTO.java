@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SysLogQueryDTO {
 
-    /** 租户标识。 */
-    private String tenantId;
+    /** 租户编号。 */
+    private String tenantNo;
     /** 业务模块。 */
     private String module;
     /** 事件类型。 */

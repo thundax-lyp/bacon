@@ -77,7 +77,8 @@ public class UserApplicationService {
     public UserIdentityDTO getUserIdentity(Long tenantId, String identityType, String identityValue) {
         UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, identityType, identityValue)
                 .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
-        return new UserIdentityDTO(userIdentity.getId(), userIdentity.getTenantId(), userIdentity.getUserId(),
+        return new UserIdentityDTO(userIdentity.getId(), resolveTenantNoByTenantId(userIdentity.getTenantId()),
+                userIdentity.getUserId(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled());
     }
 
@@ -92,7 +93,8 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Password credential not found"));
         User user = userRepository.findUserById(userIdentity.getTenantId(), userIdentity.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
-        return new UserLoginCredentialDTO(user.getTenantId(), user.getId(), user.getAccount(), user.getPhone(),
+        return new UserLoginCredentialDTO(resolveTenantNoByTenantId(user.getTenantId()), user.getId(),
+                user.getAccount(), user.getPhone(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
                 passwordCredential.getId(), passwordCredential.getCredentialType(), passwordCredential.getStatus(),
                 passwordCredential.isNeedChangePassword(), passwordCredential.getExpiresAt(),
@@ -113,8 +115,11 @@ public class UserApplicationService {
     public UserPageResultDTO pageUsers(UserPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+        String tenantNo = resolveTenantNoByTenantId(query.getTenantId());
         return new UserPageResultDTO(userRepository.pageUsers(query.getTenantId(), query.getAccount(), query.getName(),
-                query.getPhone(), query.getStatus(), pageNo, pageSize).stream().map(this::toSummaryDto).toList(),
+                query.getPhone(), query.getStatus(), pageNo, pageSize).stream()
+                .map(user -> toSummaryDto(user, tenantNo))
+                .toList(),
                 userRepository.countUsers(query.getTenantId(), query.getAccount(), query.getName(), query.getPhone(),
                         query.getStatus()),
                 pageNo, pageSize);
@@ -227,12 +232,18 @@ public class UserApplicationService {
 
     public List<RoleDTO> assignRoles(Long tenantId, Long userId, List<Long> roleIds) {
         requireUser(tenantId, userId);
-        return userRepository.assignRoles(tenantId, userId, roleIds).stream().map(this::toRoleDto).toList();
+        String tenantNo = resolveTenantNoByTenantId(tenantId);
+        return userRepository.assignRoles(tenantId, userId, roleIds).stream()
+                .map(role -> toRoleDto(role, tenantNo))
+                .toList();
     }
 
     public List<RoleDTO> getRolesByUserId(Long tenantId, Long userId) {
         requireUser(tenantId, userId);
-        return roleRepository.findRolesByUserId(tenantId, userId).stream().map(this::toRoleDto).toList();
+        String tenantNo = resolveTenantNoByTenantId(tenantId);
+        return roleRepository.findRolesByUserId(tenantId, userId).stream()
+                .map(role -> toRoleDto(role, tenantNo))
+                .toList();
     }
 
     public List<UserDTO> importUsers(Long tenantId, List<UserImportCommand> commands) {
@@ -246,8 +257,9 @@ public class UserApplicationService {
     }
 
     public List<UserDTO> exportUsers(UserPageQueryDTO query) {
+        String tenantNo = resolveTenantNoByTenantId(query.getTenantId());
         return userRepository.listUsers(query.getTenantId(), query.getAccount(), query.getName(), query.getPhone(),
-                query.getStatus()).stream().map(this::toSummaryDto).toList();
+                query.getStatus()).stream().map(user -> toSummaryDto(user, tenantNo)).toList();
     }
 
     public UserDTO updateAvatar(Long tenantId, Long userId, String originalFilename, String contentType, Long size,
@@ -276,7 +288,7 @@ public class UserApplicationService {
                 storedObjectFacade.clearObjectReference(previousAvatarObjectId, USER_AVATAR_OWNER_TYPE,
                         String.valueOf(userId));
             }
-            return toDto(savedUser, storedObject.getAccessEndpoint());
+            return toDto(savedUser, storedObject.getAccessEndpoint(), resolveTenantNoByTenantId(savedUser.getTenantId()));
         } catch (RuntimeException ex) {
             storedObjectFacade.clearObjectReference(storedObject.getId(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId));
             throw ex;
@@ -295,6 +307,12 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
     }
 
+    private String resolveTenantNoByTenantId(Long tenantId) {
+        return tenantRepository.findTenantById(tenantId)
+                .map(Tenant::getTenantNo)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
+    }
+
     private void ensureAccountUnique(Long tenantId, String account, Long excludedUserId) {
         userRepository.findUserByAccount(tenantId, normalize(account))
                 .filter(existingUser -> !existingUser.getId().equals(excludedUserId))
@@ -304,20 +322,21 @@ public class UserApplicationService {
     }
 
     private UserDTO toDetailedDto(User user) {
-        return toDto(user, resolveAvatarUrl(user.getAvatarObjectId()));
+        return toDto(user, resolveAvatarUrl(user.getAvatarObjectId()), resolveTenantNoByTenantId(user.getTenantId()));
     }
 
-    private UserDTO toSummaryDto(User user) {
-        return toDto(user, null);
+    private UserDTO toSummaryDto(User user, String tenantNo) {
+        return toDto(user, null, tenantNo);
     }
 
-    private UserDTO toDto(User user, String avatarUrl) {
-        return new UserDTO(user.getId(), user.getTenantId(), user.getAccount(), user.getName(),
+    private UserDTO toDto(User user, String avatarUrl, String tenantNo) {
+        return new UserDTO(user.getId(), tenantNo, user.getAccount(), user.getName(),
                 user.getAvatarObjectId(), user.getPhone(), user.getDepartmentId(), avatarUrl, user.getStatus().value());
     }
 
-    private RoleDTO toRoleDto(Role role) {
-        return new RoleDTO(role.getId(), role.getTenantId(), role.getCode(), role.getName(), role.getRoleType(),
+    private RoleDTO toRoleDto(Role role, String tenantNo) {
+        return new RoleDTO(role.getId(), tenantNo, role.getCode(), role.getName(),
+                role.getRoleType(),
                 role.getDataScopeType(), role.getStatus());
     }
 

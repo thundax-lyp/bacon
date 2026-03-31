@@ -15,8 +15,8 @@ public class SysLogDTO {
 
     /** 日志主键。 */
     private Long id;
-    /** 租户标识。 */
-    private String tenantId;
+    /** 租户编号。 */
+    private String tenantNo;
     /** 链路追踪标识。 */
     private String traceId;
     /** 请求标识。 */

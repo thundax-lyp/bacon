@@ -73,6 +73,8 @@ class UserApplicationServiceTest {
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
 
         when(userRepository.findUserById(1001L, 101L)).thenReturn(Optional.of(currentUser));
+        when(tenantRepository.findTenantById(1001L))
+                .thenReturn(Optional.of(new Tenant(1001L, "tenant-demo", "Demo Tenant", TenantStatus.ENABLED)));
         when(storedObjectFacade.uploadObject(any())).thenReturn(storedObject);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
@@ -119,10 +121,13 @@ class UserApplicationServiceTest {
                 UserStatus.ENABLED);
         when(userRepository.pageUsers(1001L, null, null, null, null, 1, 20)).thenReturn(List.of(user));
         when(userRepository.countUsers(1001L, null, null, null, null)).thenReturn(1L);
+        when(tenantRepository.findTenantById(1001L))
+                .thenReturn(Optional.of(new Tenant(1001L, "tenant-demo", "Demo Tenant", TenantStatus.ENABLED)));
 
         UserPageResultDTO result = service.pageUsers(new UserPageQueryDTO(1001L, null, null, null, null, 1, 20));
 
         assertThat(result.getRecords()).hasSize(1);
+        assertThat(result.getRecords().get(0).getTenantNo()).isEqualTo("tenant-demo");
         assertThat(result.getRecords().get(0).getAvatarObjectId()).isEqualTo(501L);
         assertThat(result.getRecords().get(0).getAvatarUrl()).isNull();
         verify(storedObjectFacade, never()).getObjectById(any());
@@ -165,9 +170,12 @@ class UserApplicationServiceTest {
         when(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice")).thenReturn(Optional.of(accountIdentity));
         when(userRepository.findUserCredential(1001L, 101L, "PASSWORD")).thenReturn(Optional.of(passwordCredential));
         when(userRepository.findUserById(1001L, 101L)).thenReturn(Optional.of(user));
+        when(tenantRepository.findTenantById(1001L))
+                .thenReturn(Optional.of(new Tenant(1001L, "tenant-demo", "Demo Tenant", TenantStatus.ENABLED)));
 
         UserLoginCredentialDTO credential = service.getUserLoginCredential("tenant-demo", "ACCOUNT", "alice");
 
+        assertThat(credential.getTenantNo()).isEqualTo("tenant-demo");
         assertThat(credential.getPasswordHash()).isEqualTo("{noop}identity");
         assertThat(credential.isNeedChangePassword()).isTrue();
     }

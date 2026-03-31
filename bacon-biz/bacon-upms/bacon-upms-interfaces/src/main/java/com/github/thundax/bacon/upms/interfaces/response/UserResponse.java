@@ -8,8 +8,8 @@ import com.github.thundax.bacon.upms.api.dto.UserDTO;
 public record UserResponse(
         /** 用户主键。 */
         Long id,
-        /** 所属租户主键。 */
-        Long tenantId,
+        /** 所属租户编号。 */
+        String tenantNo,
         /** 登录账号。 */
         String account,
         /** 用户名称。 */
@@ -26,7 +26,7 @@ public record UserResponse(
         String status) {
 
     public static UserResponse from(UserDTO dto) {
-        return new UserResponse(dto.getId(), dto.getTenantId(), dto.getAccount(), dto.getName(),
+        return new UserResponse(dto.getId(), dto.getTenantNo(), dto.getAccount(), dto.getName(),
                 dto.getAvatarObjectId(), dto.getPhone(), dto.getDepartmentId(), dto.getAvatarUrl(), dto.getStatus());
     }
 }

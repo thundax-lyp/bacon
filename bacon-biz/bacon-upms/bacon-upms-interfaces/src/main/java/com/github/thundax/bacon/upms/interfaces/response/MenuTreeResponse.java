@@ -9,8 +9,8 @@ import java.util.List;
 public record MenuTreeResponse(
         /** 菜单主键。 */
         Long id,
-        /** 所属租户主键。 */
-        Long tenantId,
+        /** 所属租户编号。 */
+        String tenantNo,
         /** 菜单类型。 */
         String menuType,
         /** 菜单名称。 */
@@ -34,7 +34,7 @@ public record MenuTreeResponse(
         List<MenuTreeResponse> childResponses = dto.getChildren() == null
                 ? List.of()
                 : dto.getChildren().stream().map(MenuTreeResponse::from).toList();
-        return new MenuTreeResponse(dto.getId(), dto.getTenantId(), dto.getMenuType(), dto.getName(), dto.getParentId(),
+        return new MenuTreeResponse(dto.getId(), dto.getTenantNo(), dto.getMenuType(), dto.getName(), dto.getParentId(),
                 dto.getRoutePath(), dto.getComponentName(), dto.getIcon(), dto.getSort(), dto.getPermissionCode(),
                 childResponses);
     }

@@ -7,6 +7,7 @@ import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageResultDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -59,9 +60,9 @@ class UserApplicationServiceTest {
     @Test
     void shouldUploadAvatarToStorageAndReplaceOldReference() throws Exception {
         User currentUser = new User(101L, 1001L, "alice", "Alice", 301L, "13800000001", "{noop}123456", 11L,
-                "ENABLED", false);
+                UserStatus.ENABLED);
         User savedUser = new User(101L, 1001L, "alice", "Alice", 401L, "13800000001", "{noop}123456", 11L,
-                "ENABLED", false);
+                UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
         storedObject.setId(401L);
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
@@ -85,7 +86,7 @@ class UserApplicationServiceTest {
     @Test
     void shouldRejectUnsupportedAvatarContentType() {
         User currentUser = new User(101L, 1001L, "alice", "Alice", null, "13800000001", "{noop}123456", 11L,
-                "ENABLED", false);
+                UserStatus.ENABLED);
         when(userRepository.findUserById(1001L, 101L)).thenReturn(Optional.of(currentUser));
 
         assertThatThrownBy(() -> service.updateAvatar(1001L, 101L, "avatar.gif", "image/gif", 12L,
@@ -97,7 +98,7 @@ class UserApplicationServiceTest {
     @Test
     void shouldRejectNonSquareAvatarImage() throws Exception {
         User currentUser = new User(101L, 1001L, "alice", "Alice", null, "13800000001", "{noop}123456", 11L,
-                "ENABLED", false);
+                UserStatus.ENABLED);
         byte[] bytes = createImageBytes("png", 256, 180);
         when(userRepository.findUserById(1001L, 101L)).thenReturn(Optional.of(currentUser));
 
@@ -110,7 +111,7 @@ class UserApplicationServiceTest {
     @Test
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
         User user = new User(101L, 1001L, "alice", "Alice", 501L, "13800000001", "{noop}123456", 11L,
-                "ENABLED", false);
+                UserStatus.ENABLED);
         when(userRepository.pageUsers(1001L, null, null, null, null, 1, 20)).thenReturn(List.of(user));
         when(userRepository.countUsers(1001L, null, null, null, null)).thenReturn(1L);
 
@@ -125,7 +126,7 @@ class UserApplicationServiceTest {
     @Test
     void shouldClearAvatarReferenceWhenDeletingUser() {
         User user = new User(101L, 1001L, "alice", "Alice", 501L, "13800000001", "{noop}123456", 11L,
-                "ENABLED", false);
+                UserStatus.ENABLED);
         when(userRepository.findUserById(1001L, 101L)).thenReturn(Optional.of(user));
 
         service.deleteUser(1001L, 101L);
@@ -133,6 +134,18 @@ class UserApplicationServiceTest {
         verify(userRepository).deleteUser(1001L, 101L);
         verify(storedObjectFacade).clearObjectReference(501L, "UPMS_USER_AVATAR", "101");
         verify(sessionCommandFacade).invalidateUserSessions(1001L, 101L, "USER_DELETED");
+    }
+
+    @Test
+    void shouldResolveAvatarAccessUrl() {
+        User user = new User(101L, 1001L, "alice", "Alice", 501L, "13800000001", "{noop}123456", 11L,
+                UserStatus.ENABLED);
+        StoredObjectDTO storedObject = new StoredObjectDTO();
+        storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
+        when(userRepository.findUserById(1001L, 101L)).thenReturn(Optional.of(user));
+        when(storedObjectFacade.getObjectById(501L)).thenReturn(storedObject);
+
+        assertThat(service.getAvatarAccessUrl(1001L, 101L)).contains("https://cdn.example.com/avatar/501.png");
     }
 
     private byte[] createImageBytes(String format, int width, int height) throws Exception {

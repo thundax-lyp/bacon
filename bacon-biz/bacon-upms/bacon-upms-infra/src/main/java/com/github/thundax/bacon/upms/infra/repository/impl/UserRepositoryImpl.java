@@ -85,7 +85,6 @@ public class UserRepositoryImpl implements UserRepository {
                 passwordEncoder.encode(password),
                 currentUser.getDepartmentId(),
                 currentUser.getStatus(),
-                currentUser.isDeleted(),
                 currentUser.getCreatedBy(),
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),
@@ -115,7 +114,7 @@ public class UserRepositoryImpl implements UserRepository {
     private User createUser(User user) {
         return new User(null, user.getTenantId(), user.getAccount(), user.getName(), user.getAvatarObjectId(),
                 user.getPhone(), passwordEncoder.encode(DEFAULT_PASSWORD), user.getDepartmentId(),
-                user.getStatus(), false);
+                user.getStatus());
     }
 
     private User updateUser(User user) {
@@ -131,7 +130,6 @@ public class UserRepositoryImpl implements UserRepository {
                 user.getPasswordHash() == null ? currentUser.getPasswordHash() : user.getPasswordHash(),
                 user.getDepartmentId(),
                 user.getStatus(),
-                user.isDeleted(),
                 currentUser.getCreatedBy(),
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),

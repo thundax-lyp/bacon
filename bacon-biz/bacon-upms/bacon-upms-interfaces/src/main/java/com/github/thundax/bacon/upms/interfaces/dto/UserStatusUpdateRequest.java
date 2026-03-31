@@ -1,4 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-public record UserStatusUpdateRequest(Long tenantId, String status) {
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
+
+public record UserStatusUpdateRequest(Long tenantId, UpmsStatusEnum status) {
 }

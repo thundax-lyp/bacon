@@ -39,6 +39,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @WrappedApiController
@@ -87,6 +91,19 @@ public class UserController {
     @GetMapping("/{userId}")
     public UserResponse getUserById(@PathVariable Long userId, @ModelAttribute TenantScopedRequest request) {
         return UserResponse.from(userApplicationService.getUserById(request.getTenantId(), userId));
+    }
+
+    @Operation(summary = "访问用户头像")
+    @SysLog(module = "UPMS", action = "访问用户头像", eventType = LogEventType.QUERY)
+    @GetMapping("/{userId}/avatar")
+    public ResponseEntity<Void> getAvatar(@PathVariable("userId") Long userId, @ModelAttribute TenantScopedRequest request) {
+        java.util.Optional<String> avatarAccessUrl = userApplicationService.getAvatarAccessUrl(request.getTenantId(), userId);
+        if (avatarAccessUrl.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, URI.create(avatarAccessUrl.get()).toString())
+                .build();
     }
 
     @Operation(summary = "按身份标识查询用户身份")

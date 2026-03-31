@@ -30,6 +30,4 @@ public class UserDTO {
     private String avatarUrl;
     /** 用户状态。 */
     private String status;
-    /** 逻辑删除标记。 */
-    private boolean deleted;
 }

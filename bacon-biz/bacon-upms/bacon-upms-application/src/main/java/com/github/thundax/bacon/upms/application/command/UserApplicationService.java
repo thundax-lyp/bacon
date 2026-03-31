@@ -17,6 +17,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -27,6 +28,7 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -81,7 +83,7 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
         return new UserLoginCredentialDTO(user.getTenantId(), user.getId(), user.getAccount(), user.getPhone(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
-                user.getStatus(), user.isDeleted(), user.getPasswordHash());
+                user.getStatus().value(), user.getPasswordHash());
     }
 
     public TenantDTO getTenantByTenantId(Long tenantId) {
@@ -106,7 +108,7 @@ public class UserApplicationService {
         validateRequired(name, "name");
         ensureAccountUnique(tenantId, account, null);
         User savedUser = userRepository.save(new User(null, tenantId, normalize(account), normalize(name), normalize(phone),
-                null, departmentId, UpmsStatusEnum.ENABLED.value(), false));
+                null, departmentId, UserStatus.ENABLED));
         return toDetailedDto(savedUser);
     }
 
@@ -125,7 +127,6 @@ public class UserApplicationService {
                 currentUser.getPasswordHash(),
                 departmentId,
                 currentUser.getStatus(),
-                currentUser.isDeleted(),
                 currentUser.getCreatedBy(),
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),
@@ -133,9 +134,11 @@ public class UserApplicationService {
         return toDetailedDto(savedUser);
     }
 
-    public UserDTO updateUserStatus(Long tenantId, Long userId, String status) {
+    public UserDTO updateUserStatus(Long tenantId, Long userId, UpmsStatusEnum status) {
         User currentUser = requireUser(tenantId, userId);
-        validateRequired(status, "status");
+        if (status == null) {
+            throw new IllegalArgumentException("status must not be null");
+        }
         User savedUser = userRepository.save(new User(
                 currentUser.getId(),
                 tenantId,
@@ -145,16 +148,23 @@ public class UserApplicationService {
                 currentUser.getPhone(),
                 currentUser.getPasswordHash(),
                 currentUser.getDepartmentId(),
-                normalize(status),
-                currentUser.isDeleted(),
+                toDomainStatus(status),
                 currentUser.getCreatedBy(),
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt()));
-        if (UpmsStatusEnum.DISABLED.matches(savedUser.getStatus())) {
+        if (UserStatus.DISABLED == savedUser.getStatus()) {
             sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_DISABLED");
         }
         return toDetailedDto(savedUser);
+    }
+
+    public Optional<String> getAvatarAccessUrl(Long tenantId, Long userId) {
+        User user = requireUser(tenantId, userId);
+        if (user.getAvatarObjectId() == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(resolveAvatarUrl(user.getAvatarObjectId()));
     }
 
     public void deleteUser(Long tenantId, Long userId) {
@@ -235,7 +245,6 @@ public class UserApplicationService {
                     currentUser.getPasswordHash(),
                     currentUser.getDepartmentId(),
                     currentUser.getStatus(),
-                    currentUser.isDeleted(),
                     currentUser.getCreatedBy(),
                     currentUser.getCreatedAt(),
                     currentUser.getUpdatedBy(),
@@ -274,8 +283,7 @@ public class UserApplicationService {
 
     private UserDTO toDto(User user, String avatarUrl) {
         return new UserDTO(user.getId(), user.getTenantId(), user.getAccount(), user.getName(),
-                user.getAvatarObjectId(), user.getPhone(), user.getDepartmentId(), avatarUrl, user.getStatus(),
-                user.isDeleted());
+                user.getAvatarObjectId(), user.getPhone(), user.getDepartmentId(), avatarUrl, user.getStatus().value());
     }
 
     private RoleDTO toRoleDto(Role role) {
@@ -392,6 +400,10 @@ public class UserApplicationService {
 
     private String normalizeContentType(String contentType) {
         return contentType == null ? "" : contentType.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private UserStatus toDomainStatus(UpmsStatusEnum status) {
+        return UserStatus.valueOf(status.name());
     }
 
     private record AvatarImage(String originalFilename, String contentType, Long size, byte[] bytes) {

@@ -23,13 +23,10 @@ public record UserResponse(
         /** 头像访问地址。 */
         String avatarUrl,
         /** 用户状态。 */
-        String status,
-        /** 逻辑删除标记。 */
-        boolean deleted) {
+        String status) {
 
     public static UserResponse from(UserDTO dto) {
         return new UserResponse(dto.getId(), dto.getTenantId(), dto.getAccount(), dto.getName(),
-                dto.getAvatarObjectId(), dto.getPhone(), dto.getDepartmentId(), dto.getAvatarUrl(), dto.getStatus(),
-                dto.isDeleted());
+                dto.getAvatarObjectId(), dto.getPhone(), dto.getDepartmentId(), dto.getAvatarUrl(), dto.getStatus());
     }
 }

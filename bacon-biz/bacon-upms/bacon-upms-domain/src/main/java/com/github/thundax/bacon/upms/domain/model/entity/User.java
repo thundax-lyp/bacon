@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -27,9 +28,7 @@ public class User {
     /** 所属部门主键。 */
     private Long departmentId;
     /** 用户状态。 */
-    private String status;
-    /** 逻辑删除标记。 */
-    private boolean deleted;
+    private UserStatus status;
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
@@ -40,25 +39,25 @@ public class User {
     private LocalDateTime updatedAt;
 
     public User(Long id, Long tenantId, String account, String name, String phone, String passwordHash,
-                Long departmentId, String status, boolean deleted) {
-        this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status, deleted);
+                Long departmentId, UserStatus status) {
+        this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status);
     }
 
     public User(Long id, Long tenantId, String account, String name, Long avatarObjectId, String phone,
-                String passwordHash, Long departmentId, String status, boolean deleted) {
-        this(id, tenantId, account, name, avatarObjectId, phone, passwordHash, departmentId, status, deleted,
+                String passwordHash, Long departmentId, UserStatus status) {
+        this(id, tenantId, account, name, avatarObjectId, phone, passwordHash, departmentId, status,
                 null, null, null, null);
     }
 
     public User(Long id, Long tenantId, String account, String name, String phone, String passwordHash,
-                Long departmentId, String status, boolean deleted, String createdBy, LocalDateTime createdAt,
+                Long departmentId, UserStatus status, String createdBy, LocalDateTime createdAt,
                 String updatedBy, LocalDateTime updatedAt) {
-        this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status, deleted,
+        this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status,
                 createdBy, createdAt, updatedBy, updatedAt);
     }
 
     public User(Long id, Long tenantId, String account, String name, Long avatarObjectId, String phone,
-                String passwordHash, Long departmentId, String status, boolean deleted, String createdBy,
+                String passwordHash, Long departmentId, UserStatus status, String createdBy,
                 LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
@@ -69,7 +68,6 @@ public class User {
         this.passwordHash = passwordHash;
         this.departmentId = departmentId;
         this.status = status;
-        this.deleted = deleted;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
         this.updatedBy = updatedBy;

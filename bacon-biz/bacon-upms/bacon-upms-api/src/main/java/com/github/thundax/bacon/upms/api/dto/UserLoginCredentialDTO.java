@@ -28,8 +28,6 @@ public class UserLoginCredentialDTO {
     private boolean identityEnabled;
     /** 用户状态。 */
     private String status;
-    /** 逻辑删除标记。 */
-    private boolean deleted;
     /** 密码哈希。 */
     private String passwordHash;
 }

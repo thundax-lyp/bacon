@@ -9,6 +9,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.MenuDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.PostDO;
@@ -50,15 +51,14 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final UserDO toDataObject(User user) {
         return new UserDO(user.getId(), user.getTenantId(), user.getAccount(), user.getName(), user.getAvatarObjectId(),
-                user.getPhone(), user.getPasswordHash(), user.getDepartmentId(), user.getStatus(),
-                user.isDeleted(), user.getCreatedBy(), user.getCreatedAt(), user.getUpdatedBy(), user.getUpdatedAt());
+                user.getPhone(), user.getPasswordHash(), user.getDepartmentId(), user.getStatus().value(),
+                false, user.getCreatedBy(), user.getCreatedAt(), user.getUpdatedBy(), user.getUpdatedAt());
     }
 
     protected final User toDomain(UserDO userDO) {
         return new User(userDO.getId(), userDO.getTenantId(), userDO.getAccount(), userDO.getName(),
                 userDO.getAvatarObjectId(), userDO.getPhone(), userDO.getPasswordHash(), userDO.getDepartmentId(),
-                userDO.getStatus(),
-                Boolean.TRUE.equals(userDO.getDeleted()), userDO.getCreatedBy(), userDO.getCreatedAt(),
+                UserStatus.valueOf(userDO.getStatus()), userDO.getCreatedBy(), userDO.getCreatedAt(),
                 userDO.getUpdatedBy(), userDO.getUpdatedAt());
     }
 

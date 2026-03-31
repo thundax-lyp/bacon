@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -239,7 +240,7 @@ class UpmsRepositoryIntegrationTest {
         Resource resource = resourceRepository.save(new Resource(null, 1001L, "upms:user:edit", "Edit User", "API", "POST", "/users", "ACTIVE"));
         Role role = roleRepository.save(new Role(null, 1001L, "ADMIN", "Administrator", "SYSTEM", "SELF", "ACTIVE"));
         User user = userRepository.save(new User(null, 1001L, "alice", "Alice", 901L, "13800000001", null,
-                childDepartment.getId(), "ACTIVE", false));
+                childDepartment.getId(), UserStatus.ENABLED));
 
         roleRepository.assignMenus(1001L, role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
         roleRepository.assignResources(1001L, role.getId(), Set.of(resource.getCode()));
@@ -254,7 +255,7 @@ class UpmsRepositoryIntegrationTest {
         assertNotNull(persistedUser.getPasswordHash());
         assertTrue(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice").isPresent());
         assertTrue(userRepository.findUserIdentity(1001L, "PHONE", "13800000001").isPresent());
-        assertEquals(1L, userRepository.countUsers(1001L, "ali", null, null, "ACTIVE"));
+        assertEquals(1L, userRepository.countUsers(1001L, "ali", null, null, "ENABLED"));
 
         List<Menu> menuTree = permissionRepository.getUserMenuTree(1001L, user.getId());
         assertEquals(1, menuTree.size());
@@ -276,11 +277,11 @@ class UpmsRepositoryIntegrationTest {
         Department department = departmentRepository.save(new Department(null, 1001L, "OPS", "Operations", 0L, null, "ACTIVE"));
         Role role = roleRepository.save(new Role(null, 1001L, "OPS_ADMIN", "Ops Admin", "SYSTEM", "SELF", "ACTIVE"));
         User createdUser = userRepository.save(new User(null, 1001L, "bob", "Bob", 1001L, "13800000002", null,
-                department.getId(), "ACTIVE", false));
+                department.getId(), UserStatus.ENABLED));
 
         userRepository.assignRoles(1001L, createdUser.getId(), List.of(role.getId()));
         User updatedUser = userRepository.save(new User(createdUser.getId(), 1001L, "bob", "Bob", 1002L, "13900000003",
-                createdUser.getPasswordHash(), department.getId(), "ACTIVE", false));
+                createdUser.getPasswordHash(), department.getId(), UserStatus.ENABLED));
 
         assertFalse(userRepository.findUserIdentity(1001L, "PHONE", "13800000002").isPresent());
         assertTrue(userRepository.findUserIdentity(1001L, "PHONE", "13900000003").isPresent());
@@ -310,7 +311,7 @@ class UpmsRepositoryIntegrationTest {
         roleRepository.assignDataScope(1001L, role.getId(), "CUSTOM", Set.of(root.getId()));
 
         User user = userRepository.save(new User(null, 1001L, "manager", "Manager", null, "13700000001", null,
-                child.getId(), "ACTIVE", false));
+                child.getId(), UserStatus.ENABLED));
         userRepository.assignRoles(1001L, user.getId(), List.of(role.getId()));
 
         assertEquals(Set.of("upms:old:view", "upms:old:edit"), permissionRepository.getUserPermissionCodes(1001L, user.getId()));

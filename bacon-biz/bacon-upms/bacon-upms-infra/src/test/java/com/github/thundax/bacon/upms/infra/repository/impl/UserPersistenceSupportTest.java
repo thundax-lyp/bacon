@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
@@ -34,7 +35,8 @@ class UserPersistenceSupportTest {
     @Test
     void shouldInsertUserAndMapGeneratedId() {
         ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
-        User newUser = new User(null, 1L, "alice", "Alice", 9001L, "13800000001", "ENC", 11L, "ACTIVE", false);
+        User newUser = new User(null, 1L, "alice", "Alice", 9001L, "13800000001", "ENC", 11L,
+                UserStatus.ENABLED);
 
         when(userMapper.insert(any(UserDO.class))).thenAnswer(invocation -> {
             UserDO dataObject = invocation.getArgument(0);

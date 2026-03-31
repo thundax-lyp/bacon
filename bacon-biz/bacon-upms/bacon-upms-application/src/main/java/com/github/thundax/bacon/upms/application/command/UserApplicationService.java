@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
@@ -20,7 +21,6 @@ import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
-import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -109,7 +109,7 @@ public class UserApplicationService {
     }
 
     public TenantDTO getTenantByTenantNo(String tenantNo) {
-        Tenant tenant = tenantRepository.findTenantByTenantNo(new TenantNo(tenantNo))
+        Tenant tenant = tenantRepository.findTenantByTenantId(TenantId.of(tenantNo))
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
         return new TenantDTO(tenant.getId(), tenant.getTenantNo(), tenant.getName(), tenant.getStatus().value());
     }
@@ -314,7 +314,7 @@ public class UserApplicationService {
 
     private Long resolveTenantIdByTenantNo(String tenantNo) {
         validateRequired(tenantNo, "tenantNo");
-        return tenantRepository.findTenantByTenantNo(new TenantNo(tenantNo))
+        return tenantRepository.findTenantByTenantId(TenantId.of(tenantNo))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
     }

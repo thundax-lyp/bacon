@@ -1,11 +1,11 @@
 package com.github.thundax.bacon.upms.application.query;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
-import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
@@ -61,7 +61,7 @@ public class PermissionQueryApplicationService {
             throw new IllegalArgumentException("tenantNo must not be blank");
         }
         String normalizedTenantNo = tenantNo.trim();
-        return tenantRepository.findTenantByTenantNo(new TenantNo(normalizedTenantNo))
+        return tenantRepository.findTenantByTenantId(TenantId.of(normalizedTenantNo))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
     }

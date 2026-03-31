@@ -1,11 +1,11 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
-import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +37,7 @@ class TenantApplicationServiceTest {
 
     @Test
     void shouldCreateTenantWithTenantNo() {
-        when(tenantRepository.findTenantByTenantNo(new TenantNo("tenant-demo"))).thenReturn(Optional.empty());
+        when(tenantRepository.findTenantByTenantId(TenantId.of("tenant-demo"))).thenReturn(Optional.empty());
         when(tenantRepository.saveTenant(any(Tenant.class)))
                 .thenReturn(new Tenant(1L, "tenant-demo", "Demo Tenant", TenantStatus.ENABLED));
 
@@ -50,7 +50,7 @@ class TenantApplicationServiceTest {
 
     @Test
     void shouldRejectDuplicateTenantNo() {
-        when(tenantRepository.findTenantByTenantNo(new TenantNo("tenant-demo")))
+        when(tenantRepository.findTenantByTenantId(TenantId.of("tenant-demo")))
                 .thenReturn(Optional.of(new Tenant(1L, "tenant-demo", "Demo Tenant", TenantStatus.ENABLED)));
 
         assertThatThrownBy(() -> service.createTenant("tenant-demo", "Other"))
@@ -60,7 +60,7 @@ class TenantApplicationServiceTest {
 
     @Test
     void shouldInvalidateTenantSessionsWhenTenantDisabled() {
-        when(tenantRepository.updateTenantStatus(new TenantNo("1001"), "DISABLED"))
+        when(tenantRepository.updateTenantStatus(TenantId.of("1001"), "DISABLED"))
                 .thenReturn(new Tenant(1L, "1001", "Demo Tenant", TenantStatus.DISABLED));
 
         TenantDTO result = service.updateTenantStatus("1001", UpmsStatusEnum.DISABLED);

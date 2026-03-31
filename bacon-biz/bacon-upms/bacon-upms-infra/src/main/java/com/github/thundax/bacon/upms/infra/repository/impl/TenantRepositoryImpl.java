@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
-import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.List;
 import java.util.Optional;
@@ -24,18 +24,18 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public Optional<Tenant> findTenantByTenantNo(TenantNo tenantNo) {
-        return support.findTenantByTenantNo(tenantNo);
+    public Optional<Tenant> findTenantByTenantId(TenantId tenantId) {
+        return support.findTenantByTenantId(tenantId);
     }
 
     @Override
-    public List<Tenant> pageTenants(TenantNo tenantNo, String name, String status, int pageNo, int pageSize) {
-        return support.listTenants(tenantNo, name, status, pageNo, pageSize);
+    public List<Tenant> pageTenants(TenantId tenantId, String name, String status, int pageNo, int pageSize) {
+        return support.listTenants(tenantId, name, status, pageNo, pageSize);
     }
 
     @Override
-    public long countTenants(TenantNo tenantNo, String name, String status) {
-        return support.countTenants(tenantNo, name, status);
+    public long countTenants(TenantId tenantId, String name, String status) {
+        return support.countTenants(tenantId, name, status);
     }
 
     @Override
@@ -47,12 +47,12 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public Tenant updateTenantStatus(TenantNo tenantNo, String status) {
-        Tenant currentTenant = findTenantByTenantNo(tenantNo)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo.value()));
+    public Tenant updateTenantStatus(TenantId tenantId, String status) {
+        Tenant currentTenant = findTenantByTenantId(tenantId)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
         return support.saveTenant(new Tenant(
                 currentTenant.getId(),
-                currentTenant.getTenantNo(),
+                currentTenant.getTenantId(),
                 currentTenant.getName(),
                 com.github.thundax.bacon.upms.domain.model.enums.TenantStatus.fromValue(status),
                 currentTenant.getCreatedBy(),

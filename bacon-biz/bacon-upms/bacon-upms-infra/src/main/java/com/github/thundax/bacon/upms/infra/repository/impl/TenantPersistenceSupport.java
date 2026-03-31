@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
-import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.TenantDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.TenantMapper;
 import java.util.List;
@@ -28,17 +28,17 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    Optional<Tenant> findTenantByTenantNo(TenantNo tenantNo) {
-        String tenantNoValue = tenantNo == null ? null : tenantNo.value();
+    Optional<Tenant> findTenantByTenantId(TenantId tenantId) {
+        String tenantIdValue = tenantId == null ? null : tenantId.value();
         return Optional.ofNullable(tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(TenantDO::getTenantNo, trim(tenantNoValue))))
+                        .eq(TenantDO::getTenantNo, trim(tenantIdValue))))
                 .map(this::toDomain);
     }
 
-    List<Tenant> listTenants(TenantNo tenantNo, String name, String status, int pageNo, int pageSize) {
-        String tenantNoValue = tenantNo == null ? null : tenantNo.value();
+    List<Tenant> listTenants(TenantId tenantId, String name, String status, int pageNo, int pageSize) {
+        String tenantIdValue = tenantId == null ? null : tenantId.value();
         return tenantMapper.selectList(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(hasText(tenantNoValue), TenantDO::getTenantNo, trim(tenantNoValue))
+                        .eq(hasText(tenantIdValue), TenantDO::getTenantNo, trim(tenantIdValue))
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))
                         .orderByAsc(TenantDO::getTenantNo)
@@ -48,10 +48,10 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countTenants(TenantNo tenantNo, String name, String status) {
-        String tenantNoValue = tenantNo == null ? null : tenantNo.value();
+    long countTenants(TenantId tenantId, String name, String status) {
+        String tenantIdValue = tenantId == null ? null : tenantId.value();
         return Optional.ofNullable(tenantMapper.selectCount(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(hasText(tenantNoValue), TenantDO::getTenantNo, trim(tenantNoValue))
+                        .eq(hasText(tenantIdValue), TenantDO::getTenantNo, trim(tenantIdValue))
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))))
                 .orElse(0L);

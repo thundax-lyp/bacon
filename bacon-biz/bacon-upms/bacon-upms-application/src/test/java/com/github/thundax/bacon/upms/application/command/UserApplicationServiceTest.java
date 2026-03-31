@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
@@ -14,7 +15,6 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
-import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -168,7 +168,7 @@ class UserApplicationServiceTest {
         UserIdentity accountIdentity = new UserIdentity(201L, 1001L, UserId.of("U101"), "ACCOUNT", "alice", true);
         UserCredential passwordCredential = new UserCredential(301L, 1001L, UserId.of("U101"), 201L, "PASSWORD", "PRIMARY",
                 "{noop}identity", "ACTIVE", true, 0, 5, null, null, null, null);
-        when(tenantRepository.findTenantByTenantNo(new TenantNo("tenant-demo")))
+        when(tenantRepository.findTenantByTenantId(TenantId.of("tenant-demo")))
                 .thenReturn(Optional.of(new Tenant(1001L, "tenant-demo", "Demo Tenant", TenantStatus.ENABLED)));
         when(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice")).thenReturn(Optional.of(accountIdentity));
         when(userRepository.findUserCredential(1001L, UserId.of("U101"), "PASSWORD")).thenReturn(Optional.of(passwordCredential));
@@ -193,7 +193,7 @@ class UserApplicationServiceTest {
         when(userRepository.findUserById(1001L, UserId.of("U101"))).thenReturn(Optional.of(user));
         when(userRepository.findUserCredential(1001L, UserId.of("U101"), "PASSWORD")).thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);
-        when(tenantRepository.findTenantByTenantNo(new TenantNo("tenant-demo")))
+        when(tenantRepository.findTenantByTenantId(TenantId.of("tenant-demo")))
                 .thenReturn(Optional.of(new Tenant(1001L, "tenant-demo", "Demo Tenant", TenantStatus.ENABLED)));
 
         service.changePassword("tenant-demo", "U101", "old-password", "new-password");

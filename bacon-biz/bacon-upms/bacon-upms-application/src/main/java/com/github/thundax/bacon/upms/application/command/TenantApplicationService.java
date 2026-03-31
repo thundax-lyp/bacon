@@ -2,13 +2,13 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
-import com.github.thundax.bacon.upms.domain.model.valueobject.TenantNo;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 
@@ -27,36 +27,36 @@ public class TenantApplicationService {
         // 租户分页属于运营后台能力，统一先归一化分页参数，避免不同入口传入 0/负数时结果漂移。
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        TenantNo tenantNo = toTenantNo(query.getTenantNo());
-        return new TenantPageResultDTO(tenantRepository.pageTenants(tenantNo, query.getName(),
+        TenantId tenantId = toTenantId(query.getTenantNo());
+        return new TenantPageResultDTO(tenantRepository.pageTenants(tenantId, query.getName(),
                 query.getStatus(), pageNo, pageSize).stream().map(this::toDto).toList(),
-                tenantRepository.countTenants(tenantNo, query.getName(), query.getStatus()),
+                tenantRepository.countTenants(tenantId, query.getName(), query.getStatus()),
                 pageNo, pageSize);
     }
 
     public TenantDTO createTenant(String tenantNo, String name) {
-        return createTenant(new TenantNo(tenantNo), name);
+        return createTenant(TenantId.of(tenantNo), name);
     }
 
-    public TenantDTO createTenant(TenantNo tenantNo, String name) {
+    public TenantDTO createTenant(TenantId tenantId, String name) {
         validateRequired(name, "name");
-        tenantRepository.findTenantByTenantNo(tenantNo).ifPresent(tenant -> {
-            throw new IllegalArgumentException("Tenant tenantNo already exists: " + tenantNo.value());
+        tenantRepository.findTenantByTenantId(tenantId).ifPresent(tenant -> {
+            throw new IllegalArgumentException("Tenant tenantNo already exists: " + tenantId.value());
         });
-        return toDto(tenantRepository.saveTenant(new Tenant(null, tenantNo, normalize(name),
+        return toDto(tenantRepository.saveTenant(new Tenant(null, tenantId, normalize(name),
                 TenantStatus.ENABLED)));
     }
 
     public TenantDTO updateTenant(String tenantNo, String name) {
-        return updateTenant(new TenantNo(tenantNo), name);
+        return updateTenant(TenantId.of(tenantNo), name);
     }
 
-    public TenantDTO updateTenant(TenantNo tenantNo, String name) {
-        Tenant currentTenant = requireTenant(tenantNo);
+    public TenantDTO updateTenant(TenantId tenantId, String name) {
+        Tenant currentTenant = requireTenant(tenantId);
         validateRequired(name, "name");
         return toDto(tenantRepository.saveTenant(new Tenant(
                 currentTenant.getId(),
-                currentTenant.getTenantNoValue(),
+                currentTenant.getTenantId(),
                 normalize(name),
                 currentTenant.getStatus(),
                 currentTenant.getCreatedBy(),
@@ -66,14 +66,14 @@ public class TenantApplicationService {
     }
 
     public TenantDTO updateTenantStatus(String tenantNo, UpmsStatusEnum status) {
-        return updateTenantStatus(new TenantNo(tenantNo), status);
+        return updateTenantStatus(TenantId.of(tenantNo), status);
     }
 
-    public TenantDTO updateTenantStatus(TenantNo tenantNo, UpmsStatusEnum status) {
+    public TenantDTO updateTenantStatus(TenantId tenantId, UpmsStatusEnum status) {
         if (status == null) {
             throw new IllegalArgumentException("status must not be null");
         }
-        Tenant tenant = tenantRepository.updateTenantStatus(tenantNo, status.value());
+        Tenant tenant = tenantRepository.updateTenantStatus(tenantId, status.value());
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
         if (TenantStatus.DISABLED == tenant.getStatus()) {
             sessionCommandFacade.invalidateTenantSessions(tenant.getTenantNo(), "TENANT_DISABLED");
@@ -82,16 +82,16 @@ public class TenantApplicationService {
     }
 
     public TenantDTO getTenantByTenantNo(String tenantNo) {
-        return getTenantByTenantNo(new TenantNo(tenantNo));
+        return getTenantByTenantNo(TenantId.of(tenantNo));
     }
 
-    public TenantDTO getTenantByTenantNo(TenantNo tenantNo) {
-        return toDto(requireTenant(tenantNo));
+    public TenantDTO getTenantByTenantNo(TenantId tenantId) {
+        return toDto(requireTenant(tenantId));
     }
 
-    private Tenant requireTenant(TenantNo tenantNo) {
-        return tenantRepository.findTenantByTenantNo(tenantNo)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo.value()));
+    private Tenant requireTenant(TenantId tenantId) {
+        return tenantRepository.findTenantByTenantId(tenantId)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
     private TenantDTO toDto(Tenant tenant) {
@@ -108,11 +108,11 @@ public class TenantApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private TenantNo toTenantNo(String tenantNo) {
+    private TenantId toTenantId(String tenantNo) {
         if (tenantNo == null || tenantNo.isBlank()) {
             return null;
         }
-        return new TenantNo(tenantNo);
+        return TenantId.of(tenantNo.trim());
     }
 
 }

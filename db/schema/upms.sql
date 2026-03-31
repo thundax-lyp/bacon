@@ -1,5 +1,4 @@
 CREATE TABLE IF NOT EXISTS `bacon_upms_tenant` (
-    `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
@@ -8,8 +7,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_tenant` (
     `created_at` datetime(3) NOT NULL,
     `updated_by` varchar(64) DEFAULT NULL,
     `updated_at` datetime(3) NOT NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_tenant_id` (`tenant_id`),
+    PRIMARY KEY (`tenant_id`),
     UNIQUE KEY `uk_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

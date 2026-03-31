@@ -4,10 +4,10 @@
 --   password: Admin@123456
 
 INSERT INTO `bacon_upms_tenant` (
-    `id`, `tenant_id`, `code`, `name`, `status`,
+    `tenant_id`, `code`, `name`, `status`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES (
-    1000001, 'T1000001', 'BACON', 'Bacon 默认租户', 'ENABLED',
+    'T1000001', 'BACON', 'Bacon 默认租户', 'ENABLED',
     NULL, '2026-03-21 09:00:00.000', NULL, '2026-03-21 09:00:00.000'
 ) ON DUPLICATE KEY UPDATE
     `name` = VALUES(`name`),

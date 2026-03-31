@@ -47,32 +47,32 @@ public class UpmsProviderController {
 
     @Operation(summary = "按用户 ID 查询用户")
     @GetMapping("/users/{userId}")
-    public UserDTO getUserById(@RequestParam("tenantId") Long tenantId, @PathVariable Long userId) {
-        return userApplicationService.getUserById(tenantId, userId);
+    public UserDTO getUserById(@RequestParam("tenantNo") String tenantNo, @PathVariable Long userId) {
+        return userApplicationService.getUserById(tenantNo, userId);
     }
 
     @Operation(summary = "按身份标识查询用户身份")
     @GetMapping("/user-identities")
-    public UserIdentityDTO getUserIdentity(@RequestParam("tenantId") Long tenantId,
+    public UserIdentityDTO getUserIdentity(@RequestParam("tenantNo") String tenantNo,
                                            @RequestParam("identityType") String identityType,
                                            @RequestParam("identityValue") String identityValue) {
-        return userApplicationService.getUserIdentity(tenantId, identityType, identityValue);
+        return userApplicationService.getUserIdentity(tenantNo, identityType, identityValue);
     }
 
     @Operation(summary = "按身份标识查询用户登录凭据")
     @GetMapping("/user-credentials")
-    public UserLoginCredentialDTO getUserLoginCredential(@RequestParam("tenantId") Long tenantId,
+    public UserLoginCredentialDTO getUserLoginCredential(@RequestParam("tenantNo") String tenantNo,
                                                          @RequestParam("identityType") String identityType,
                                                          @RequestParam("identityValue") String identityValue) {
-        return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
+        return userApplicationService.getUserLoginCredential(tenantNo, identityType, identityValue);
     }
 
     @Operation(summary = "当前用户修改密码")
     @PostMapping("/users/{userId}/password/change")
-    public void changePassword(@RequestParam("tenantId") Long tenantId,
+    public void changePassword(@RequestParam("tenantNo") String tenantNo,
                                @PathVariable Long userId,
                                @RequestBody UserPasswordChangeDTO request) {
-        userApplicationService.changePassword(tenantId, userId, request.getOldPassword(), request.getNewPassword());
+        userApplicationService.changePassword(tenantNo, userId, request.getOldPassword(), request.getNewPassword());
     }
 
     @Operation(summary = "按租户编号查询租户")

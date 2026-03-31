@@ -23,10 +23,10 @@ public class UserPasswordFacadeRemoteImpl implements UserPasswordFacade {
     }
 
     @Override
-    public void changePassword(Long tenantId, Long userId, String oldPassword, String newPassword) {
+    public void changePassword(String tenantNo, Long userId, String oldPassword, String newPassword) {
         // 改密走 provider 命令端点并携带 body，避免把旧密码/新密码暴露在查询参数或日志里。
         restClient.post()
-                .uri("/providers/upms/users/{userId}/password/change?tenantId={tenantId}", userId, tenantId)
+                .uri("/providers/upms/users/{userId}/password/change?tenantNo={tenantNo}", userId, tenantNo)
                 .body(new UserPasswordChangeDTO(oldPassword, newPassword))
                 .retrieve()
                 .toBodilessEntity();

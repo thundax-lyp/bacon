@@ -32,17 +32,9 @@ public class PasswordApplicationService {
             throw new IllegalArgumentException("New password must differ from old password");
         }
         CurrentSessionDTO currentSession = sessionApplicationService.currentSession(accessToken);
-        userPasswordFacade.changePassword(parseLegacyTenantKey(currentSession.getTenantNo()), currentSession.getUserId(),
+        userPasswordFacade.changePassword(currentSession.getTenantNo(), currentSession.getUserId(),
                 oldPassword, newPassword);
         sessionApplicationService.invalidateUserSessions(currentSession.getTenantNo(), currentSession.getUserId(),
                 "SELF_PASSWORD_CHANGED");
-    }
-
-    private Long parseLegacyTenantKey(String tenantNo) {
-        try {
-            return Long.valueOf(tenantNo);
-        } catch (NumberFormatException ex) {
-            throw new IllegalStateException("Current password chain still requires numeric tenantNo: " + tenantNo, ex);
-        }
     }
 }

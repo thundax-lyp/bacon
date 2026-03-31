@@ -70,11 +70,19 @@ public class UserApplicationService {
         return toDetailedDto(requireUser(tenantId, userId));
     }
 
+    public UserDTO getUserById(String tenantNo, Long userId) {
+        return getUserById(resolveTenantIdByTenantNo(tenantNo), userId);
+    }
+
     public UserIdentityDTO getUserIdentity(Long tenantId, String identityType, String identityValue) {
         UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, identityType, identityValue)
                 .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
         return new UserIdentityDTO(userIdentity.getId(), userIdentity.getTenantId(), userIdentity.getUserId(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled());
+    }
+
+    public UserIdentityDTO getUserIdentity(String tenantNo, String identityType, String identityValue) {
+        return getUserIdentity(resolveTenantIdByTenantNo(tenantNo), identityType, identityValue);
     }
 
     public UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue) {
@@ -90,6 +98,10 @@ public class UserApplicationService {
                 passwordCredential.isNeedChangePassword(), passwordCredential.getExpiresAt(),
                 passwordCredential.getLockedUntil(), false, List.of(), user.getStatus().value(),
                 passwordCredential.getCredentialValue());
+    }
+
+    public UserLoginCredentialDTO getUserLoginCredential(String tenantNo, String identityType, String identityValue) {
+        return getUserLoginCredential(resolveTenantIdByTenantNo(tenantNo), identityType, identityValue);
     }
 
     public TenantDTO getTenantByTenantNo(String tenantNo) {
@@ -209,6 +221,10 @@ public class UserApplicationService {
         userRepository.updatePassword(tenantId, userId, normalize(newPassword), false);
     }
 
+    public void changePassword(String tenantNo, Long userId, String oldPassword, String newPassword) {
+        changePassword(resolveTenantIdByTenantNo(tenantNo), userId, oldPassword, newPassword);
+    }
+
     public List<RoleDTO> assignRoles(Long tenantId, Long userId, List<Long> roleIds) {
         requireUser(tenantId, userId);
         return userRepository.assignRoles(tenantId, userId, roleIds).stream().map(this::toRoleDto).toList();
@@ -270,6 +286,13 @@ public class UserApplicationService {
     private User requireUser(Long tenantId, Long userId) {
         return userRepository.findUserById(tenantId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+    }
+
+    private Long resolveTenantIdByTenantNo(String tenantNo) {
+        validateRequired(tenantNo, "tenantNo");
+        return tenantRepository.findTenantByTenantNo(normalize(tenantNo))
+                .map(Tenant::getId)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
     }
 
     private void ensureAccountUnique(Long tenantId, String account, Long excludedUserId) {

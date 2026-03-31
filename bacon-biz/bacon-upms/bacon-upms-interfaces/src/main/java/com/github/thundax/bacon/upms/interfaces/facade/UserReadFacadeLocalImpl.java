@@ -20,18 +20,18 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     }
 
     @Override
-    public UserDTO getUserById(Long tenantId, Long userId) {
-        return userApplicationService.getUserById(tenantId, userId);
+    public UserDTO getUserById(String tenantNo, Long userId) {
+        return userApplicationService.getUserById(tenantNo, userId);
     }
 
     @Override
-    public UserIdentityDTO getUserIdentity(Long tenantId, String identityType, String identityValue) {
-        return userApplicationService.getUserIdentity(tenantId, identityType, identityValue);
+    public UserIdentityDTO getUserIdentity(String tenantNo, String identityType, String identityValue) {
+        return userApplicationService.getUserIdentity(tenantNo, identityType, identityValue);
     }
 
     @Override
-    public UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue) {
-        return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
+    public UserLoginCredentialDTO getUserLoginCredential(String tenantNo, String identityType, String identityValue) {
+        return userApplicationService.getUserLoginCredential(tenantNo, identityType, identityValue);
     }
 
     @Override

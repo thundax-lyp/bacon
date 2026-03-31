@@ -58,8 +58,7 @@ public class LoginApplicationService {
         // 这样既避免无意义的凭据查询，也保证明文密码只在内存里短暂存在。
         loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
         String plainPassword = loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
-        UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(parseLegacyTenantKey(tenantNo), "ACCOUNT",
-                command.getAccount());
+        UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(tenantNo, "ACCOUNT", command.getAccount());
         validatePasswordLoginCredential(credential, plainPassword);
         return createLoginSession(tenantNo, credential.getUserId(), credential.getIdentityValue(),
                 credential.getIdentityType(), "PASSWORD", credential.isNeedChangePassword());
@@ -125,13 +124,5 @@ public class LoginApplicationService {
             throw new BadRequestException("tenantNo must not be blank");
         }
         return tenantNo.trim();
-    }
-
-    private Long parseLegacyTenantKey(String tenantNo) {
-        try {
-            return Long.valueOf(tenantNo);
-        } catch (NumberFormatException ex) {
-            throw new BadRequestException("Current login chain still requires numeric tenantNo");
-        }
     }
 }

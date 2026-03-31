@@ -1,9 +1,12 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
-import com.github.thundax.bacon.upms.application.command.UserImportCommand;
-import com.github.thundax.bacon.upms.api.dto.TenantDTO;
+import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
+import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
@@ -17,8 +20,17 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
-import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,26 +38,33 @@ import org.springframework.stereotype.Service;
 public class UserApplicationService {
 
     private static final String DEFAULT_PASSWORD = "123456";
+    private static final String USER_AVATAR_OWNER_TYPE = "UPMS_USER_AVATAR";
+    private static final String USER_AVATAR_CATEGORY = "avatar";
+    private static final long MAX_AVATAR_SIZE = 2L * 1024L * 1024L;
+    private static final int MIN_AVATAR_PIXEL = 128;
+    private static final int MAX_AVATAR_PIXEL = 1024;
+    private static final Set<String> ALLOWED_AVATAR_CONTENT_TYPES = Set.of("image/jpeg", "image/png");
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
     private final PasswordEncoder passwordEncoder;
+    private final StoredObjectFacade storedObjectFacade;
 
     public UserApplicationService(UserRepository userRepository, RoleRepository roleRepository,
-                                  TenantRepository tenantRepository,
-                                  SessionCommandFacade sessionCommandFacade,
-                                  PasswordEncoder passwordEncoder) {
+                                  TenantRepository tenantRepository, SessionCommandFacade sessionCommandFacade,
+                                  PasswordEncoder passwordEncoder, StoredObjectFacade storedObjectFacade) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
         this.passwordEncoder = passwordEncoder;
+        this.storedObjectFacade = storedObjectFacade;
     }
 
     public UserDTO getUserById(Long tenantId, Long userId) {
-        return toDto(requireUser(tenantId, userId));
+        return toDetailedDto(requireUser(tenantId, userId));
     }
 
     public UserIdentityDTO getUserIdentity(Long tenantId, String identityType, String identityValue) {
@@ -68,14 +87,15 @@ public class UserApplicationService {
     public TenantDTO getTenantByTenantId(Long tenantId) {
         Tenant tenant = tenantRepository.findTenantByTenantId(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
-        return new TenantDTO(tenant.getId(), tenant.getTenantId(), tenant.getCode(), tenant.getName(), tenant.getStatus());
+        return new TenantDTO(tenant.getId(), tenant.getTenantId(), tenant.getCode(), tenant.getName(),
+                tenant.getStatus());
     }
 
     public UserPageResultDTO pageUsers(UserPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         return new UserPageResultDTO(userRepository.pageUsers(query.getTenantId(), query.getAccount(), query.getName(),
-                query.getPhone(), query.getStatus(), pageNo, pageSize).stream().map(this::toDto).toList(),
+                query.getPhone(), query.getStatus(), pageNo, pageSize).stream().map(this::toSummaryDto).toList(),
                 userRepository.countUsers(query.getTenantId(), query.getAccount(), query.getName(), query.getPhone(),
                         query.getStatus()),
                 pageNo, pageSize);
@@ -87,7 +107,7 @@ public class UserApplicationService {
         ensureAccountUnique(tenantId, account, null);
         User savedUser = userRepository.save(new User(null, tenantId, normalize(account), normalize(name), normalize(phone),
                 null, departmentId, UpmsStatusEnum.ENABLED.value(), false));
-        return toDto(savedUser);
+        return toDetailedDto(savedUser);
     }
 
     public UserDTO updateUser(Long tenantId, Long userId, String account, String name, String phone, Long departmentId) {
@@ -100,6 +120,7 @@ public class UserApplicationService {
                 tenantId,
                 normalize(account),
                 normalize(name),
+                currentUser.getAvatarObjectId(),
                 normalize(phone),
                 currentUser.getPasswordHash(),
                 departmentId,
@@ -109,7 +130,7 @@ public class UserApplicationService {
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt()));
-        return toDto(savedUser);
+        return toDetailedDto(savedUser);
     }
 
     public UserDTO updateUserStatus(Long tenantId, Long userId, String status) {
@@ -120,6 +141,7 @@ public class UserApplicationService {
                 tenantId,
                 currentUser.getAccount(),
                 currentUser.getName(),
+                currentUser.getAvatarObjectId(),
                 currentUser.getPhone(),
                 currentUser.getPasswordHash(),
                 currentUser.getDepartmentId(),
@@ -130,34 +152,34 @@ public class UserApplicationService {
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt()));
         if (UpmsStatusEnum.DISABLED.matches(savedUser.getStatus())) {
-            // 用户被禁用后立即失效现有会话，避免账号状态已停用但旧 access token 还能继续访问。
             sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_DISABLED");
         }
-        return toDto(savedUser);
+        return toDetailedDto(savedUser);
     }
 
     public void deleteUser(Long tenantId, Long userId) {
-        requireUser(tenantId, userId);
+        User currentUser = requireUser(tenantId, userId);
         userRepository.deleteUser(tenantId, userId);
-        // 删除用户后同步踢出在线会话，保持账号主数据和认证态的一致性。
+        if (currentUser.getAvatarObjectId() != null) {
+            storedObjectFacade.clearObjectReference(currentUser.getAvatarObjectId(), USER_AVATAR_OWNER_TYPE,
+                    String.valueOf(userId));
+        }
         sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_DELETED");
     }
 
     public UserDTO initPassword(Long tenantId, Long userId) {
         requireUser(tenantId, userId);
         User user = userRepository.updatePassword(tenantId, userId, DEFAULT_PASSWORD);
-        // 初始化密码会改变长期凭据，必须强制旧会话下线，避免旧设备继续持有有效登录态。
         sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_PASSWORD_INITIALIZED");
-        return toDto(user);
+        return toDetailedDto(user);
     }
 
     public UserDTO resetPassword(Long tenantId, Long userId, String newPassword) {
         requireUser(tenantId, userId);
         validateRequired(newPassword, "newPassword");
         User user = userRepository.updatePassword(tenantId, userId, normalize(newPassword));
-        // 重置密码和初始化密码一样，都视为安全事件，统一强制回收当前在线会话。
         sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_PASSWORD_RESET");
-        return toDto(user);
+        return toDetailedDto(user);
     }
 
     public void changePassword(Long tenantId, Long userId, String oldPassword, String newPassword) {
@@ -184,7 +206,6 @@ public class UserApplicationService {
         if (commands == null || commands.isEmpty()) {
             return List.of();
         }
-        // 导入复用单条创建逻辑，确保唯一性校验、默认状态和字段归一化规则与手工创建完全一致。
         return commands.stream()
                 .map(command -> createUser(tenantId, command.account(), command.name(), command.phone(),
                         command.departmentId()))
@@ -193,7 +214,41 @@ public class UserApplicationService {
 
     public List<UserDTO> exportUsers(UserPageQueryDTO query) {
         return userRepository.listUsers(query.getTenantId(), query.getAccount(), query.getName(), query.getPhone(),
-                query.getStatus()).stream().map(this::toDto).toList();
+                query.getStatus()).stream().map(this::toSummaryDto).toList();
+    }
+
+    public UserDTO updateAvatar(Long tenantId, Long userId, String originalFilename, String contentType, Long size,
+                                InputStream inputStream) {
+        User currentUser = requireUser(tenantId, userId);
+        AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
+        StoredObjectDTO storedObject = uploadAvatarObject(tenantId, avatarImage);
+        storedObjectFacade.markObjectReferenced(storedObject.getId(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId));
+        Long previousAvatarObjectId = currentUser.getAvatarObjectId();
+        try {
+            User savedUser = userRepository.save(new User(
+                    currentUser.getId(),
+                    currentUser.getTenantId(),
+                    currentUser.getAccount(),
+                    currentUser.getName(),
+                    storedObject.getId(),
+                    currentUser.getPhone(),
+                    currentUser.getPasswordHash(),
+                    currentUser.getDepartmentId(),
+                    currentUser.getStatus(),
+                    currentUser.isDeleted(),
+                    currentUser.getCreatedBy(),
+                    currentUser.getCreatedAt(),
+                    currentUser.getUpdatedBy(),
+                    currentUser.getUpdatedAt()));
+            if (previousAvatarObjectId != null && !previousAvatarObjectId.equals(storedObject.getId())) {
+                storedObjectFacade.clearObjectReference(previousAvatarObjectId, USER_AVATAR_OWNER_TYPE,
+                        String.valueOf(userId));
+            }
+            return toDto(savedUser, storedObject.getAccessEndpoint());
+        } catch (RuntimeException ex) {
+            storedObjectFacade.clearObjectReference(storedObject.getId(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId));
+            throw ex;
+        }
     }
 
     private User requireUser(Long tenantId, Long userId) {
@@ -209,14 +264,120 @@ public class UserApplicationService {
                 });
     }
 
-    private UserDTO toDto(User user) {
+    private UserDTO toDetailedDto(User user) {
+        return toDto(user, resolveAvatarUrl(user.getAvatarObjectId()));
+    }
+
+    private UserDTO toSummaryDto(User user) {
+        return toDto(user, null);
+    }
+
+    private UserDTO toDto(User user, String avatarUrl) {
         return new UserDTO(user.getId(), user.getTenantId(), user.getAccount(), user.getName(),
-                user.getPhone(), user.getDepartmentId(), user.getStatus(), user.isDeleted());
+                user.getAvatarObjectId(), user.getPhone(), user.getDepartmentId(), avatarUrl, user.getStatus(),
+                user.isDeleted());
     }
 
     private RoleDTO toRoleDto(Role role) {
         return new RoleDTO(role.getId(), role.getTenantId(), role.getCode(), role.getName(), role.getRoleType(),
                 role.getDataScopeType(), role.getStatus());
+    }
+
+    private AvatarImage readAndValidateAvatar(String originalFilename, String contentType, Long size, InputStream inputStream) {
+        validateRequired(originalFilename, "originalFilename");
+        if (inputStream == null) {
+            throw new IllegalArgumentException("avatar file must not be null");
+        }
+        if (size == null || size <= 0L) {
+            throw new IllegalArgumentException("avatar size must be greater than 0");
+        }
+        if (size > MAX_AVATAR_SIZE) {
+            throw new IllegalArgumentException("avatar size exceeds 2MB");
+        }
+        String normalizedContentType = normalizeContentType(contentType);
+        if (!ALLOWED_AVATAR_CONTENT_TYPES.contains(normalizedContentType)) {
+            throw new IllegalArgumentException("avatar contentType must be image/jpeg or image/png");
+        }
+        try {
+            byte[] bytes = inputStream.readAllBytes();
+            if (bytes.length == 0) {
+                throw new IllegalArgumentException("avatar file must not be empty");
+            }
+            if (bytes.length > MAX_AVATAR_SIZE) {
+                throw new IllegalArgumentException("avatar size exceeds 2MB");
+            }
+            String actualContentType = detectAvatarContentType(bytes);
+            if (!normalizedContentType.equals(actualContentType)) {
+                throw new IllegalArgumentException("avatar contentType does not match image data");
+            }
+            BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(bytes));
+            if (bufferedImage == null) {
+                throw new IllegalArgumentException("avatar file is not a valid image");
+            }
+            int width = bufferedImage.getWidth();
+            int height = bufferedImage.getHeight();
+            if (width != height) {
+                throw new IllegalArgumentException("avatar image must be square");
+            }
+            if (width < MIN_AVATAR_PIXEL || width > MAX_AVATAR_PIXEL) {
+                throw new IllegalArgumentException("avatar image width must be between 128 and 1024");
+            }
+            if (height < MIN_AVATAR_PIXEL || height > MAX_AVATAR_PIXEL) {
+                throw new IllegalArgumentException("avatar image height must be between 128 and 1024");
+            }
+            return new AvatarImage(originalFilename.trim(), actualContentType, (long) bytes.length, bytes);
+        } catch (IOException ex) {
+            throw new IllegalArgumentException("avatar file cannot be read", ex);
+        }
+    }
+
+    private StoredObjectDTO uploadAvatarObject(Long tenantId, AvatarImage avatarImage) {
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(avatarImage.bytes())) {
+            return storedObjectFacade.uploadObject(new UploadObjectCommand(
+                    USER_AVATAR_OWNER_TYPE,
+                    String.valueOf(tenantId),
+                    USER_AVATAR_CATEGORY,
+                    avatarImage.originalFilename(),
+                    avatarImage.contentType(),
+                    avatarImage.size(),
+                    inputStream));
+        } catch (IOException ex) {
+            throw new IllegalStateException("failed to close avatar stream", ex);
+        }
+    }
+
+    private String resolveAvatarUrl(Long avatarObjectId) {
+        if (avatarObjectId == null) {
+            return null;
+        }
+        StoredObjectDTO storedObject = storedObjectFacade.getObjectById(avatarObjectId);
+        return storedObject == null ? null : storedObject.getAccessEndpoint();
+    }
+
+    private String detectAvatarContentType(byte[] bytes) throws IOException {
+        ImageIO.setUseCache(false);
+        try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
+            if (imageInputStream == null) {
+                throw new IllegalArgumentException("avatar file is not a valid image");
+            }
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(imageInputStream);
+            if (!readers.hasNext()) {
+                throw new IllegalArgumentException("avatar file is not a supported image");
+            }
+            ImageReader reader = readers.next();
+            try {
+                String formatName = reader.getFormatName().toLowerCase(Locale.ROOT);
+                if ("jpeg".equals(formatName) || "jpg".equals(formatName)) {
+                    return "image/jpeg";
+                }
+                if ("png".equals(formatName)) {
+                    return "image/png";
+                }
+                throw new IllegalArgumentException("avatar image format must be jpeg or png");
+            } finally {
+                reader.dispose();
+            }
+        }
     }
 
     private void validateRequired(String value, String fieldName) {
@@ -229,4 +390,10 @@ public class UserApplicationService {
         return value == null ? null : value.trim();
     }
 
+    private String normalizeContentType(String contentType) {
+        return contentType == null ? "" : contentType.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private record AvatarImage(String originalFilename, String contentType, Long size, byte[] bytes) {
+    }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.boot;
 
+import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -69,5 +70,11 @@ public class UpmsRepositoryTestConfiguration {
     @Primary
     public SysLogRepository sysLogRepository() {
         return Mockito.mock(SysLogRepository.class);
+    }
+
+    @Bean
+    @Primary
+    public StoredObjectFacade storedObjectFacade() {
+        return Mockito.mock(StoredObjectFacade.class);
     }
 }

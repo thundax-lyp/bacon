@@ -14,17 +14,22 @@ public record UserResponse(
         String account,
         /** 用户名称。 */
         String name,
+        /** 头像对象主键。 */
+        Long avatarObjectId,
         /** 手机号。 */
         String phone,
         /** 所属部门主键。 */
         Long departmentId,
+        /** 头像访问地址。 */
+        String avatarUrl,
         /** 用户状态。 */
         String status,
         /** 逻辑删除标记。 */
         boolean deleted) {
 
     public static UserResponse from(UserDTO dto) {
-        return new UserResponse(dto.getId(), dto.getTenantId(), dto.getAccount(), dto.getName(), dto.getPhone(),
-                dto.getDepartmentId(), dto.getStatus(), dto.isDeleted());
+        return new UserResponse(dto.getId(), dto.getTenantId(), dto.getAccount(), dto.getName(),
+                dto.getAvatarObjectId(), dto.getPhone(), dto.getDepartmentId(), dto.getAvatarUrl(), dto.getStatus(),
+                dto.isDeleted());
     }
 }

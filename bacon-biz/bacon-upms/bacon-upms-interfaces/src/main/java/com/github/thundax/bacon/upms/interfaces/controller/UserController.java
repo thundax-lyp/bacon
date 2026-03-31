@@ -35,6 +35,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @WrappedApiController
@@ -134,6 +138,17 @@ public class UserController {
         return userApplicationService.assignRoles(request.tenantId(), userId, request.roleIds()).stream()
                 .map(RoleResponse::from)
                 .toList();
+    }
+
+    @Operation(summary = "上传用户头像")
+    @HasPermission("sys:user:update")
+    @SysLog(module = "UPMS", action = "上传用户头像", eventType = LogEventType.UPDATE)
+    @PutMapping(value = "/{userId}/avatar", consumes = "multipart/form-data")
+    public UserResponse uploadAvatar(@PathVariable("userId") Long userId,
+                                     @RequestParam("tenantId") Long tenantId,
+                                     @RequestParam("file") MultipartFile file) throws IOException {
+        return UserResponse.from(userApplicationService.updateAvatar(tenantId, userId, file.getOriginalFilename(),
+                file.getContentType(), file.getSize(), file.getInputStream()));
     }
 
     @Operation(summary = "查询用户角色列表")

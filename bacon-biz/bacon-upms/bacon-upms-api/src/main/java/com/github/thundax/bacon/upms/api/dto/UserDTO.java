@@ -20,10 +20,14 @@ public class UserDTO {
     private String account;
     /** 用户名称。 */
     private String name;
+    /** 头像对象主键。 */
+    private Long avatarObjectId;
     /** 手机号。 */
     private String phone;
     /** 所属部门主键。 */
     private Long departmentId;
+    /** 头像访问地址。 */
+    private String avatarUrl;
     /** 用户状态。 */
     private String status;
     /** 逻辑删除标记。 */

@@ -97,6 +97,7 @@ class UpmsRepositoryIntegrationTest {
                         tenant_id bigint NOT NULL,
                         account varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
+                        avatar_object_id bigint NULL,
                         phone varchar(32) NULL,
                         password_hash varchar(255) NOT NULL,
                         department_id bigint NULL,
@@ -237,7 +238,8 @@ class UpmsRepositoryIntegrationTest {
         Menu childMenu = menuRepository.save(new Menu(null, 1001L, "MENU", "Users", rootMenu.getId(), "/system/users", "UserPage", "user", 2, "upms:user:view", List.of()));
         Resource resource = resourceRepository.save(new Resource(null, 1001L, "upms:user:edit", "Edit User", "API", "POST", "/users", "ACTIVE"));
         Role role = roleRepository.save(new Role(null, 1001L, "ADMIN", "Administrator", "SYSTEM", "SELF", "ACTIVE"));
-        User user = userRepository.save(new User(null, 1001L, "alice", "Alice", "13800000001", null, childDepartment.getId(), "ACTIVE", false));
+        User user = userRepository.save(new User(null, 1001L, "alice", "Alice", 901L, "13800000001", null,
+                childDepartment.getId(), "ACTIVE", false));
 
         roleRepository.assignMenus(1001L, role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
         roleRepository.assignResources(1001L, role.getId(), Set.of(resource.getCode()));
@@ -248,6 +250,7 @@ class UpmsRepositoryIntegrationTest {
 
         User persistedUser = userRepository.findUserByAccount(1001L, "alice").orElseThrow();
         assertNotNull(persistedUser.getId());
+        assertEquals(901L, persistedUser.getAvatarObjectId());
         assertNotNull(persistedUser.getPasswordHash());
         assertTrue(userRepository.findUserIdentity(1001L, "ACCOUNT", "alice").isPresent());
         assertTrue(userRepository.findUserIdentity(1001L, "PHONE", "13800000001").isPresent());
@@ -272,14 +275,16 @@ class UpmsRepositoryIntegrationTest {
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
         Department department = departmentRepository.save(new Department(null, 1001L, "OPS", "Operations", 0L, null, "ACTIVE"));
         Role role = roleRepository.save(new Role(null, 1001L, "OPS_ADMIN", "Ops Admin", "SYSTEM", "SELF", "ACTIVE"));
-        User createdUser = userRepository.save(new User(null, 1001L, "bob", "Bob", "13800000002", null, department.getId(), "ACTIVE", false));
+        User createdUser = userRepository.save(new User(null, 1001L, "bob", "Bob", 1001L, "13800000002", null,
+                department.getId(), "ACTIVE", false));
 
         userRepository.assignRoles(1001L, createdUser.getId(), List.of(role.getId()));
-        User updatedUser = userRepository.save(new User(createdUser.getId(), 1001L, "bob", "Bob", "13900000003",
+        User updatedUser = userRepository.save(new User(createdUser.getId(), 1001L, "bob", "Bob", 1002L, "13900000003",
                 createdUser.getPasswordHash(), department.getId(), "ACTIVE", false));
 
         assertFalse(userRepository.findUserIdentity(1001L, "PHONE", "13800000002").isPresent());
         assertTrue(userRepository.findUserIdentity(1001L, "PHONE", "13900000003").isPresent());
+        assertEquals(1002L, userRepository.findUserById(1001L, updatedUser.getId()).orElseThrow().getAvatarObjectId());
         assertTrue(departmentRepository.existsUserInDepartment(1001L, department.getId()));
 
         userRepository.deleteUser(1001L, updatedUser.getId());
@@ -304,7 +309,8 @@ class UpmsRepositoryIntegrationTest {
         roleRepository.assignResources(1001L, role.getId(), Set.of(oldResource.getCode()));
         roleRepository.assignDataScope(1001L, role.getId(), "CUSTOM", Set.of(root.getId()));
 
-        User user = userRepository.save(new User(null, 1001L, "manager", "Manager", "13700000001", null, child.getId(), "ACTIVE", false));
+        User user = userRepository.save(new User(null, 1001L, "manager", "Manager", null, "13700000001", null,
+                child.getId(), "ACTIVE", false));
         userRepository.assignRoles(1001L, user.getId(), List.of(role.getId()));
 
         assertEquals(Set.of("upms:old:view", "upms:old:edit"), permissionRepository.getUserPermissionCodes(1001L, user.getId()));

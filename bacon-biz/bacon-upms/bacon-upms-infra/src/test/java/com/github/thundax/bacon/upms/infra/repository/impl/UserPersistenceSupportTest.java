@@ -34,7 +34,7 @@ class UserPersistenceSupportTest {
     @Test
     void shouldInsertUserAndMapGeneratedId() {
         ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
-        User newUser = new User(null, 1L, "alice", "Alice", "13800000001", "ENC", 11L, "ACTIVE", false);
+        User newUser = new User(null, 1L, "alice", "Alice", 9001L, "13800000001", "ENC", 11L, "ACTIVE", false);
 
         when(userMapper.insert(any(UserDO.class))).thenAnswer(invocation -> {
             UserDO dataObject = invocation.getArgument(0);
@@ -47,7 +47,9 @@ class UserPersistenceSupportTest {
         verify(userMapper).insert(captor.capture());
         assertThat(captor.getValue().getCreatedAt()).isNotNull();
         assertThat(captor.getValue().getUpdatedAt()).isNotNull();
+        assertThat(captor.getValue().getAvatarObjectId()).isEqualTo(9001L);
         assertThat(savedUser.getId()).isEqualTo(101L);
         assertThat(savedUser.getAccount()).isEqualTo("alice");
+        assertThat(savedUser.getAvatarObjectId()).isEqualTo(9001L);
     }
 }

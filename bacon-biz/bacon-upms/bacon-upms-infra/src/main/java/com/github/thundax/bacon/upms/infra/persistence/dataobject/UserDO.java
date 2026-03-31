@@ -23,6 +23,8 @@ public class UserDO {
     private String account;
     @TableField("name")
     private String name;
+    @TableField("avatar_object_id")
+    private Long avatarObjectId;
     @TableField("phone")
     private String phone;
     @TableField("password_hash")

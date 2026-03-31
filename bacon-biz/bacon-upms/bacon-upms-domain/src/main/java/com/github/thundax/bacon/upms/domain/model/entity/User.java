@@ -18,6 +18,8 @@ public class User {
     private String account;
     /** 用户名称。 */
     private String name;
+    /** 头像对象主键。 */
+    private Long avatarObjectId;
     /** 手机号。 */
     private String phone;
     /** 密码哈希。 */
@@ -39,17 +41,30 @@ public class User {
 
     public User(Long id, Long tenantId, String account, String name, String phone, String passwordHash,
                 Long departmentId, String status, boolean deleted) {
-        this(id, tenantId, account, name, phone, passwordHash, departmentId, status, deleted,
+        this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status, deleted);
+    }
+
+    public User(Long id, Long tenantId, String account, String name, Long avatarObjectId, String phone,
+                String passwordHash, Long departmentId, String status, boolean deleted) {
+        this(id, tenantId, account, name, avatarObjectId, phone, passwordHash, departmentId, status, deleted,
                 null, null, null, null);
     }
 
     public User(Long id, Long tenantId, String account, String name, String phone, String passwordHash,
                 Long departmentId, String status, boolean deleted, String createdBy, LocalDateTime createdAt,
                 String updatedBy, LocalDateTime updatedAt) {
+        this(id, tenantId, account, name, null, phone, passwordHash, departmentId, status, deleted,
+                createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public User(Long id, Long tenantId, String account, String name, Long avatarObjectId, String phone,
+                String passwordHash, Long departmentId, String status, boolean deleted, String createdBy,
+                LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.account = account;
         this.name = name;
+        this.avatarObjectId = avatarObjectId;
         this.phone = phone;
         this.passwordHash = passwordHash;
         this.departmentId = departmentId;

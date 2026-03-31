@@ -80,6 +80,7 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getTenantId(),
                 currentUser.getAccount(),
                 currentUser.getName(),
+                currentUser.getAvatarObjectId(),
                 currentUser.getPhone(),
                 passwordEncoder.encode(password),
                 currentUser.getDepartmentId(),
@@ -112,8 +113,9 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private User createUser(User user) {
-        return new User(null, user.getTenantId(), user.getAccount(), user.getName(), user.getPhone(),
-                passwordEncoder.encode(DEFAULT_PASSWORD), user.getDepartmentId(), user.getStatus(), false);
+        return new User(null, user.getTenantId(), user.getAccount(), user.getName(), user.getAvatarObjectId(),
+                user.getPhone(), passwordEncoder.encode(DEFAULT_PASSWORD), user.getDepartmentId(),
+                user.getStatus(), false);
     }
 
     private User updateUser(User user) {
@@ -124,6 +126,7 @@ public class UserRepositoryImpl implements UserRepository {
                 user.getTenantId(),
                 user.getAccount(),
                 user.getName(),
+                user.getAvatarObjectId(),
                 user.getPhone(),
                 user.getPasswordHash() == null ? currentUser.getPasswordHash() : user.getPasswordHash(),
                 user.getDepartmentId(),

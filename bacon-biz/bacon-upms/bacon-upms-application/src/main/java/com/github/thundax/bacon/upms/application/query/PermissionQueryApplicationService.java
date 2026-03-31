@@ -33,16 +33,16 @@ public class PermissionQueryApplicationService {
         return menuApplicationService.toMenuTree(permissionRepository.getUserMenuTree(tenantId, userId));
     }
 
-    public List<UserMenuTreeDTO> getUserMenuTree(String tenantNo, String userId) {
-        return getUserMenuTree(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId));
+    public List<UserMenuTreeDTO> getUserMenuTree(String tenantId, String userId) {
+        return getUserMenuTree(resolveTenantIdByTenantId(tenantId), UserId.of(userId));
     }
 
     public Set<String> getUserPermissionCodes(TenantId tenantId, UserId userId) {
         return permissionRepository.getUserPermissionCodes(tenantId, userId);
     }
 
-    public Set<String> getUserPermissionCodes(String tenantNo, String userId) {
-        return getUserPermissionCodes(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId));
+    public Set<String> getUserPermissionCodes(String tenantId, String userId) {
+        return getUserPermissionCodes(resolveTenantIdByTenantId(tenantId), UserId.of(userId));
     }
 
     public UserDataScopeDTO getUserDataScope(TenantId tenantId, UserId userId) {
@@ -52,17 +52,17 @@ public class PermissionQueryApplicationService {
                 permissionRepository.getUserDepartmentIds(tenantId, userId));
     }
 
-    public UserDataScopeDTO getUserDataScope(String tenantNo, String userId) {
-        return getUserDataScope(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId));
+    public UserDataScopeDTO getUserDataScope(String tenantId, String userId) {
+        return getUserDataScope(resolveTenantIdByTenantId(tenantId), UserId.of(userId));
     }
 
-    private TenantId resolveTenantIdByTenantNo(String tenantNo) {
-        if (tenantNo == null || tenantNo.isBlank()) {
-            throw new IllegalArgumentException("tenantNo must not be blank");
+    private TenantId resolveTenantIdByTenantId(String tenantId) {
+        if (tenantId == null || tenantId.isBlank()) {
+            throw new IllegalArgumentException("tenantId must not be blank");
         }
-        String normalizedTenantNo = tenantNo.trim();
-        return tenantRepository.findTenantByTenantId(TenantId.of(normalizedTenantNo))
+        String normalizedTenantId = tenantId.trim();
+        return tenantRepository.findTenantByTenantId(TenantId.of(normalizedTenantId))
                 .map(Tenant::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 }

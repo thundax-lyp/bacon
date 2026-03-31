@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class UserLoginCredentialDTO {
 
     /** 所属租户编号。 */
-    private String tenantNo;
+    private String tenantId;
     /** 用户主键。 */
     private String userId;
     /** 登录账号。 */

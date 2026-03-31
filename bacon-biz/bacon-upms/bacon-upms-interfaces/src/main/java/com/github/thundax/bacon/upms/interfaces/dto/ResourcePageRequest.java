@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ResourcePageRequest {
 
-    private String tenantNo;
+    private String tenantId;
     private String code;
     private String name;
     private UpmsResourceTypeQueryEnum resourceType;

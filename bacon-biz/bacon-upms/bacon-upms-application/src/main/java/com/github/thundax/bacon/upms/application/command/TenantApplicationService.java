@@ -27,28 +27,28 @@ public class TenantApplicationService {
         // 租户分页属于运营后台能力，统一先归一化分页参数，避免不同入口传入 0/负数时结果漂移。
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        TenantId tenantId = toTenantId(query.getTenantNo());
+        TenantId tenantId = toTenantId(query.getTenantId());
         return new TenantPageResultDTO(tenantRepository.pageTenants(tenantId, query.getName(),
                 query.getStatus(), pageNo, pageSize).stream().map(this::toDto).toList(),
                 tenantRepository.countTenants(tenantId, query.getName(), query.getStatus()),
                 pageNo, pageSize);
     }
 
-    public TenantDTO createTenant(String tenantNo, String name) {
-        return createTenant(TenantId.of(tenantNo), name);
+    public TenantDTO createTenant(String tenantId, String name) {
+        return createTenant(TenantId.of(tenantId), name);
     }
 
     public TenantDTO createTenant(TenantId tenantId, String name) {
         validateRequired(name, "name");
         tenantRepository.findTenantByTenantId(tenantId).ifPresent(tenant -> {
-            throw new IllegalArgumentException("Tenant tenantNo already exists: " + tenantId.value());
+            throw new IllegalArgumentException("Tenant tenantId already exists: " + tenantId.value());
         });
         return toDto(tenantRepository.saveTenant(new Tenant(tenantId, normalize(name),
                 TenantStatus.ENABLED)));
     }
 
-    public TenantDTO updateTenant(String tenantNo, String name) {
-        return updateTenant(TenantId.of(tenantNo), name);
+    public TenantDTO updateTenant(String tenantId, String name) {
+        return updateTenant(TenantId.of(tenantId), name);
     }
 
     public TenantDTO updateTenant(TenantId tenantId, String name) {
@@ -64,8 +64,8 @@ public class TenantApplicationService {
                 currentTenant.getUpdatedAt())));
     }
 
-    public TenantDTO updateTenantStatus(String tenantNo, UpmsStatusEnum status) {
-        return updateTenantStatus(TenantId.of(tenantNo), status);
+    public TenantDTO updateTenantStatus(String tenantId, UpmsStatusEnum status) {
+        return updateTenantStatus(TenantId.of(tenantId), status);
     }
 
     public TenantDTO updateTenantStatus(TenantId tenantId, UpmsStatusEnum status) {
@@ -80,11 +80,11 @@ public class TenantApplicationService {
         return toDto(tenant);
     }
 
-    public TenantDTO getTenantByTenantNo(String tenantNo) {
-        return getTenantByTenantNo(TenantId.of(tenantNo));
+    public TenantDTO getTenantByTenantId(String tenantId) {
+        return getTenantByTenantId(TenantId.of(tenantId));
     }
 
-    public TenantDTO getTenantByTenantNo(TenantId tenantId) {
+    public TenantDTO getTenantByTenantId(TenantId tenantId) {
         return toDto(requireTenant(tenantId));
     }
 
@@ -107,11 +107,11 @@ public class TenantApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private TenantId toTenantId(String tenantNo) {
-        if (tenantNo == null || tenantNo.isBlank()) {
+    private TenantId toTenantId(String tenantId) {
+        if (tenantId == null || tenantId.isBlank()) {
             return null;
         }
-        return TenantId.of(tenantNo.trim());
+        return TenantId.of(tenantId.trim());
     }
 
 }

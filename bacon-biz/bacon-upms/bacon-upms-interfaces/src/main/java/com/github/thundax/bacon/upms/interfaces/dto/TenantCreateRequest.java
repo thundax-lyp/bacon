@@ -1,4 +1,4 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-public record TenantCreateRequest(String tenantNo, String name) {
+public record TenantCreateRequest(String tenantId, String name) {
 }

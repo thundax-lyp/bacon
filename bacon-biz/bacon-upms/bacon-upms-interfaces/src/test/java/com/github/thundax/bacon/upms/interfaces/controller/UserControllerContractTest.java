@@ -43,7 +43,7 @@ class UserControllerContractTest {
 
         mockMvc.perform(multipart("/upms/users/{userId}/avatar", "U101")
                         .file(file)
-                        .param("tenantNo", "tenant-demo")
+                        .param("tenantId", "tenant-demo")
                         .with(request -> {
                             request.setMethod("PUT");
                             return request;
@@ -61,7 +61,7 @@ class UserControllerContractTest {
                 .thenReturn(Optional.of("https://cdn.example.com/avatar/9001.png"));
 
         mockMvc.perform(get("/upms/users/{userId}/avatar", "U101")
-                        .param("tenantNo", "tenant-demo"))
+                        .param("tenantId", "tenant-demo"))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", "https://cdn.example.com/avatar/9001.png"));
     }

@@ -9,7 +9,7 @@ public record UserIdentityResponse(
         /** 身份标识主键。 */
         Long id,
         /** 所属租户编号。 */
-        String tenantNo,
+        String tenantId,
         /** 关联用户主键。 */
         String userId,
         /** 身份标识类型。 */
@@ -20,7 +20,7 @@ public record UserIdentityResponse(
         boolean enabled) {
 
     public static UserIdentityResponse from(UserIdentityDTO dto) {
-        return new UserIdentityResponse(dto.getId(), dto.getTenantNo(), dto.getUserId(), dto.getIdentityType(),
+        return new UserIdentityResponse(dto.getId(), dto.getTenantId(), dto.getUserId(), dto.getIdentityType(),
                 dto.getIdentityValue(), dto.isEnabled());
     }
 }

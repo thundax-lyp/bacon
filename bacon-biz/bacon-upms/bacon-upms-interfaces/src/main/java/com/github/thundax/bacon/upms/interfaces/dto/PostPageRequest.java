@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PostPageRequest {
 
-    private String tenantNo;
+    private String tenantId;
     private String code;
     private String name;
     private Long departmentId;

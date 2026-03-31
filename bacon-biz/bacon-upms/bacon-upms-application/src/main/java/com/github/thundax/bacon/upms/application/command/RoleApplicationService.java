@@ -31,8 +31,8 @@ public class RoleApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId)));
     }
 
-    public RoleDTO getRoleById(String tenantNo, Long roleId) {
-        return getRoleById(resolveTenantIdByTenantNo(tenantNo), roleId);
+    public RoleDTO getRoleById(String tenantId, Long roleId) {
+        return getRoleById(resolveTenantIdByTenantId(tenantId), roleId);
     }
 
     public List<RoleDTO> getRolesByUserId(TenantId tenantId, UserId userId) {
@@ -42,8 +42,8 @@ public class RoleApplicationService {
                 .toList();
     }
 
-    public List<RoleDTO> getRolesByUserId(String tenantNo, String userId) {
-        return getRolesByUserId(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId));
+    public List<RoleDTO> getRolesByUserId(String tenantId, String userId) {
+        return getRolesByUserId(resolveTenantIdByTenantId(tenantId), UserId.of(userId));
     }
 
     public RolePageResultDTO pageRoles(RolePageQueryDTO query) {
@@ -148,11 +148,11 @@ public class RoleApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private TenantId resolveTenantIdByTenantNo(String tenantNo) {
-        validateRequired(tenantNo, "tenantNo");
-        return tenantRepository.findTenantByTenantId(TenantId.of(tenantNo))
+    private TenantId resolveTenantIdByTenantId(String tenantId) {
+        validateRequired(tenantId, "tenantId");
+        return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .map(Tenant::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 
     private String resolveTenantNoByTenantId(TenantId tenantId) {

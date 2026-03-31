@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SysLogPageRequest {
 
-    private String tenantNo;
+    private String tenantId;
     private String module;
     private LogEventType eventType;
     private String result;

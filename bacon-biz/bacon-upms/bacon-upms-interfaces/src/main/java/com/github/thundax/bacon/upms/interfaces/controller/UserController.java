@@ -65,7 +65,7 @@ public class UserController {
     @GetMapping("/page")
     public UserPageResponse pageUsers(@Valid @ModelAttribute UserPageRequest request) {
         return UserPageResponse.from(userApplicationService.pageUsers(new UserPageQueryDTO(
-                tenantRequestResolver.resolveTenantId(request.getTenantNo()),
+                tenantRequestResolver.resolveTenantId(request.getTenantId()),
                 request.getAccount(), request.getName(), request.getPhone(),
                 request.getStatus() == null ? null : request.getStatus().name(), request.getPageNo(),
                 request.getPageSize())));
@@ -77,7 +77,7 @@ public class UserController {
     @PostMapping
     public UserResponse createUser(@RequestBody UserCreateRequest request) {
         return UserResponse.from(userApplicationService.createUser(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), request.account(), request.name(),
+                tenantRequestResolver.resolveTenantId(request.tenantId()), request.account(), request.name(),
                 request.phone(), request.departmentId()));
     }
 
@@ -87,7 +87,7 @@ public class UserController {
     @PutMapping("/{userId}")
     public UserResponse updateUser(@PathVariable String userId, @RequestBody UserUpdateRequest request) {
         return UserResponse.from(userApplicationService.updateUser(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), userId, request.account(),
+                tenantRequestResolver.resolveTenantId(request.tenantId()), userId, request.account(),
                 request.name(), request.phone(), request.departmentId()));
     }
 
@@ -96,7 +96,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "查询用户详情", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}")
     public UserResponse getUserById(@PathVariable String userId, @ModelAttribute TenantScopedRequest request) {
-        return UserResponse.from(userApplicationService.getUserById(request.getTenantNo(), userId));
+        return UserResponse.from(userApplicationService.getUserById(request.getTenantId(), userId));
     }
 
     @Operation(summary = "访问用户头像")
@@ -104,7 +104,7 @@ public class UserController {
     @GetMapping("/{userId}/avatar")
     public ResponseEntity<Void> getAvatar(@PathVariable("userId") String userId, @ModelAttribute TenantScopedRequest request) {
         java.util.Optional<String> avatarAccessUrl = userApplicationService.getAvatarAccessUrl(
-                tenantRequestResolver.resolveTenantId(request.getTenantNo()), userId);
+                tenantRequestResolver.resolveTenantId(request.getTenantId()), userId);
         if (avatarAccessUrl.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -118,7 +118,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "查询用户身份", eventType = LogEventType.QUERY)
     @GetMapping("/identity")
     public UserIdentityResponse getUserIdentity(@ModelAttribute UserIdentityQueryRequest request) {
-        return UserIdentityResponse.from(userApplicationService.getUserIdentity(request.getTenantNo(),
+        return UserIdentityResponse.from(userApplicationService.getUserIdentity(request.getTenantId(),
                 request.getIdentityType(), request.getIdentityValue()));
     }
 
@@ -128,7 +128,7 @@ public class UserController {
     @PutMapping("/{userId}/status")
     public UserResponse updateUserStatus(@PathVariable String userId, @RequestBody UserStatusUpdateRequest request) {
         return UserResponse.from(userApplicationService.updateUserStatus(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), userId, request.status()));
+                tenantRequestResolver.resolveTenantId(request.tenantId()), userId, request.status()));
     }
 
     @Operation(summary = "删除用户")
@@ -136,7 +136,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "删除用户", eventType = LogEventType.DELETE)
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable String userId, @ModelAttribute TenantScopedRequest request) {
-        userApplicationService.deleteUser(tenantRequestResolver.resolveTenantId(request.getTenantNo()), userId);
+        userApplicationService.deleteUser(tenantRequestResolver.resolveTenantId(request.getTenantId()), userId);
     }
 
     @Operation(summary = "管理员初始化密码")
@@ -145,7 +145,7 @@ public class UserController {
     @PutMapping("/{userId}/password/init")
     public UserResponse initPassword(@PathVariable String userId, @RequestBody UserPasswordInitRequest request) {
         return UserResponse.from(userApplicationService.initPassword(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), userId));
+                tenantRequestResolver.resolveTenantId(request.tenantId()), userId));
     }
 
     @Operation(summary = "管理员重置密码")
@@ -154,7 +154,7 @@ public class UserController {
     @PutMapping("/{userId}/password/reset")
     public UserResponse resetPassword(@PathVariable String userId, @RequestBody UserPasswordResetRequest request) {
         return UserResponse.from(userApplicationService.resetPassword(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), userId, request.newPassword()));
+                tenantRequestResolver.resolveTenantId(request.tenantId()), userId, request.newPassword()));
     }
 
     @Operation(summary = "分配用户角色")
@@ -163,7 +163,7 @@ public class UserController {
     @PutMapping("/{userId}/roles")
     public List<RoleResponse> assignRoles(@PathVariable String userId, @RequestBody UserRoleAssignRequest request) {
         return userApplicationService.assignRoles(
-                        tenantRequestResolver.resolveTenantId(request.tenantNo()), userId, request.roleIds()).stream()
+                        tenantRequestResolver.resolveTenantId(request.tenantId()), userId, request.roleIds()).stream()
                 .map(RoleResponse::from)
                 .toList();
     }
@@ -173,10 +173,10 @@ public class UserController {
     @SysLog(module = "UPMS", action = "上传用户头像", eventType = LogEventType.UPDATE)
     @PutMapping(value = "/{userId}/avatar", consumes = "multipart/form-data")
     public UserResponse uploadAvatar(@PathVariable("userId") String userId,
-                                     @RequestParam("tenantNo") String tenantNo,
+                                     @RequestParam("tenantId") String tenantId,
                                      @RequestParam("file") MultipartFile file) throws IOException {
         return UserResponse.from(userApplicationService.updateAvatar(
-                tenantRequestResolver.resolveTenantId(tenantNo), userId, file.getOriginalFilename(),
+                tenantRequestResolver.resolveTenantId(tenantId), userId, file.getOriginalFilename(),
                 file.getContentType(), file.getSize(), file.getInputStream()));
     }
 
@@ -186,7 +186,7 @@ public class UserController {
     @GetMapping("/{userId}/roles")
     public List<RoleResponse> getRolesByUserId(@PathVariable String userId, @ModelAttribute TenantScopedRequest request) {
         return userApplicationService.getRolesByUserId(
-                        tenantRequestResolver.resolveTenantId(request.getTenantNo()), userId).stream()
+                        tenantRequestResolver.resolveTenantId(request.getTenantId()), userId).stream()
                 .map(RoleResponse::from)
                 .toList();
     }
@@ -197,7 +197,7 @@ public class UserController {
     @PostMapping("/import")
     public List<UserResponse> importUsers(@RequestBody UserImportRequest request) {
         List<UserImportItem> items = request.items() == null ? List.of() : request.items();
-        return userApplicationService.importUsers(tenantRequestResolver.resolveTenantId(request.tenantNo()), items.stream()
+        return userApplicationService.importUsers(tenantRequestResolver.resolveTenantId(request.tenantId()), items.stream()
                         .map(item -> new UserImportCommand(item.account(), item.name(), item.phone(),
                                 item.departmentId()))
                         .toList())
@@ -212,7 +212,7 @@ public class UserController {
     @GetMapping("/export")
     public List<UserResponse> exportUsers(@ModelAttribute UserPageRequest request) {
         return userApplicationService.exportUsers(new UserPageQueryDTO(
-                tenantRequestResolver.resolveTenantId(request.getTenantNo()), request.getAccount(),
+                tenantRequestResolver.resolveTenantId(request.getTenantId()), request.getAccount(),
                 request.getName(), request.getPhone(), request.getStatus() == null ? null : request.getStatus().name(),
                 1, Integer.MAX_VALUE))
                 .stream()

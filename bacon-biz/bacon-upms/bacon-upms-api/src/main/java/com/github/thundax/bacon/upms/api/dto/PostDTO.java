@@ -15,7 +15,7 @@ public class PostDTO {
     /** 岗位主键。 */
     private Long id;
     /** 所属租户编号。 */
-    private String tenantNo;
+    private String tenantId;
     /** 岗位编码。 */
     private String code;
     /** 岗位名称。 */

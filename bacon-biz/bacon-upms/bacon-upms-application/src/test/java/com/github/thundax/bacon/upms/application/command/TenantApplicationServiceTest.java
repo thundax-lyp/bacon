@@ -43,7 +43,7 @@ class TenantApplicationServiceTest {
 
         TenantDTO result = service.createTenant("tenant-demo", "Demo Tenant");
 
-        assertThat(result.getTenantNo()).isEqualTo("tenant-demo");
+        assertThat(result.getId().value()).isEqualTo("tenant-demo");
         assertThat(result.getName()).isEqualTo("Demo Tenant");
         assertThat(result.getStatus()).isEqualTo("ENABLED");
     }
@@ -55,7 +55,7 @@ class TenantApplicationServiceTest {
 
         assertThatThrownBy(() -> service.createTenant("tenant-demo", "Other"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Tenant tenantNo already exists: tenant-demo");
+                .hasMessage("Tenant tenantId already exists: tenant-demo");
     }
 
     @Test

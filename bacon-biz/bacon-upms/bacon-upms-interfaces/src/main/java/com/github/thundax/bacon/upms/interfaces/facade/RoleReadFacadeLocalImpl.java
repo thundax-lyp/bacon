@@ -19,12 +19,12 @@ public class RoleReadFacadeLocalImpl implements RoleReadFacade {
     }
 
     @Override
-    public RoleDTO getRoleById(String tenantNo, Long roleId) {
-        return roleApplicationService.getRoleById(tenantNo, roleId);
+    public RoleDTO getRoleById(String tenantId, Long roleId) {
+        return roleApplicationService.getRoleById(tenantId, roleId);
     }
 
     @Override
-    public List<RoleDTO> getRolesByUserId(String tenantNo, String userId) {
-        return roleApplicationService.getRolesByUserId(tenantNo, userId);
+    public List<RoleDTO> getRolesByUserId(String tenantId, String userId) {
+        return roleApplicationService.getRolesByUserId(tenantId, userId);
     }
 }

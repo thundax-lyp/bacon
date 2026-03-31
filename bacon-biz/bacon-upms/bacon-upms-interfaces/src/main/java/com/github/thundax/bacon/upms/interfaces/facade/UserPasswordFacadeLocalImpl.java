@@ -16,7 +16,7 @@ public class UserPasswordFacadeLocalImpl implements UserPasswordFacade {
     }
 
     @Override
-    public void changePassword(String tenantNo, String userId, String oldPassword, String newPassword) {
-        userApplicationService.changePassword(tenantNo, userId, oldPassword, newPassword);
+    public void changePassword(String tenantId, String userId, String oldPassword, String newPassword) {
+        userApplicationService.changePassword(tenantId, userId, oldPassword, newPassword);
     }
 }

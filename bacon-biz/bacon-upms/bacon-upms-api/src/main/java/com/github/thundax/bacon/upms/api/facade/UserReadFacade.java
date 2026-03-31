@@ -7,11 +7,11 @@ import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 
 public interface UserReadFacade {
 
-    UserDTO getUserById(String tenantNo, String userId);
+    UserDTO getUserById(String tenantId, String userId);
 
-    UserIdentityDTO getUserIdentity(String tenantNo, String identityType, String identityValue);
+    UserIdentityDTO getUserIdentity(String tenantId, String identityType, String identityValue);
 
-    UserLoginCredentialDTO getUserLoginCredential(String tenantNo, String identityType, String identityValue);
+    UserLoginCredentialDTO getUserLoginCredential(String tenantId, String identityType, String identityValue);
 
-    TenantDTO getTenantByTenantNo(String tenantNo);
+    TenantDTO getTenantByTenantId(String tenantId);
 }

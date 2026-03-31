@@ -21,17 +21,17 @@ public class PermissionReadFacadeLocalImpl implements PermissionReadFacade {
     }
 
     @Override
-    public List<UserMenuTreeDTO> getUserMenuTree(String tenantNo, String userId) {
-        return permissionQueryService.getUserMenuTree(tenantNo, userId);
+    public List<UserMenuTreeDTO> getUserMenuTree(String tenantId, String userId) {
+        return permissionQueryService.getUserMenuTree(tenantId, userId);
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(String tenantNo, String userId) {
-        return permissionQueryService.getUserPermissionCodes(tenantNo, userId);
+    public Set<String> getUserPermissionCodes(String tenantId, String userId) {
+        return permissionQueryService.getUserPermissionCodes(tenantId, userId);
     }
 
     @Override
-    public UserDataScopeDTO getUserDataScope(String tenantNo, String userId) {
-        return permissionQueryService.getUserDataScope(tenantNo, userId);
+    public UserDataScopeDTO getUserDataScope(String tenantId, String userId) {
+        return permissionQueryService.getUserDataScope(tenantId, userId);
     }
 }

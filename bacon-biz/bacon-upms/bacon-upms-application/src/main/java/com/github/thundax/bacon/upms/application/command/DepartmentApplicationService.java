@@ -33,8 +33,8 @@ public class DepartmentApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId)));
     }
 
-    public DepartmentDTO getDepartmentById(String tenantNo, Long departmentId) {
-        return getDepartmentById(resolveTenantIdByTenantNo(tenantNo), departmentId);
+    public DepartmentDTO getDepartmentById(String tenantId, Long departmentId) {
+        return getDepartmentById(resolveTenantIdByTenantId(tenantId), departmentId);
     }
 
     public DepartmentDTO getDepartmentByCode(TenantId tenantId, String departmentCode) {
@@ -42,8 +42,8 @@ public class DepartmentApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentCode)));
     }
 
-    public DepartmentDTO getDepartmentByCode(String tenantNo, String departmentCode) {
-        return getDepartmentByCode(resolveTenantIdByTenantNo(tenantNo), departmentCode);
+    public DepartmentDTO getDepartmentByCode(String tenantId, String departmentCode) {
+        return getDepartmentByCode(resolveTenantIdByTenantId(tenantId), departmentCode);
     }
 
     public List<DepartmentDTO> listDepartmentsByIds(TenantId tenantId, Set<Long> departmentIds) {
@@ -53,8 +53,8 @@ public class DepartmentApplicationService {
                 .toList();
     }
 
-    public List<DepartmentDTO> listDepartmentsByIds(String tenantNo, Set<Long> departmentIds) {
-        return listDepartmentsByIds(resolveTenantIdByTenantNo(tenantNo), departmentIds);
+    public List<DepartmentDTO> listDepartmentsByIds(String tenantId, Set<Long> departmentIds) {
+        return listDepartmentsByIds(resolveTenantIdByTenantId(tenantId), departmentIds);
     }
 
     public List<DepartmentTreeDTO> getDepartmentTree(TenantId tenantId) {
@@ -170,11 +170,11 @@ public class DepartmentApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private TenantId resolveTenantIdByTenantNo(String tenantNo) {
-        validateRequired(tenantNo, "tenantNo");
-        return tenantRepository.findTenantByTenantId(TenantId.of(tenantNo))
+    private TenantId resolveTenantIdByTenantId(String tenantId) {
+        validateRequired(tenantId, "tenantId");
+        return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .map(Tenant::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 
     private String resolveTenantNoByTenantId(TenantId tenantId) {

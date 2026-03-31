@@ -130,7 +130,7 @@ class UserApplicationServiceTest {
         UserPageResultDTO result = service.pageUsers(new UserPageQueryDTO(1001L, null, null, null, null, 1, 20));
 
         assertThat(result.getRecords()).hasSize(1);
-        assertThat(result.getRecords().get(0).getTenantNo()).isEqualTo("tenant-demo");
+        assertThat(result.getRecords().get(0).getTenantId()).isEqualTo("tenant-demo");
         assertThat(result.getRecords().get(0).getAvatarObjectId()).isEqualTo(501L);
         assertThat(result.getRecords().get(0).getAvatarUrl()).isNull();
         verify(storedObjectFacade, never()).getObjectById(any());
@@ -178,7 +178,7 @@ class UserApplicationServiceTest {
 
         UserLoginCredentialDTO credential = service.getUserLoginCredential("tenant-demo", "ACCOUNT", "alice");
 
-        assertThat(credential.getTenantNo()).isEqualTo("tenant-demo");
+        assertThat(credential.getTenantId()).isEqualTo("tenant-demo");
         assertThat(credential.getUserId()).isEqualTo("U101");
         assertThat(credential.getPasswordHash()).isEqualTo("{noop}identity");
         assertThat(credential.isNeedChangePassword()).isTrue();

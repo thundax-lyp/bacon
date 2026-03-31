@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TenantPageRequest {
 
-    private String tenantNo;
+    private String tenantId;
     private String name;
     private UpmsStatusQueryEnum status;
 

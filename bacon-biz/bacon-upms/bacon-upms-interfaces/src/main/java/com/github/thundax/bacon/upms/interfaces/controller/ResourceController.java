@@ -46,7 +46,7 @@ public class ResourceController {
     @GetMapping("/page")
     public ResourcePageResponse pageResources(@Valid @ModelAttribute ResourcePageRequest request) {
         return ResourcePageResponse.from(resourceApplicationService.pageResources(new ResourcePageQueryDTO(
-                tenantRequestResolver.resolveTenantId(request.getTenantNo()), request.getCode(), request.getName(),
+                tenantRequestResolver.resolveTenantId(request.getTenantId()), request.getCode(), request.getName(),
                 request.getResourceType() == null ? null : request.getResourceType().name(),
                 request.getStatus() == null ? null : request.getStatus().name(),
                 request.getPageNo(), request.getPageSize()
@@ -59,7 +59,7 @@ public class ResourceController {
     @GetMapping("/{resourceId}")
     public ResourceResponse getResourceById(@PathVariable Long resourceId, @ModelAttribute TenantScopedRequest request) {
         return ResourceResponse.from(resourceApplicationService.getResourceById(
-                tenantRequestResolver.resolveTenantId(request.getTenantNo()), resourceId));
+                tenantRequestResolver.resolveTenantId(request.getTenantId()), resourceId));
     }
 
     @Operation(summary = "创建资源")
@@ -68,7 +68,7 @@ public class ResourceController {
     @PostMapping
     public ResourceResponse createResource(@RequestBody ResourceCreateRequest request) {
         return ResourceResponse.from(resourceApplicationService.createResource(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), request.code(),
+                tenantRequestResolver.resolveTenantId(request.tenantId()), request.code(),
                 request.name(), request.resourceType(), request.httpMethod(), request.uri()));
     }
 
@@ -78,7 +78,7 @@ public class ResourceController {
     @PutMapping("/{resourceId}")
     public ResourceResponse updateResource(@PathVariable Long resourceId, @RequestBody ResourceUpdateRequest request) {
         return ResourceResponse.from(resourceApplicationService.updateResource(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), resourceId,
+                tenantRequestResolver.resolveTenantId(request.tenantId()), resourceId,
                 request.code(), request.name(), request.resourceType(), request.httpMethod(), request.uri(),
                 request.status()));
     }
@@ -88,6 +88,6 @@ public class ResourceController {
     @SysLog(module = "UPMS", action = "删除资源", eventType = LogEventType.DELETE)
     @DeleteMapping("/{resourceId}")
     public void deleteResource(@PathVariable Long resourceId, @ModelAttribute TenantScopedRequest request) {
-        resourceApplicationService.deleteResource(tenantRequestResolver.resolveTenantId(request.getTenantNo()), resourceId);
+        resourceApplicationService.deleteResource(tenantRequestResolver.resolveTenantId(request.getTenantId()), resourceId);
     }
 }

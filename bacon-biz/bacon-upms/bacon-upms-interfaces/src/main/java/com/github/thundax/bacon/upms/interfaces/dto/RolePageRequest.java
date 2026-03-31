@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RolePageRequest {
 
-    private String tenantNo;
+    private String tenantId;
     private String code;
     private String name;
     private UpmsRoleTypeQueryEnum roleType;

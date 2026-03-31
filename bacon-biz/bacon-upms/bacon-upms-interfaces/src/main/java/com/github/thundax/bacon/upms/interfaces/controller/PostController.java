@@ -46,7 +46,7 @@ public class PostController {
     @GetMapping("/page")
     public PostPageResponse pagePosts(@Valid @ModelAttribute PostPageRequest request) {
         return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(
-                tenantRequestResolver.resolveTenantId(request.getTenantNo()),
+                tenantRequestResolver.resolveTenantId(request.getTenantId()),
                 request.getCode(), request.getName(), request.getDepartmentId(),
                 request.getStatus() == null ? null : request.getStatus().name(),
                 request.getPageNo(), request.getPageSize())));
@@ -58,7 +58,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public PostResponse getPostById(@PathVariable Long postId, @ModelAttribute TenantScopedRequest request) {
         return PostResponse.from(postApplicationService.getPostById(
-                tenantRequestResolver.resolveTenantId(request.getTenantNo()), postId));
+                tenantRequestResolver.resolveTenantId(request.getTenantId()), postId));
     }
 
     @Operation(summary = "创建岗位")
@@ -67,7 +67,7 @@ public class PostController {
     @PostMapping
     public PostResponse createPost(@RequestBody PostCreateRequest request) {
         return PostResponse.from(postApplicationService.createPost(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), request.code(), request.name(),
+                tenantRequestResolver.resolveTenantId(request.tenantId()), request.code(), request.name(),
                 request.departmentId()));
     }
 
@@ -77,7 +77,7 @@ public class PostController {
     @PutMapping("/{postId}")
     public PostResponse updatePost(@PathVariable Long postId, @RequestBody PostUpdateRequest request) {
         return PostResponse.from(postApplicationService.updatePost(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), postId, request.code(),
+                tenantRequestResolver.resolveTenantId(request.tenantId()), postId, request.code(),
                 request.name(), request.departmentId(), request.status()));
     }
 
@@ -86,6 +86,6 @@ public class PostController {
     @SysLog(module = "UPMS", action = "删除岗位", eventType = LogEventType.DELETE)
     @DeleteMapping("/{postId}")
     public void deletePost(@PathVariable Long postId, @ModelAttribute TenantScopedRequest request) {
-        postApplicationService.deletePost(tenantRequestResolver.resolveTenantId(request.getTenantNo()), postId);
+        postApplicationService.deletePost(tenantRequestResolver.resolveTenantId(request.getTenantId()), postId);
     }
 }

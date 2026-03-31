@@ -9,7 +9,7 @@ public record PostResponse(
         /** 岗位主键。 */
         Long id,
         /** 所属租户编号。 */
-        String tenantNo,
+        String tenantId,
         /** 岗位编码。 */
         String code,
         /** 岗位名称。 */
@@ -20,7 +20,7 @@ public record PostResponse(
         String status) {
 
     public static PostResponse from(PostDTO dto) {
-        return new PostResponse(dto.getId(), dto.getTenantNo(), dto.getCode(), dto.getName(),
+        return new PostResponse(dto.getId(), dto.getTenantId(), dto.getCode(), dto.getName(),
                 dto.getDepartmentId(), dto.getStatus());
     }
 }

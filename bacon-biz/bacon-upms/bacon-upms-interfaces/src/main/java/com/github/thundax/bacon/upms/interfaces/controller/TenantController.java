@@ -41,7 +41,7 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "分页查询租户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public TenantPageResponse pageTenants(@Valid @ModelAttribute TenantPageRequest request) {
-        return TenantPageResponse.from(tenantApplicationService.pageTenants(new TenantPageQueryDTO(request.getTenantNo(),
+        return TenantPageResponse.from(tenantApplicationService.pageTenants(new TenantPageQueryDTO(request.getTenantId(),
                 request.getName(), request.getStatus() == null ? null : request.getStatus().name(),
                 request.getPageNo(), request.getPageSize())));
     }
@@ -51,30 +51,30 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "创建租户", eventType = LogEventType.CREATE)
     @PostMapping
     public TenantResponse createTenant(@RequestBody TenantCreateRequest request) {
-        return TenantResponse.from(tenantApplicationService.createTenant(request.tenantNo(), request.name()));
+        return TenantResponse.from(tenantApplicationService.createTenant(request.tenantId(), request.name()));
     }
 
     @Operation(summary = "修改租户")
     @HasPermission("sys:tenant:update")
     @SysLog(module = "UPMS", action = "修改租户", eventType = LogEventType.UPDATE)
-    @PutMapping("/{tenantNo}")
-    public TenantResponse updateTenant(@PathVariable String tenantNo, @RequestBody TenantUpdateRequest request) {
-        return TenantResponse.from(tenantApplicationService.updateTenant(tenantNo, request.name()));
+    @PutMapping("/{tenantId}")
+    public TenantResponse updateTenant(@PathVariable String tenantId, @RequestBody TenantUpdateRequest request) {
+        return TenantResponse.from(tenantApplicationService.updateTenant(tenantId, request.name()));
     }
 
     @Operation(summary = "按租户编号查询租户")
     @HasPermission("sys:tenant:view")
     @SysLog(module = "UPMS", action = "查询租户详情", eventType = LogEventType.QUERY)
-    @GetMapping("/{tenantNo}")
-    public TenantResponse getTenantByTenantNo(@PathVariable String tenantNo) {
-        return TenantResponse.from(tenantApplicationService.getTenantByTenantNo(tenantNo));
+    @GetMapping("/{tenantId}")
+    public TenantResponse getTenantByTenantId(@PathVariable String tenantId) {
+        return TenantResponse.from(tenantApplicationService.getTenantByTenantId(tenantId));
     }
 
     @Operation(summary = "变更租户状态")
     @HasPermission("sys:tenant:update")
     @SysLog(module = "UPMS", action = "变更租户状态", eventType = LogEventType.UPDATE)
-    @PutMapping("/{tenantNo}/status")
-    public TenantResponse updateTenantStatus(@PathVariable String tenantNo, @RequestBody TenantStatusUpdateRequest request) {
-        return TenantResponse.from(tenantApplicationService.updateTenantStatus(tenantNo, request.status()));
+    @PutMapping("/{tenantId}/status")
+    public TenantResponse updateTenantStatus(@PathVariable String tenantId, @RequestBody TenantStatusUpdateRequest request) {
+        return TenantResponse.from(tenantApplicationService.updateTenantStatus(tenantId, request.status()));
     }
 }

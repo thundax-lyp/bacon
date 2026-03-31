@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class SysLogQueryDTO {
 
     /** 租户编号。 */
-    private String tenantNo;
+    private String tenantId;
     /** 业务模块。 */
     private String module;
     /** 事件类型。 */

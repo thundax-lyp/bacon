@@ -15,7 +15,7 @@ public class ResourceDTO {
     /** 资源主键。 */
     private Long id;
     /** 所属租户编号。 */
-    private String tenantNo;
+    private String tenantId;
     /** 资源编码。 */
     private String code;
     /** 资源名称。 */

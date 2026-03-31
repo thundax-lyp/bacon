@@ -47,86 +47,86 @@ public class UpmsProviderController {
 
     @Operation(summary = "按用户 ID 查询用户")
     @GetMapping("/users/{userId}")
-    public UserDTO getUserById(@RequestParam("tenantNo") String tenantNo, @PathVariable String userId) {
-        return userApplicationService.getUserById(tenantNo, userId);
+    public UserDTO getUserById(@RequestParam("tenantId") String tenantId, @PathVariable String userId) {
+        return userApplicationService.getUserById(tenantId, userId);
     }
 
     @Operation(summary = "按身份标识查询用户身份")
     @GetMapping("/user-identities")
-    public UserIdentityDTO getUserIdentity(@RequestParam("tenantNo") String tenantNo,
+    public UserIdentityDTO getUserIdentity(@RequestParam("tenantId") String tenantId,
                                            @RequestParam("identityType") String identityType,
                                            @RequestParam("identityValue") String identityValue) {
-        return userApplicationService.getUserIdentity(tenantNo, identityType, identityValue);
+        return userApplicationService.getUserIdentity(tenantId, identityType, identityValue);
     }
 
     @Operation(summary = "按身份标识查询用户登录凭据")
     @GetMapping("/user-credentials")
-    public UserLoginCredentialDTO getUserLoginCredential(@RequestParam("tenantNo") String tenantNo,
+    public UserLoginCredentialDTO getUserLoginCredential(@RequestParam("tenantId") String tenantId,
                                                          @RequestParam("identityType") String identityType,
                                                          @RequestParam("identityValue") String identityValue) {
-        return userApplicationService.getUserLoginCredential(tenantNo, identityType, identityValue);
+        return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
     }
 
     @Operation(summary = "当前用户修改密码")
     @PostMapping("/users/{userId}/password/change")
-    public void changePassword(@RequestParam("tenantNo") String tenantNo,
+    public void changePassword(@RequestParam("tenantId") String tenantId,
                                @PathVariable String userId,
                                @RequestBody UserPasswordChangeDTO request) {
-        userApplicationService.changePassword(tenantNo, userId, request.getOldPassword(), request.getNewPassword());
+        userApplicationService.changePassword(tenantId, userId, request.getOldPassword(), request.getNewPassword());
     }
 
     @Operation(summary = "按租户编号查询租户")
-    @GetMapping("/tenants/{tenantNo}")
-    public TenantDTO getTenant(@PathVariable String tenantNo) {
-        return userApplicationService.getTenantByTenantNo(tenantNo);
+    @GetMapping("/tenants/{tenantId}")
+    public TenantDTO getTenant(@PathVariable String tenantId) {
+        return userApplicationService.getTenantByTenantId(tenantId);
     }
 
     @Operation(summary = "按部门 ID 查询部门")
     @GetMapping("/departments/{departmentId}")
-    public DepartmentDTO getDepartmentById(@RequestParam("tenantNo") String tenantNo, @PathVariable Long departmentId) {
-        return departmentApplicationService.getDepartmentById(tenantNo, departmentId);
+    public DepartmentDTO getDepartmentById(@RequestParam("tenantId") String tenantId, @PathVariable Long departmentId) {
+        return departmentApplicationService.getDepartmentById(tenantId, departmentId);
     }
 
     @Operation(summary = "按部门编码查询部门")
     @GetMapping("/departments/code/{departmentCode}")
-    public DepartmentDTO getDepartmentByCode(@RequestParam("tenantNo") String tenantNo, @PathVariable String departmentCode) {
-        return departmentApplicationService.getDepartmentByCode(tenantNo, departmentCode);
+    public DepartmentDTO getDepartmentByCode(@RequestParam("tenantId") String tenantId, @PathVariable String departmentCode) {
+        return departmentApplicationService.getDepartmentByCode(tenantId, departmentCode);
     }
 
     @Operation(summary = "批量查询部门")
     @GetMapping("/departments")
-    public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("tenantNo") String tenantNo,
+    public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("tenantId") String tenantId,
                                                     @RequestParam("departmentIds") Set<Long> departmentIds) {
-        return departmentApplicationService.listDepartmentsByIds(tenantNo, departmentIds);
+        return departmentApplicationService.listDepartmentsByIds(tenantId, departmentIds);
     }
 
     @Operation(summary = "按角色 ID 查询角色")
     @GetMapping("/roles/{roleId}")
-    public RoleDTO getRoleById(@RequestParam("tenantNo") String tenantNo, @PathVariable Long roleId) {
-        return roleApplicationService.getRoleById(tenantNo, roleId);
+    public RoleDTO getRoleById(@RequestParam("tenantId") String tenantId, @PathVariable Long roleId) {
+        return roleApplicationService.getRoleById(tenantId, roleId);
     }
 
     @Operation(summary = "查询用户角色列表")
     @GetMapping("/roles")
-    public List<RoleDTO> getRolesByUserId(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") String userId) {
-        return roleApplicationService.getRolesByUserId(tenantNo, userId);
+    public List<RoleDTO> getRolesByUserId(@RequestParam("tenantId") String tenantId, @RequestParam("userId") String userId) {
+        return roleApplicationService.getRolesByUserId(tenantId, userId);
     }
 
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
-    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") String userId) {
-        return permissionQueryService.getUserMenuTree(tenantNo, userId);
+    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") String tenantId, @RequestParam("userId") String userId) {
+        return permissionQueryService.getUserMenuTree(tenantId, userId);
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
-    public Set<String> getUserPermissionCodes(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") String userId) {
-        return permissionQueryService.getUserPermissionCodes(tenantNo, userId);
+    public Set<String> getUserPermissionCodes(@RequestParam("tenantId") String tenantId, @RequestParam("userId") String userId) {
+        return permissionQueryService.getUserPermissionCodes(tenantId, userId);
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @GetMapping("/permissions/data-scope")
-    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") String userId) {
-        return permissionQueryService.getUserDataScope(tenantNo, userId);
+    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") String tenantId, @RequestParam("userId") String userId) {
+        return permissionQueryService.getUserDataScope(tenantId, userId);
     }
 }

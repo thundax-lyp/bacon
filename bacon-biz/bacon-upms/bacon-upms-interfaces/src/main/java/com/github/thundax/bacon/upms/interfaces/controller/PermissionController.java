@@ -36,7 +36,7 @@ public class PermissionController {
     @GetMapping("/menu-tree")
     public List<UserMenuTreeResponse> getUserMenuTree(@PathVariable String userId,
                                                       @ModelAttribute TenantScopedRequest request) {
-        return permissionQueryService.getUserMenuTree(request.getTenantNo(), userId).stream()
+        return permissionQueryService.getUserMenuTree(request.getTenantId(), userId).stream()
                 .map(UserMenuTreeResponse::from)
                 .toList();
     }
@@ -47,7 +47,7 @@ public class PermissionController {
     @GetMapping("/permission-codes")
     public Set<String> getUserPermissionCodes(@PathVariable String userId,
                                               @ModelAttribute TenantScopedRequest request) {
-        return permissionQueryService.getUserPermissionCodes(request.getTenantNo(), userId);
+        return permissionQueryService.getUserPermissionCodes(request.getTenantId(), userId);
     }
 
     @Operation(summary = "查询用户数据权限范围")
@@ -56,6 +56,6 @@ public class PermissionController {
     @GetMapping("/data-scope")
     public UserDataScopeResponse getUserDataScope(@PathVariable String userId,
                                                   @ModelAttribute TenantScopedRequest request) {
-        return UserDataScopeResponse.from(permissionQueryService.getUserDataScope(request.getTenantNo(), userId));
+        return UserDataScopeResponse.from(permissionQueryService.getUserDataScope(request.getTenantId(), userId));
     }
 }

@@ -72,8 +72,8 @@ public class UserApplicationService {
         return toDetailedDto(requireUser(tenantId, userId));
     }
 
-    public UserDTO getUserById(String tenantNo, String userId) {
-        return getUserById(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId));
+    public UserDTO getUserById(String tenantId, String userId) {
+        return getUserById(resolveTenantIdByTenantId(tenantId), UserId.of(userId));
     }
 
     public UserIdentityDTO getUserIdentity(TenantId tenantId, String identityType, String identityValue) {
@@ -84,8 +84,8 @@ public class UserApplicationService {
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled());
     }
 
-    public UserIdentityDTO getUserIdentity(String tenantNo, String identityType, String identityValue) {
-        return getUserIdentity(resolveTenantIdByTenantNo(tenantNo), identityType, identityValue);
+    public UserIdentityDTO getUserIdentity(String tenantId, String identityType, String identityValue) {
+        return getUserIdentity(resolveTenantIdByTenantId(tenantId), identityType, identityValue);
     }
 
     public UserLoginCredentialDTO getUserLoginCredential(TenantId tenantId, String identityType, String identityValue) {
@@ -104,13 +104,13 @@ public class UserApplicationService {
                 passwordCredential.getCredentialValue());
     }
 
-    public UserLoginCredentialDTO getUserLoginCredential(String tenantNo, String identityType, String identityValue) {
-        return getUserLoginCredential(resolveTenantIdByTenantNo(tenantNo), identityType, identityValue);
+    public UserLoginCredentialDTO getUserLoginCredential(String tenantId, String identityType, String identityValue) {
+        return getUserLoginCredential(resolveTenantIdByTenantId(tenantId), identityType, identityValue);
     }
 
-    public TenantDTO getTenantByTenantNo(String tenantNo) {
-        Tenant tenant = tenantRepository.findTenantByTenantId(TenantId.of(tenantNo))
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
+    public TenantDTO getTenantByTenantId(String tenantId) {
+        Tenant tenant = tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
         return new TenantDTO(tenant.getId(), tenant.getName(), tenant.getStatus().value());
     }
 
@@ -233,8 +233,8 @@ public class UserApplicationService {
         userRepository.updatePassword(tenantId, userId, normalize(newPassword), false);
     }
 
-    public void changePassword(String tenantNo, String userId, String oldPassword, String newPassword) {
-        changePassword(resolveTenantIdByTenantNo(tenantNo), UserId.of(userId), oldPassword, newPassword);
+    public void changePassword(String tenantId, String userId, String oldPassword, String newPassword) {
+        changePassword(resolveTenantIdByTenantId(tenantId), UserId.of(userId), oldPassword, newPassword);
     }
 
     public List<RoleDTO> assignRoles(TenantId tenantId, String userId, List<Long> roleIds) {
@@ -312,11 +312,11 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
     }
 
-    private TenantId resolveTenantIdByTenantNo(String tenantNo) {
-        validateRequired(tenantNo, "tenantNo");
-        return tenantRepository.findTenantByTenantId(TenantId.of(tenantNo))
+    private TenantId resolveTenantIdByTenantId(String tenantId) {
+        validateRequired(tenantId, "tenantId");
+        return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .map(Tenant::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 
     private String resolveTenantNoByTenantId(TenantId tenantId) {

@@ -43,7 +43,7 @@ public class MenuController {
     @SysLog(module = "UPMS", action = "查询菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/tree")
     public List<MenuTreeResponse> getMenuTree(@ModelAttribute TenantScopedRequest request) {
-        return menuApplicationService.getMenuTree(tenantRequestResolver.resolveTenantId(request.getTenantNo())).stream()
+        return menuApplicationService.getMenuTree(tenantRequestResolver.resolveTenantId(request.getTenantId())).stream()
                 .map(MenuTreeResponse::from)
                 .toList();
     }
@@ -54,7 +54,7 @@ public class MenuController {
     @PostMapping
     public MenuTreeResponse createMenu(@RequestBody MenuCreateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.createMenu(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), request.menuType(), request.name(),
+                tenantRequestResolver.resolveTenantId(request.tenantId()), request.menuType(), request.name(),
                 request.parentId(), request.routePath(), request.componentName(), request.icon(), request.sort(),
                 request.permissionCode()));
     }
@@ -65,7 +65,7 @@ public class MenuController {
     @PutMapping("/{menuId}")
     public MenuTreeResponse updateMenu(@PathVariable Long menuId, @RequestBody MenuUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenu(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), menuId, request.menuType(),
+                tenantRequestResolver.resolveTenantId(request.tenantId()), menuId, request.menuType(),
                 request.name(), request.parentId(), request.routePath(), request.componentName(), request.icon(),
                 request.sort(), request.permissionCode()));
     }
@@ -75,7 +75,7 @@ public class MenuController {
     @SysLog(module = "UPMS", action = "删除菜单", eventType = LogEventType.DELETE)
     @DeleteMapping("/{menuId}")
     public void deleteMenu(@PathVariable Long menuId, @ModelAttribute TenantScopedRequest request) {
-        menuApplicationService.deleteMenu(tenantRequestResolver.resolveTenantId(request.getTenantNo()), menuId);
+        menuApplicationService.deleteMenu(tenantRequestResolver.resolveTenantId(request.getTenantId()), menuId);
     }
 
     @Operation(summary = "调整菜单排序")
@@ -84,6 +84,6 @@ public class MenuController {
     @PutMapping("/{menuId}/sort")
     public MenuTreeResponse updateSort(@PathVariable Long menuId, @RequestBody MenuSortUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenuSort(
-                tenantRequestResolver.resolveTenantId(request.tenantNo()), menuId, request.sort()));
+                tenantRequestResolver.resolveTenantId(request.tenantId()), menuId, request.sort()));
     }
 }

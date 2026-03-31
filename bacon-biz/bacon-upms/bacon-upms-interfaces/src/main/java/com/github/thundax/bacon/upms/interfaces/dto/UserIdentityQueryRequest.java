@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserIdentityQueryRequest {
 
-    private String tenantNo;
+    private String tenantId;
     private String identityType;
     private String identityValue;
 }

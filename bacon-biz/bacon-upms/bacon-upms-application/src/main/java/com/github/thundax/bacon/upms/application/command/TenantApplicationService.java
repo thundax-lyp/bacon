@@ -5,14 +5,13 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageResultDTO;
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TenantApplicationService {
-
-    private static final String DISABLED_STATUS = "DISABLED";
 
     private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
@@ -38,7 +37,8 @@ public class TenantApplicationService {
         tenantRepository.findTenantByCode(normalize(code)).ifPresent(tenant -> {
             throw new IllegalArgumentException("Tenant code already exists: " + code);
         });
-        return toDto(tenantRepository.saveTenant(new Tenant(null, null, normalize(code), normalize(name), "ENABLED")));
+        return toDto(tenantRepository.saveTenant(new Tenant(null, null, normalize(code), normalize(name),
+                UpmsStatusEnum.ENABLED.value())));
     }
 
     public TenantDTO updateTenant(Long tenantId, String code, String name) {
@@ -66,7 +66,7 @@ public class TenantApplicationService {
         validateRequired(status, "status");
         Tenant tenant = tenantRepository.updateTenantStatus(tenantId, normalize(status));
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
-        if (DISABLED_STATUS.equalsIgnoreCase(tenant.getStatus())) {
+        if (UpmsStatusEnum.DISABLED.matches(tenant.getStatus())) {
             sessionCommandFacade.invalidateTenantSessions(tenantId, "TENANT_DISABLED");
         }
         return toDto(tenant);

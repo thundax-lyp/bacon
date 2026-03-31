@@ -11,6 +11,7 @@ import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -85,7 +86,7 @@ public class LoginApplicationService {
         if (credential.isDeleted()) {
             throw new BadRequestException("Current account has been deleted");
         }
-        if (!"ENABLED".equalsIgnoreCase(credential.getStatus())) {
+        if (!UpmsStatusEnum.ENABLED.matches(credential.getStatus())) {
             throw new BadRequestException("Current user is not enabled");
         }
         if (!passwordEncoder.matches(plainPassword, credential.getPasswordHash())) {

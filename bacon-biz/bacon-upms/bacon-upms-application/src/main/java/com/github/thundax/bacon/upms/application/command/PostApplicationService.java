@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageResultDTO;
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ public class PostApplicationService {
         validateRequired(code, "code");
         validateRequired(name, "name");
         return toDto(postRepository.save(new Post(null, tenantId, normalize(code), normalize(name),
-                departmentId, "ENABLED")));
+                departmentId, UpmsStatusEnum.ENABLED.value())));
     }
 
     public PostDTO updatePost(Long tenantId, Long postId, String code, String name, Long departmentId, String status) {

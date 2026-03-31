@@ -9,6 +9,7 @@ import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageResultDTO;
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -24,7 +25,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserApplicationService {
 
-    private static final String DISABLED_STATUS = "DISABLED";
     private static final String DEFAULT_PASSWORD = "123456";
 
     private final UserRepository userRepository;
@@ -86,7 +86,7 @@ public class UserApplicationService {
         validateRequired(name, "name");
         ensureAccountUnique(tenantId, account, null);
         User savedUser = userRepository.save(new User(null, tenantId, normalize(account), normalize(name), normalize(phone),
-                null, departmentId, "ENABLED", false));
+                null, departmentId, UpmsStatusEnum.ENABLED.value(), false));
         return toDto(savedUser);
     }
 
@@ -129,7 +129,7 @@ public class UserApplicationService {
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt()));
-        if (DISABLED_STATUS.equalsIgnoreCase(savedUser.getStatus())) {
+        if (UpmsStatusEnum.DISABLED.matches(savedUser.getStatus())) {
             // 用户被禁用后立即失效现有会话，避免账号状态已停用但旧 access token 还能继续访问。
             sessionCommandFacade.invalidateUserSessions(tenantId, userId, "USER_DISABLED");
         }

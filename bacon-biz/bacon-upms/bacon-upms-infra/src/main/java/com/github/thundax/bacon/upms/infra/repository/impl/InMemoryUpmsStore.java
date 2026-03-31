@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
@@ -49,21 +50,23 @@ public class InMemoryUpmsStore {
     private final AtomicLong resourceIdSequence = new AtomicLong(7002L);
 
     public InMemoryUpmsStore(PasswordEncoder passwordEncoder) {
-        Tenant tenant = new Tenant(1L, 1001L, "tenant-demo", "Demo Tenant", "ENABLED");
+        Tenant tenant = new Tenant(1L, 1001L, "tenant-demo", "Demo Tenant", UpmsStatusEnum.ENABLED.value());
         tenants.put(tenant.getTenantId(), tenant);
 
-        Department rootDepartment = new Department(10L, 1001L, "ROOT", "Headquarters", 0L, 2001L, "ENABLED");
+        Department rootDepartment = new Department(10L, 1001L, "ROOT", "Headquarters", 0L, 2001L,
+                UpmsStatusEnum.ENABLED.value());
         departments.put(departmentKey(rootDepartment.getTenantId(), rootDepartment.getId()), rootDepartment);
         departments.put(departmentCodeKey(rootDepartment.getTenantId(), rootDepartment.getCode()), rootDepartment);
 
         User admin = new User(2001L, 1001L, "admin", "System Admin", "13800000000",
-                passwordEncoder.encode("123456"), 10L, "ENABLED", false);
+                passwordEncoder.encode("123456"), 10L, UpmsStatusEnum.ENABLED.value(), false);
         users.put(userKey(admin.getTenantId(), admin.getId()), admin);
 
         UserIdentity accountIdentity = new UserIdentity(3001L, 1001L, 2001L, "ACCOUNT", "admin", true);
         userIdentities.put(identityKey(1001L, "ACCOUNT", "admin"), accountIdentity);
 
-        Role adminRole = new Role(4001L, 1001L, "ADMIN", "Administrator", "SYSTEM_ROLE", "ALL", "ENABLED");
+        Role adminRole = new Role(4001L, 1001L, "ADMIN", "Administrator", "SYSTEM_ROLE", "ALL",
+                UpmsStatusEnum.ENABLED.value());
         roles.put(roleKey(adminRole.getTenantId(), adminRole.getId()), adminRole);
         userRoles.put(userKey(1001L, 2001L), List.of(adminRole));
         roleMenus.put(roleKey(1001L, 4001L), Set.of(5001L, 5002L));
@@ -77,11 +80,12 @@ public class InMemoryUpmsStore {
         menus.put(menuKey(menu.getTenantId(), menu.getId()), menu);
         menus.put(menuKey(button.getTenantId(), button.getId()), button);
 
-        Post adminPost = new Post(6001L, 1001L, "ADMIN_POST", "Administrator Post", 10L, "ENABLED");
+        Post adminPost = new Post(6001L, 1001L, "ADMIN_POST", "Administrator Post", 10L,
+                UpmsStatusEnum.ENABLED.value());
         posts.put(postKey(adminPost.getTenantId(), adminPost.getId()), adminPost);
 
         Resource userViewResource = new Resource(7001L, 1001L, "upms:user:view", "View User", "API",
-                "GET", "/upms/users/**", "ENABLED");
+                "GET", "/upms/users/**", UpmsStatusEnum.ENABLED.value());
         resources.put(resourceKey(userViewResource.getTenantId(), userViewResource.getId()), userViewResource);
 
         userMenus.put(userKey(1001L, 2001L), List.of(menu));

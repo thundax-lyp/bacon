@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import org.springframework.stereotype.Service;
@@ -65,7 +66,7 @@ public class DepartmentApplicationService {
         validateRequired(name, "name");
         validateParent(tenantId, parentId);
         return toDto(departmentRepository.save(new Department(null, tenantId, normalize(code), normalize(name),
-                parentId == null ? 0L : parentId, leaderUserId, "ENABLED")));
+                parentId == null ? 0L : parentId, leaderUserId, UpmsStatusEnum.ENABLED.value())));
     }
 
     public DepartmentDTO updateDepartment(Long tenantId, Long departmentId, String code, String name, Long parentId,

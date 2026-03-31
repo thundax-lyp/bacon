@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageResultDTO;
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class ResourceApplicationService {
         validateRequired(resourceType, "resourceType");
         validateRequired(uri, "uri");
         return toDto(resourceRepository.save(new Resource(null, tenantId, normalize(code), normalize(name),
-                normalize(resourceType), normalize(httpMethod), normalize(uri), "ENABLED")));
+                normalize(resourceType), normalize(httpMethod), normalize(uri), UpmsStatusEnum.ENABLED.value())));
     }
 
     public ResourceDTO updateResource(Long tenantId, Long resourceId, String code, String name, String resourceType,

@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageResultDTO;
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +47,7 @@ public class RoleApplicationService {
         validateRequired(roleType, "roleType");
         validateRequired(dataScopeType, "dataScopeType");
         return toDto(roleRepository.save(new Role(null, tenantId, normalize(code), normalize(name), normalize(roleType),
-                normalize(dataScopeType), "ENABLED")));
+                normalize(dataScopeType), UpmsStatusEnum.ENABLED.value())));
     }
 
     public RoleDTO updateRole(Long tenantId, Long roleId, String code, String name, String roleType, String dataScopeType) {

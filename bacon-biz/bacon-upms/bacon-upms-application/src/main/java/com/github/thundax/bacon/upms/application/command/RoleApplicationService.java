@@ -6,18 +6,22 @@ import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
+import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import java.util.List;
 import java.util.Set;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
+import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RoleApplicationService {
 
     private final RoleRepository roleRepository;
+    private final TenantRepository tenantRepository;
 
-    public RoleApplicationService(RoleRepository roleRepository) {
+    public RoleApplicationService(RoleRepository roleRepository, TenantRepository tenantRepository) {
         this.roleRepository = roleRepository;
+        this.tenantRepository = tenantRepository;
     }
 
     public RoleDTO getRoleById(Long tenantId, Long roleId) {
@@ -25,10 +29,18 @@ public class RoleApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId)));
     }
 
+    public RoleDTO getRoleById(String tenantNo, Long roleId) {
+        return getRoleById(resolveTenantIdByTenantNo(tenantNo), roleId);
+    }
+
     public List<RoleDTO> getRolesByUserId(Long tenantId, Long userId) {
         return roleRepository.findRolesByUserId(tenantId, userId).stream()
                 .map(this::toDto)
                 .toList();
+    }
+
+    public List<RoleDTO> getRolesByUserId(String tenantNo, Long userId) {
+        return getRolesByUserId(resolveTenantIdByTenantNo(tenantNo), userId);
     }
 
     public RolePageResultDTO pageRoles(RolePageQueryDTO query) {
@@ -124,6 +136,13 @@ public class RoleApplicationService {
 
     private String normalize(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private Long resolveTenantIdByTenantNo(String tenantNo) {
+        validateRequired(tenantNo, "tenantNo");
+        return tenantRepository.findTenantByTenantNo(normalize(tenantNo))
+                .map(Tenant::getId)
+                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantNo));
     }
 
 }

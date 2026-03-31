@@ -83,50 +83,50 @@ public class UpmsProviderController {
 
     @Operation(summary = "按部门 ID 查询部门")
     @GetMapping("/departments/{departmentId}")
-    public DepartmentDTO getDepartmentById(@RequestParam("tenantId") Long tenantId, @PathVariable Long departmentId) {
-        return departmentApplicationService.getDepartmentById(tenantId, departmentId);
+    public DepartmentDTO getDepartmentById(@RequestParam("tenantNo") String tenantNo, @PathVariable Long departmentId) {
+        return departmentApplicationService.getDepartmentById(tenantNo, departmentId);
     }
 
     @Operation(summary = "按部门编码查询部门")
     @GetMapping("/departments/code/{departmentCode}")
-    public DepartmentDTO getDepartmentByCode(@RequestParam("tenantId") Long tenantId, @PathVariable String departmentCode) {
-        return departmentApplicationService.getDepartmentByCode(tenantId, departmentCode);
+    public DepartmentDTO getDepartmentByCode(@RequestParam("tenantNo") String tenantNo, @PathVariable String departmentCode) {
+        return departmentApplicationService.getDepartmentByCode(tenantNo, departmentCode);
     }
 
     @Operation(summary = "批量查询部门")
     @GetMapping("/departments")
-    public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("tenantId") Long tenantId,
+    public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("tenantNo") String tenantNo,
                                                     @RequestParam("departmentIds") Set<Long> departmentIds) {
-        return departmentApplicationService.listDepartmentsByIds(tenantId, departmentIds);
+        return departmentApplicationService.listDepartmentsByIds(tenantNo, departmentIds);
     }
 
     @Operation(summary = "按角色 ID 查询角色")
     @GetMapping("/roles/{roleId}")
-    public RoleDTO getRoleById(@RequestParam("tenantId") Long tenantId, @PathVariable Long roleId) {
-        return roleApplicationService.getRoleById(tenantId, roleId);
+    public RoleDTO getRoleById(@RequestParam("tenantNo") String tenantNo, @PathVariable Long roleId) {
+        return roleApplicationService.getRoleById(tenantNo, roleId);
     }
 
     @Operation(summary = "查询用户角色列表")
     @GetMapping("/roles")
-    public List<RoleDTO> getRolesByUserId(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
-        return roleApplicationService.getRolesByUserId(tenantId, userId);
+    public List<RoleDTO> getRolesByUserId(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") Long userId) {
+        return roleApplicationService.getRolesByUserId(tenantNo, userId);
     }
 
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
-    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserMenuTree(tenantId, userId);
+    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") Long userId) {
+        return permissionQueryService.getUserMenuTree(tenantNo, userId);
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
-    public Set<String> getUserPermissionCodes(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserPermissionCodes(tenantId, userId);
+    public Set<String> getUserPermissionCodes(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") Long userId) {
+        return permissionQueryService.getUserPermissionCodes(tenantNo, userId);
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @GetMapping("/permissions/data-scope")
-    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserDataScope(tenantId, userId);
+    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantNo") String tenantNo, @RequestParam("userId") Long userId) {
+        return permissionQueryService.getUserDataScope(tenantNo, userId);
     }
 }

@@ -32,28 +32,28 @@ public class PermissionReadFacadeRemoteImpl implements PermissionReadFacade {
     }
 
     @Override
-    public List<UserMenuTreeDTO> getUserMenuTree(Long tenantId, Long userId) {
+    public List<UserMenuTreeDTO> getUserMenuTree(String tenantNo, Long userId) {
         // 菜单树属于已聚合好的读取模型，客户端只透传，不在本地再次做权限裁剪。
         return restClient.get()
-                .uri("/providers/upms/permissions/menus?tenantId={tenantId}&userId={userId}", tenantId, userId)
+                .uri("/providers/upms/permissions/menus?tenantNo={tenantNo}&userId={userId}", tenantNo, userId)
                 .retrieve()
                 .body(MENU_LIST_TYPE);
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(Long tenantId, Long userId) {
+    public Set<String> getUserPermissionCodes(String tenantNo, Long userId) {
         // 权限码集合用于鉴权快速判断，保持去重后的集合返回，避免调用方再做一次归并。
         return restClient.get()
-                .uri("/providers/upms/permissions/codes?tenantId={tenantId}&userId={userId}", tenantId, userId)
+                .uri("/providers/upms/permissions/codes?tenantNo={tenantNo}&userId={userId}", tenantNo, userId)
                 .retrieve()
                 .body(CODE_SET_TYPE);
     }
 
     @Override
-    public UserDataScopeDTO getUserDataScope(Long tenantId, Long userId) {
+    public UserDataScopeDTO getUserDataScope(String tenantNo, Long userId) {
         // 数据权限规则统一由 upms 侧计算，remote facade 不在消费者侧复制同样的合并逻辑。
         return restClient.get()
-                .uri("/providers/upms/permissions/data-scope?tenantId={tenantId}&userId={userId}", tenantId, userId)
+                .uri("/providers/upms/permissions/data-scope?tenantNo={tenantNo}&userId={userId}", tenantNo, userId)
                 .retrieve()
                 .body(UserDataScopeDTO.class);
     }

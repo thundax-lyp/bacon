@@ -8,9 +8,9 @@ import java.util.Set;
 
 public interface PermissionReadFacade {
 
-    List<UserMenuTreeDTO> getUserMenuTree(Long tenantId, Long userId);
+    List<UserMenuTreeDTO> getUserMenuTree(String tenantNo, Long userId);
 
-    Set<String> getUserPermissionCodes(Long tenantId, Long userId);
+    Set<String> getUserPermissionCodes(String tenantNo, Long userId);
 
-    UserDataScopeDTO getUserDataScope(Long tenantId, Long userId);
+    UserDataScopeDTO getUserDataScope(String tenantNo, Long userId);
 }

@@ -20,17 +20,17 @@ public class DepartmentReadFacadeLocalImpl implements DepartmentReadFacade {
     }
 
     @Override
-    public DepartmentDTO getDepartmentById(Long tenantId, Long departmentId) {
-        return departmentApplicationService.getDepartmentById(tenantId, departmentId);
+    public DepartmentDTO getDepartmentById(String tenantNo, Long departmentId) {
+        return departmentApplicationService.getDepartmentById(tenantNo, departmentId);
     }
 
     @Override
-    public DepartmentDTO getDepartmentByCode(Long tenantId, String departmentCode) {
-        return departmentApplicationService.getDepartmentByCode(tenantId, departmentCode);
+    public DepartmentDTO getDepartmentByCode(String tenantNo, String departmentCode) {
+        return departmentApplicationService.getDepartmentByCode(tenantNo, departmentCode);
     }
 
     @Override
-    public List<DepartmentDTO> listDepartmentsByIds(Long tenantId, Set<Long> departmentIds) {
-        return departmentApplicationService.listDepartmentsByIds(tenantId, departmentIds);
+    public List<DepartmentDTO> listDepartmentsByIds(String tenantNo, Set<Long> departmentIds) {
+        return departmentApplicationService.listDepartmentsByIds(tenantNo, departmentIds);
     }
 }

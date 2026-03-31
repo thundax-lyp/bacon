@@ -201,7 +201,7 @@
 | `account` | `varchar(64)` | N | 用户账号，全局唯一 |
 | `name` | `varchar(128)` | N | 用户名称 |
 | `phone` | `varchar(32)` | Y | 手机号 |
-| `department_id` | `bigint` | Y | 部门主键 |
+| `department_id` | `varchar(64)` | Y | 部门主键，固定使用 `DepartmentId` |
 | `avatar_object_id` | `bigint` | Y | 用户头像对象主键，引用 `Storage` 域 `StoredObject` |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
@@ -231,7 +231,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `varchar(64)` | N | 主键，固定使用 `DepartmentId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `identity_type` | `varchar(16)` | N | 标识类型，取值见 `identity_type` |
@@ -305,7 +305,7 @@
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `code` | `varchar(64)` | N | 部门编码，租户内唯一 |
 | `name` | `varchar(128)` | N | 部门名称 |
-| `parent_id` | `bigint` | Y | 上级部门主键 |
+| `parent_id` | `varchar(64)` | Y | 上级部门主键，根节点允许为空 |
 | `leader_user_id` | `varchar(64)` | Y | 负责人用户主键，引用 `bacon_upms_user.id` |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
@@ -596,7 +596,7 @@
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `role_id` | `bigint` | N | 角色主键 |
-| `department_id` | `bigint` | N | 部门主键 |
+| `department_id` | `varchar(64)` | N | 部门主键，固定使用 `DepartmentId` |
 
 索引与约束：
 
@@ -768,6 +768,7 @@
 - `Tenant`、关系表、规则表、审计表当前不使用逻辑删除
 - `User.account` 全局唯一，逻辑删除后也不得复用
 - `User.id` 固定使用 `UserId`，当前格式建议为 `U` 前缀加数值序列，数据库类型固定为 `varchar(64)`
+- `Department.id`、`Department.parentId`、`User.departmentId`、`RoleDataScopeRelation.departmentId` 固定使用 `DepartmentId`，数据库类型固定为 `varchar(64)`
 - `User.avatar_object_id` 允许为空
 - `User.avatar_object_id` 不为空时必须指向状态为 `ACTIVE` 的 `StoredObject`
 - `Tenant.tenantId`、`Post.code`、`Role.code`、`Resource.code` 全局唯一；`Department.code` 固定为租户内唯一

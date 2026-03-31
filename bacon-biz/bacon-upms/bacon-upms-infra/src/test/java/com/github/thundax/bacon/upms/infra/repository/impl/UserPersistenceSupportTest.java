@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -42,7 +43,7 @@ class UserPersistenceSupportTest {
     @Test
     void shouldInsertUserAndMapGeneratedId() {
         ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
-        User newUser = new User(null, TENANT_ID, "alice", "Alice", 9001L, "13800000001", "ENC", 11L,
+        User newUser = new User(null, TENANT_ID, "alice", "Alice", 9001L, "13800000001", "ENC", DepartmentId.of("D11"),
                 UserStatus.ENABLED);
         UserId generatedId = UserId.of("U101");
 

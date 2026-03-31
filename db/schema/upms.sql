@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
     `account` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
     `phone` varchar(32) DEFAULT NULL,
-    `department_id` bigint DEFAULT NULL,
+    `department_id` varchar(64) DEFAULT NULL,
     `password_hash` varchar(255) NOT NULL,
     `need_change_password` tinyint(1) NOT NULL,
     `status` varchar(16) NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
-    `id` bigint NOT NULL,
+    `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `user_id` varchar(64) NOT NULL,
     `identity_type` varchar(16) NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_department` (
     `tenant_id` varchar(64) NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
-    `parent_id` bigint DEFAULT NULL,
+    `parent_id` varchar(64) DEFAULT NULL,
     `leader_user_id` varchar(64) DEFAULT NULL,
     `status` varchar(16) NOT NULL,
     `deleted` tinyint(1) NOT NULL,
@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_data_scope_rel` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `role_id` bigint NOT NULL,
-    `department_id` bigint NOT NULL,
+    `department_id` varchar(64) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_department` (`tenant_id`, `role_id`, `department_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

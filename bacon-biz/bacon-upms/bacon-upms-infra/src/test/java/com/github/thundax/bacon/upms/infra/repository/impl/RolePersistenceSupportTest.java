@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
@@ -62,7 +63,8 @@ class RolePersistenceSupportTest {
         ArgumentCaptor<RoleDataScopeRelDO> relationCaptor = ArgumentCaptor.forClass(RoleDataScopeRelDO.class);
         when(dataPermissionRuleMapper.selectOne(any(Wrapper.class))).thenReturn(null);
 
-        support.replaceRoleDataScope(TENANT_ID, 9L, "CUSTOM", Set.of(11L, 12L));
+        support.replaceRoleDataScope(TENANT_ID, 9L, "CUSTOM",
+                Set.of(DepartmentId.of("D11"), DepartmentId.of("D12")));
 
         verify(dataPermissionRuleMapper).insert(ruleCaptor.capture());
         verify(roleDataScopeRelMapper, Mockito.times(2)).insert(relationCaptor.capture());
@@ -71,7 +73,7 @@ class RolePersistenceSupportTest {
         assertThat(ruleCaptor.getValue().getDataScopeType()).isEqualTo("CUSTOM");
         assertThat(relationCaptor.getAllValues()).extracting(RoleDataScopeRelDO::getRoleId).containsOnly(9L);
         assertThat(relationCaptor.getAllValues()).extracting(RoleDataScopeRelDO::getDepartmentId)
-                .containsExactlyInAnyOrder(11L, 12L);
+                .containsExactlyInAnyOrder(DepartmentId.of("D11"), DepartmentId.of("D12"));
     }
 
     @Test

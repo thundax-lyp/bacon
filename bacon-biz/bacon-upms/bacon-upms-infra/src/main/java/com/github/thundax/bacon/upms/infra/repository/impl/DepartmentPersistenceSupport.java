@@ -64,7 +64,11 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
     Department saveDepartment(Department department) {
         DepartmentDO dataObject = toDataObject(department);
         LocalDateTime now = LocalDateTime.now();
-        if (dataObject.getId() == null) {
+        DepartmentId departmentId = dataObject.getId();
+        boolean exists = departmentId != null && departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
+                .eq(DepartmentDO::getTenantId, dataObject.getTenantId())
+                .eq(DepartmentDO::getId, departmentId)) != null;
+        if (!exists) {
             dataObject.setCreatedAt(now);
             dataObject.setUpdatedAt(now);
             departmentMapper.insert(dataObject);

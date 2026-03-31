@@ -19,11 +19,11 @@ INSERT INTO `bacon_upms_department` (
     `status`, `deleted`, `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES
     (
-        1100001, 'T1000001', 'BACON_ROOT', 'Bacon 总部', NULL, '2000001',
+        'D1100001', 'T1000001', 'BACON_ROOT', 'Bacon 总部', NULL, '2000001',
         'ENABLED', 0, '2000001', '2026-03-21 09:00:00.000', '2000001', '2026-03-21 09:00:00.000'
     ),
     (
-        1100002, 'T1000001', 'BACON_IT', '平台研发部', 1100001, '2000001',
+        'D1100002', 'T1000001', 'BACON_IT', '平台研发部', 'D1100001', '2000001',
         'ENABLED', 0, '2000001', '2026-03-21 09:01:00.000', '2000001', '2026-03-21 09:01:00.000'
     )
 ON DUPLICATE KEY UPDATE
@@ -54,7 +54,7 @@ INSERT INTO `bacon_upms_user` (
     `password_hash`, `need_change_password`, `status`, `deleted`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES (
-    '2000001', 'T1000001', 'admin', '系统管理员', '13800000000', 1100002,
+    '2000001', 'T1000001', 'admin', '系统管理员', '13800000000', 'D1100002',
     '$2y$10$yjKSvevJS2WNdyBKKD1EBut7GNXMGCNNJfWpMtS5DILA9.sdEeASG', 0, 'ENABLED', 0,
     NULL, '2026-03-21 09:03:00.000', '2000001', '2026-03-21 09:03:00.000'
 ) ON DUPLICATE KEY UPDATE
@@ -252,7 +252,7 @@ INSERT INTO `bacon_upms_audit_log` (
         'account', 'admin',
         'name', '系统管理员',
         'phoneMasked', '138****0000',
-        'departmentId', 1100002,
+        'departmentId', 'D1100002',
         'status', 'ENABLED',
         'deleted', 0
     ),

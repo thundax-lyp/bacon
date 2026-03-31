@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
 import com.alicp.jetcache.Cache;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -58,6 +59,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class UpmsRepositoryIntegrationTest {
 
     private static final TenantId TENANT_ID = TenantId.of("1001");
+    private static final DepartmentId ROOT_DEPARTMENT_ID = DepartmentId.of("0");
+    private static final DepartmentId HEADQUARTERS_DEPARTMENT_ID = DepartmentId.of("D1001");
+    private static final DepartmentId OPERATIONS_DEPARTMENT_ID = DepartmentId.of("D1002");
+    private static final DepartmentId CHILD_DEPARTMENT_ID = DepartmentId.of("D1003");
 
     private static final org.springframework.context.annotation.AnnotationConfigApplicationContext CONTEXT =
             new org.springframework.context.annotation.AnnotationConfigApplicationContext(TestConfig.class);
@@ -88,11 +93,11 @@ class UpmsRepositoryIntegrationTest {
 
             statement.execute("""
                     CREATE TABLE bacon_upms_department (
-                        id bigint NOT NULL AUTO_INCREMENT,
+                        id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
                         code varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
-                        parent_id bigint NULL,
+                        parent_id varchar(64) NULL,
                         leader_user_id varchar(64) NULL,
                         status varchar(16) NOT NULL,
                         created_by varchar(64) NULL,
@@ -111,7 +116,7 @@ class UpmsRepositoryIntegrationTest {
                         avatar_object_id bigint NULL,
                         phone varchar(32) NULL,
                         password_hash varchar(255) NOT NULL,
-                        department_id bigint NULL,
+                        department_id varchar(64) NULL,
                         status varchar(16) NOT NULL,
                         deleted boolean NOT NULL,
                         created_by varchar(64) NULL,
@@ -253,7 +258,7 @@ class UpmsRepositoryIntegrationTest {
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
                         role_id bigint NOT NULL,
-                        department_id bigint NOT NULL,
+                        department_id varchar(64) NOT NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -281,8 +286,9 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
-        Department rootDepartment = departmentRepository.save(new Department(null, TENANT_ID, "ROOT", "Headquarters", 0L, null, "ACTIVE"));
-        Department childDepartment = departmentRepository.save(new Department(null, TENANT_ID, "OPS", "Operations", rootDepartment.getId(), null, "ACTIVE"));
+        Department rootDepartment = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Headquarters",
+                ROOT_DEPARTMENT_ID, null, "ACTIVE"));
+        Department childDepartment = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations", rootDepartment.getId(), null, "ACTIVE"));
         Menu rootMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "System", 0L, "/system", "SystemPage", "shield", 1, null, List.of()));
         Menu childMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Users", rootMenu.getId(), "/system/users", "UserPage", "user", 2, "upms:user:view", List.of()));
         Resource resource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:user:edit", "Edit User", "API", "POST", "/users", "ACTIVE"));
@@ -327,7 +333,8 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
-        Department department = departmentRepository.save(new Department(null, TENANT_ID, "OPS", "Operations", 0L, null, "ACTIVE"));
+        Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
+                ROOT_DEPARTMENT_ID, null, "ACTIVE"));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin", "SYSTEM", "SELF", "ACTIVE"));
         User createdUser = userRepository.save(new User(null, TENANT_ID, "bob", "Bob", 1001L, "13800000002", null,
                 department.getId(), UserStatus.ENABLED));
@@ -354,7 +361,8 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
-        Department department = departmentRepository.save(new Department(null, TENANT_ID, "OPS", "Operations", 0L, null, "ACTIVE"));
+        Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
+                ROOT_DEPARTMENT_ID, null, "ACTIVE"));
         User createdUser = userRepository.save(new User(null, TENANT_ID, "carol", "Carol", null, "13600000001", null,
                 department.getId(), UserStatus.ENABLED));
 
@@ -375,8 +383,9 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
-        Department root = departmentRepository.save(new Department(null, TENANT_ID, "ROOT", "Root", 0L, null, "ACTIVE"));
-        Department child = departmentRepository.save(new Department(null, TENANT_ID, "CHILD", "Child", root.getId(), null, "ACTIVE"));
+        Department root = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Root",
+                ROOT_DEPARTMENT_ID, null, "ACTIVE"));
+        Department child = departmentRepository.save(new Department(CHILD_DEPARTMENT_ID, TENANT_ID, "CHILD", "Child", root.getId(), null, "ACTIVE"));
         Menu oldMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Old", 0L, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
         Menu newMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "New", 0L, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
         Resource oldResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:old:edit", "Old Edit", "API", "POST", "/old", "ACTIVE"));
@@ -462,13 +471,13 @@ class UpmsRepositoryIntegrationTest {
         @Bean
         UpmsPermissionCacheSupport upmsPermissionCacheSupport() {
             return new UpmsPermissionCacheSupport(
-                    buildCache(),
-                    buildCache(),
-                    buildCache(),
-                    buildCache(),
-                    buildCache(),
-                    buildCache(),
-                    buildCache()
+                    this.<TenantId, Long>buildCache(),
+                    this.<String, Long>buildCache(),
+                    this.<String, List<Menu>>buildCache(),
+                    this.<String, List<Menu>>buildCache(),
+                    this.<String, Set<String>>buildCache(),
+                    this.<String, Set<DepartmentId>>buildCache(),
+                    this.<String, Set<String>>buildCache()
             );
         }
 

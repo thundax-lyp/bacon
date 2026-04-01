@@ -9,6 +9,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.time.Instant;
@@ -26,7 +27,6 @@ public class UserRepositoryImpl implements UserRepository {
     private static final String DEFAULT_PASSWORD = "123456";
     private static final String PASSWORD_CREDENTIAL_TYPE = "PASSWORD";
     private static final String PRIMARY_FACTOR_LEVEL = "PRIMARY";
-    private static final String ACTIVE_CREDENTIAL_STATUS = "ACTIVE";
     private static final int PASSWORD_FAILED_LIMIT = 5;
     private static final long PASSWORD_EXPIRE_DAYS = 90L;
 
@@ -189,7 +189,7 @@ public class UserRepositoryImpl implements UserRepository {
                 PASSWORD_CREDENTIAL_TYPE,
                 PRIMARY_FACTOR_LEVEL,
                 user.getPasswordHash(),
-                ACTIVE_CREDENTIAL_STATUS,
+                UserCredentialStatus.ACTIVE,
                 newUser || needChangePassword,
                 0,
                 PASSWORD_FAILED_LIMIT,

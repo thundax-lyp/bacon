@@ -772,6 +772,7 @@
 - `Department.id`、`Department.parentId`、`User.departmentId`、`RoleDataScopeRelation.departmentId` 固定使用 `DepartmentId`，数据库类型固定为 `varchar(64)`
 - `Menu.id`、`Menu.parentId`、`RoleMenuRelation.menuId` 固定使用 `MenuId`，数据库类型固定为 `varchar(64)`
 - `Resource.id`、`RoleResourceRelation.resourceId` 固定使用 `ResourceId`，数据库类型固定为 `varchar(64)`
+- `UserCredential.status` 固定使用 `UserCredentialStatus`，数据库类型固定为 `varchar(16)`
 - `User.avatar_object_id` 允许为空
 - `User.avatar_object_id` 不为空时必须指向状态为 `ACTIVE` 的 `StoredObject`
 - `Tenant.tenantId`、`Post.code`、`Role.code`、`Resource.code` 全局唯一；`Department.code` 固定为租户内唯一

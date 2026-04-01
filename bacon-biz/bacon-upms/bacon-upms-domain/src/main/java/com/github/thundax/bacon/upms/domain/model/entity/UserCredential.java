@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -26,7 +27,7 @@ public class UserCredential {
     /** 凭据值。 */
     private String credentialValue;
     /** 凭据状态。 */
-    private String status;
+    private UserCredentialStatus status;
     /** 是否需要改密。 */
     private boolean needChangePassword;
     /** 连续失败次数。 */
@@ -51,7 +52,7 @@ public class UserCredential {
     private Instant updatedAt;
 
     public UserCredential(Long id, TenantId tenantId, UserId userId, Long identityId, String credentialType,
-                          String factorLevel, String credentialValue, String status, boolean needChangePassword,
+                          String factorLevel, String credentialValue, UserCredentialStatus status, boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
                           Instant expiresAt, Instant lastVerifiedAt) {
         this(id, tenantId, userId, identityId, credentialType, factorLevel, credentialValue, status,
@@ -60,7 +61,7 @@ public class UserCredential {
     }
 
     public UserCredential(Long id, TenantId tenantId, UserId userId, Long identityId, String credentialType,
-                          String factorLevel, String credentialValue, String status, boolean needChangePassword,
+                          String factorLevel, String credentialValue, UserCredentialStatus status, boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
                           Instant expiresAt, Instant lastVerifiedAt, String createdBy,
                           Instant createdAt, String updatedBy, Instant updatedAt) {

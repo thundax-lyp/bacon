@@ -15,6 +15,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
@@ -100,7 +101,7 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final UserCredentialDO toDataObject(UserCredential userCredential) {
         return new UserCredentialDO(userCredential.getId(), userCredential.getTenantId(), userCredential.getUserId(),
                 userCredential.getIdentityId(), userCredential.getCredentialType(), userCredential.getFactorLevel(),
-                userCredential.getCredentialValue(), userCredential.getStatus(), userCredential.isNeedChangePassword(),
+                userCredential.getCredentialValue(), userCredential.getStatus().value(), userCredential.isNeedChangePassword(),
                 userCredential.getFailedCount(), userCredential.getFailedLimit(), userCredential.getLockReason(),
                 toLocalDateTime(userCredential.getLockedUntil()), toLocalDateTime(userCredential.getExpiresAt()),
                 toLocalDateTime(userCredential.getLastVerifiedAt()),
@@ -111,7 +112,8 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final UserCredential toDomain(UserCredentialDO dataObject) {
         return new UserCredential(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(),
                 dataObject.getIdentityId(), dataObject.getCredentialType(), dataObject.getFactorLevel(),
-                dataObject.getCredentialValue(), dataObject.getStatus(), Boolean.TRUE.equals(dataObject.getNeedChangePassword()),
+                dataObject.getCredentialValue(), UserCredentialStatus.valueOf(dataObject.getStatus()),
+                Boolean.TRUE.equals(dataObject.getNeedChangePassword()),
                 dataObject.getFailedCount() == null ? 0 : dataObject.getFailedCount(),
                 dataObject.getFailedLimit() == null ? 0 : dataObject.getFailedLimit(), dataObject.getLockReason(),
                 toInstant(dataObject.getLockedUntil()), toInstant(dataObject.getExpiresAt()),

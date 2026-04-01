@@ -14,6 +14,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
@@ -176,7 +177,7 @@ class UserApplicationServiceTest {
                 UserStatus.ENABLED);
         UserIdentity accountIdentity = new UserIdentity(201L, TENANT_ID, UserId.of("U101"), "ACCOUNT", "alice", true);
         UserCredential passwordCredential = new UserCredential(301L, TENANT_ID, UserId.of("U101"), 201L, "PASSWORD", "PRIMARY",
-                "{noop}identity", "ACTIVE", true, 0, 5, null, null, null, null);
+                "{noop}identity", UserCredentialStatus.ACTIVE, true, 0, 5, null, null, null, null);
         when(tenantRepository.findTenantByTenantId(TENANT_ID))
                 .thenReturn(Optional.of(new Tenant("tenant-demo", "Demo Tenant", "TENANT_DEMO",
                         TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
@@ -198,7 +199,7 @@ class UserApplicationServiceTest {
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         UserCredential passwordCredential = new UserCredential(301L, TENANT_ID, UserId.of("U101"), 201L, "PASSWORD", "PRIMARY",
-                "{noop}identity", "ACTIVE", false, 0, 5, null, null, null, null);
+                "{noop}identity", UserCredentialStatus.ACTIVE, false, 0, 5, null, null, null, null);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
         when(userRepository.findUserCredential(TENANT_ID, UserId.of("U101"), "PASSWORD")).thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);

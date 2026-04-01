@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
@@ -38,7 +39,7 @@ public class ResourceApplicationService {
         );
     }
 
-    public ResourceDTO getResourceById(TenantId tenantId, Long resourceId) {
+    public ResourceDTO getResourceById(TenantId tenantId, String resourceId) {
         return toDto(requireResource(tenantId, resourceId));
     }
 
@@ -52,7 +53,7 @@ public class ResourceApplicationService {
                 normalize(resourceType), normalize(httpMethod), normalize(uri), UpmsStatusEnum.ENABLED.value())));
     }
 
-    public ResourceDTO updateResource(TenantId tenantId, Long resourceId, String code, String name, String resourceType,
+    public ResourceDTO updateResource(TenantId tenantId, String resourceId, String code, String name, String resourceType,
                                       String httpMethod, String uri, String status) {
         Resource currentResource = requireResource(tenantId, resourceId);
         validateRequired(code, "code");
@@ -74,13 +75,13 @@ public class ResourceApplicationService {
                 currentResource.getUpdatedAt())));
     }
 
-    public void deleteResource(TenantId tenantId, Long resourceId) {
+    public void deleteResource(TenantId tenantId, String resourceId) {
         requireResource(tenantId, resourceId);
-        resourceRepository.delete(tenantId, resourceId);
+        resourceRepository.delete(tenantId, ResourceId.of(resourceId));
     }
 
-    private Resource requireResource(TenantId tenantId, Long resourceId) {
-        return resourceRepository.findById(tenantId, resourceId)
+    private Resource requireResource(TenantId tenantId, String resourceId) {
+        return resourceRepository.findById(tenantId, ResourceId.of(resourceId))
                 .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + resourceId));
     }
 
@@ -89,7 +90,7 @@ public class ResourceApplicationService {
     }
 
     private ResourceDTO toDto(Resource resource, String tenantIdValue) {
-        return new ResourceDTO(resource.getId(), tenantIdValue, resource.getCode(),
+        return new ResourceDTO(resource.getId() == null ? null : resource.getId().value(), tenantIdValue, resource.getCode(),
                 resource.getName(),
                 resource.getResourceType(), resource.getHttpMethod(), resource.getUri(), resource.getStatus());
     }

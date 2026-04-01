@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.MenuId;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
@@ -175,7 +176,8 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final Resource toDomain(ResourceDO dataObject) {
-        return new Resource(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
+        ResourceId resourceId = dataObject.getId();
+        return new Resource(resourceId, dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
                 dataObject.getResourceType(), dataObject.getHttpMethod(), dataObject.getUri(), dataObject.getStatus(),
                 dataObject.getCreatedBy(), toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(),
                 toInstant(dataObject.getUpdatedAt()));

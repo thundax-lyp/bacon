@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
@@ -27,7 +28,7 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.roleResourceRelMapper = roleResourceRelMapper;
     }
 
-    Optional<Resource> findResourceById(TenantId tenantId, Long resourceId) {
+    Optional<Resource> findResourceById(TenantId tenantId, ResourceId resourceId) {
         return Optional.ofNullable(resourceMapper.selectOne(Wrappers.<ResourceDO>lambdaQuery()
                         .eq(ResourceDO::getTenantId, tenantId)
                         .eq(ResourceDO::getId, resourceId)))
@@ -62,7 +63,7 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
     Resource saveResource(Resource resource) {
         ResourceDO dataObject = toDataObject(resource);
         LocalDateTime now = LocalDateTime.now();
-        if (dataObject.getId() == null) {
+        if (dataObject.getId() == null || resourceMapper.selectById(dataObject.getId()) == null) {
             dataObject.setCreatedAt(now);
             dataObject.setUpdatedAt(now);
             resourceMapper.insert(dataObject);
@@ -73,7 +74,7 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
         return toDomain(dataObject);
     }
 
-    void deleteResource(TenantId tenantId, Long resourceId) {
+    void deleteResource(TenantId tenantId, ResourceId resourceId) {
         resourceMapper.delete(Wrappers.<ResourceDO>lambdaQuery()
                 .eq(ResourceDO::getTenantId, tenantId)
                 .eq(ResourceDO::getId, resourceId));

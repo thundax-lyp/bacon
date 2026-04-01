@@ -170,22 +170,22 @@ INSERT INTO `bacon_upms_resource` (
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES
     (
-        1500001, 'T1000001', 'UPMS_USER_LIST', '查询用户列表', 'API', 'upms',
+        'R1500001', 'T1000001', 'UPMS_USER_LIST', '查询用户列表', 'API', 'upms',
         '/upms/users', 'GET', 'ENABLED', 'upms:user:list', 1, 0,
         '2000001', '2026-03-21 09:07:00.000', '2000001', '2026-03-21 09:07:00.000'
     ),
     (
-        1500002, 'T1000001', 'UPMS_USER_CREATE', '创建用户', 'API', 'upms',
+        'R1500002', 'T1000001', 'UPMS_USER_CREATE', '创建用户', 'API', 'upms',
         '/upms/users', 'POST', 'ENABLED', 'upms:user:create', 1, 0,
         '2000001', '2026-03-21 09:07:10.000', '2000001', '2026-03-21 09:07:10.000'
     ),
     (
-        1500003, 'T1000001', 'UPMS_ROLE_LIST', '查询角色列表', 'API', 'upms',
+        'R1500003', 'T1000001', 'UPMS_ROLE_LIST', '查询角色列表', 'API', 'upms',
         '/upms/roles', 'GET', 'ENABLED', 'upms:role:list', 1, 0,
         '2000001', '2026-03-21 09:07:20.000', '2000001', '2026-03-21 09:07:20.000'
     ),
     (
-        1500004, 'T1000001', 'AUTH_SESSION_INVALIDATE', '失效会话', 'API', 'auth',
+        'R1500004', 'T1000001', 'AUTH_SESSION_INVALIDATE', '失效会话', 'API', 'auth',
         '/auth/sessions/invalidate', 'POST', 'ENABLED', 'auth:session:invalidate', 1, 0,
         '2000001', '2026-03-21 09:07:30.000', '2000001', '2026-03-21 09:07:30.000'
     )
@@ -224,10 +224,10 @@ ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`);
 
 INSERT INTO `bacon_upms_role_resource_rel` (`id`, `tenant_id`, `role_id`, `resource_id`) VALUES
-    (1800001, 'T1000001', 1300001, 1500001),
-    (1800002, 'T1000001', 1300001, 1500002),
-    (1800003, 'T1000001', 1300001, 1500003),
-    (1800004, 'T1000001', 1300001, 1500004)
+    (1800001, 'T1000001', 1300001, 'R1500001'),
+    (1800002, 'T1000001', 1300001, 'R1500002'),
+    (1800003, 'T1000001', 1300001, 'R1500003'),
+    (1800004, 'T1000001', 1300001, 'R1500004')
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`);
 

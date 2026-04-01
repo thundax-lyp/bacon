@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.PostId;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -15,6 +16,8 @@ public interface Ids {
     MenuId menuId();
 
     PostId postId();
+
+    ResourceId resourceId();
 
     UserId userId();
 

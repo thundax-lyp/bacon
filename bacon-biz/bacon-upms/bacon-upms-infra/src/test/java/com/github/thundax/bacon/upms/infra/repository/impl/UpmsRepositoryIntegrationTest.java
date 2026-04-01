@@ -5,6 +5,7 @@ import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
 import com.alicp.jetcache.Cache;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.MenuId;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -200,7 +201,7 @@ class UpmsRepositoryIntegrationTest {
                     """);
             statement.execute("""
                     CREATE TABLE bacon_upms_resource (
-                        id bigint NOT NULL AUTO_INCREMENT,
+                        id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
                         code varchar(128) NOT NULL,
                         name varchar(128) NOT NULL,
@@ -238,7 +239,7 @@ class UpmsRepositoryIntegrationTest {
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
                         role_id varchar(64) NOT NULL,
-                        resource_id bigint NOT NULL,
+                        resource_id varchar(64) NOT NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -532,8 +533,9 @@ class UpmsRepositoryIntegrationTest {
 
         @Bean
         ResourceRepository resourceRepository(ResourcePersistenceSupport resourcePersistenceSupport,
-                                            UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
-            return new ResourceRepositoryImpl(resourcePersistenceSupport, upmsPermissionCacheSupport);
+                                            UpmsPermissionCacheSupport upmsPermissionCacheSupport,
+                                            Ids ids) {
+            return new ResourceRepositoryImpl(resourcePersistenceSupport, upmsPermissionCacheSupport, ids);
         }
 
         @Bean

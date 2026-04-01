@@ -7,7 +7,7 @@ import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
  */
 public record ResourceResponse(
         /** 资源主键。 */
-        Long id,
+        String id,
         /** 所属租户编号。 */
         String tenantId,
         /** 资源编码。 */

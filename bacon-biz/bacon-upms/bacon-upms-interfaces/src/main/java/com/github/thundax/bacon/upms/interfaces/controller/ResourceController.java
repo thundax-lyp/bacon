@@ -57,7 +57,7 @@ public class ResourceController {
     @HasPermission("sys:resource:view")
     @SysLog(module = "UPMS", action = "查询资源详情", eventType = LogEventType.QUERY)
     @GetMapping("/{resourceId}")
-    public ResourceResponse getResourceById(@PathVariable Long resourceId, @ModelAttribute TenantScopedRequest request) {
+    public ResourceResponse getResourceById(@PathVariable String resourceId, @ModelAttribute TenantScopedRequest request) {
         return ResourceResponse.from(resourceApplicationService.getResourceById(
                 tenantRequestResolver.resolveTenantId(request.getTenantId()), resourceId));
     }
@@ -76,7 +76,7 @@ public class ResourceController {
     @HasPermission("sys:resource:update")
     @SysLog(module = "UPMS", action = "修改资源", eventType = LogEventType.UPDATE)
     @PutMapping("/{resourceId}")
-    public ResourceResponse updateResource(@PathVariable Long resourceId, @RequestBody ResourceUpdateRequest request) {
+    public ResourceResponse updateResource(@PathVariable String resourceId, @RequestBody ResourceUpdateRequest request) {
         return ResourceResponse.from(resourceApplicationService.updateResource(
                 tenantRequestResolver.resolveTenantId(request.tenantId()), resourceId,
                 request.code(), request.name(), request.resourceType(), request.httpMethod(), request.uri(),
@@ -87,7 +87,7 @@ public class ResourceController {
     @HasPermission("sys:resource:delete")
     @SysLog(module = "UPMS", action = "删除资源", eventType = LogEventType.DELETE)
     @DeleteMapping("/{resourceId}")
-    public void deleteResource(@PathVariable Long resourceId, @ModelAttribute TenantScopedRequest request) {
+    public void deleteResource(@PathVariable String resourceId, @ModelAttribute TenantScopedRequest request) {
         resourceApplicationService.deleteResource(tenantRequestResolver.resolveTenantId(request.getTenantId()), resourceId);
     }
 }

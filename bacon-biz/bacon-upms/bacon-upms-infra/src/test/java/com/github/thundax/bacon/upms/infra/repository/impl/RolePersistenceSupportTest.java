@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
@@ -80,12 +81,12 @@ class RolePersistenceSupportTest {
     @Test
     void shouldResolveAssignedResourceCodesFromRelationRows() {
         when(roleResourceRelMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
-                new RoleResourceRelDO(1L, TENANT_ID, RoleId.of("9"), 21L),
-                new RoleResourceRelDO(2L, TENANT_ID, RoleId.of("9"), 22L)));
+                new RoleResourceRelDO(1L, TENANT_ID, RoleId.of("9"), ResourceId.of("R21")),
+                new RoleResourceRelDO(2L, TENANT_ID, RoleId.of("9"), ResourceId.of("R22"))));
         when(resourceMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
-                new ResourceDO(21L, TENANT_ID, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE",
+                new ResourceDO(ResourceId.of("R21"), TENANT_ID, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE",
                         null, null, null, null),
-                new ResourceDO(22L, TENANT_ID, "upms:user:edit", "User Edit", "API", "POST", "/users", "ACTIVE",
+                new ResourceDO(ResourceId.of("R22"), TENANT_ID, "upms:user:edit", "User Edit", "API", "POST", "/users", "ACTIVE",
                         null, null, null, null)));
 
         Set<String> assignedResourceCodes = support.getAssignedResourceCodes(TENANT_ID, RoleId.of("9"));
@@ -97,7 +98,7 @@ class RolePersistenceSupportTest {
     void shouldPersistRoleResourceRelationsByResourceCode() {
         ArgumentCaptor<RoleResourceRelDO> captor = ArgumentCaptor.forClass(RoleResourceRelDO.class);
         when(resourceMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
-                new ResourceDO(21L, TENANT_ID, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE",
+                new ResourceDO(ResourceId.of("R21"), TENANT_ID, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE",
                         null, null, null, null)));
 
         support.replaceRoleResources(TENANT_ID, RoleId.of("9"), Set.of("upms:user:view"));
@@ -105,6 +106,6 @@ class RolePersistenceSupportTest {
         verify(roleResourceRelMapper).insert(captor.capture());
         assertThat(captor.getValue().getTenantId()).isEqualTo(TENANT_ID);
         assertThat(captor.getValue().getRoleId()).isEqualTo(RoleId.of("9"));
-        assertThat(captor.getValue().getResourceId()).isEqualTo(21L);
+        assertThat(captor.getValue().getResourceId()).isEqualTo(ResourceId.of("R21"));
     }
 }

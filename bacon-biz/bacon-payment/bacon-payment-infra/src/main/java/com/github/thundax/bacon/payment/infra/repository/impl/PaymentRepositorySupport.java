@@ -16,10 +16,12 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@Profile("!test")
 public class PaymentRepositorySupport {
 
     private final PaymentOrderMapper paymentOrderMapper;

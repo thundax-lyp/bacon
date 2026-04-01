@@ -3,9 +3,11 @@ package com.github.thundax.bacon.payment.infra.repository.impl;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class PaymentOrderRepositoryImpl implements PaymentOrderRepository {
 
     private final PaymentRepositorySupport support;

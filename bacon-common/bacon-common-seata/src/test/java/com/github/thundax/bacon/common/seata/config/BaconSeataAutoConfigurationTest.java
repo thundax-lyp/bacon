@@ -37,6 +37,19 @@ class BaconSeataAutoConfigurationTest {
                 });
     }
 
+    @Test
+    void shouldFailWhenDataSourceMissing() {
+        contextRunner
+                .withPropertyValues(
+                        "bacon.seata.enabled=true",
+                        "spring.application.name=test-app")
+                .run(context -> {
+                    assertThat(context).hasFailed();
+                    assertThat(context.getStartupFailure())
+                            .hasMessageContaining("baconGlobalTransactionScanner");
+                });
+    }
+
     private static DataSource stubDataSource() {
         return (DataSource) Proxy.newProxyInstance(
                 BaconSeataAutoConfigurationTest.class.getClassLoader(),

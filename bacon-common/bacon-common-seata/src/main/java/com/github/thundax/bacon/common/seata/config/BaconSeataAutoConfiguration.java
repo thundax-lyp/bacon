@@ -4,7 +4,6 @@ import io.seata.rm.datasource.DataSourceProxy;
 import io.seata.spring.annotation.GlobalTransactionScanner;
 import javax.sql.DataSource;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -21,7 +20,6 @@ public class BaconSeataAutoConfiguration {
 
     @Bean
     @Primary
-    @ConditionalOnBean(DataSource.class)
     @ConditionalOnMissingBean(DataSourceProxy.class)
     public DataSourceProxy baconDataSourceProxy(DataSource dataSource) {
         return new DataSourceProxy(dataSource);

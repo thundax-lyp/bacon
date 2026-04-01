@@ -262,7 +262,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `varchar(64)` | N | 主键，固定使用 `RoleId` |
+| `id` | `varchar(64)` | N | 主键，固定使用 `UserCredentialId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `identity_id` | `bigint` | Y | 关联身份标识主键；社交登录可为空 |
@@ -769,6 +769,7 @@
 - `Tenant`、关系表、规则表、审计表当前不使用逻辑删除
 - `User.account` 全局唯一，逻辑删除后也不得复用
 - `User.id` 固定使用 `UserId`，当前格式建议为 `U` 前缀加数值序列，数据库类型固定为 `varchar(64)`
+- `UserCredential.id` 固定使用 `UserCredentialId`，数据库类型固定为 `varchar(64)`
 - `Department.id`、`Department.parentId`、`User.departmentId`、`RoleDataScopeRelation.departmentId` 固定使用 `DepartmentId`，数据库类型固定为 `varchar(64)`
 - `Menu.id`、`Menu.parentId`、`RoleMenuRelation.menuId` 固定使用 `MenuId`，数据库类型固定为 `varchar(64)`
 - `Resource.id`、`RoleResourceRelation.resourceId` 固定使用 `ResourceId`，数据库类型固定为 `varchar(64)`

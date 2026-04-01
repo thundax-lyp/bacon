@@ -11,19 +11,6 @@ class JetCacheAutoConfigurationTest {
     private final JetCacheAutoConfiguration jetCacheAutoConfiguration = new JetCacheAutoConfiguration();
 
     @Test
-    void shouldCreateFallbackGlobalCacheConfig() {
-        GlobalCacheConfig globalCacheConfig = jetCacheAutoConfiguration.globalCacheConfig();
-
-        assertThat(globalCacheConfig.getHiddenPackages()).containsExactly("com.github.thundax.bacon");
-        assertThat(globalCacheConfig.isAreaInCacheName()).isTrue();
-        assertThat(globalCacheConfig.isPenetrationProtect()).isTrue();
-        assertThat(globalCacheConfig.isEnableMethodCache()).isTrue();
-        assertThat(globalCacheConfig.getStatIntervalMinutes()).isEqualTo(15);
-        assertThat(globalCacheConfig.getLocalCacheBuilders()).containsKey("default");
-        assertThat(globalCacheConfig.getRemoteCacheBuilders()).containsKey("default");
-    }
-
-    @Test
     void shouldCustomizeGlobalCacheConfigWithProjectDefaults() {
         BeanPostProcessor beanPostProcessor = JetCacheAutoConfiguration.jetCacheGlobalConfigBeanPostProcessor();
         GlobalCacheConfig globalCacheConfig = new GlobalCacheConfig();

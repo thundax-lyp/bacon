@@ -34,6 +34,22 @@ mybatis-plus:
   global-config:
     banner: false
 
+jetcache:
+  statIntervalMinutes: 15
+  areaInCacheName: true
+  local:
+    default:
+      type: linkedhashmap
+      keyConvertor: fastjson2
+      limit: 10000
+  remote:
+    default:
+      type: redis.lettuce
+      uri: ${BACON_JETCACHE_REDIS_URI:redis://127.0.0.1:6379/0}
+      keyConvertor: fastjson2
+      valueEncoder: java
+      valueDecoder: java
+
 bacon:
   mq:
     enabled: ${BACON_MQ_ENABLED:true}

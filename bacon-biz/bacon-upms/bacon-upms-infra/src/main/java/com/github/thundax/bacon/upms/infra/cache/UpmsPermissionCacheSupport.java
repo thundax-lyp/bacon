@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.cache;
 
 import com.alicp.jetcache.Cache;
+import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.CreateCache;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -19,25 +20,32 @@ public class UpmsPermissionCacheSupport {
     private static final int DEFAULT_EXPIRE_SECONDS = 300;
     private static final long INITIAL_VERSION = 0L;
 
-    @CreateCache(name = "upms:permission:tenantVersion:", expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(name = "upms:permission:tenantVersion:", cacheType = CacheType.REMOTE,
+            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
     private Cache<TenantId, Long> tenantPermissionVersionCache;
 
-    @CreateCache(name = "upms:permission:userVersion:", expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(name = "upms:permission:userVersion:", cacheType = CacheType.REMOTE,
+            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
     private Cache<String, Long> userPermissionVersionCache;
 
-    @CreateCache(name = "upms:permission:tenantMenuTree:", expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(name = "upms:permission:tenantMenuTree:", cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
     private Cache<String, List<Menu>> tenantMenuTreeCache;
 
-    @CreateCache(name = "upms:permission:userMenuTree:", expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(name = "upms:permission:userMenuTree:", cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
     private Cache<String, List<Menu>> userMenuTreeCache;
 
-    @CreateCache(name = "upms:permission:userCodes:", expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(name = "upms:permission:userCodes:", cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
     private Cache<String, Set<String>> userPermissionCodeCache;
 
-    @CreateCache(name = "upms:permission:userDepartments:", expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(name = "upms:permission:userDepartments:", cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
     private Cache<String, Set<DepartmentId>> userDepartmentIdsCache;
 
-    @CreateCache(name = "upms:permission:userScopes:", expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(name = "upms:permission:userScopes:", cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
     private Cache<String, Set<String>> userScopeTypesCache;
 
     public UpmsPermissionCacheSupport() {

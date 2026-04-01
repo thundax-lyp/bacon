@@ -10,9 +10,11 @@
 当前范围：
 
 - 定义统一 ID 抽象：`Identifier<T>`、`BaseId<T>`
-- 定义具体 ID 类型的固定写法：`UserId`、`RoleId`、`TenantId`、`OrderId`、`SkuId`
+- 定义具体 ID 类型的固定写法：`DepartmentId`、`UserId`、`RoleId`、`TenantId`、`OrderId`、`SkuId`
 - 定义统一生成入口：`IdGenerator`、`Ids`
+- 定义统一发号提供方规则
 - 定义统一适配层：`IdConverters`
+- 定义退化事件边界
 - 定义 `Jackson`、`MyBatis`、`JPA` 的接入规则
 - 定义数据库字段与迁移边界
 
@@ -35,9 +37,11 @@
 
 - `bacon-common-id`
   - `core`: `Identifier<T>`、`BaseId<T>`、`Ids`
-  - `generator`: 统一 ID 生成入口
+  - `provider`: 发号提供方适配
+  - `config`: 发号提供方选择与装配
   - `domain`: 具体 ID 类型，如 `UserId`、`RoleId`、`TenantId`
   - `converter`: `Jackson` / `JPA` 通用转换支持
+  - `event`: 发号退化与告警事件
 - `bacon-common-mybatis`
   - `handler`: `MyBatis` 统一 `TypeHandler`
 - 各业务域
@@ -73,6 +77,7 @@
 
 当前统一纳入首批范围：
 
+- `DepartmentId`
 - `UserId`
 - `RoleId`
 - `TenantId`
@@ -89,8 +94,11 @@
 ## 6. Global Constraints
 
 - 统一 ID 体系优先采用“单值包装 + 强类型”模型
+- `Identifier<T>` 必须暴露单一底层值与该值类型
 - `BaseId<T>` 必须保持不可变
 - `BaseId<T>` 的底层值当前固定优先支持 `String` 与 `Long`
+- 具体 ID 在创建时必须完成空值、类型和值域校验
+- 文本型 ID 的底层值不得为空白字符串
 - `UserId` 当前固定使用 `String`
 - `TenantId` 当前固定承载租户领域主标识，例如 `T001`
 - `RoleId`、`SkuId`、`OrderId` 可按业务演进分别承载字符串型或数值型值，但一个具体类型在同一阶段只能固定一种底层值类型
@@ -123,6 +131,8 @@ OrderId orderId = ids.orderId();
 - `Ids` 固定为统一工厂入口
 - `Ids` 负责屏蔽不同发号来源
 - `Ids` 可组合现有 `IdGenerator`
+- `Ids` 负责把发号结果映射为具体 ID 类型
+- 具体 ID 的前缀、文本编码和包装规则固定由 `Ids` 或具体 ID 工厂负责，不下沉到发号提供方
 
 固定方法风格：
 
@@ -135,7 +145,23 @@ OrderId orderId = ids.orderId();
 
 - `Ids` 不感知具体业务流程，只负责生成标识
 - `Ids` 生成领域 ID 时，底层值来源必须可配置
+- `IdGenerator` 统一以业务标签区分不同发号命名空间
+- 同一种具体 ID 对应的业务标签必须稳定，不得因调用方不同而变化
+- 发号提供方必须返回合法正整数；非法结果必须按统一异常语义失败，不能静默兜底为默认值
 - 业务单号如 `orderNo`、`paymentNo` 仍走既有单号生成器，不与 `OrderId` 混用
+
+### 7.2.1 Provider Selection Rules
+
+- 发号提供方必须通过统一配置入口选择，不允许业务模块各自直连具体实现
+- 配置缺失或非法时，发号提供方选择必须有确定的默认行为
+- 发号提供方依赖的关键参数必须在装配阶段完成校验
+- `IdGenerator` 作为统一发号入口应允许通过 `@ConditionalOnMissingBean` 被测试替身或上层装配覆盖
+
+### 7.2.2 Degradation And Alert Rules
+
+- 发号异常、退化或回退必须通过统一事件模型暴露
+- 退化事件至少包含业务标签、触发操作、原因和发生时间
+- 事件监听属于公共基础设施，不得耦合到具体业务域
 
 ### 7.3 Jackson Rules
 
@@ -238,7 +264,7 @@ OrderId orderId = ids.orderId();
 
 - `Identifier<T>`：标识接口
 - `BaseId<T>`：抽象基类
-- `UserId` / `TenantId` / `RoleId` / `OrderId` / `SkuId`：具体 ID
+- `DepartmentId` / `UserId` / `TenantId` / `RoleId` / `OrderId` / `SkuId`：具体 ID
 - `IdGenerator`：统一底层值生成器
 - `IdConverters`：统一序列化与持久化适配
 - `Ids`：统一工厂入口

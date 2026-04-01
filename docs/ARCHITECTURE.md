@@ -430,6 +430,7 @@ common      -> 被各层依赖
 - 统一使用运行模式配置项控制 Bean 生效，例如：`bacon.runtime.mode=mono` 或 `bacon.runtime.mode=micro`。
 - 多实现互斥适配必须使用显式配置项配合 `@ConditionalOnProperty` 完成装配，禁止把实现选择硬编码在 Java 分支、扫描路径或隐式默认行为中。
 - 互斥适配的选择项必须暴露在可审计的配置文件中，例如 `application.yml`、环境变量映射或部署清单，不得只散落在启动参数或代码常量里。
+- 需要“环境边界切换”语义的 Bean，优先使用 `@Profile`，例如 `test` 与非 `test` 的持久化适配切换；这类场景不应使用 `@ConditionalOnMissingBean` 冒充环境选择。
 - `@ConditionalOnBean` 只允许用于可选增强型基础设施，例如“某中间件 Bean 已存在时追加增强能力”；不得用于正式业务主链 Bean、仓储 Bean、本地 Facade、远程 Facade、`MapperScan` 配置。
 - 需要“默认实现可覆盖”语义的 Bean，统一使用 `@ConditionalOnMissingBean`；需要“多实现互斥”语义的 Bean，统一使用 `@ConditionalOnProperty`。
 - `LocalImpl` 使用条件装配，仅在 `mono` 模式生效。

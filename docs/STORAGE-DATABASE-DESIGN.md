@@ -3,14 +3,13 @@
 ## 1. Purpose
 
 本文档定义 `Storage` 业务域的数据库设计。  
-目标是让 AI 和工程师可直接据此生成 `DDL`、`DataObject`、`Mapper`、`Repository` 和查询实现。  
+本文档可直接用于生成 `DDL`、`DataObject`、`Mapper`、`Repository` 和查询实现。  
 本文档只定义 `Storage` 自有的持久化对象、字段、索引、引用关系和查询模型。  
 本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。
 
 ## 2. Scope
 
-当前范围覆盖以下持久化对象：
-
+本文档定义以下持久化对象：
 - `StoredObject`
 - `StoredObjectReference`
 - `MultipartUploadSession`
@@ -18,8 +17,7 @@
 - `StorageAuditLog`
 - `StorageAuditOutbox`
 
-当前范围不建表的对象：
-
+本文档不定义以下持久化对象：
 - 业务域主数据表
 - 文件内容本身
 - 底层存储临时分片物理文件
@@ -317,7 +315,3 @@
 - `listMultipartParts` 固定查询 `bacon_storage_multipart_upload_part`
 - 按 `(owner_type, owner_id)` 查询时固定使用 `idx_owner`
 - 按租户、对象、操作人查询审计日志时固定使用 `bacon_storage_audit_log` 对应索引
-
-## 11. Open Items
-
-无

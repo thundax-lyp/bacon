@@ -3,14 +3,13 @@
 ## 1. Purpose
 
 本文档定义 `Auth` 业务域的数据库设计。  
-目标是让 AI 和工程师可直接据此生成 `DDL`、`DataObject`、`Mapper`、`Repository` 与查询实现。  
+本文档可直接用于生成 `DDL`、`DataObject`、`Mapper`、`Repository` 与查询实现。  
 本文档只定义 `Auth` 自有的持久化对象、字段、索引、关联和查询模型，不重复 `Auth` 业务需求文档中的流程描述。  
 本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](./DATABASE-RULES.md) 为准。
 
 ## 2. Scope
 
-当前范围覆盖以下持久化对象：
-
+本文档定义以下持久化对象：
 - `AuthSession`
 - `RefreshTokenSession`
 - `OAuthClient`
@@ -20,8 +19,7 @@
 - `OAuthConsent`
 - `AuthAuditLog`
 
-当前范围不建表的对象：
-
+本文档不定义以下持久化对象：
 - `AccessTokenClaims`
 - `LoginRequest`
 - `LoginResult`
@@ -43,7 +41,7 @@
 - 布尔字段统一使用 `tinyint(1)`
 - 枚举字段统一使用 `varchar`
 - `Auth` 运行态数据按租户隔离；凡是租户相关运行态数据必须包含 `tenant_id`
-- `Auth` 当前范围不使用逻辑删除字段
+- `Auth` 不使用逻辑删除字段
 - 会话表、令牌表、授权码表、授权同意表、审计表使用领域时间字段，不重复增加 `created_at`、`updated_at`
 - 只有后台维护的主数据表和配置表增加 `created_at`、`created_by`、`updated_at`、`updated_by`
 - 高频查询索引固定围绕业务键、租户、状态、时间字段设计
@@ -384,7 +382,7 @@
 - `SmsCaptcha` 固定只走缓存，不建表
 - OAuth2 授权请求上下文固定只走缓存，不建表
 - `AccessTokenClaims` 是 JWT 载荷，不建表
-- `ThirdPartyIdentityBinding` 当前范围不单独建表，第三方身份绑定由 `UPMS UserIdentity` 承载
+- `ThirdPartyIdentityBinding` 不单独建表，第三方身份绑定由 `UPMS UserIdentity` 承载
 
 ## 10. Query Model Rules
 
@@ -396,7 +394,3 @@
 - OAuth2 刷新令牌换发主表固定为 `bacon_auth_oauth_refresh_token`
 - OAuth2 授权同意查询主表固定为 `bacon_auth_oauth_consent`
 - 审计查询主表固定为 `bacon_auth_audit_log`
-
-## 11. Open Items
-
-无

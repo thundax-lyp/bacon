@@ -3,14 +3,13 @@
 ## 1. Purpose
 
 本文档定义 `UPMS` 业务域的数据库设计。  
-目标是让 AI 和工程师可直接据此生成 `DDL`、`DataObject`、`Mapper`、`Repository`、权限查询和审计查询实现。  
+本文档可直接用于生成 `DDL`、`DataObject`、`Mapper`、`Repository`、权限查询和审计查询实现。  
 本文档只定义 `UPMS` 自有的持久化对象、字段、索引、关系、缓存映射和查询模型，不重复业务需求文档中的流程描述。  
 本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](./DATABASE-RULES.md) 为准。
 
 ## 2. Scope
 
-当前范围覆盖以下持久化对象：
-
+本文档定义以下持久化对象：
 - `Tenant`
 - `User`
 - `UserIdentity`
@@ -29,8 +28,7 @@
 - `UpmsAuditLog`
 - `UpmsSysLog`
 
-当前范围不建表的对象：
-
+本文档不定义以下持久化对象：
 - `Auth` 会话与令牌表
 - `Order`、`Inventory`、`Payment` 业务表
 - 导入导出临时文件表
@@ -814,7 +812,3 @@
 - 缓存丢失后固定允许从数据库全量重算单个 `(tenantId, userId)` 结果
 - 不允许把租户全量菜单、租户全量权限码、平台全量授权主数据整体序列化后作为单键缓存
 - 不允许在 `RepositoryImpl` 内额外维护与这些缓存重复的长期本地 `Map` 真相源
-
-## 12. Open Items
-
-无

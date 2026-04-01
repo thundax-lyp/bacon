@@ -3,14 +3,13 @@
 ## 1. Purpose
 
 本文档定义 `Inventory` 业务域的数据库设计。  
-目标是让 AI 和工程师可直接据此生成 `DDL`、`MyBatis-Plus DO`、`Mapper`、按职责拆分的 `Repository`、库存查询和库存命令持久化实现。  
+本文档可直接用于生成 `DDL`、`MyBatis-Plus DO`、`Mapper`、按职责拆分的 `Repository`、库存查询和库存命令持久化实现。  
 本文档只定义 `Inventory` 自有的持久化对象、字段、索引、流水规则和查询模型，不重复业务需求文档中的流程描述。  
 本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](./DATABASE-RULES.md) 为准。
 
 ## 2. Scope
 
-当前范围覆盖以下持久化对象：
-
+本文档定义以下持久化对象：
 - `Inventory`
 - `InventoryReservation`
 - `InventoryReservationItem`
@@ -21,8 +20,7 @@
 - `InventoryAuditReplayTask`
 - `InventoryAuditReplayTaskItem`
 
-当前范围不建表的对象：
-
+本文档不定义以下持久化对象：
 - 多仓分配表
 - 批次表
 - 序列号表
@@ -39,10 +37,10 @@
 - 主键字段统一使用 `bigint`
 - 数量字段统一使用 `int`
 - 枚举字段统一使用 `varchar`
-- 当前范围固定单仓模型
+- 固定单仓模型
 - 库存主数据表统一包含 `created_at`、`created_by`、`updated_at`、`updated_by`
 - 预占表、预占明细表、流水表、审计表不强制增加 `created_by`、`updated_by`
-- 当前范围不使用逻辑删除字段
+- 不使用逻辑删除字段
 
 ## 4. Naming Rules
 
@@ -101,7 +99,7 @@
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `sku_id` | `bigint` | N | SKU 主键 |
-| `warehouse_id` | `bigint` | N | 仓库标识，当前固定为默认仓 |
+| `warehouse_id` | `bigint` | N | 仓库标识，固定为默认仓 |
 | `on_hand_quantity` | `int` | N | 现存量 |
 | `reserved_quantity` | `int` | N | 预占量 |
 | `available_quantity` | `int` | N | 可售量 |
@@ -394,7 +392,7 @@
 - `bacon_inventory_reservation_item.reservation_no` 关联 `bacon_inventory_reservation.reservation_no`
 - `bacon_inventory_ledger.reservation_no` 关联 `bacon_inventory_reservation.reservation_no`
 - 当前设计不强制数据库外键
-- 当前范围固定 `(tenant_id, sku_id)` 唯一，`warehouse_id` 固定为单仓默认仓标识
+- 固定 `(tenant_id, sku_id)` 唯一，`warehouse_id` 固定为单仓默认仓标识
 
 ## 9. Persistence Rules
 
@@ -446,7 +444,3 @@
 - 死信查询主表固定为 `bacon_inventory_audit_dead_letter`
 - 重放任务查询主表固定为 `bacon_inventory_audit_replay_task + bacon_inventory_audit_replay_task_item`
 - 库存分页查询必须由数据库分页实现，不得在应用层做全量拉取后再分页
-
-## 11. Open Items
-
-无

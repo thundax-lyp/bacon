@@ -3,14 +3,13 @@
 ## 1. Purpose
 
 本文档定义 `Order` 业务域的数据库设计。  
-目标是让 AI 和工程师可直接据此生成 `DDL`、`DataObject`、`Mapper`、`Repository`、分页查询和详情查询实现。  
+本文档可直接用于生成 `DDL`、`DataObject`、`Mapper`、`Repository`、分页查询和详情查询实现。  
 本文档只定义 `Order` 自有的持久化对象、字段、索引、快照边界和查询模型，不重复业务需求文档中的流程描述。  
 本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](./DATABASE-RULES.md) 为准。
 
 ## 2. Scope
 
-当前范围覆盖以下持久化对象：
-
+本文档定义以下持久化对象：
 - `Order`
 - `OrderItem`
 - `OrderPaymentSnapshot`
@@ -18,8 +17,7 @@
 - `OrderAuditLog`
 - `OrderIdempotencyRecord`
 
-当前范围不建表的对象：
-
+本文档不定义以下持久化对象：
 - `OrderAmount`
 - `OrderSnapshot`
 - 库存主数据
@@ -39,7 +37,7 @@
 - 所有订单数据必须包含 `tenant_id`
 - 订单主表使用 `created_at`、`updated_at`
 - 明细表、快照表、审计表不强制增加 `created_by`、`updated_by`
-- 当前范围不使用逻辑删除字段
+- 不使用逻辑删除字段
 
 ## 4. Naming Rules
 
@@ -286,7 +284,7 @@
 用途：
 
 - 持久化 outbox 重试耗尽事件
-- 支撑后续运营重放与补偿
+- 支撑运营重放与补偿
 
 字段定义：
 
@@ -369,7 +367,7 @@
 - `OrderSnapshot` 是详情聚合视图，不单独建表
 - 订单和订单明细不支持物理删除，也不增加逻辑删除字段
 - `Order.total_amount` 固定等于全部 `OrderItem.line_amount` 之和
-- `Order.payable_amount` 当前固定等于 `Order.total_amount`
+- `Order.payable_amount` 固定等于 `Order.total_amount`
 - `id` 是数据库主键；`order_no` 是业务单号；二者不得混用
 - `OrderPaymentSnapshot` 和 `OrderInventorySnapshot` 是订单侧只读快照，不承载对端主数据
 - `OrderOutboxEvent.business_key + event_type` 必须全局幂等
@@ -385,11 +383,7 @@
 - 订单分页查询默认使用 `limit/offset`，并可按场景扩展 `seek` 模式
 - 审计查询主表固定为 `bacon_order_audit_log`
 
-## 11. Open Items
-
-无
-
-## 12. Repository Mode And Startup Rule
+## 11. Repository Mode And Startup Rule
 
 - `Order` 仓储模式固定支持：`strict`、`memory`
 - 默认模式固定为 `strict`

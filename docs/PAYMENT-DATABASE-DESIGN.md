@@ -3,20 +3,18 @@
 ## 1. Purpose
 
 本文档定义 `Payment` 业务域的数据库设计。  
-目标是让 AI 和工程师可直接据此生成 `DDL`、`DataObject`、`Mapper`、`Repository`、支付回调持久化和支付查询实现。  
+本文档可直接用于生成 `DDL`、`DataObject`、`Mapper`、`Repository`、支付回调持久化和支付查询实现。  
 本文档只定义 `Payment` 自有的持久化对象、字段、索引、回调记录边界和查询模型，不重复业务需求文档中的流程描述。  
 本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](./DATABASE-RULES.md) 为准。
 
 ## 2. Scope
 
-当前范围覆盖以下持久化对象：
-
+本文档定义以下持久化对象：
 - `PaymentOrder`
 - `PaymentCallbackRecord`
 - `PaymentAuditLog`
 
-当前范围不建表的对象：
-
+本文档不定义以下持久化对象：
 - `PaymentChannelPayload`
 - 退款相关表
 - 分账相关表
@@ -35,7 +33,7 @@
 - 渠道原始回调固定使用 `json`
 - 支付主表使用 `created_at`、`updated_at`
 - 回调记录表和审计表使用领域时间字段，不额外增加 `created_at`、`updated_at`
-- 当前范围不使用逻辑删除字段
+- 不使用逻辑删除字段
 - 仓储模式固定支持 `strict` 和 `memory`
 - 默认模式固定为 `strict`
 - `strict` 模式固定使用 `MyBatis-Plus DO + Mapper + RepositoryImpl`
@@ -91,7 +89,7 @@
 
 - 持久化支付主聚合
 - 承载支付状态、金额和过期时间
-- 当前范围固定每个 `order_no` 只对应一个支付单
+- 固定每个 `order_no` 只对应一个支付单
 
 字段定义：
 
@@ -228,10 +226,6 @@
 - 支付详情查询主表固定为 `bacon_payment_order + bacon_payment_callback_record`
 - 支付状态查询主表固定为 `bacon_payment_order`
 - 审计查询主表固定为 `bacon_payment_audit_log`
-- 支付审计日志查询当前阶段固定按 `tenant_id + payment_no` 精确过滤，并按 `occurred_at asc, id asc` 返回
+- 支付审计日志查询固定按 `tenant_id + payment_no` 精确过滤，并按 `occurred_at asc, id asc` 返回
 - 支付详情查询最近一次回调记录时，固定按 `received_at desc, id desc` 取第一条
 - 回调记录列表查询固定按 `received_at desc, id desc` 排序
-
-## 11. Open Items
-
-无

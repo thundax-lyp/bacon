@@ -39,7 +39,7 @@ class UserControllerContractTest {
         when(tenantRequestResolver.resolveTenantId("tenant-demo")).thenReturn(TENANT_ID);
         when(userApplicationService.updateAvatar(eq(TENANT_ID), eq("U101"), eq("avatar.png"), eq("image/png"), eq(4L),
                 org.mockito.ArgumentMatchers.any()))
-                .thenReturn(new UserDTO("U101", "tenant-demo", "alice", "Alice", 9001L, "13800000001", 11L,
+                .thenReturn(new UserDTO("U101", "tenant-demo", "alice", "Alice", 9001L, "13800000001", "D11",
                         "https://cdn.example.com/avatar/9001.png", "ENABLED"));
 
         MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[]{1, 2, 3, 4});

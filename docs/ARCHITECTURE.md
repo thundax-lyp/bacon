@@ -679,7 +679,7 @@ bacon-biz/bacon-<domain>/
 3. 在 `domain` 中定义实体、聚合、仓储接口和领域服务。
 4. 在 `application` 中定义 command、query、audit、support、executor。
 5. 在 `interfaces` 中定义 controller、provider、http dto、response、assembler。
-6. 在 `infra` 中实现 repository、mapper、rpc、cache。
+6. 在 `infra` 中实现 repository、mapper、facade.remote、rpc client、cache。
 7. 在对应 starter 中引入相关模块并完成装配。
 8. 在 `deploy` 中补齐配置样例和镜像脚本。
 9. 先跑通一个最小业务闭环，再逐步扩展。

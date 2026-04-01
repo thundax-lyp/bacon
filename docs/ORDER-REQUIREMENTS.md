@@ -4,8 +4,7 @@
 
 Order 是 Bacon 的统一订单业务域。  
 本文档定义 Order 模块的需求边界、实现约束和稳定契约。  
-本文档是后续设计、任务拆解、实现和测试的唯一基线。  
-当前范围内全部功能属于同一交付范围，不做分期交付。
+本文档用于指导设计、实现和测试。
 
 ## 2. Scope
 
@@ -296,8 +295,8 @@ Order 是 Bacon 的统一订单业务域。
 
 - 金额字段使用两位小数语义
 - `Order.totalAmount` 必须等于全部 `OrderItem.lineAmount` 之和
-- `Order.payableAmount` 当前固定等于 `Order.totalAmount`
-- 当前范围内不支持优惠抵扣和运费追加
+- `Order.payableAmount` 固定等于 `Order.totalAmount`
+- 不支持优惠抵扣和运费追加
 
 ### 6.3 Status Rule
 
@@ -551,9 +550,3 @@ Order 是 Bacon 的统一订单业务域。
 | NFR-003 | Maintainability | 实现必须严格遵守 `interfaces -> application -> domain -> infra` 分层 |
 | NFR-004 | Compatibility | `Facade + DTO` 契约必须同时支持本地和远程实现 |
 | NFR-005 | Auditability | 审计日志必须持久化、可检索、可追溯 |
-
-## 10. Open Items
-
-- 订单是否需要支持收货地址快照未确认
-- 订单超时关闭时长未确认
-- 订单号生成规则未确认

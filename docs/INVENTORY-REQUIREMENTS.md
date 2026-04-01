@@ -4,8 +4,7 @@
 
 Inventory 是 Bacon 的统一库存业务域。  
 本文档定义 Inventory 模块的需求边界、实现约束和稳定契约。  
-本文档是后续设计、任务拆解、实现和测试的唯一基线。  
-当前范围内全部功能属于同一交付范围，不做分期交付。
+本文档用于指导设计、实现和测试。
 
 ## 2. Scope
 
@@ -242,7 +241,7 @@ Inventory 是 Bacon 的统一库存业务域。
 
 - `Inventory.id` 全局唯一
 - `Inventory.id` 由持久化层生成，应用层不得自行发号
-- 当前范围 `Inventory` 必须保证 `(tenantId, skuId)` 唯一
+- `Inventory` 必须保证 `(tenantId, skuId)` 唯一
 - `InventoryReservation.id` 全局唯一
 - `InventoryReservation.id` 由持久化层生成，应用层不得自行发号
 - `InventoryReservation.reservationNo` 全局唯一
@@ -259,7 +258,7 @@ Inventory 是 Bacon 的统一库存业务域。
 
 ### 6.1 Quantity Rule
 
-- 当前范围固定单仓模型，同一 `tenantId + skuId` 只允许一条 `Inventory` 记录
+- 固定单仓模型，同一 `tenantId + skuId` 只允许一条 `Inventory` 记录
 - `warehouseId` 必须使用系统固定默认仓标识
 - `onHandQuantity` 不得小于 `0`
 - `reservedQuantity` 不得小于 `0`
@@ -478,8 +477,3 @@ Inventory 是 Bacon 的统一库存业务域。
 - `interfaces` 层必须覆盖：`@Valid` 参数校验、分页上限约束、核心响应契约
 - 并发场景必须覆盖：同 SKU 并发预占下的乐观锁冲突重试与结果一致性
 - 关键链路必须至少有 1 组跨层测试：审计写失败 -> outbox -> 重试成功/死信
-
-## 10. Open Items
-
-- 是否支持多仓优先级分配未确认
-- 库存初始化和补货来源未确认

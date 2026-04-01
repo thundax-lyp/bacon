@@ -4,8 +4,7 @@
 
 Auth 是 Bacon 的统一认证与会话业务域。  
 本文档定义 Auth 模块的需求边界、实现约束和稳定契约。  
-本文档是后续设计、任务拆解、实现和测试的唯一基线。  
-当前范围内全部功能属于同一交付范围，不做分期交付。
+本文档用于指导设计、实现和测试。
 
 ## 2. Scope
 
@@ -79,7 +78,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 - 第三方应用是 `Auth` 的授权客户端
 - 第三方应用通过 `OAuth2 client` 身份接入 `Auth`
-- 当前范围内第三方应用固定为服务端应用
+- 第三方应用固定为服务端应用
 - 第三方应用不直接访问 `UPMS` 主数据
 - 第三方应用只能消费 `Auth` 签发的授权码、访问令牌和用户授权结果
 
@@ -344,7 +343,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - `clientSecret` 固定使用强哈希存储，不明文存储
 - `OAuth2` 授权范围固定由 `scope` 表达
 - `scope` 必须使用稳定英文标识
-- 当前固定支持 `authorization_code`、`refresh_token`
+- 固定支持 `authorization_code`、`refresh_token`
 - 不支持 `implicit`
 - 不支持动态 `OAuthClient` 注册
 - 不支持 `client_credentials`
@@ -361,8 +360,8 @@ Auth 是 Bacon 的统一认证与会话业务域。
 - 已停用 `OAuthClient` 不得发起授权和换发令牌
 - 第三方应用访问令牌校验必须支持令牌有效性查询
 - 第三方应用令牌撤销后必须立即失效
-- 当前范围提供 `userinfo` 能力，但不提供完整 `OpenID Connect Discovery`
-- 当前范围不签发 `id_token`
+- 提供 `userinfo` 能力，但不提供完整 `OpenID Connect Discovery`
+- 不签发 `id_token`
 
 ### 6.5 OAuth2 Scope Mapping
 
@@ -522,7 +521,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 补充约束：
 
-- 当前固定支持 `authorization_code` 和 `refresh_token`
+- 固定支持 `authorization_code` 和 `refresh_token`
 - 授权确认结果必须绑定当前登录用户
 - 授权码、访问令牌、刷新令牌必须绑定 `clientId`
 - 授权范围不得超出 `OAuthClient` 已注册范围
@@ -819,11 +818,3 @@ Auth 是 Bacon 的统一认证与会话业务域。
 | NFR-012 | OAuth2 Compatibility | 对第三方应用的授权服务必须遵循标准 `OAuth2` 语义 |
 | NFR-013 | DTO Stability | 登录、会话校验、OAuth2 令牌相关 `DTO/VO` 字段必须保持向后兼容 |
 | NFR-014 | Observability | 登录、发令牌、撤销、失效链路必须具备可追踪日志和审计记录 |
-
-## 10. Open Items
-
-- 手机短信验证码的发送渠道、签名和模板未确认
-- 企业微信扫码登录的回调地址与企业配置未确认
-- `GitHub OAuth2` 的回调地址、`clientId`、授权范围未确认
-- 第三方应用如需开放 `profile` 之外的 `scope`，需单独补充文档
-- 第三方应用联系人、备注的字段长度与格式约束未确认

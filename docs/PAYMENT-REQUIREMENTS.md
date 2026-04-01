@@ -4,8 +4,7 @@
 
 Payment 是 Bacon 的统一支付业务域。  
 本文档定义 Payment 模块的需求边界、实现约束和稳定契约。  
-本文档是后续设计、任务拆解、实现和测试的唯一基线。  
-当前范围内全部功能属于同一交付范围，不做分期交付。
+本文档用于指导设计、实现和测试。
 
 ## 2. Scope
 
@@ -182,7 +181,7 @@ Payment 是 Bacon 的统一支付业务域。
 ## 5.1 Fixed Enums
 
 - `paymentStatus` 固定为 `CREATED`、`PAYING`、`PAID`、`FAILED`、`CLOSED`
-- `channelCode` 当前固定为 `MOCK`
+- `channelCode` 固定为 `MOCK`
 - `closeResult` 固定为 `SUCCESS`、`FAILED`
 - `closeReason` 固定为 `USER_CANCELLED`、`SYSTEM_CANCELLED`、`TIMEOUT_CLOSED`
 
@@ -271,7 +270,7 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 支付回调处理必须幂等
 - 未知支付单回调必须拒绝
-- 当前范围固定只支持 `MOCK` 渠道
+- 固定只支持 `MOCK` 渠道
 - 回调结果必须保留原始渠道状态摘要
 - 支付成功后，`Payment` 必须调用 `OrderCommandFacade.markPaid`
 - 支付失败后，`Payment` 必须调用 `OrderCommandFacade.markPaymentFailed`
@@ -295,7 +294,7 @@ Payment 是 Bacon 的统一支付业务域。
 - `createPayment` 按 `orderNo` 幂等
 - `closePayment` 按 `paymentNo` 幂等
 - 渠道回调按 `(channelCode, channelTransactionNo)` 幂等
-- 同一 `orderNo` 在当前范围内只能存在一个 `PaymentOrder`
+- 同一 `orderNo` 只能存在一个 `PaymentOrder`
 
 ## 7. Functional Requirements
 
@@ -309,8 +308,8 @@ Payment 是 Bacon 的统一支付业务域。
 
 - 请求字段遵守 `5.4 Fixed Request Contracts`
 - 仅允许为 `Order` 已确认库存预占成功的订单创建支付单
-- 当前范围内支付发起参数固定生成 `PaymentChannelPayload.payUrl`
-- 当前范围内 `channelCode` 固定为 `MOCK`
+- 支付发起参数固定生成 `PaymentChannelPayload.payUrl`
+- `channelCode` 固定为 `MOCK`
 - 创建成功时必须持久化一条 `PaymentAuditLog`，`actionType` 固定为 `CREATE`
 - 创建失败时，必须通过 `PaymentCreateResultDTO.failureReason` 返回明确失败原因
 
@@ -351,7 +350,7 @@ Payment 是 Bacon 的统一支付业务域。
 - `DTO` 契约必须稳定
 - `Order` 跨域读取只依赖支付状态和关键关联字段
 - 当前 `PaymentReadFacade` 的两个查询方法统一返回 `PaymentDetailDTO`
-- `PaymentSummaryDTO` 用于定义详情模型中的摘要字段集合，不单独作为当前固定接口返回模型
+- `PaymentSummaryDTO` 用于定义详情模型中的摘要字段集合，不单独作为固定接口返回模型
 - `PaymentDetailDTO` 主要用于后台排障和详情查询
 
 ### 7.5 Audit Log
@@ -360,7 +359,7 @@ Payment 是 Bacon 的统一支付业务域。
 - 记录支付回调
 - 记录支付关闭
 - 审计日志至少支持按 `tenantId`、`paymentNo`、`actionType`、`occurredAt` 查询
-- 当前范围固定提供按 `tenantId + paymentNo` 查询支付审计日志的应用服务、外部查询接口和内部 provider 查询接口
+- 固定提供按 `tenantId + paymentNo` 查询支付审计日志的应用服务、外部查询接口和内部 provider 查询接口
 
 ## 8. Key Flows
 
@@ -407,7 +406,3 @@ Payment 是 Bacon 的统一支付业务域。
 | NFR-002 | Architecture | 必须同时支持单体和微服务装配 |
 | NFR-003 | Compatibility | `Facade + DTO` 契约必须同时支持本地和远程实现 |
 | NFR-004 | Auditability | 审计日志必须持久化、可检索、可追溯 |
-
-## 10. Open Items
-
-无

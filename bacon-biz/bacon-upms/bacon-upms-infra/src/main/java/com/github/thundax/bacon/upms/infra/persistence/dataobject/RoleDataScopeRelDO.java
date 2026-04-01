@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.persistence.dataobject;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -21,7 +22,7 @@ public class RoleDataScopeRelDO {
     @TableField("tenant_id")
     private TenantId tenantId;
     @TableField("role_id")
-    private Long roleId;
+    private RoleId roleId;
     @TableField("department_id")
     private DepartmentId departmentId;
 }

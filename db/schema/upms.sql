@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_post` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_role` (
-    `id` bigint NOT NULL,
+    `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_role_rel` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `user_id` varchar(64) NOT NULL,
-    `role_id` bigint NOT NULL,
+    `role_id` varchar(64) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_role` (`tenant_id`, `user_id`, `role_id`),
     KEY `idx_tenant_user` (`tenant_id`, `user_id`),
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_post_rel` (
 CREATE TABLE IF NOT EXISTS `bacon_upms_role_menu_rel` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
-    `role_id` bigint NOT NULL,
+    `role_id` varchar(64) NOT NULL,
     `menu_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_menu` (`tenant_id`, `role_id`, `menu_id`),
@@ -185,7 +185,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_menu_rel` (
 CREATE TABLE IF NOT EXISTS `bacon_upms_role_resource_rel` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
-    `role_id` bigint NOT NULL,
+    `role_id` varchar(64) NOT NULL,
     `resource_id` bigint NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_resource` (`tenant_id`, `role_id`, `resource_id`),
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_resource_rel` (
 CREATE TABLE IF NOT EXISTS `bacon_upms_data_permission_rule` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
-    `role_id` bigint NOT NULL,
+    `role_id` varchar(64) NOT NULL,
     `data_scope_type` varchar(32) NOT NULL,
     `created_by` varchar(64) DEFAULT NULL,
     `created_at` datetime(3) NOT NULL,
@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_data_permission_rule` (
 CREATE TABLE IF NOT EXISTS `bacon_upms_role_data_scope_rel` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
-    `role_id` bigint NOT NULL,
+    `role_id` varchar(64) NOT NULL,
     `department_id` varchar(64) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_department` (`tenant_id`, `role_id`, `department_id`)

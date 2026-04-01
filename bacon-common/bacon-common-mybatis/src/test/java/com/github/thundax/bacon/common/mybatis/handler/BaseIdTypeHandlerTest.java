@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.common.mybatis.handler;
 
+import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,15 @@ class BaseIdTypeHandlerTest {
         ResultSet resultSet = resultSet(Map.of("tenant_id", "T001"));
 
         assertThat(handler.getNullableResult(resultSet, "tenant_id")).isEqualTo(TenantId.of("T001"));
+    }
+
+    @Test
+    void shouldReadNumericRoleIdentifierAsStringValue() throws Exception {
+        RoleIdTypeHandler handler = new RoleIdTypeHandler();
+        ResultSet resultSet = resultSet(Map.of("role_id", 1001L, 1, "1002"));
+
+        assertThat(handler.getNullableResult(resultSet, "role_id")).isEqualTo(RoleId.of("1001"));
+        assertThat(handler.getNullableResult(resultSet, 1)).isEqualTo(RoleId.of("1002"));
     }
 
     private ResultSet resultSet(Map<Object, Object> values) {

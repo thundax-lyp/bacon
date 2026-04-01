@@ -116,7 +116,7 @@ OrderId orderId = ids.orderId();
 - `UserId.of(...)`、`TenantId.of(...)`、`OrderId.of(...)` 必须为静态工厂
 - 构造器固定非公开，避免绕过校验
 - 判等必须基于“具体类型 + 底层值”
-- `UserId.of("U1001")` 不得与 `RoleId.of(1001L)` 判等
+- `UserId.of("U1001")` 不得与 `RoleId.of("1001")` 判等
 
 ### 7.2 Unified Factory Entry
 
@@ -186,7 +186,8 @@ OrderId orderId = ids.orderId();
 ### 9.2 Fixed Persistence Mapping
 
 - `UserId` 固定使用 `varchar(64)`
-- `RoleId`、`SkuId`、`OrderId` 若底层值为 `Long`，数据库字段继续使用 `bigint`
+- `RoleId` 当前固定为文本型统一 ID，数据库字段固定使用 `varchar(64)`
+- `SkuId`、`OrderId` 若底层值为 `Long`，数据库字段继续使用 `bigint`
 - `TenantId` 固定使用 `varchar(64)`
 - 统一 ID 体系优先改变 Java 类型系统，不强制改变既有列类型
 

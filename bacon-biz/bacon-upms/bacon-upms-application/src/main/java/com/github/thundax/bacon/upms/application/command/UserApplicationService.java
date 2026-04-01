@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.application.command;
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
@@ -239,11 +240,12 @@ public class UserApplicationService {
         changePassword(requireExistingTenantId(tenantId), UserId.of(userId), oldPassword, newPassword);
     }
 
-    public List<RoleDTO> assignRoles(TenantId tenantId, String userId, List<Long> roleIds) {
+    public List<RoleDTO> assignRoles(TenantId tenantId, String userId, List<String> roleIds) {
         UserId domainUserId = UserId.of(userId);
         requireUser(tenantId, domainUserId);
         String tenantIdValue = tenantId.value();
-        return userRepository.assignRoles(tenantId, domainUserId, roleIds).stream()
+        List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds.stream().map(RoleId::of).toList();
+        return userRepository.assignRoles(tenantId, domainUserId, domainRoleIds).stream()
                 .map(role -> toRoleDto(role, tenantIdValue))
                 .toList();
     }
@@ -348,7 +350,7 @@ public class UserApplicationService {
     }
 
     private RoleDTO toRoleDto(Role role, String tenantIdValue) {
-        return new RoleDTO(role.getId(), tenantIdValue, role.getCode(), role.getName(),
+        return new RoleDTO(role.getId() == null ? null : role.getId().value(), tenantIdValue, role.getCode(), role.getName(),
                 role.getRoleType(),
                 role.getDataScopeType(), role.getStatus());
     }

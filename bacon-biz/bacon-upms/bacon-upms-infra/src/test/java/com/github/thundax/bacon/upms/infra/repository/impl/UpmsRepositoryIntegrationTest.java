@@ -167,7 +167,7 @@ class UpmsRepositoryIntegrationTest {
                     """);
             statement.execute("""
                     CREATE TABLE bacon_upms_role (
-                        id bigint NOT NULL AUTO_INCREMENT,
+                        id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
                         code varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
@@ -218,7 +218,7 @@ class UpmsRepositoryIntegrationTest {
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
                         user_id varchar(64) NOT NULL,
-                        role_id bigint NOT NULL,
+                        role_id varchar(64) NOT NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -226,7 +226,7 @@ class UpmsRepositoryIntegrationTest {
                     CREATE TABLE bacon_upms_role_menu_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
-                        role_id bigint NOT NULL,
+                        role_id varchar(64) NOT NULL,
                         menu_id bigint NOT NULL,
                         PRIMARY KEY (id)
                     )
@@ -235,7 +235,7 @@ class UpmsRepositoryIntegrationTest {
                     CREATE TABLE bacon_upms_role_resource_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
-                        role_id bigint NOT NULL,
+                        role_id varchar(64) NOT NULL,
                         resource_id bigint NOT NULL,
                         PRIMARY KEY (id)
                     )
@@ -244,7 +244,7 @@ class UpmsRepositoryIntegrationTest {
                     CREATE TABLE bacon_upms_data_permission_rule (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
-                        role_id bigint NOT NULL,
+                        role_id varchar(64) NOT NULL,
                         data_scope_type varchar(32) NOT NULL,
                         created_by varchar(64) NULL,
                         created_at timestamp NULL,
@@ -257,7 +257,7 @@ class UpmsRepositoryIntegrationTest {
                     CREATE TABLE bacon_upms_role_data_scope_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
-                        role_id bigint NOT NULL,
+                        role_id varchar(64) NOT NULL,
                         department_id varchar(64) NOT NULL,
                         PRIMARY KEY (id)
                     )
@@ -533,8 +533,9 @@ class UpmsRepositoryIntegrationTest {
 
         @Bean
         RoleRepositoryImpl roleRepository(RolePersistenceSupport rolePersistenceSupport,
-                                          UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
-            return new RoleRepositoryImpl(rolePersistenceSupport, upmsPermissionCacheSupport);
+                                          UpmsPermissionCacheSupport upmsPermissionCacheSupport,
+                                          Ids ids) {
+            return new RoleRepositoryImpl(rolePersistenceSupport, upmsPermissionCacheSupport, ids);
         }
 
         @Bean

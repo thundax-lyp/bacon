@@ -32,7 +32,7 @@ public class DefaultIds implements Ids {
 
     @Override
     public RoleId roleId() {
-        return RoleId.of(idGenerator.nextId(ROLE_ID_BIZ_TAG));
+        return RoleId.of(String.valueOf(idGenerator.nextId(ROLE_ID_BIZ_TAG)));
     }
 
     @Override

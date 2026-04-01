@@ -24,7 +24,7 @@ class DefaultIdsTest {
         SkuId skuId = ids.skuId();
 
         assertThat(userId).isEqualTo(UserId.of("U1001"));
-        assertThat(roleId).isEqualTo(RoleId.of(1002L));
+        assertThat(roleId).isEqualTo(RoleId.of("1002"));
         assertThat(orderId).isEqualTo(OrderId.of(1003L));
         assertThat(skuId).isEqualTo(SkuId.of(1004L));
         assertThat(idGenerator.bizTags).containsExactly("user-id", "role-id", "order-id", "sku-id");

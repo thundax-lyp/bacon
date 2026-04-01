@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.persistence.dataobject;
 
+import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -23,5 +24,5 @@ public class UserRoleRelDO {
     @TableField("user_id")
     private UserId userId;
     @TableField("role_id")
-    private Long roleId;
+    private RoleId roleId;
 }

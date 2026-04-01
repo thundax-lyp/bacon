@@ -102,7 +102,7 @@ public class UpmsProviderController {
 
     @Operation(summary = "按角色 ID 查询角色")
     @GetMapping("/roles/{roleId}")
-    public RoleDTO getRoleById(@RequestParam("tenantId") String tenantId, @PathVariable Long roleId) {
+    public RoleDTO getRoleById(@RequestParam("tenantId") String tenantId, @PathVariable String roleId) {
         return roleApplicationService.getRoleById(tenantId, roleId);
     }
 

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -10,7 +11,7 @@ import java.util.Set;
 
 public interface RoleRepository {
 
-    Optional<Role> findRoleById(TenantId tenantId, Long roleId);
+    Optional<Role> findRoleById(TenantId tenantId, RoleId roleId);
 
     List<Role> findRolesByUserId(TenantId tenantId, UserId userId);
 
@@ -20,21 +21,21 @@ public interface RoleRepository {
 
     Role save(Role role);
 
-    Role updateStatus(TenantId tenantId, Long roleId, String status);
+    Role updateStatus(TenantId tenantId, RoleId roleId, String status);
 
-    void deleteRole(TenantId tenantId, Long roleId);
+    void deleteRole(TenantId tenantId, RoleId roleId);
 
-    Set<Long> getAssignedMenus(TenantId tenantId, Long roleId);
+    Set<Long> getAssignedMenus(TenantId tenantId, RoleId roleId);
 
-    Set<Long> assignMenus(TenantId tenantId, Long roleId, Set<Long> menuIds);
+    Set<Long> assignMenus(TenantId tenantId, RoleId roleId, Set<Long> menuIds);
 
-    Set<String> getAssignedResources(TenantId tenantId, Long roleId);
+    Set<String> getAssignedResources(TenantId tenantId, RoleId roleId);
 
-    Set<String> assignResources(TenantId tenantId, Long roleId, Set<String> resourceCodes);
+    Set<String> assignResources(TenantId tenantId, RoleId roleId, Set<String> resourceCodes);
 
-    String getAssignedDataScopeType(TenantId tenantId, Long roleId);
+    String getAssignedDataScopeType(TenantId tenantId, RoleId roleId);
 
-    Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, Long roleId);
+    Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, RoleId roleId);
 
-    Set<DepartmentId> assignDataScope(TenantId tenantId, Long roleId, String dataScopeType, Set<DepartmentId> departmentIds);
+    Set<DepartmentId> assignDataScope(TenantId tenantId, RoleId roleId, String dataScopeType, Set<DepartmentId> departmentIds);
 }

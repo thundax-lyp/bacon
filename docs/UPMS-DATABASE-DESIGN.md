@@ -264,7 +264,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `varchar(64)` | N | 主键，固定使用 `RoleId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `identity_id` | `bigint` | Y | 关联身份标识主键；社交登录可为空 |
@@ -475,7 +475,7 @@
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
-| `role_id` | `bigint` | N | 角色主键 |
+| `role_id` | `varchar(64)` | N | 角色主键，固定使用 `RoleId` |
 
 索引与约束：
 
@@ -522,7 +522,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
-| `role_id` | `bigint` | N | 角色主键 |
+| `role_id` | `varchar(64)` | N | 角色主键，固定使用 `RoleId` |
 | `menu_id` | `bigint` | N | 菜单主键 |
 
 索引与约束：
@@ -546,7 +546,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
-| `role_id` | `bigint` | N | 角色主键 |
+| `role_id` | `varchar(64)` | N | 角色主键，固定使用 `RoleId` |
 | `resource_id` | `bigint` | N | 资源主键 |
 
 索引与约束：
@@ -571,7 +571,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
-| `role_id` | `bigint` | N | 角色主键 |
+| `role_id` | `varchar(64)` | N | 角色主键，固定使用 `RoleId` |
 | `data_scope_type` | `varchar(32)` | N | 数据范围类型，取值见 `data_scope_type` |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
@@ -598,7 +598,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
-| `role_id` | `bigint` | N | 角色主键 |
+| `role_id` | `varchar(64)` | N | 角色主键，固定使用 `RoleId` |
 | `department_id` | `varchar(64)` | N | 部门主键，固定使用 `DepartmentId` |
 
 索引与约束：

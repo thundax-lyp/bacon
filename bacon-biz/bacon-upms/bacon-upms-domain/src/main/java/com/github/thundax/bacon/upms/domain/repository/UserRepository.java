@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -29,7 +30,7 @@ public interface UserRepository {
 
     User updatePassword(TenantId tenantId, UserId userId, String passwordHash, boolean needChangePassword);
 
-    List<Role> assignRoles(TenantId tenantId, UserId userId, List<Long> roleIds);
+    List<Role> assignRoles(TenantId tenantId, UserId userId, List<RoleId> roleIds);
 
     void deleteUser(TenantId tenantId, UserId userId);
 }

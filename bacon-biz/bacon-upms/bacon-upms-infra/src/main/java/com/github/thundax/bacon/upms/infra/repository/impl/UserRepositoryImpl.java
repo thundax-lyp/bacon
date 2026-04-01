@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -119,10 +120,10 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<Role> assignRoles(TenantId tenantId, UserId userId, List<Long> roleIds) {
+    public List<Role> assignRoles(TenantId tenantId, UserId userId, List<RoleId> roleIds) {
         List<Role> roles = roleIds.stream()
                 .map(roleId -> roleRepository.findRoleById(tenantId, roleId)
-                        .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId)))
+                        .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value())))
                 .toList();
         roleRepository.bindUserRoles(tenantId, userId, roles);
         cacheSupport.evictUserPermission(tenantId, userId);

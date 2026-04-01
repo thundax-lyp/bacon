@@ -17,7 +17,7 @@ class BaseIdTest {
     void shouldKeepTypeSafetyWhenComparingIds() {
         UserId userId = UserId.of("U1001");
         UserId sameUserId = UserId.of("U1001");
-        RoleId roleId = RoleId.of(1001L);
+        RoleId roleId = RoleId.of("1001");
 
         assertThat(userId).isEqualTo(sameUserId);
         assertThat(userId.hashCode()).isEqualTo(sameUserId.hashCode());

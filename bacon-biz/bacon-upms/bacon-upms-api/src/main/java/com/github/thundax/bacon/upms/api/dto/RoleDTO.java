@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class RoleDTO {
 
     /** 角色主键。 */
-    private Long id;
+    private String id;
     /** 所属租户编号。 */
     private String tenantId;
     /** 角色编码。 */

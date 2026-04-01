@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface RoleReadFacade {
 
-    RoleDTO getRoleById(String tenantId, Long roleId);
+    RoleDTO getRoleById(String tenantId, String roleId);
 
     List<RoleDTO> getRolesByUserId(String tenantId, String userId);
 }

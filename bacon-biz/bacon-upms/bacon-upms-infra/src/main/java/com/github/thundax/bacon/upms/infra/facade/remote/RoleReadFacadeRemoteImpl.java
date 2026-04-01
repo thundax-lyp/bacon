@@ -28,7 +28,7 @@ public class RoleReadFacadeRemoteImpl implements RoleReadFacade {
     }
 
     @Override
-    public RoleDTO getRoleById(String tenantId, Long roleId) {
+    public RoleDTO getRoleById(String tenantId, String roleId) {
         // 单角色读取保持最小读取模型，不把数据权限等衍生信息混进主数据 DTO。
         return restClient.get()
                 .uri("/providers/upms/roles/{roleId}?tenantId={tenantId}", roleId, tenantId)

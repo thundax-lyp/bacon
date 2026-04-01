@@ -4,6 +4,10 @@ server:
     context-path: /api
 
 spring:
+  config:
+    import:
+      - optional:file:./bacon-app/bacon-mono-boot/dev.env[.properties]
+      - optional:file:./dev.env[.properties]
   application:
     name: bacon-mono-boot
   main:

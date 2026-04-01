@@ -123,8 +123,11 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     Role saveRole(Role role) {
         RoleDO roleDO = toDataObject(role);
         LocalDateTime now = LocalDateTime.now();
-        if (roleDO.getId() == null) {
-            roleDO.setCreatedAt(now);
+        boolean exists = roleDO.getId() != null && roleMapper.selectById(roleDO.getId()) != null;
+        if (!exists) {
+            if (roleDO.getCreatedAt() == null) {
+                roleDO.setCreatedAt(now);
+            }
             roleDO.setUpdatedAt(now);
             roleMapper.insert(roleDO);
         } else {

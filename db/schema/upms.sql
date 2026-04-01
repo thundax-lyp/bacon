@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
     `tenant_id` varchar(64) NOT NULL,
     `account` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
+    `avatar_object_id` bigint DEFAULT NULL,
     `phone` varchar(32) DEFAULT NULL,
     `department_id` varchar(64) DEFAULT NULL,
     `password_hash` varchar(255) NOT NULL,
@@ -29,11 +30,12 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_account` (`account`),
-    KEY `idx_tenant_department_status` (`tenant_id`, `department_id`, `status`)
+    KEY `idx_tenant_department_status` (`tenant_id`, `department_id`, `status`),
+    KEY `idx_avatar_object_id` (`avatar_object_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
-    `id` varchar(64) NOT NULL,
+    `id` bigint NOT NULL AUTO_INCREMENT,
     `tenant_id` varchar(64) NOT NULL,
     `user_id` varchar(64) NOT NULL,
     `identity_type` varchar(16) NOT NULL,
@@ -44,12 +46,12 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
     `updated_by` varchar(64) DEFAULT NULL,
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_identity` (`identity_type`, `identity_value`),
+    UNIQUE KEY `uk_identity` (`tenant_id`, `identity_type`, `identity_value`),
     KEY `idx_tenant_user` (`tenant_id`, `user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_department` (
-    `id` bigint NOT NULL,
+    `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
@@ -71,6 +73,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_post` (
     `tenant_id` varchar(64) NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
+    `department_id` varchar(64) DEFAULT NULL,
     `sort` int NOT NULL,
     `status` varchar(16) NOT NULL,
     `deleted` tinyint(1) NOT NULL,

@@ -7,7 +7,7 @@ INSERT INTO `bacon_upms_tenant` (
     `tenant_id`, `code`, `name`, `status`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES (
-    'T1000001', 'BACON', 'Bacon 默认租户', 'ENABLED',
+    'T1000001', 'BACON', 'Bacon 默认租户', 'ACTIVE',
     NULL, '2026-03-21 09:00:00.000', NULL, '2026-03-21 09:00:00.000'
 ) ON DUPLICATE KEY UPDATE
     `name` = VALUES(`name`),
@@ -36,13 +36,14 @@ ON DUPLICATE KEY UPDATE
     `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `bacon_upms_post` (
-    `id`, `tenant_id`, `code`, `name`, `sort`, `status`, `deleted`,
+    `id`, `tenant_id`, `code`, `name`, `department_id`, `sort`, `status`, `deleted`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES (
-    1200001, 'T1000001', 'PLATFORM_ADMIN', '平台管理员', 1, 'ENABLED', 0,
+    1200001, 'T1000001', 'PLATFORM_ADMIN', '平台管理员', 'D1100002', 1, 'ENABLED', 0,
     '2000001', '2026-03-21 09:02:00.000', '2000001', '2026-03-21 09:02:00.000'
 ) ON DUPLICATE KEY UPDATE
     `name` = VALUES(`name`),
+    `department_id` = VALUES(`department_id`),
     `sort` = VALUES(`sort`),
     `status` = VALUES(`status`),
     `deleted` = VALUES(`deleted`),
@@ -50,16 +51,17 @@ INSERT INTO `bacon_upms_post` (
     `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `bacon_upms_user` (
-    `id`, `tenant_id`, `account`, `name`, `phone`, `department_id`,
+    `id`, `tenant_id`, `account`, `name`, `avatar_object_id`, `phone`, `department_id`,
     `password_hash`, `need_change_password`, `status`, `deleted`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES (
-    '2000001', 'T1000001', 'admin', '系统管理员', '13800000000', 'D1100002',
+    '2000001', 'T1000001', 'admin', '系统管理员', NULL, '13800000000', 'D1100002',
     '$2y$10$yjKSvevJS2WNdyBKKD1EBut7GNXMGCNNJfWpMtS5DILA9.sdEeASG', 0, 'ENABLED', 0,
     NULL, '2026-03-21 09:03:00.000', '2000001', '2026-03-21 09:03:00.000'
 ) ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`),
     `name` = VALUES(`name`),
+    `avatar_object_id` = VALUES(`avatar_object_id`),
     `phone` = VALUES(`phone`),
     `department_id` = VALUES(`department_id`),
     `password_hash` = VALUES(`password_hash`),

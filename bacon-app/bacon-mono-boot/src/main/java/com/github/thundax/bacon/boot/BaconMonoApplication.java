@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         "com.github.thundax.bacon.order",
         "com.github.thundax.bacon.inventory",
         "com.github.thundax.bacon.payment",
+        "com.github.thundax.bacon.storage",
         "com.github.thundax.bacon.boot"
 })
 @MapperScan(basePackages = {

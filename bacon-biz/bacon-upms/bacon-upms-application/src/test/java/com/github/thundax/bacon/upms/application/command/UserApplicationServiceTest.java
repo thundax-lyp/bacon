@@ -82,9 +82,6 @@ class UserApplicationServiceTest {
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
 
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(currentUser));
-        when(tenantRepository.findTenantById(TENANT_ID))
-                .thenReturn(Optional.of(new Tenant("tenant-demo", "Demo Tenant", "TENANT_DEMO",
-                        TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
         when(storedObjectFacade.uploadObject(any())).thenReturn(storedObject);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 

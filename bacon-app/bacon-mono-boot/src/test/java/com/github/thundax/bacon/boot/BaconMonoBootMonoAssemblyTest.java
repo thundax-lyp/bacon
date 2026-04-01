@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Import;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(classes = BaconMonoApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE,
+@SpringBootTest(classes = BaconMonoAssemblyTestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
                 "bacon.runtime.mode=mono",
                 "spring.profiles.active=test",
@@ -48,9 +48,17 @@ import static org.assertj.core.api.Assertions.assertThat;
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
                         + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"
                         + "org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration,"
+                        + "org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration,"
                         + "com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration"
         })
-@Import({OrderRepositoryTestConfiguration.class, PaymentRepositoryTestConfiguration.class, UpmsRepositoryTestConfiguration.class})
+@Import({
+        OrderRepositoryTestConfiguration.class,
+        PaymentRepositoryTestConfiguration.class,
+        AuthRepositoryTestConfiguration.class,
+        UpmsRepositoryTestConfiguration.class,
+        StorageRepositoryTestConfiguration.class,
+        MybatisMapperTestConfiguration.class
+})
 class BaconMonoBootMonoAssemblyTest extends BaconSpringBootTest {
 
     @Autowired

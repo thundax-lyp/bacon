@@ -1,4 +1,14 @@
 -- Execute after upms seed data so tenant_id/user_id/identity_id semantics stay aligned.
+-- Runtime auth tables in schema/auth.sql are intentionally not pre-seeded here:
+--   bacon_auth_session
+--   bacon_auth_refresh_token_session
+--   bacon_auth_oauth_authorization_code
+--   bacon_auth_oauth_access_token
+--   bacon_auth_oauth_refresh_token
+-- Seed data is limited to stable master/reference records plus one audit sample:
+--   bacon_auth_oauth_client
+--   bacon_auth_oauth_consent
+--   bacon_auth_audit_log
 -- Default OAuth2 admin client:
 --   client_id: bacon-admin-web
 --   client_secret: BaconClient@123

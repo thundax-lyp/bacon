@@ -54,7 +54,7 @@ bacon
 │   │   ├── bacon-order-interfaces/  # controller / provider / dto / response / assembler / consumer
 │   │   ├── bacon-order-application/ # command / query / audit / support / executor
 │   │   ├── bacon-order-domain/      # entity / domain service / repository 接口
-│   │   └── bacon-order-infra/       # mapper / repository impl / rpc client / cache
+│   │   └── bacon-order-infra/       # mapper / repository impl / facade.remote / http client / cache
 │   │
 │   ├── bacon-upms/
 │   │   ├── pom.xml
@@ -180,7 +180,7 @@ UserReadFacade
    ↓
 UserReadFacadeRemoteImpl
    ↓
-RPC Client / Feign
+Remote HTTP Client
    ↓
 user-service
 ```
@@ -236,7 +236,6 @@ bacon-biz/bacon-order
         │   └── repositoryimpl
         ├── facade
         │   └── remote
-        ├── rpc
         ├── cache
         ├── mq
         └── config
@@ -264,20 +263,20 @@ bacon-biz/bacon-order
 - 面向内部跨域调用契约层，承载业务域之间稳定的调用边界。
 - 负责定义跨业务域调用契约，只放 `facade` 和跨域 `dto`。
 - 只表达稳定的业务能力，不承载 HTTP 语义，也不暴露领域实体。
-- 可被其他业务域的 `application` 或 `infra.rpc` 依赖。
+- 可被其他业务域的 `application` 或 `infra.facade.remote` 依赖。
 
 ### application
 - 负责用例编排、事务边界、权限校验、幂等控制、跨域协调。
-- 只表达业务动作，不关心数据库、RPC、缓存具体实现。
+- 只表达业务动作，不关心数据库、远程调用、缓存具体实现。
 - 可以依赖 `domain` 和外部 `api.facade` 抽象，不能直接依赖其他域的 infra 实现。
 
 ### domain
 - 负责核心业务规则、聚合、一致性约束、领域服务、仓储接口定义。
-- 不关心 Spring MVC、MyBatis、Feign、Redis、MQ 等技术细节。
+- 不关心 Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术细节。
 - 应尽量保持纯 Java，对框架依赖最小化。
 
 ### infra
-- 负责持久化、RPC 客户端、缓存、消息发送、三方适配。
+- 负责持久化、远程调用客户端、缓存、消息发送、三方适配。
 - 实现 `domain.repository` 中定义的接口。
 - 承载远程 Facade 适配实现，固定放在 `infra.facade.remote`，例如 `UserReadFacadeRemoteImpl`。
 - 可以依赖数据库、中间件、SDK，但不能反向让 `domain` 依赖这些技术细节。
@@ -329,9 +328,9 @@ bacon-biz/bacon-order
 - `Assembler` 优先放在调用方所在层，用于本层对象转换。
 - `facade` 放在 `api.facade`，不再放在 `interfaces`
 - `api.facade` 只定义接口；`interfaces.facade` 只放本地实现 `*LocalImpl`；`infra.facade.remote` 只放远程实现 `*RemoteImpl`
-- `Command` 用于应用层入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
-- `Query` 用于应用层读模型入参，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
-- `Result` 用于应用层用例输出，不向外暴露，也不复用为 HTTP DTO 或 RPC DTO
+- `Command` 用于应用层入参，不向外暴露，也不复用为 HTTP DTO 或跨域 DTO
+- `Query` 用于应用层读模型入参，不向外暴露，也不复用为 HTTP DTO 或跨域 DTO
+- `Result` 用于应用层用例输出，不向外暴露，也不复用为 HTTP DTO 或跨域 DTO
 - `application.service` 不再作为默认目录，新增用例必须按 `command`、`query`、`audit`、`support`、`executor` 明确归类
 - `interfaces.dto` / `interfaces.response` 只服务接入层，不参与跨域调用
 - 外部 `interfaces.controller` 不直接返回 `api.dto` 或应用层内部视图对象，统一在接入层转换为 `*Response`
@@ -399,7 +398,7 @@ common      -> 被各层依赖
 ### 调用原则
 - 调用方依赖被调用方暴露的 `api.facade` 接口，不直接依赖其 `service`、`repository`、`mapper`。
 - 单体模式下，由被调用方提供 `facade` 的本地实现 Bean，内部转调本域 `application`。
-- 微服务模式下，由调用方在 `infra.rpc` 中提供 `facade` 的远程实现 Bean，内部通过 `RestClient` 或其他受控 RPC client 调目标服务。
+- 微服务模式下，由调用方在 `infra.facade.remote` 中提供 `facade` 的远程实现 Bean，内部通过 `RestClient` 或其他受控 HTTP client 调目标服务。
 - 同一个 `facade` 接口在容器中只能有一个生效 Bean，避免本地实现和远程实现同时注入。
 - `RestClient` 的默认创建、超时和请求工厂策略统一由 `bacon-common-core` 提供，业务模块只保留 `baseUrl` 和领域级差异配置。
 
@@ -407,7 +406,7 @@ common      -> 被各层依赖
 - 对外读写能力抽象放在 `<domain>-api` 模块的 `api.facade`。
 - 跨域 DTO 放在 `<domain>-api` 模块的 `api.dto`。
 - 本地实现放在被调用方 `interfaces.facade`，作为 `api.facade` 的本地适配实现，例如 `UserReadFacadeLocalImpl`。
-- 远程调用实现放在调用方 `infra.facade.remote`（内部可使用 `infra.rpc` 能力），例如 `UserReadFacadeRemoteImpl`。
+- 远程调用实现放在调用方 `infra.facade.remote`（内部可使用 `RestClient` 等 HTTP client 能力），例如 `UserReadFacadeRemoteImpl`。
 - 服务提供方的 provider 入口固定放在 `interfaces.provider`，本地/远程 `Facade` 适配实现必须直接对齐 `api.facade`。
 - 业务编排始终写在 `application`，不要写进 HTTP client。
 
@@ -460,8 +459,8 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
 ### 单体装配规则
 - `bacon-mono-boot` 启动时默认装配各域的本地 `facade` 实现。
-- `infra.rpc` 中的远程 `facade` 实现、HTTP client、远程专用配置在 `mono-app` 模式下默认禁用。
-- MQ consumer、定时任务、RPC provider 等需要根据运行模式和服务职责决定是否启用，不能因为模块被引入就自动全部生效。
+- `infra.facade.remote` 中的远程 `facade` 实现、HTTP client、远程专用配置在 `mono-app` 模式下默认禁用。
+- MQ consumer、定时任务、provider 入口等需要根据运行模式和服务职责决定是否启用，不能因为模块被引入就自动全部生效。
 - 单体模式下跨域调用路径应固定为：
     - `caller-application -> callee-api.facade -> callee LocalImpl -> callee-application`
 
@@ -497,13 +496,13 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 ### 同步与异步调用边界
 - 查询类跨域调用优先使用同步 `facade`。
 - 写操作、状态变更、长链路编排优先考虑事件驱动、消息通知或最终一致性方案。
-- 不要把所有跨域写操作都设计成同步 RPC，否则服务边界会退化为远程单体。
+- 不要把所有跨域写操作都设计成同步远程调用，否则服务边界会退化为远程单体。
 - 如果必须同步写入跨域服务，需要明确调用原因、失败补偿和超时策略。
 
 ### 服务治理约定
 - 服务注册名保持统一命名，例如 `bacon-order-service`、`bacon-upms-service`。
 - 配置中心需统一约定 `namespace`、`group`、`dataId` 命名规则。
-- RPC client 需统一超时、重试、熔断、日志追踪策略，避免各服务各自配置。
+- HTTP client 需统一超时、重试、熔断、日志追踪策略，避免各服务各自配置。
 - 当前工程统一使用 `RestClient` 作为同步 HTTP 调用入口；未实际使用的 OpenFeign 模块不得保留在仓库内。
 - `api.dto` 作为跨服务契约对象，需要关注兼容性，新增字段优先向后兼容，避免破坏性变更。
 - `bacon-common-security` 作为微服务基础能力模块使用；`bacon-common-seata` 仅在确有分布式事务需求时启用，不视为默认标配。
@@ -511,7 +510,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 
 ## 禁止事项
 
-- `domain` 禁止依赖 MyBatis、JPA、Feign、Redis、MQ SDK。
+- `domain` 禁止依赖 MyBatis、JPA、HTTP client、Redis、MQ SDK。
 - `domain` 禁止出现 `@RestController`、`@Service`、`@Mapper`、`@TableName` 等面向基础设施的注解。
 - `application` 禁止直接操作 `Mapper`、`DAO`、HTTP client。
 - `interfaces` 禁止直接编写数据库访问逻辑。
@@ -523,7 +522,7 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
 - 禁止同时激活同一个 `facade` 接口的本地实现和远程实现。
 - 微服务 starter 禁止引入其他业务域的本地 `facade` 实现。
 - 禁止把 `*LocalImpl` 放入 `infra`；禁止把 `*RemoteImpl` 放入 `interfaces`。
-- 禁止把跨域写操作默认设计成同步 RPC 链路。
+- 禁止把跨域写操作默认设计成同步远程调用链路。
 - 不允许跨域直接引用对方 `infra`、`controller`、`application.service` 实现类。
 - 禁止在业务域模块中重复声明工程级依赖版本。
 - 禁止在 `domain` 中直接依赖 `nacos`、`jasypt`、`actuator`、`spring-boot-admin`。
@@ -679,7 +678,7 @@ bacon-biz/bacon-<domain>/
 3. 在 `domain` 中定义实体、聚合、仓储接口和领域服务。
 4. 在 `application` 中定义 command、query、audit、support、executor。
 5. 在 `interfaces` 中定义 controller、provider、http dto、response、assembler。
-6. 在 `infra` 中实现 repository、mapper、facade.remote、rpc client、cache。
+6. 在 `infra` 中实现 repository、mapper、facade.remote、http client、cache。
 7. 在对应 starter 中引入相关模块并完成装配。
 8. 在 `deploy` 中补齐配置样例和镜像脚本。
 9. 先跑通一个最小业务闭环，再逐步扩展。

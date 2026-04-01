@@ -183,9 +183,6 @@ class UserApplicationServiceTest {
         when(userRepository.findUserIdentity(TENANT_ID, "ACCOUNT", "alice")).thenReturn(Optional.of(accountIdentity));
         when(userRepository.findUserCredential(TENANT_ID, UserId.of("U101"), "PASSWORD")).thenReturn(Optional.of(passwordCredential));
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
-        when(tenantRepository.findTenantById(TENANT_ID))
-                .thenReturn(Optional.of(new Tenant("tenant-demo", "Demo Tenant", "TENANT_DEMO",
-                        TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
 
         UserLoginCredentialDTO credential = service.getUserLoginCredential("tenant-demo", "ACCOUNT", "alice");
 

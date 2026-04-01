@@ -135,9 +135,6 @@ class UserApplicationServiceTest {
                 UserStatus.ENABLED);
         when(userRepository.pageUsers(TENANT_ID, null, null, null, null, 1, 20)).thenReturn(List.of(user));
         when(userRepository.countUsers(TENANT_ID, null, null, null, null)).thenReturn(1L);
-        when(tenantRepository.findTenantById(TENANT_ID))
-                .thenReturn(Optional.of(new Tenant("tenant-demo", "Demo Tenant", "TENANT_DEMO",
-                        TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
 
         UserPageResultDTO result = service.pageUsers(new UserPageQueryDTO(TENANT_ID, null, null, null, null, 1, 20));
 

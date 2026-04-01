@@ -8,7 +8,6 @@ import com.github.thundax.bacon.common.log.producer.SysLogMessageProducer;
 import com.github.thundax.bacon.common.mq.BaconMqProperties;
 import com.github.thundax.bacon.common.mq.BaconMqSender;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +25,6 @@ public class BaconLogAutoConfiguration {
 
     @Bean
     @Primary
-    @ConditionalOnBean(BaconMqSender.class)
     @ConditionalOnMissingBean(MqSysLogMessageProducer.class)
     public SysLogMessageProducer mqSysLogMessageProducer(BaconMqSender baconMqSender,
                                                          BaconMqProperties baconMqProperties,

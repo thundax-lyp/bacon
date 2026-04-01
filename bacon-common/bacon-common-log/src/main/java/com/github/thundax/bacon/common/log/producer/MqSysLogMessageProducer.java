@@ -5,11 +5,9 @@ import com.github.thundax.bacon.common.mq.BaconMqMessage;
 import com.github.thundax.bacon.common.mq.BaconMqProperties;
 import com.github.thundax.bacon.common.mq.BaconMqSender;
 import com.github.thundax.bacon.common.mq.BaconMqType;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Primary;
 
 @Primary
-@ConditionalOnBean(BaconMqSender.class)
 public class MqSysLogMessageProducer implements SysLogMessageProducer {
 
     private final BaconMqSender baconMqSender;

@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_tenant` (
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
     `status` varchar(16) NOT NULL,
+    `expired_at` datetime(3) DEFAULT NULL,
     `created_by` varchar(64) DEFAULT NULL,
     `created_at` datetime(3) NOT NULL,
     `updated_by` varchar(64) DEFAULT NULL,

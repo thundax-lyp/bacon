@@ -6,10 +6,12 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageResultDTO;
-import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
+import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
+import java.time.Instant;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,41 +36,55 @@ public class TenantApplicationService {
                 pageNo, pageSize);
     }
 
-    public TenantDTO createTenant(String tenantId, String name) {
-        return createTenant(TenantId.of(tenantId), name);
+    public TenantDTO createTenant(String tenantId, String name, String tenantCode, Instant expiredAt) {
+        return createTenant(TenantId.of(tenantId), name, tenantCode, expiredAt);
     }
 
-    public TenantDTO createTenant(TenantId tenantId, String name) {
+    public TenantDTO createTenant(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
         validateRequired(name, "name");
+        validateRequired(tenantCode, "tenantCode");
+        TenantCode normalizedTenantCode = TenantCode.of(tenantCode);
         tenantRepository.findTenantByTenantId(tenantId).ifPresent(tenant -> {
             throw new IllegalArgumentException("Tenant tenantId already exists: " + tenantId.value());
         });
+        tenantRepository.findTenantByCode(normalizedTenantCode.value()).ifPresent(tenant -> {
+            throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
+        });
         return toDto(tenantRepository.saveTenant(new Tenant(tenantId, normalize(name),
-                TenantStatus.ENABLED)));
+                normalizedTenantCode, TenantStatus.ACTIVE, expiredAt)));
     }
 
-    public TenantDTO updateTenant(String tenantId, String name) {
-        return updateTenant(TenantId.of(tenantId), name);
+    public TenantDTO updateTenant(String tenantId, String name, String tenantCode, Instant expiredAt) {
+        return updateTenant(TenantId.of(tenantId), name, tenantCode, expiredAt);
     }
 
-    public TenantDTO updateTenant(TenantId tenantId, String name) {
+    public TenantDTO updateTenant(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
         Tenant currentTenant = requireTenant(tenantId);
         validateRequired(name, "name");
+        validateRequired(tenantCode, "tenantCode");
+        TenantCode normalizedTenantCode = TenantCode.of(tenantCode);
+        tenantRepository.findTenantByCode(normalizedTenantCode.value())
+                .filter(tenant -> !tenant.getId().equals(tenantId))
+                .ifPresent(tenant -> {
+                    throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
+                });
         return toDto(tenantRepository.saveTenant(new Tenant(
                 currentTenant.getId(),
                 normalize(name),
+                normalizedTenantCode,
                 currentTenant.getStatus(),
+                expiredAt,
                 currentTenant.getCreatedBy(),
                 currentTenant.getCreatedAt(),
                 currentTenant.getUpdatedBy(),
                 currentTenant.getUpdatedAt())));
     }
 
-    public TenantDTO updateTenantStatus(String tenantId, UpmsStatusEnum status) {
+    public TenantDTO updateTenantStatus(String tenantId, TenantStatusEnum status) {
         return updateTenantStatus(TenantId.of(tenantId), status);
     }
 
-    public TenantDTO updateTenantStatus(TenantId tenantId, UpmsStatusEnum status) {
+    public TenantDTO updateTenantStatus(TenantId tenantId, TenantStatusEnum status) {
         if (status == null) {
             throw new IllegalArgumentException("status must not be null");
         }
@@ -94,7 +110,8 @@ public class TenantApplicationService {
     }
 
     private TenantDTO toDto(Tenant tenant) {
-        return new TenantDTO(tenant.getId(), tenant.getName(), tenant.getStatus().value());
+        return new TenantDTO(tenant.getId(), tenant.getName(), tenant.getTenantCode().value(),
+                tenant.getStatus().value(), tenant.getExpiredAt());
     }
 
     private void validateRequired(String value, String fieldName) {

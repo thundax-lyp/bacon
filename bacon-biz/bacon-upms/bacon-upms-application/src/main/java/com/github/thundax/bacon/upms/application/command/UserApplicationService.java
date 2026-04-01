@@ -112,7 +112,8 @@ public class UserApplicationService {
     public TenantDTO getTenantByTenantId(String tenantId) {
         Tenant tenant = tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
-        return new TenantDTO(tenant.getId(), tenant.getName(), tenant.getStatus().value());
+        return new TenantDTO(tenant.getId(), tenant.getName(), tenant.getTenantCode().value(),
+                tenant.getStatus().value(), tenant.getExpiredAt());
     }
 
     public UserPageResultDTO pageUsers(UserPageQueryDTO query) {

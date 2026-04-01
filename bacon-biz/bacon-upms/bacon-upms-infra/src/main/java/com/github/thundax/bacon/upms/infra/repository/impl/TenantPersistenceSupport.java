@@ -34,6 +34,12 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
+    Optional<Tenant> findTenantByCode(String tenantCode) {
+        return Optional.ofNullable(tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery()
+                        .eq(TenantDO::getCode, trim(tenantCode))))
+                .map(this::toDomain);
+    }
+
     List<Tenant> listTenants(TenantId tenantId, String name, String status, int pageNo, int pageSize) {
         return tenantMapper.selectList(Wrappers.<TenantDO>lambdaQuery()
                         .eq(tenantId != null, TenantDO::getId, tenantId)
@@ -56,7 +62,7 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Tenant saveTenant(Tenant tenant) {
         TenantDO tenantDO = toDataObject(tenant);
-        java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.Clock.systemUTC());
+        java.time.Instant now = java.time.Instant.now();
         if (tenantDO.getId() == null) {
             tenantDO.setCreatedAt(now);
             tenantDO.setUpdatedAt(now);

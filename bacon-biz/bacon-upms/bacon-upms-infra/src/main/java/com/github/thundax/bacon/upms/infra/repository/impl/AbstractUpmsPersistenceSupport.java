@@ -56,15 +56,16 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final TenantDO toDataObject(Tenant tenant) {
-        return new TenantDO(tenant.getId(), tenant.getName(),
-                tenant.getStatus().value(), tenant.getCreatedBy(), toLocalDateTime(tenant.getCreatedAt()), tenant.getUpdatedBy(),
-                toLocalDateTime(tenant.getUpdatedAt()));
+        return new TenantDO(tenant.getId(), tenant.getTenantCode().value(), tenant.getName(),
+                tenant.getStatus().value(), toLocalDateTime(tenant.getExpiredAt()), tenant.getCreatedBy(),
+                toLocalDateTime(tenant.getCreatedAt()), tenant.getUpdatedBy(), toLocalDateTime(tenant.getUpdatedAt()));
     }
 
     protected final Tenant toDomain(TenantDO tenantDO) {
         return new Tenant(tenantDO.getId(), tenantDO.getName(),
-                TenantStatus.fromValue(tenantDO.getStatus()), tenantDO.getCreatedBy(), toInstant(tenantDO.getCreatedAt()), tenantDO.getUpdatedBy(),
-                toInstant(tenantDO.getUpdatedAt()));
+                com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode.of(tenantDO.getCode()),
+                TenantStatus.fromValue(tenantDO.getStatus()), toInstant(tenantDO.getExpiredAt()), tenantDO.getCreatedBy(),
+                toInstant(tenantDO.getCreatedAt()), tenantDO.getUpdatedBy(), toInstant(tenantDO.getUpdatedAt()));
     }
 
     protected final UserDO toDataObject(User user) {

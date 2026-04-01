@@ -11,6 +11,8 @@ public interface TenantRepository {
 
     Optional<Tenant> findTenantByTenantId(TenantId tenantId);
 
+    Optional<Tenant> findTenantByCode(String tenantCode);
+
     List<Tenant> pageTenants(TenantId tenantId, String name, String status, int pageNo, int pageSize);
 
     long countTenants(TenantId tenantId, String name, String status);

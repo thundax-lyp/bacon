@@ -29,6 +29,11 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
+    public Optional<Tenant> findTenantByCode(String tenantCode) {
+        return support.findTenantByCode(tenantCode);
+    }
+
+    @Override
     public List<Tenant> pageTenants(TenantId tenantId, String name, String status, int pageNo, int pageSize) {
         return support.listTenants(tenantId, name, status, pageNo, pageSize);
     }
@@ -50,7 +55,9 @@ public class TenantRepositoryImpl implements TenantRepository {
         return support.saveTenant(new Tenant(
                 currentTenant.getId(),
                 currentTenant.getName(),
+                currentTenant.getTenantCode(),
                 com.github.thundax.bacon.upms.domain.model.enums.TenantStatus.fromValue(status),
+                currentTenant.getExpiredAt(),
                 currentTenant.getCreatedBy(),
                 currentTenant.getCreatedAt(),
                 currentTenant.getUpdatedBy(),

@@ -1,4 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-public record TenantCreateRequest(String tenantId, String name) {
+import java.time.Instant;
+
+public record TenantCreateRequest(String tenantId, String name, String tenantCode, Instant expiredAt) {
 }

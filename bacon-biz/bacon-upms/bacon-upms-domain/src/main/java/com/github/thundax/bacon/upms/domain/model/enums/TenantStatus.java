@@ -2,7 +2,8 @@ package com.github.thundax.bacon.upms.domain.model.enums;
 
 public enum TenantStatus {
 
-    ENABLED,
+    ACTIVE,
+    EXPIRED,
     DISABLED;
 
     public String value() {

@@ -18,10 +18,14 @@ public class TenantDO {
 
     @TableId(value = "tenant_id", type = IdType.INPUT)
     private TenantId id;
+    @TableField("code")
+    private String code;
     @TableField("name")
     private String name;
     @TableField("status")
     private String status;
+    @TableField("expired_at")
+    private LocalDateTime expiredAt;
     @TableField("created_by")
     private String createdBy;
     @TableField("created_at")

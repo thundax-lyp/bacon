@@ -51,7 +51,8 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "创建租户", eventType = LogEventType.CREATE)
     @PostMapping
     public TenantResponse createTenant(@RequestBody TenantCreateRequest request) {
-        return TenantResponse.from(tenantApplicationService.createTenant(request.tenantId(), request.name()));
+        return TenantResponse.from(tenantApplicationService.createTenant(
+                request.tenantId(), request.name(), request.tenantCode(), request.expiredAt()));
     }
 
     @Operation(summary = "修改租户")
@@ -59,7 +60,8 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "修改租户", eventType = LogEventType.UPDATE)
     @PutMapping("/{tenantId}")
     public TenantResponse updateTenant(@PathVariable String tenantId, @RequestBody TenantUpdateRequest request) {
-        return TenantResponse.from(tenantApplicationService.updateTenant(tenantId, request.name()));
+        return TenantResponse.from(tenantApplicationService.updateTenant(
+                tenantId, request.name(), request.tenantCode(), request.expiredAt()));
     }
 
     @Operation(summary = "按租户编号查询租户")

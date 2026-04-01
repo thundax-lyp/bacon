@@ -172,8 +172,10 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `tenant_id` | `varchar(64)` | N | 租户主键，固定使用 `TenantId` |
+| `code` | `varchar(64)` | N | 租户稳定业务编码，全局唯一 |
 | `name` | `varchar(128)` | N | 租户名称 |
-| `status` | `varchar(16)` | N | 状态，取值固定为 `ENABLED`、`DISABLED` |
+| `status` | `varchar(16)` | N | 状态，取值固定为 `ACTIVE`、`DISABLED`、`EXPIRED` |
+| `expired_at` | `datetime(3)` | Y | 过期时间 |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `updated_by` | `varchar(64)` | Y | 更新人标识 |
@@ -182,6 +184,7 @@
 索引与约束：
 
 - `pk(tenant_id)`
+- `uk_code(code)`
 
 ### 7.2 `bacon_upms_user`
 
@@ -671,7 +674,7 @@
 推荐摘要字段：
 
 - `User`: `id`、`account`、`name`、`phoneMasked`、`departmentId`、`status`、`deleted`
-- `Tenant`: `tenantId`、`name`、`status`
+- `Tenant`: `tenantId`、`code`、`name`、`status`、`expiredAt`
 - `Department`: `id`、`code`、`name`、`parentId`、`leaderUserId`、`status`
 - `Post`: `id`、`code`、`name`、`sort`、`status`
 - `Role`: `id`、`code`、`name`、`roleType`、`dataScopeType`、`status`、`builtIn`

@@ -13,7 +13,7 @@ public class TenantPageRequest {
 
     private String tenantId;
     private String name;
-    private UpmsStatusQueryEnum status;
+    private TenantStatusQueryEnum status;
 
     @Min(1)
     private Integer pageNo;

@@ -242,6 +242,9 @@ INSERT INTO `bacon_upms_data_permission_rule` (
     `updated_by` = VALUES(`updated_by`),
     `updated_at` = VALUES(`updated_at`);
 
+-- Current SUPER_ADMIN seed uses data_scope_type = ALL,
+-- so bacon_upms_role_data_scope_rel intentionally remains empty.
+
 INSERT INTO `bacon_upms_audit_log` (
     `id`, `tenant_id`, `operator_id`, `object_type`, `object_id`,
     `action_type`, `before_summary`, `after_summary`,
@@ -264,3 +267,29 @@ INSERT INTO `bacon_upms_audit_log` (
     `request_source` = VALUES(`request_source`),
     `result_status` = VALUES(`result_status`),
     `occurred_at` = VALUES(`occurred_at`);
+
+INSERT INTO `bacon_upms_sys_log` (
+    `id`, `tenant_id`, `trace_id`, `request_id`, `module`, `action`,
+    `event_type`, `result`, `operator_id`, `operator_name`,
+    `client_ip`, `request_uri`, `http_method`, `cost_ms`, `error_message`,
+    `occurred_at`, `created_by`, `created_at`, `updated_by`, `updated_at`
+) VALUES (
+    1960001, 'T1000001', 'trace-upms-seed-0001', 'req-upms-seed-0001', 'upms', 'Seed default admin data',
+    'CREATE', 'SUCCESS', '2000001', '系统管理员',
+    '127.0.0.1', '/internal/db/seed/upms', 'POST', 15, NULL,
+    '2026-03-21 09:09:30.000', '2000001', '2026-03-21 09:09:30.000', '2000001', '2026-03-21 09:09:30.000'
+) ON DUPLICATE KEY UPDATE
+    `module` = VALUES(`module`),
+    `action` = VALUES(`action`),
+    `event_type` = VALUES(`event_type`),
+    `result` = VALUES(`result`),
+    `operator_id` = VALUES(`operator_id`),
+    `operator_name` = VALUES(`operator_name`),
+    `client_ip` = VALUES(`client_ip`),
+    `request_uri` = VALUES(`request_uri`),
+    `http_method` = VALUES(`http_method`),
+    `cost_ms` = VALUES(`cost_ms`),
+    `error_message` = VALUES(`error_message`),
+    `occurred_at` = VALUES(`occurred_at`),
+    `updated_by` = VALUES(`updated_by`),
+    `updated_at` = VALUES(`updated_at`);

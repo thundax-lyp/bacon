@@ -101,3 +101,44 @@ ON DUPLICATE KEY UPDATE
     `error_message` = VALUES(`error_message`),
     `dead_reason` = VALUES(`dead_reason`),
     `dead_at` = VALUES(`dead_at`);
+
+INSERT INTO `bacon_inventory_audit_replay_task` (
+    `id`, `tenant_id`, `task_no`, `status`, `total_count`,
+    `processed_count`, `success_count`, `failed_count`, `replay_key_prefix`,
+    `operator_type`, `operator_id`, `processing_owner`, `lease_until`, `last_error`,
+    `created_at`, `started_at`, `paused_at`, `finished_at`, `updated_at`
+) VALUES
+    (5700001, 1001, 'RPT-20260326-0001', 'RUNNING', 1,
+        0, 0, 0, 'replay-20260326',
+        'SYSTEM', 0, 'inventory-worker-1', '2026-03-26 10:31:00.000', NULL,
+        '2026-03-26 10:30:00.000', '2026-03-26 10:30:05.000', NULL, NULL, '2026-03-26 10:30:10.000')
+ON DUPLICATE KEY UPDATE
+    `status` = VALUES(`status`),
+    `processed_count` = VALUES(`processed_count`),
+    `success_count` = VALUES(`success_count`),
+    `failed_count` = VALUES(`failed_count`),
+    `replay_key_prefix` = VALUES(`replay_key_prefix`),
+    `processing_owner` = VALUES(`processing_owner`),
+    `lease_until` = VALUES(`lease_until`),
+    `last_error` = VALUES(`last_error`),
+    `started_at` = VALUES(`started_at`),
+    `paused_at` = VALUES(`paused_at`),
+    `finished_at` = VALUES(`finished_at`),
+    `updated_at` = VALUES(`updated_at`);
+
+INSERT INTO `bacon_inventory_audit_replay_task_item` (
+    `id`, `task_id`, `tenant_id`, `dead_letter_id`, `item_status`,
+    `replay_status`, `replay_key`, `result_message`,
+    `started_at`, `finished_at`, `updated_at`
+) VALUES
+    (5800001, 5700001, 1001, 5600001, 'PROCESSING',
+        'PENDING', 'replay-20260326-5600001', '等待重放执行',
+        '2026-03-26 10:30:06.000', NULL, '2026-03-26 10:30:10.000')
+ON DUPLICATE KEY UPDATE
+    `item_status` = VALUES(`item_status`),
+    `replay_status` = VALUES(`replay_status`),
+    `replay_key` = VALUES(`replay_key`),
+    `result_message` = VALUES(`result_message`),
+    `started_at` = VALUES(`started_at`),
+    `finished_at` = VALUES(`finished_at`),
+    `updated_at` = VALUES(`updated_at`);

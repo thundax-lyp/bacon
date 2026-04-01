@@ -31,7 +31,8 @@ Run commands from the repository root unless you intentionally target a module w
 - `mvn clean verify`
 - `mvn test`
 - `mvn checkstyle:check`
-- `mvn -pl bacon-app/bacon-mono-boot spring-boot:run`
+- `./scripts/run-mono.sh`
+- `mvn -pl bacon-app/bacon-gateway -am -DskipTests install`
 - `mvn -pl bacon-app/bacon-gateway spring-boot:run`
 
 ## Coding Rules

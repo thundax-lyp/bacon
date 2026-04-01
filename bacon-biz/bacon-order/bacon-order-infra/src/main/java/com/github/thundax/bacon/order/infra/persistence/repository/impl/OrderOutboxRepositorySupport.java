@@ -10,10 +10,12 @@ import com.github.thundax.bacon.order.infra.persistence.mapper.OrderOutboxEventM
 import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@Profile("!test")
 public class OrderOutboxRepositorySupport {
 
     private final OrderOutboxEventMapper outboxEventMapper;

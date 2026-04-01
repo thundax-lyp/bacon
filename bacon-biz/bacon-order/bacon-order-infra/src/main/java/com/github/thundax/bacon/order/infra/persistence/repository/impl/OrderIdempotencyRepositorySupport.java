@@ -7,9 +7,11 @@ import com.github.thundax.bacon.order.infra.persistence.mapper.OrderIdempotencyR
 import java.time.Instant;
 import java.util.Optional;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!test")
 public class OrderIdempotencyRepositorySupport {
 
     private static final int LAST_ERROR_MAX_LENGTH = 512;

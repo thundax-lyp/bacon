@@ -21,8 +21,7 @@ import org.springframework.context.annotation.Bean;
 })
 @MapperScan(basePackages = {
         "com.github.thundax.bacon.auth.infra.persistence.mapper",
-        "com.github.thundax.bacon.upms.infra.persistence.mapper",
-        "com.github.thundax.bacon.order.infra.persistence.mapper"
+        "com.github.thundax.bacon.upms.infra.persistence.mapper"
 })
 public class BaconMonoApplication {
 

@@ -10,9 +10,11 @@ import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class OrderRepositoryImpl implements OrderRepository {
 
     private final OrderRepositorySupport support;

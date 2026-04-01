@@ -14,9 +14,13 @@ import java.util.Optional;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Primary
+@Profile("test")
 public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     private final Map<Long, Order> storage = new ConcurrentHashMap<>();

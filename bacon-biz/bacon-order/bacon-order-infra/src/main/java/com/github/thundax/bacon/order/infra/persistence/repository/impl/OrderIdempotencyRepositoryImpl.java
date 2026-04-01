@@ -4,9 +4,11 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import java.time.Instant;
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepository {
 
     private final OrderIdempotencyRepositorySupport support;

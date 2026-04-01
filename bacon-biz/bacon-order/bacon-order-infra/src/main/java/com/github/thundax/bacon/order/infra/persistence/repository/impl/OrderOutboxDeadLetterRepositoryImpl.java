@@ -2,9 +2,11 @@ package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxDeadLetterRepository;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class OrderOutboxDeadLetterRepositoryImpl implements OrderOutboxDeadLetterRepository {
 
     private final OrderOutboxRepositorySupport support;

@@ -2,6 +2,8 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
@@ -17,10 +19,12 @@ public class PostApplicationService {
 
     private final PostRepository postRepository;
     private final TenantRepository tenantRepository;
+    private final Ids ids;
 
-    public PostApplicationService(PostRepository postRepository, TenantRepository tenantRepository) {
+    public PostApplicationService(PostRepository postRepository, TenantRepository tenantRepository, Ids ids) {
         this.postRepository = postRepository;
         this.tenantRepository = tenantRepository;
+        this.ids = ids;
     }
 
     public PostPageResultDTO pagePosts(PostPageQueryDTO query) {
@@ -39,18 +43,18 @@ public class PostApplicationService {
         );
     }
 
-    public PostDTO getPostById(TenantId tenantId, Long postId) {
+    public PostDTO getPostById(TenantId tenantId, PostId postId) {
         return toDto(requirePost(tenantId, postId));
     }
 
     public PostDTO createPost(TenantId tenantId, String code, String name, String departmentId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
-        return toDto(postRepository.save(new Post(null, tenantId, normalize(code), normalize(name),
+        return toDto(postRepository.save(new Post(ids.postId(), tenantId, normalize(code), normalize(name),
                 toDepartmentId(departmentId), UpmsStatusEnum.ENABLED.value())));
     }
 
-    public PostDTO updatePost(TenantId tenantId, Long postId, String code, String name, String departmentId, String status) {
+    public PostDTO updatePost(TenantId tenantId, PostId postId, String code, String name, String departmentId, String status) {
         Post currentPost = requirePost(tenantId, postId);
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -67,12 +71,12 @@ public class PostApplicationService {
                 currentPost.getUpdatedAt())));
     }
 
-    public void deletePost(TenantId tenantId, Long postId) {
+    public void deletePost(TenantId tenantId, PostId postId) {
         requirePost(tenantId, postId);
         postRepository.delete(tenantId, postId);
     }
 
-    private Post requirePost(TenantId tenantId, Long postId) {
+    private Post requirePost(TenantId tenantId, PostId postId) {
         return postRepository.findById(tenantId, postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
     }
@@ -82,7 +86,7 @@ public class PostApplicationService {
     }
 
     private PostDTO toDto(Post post, String tenantIdValue) {
-        return new PostDTO(post.getId(), tenantIdValue, post.getCode(), post.getName(),
+        return new PostDTO(post.getId() == null ? null : post.getId().value(), tenantIdValue, post.getCode(), post.getName(),
                 post.getDepartmentId() == null ? null : post.getDepartmentId().value(), post.getStatus());
     }
 

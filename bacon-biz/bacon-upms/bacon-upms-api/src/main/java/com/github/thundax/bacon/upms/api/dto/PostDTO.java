@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class PostDTO {
 
     /** 岗位主键。 */
-    private Long id;
+    private String id;
     /** 所属租户编号。 */
     private String tenantId;
     /** 岗位编码。 */

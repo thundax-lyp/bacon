@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
@@ -60,9 +61,9 @@ public class PostController {
     @HasPermission("sys:post:view")
     @SysLog(module = "UPMS", action = "查询岗位详情", eventType = LogEventType.QUERY)
     @GetMapping("/{postId}")
-    public PostResponse getPostById(@PathVariable Long postId, @ModelAttribute TenantScopedRequest request) {
+    public PostResponse getPostById(@PathVariable String postId, @ModelAttribute TenantScopedRequest request) {
         return PostResponse.from(postApplicationService.getPostById(
-                tenantRequestResolver.resolveTenantId(request.getTenantId()), postId));
+                tenantRequestResolver.resolveTenantId(request.getTenantId()), PostId.of(postId.trim())));
     }
 
     @Operation(summary = "创建岗位")
@@ -79,9 +80,9 @@ public class PostController {
     @HasPermission("sys:post:update")
     @SysLog(module = "UPMS", action = "修改岗位", eventType = LogEventType.UPDATE)
     @PutMapping("/{postId}")
-    public PostResponse updatePost(@PathVariable Long postId, @RequestBody PostUpdateRequest request) {
+    public PostResponse updatePost(@PathVariable String postId, @RequestBody PostUpdateRequest request) {
         return PostResponse.from(postApplicationService.updatePost(
-                tenantRequestResolver.resolveTenantId(request.tenantId()), postId, request.code(),
+                tenantRequestResolver.resolveTenantId(request.tenantId()), PostId.of(postId.trim()), request.code(),
                 request.name(), request.departmentId(), request.status()));
     }
 
@@ -89,7 +90,8 @@ public class PostController {
     @HasPermission("sys:post:delete")
     @SysLog(module = "UPMS", action = "删除岗位", eventType = LogEventType.DELETE)
     @DeleteMapping("/{postId}")
-    public void deletePost(@PathVariable Long postId, @ModelAttribute TenantScopedRequest request) {
-        postApplicationService.deletePost(tenantRequestResolver.resolveTenantId(request.getTenantId()), postId);
+    public void deletePost(@PathVariable String postId, @ModelAttribute TenantScopedRequest request) {
+        postApplicationService.deletePost(tenantRequestResolver.resolveTenantId(request.getTenantId()),
+                PostId.of(postId.trim()));
     }
 }

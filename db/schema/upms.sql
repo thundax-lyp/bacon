@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_department` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_post` (
-    `id` bigint NOT NULL,
+    `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `code` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_post_rel` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `user_id` varchar(64) NOT NULL,
-    `post_id` bigint NOT NULL,
+    `post_id` varchar(64) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_user_post` (`tenant_id`, `user_id`, `post_id`),
     KEY `idx_tenant_user` (`tenant_id`, `user_id`),

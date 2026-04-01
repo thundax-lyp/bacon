@@ -39,7 +39,7 @@ INSERT INTO `bacon_upms_post` (
     `id`, `tenant_id`, `code`, `name`, `department_id`, `sort`, `status`, `deleted`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES (
-    1200001, 'T1000001', 'PLATFORM_ADMIN', '平台管理员', 'D1100002', 1, 'ENABLED', 0,
+    'P1200001', 'T1000001', 'PLATFORM_ADMIN', '平台管理员', 'D1100002', 1, 'ENABLED', 0,
     '2000001', '2026-03-21 09:02:00.000', '2000001', '2026-03-21 09:02:00.000'
 ) ON DUPLICATE KEY UPDATE
     `name` = VALUES(`name`),
@@ -209,7 +209,7 @@ ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`);
 
 INSERT INTO `bacon_upms_user_post_rel` (`id`, `tenant_id`, `user_id`, `post_id`) VALUES
-    (1600101, 'T1000001', '2000001', 1200001)
+    (1600101, 'T1000001', '2000001', 'P1200001')
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`);
 

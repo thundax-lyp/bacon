@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.PostDO;
@@ -24,7 +25,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.postMapper = postMapper;
     }
 
-    Optional<Post> findPostById(TenantId tenantId, Long postId) {
+    Optional<Post> findPostById(TenantId tenantId, PostId postId) {
         return Optional.ofNullable(postMapper.selectOne(Wrappers.<PostDO>lambdaQuery()
                         .eq(PostDO::getTenantId, tenantId)
                         .eq(PostDO::getId, postId)))
@@ -70,7 +71,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return toDomain(dataObject);
     }
 
-    void deletePost(TenantId tenantId, Long postId) {
+    void deletePost(TenantId tenantId, PostId postId) {
         postMapper.delete(Wrappers.<PostDO>lambdaQuery()
                 .eq(PostDO::getTenantId, tenantId)
                 .eq(PostDO::getId, postId));

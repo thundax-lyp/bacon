@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.auth.starter.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -16,13 +16,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class AuthorizationServerConfiguration {
 
+    private static final AntPathRequestMatcher OAUTH2_PATH_MATCHER = new AntPathRequestMatcher("/oauth2/**");
+
     @Bean
     @Order(1)
-    @ConditionalOnBean(HttpSecurity.class)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher("/oauth2/**")
+        http.securityMatcher(OAUTH2_PATH_MATCHER)
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/oauth2/**"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers(OAUTH2_PATH_MATCHER))
                 .httpBasic(Customizer.withDefaults());
         return http.build();
     }

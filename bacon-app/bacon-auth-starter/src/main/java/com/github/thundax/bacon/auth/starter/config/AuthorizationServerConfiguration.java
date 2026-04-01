@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 /**
  * OAuth2 授权服务安全配置，仅对 /oauth2/** 请求生效。
@@ -16,7 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class AuthorizationServerConfiguration {
 
-    private static final AntPathRequestMatcher OAUTH2_PATH_MATCHER = new AntPathRequestMatcher("/oauth2/**");
+    private static final PathPatternRequestMatcher OAUTH2_PATH_MATCHER =
+            PathPatternRequestMatcher.withDefaults().matcher("/oauth2/**");
 
     @Bean
     @Order(1)

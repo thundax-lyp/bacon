@@ -62,7 +62,7 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Tenant saveTenant(Tenant tenant) {
         TenantDO tenantDO = toDataObject(tenant);
-        java.time.Instant now = java.time.Instant.now();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.Clock.systemUTC());
         if (tenantDO.getId() == null) {
             tenantDO.setCreatedAt(now);
             tenantDO.setUpdatedAt(now);

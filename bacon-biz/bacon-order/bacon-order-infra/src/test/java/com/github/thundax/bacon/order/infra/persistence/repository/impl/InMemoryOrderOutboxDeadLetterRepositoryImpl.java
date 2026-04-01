@@ -2,11 +2,13 @@ package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxDeadLetterRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(InMemoryOrderOutboxSupport.class)
+@Primary
+@Profile("test")
 public class InMemoryOrderOutboxDeadLetterRepositoryImpl implements OrderOutboxDeadLetterRepository {
 
     private final InMemoryOrderOutboxSupport support;

@@ -455,17 +455,7 @@ class UpmsRepositoryIntegrationTest {
 
         @Bean
         PasswordEncoder passwordEncoder() {
-            return new PasswordEncoder() {
-                @Override
-                public String encode(CharSequence rawPassword) {
-                    return "{noop}" + rawPassword;
-                }
-
-                @Override
-                public boolean matches(CharSequence rawPassword, String encodedPassword) {
-                    return encodedPassword.equals(encode(rawPassword));
-                }
-            };
+            return new TestPasswordEncoder();
         }
 
         @Bean
@@ -578,6 +568,19 @@ class UpmsRepositoryIntegrationTest {
                                               RoleRepositoryImpl roleRepository,
                                               UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
             return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport);
+        }
+    }
+
+    private static final class TestPasswordEncoder implements PasswordEncoder {
+
+        @Override
+        public String encode(CharSequence rawPassword) {
+            return "{noop}" + rawPassword;
+        }
+
+        @Override
+        public boolean matches(CharSequence rawPassword, String encodedPassword) {
+            return encodedPassword.equals(encode(rawPassword));
         }
     }
 }

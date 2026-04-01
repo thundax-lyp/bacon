@@ -18,9 +18,11 @@ import java.util.List;
 import java.util.Optional;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!test")
 class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     private final UserMapper userMapper;

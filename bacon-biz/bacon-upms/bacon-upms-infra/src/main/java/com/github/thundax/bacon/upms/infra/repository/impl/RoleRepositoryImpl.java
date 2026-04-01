@@ -11,9 +11,11 @@ import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class RoleRepositoryImpl implements RoleRepository {
 
     private final RolePersistenceSupport support;

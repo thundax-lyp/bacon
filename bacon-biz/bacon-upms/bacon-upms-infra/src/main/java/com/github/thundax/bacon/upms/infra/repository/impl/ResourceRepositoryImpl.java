@@ -6,9 +6,11 @@ import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class ResourceRepositoryImpl implements ResourceRepository {
 
     private final ResourcePersistenceSupport support;

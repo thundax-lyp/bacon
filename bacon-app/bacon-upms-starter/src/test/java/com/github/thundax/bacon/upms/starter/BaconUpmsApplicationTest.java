@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Import;
 @SpringBootTest(classes = BaconUpmsApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
                 "spring.main.lazy-initialization=true",
+                "spring.profiles.active=test",
                 "spring.cloud.nacos.discovery.enabled=false",
                 "spring.cloud.nacos.config.enabled=false",
                 "spring.boot.admin.client.enabled=false",

@@ -5,9 +5,11 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class TenantRepositoryImpl implements TenantRepository {
 
     private final TenantPersistenceSupport support;

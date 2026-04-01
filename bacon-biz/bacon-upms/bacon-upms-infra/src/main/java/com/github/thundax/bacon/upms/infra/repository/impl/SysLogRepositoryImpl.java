@@ -11,9 +11,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class SysLogRepositoryImpl implements SysLogRepository {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_INSTANT;

@@ -12,9 +12,11 @@ import java.util.Optional;
 import java.util.Set;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!test")
 class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     private final DepartmentMapper departmentMapper;

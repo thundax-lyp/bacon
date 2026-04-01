@@ -6,9 +6,11 @@ import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class PostRepositoryImpl implements PostRepository {
 
     private final PostPersistenceSupport support;

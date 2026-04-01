@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.boot;
 
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -12,9 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         "com.github.thundax.bacon.payment",
         "com.github.thundax.bacon.storage",
         "com.github.thundax.bacon.boot"
-})
-@MapperScan(basePackages = {
-        "com.github.thundax.bacon.upms.infra.persistence.mapper"
 })
 public class BaconMonoApplication {
 

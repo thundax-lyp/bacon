@@ -363,7 +363,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `varchar(64)` | N | 主键，固定使用 `ResourceId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `code` | `varchar(64)` | N | 角色编码，全局唯一 |
 | `name` | `varchar(128)` | N | 角色名称 |
@@ -545,7 +545,7 @@
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `role_id` | `varchar(64)` | N | 角色主键，固定使用 `RoleId` |
-| `resource_id` | `bigint` | N | 资源主键 |
+| `resource_id` | `varchar(64)` | N | 资源主键，固定使用 `ResourceId` |
 
 索引与约束：
 
@@ -771,6 +771,7 @@
 - `User.id` 固定使用 `UserId`，当前格式建议为 `U` 前缀加数值序列，数据库类型固定为 `varchar(64)`
 - `Department.id`、`Department.parentId`、`User.departmentId`、`RoleDataScopeRelation.departmentId` 固定使用 `DepartmentId`，数据库类型固定为 `varchar(64)`
 - `Menu.id`、`Menu.parentId`、`RoleMenuRelation.menuId` 固定使用 `MenuId`，数据库类型固定为 `varchar(64)`
+- `Resource.id`、`RoleResourceRelation.resourceId` 固定使用 `ResourceId`，数据库类型固定为 `varchar(64)`
 - `User.avatar_object_id` 允许为空
 - `User.avatar_object_id` 不为空时必须指向状态为 `ACTIVE` 的 `StoredObject`
 - `Tenant.tenantId`、`Post.code`、`Role.code`、`Resource.code` 全局唯一；`Department.code` 固定为租户内唯一

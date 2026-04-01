@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
 import com.alicp.jetcache.Cache;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -60,6 +61,7 @@ class UpmsRepositoryIntegrationTest {
 
     private static final TenantId TENANT_ID = TenantId.of("1001");
     private static final DepartmentId ROOT_DEPARTMENT_ID = DepartmentId.of("0");
+    private static final MenuId ROOT_MENU_ID = MenuId.of("0");
     private static final DepartmentId HEADQUARTERS_DEPARTMENT_ID = DepartmentId.of("D1001");
     private static final DepartmentId OPERATIONS_DEPARTMENT_ID = DepartmentId.of("D1002");
     private static final DepartmentId CHILD_DEPARTMENT_ID = DepartmentId.of("D1003");
@@ -183,11 +185,11 @@ class UpmsRepositoryIntegrationTest {
                     """);
             statement.execute("""
                     CREATE TABLE bacon_upms_menu (
-                        id bigint NOT NULL AUTO_INCREMENT,
+                        id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
                         menu_type varchar(32) NOT NULL,
                         name varchar(128) NOT NULL,
-                        parent_id bigint NULL,
+                        parent_id varchar(64) NULL,
                         route_path varchar(255) NULL,
                         component_name varchar(255) NULL,
                         icon varchar(128) NULL,
@@ -227,7 +229,7 @@ class UpmsRepositoryIntegrationTest {
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
                         role_id varchar(64) NOT NULL,
-                        menu_id bigint NOT NULL,
+                        menu_id varchar(64) NOT NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -289,7 +291,7 @@ class UpmsRepositoryIntegrationTest {
         Department rootDepartment = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Headquarters",
                 ROOT_DEPARTMENT_ID, null, "ACTIVE"));
         Department childDepartment = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations", rootDepartment.getId(), null, "ACTIVE"));
-        Menu rootMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "System", 0L, "/system", "SystemPage", "shield", 1, null, List.of()));
+        Menu rootMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "System", ROOT_MENU_ID, "/system", "SystemPage", "shield", 1, null, List.of()));
         Menu childMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Users", rootMenu.getId(), "/system/users", "UserPage", "user", 2, "upms:user:view", List.of()));
         Resource resource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:user:edit", "Edit User", "API", "POST", "/users", "ACTIVE"));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator", "SYSTEM", "SELF", "ACTIVE"));
@@ -386,8 +388,8 @@ class UpmsRepositoryIntegrationTest {
         Department root = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Root",
                 ROOT_DEPARTMENT_ID, null, "ACTIVE"));
         Department child = departmentRepository.save(new Department(CHILD_DEPARTMENT_ID, TENANT_ID, "CHILD", "Child", root.getId(), null, "ACTIVE"));
-        Menu oldMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Old", 0L, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
-        Menu newMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "New", 0L, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
+        Menu oldMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Old", ROOT_MENU_ID, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
+        Menu newMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "New", ROOT_MENU_ID, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
         Resource oldResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:old:edit", "Old Edit", "API", "POST", "/old", "ACTIVE"));
         Resource newResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:new:edit", "New Edit", "API", "PUT", "/new", "ACTIVE"));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "MANAGER", "Manager", "SYSTEM", "SELF", "ACTIVE"));
@@ -566,8 +568,9 @@ class UpmsRepositoryIntegrationTest {
         @Bean
         MenuRepositoryImpl menuRepositoryImpl(MenuPersistenceSupport menuPersistenceSupport,
                                               RoleRepositoryImpl roleRepository,
-                                              UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
-            return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport);
+                                              UpmsPermissionCacheSupport upmsPermissionCacheSupport,
+                                              Ids ids) {
+            return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport, ids);
         }
     }
 

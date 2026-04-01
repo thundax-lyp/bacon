@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 @Profile("!test")
 public class PermissionRepositoryImpl implements PermissionRepository {
+
+    private static final MenuId ROOT_MENU_ID = MenuId.of("0");
 
     private final MenuRepositoryImpl menuRepository;
     private final RoleRepositoryImpl roleRepository;
@@ -67,7 +70,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         if (roles.isEmpty()) {
             return List.of();
         }
-        Set<Long> menuIds = new HashSet<>();
+        Set<MenuId> menuIds = new HashSet<>();
         roles.forEach(role -> menuIds.addAll(roleRepository.getAssignedMenus(role.getTenantId(), role.getId())));
         if (menuIds.isEmpty()) {
             return List.of();
@@ -83,7 +86,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         if (roles.isEmpty()) {
             return Set.of();
         }
-        Map<Long, Menu> menuMap = menuRepository.listMenus(tenantId).stream()
+        Map<MenuId, Menu> menuMap = menuRepository.listMenus(tenantId).stream()
                 .collect(java.util.stream.Collectors.toMap(Menu::getId, menu -> menu));
         Set<String> permissionCodes = new HashSet<>();
         roles.forEach(role -> {
@@ -113,18 +116,18 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     private List<Menu> buildMenuTree(List<Menu> flatMenus) {
-        Map<Long, Menu> menuMap = new HashMap<>();
+        Map<MenuId, Menu> menuMap = new HashMap<>();
         flatMenus.stream()
-                .sorted(Comparator.comparing(Menu::getSort).thenComparing(Menu::getId))
+                .sorted(Comparator.comparing(Menu::getSort).thenComparing(menu -> menu.getId().value()))
                 .forEach(menu -> menuMap.put(menu.getId(), new Menu(menu.getId(), menu.getTenantId(), menu.getMenuType(),
                         menu.getName(), menu.getParentId(), menu.getRoutePath(), menu.getComponentName(), menu.getIcon(),
                         menu.getSort(), menu.getPermissionCode(), new ArrayList<>())));
 
         List<Menu> roots = new ArrayList<>();
         menuMap.values().stream()
-                .sorted(Comparator.comparing(Menu::getSort).thenComparing(Menu::getId))
+                .sorted(Comparator.comparing(Menu::getSort).thenComparing(menu -> menu.getId().value()))
                 .forEach(menu -> {
-                    if (menu.getParentId() == null || menu.getParentId() == 0L || !menuMap.containsKey(menu.getParentId())) {
+                    if (menu.getParentId() == null || ROOT_MENU_ID.equals(menu.getParentId()) || !menuMap.containsKey(menu.getParentId())) {
                         roots.add(menu);
                     } else {
                         menuMap.get(menu.getParentId()).getChildren().add(menu);

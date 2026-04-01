@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.common.id.core;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
@@ -10,6 +11,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 public class DefaultIds implements Ids {
 
     private static final String DEPARTMENT_ID_BIZ_TAG = "department-id";
+    private static final String MENU_ID_BIZ_TAG = "menu-id";
     private static final String POST_ID_BIZ_TAG = "post-id";
     private static final String USER_ID_BIZ_TAG = "user-id";
     private static final String ROLE_ID_BIZ_TAG = "role-id";
@@ -25,6 +27,11 @@ public class DefaultIds implements Ids {
     @Override
     public DepartmentId departmentId() {
         return DepartmentId.of("D" + idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG));
+    }
+
+    @Override
+    public MenuId menuId() {
+        return MenuId.of("M" + idGenerator.nextId(MENU_ID_BIZ_TAG));
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -25,9 +26,9 @@ public interface RoleRepository {
 
     void deleteRole(TenantId tenantId, RoleId roleId);
 
-    Set<Long> getAssignedMenus(TenantId tenantId, RoleId roleId);
+    Set<MenuId> getAssignedMenus(TenantId tenantId, RoleId roleId);
 
-    Set<Long> assignMenus(TenantId tenantId, RoleId roleId, Set<Long> menuIds);
+    Set<MenuId> assignMenus(TenantId tenantId, RoleId roleId, Set<MenuId> menuIds);
 
     Set<String> getAssignedResources(TenantId tenantId, RoleId roleId);
 

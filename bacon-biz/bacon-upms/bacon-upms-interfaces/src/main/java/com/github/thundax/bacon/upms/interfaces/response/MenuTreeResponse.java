@@ -8,7 +8,7 @@ import java.util.List;
  */
 public record MenuTreeResponse(
         /** 菜单主键。 */
-        Long id,
+        String id,
         /** 所属租户编号。 */
         String tenantId,
         /** 菜单类型。 */
@@ -16,7 +16,7 @@ public record MenuTreeResponse(
         /** 菜单名称。 */
         String name,
         /** 父菜单主键，根节点固定为 0。 */
-        Long parentId,
+        String parentId,
         /** 前端路由路径。 */
         String routePath,
         /** 前端组件名称。 */

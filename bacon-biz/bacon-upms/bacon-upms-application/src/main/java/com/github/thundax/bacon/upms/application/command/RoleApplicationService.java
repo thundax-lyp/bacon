@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -104,12 +105,16 @@ public class RoleApplicationService {
         roleRepository.deleteRole(tenantId, domainRoleId);
     }
 
-    public Set<Long> getAssignedMenus(TenantId tenantId, String roleId) {
-        return roleRepository.getAssignedMenus(tenantId, RoleId.of(roleId));
+    public Set<String> getAssignedMenus(TenantId tenantId, String roleId) {
+        return roleRepository.getAssignedMenus(tenantId, RoleId.of(roleId)).stream()
+                .map(MenuId::value)
+                .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
     }
 
-    public Set<Long> assignMenus(TenantId tenantId, String roleId, Set<Long> menuIds) {
-        return roleRepository.assignMenus(tenantId, RoleId.of(roleId), menuIds);
+    public Set<String> assignMenus(TenantId tenantId, String roleId, Set<String> menuIds) {
+        return roleRepository.assignMenus(tenantId, RoleId.of(roleId), toMenuIds(menuIds)).stream()
+                .map(MenuId::value)
+                .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
     }
 
     public Set<String> getAssignedResources(TenantId tenantId, String roleId) {
@@ -165,6 +170,14 @@ public class RoleApplicationService {
                 .filter(value -> !value.isBlank())
                 .map(DepartmentId::of)
                 .collect(java.util.stream.Collectors.toSet());
+    }
+
+    private Set<MenuId> toMenuIds(Set<String> menuIds) {
+        return menuIds == null ? Set.of() : menuIds.stream()
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .map(MenuId::of)
+                .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
     }
 
 }

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
@@ -160,8 +161,9 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final Menu toDomain(MenuDO dataObject) {
+        MenuId parentId = dataObject.getParentId();
         return new Menu(dataObject.getId(), dataObject.getTenantId(), dataObject.getMenuType(), dataObject.getName(),
-                dataObject.getParentId(), dataObject.getRoutePath(), dataObject.getComponentName(), dataObject.getIcon(),
+                parentId, dataObject.getRoutePath(), dataObject.getComponentName(), dataObject.getIcon(),
                 dataObject.getSort(), dataObject.getPermissionCode(), List.of());
     }
 

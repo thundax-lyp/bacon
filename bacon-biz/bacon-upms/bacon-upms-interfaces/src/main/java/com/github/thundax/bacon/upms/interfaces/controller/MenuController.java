@@ -63,7 +63,7 @@ public class MenuController {
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "修改菜单", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}")
-    public MenuTreeResponse updateMenu(@PathVariable Long menuId, @RequestBody MenuUpdateRequest request) {
+    public MenuTreeResponse updateMenu(@PathVariable String menuId, @RequestBody MenuUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenu(
                 tenantRequestResolver.resolveTenantId(request.tenantId()), menuId, request.menuType(),
                 request.name(), request.parentId(), request.routePath(), request.componentName(), request.icon(),
@@ -74,7 +74,7 @@ public class MenuController {
     @HasPermission("sys:menu:delete")
     @SysLog(module = "UPMS", action = "删除菜单", eventType = LogEventType.DELETE)
     @DeleteMapping("/{menuId}")
-    public void deleteMenu(@PathVariable Long menuId, @ModelAttribute TenantScopedRequest request) {
+    public void deleteMenu(@PathVariable String menuId, @ModelAttribute TenantScopedRequest request) {
         menuApplicationService.deleteMenu(tenantRequestResolver.resolveTenantId(request.getTenantId()), menuId);
     }
 
@@ -82,7 +82,7 @@ public class MenuController {
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "调整菜单排序", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}/sort")
-    public MenuTreeResponse updateSort(@PathVariable Long menuId, @RequestBody MenuSortUpdateRequest request) {
+    public MenuTreeResponse updateSort(@PathVariable String menuId, @RequestBody MenuSortUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenuSort(
                 tenantRequestResolver.resolveTenantId(request.tenantId()), menuId, request.sort()));
     }

@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -177,7 +178,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .eq(UserRoleRelDO::getUserId, userId));
     }
 
-    Set<Long> getAssignedMenuIds(TenantId tenantId, RoleId roleId) {
+    Set<MenuId> getAssignedMenuIds(TenantId tenantId, RoleId roleId) {
         return roleMenuRelMapper.selectList(Wrappers.<RoleMenuRelDO>lambdaQuery()
                         .eq(RoleMenuRelDO::getTenantId, tenantId)
                         .eq(RoleMenuRelDO::getRoleId, roleId))
@@ -186,14 +187,14 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
     }
 
-    void replaceRoleMenus(TenantId tenantId, RoleId roleId, Collection<Long> menuIds) {
+    void replaceRoleMenus(TenantId tenantId, RoleId roleId, Collection<MenuId> menuIds) {
         roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery()
                 .eq(RoleMenuRelDO::getTenantId, tenantId)
                 .eq(RoleMenuRelDO::getRoleId, roleId));
         if (menuIds == null || menuIds.isEmpty()) {
             return;
         }
-        for (Long menuId : new LinkedHashSet<>(menuIds)) {
+        for (MenuId menuId : new LinkedHashSet<>(menuIds)) {
             roleMenuRelMapper.insert(new RoleMenuRelDO(null, tenantId, roleId, menuId));
         }
     }
@@ -262,7 +263,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
     }
 
-    void removeMenuFromAssignments(TenantId tenantId, Long menuId) {
+    void removeMenuFromAssignments(TenantId tenantId, MenuId menuId) {
         roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery()
                 .eq(RoleMenuRelDO::getTenantId, tenantId)
                 .eq(RoleMenuRelDO::getMenuId, menuId));

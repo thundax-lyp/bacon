@@ -110,7 +110,7 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @GetMapping("/{roleId}/menus")
-    public Set<Long> getAssignedMenus(@PathVariable String roleId, @ModelAttribute TenantScopedRequest request) {
+    public Set<String> getAssignedMenus(@PathVariable String roleId, @ModelAttribute TenantScopedRequest request) {
         return roleApplicationService.getAssignedMenus(tenantRequestResolver.resolveTenantId(request.getTenantId()), roleId);
     }
 
@@ -118,7 +118,7 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/menus")
-    public Set<Long> assignMenus(@PathVariable String roleId, @RequestBody RoleMenuAssignRequest request) {
+    public Set<String> assignMenus(@PathVariable String roleId, @RequestBody RoleMenuAssignRequest request) {
         return roleApplicationService.assignMenus(tenantRequestResolver.resolveTenantId(request.tenantId()), roleId,
                 request.menuIds());
     }

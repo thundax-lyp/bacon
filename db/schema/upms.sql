@@ -105,11 +105,11 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_menu` (
-    `id` bigint NOT NULL,
+    `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `menu_type` varchar(16) NOT NULL,
     `name` varchar(128) NOT NULL,
-    `parent_id` bigint DEFAULT NULL,
+    `parent_id` varchar(64) DEFAULT NULL,
     `route_path` varchar(255) DEFAULT NULL,
     `component_name` varchar(255) DEFAULT NULL,
     `icon` varchar(128) DEFAULT NULL,
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_role_menu_rel` (
     `id` bigint NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `role_id` varchar(64) NOT NULL,
-    `menu_id` bigint NOT NULL,
+    `menu_id` varchar(64) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_role_menu` (`tenant_id`, `role_id`, `menu_id`),
     KEY `idx_tenant_role` (`tenant_id`, `role_id`),

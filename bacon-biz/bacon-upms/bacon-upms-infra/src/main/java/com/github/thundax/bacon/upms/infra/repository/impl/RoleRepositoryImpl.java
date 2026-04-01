@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -87,15 +88,15 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public Set<Long> getAssignedMenus(TenantId tenantId, RoleId roleId) {
+    public Set<MenuId> getAssignedMenus(TenantId tenantId, RoleId roleId) {
         findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedMenuIds(tenantId, roleId);
     }
 
     @Override
-    public Set<Long> assignMenus(TenantId tenantId, RoleId roleId, Set<Long> menuIds) {
+    public Set<MenuId> assignMenus(TenantId tenantId, RoleId roleId, Set<MenuId> menuIds) {
         findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
-        Set<Long> safeMenuIds = menuIds == null ? Set.of() : Set.copyOf(menuIds);
+        Set<MenuId> safeMenuIds = menuIds == null ? Set.of() : Set.copyOf(menuIds);
         support.replaceRoleMenus(tenantId, roleId, safeMenuIds);
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
         return safeMenuIds;
@@ -151,7 +152,7 @@ public class RoleRepositoryImpl implements RoleRepository {
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 
-    void removeMenuFromAssignments(TenantId tenantId, Long menuId) {
+    void removeMenuFromAssignments(TenantId tenantId, MenuId menuId) {
         support.removeMenuFromAssignments(tenantId, menuId);
     }
 }

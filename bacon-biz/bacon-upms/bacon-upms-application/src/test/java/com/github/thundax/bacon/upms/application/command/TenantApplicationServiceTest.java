@@ -64,6 +64,13 @@ class TenantApplicationServiceTest {
     }
 
     @Test
+    void shouldRejectInvalidTenantCode() {
+        assertThatThrownBy(() -> service.createTenant("tenant-demo", "Demo Tenant", "tenant-demo", null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("tenantCode must match [A-Z0-9_]+");
+    }
+
+    @Test
     void shouldInvalidateTenantSessionsWhenTenantDisabled() {
         when(tenantRepository.updateTenantStatus(TenantId.of("1001"), "DISABLED"))
                 .thenReturn(new Tenant("1001", "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null));

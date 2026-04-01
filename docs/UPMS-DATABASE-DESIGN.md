@@ -172,7 +172,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `tenant_id` | `varchar(64)` | N | 租户主键，固定使用 `TenantId` |
-| `code` | `varchar(64)` | N | 租户稳定业务编码，全局唯一 |
+| `code` | `varchar(64)` | N | 租户稳定业务编码，全局唯一，且必须匹配 `[A-Z0-9_]+` |
 | `name` | `varchar(128)` | N | 租户名称 |
 | `status` | `varchar(16)` | N | 状态，取值固定为 `ACTIVE`、`DISABLED`、`EXPIRED` |
 | `expired_at` | `datetime(3)` | Y | 过期时间 |

@@ -5,11 +5,9 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(TenantPersistenceSupport.class)
 public class TenantRepositoryImpl implements TenantRepository {
 
     private final TenantPersistenceSupport support;

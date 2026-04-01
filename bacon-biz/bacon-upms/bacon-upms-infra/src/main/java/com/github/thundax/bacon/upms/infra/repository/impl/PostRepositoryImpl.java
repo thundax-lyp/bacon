@@ -6,11 +6,9 @@ import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(PostPersistenceSupport.class)
 public class PostRepositoryImpl implements PostRepository {
 
     private final PostPersistenceSupport support;

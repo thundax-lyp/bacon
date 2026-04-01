@@ -11,11 +11,9 @@ import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(RolePersistenceSupport.class)
 public class RoleRepositoryImpl implements RoleRepository {
 
     private final RolePersistenceSupport support;

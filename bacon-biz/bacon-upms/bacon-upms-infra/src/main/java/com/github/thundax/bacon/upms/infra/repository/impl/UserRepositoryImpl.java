@@ -15,12 +15,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean({UserPersistenceSupport.class, RolePersistenceSupport.class})
 public class UserRepositoryImpl implements UserRepository {
 
     private static final String DEFAULT_PASSWORD = "123456";

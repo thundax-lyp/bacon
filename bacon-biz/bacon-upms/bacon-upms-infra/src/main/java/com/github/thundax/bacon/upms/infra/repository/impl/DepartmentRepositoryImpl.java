@@ -7,11 +7,9 @@ import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean({DepartmentPersistenceSupport.class, UserPersistenceSupport.class})
 public class DepartmentRepositoryImpl implements DepartmentRepository {
 
     private final DepartmentPersistenceSupport support;

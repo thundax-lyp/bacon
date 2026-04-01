@@ -28,11 +28,9 @@ import java.util.Optional;
 import java.util.Set;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     private final RoleMapper roleMapper;

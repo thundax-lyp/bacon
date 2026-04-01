@@ -6,11 +6,9 @@ import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean({MenuPersistenceSupport.class, RolePersistenceSupport.class})
 public class MenuRepositoryImpl implements MenuRepository {
 
     private final MenuPersistenceSupport support;

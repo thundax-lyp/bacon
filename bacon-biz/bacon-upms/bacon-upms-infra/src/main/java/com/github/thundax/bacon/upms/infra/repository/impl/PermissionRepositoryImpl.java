@@ -13,11 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean({MenuPersistenceSupport.class, RolePersistenceSupport.class})
 public class PermissionRepositoryImpl implements PermissionRepository {
 
     private final MenuRepositoryImpl menuRepository;

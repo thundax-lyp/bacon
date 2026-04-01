@@ -18,11 +18,9 @@ import java.util.List;
 import java.util.Optional;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     private final UserMapper userMapper;

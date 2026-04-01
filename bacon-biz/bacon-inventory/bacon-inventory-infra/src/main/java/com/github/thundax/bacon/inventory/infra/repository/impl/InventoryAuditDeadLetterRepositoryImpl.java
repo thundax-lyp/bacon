@@ -5,9 +5,11 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLe
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class InventoryAuditDeadLetterRepositoryImpl implements InventoryAuditDeadLetterRepository {
 
     private final InventoryRepositorySupport support;

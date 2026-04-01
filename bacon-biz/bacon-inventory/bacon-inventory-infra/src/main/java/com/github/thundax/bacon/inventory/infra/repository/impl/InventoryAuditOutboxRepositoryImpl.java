@@ -4,9 +4,11 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutb
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import java.time.Instant;
 import java.util.List;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class InventoryAuditOutboxRepositoryImpl implements InventoryAuditOutboxRepository {
 
     private final InventoryRepositorySupport support;

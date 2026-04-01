@@ -286,6 +286,9 @@ bacon-biz/bacon-order
 ### 仓储与缓存规则
 
 - 面向正式业务链路的 `RepositoryImpl`，固定以数据库持久化模型为真相源。
+- 面向正式业务链路的 `RepositoryImpl`、`RepositorySupport`、`MapperScan` 配置必须默认注册，不得使用 `@ConditionalOnBean` 把 `DataSource`、`SqlSessionFactory`、上游 support Bean 等前置依赖写成注册条件。
+- 正式仓储 Bean 的依赖缺失必须通过容器启动失败直接暴露，不允许通过条件装配把业务 Bean 静默跳过。
+- 测试替身、演示实现、starter 默认实现覆盖统一使用 `@ConditionalOnMissingBean`，不得用 `@ConditionalOnBean` 区分测试与正式实现。
 - 进程内 `Map`、`List`、`AtomicLong`、统一 `Store` 对象只允许作为测试夹具、演示实现或极小范围的瞬时计算状态，不得作为生产级仓储主存储。
 - `memory` 仓储实现固定放在测试代码或明确的演示装配中，不得默认参与 `starter`、`mono-app` 或微服务正式装配。
 - SaaS 场景下，用户、角色、菜单、资源、租户、订单、库存、支付等业务主数据不得依赖“进程启动后逐步写入内存”形成唯一数据源。
@@ -425,6 +428,10 @@ common      -> 被各层依赖
 
 ### Spring 装配规范
 - 统一使用运行模式配置项控制 Bean 生效，例如：`bacon.runtime.mode=mono` 或 `bacon.runtime.mode=micro`。
+- 多实现互斥适配必须使用显式配置项配合 `@ConditionalOnProperty` 完成装配，禁止把实现选择硬编码在 Java 分支、扫描路径或隐式默认行为中。
+- 互斥适配的选择项必须暴露在可审计的配置文件中，例如 `application.yml`、环境变量映射或部署清单，不得只散落在启动参数或代码常量里。
+- `@ConditionalOnBean` 只允许用于可选增强型基础设施，例如“某中间件 Bean 已存在时追加增强能力”；不得用于正式业务主链 Bean、仓储 Bean、本地 Facade、远程 Facade、`MapperScan` 配置。
+- 需要“默认实现可覆盖”语义的 Bean，统一使用 `@ConditionalOnMissingBean`；需要“多实现互斥”语义的 Bean，统一使用 `@ConditionalOnProperty`。
 - `LocalImpl` 使用条件装配，仅在 `mono` 模式生效。
 - `RemoteImpl` 使用条件装配，仅在 `micro` 模式生效。
 - 不允许通过 `@Primary`、字段名注入、手工排除扫描等方式“碰运气”解决冲突，必须通过显式条件装配保证容器内只有一个实现。

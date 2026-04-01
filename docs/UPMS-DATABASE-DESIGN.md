@@ -302,7 +302,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `varchar(64)` | N | 部门主键，固定使用 `DepartmentId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `code` | `varchar(64)` | N | 部门编码，租户内唯一 |
 | `name` | `varchar(128)` | N | 部门名称 |
@@ -333,7 +333,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `varchar(64)` | N | 岗位主键，固定使用 `PostId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `code` | `varchar(64)` | N | 岗位编码，全局唯一 |
 | `name` | `varchar(128)` | N | 岗位名称 |
@@ -497,7 +497,7 @@
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
-| `post_id` | `bigint` | N | 岗位主键 |
+| `post_id` | `varchar(64)` | N | 岗位主键，固定使用 `PostId` |
 
 索引与约束：
 

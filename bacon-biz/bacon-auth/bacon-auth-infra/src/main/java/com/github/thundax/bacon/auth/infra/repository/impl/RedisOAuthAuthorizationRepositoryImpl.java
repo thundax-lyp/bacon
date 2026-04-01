@@ -11,10 +11,12 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Profile("!test")
 public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorizationRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;

@@ -100,7 +100,8 @@ public class UserApplicationService {
         return new UserLoginCredentialDTO(user.getTenantId().value(), user.getId().value(),
                 user.getAccount(), user.getPhone(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
-                passwordCredential.getId(), passwordCredential.getCredentialType(), passwordCredential.getStatus().value(),
+                passwordCredential.getId() == null ? null : passwordCredential.getId().value(),
+                passwordCredential.getCredentialType(), passwordCredential.getStatus().value(),
                 passwordCredential.isNeedChangePassword(), passwordCredential.getExpiresAt(),
                 passwordCredential.getLockedUntil(), false, List.of(), user.getStatus().value(),
                 passwordCredential.getCredentialValue());

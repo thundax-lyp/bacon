@@ -182,7 +182,7 @@ public class UserRepositoryImpl implements UserRepository {
         UserCredential currentCredential = support.findUserCredential(user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .orElse(null);
         support.saveUserCredential(new UserCredential(
-                currentCredential == null ? null : currentCredential.getId(),
+                currentCredential == null ? ids.userCredentialId() : currentCredential.getId(),
                 user.getTenantId(),
                 user.getId(),
                 accountIdentity.getId(),

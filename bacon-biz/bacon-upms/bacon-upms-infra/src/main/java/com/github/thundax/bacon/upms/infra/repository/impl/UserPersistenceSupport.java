@@ -155,7 +155,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     UserCredential saveUserCredential(UserCredential userCredential) {
         UserCredentialDO dataObject = toDataObject(userCredential);
         LocalDateTime now = LocalDateTime.now();
-        if (dataObject.getId() == null) {
+        if (dataObject.getId() == null || userCredentialMapper.selectById(dataObject.getId()) == null) {
             dataObject.setCreatedAt(now);
             dataObject.setUpdatedAt(now);
             userCredentialMapper.insert(dataObject);

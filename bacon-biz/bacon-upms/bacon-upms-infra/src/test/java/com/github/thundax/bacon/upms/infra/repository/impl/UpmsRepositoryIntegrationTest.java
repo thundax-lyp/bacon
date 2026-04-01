@@ -146,7 +146,7 @@ class UpmsRepositoryIntegrationTest {
                     """);
             statement.execute("""
                     CREATE TABLE bacon_upms_user_credential (
-                        id bigint NOT NULL AUTO_INCREMENT,
+                        id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
                         user_id varchar(64) NOT NULL,
                         identity_id bigint NULL,

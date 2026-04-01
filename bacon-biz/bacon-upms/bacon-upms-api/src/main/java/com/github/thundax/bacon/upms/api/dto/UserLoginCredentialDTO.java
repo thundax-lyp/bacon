@@ -29,7 +29,7 @@ public class UserLoginCredentialDTO {
     /** 身份标识是否启用。 */
     private boolean identityEnabled;
     /** 凭据主键。 */
-    private Long credentialId;
+    private String credentialId;
     /** 凭据类型。 */
     private String credentialType;
     /** 凭据状态。 */

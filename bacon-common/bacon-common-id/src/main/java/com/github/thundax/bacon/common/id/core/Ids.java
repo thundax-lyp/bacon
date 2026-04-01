@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 
 public interface Ids {
@@ -18,6 +19,8 @@ public interface Ids {
     PostId postId();
 
     ResourceId resourceId();
+
+    UserCredentialId userCredentialId();
 
     UserId userId();
 

@@ -50,6 +50,32 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
     KEY `idx_tenant_user` (`tenant_id`, `user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `bacon_upms_user_credential` (
+    `id` varchar(64) NOT NULL,
+    `tenant_id` varchar(64) NOT NULL,
+    `user_id` varchar(64) NOT NULL,
+    `identity_id` bigint DEFAULT NULL,
+    `credential_type` varchar(32) NOT NULL,
+    `factor_level` varchar(16) NOT NULL,
+    `credential_value` varchar(1024) NOT NULL,
+    `status` varchar(16) NOT NULL,
+    `need_change_password` tinyint(1) NOT NULL,
+    `failed_count` int NOT NULL,
+    `failed_limit` int NOT NULL,
+    `lock_reason` varchar(64) DEFAULT NULL,
+    `locked_until` datetime(3) DEFAULT NULL,
+    `expires_at` datetime(3) DEFAULT NULL,
+    `last_verified_at` datetime(3) DEFAULT NULL,
+    `created_by` varchar(64) DEFAULT NULL,
+    `created_at` datetime(3) NOT NULL,
+    `updated_by` varchar(64) DEFAULT NULL,
+    `updated_at` datetime(3) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_identity_credential` (`identity_id`, `credential_type`),
+    KEY `idx_tenant_user_status` (`tenant_id`, `user_id`, `status`),
+    KEY `idx_tenant_identity_factor` (`tenant_id`, `identity_id`, `factor_level`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `bacon_upms_department` (
     `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,

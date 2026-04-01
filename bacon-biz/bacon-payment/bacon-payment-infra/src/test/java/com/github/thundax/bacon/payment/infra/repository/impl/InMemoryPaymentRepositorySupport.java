@@ -11,10 +11,12 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@Profile("test")
 public class InMemoryPaymentRepositorySupport {
 
     private final AtomicLong paymentOrderIdGenerator = new AtomicLong(1000L);

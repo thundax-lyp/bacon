@@ -4,11 +4,13 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecor
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(InMemoryPaymentRepositorySupport.class)
+@Primary
+@Profile("test")
 public class InMemoryPaymentCallbackRecordRepositoryImpl implements PaymentCallbackRecordRepository {
 
     private final InMemoryPaymentRepositorySupport support;

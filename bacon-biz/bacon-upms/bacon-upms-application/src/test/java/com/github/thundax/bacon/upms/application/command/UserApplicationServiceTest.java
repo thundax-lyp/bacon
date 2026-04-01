@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.when;
 class UserApplicationServiceTest {
 
     private static final TenantId TENANT_ID = TenantId.of("tenant-demo");
+    private static final DepartmentId DEPARTMENT_ID = DepartmentId.of("D11");
 
     @Mock
     private UserRepository userRepository;
@@ -69,9 +71,11 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldUploadAvatarToStorageAndReplaceOldReference() throws Exception {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 301L, "13800000001", "{noop}123456", 11L,
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 301L, "13800000001", "{noop}123456",
+                DEPARTMENT_ID,
                 UserStatus.ENABLED);
-        User savedUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 401L, "13800000001", "{noop}123456", 11L,
+        User savedUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 401L, "13800000001", "{noop}123456",
+                DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
         storedObject.setId(401L);
@@ -99,7 +103,8 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldRejectUnsupportedAvatarContentType() {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}123456", 11L,
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}123456",
+                DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(currentUser));
 
@@ -111,7 +116,8 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldRejectNonSquareAvatarImage() throws Exception {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}123456", 11L,
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}123456",
+                DEPARTMENT_ID,
                 UserStatus.ENABLED);
         byte[] bytes = createImageBytes("png", 256, 180);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(currentUser));
@@ -124,7 +130,8 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001", "{noop}123456", 11L,
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001", "{noop}123456",
+                DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.pageUsers(TENANT_ID, null, null, null, null, 1, 20)).thenReturn(List.of(user));
         when(userRepository.countUsers(TENANT_ID, null, null, null, null)).thenReturn(1L);
@@ -143,7 +150,8 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldClearAvatarReferenceWhenDeletingUser() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001", "{noop}123456", 11L,
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001", "{noop}123456",
+                DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
 
@@ -156,7 +164,8 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldResolveAvatarAccessUrl() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001", "{noop}123456", 11L,
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001", "{noop}123456",
+                DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
@@ -168,7 +177,8 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldReturnLoginCredentialPasswordFromAccountIdentity() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user", 11L,
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user",
+                DEPARTMENT_ID,
                 UserStatus.ENABLED);
         UserIdentity accountIdentity = new UserIdentity(201L, TENANT_ID, UserId.of("U101"), "ACCOUNT", "alice", true);
         UserCredential passwordCredential = new UserCredential(301L, TENANT_ID, UserId.of("U101"), 201L, "PASSWORD", "PRIMARY",
@@ -193,7 +203,8 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldValidateOldPasswordAgainstAccountIdentity() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user", 11L,
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user",
+                DEPARTMENT_ID,
                 UserStatus.ENABLED);
         UserCredential passwordCredential = new UserCredential(301L, TENANT_ID, UserId.of("U101"), 201L, "PASSWORD", "PRIMARY",
                 "{noop}identity", "ACTIVE", false, 0, 5, null, null, null, null);

@@ -11,24 +11,43 @@ import lombok.Getter;
 @Getter
 public class UserCredential {
 
+    /** 凭据主键。 */
     private Long id;
+    /** 所属租户主键。 */
     private TenantId tenantId;
+    /** 关联用户主键。 */
     private UserId userId;
+    /** 关联身份标识主键。 */
     private Long identityId;
+    /** 凭据类型。 */
     private String credentialType;
+    /** 因子等级。 */
     private String factorLevel;
+    /** 凭据值。 */
     private String credentialValue;
+    /** 凭据状态。 */
     private String status;
+    /** 是否需要改密。 */
     private boolean needChangePassword;
+    /** 连续失败次数。 */
     private int failedCount;
+    /** 最大允许失败次数。 */
     private int failedLimit;
+    /** 锁定原因。 */
     private String lockReason;
+    /** 锁定截止时间。 */
     private Instant lockedUntil;
+    /** 过期时间。 */
     private Instant expiresAt;
+    /** 最近验证时间。 */
     private Instant lastVerifiedAt;
+    /** 创建人。 */
     private String createdBy;
+    /** 创建时间。 */
     private Instant createdAt;
+    /** 最后更新人。 */
     private String updatedBy;
+    /** 最后更新时间。 */
     private Instant updatedAt;
 
     public UserCredential(Long id, TenantId tenantId, UserId userId, Long identityId, String credentialType,

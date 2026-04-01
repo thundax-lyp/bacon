@@ -6,14 +6,10 @@ import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderIdempote
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderIdempotencyRecordMapper;
 import java.time.Instant;
 import java.util.Optional;
-import javax.sql.DataSource;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 public class OrderIdempotencyRepositorySupport {
 
     private static final int LAST_ERROR_MAX_LENGTH = 512;

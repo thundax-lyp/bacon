@@ -15,15 +15,11 @@ import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentOrderMap
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 public class PaymentRepositorySupport {
 
     private final PaymentOrderMapper paymentOrderMapper;

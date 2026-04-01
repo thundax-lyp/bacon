@@ -4,11 +4,9 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutb
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import java.time.Instant;
 import java.util.List;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(InventoryRepositorySupport.class)
 public class InventoryAuditOutboxRepositoryImpl implements InventoryAuditOutboxRepository {
 
     private final InventoryRepositorySupport support;

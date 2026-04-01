@@ -9,15 +9,11 @@ import com.github.thundax.bacon.order.infra.persistence.mapper.OrderOutboxDeadLe
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderOutboxEventMapper;
 import java.time.Instant;
 import java.util.List;
-import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 public class OrderOutboxRepositorySupport {
 
     private final OrderOutboxEventMapper outboxEventMapper;

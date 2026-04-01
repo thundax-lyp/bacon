@@ -24,15 +24,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 public class OrderRepositorySupport {
 
     private final OrderMapper orderMapper;

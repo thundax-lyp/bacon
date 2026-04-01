@@ -6,11 +6,9 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplay
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(InventoryRepositorySupport.class)
 public class InventoryAuditReplayTaskRepositoryImpl implements InventoryAuditReplayTaskRepository {
 
     private final InventoryRepositorySupport support;

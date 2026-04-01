@@ -4,11 +4,9 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import java.time.Instant;
 import java.util.List;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(OrderOutboxRepositorySupport.class)
 public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
 
     private final OrderOutboxRepositorySupport support;

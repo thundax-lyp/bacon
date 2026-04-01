@@ -34,17 +34,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.time.Instant;
-import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @Profile("!test")
-@ConditionalOnBean({DataSource.class, SqlSessionFactory.class})
 public class InventoryRepositorySupport {
 
     private final InventoryMapper inventoryMapper;

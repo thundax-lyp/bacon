@@ -4,11 +4,9 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecor
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(PaymentRepositorySupport.class)
 public class PaymentCallbackRecordRepositoryImpl implements PaymentCallbackRecordRepository {
 
     private final PaymentRepositorySupport support;

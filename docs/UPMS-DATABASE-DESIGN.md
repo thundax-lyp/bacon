@@ -396,11 +396,11 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `varchar(64)` | N | 主键，固定使用 `MenuId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `menu_type` | `varchar(16)` | N | 菜单类型，取值见 `menu_type` |
 | `name` | `varchar(128)` | N | 菜单名称 |
-| `parent_id` | `bigint` | Y | 上级菜单主键 |
+| `parent_id` | `varchar(64)` | Y | 上级菜单主键，固定使用 `MenuId`，根节点允许为 `0` 或空 |
 | `route_path` | `varchar(255)` | Y | 路由路径 |
 | `component_name` | `varchar(255)` | Y | 前端组件标识 |
 | `icon` | `varchar(128)` | Y | 图标 |
@@ -521,7 +521,7 @@
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `role_id` | `varchar(64)` | N | 角色主键，固定使用 `RoleId` |
-| `menu_id` | `bigint` | N | 菜单主键 |
+| `menu_id` | `varchar(64)` | N | 菜单主键，固定使用 `MenuId` |
 
 索引与约束：
 
@@ -770,6 +770,7 @@
 - `User.account` 全局唯一，逻辑删除后也不得复用
 - `User.id` 固定使用 `UserId`，当前格式建议为 `U` 前缀加数值序列，数据库类型固定为 `varchar(64)`
 - `Department.id`、`Department.parentId`、`User.departmentId`、`RoleDataScopeRelation.departmentId` 固定使用 `DepartmentId`，数据库类型固定为 `varchar(64)`
+- `Menu.id`、`Menu.parentId`、`RoleMenuRelation.menuId` 固定使用 `MenuId`，数据库类型固定为 `varchar(64)`
 - `User.avatar_object_id` 允许为空
 - `User.avatar_object_id` 不为空时必须指向状态为 `ACTIVE` 的 `StoredObject`
 - `Tenant.tenantId`、`Post.code`、`Role.code`、`Resource.code` 全局唯一；`Department.code` 固定为租户内唯一

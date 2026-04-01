@@ -11,13 +11,11 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(RedisTemplate.class)
 @ConditionalOnMissingBean(AuthSessionRepository.class)
 public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
 

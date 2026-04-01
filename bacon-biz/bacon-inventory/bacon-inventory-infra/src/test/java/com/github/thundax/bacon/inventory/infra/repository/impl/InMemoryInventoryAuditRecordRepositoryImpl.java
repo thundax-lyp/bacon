@@ -4,11 +4,13 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import java.util.List;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnBean(InMemoryInventoryRepositorySupport.class)
+@Primary
+@Profile("test")
 public class InMemoryInventoryAuditRecordRepositoryImpl implements InventoryAuditRecordRepository {
 
     private final InMemoryInventoryRepositorySupport support;

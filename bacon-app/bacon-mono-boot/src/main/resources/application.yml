@@ -15,6 +15,7 @@ spring:
     driver-class-name: ${BACON_DB_DRIVER:com.mysql.cj.jdbc.Driver}
   data:
     redis:
+      url: ${BACON_REDIS_URL:}
       host: ${BACON_REDIS_HOST:127.0.0.1}
       port: ${BACON_REDIS_PORT:6379}
       database: ${BACON_REDIS_DATABASE:0}
@@ -45,7 +46,7 @@ jetcache:
   remote:
     default:
       type: redis.lettuce
-      uri: ${BACON_JETCACHE_REDIS_URI:redis://127.0.0.1:6379/0}
+      uri: ${spring.data.redis.url:redis://${spring.data.redis.host}:${spring.data.redis.port}/${spring.data.redis.database}}
       keyConvertor: fastjson2
       valueEncoder: java
       valueDecoder: java

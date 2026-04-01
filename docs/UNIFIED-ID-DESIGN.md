@@ -7,8 +7,6 @@
 
 ## 2. Scope
 
-当前范围：
-
 - 定义统一 ID 抽象：`Identifier<T>`、`BaseId<T>`
 - 定义具体 ID 类型的固定写法：`DepartmentId`、`UserId`、`RoleId`、`TenantId`、`OrderId`、`SkuId`
 - 定义统一生成入口：`IdGenerator`、`Ids`
@@ -17,13 +15,6 @@
 - 定义退化事件边界
 - 定义 `Jackson`、`MyBatis`、`JPA` 的接入规则
 - 定义数据库字段与迁移边界
-
-不在当前范围：
-
-- 一次性替换仓库内所有现有 `Long id`、`String tenantId`、`String orderNo`
-- 修改所有业务域接口契约
-- 引入新的分布式发号中心
-- 为每个业务域单独设计一套专用 ID 框架
 
 ## 3. Bounded Context
 
@@ -75,8 +66,6 @@
 
 ### 5.3 Fixed Concrete IDs
 
-当前统一纳入首批范围：
-
 - `DepartmentId`
 - `UserId`
 - `RoleId`
@@ -96,12 +85,12 @@
 - 统一 ID 体系优先采用“单值包装 + 强类型”模型
 - `Identifier<T>` 必须暴露单一底层值与该值类型
 - `BaseId<T>` 必须保持不可变
-- `BaseId<T>` 的底层值当前固定优先支持 `String` 与 `Long`
+- `BaseId<T>` 的底层值固定优先支持 `String` 与 `Long`
 - 具体 ID 在创建时必须完成空值、类型和值域校验
 - 文本型 ID 的底层值不得为空白字符串
-- `UserId` 当前固定使用 `String`
-- `TenantId` 当前固定承载租户领域主标识，例如 `T001`
-- `RoleId`、`SkuId`、`OrderId` 可按业务演进分别承载字符串型或数值型值，但一个具体类型在同一阶段只能固定一种底层值类型
+- `UserId` 固定使用 `String`
+- `TenantId` 固定承载租户领域主标识，例如 `T001`
+- `RoleId`、`SkuId`、`OrderId` 可承载字符串型或数值型值，但一个具体类型只能固定一种底层值类型
 - `BaseId<T>` 不得直接依赖 `MyBatis`、`JPA`、`Spring MVC`
 - 框架适配逻辑固定放在 `converter` 或 `handler`，不得回灌到领域模型
 - `domain` 中允许出现具体 ID 类型，不允许出现框架注解污染领域对象
@@ -154,7 +143,7 @@ OrderId orderId = ids.orderId();
 
 - 发号提供方必须通过统一配置入口选择，不允许业务模块各自直连具体实现
 - 配置缺失或非法时，发号提供方选择必须有确定的默认行为
-- 发号提供方依赖的关键参数必须在装配阶段完成校验
+- 发号提供方依赖的关键参数必须在装配时完成校验
 - `IdGenerator` 作为统一发号入口应允许通过 `@ConditionalOnMissingBean` 被测试替身或上层装配覆盖
 
 ### 7.2.2 Degradation And Alert Rules
@@ -174,15 +163,15 @@ OrderId orderId = ids.orderId();
 
 - `MyBatis` 持久化固定通过统一 `TypeHandler` 或统一转换基类完成
 - `DataObject` 层字段可直接使用具体 ID 类型，前提是已注册统一处理器
-- 如某阶段为了控制改造范围，也允许 `DataObject` 继续使用基础类型，在 `RepositoryImpl` 做双向转换
+- 如需控制改造范围，也允许 `DataObject` 继续使用基础类型，在 `RepositoryImpl` 做双向转换
 - 同一业务域内同一类 ID 的持久化方式必须统一，不允许半数 `DO` 用 `Long`、半数 `DO` 用 `UserId`
 
 ### 7.5 JPA Rules
 
-- 当前仓库未使用 `JPA` 作为正式持久化实现
+- 仓库未使用 `JPA` 作为正式持久化实现
 - `JPA` 适配规则先在公共层预留 `AttributeConverter` 模式
-- 未正式引入 `JPA` 前，不在业务域增加 `Entity` 专用实现
-- 后续如接入 `JPA`，统一 ID 体系不得要求重写领域模型
+- 未引入 `JPA` 时，不在业务域增加 `Entity` 专用实现
+- 如接入 `JPA`，统一 ID 体系不得要求重写领域模型
 
 ## 8. Key Flows
 
@@ -203,29 +192,23 @@ OrderId orderId = ids.orderId();
 
 ## 9. Database And Migration Rules
 
-### 9.1 Current Database Baseline
-
-- 现有数据库设计中，主键 `id` 大量使用 `bigint`
-- `tenantId`、`orderNo`、`paymentNo`、`reservationNo` 等业务标识使用 `varchar`
-- 当前数据库结构本身不需要为了引入 `BaseId` 立即改表
-
-### 9.2 Fixed Persistence Mapping
+### 9.1 Fixed Persistence Mapping
 
 - `UserId` 固定使用 `varchar(64)`
-- `RoleId` 当前固定为文本型统一 ID，数据库字段固定使用 `varchar(64)`
+- `RoleId` 固定为文本型统一 ID，数据库字段固定使用 `varchar(64)`
 - `SkuId`、`OrderId` 若底层值为 `Long`，数据库字段继续使用 `bigint`
 - `TenantId` 固定使用 `varchar(64)`
 - 统一 ID 体系优先改变 Java 类型系统，不强制改变既有列类型
 
-### 9.3 UserId Rules
+### 9.2 UserId Rules
 
-- `UserId` 当前固定为文本型统一 ID
+- `UserId` 固定为文本型统一 ID
 - `UserId` 的 Java 底层类型固定为 `String`
-- `UserId` 的数据库字段当前固定建议使用 `varchar(64)`
+- `UserId` 的数据库字段固定建议使用 `varchar(64)`
 - `UserId` 默认生成规则可采用 `U` 前缀加数值序列，例如 `U1001`
 - `UserId` 作为 `UPMS` 用户主体主标识时，允许作为表主键和关联字段直接落库
 
-### 9.4 Adjustment Rules
+### 9.3 Adjustment Rules
 
 仅在以下场景允许调整数据库结构：
 
@@ -235,13 +218,13 @@ OrderId orderId = ids.orderId();
 
 固定要求：
 
-- 数据库改造必须按业务域单独设计和迁移
-- 不允许为了引入 `BaseId` 在全库做一次性大迁移
+- 数据库结构调整必须按业务域单独设计
+- 不允许把统一 ID 建模等同为全库结构重写
 - 文档、代码、数据库三者必须先统一“这是主键、业务单号还是领域标识”
 
-### 9.5 TenantId Rules
+### 9.4 TenantId Rules
 
-- `TenantId` 当前固定为文本型统一 ID
+- `TenantId` 固定为文本型统一 ID
 - `TenantId` 的 Java 底层类型固定为 `String`
 - `TenantId` 在 `UPMS` 中直接作为 `Tenant` 聚合主标识
 - `Tenant` 的目标领域模型固定为 `Tenant { TenantId id; ... }`
@@ -255,7 +238,7 @@ OrderId orderId = ids.orderId();
 - 统一 ID 基础设施必须放在公共模块，避免每个业务域重复实现
 - 新增一个具体 ID 类型时，除类型声明外的新增代码应控制在极小范围
 - 统一 ID 体系不得明显增加序列化和持久化复杂度
-- 改造必须支持渐进式迁移，允许老代码和新类型在边界层共存
+- 允许老代码和新类型在边界层共存
 - 统一 ID 体系必须支持单元测试直接构造，不依赖 Spring 容器
 
 ## 11. Recommended Implementation Baseline
@@ -269,15 +252,10 @@ OrderId orderId = ids.orderId();
 - `IdConverters`：统一序列化与持久化适配
 - `Ids`：统一工厂入口
 
-示例目标：
+示例：
 
 ```java
 UserId userId = UserId.of("U1001");
 TenantId tenantId = TenantId.of("T001");
 OrderId orderId = ids.orderId();
 ```
-
-## 12. Open Items
-
-- `RoleId`、`SkuId`、`OrderId` 首批是否统一收敛为 `Long`
-- `DataObject` 首阶段是否允许继续保留基础类型字段，以降低一次性改造范围

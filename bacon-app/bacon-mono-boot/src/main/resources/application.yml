@@ -55,14 +55,9 @@ bacon:
   mq:
     enabled: ${BACON_MQ_ENABLED:true}
     type: ${BACON_MQ_TYPE:ROCKETMQ}
-  auth:
-    repository:
-      mode: ${BACON_AUTH_REPOSITORY_MODE:strict}
   runtime:
     mode: mono
   inventory:
-    repository:
-      mode: ${BACON_INVENTORY_REPOSITORY_MODE:strict}
     retry:
       max-attempts: ${BACON_INVENTORY_RETRY_MAX_ATTEMPTS:3}
       initial-backoff-ms: ${BACON_INVENTORY_RETRY_INITIAL_BACKOFF_MS:20}
@@ -83,8 +78,6 @@ bacon:
         batch-size: ${BACON_INVENTORY_AUDIT_REPLAY_TASK_BATCH_SIZE:20}
         lease-seconds: ${BACON_INVENTORY_AUDIT_REPLAY_TASK_LEASE_SECONDS:60}
   order:
-    repository:
-      mode: ${BACON_ORDER_REPOSITORY_MODE:strict}
     idempotency:
       lease-seconds: ${BACON_ORDER_IDEMPOTENCY_LEASE_SECONDS:60}
       recovery:

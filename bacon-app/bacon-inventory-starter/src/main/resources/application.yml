@@ -11,8 +11,6 @@ bacon:
   runtime:
     mode: micro
   inventory:
-    repository:
-      mode: ${BACON_INVENTORY_REPOSITORY_MODE:strict}
     retry:
       max-attempts: ${BACON_INVENTORY_RETRY_MAX_ATTEMPTS:3}
       initial-backoff-ms: ${BACON_INVENTORY_RETRY_INITIAL_BACKOFF_MS:20}

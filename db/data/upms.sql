@@ -69,22 +69,22 @@ INSERT INTO `bacon_upms_user` (
     `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `bacon_upms_user_identity` (
-    `id`, `tenant_id`, `user_id`, `identity_type`, `identity_value`, `enabled`,
+    `id`, `tenant_id`, `user_id`, `identity_type`, `identity_value`, `status`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES
     (
-        'I2100001', 'T1000001', '2000001', 'ACCOUNT', 'admin', 1,
+        'I2100001', 'T1000001', '2000001', 'ACCOUNT', 'admin', 'ACTIVE',
         '2000001', '2026-03-21 09:04:00.000', '2000001', '2026-03-21 09:04:00.000'
     ),
     (
-        'I2100002', 'T1000001', '2000001', 'PHONE', '13800000000', 1,
+        'I2100002', 'T1000001', '2000001', 'PHONE', '13800000000', 'ACTIVE',
         '2000001', '2026-03-21 09:04:30.000', '2000001', '2026-03-21 09:04:30.000'
     )
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`),
     `user_id` = VALUES(`user_id`),
     `identity_value` = VALUES(`identity_value`),
-    `enabled` = VALUES(`enabled`),
+    `status` = VALUES(`status`),
     `updated_by` = VALUES(`updated_by`),
     `updated_at` = VALUES(`updated_at`);
 

@@ -140,7 +140,7 @@ class UpmsRepositoryIntegrationTest {
                         user_id varchar(64) NOT NULL,
                         identity_type varchar(32) NOT NULL,
                         identity_value varchar(128) NOT NULL,
-                        enabled boolean NOT NULL,
+                        status varchar(16) NOT NULL,
                         created_by varchar(64) NULL,
                         created_at timestamp NULL,
                         updated_by varchar(64) NULL,

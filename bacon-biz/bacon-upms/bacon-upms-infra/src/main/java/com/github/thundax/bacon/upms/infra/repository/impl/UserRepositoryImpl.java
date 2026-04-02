@@ -12,6 +12,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
@@ -32,6 +33,7 @@ public class UserRepositoryImpl implements UserRepository {
     private static final UserCredentialFactorLevel PRIMARY_FACTOR_LEVEL = UserCredentialFactorLevel.PRIMARY;
     private static final int PASSWORD_FAILED_LIMIT = 5;
     private static final long PASSWORD_EXPIRE_DAYS = 90L;
+    private static final UserIdentityStatus ACTIVE_IDENTITY_STATUS = UserIdentityStatus.ACTIVE;
 
     private final UserPersistenceSupport support;
     private final RoleRepositoryImpl roleRepository;
@@ -169,14 +171,14 @@ public class UserRepositoryImpl implements UserRepository {
     private UserIdentity replaceAccountIdentity(User user, String account) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
         return support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
-                UserIdentityType.ACCOUNT, requireIdentityValue(account, UserIdentityType.ACCOUNT), true));
+                UserIdentityType.ACCOUNT, requireIdentityValue(account, UserIdentityType.ACCOUNT), ACTIVE_IDENTITY_STATUS));
     }
 
     private void replacePhoneIdentity(User user, String phone) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
         if (phone != null && !phone.isBlank()) {
             support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
-                    UserIdentityType.PHONE, phone.trim(), true));
+                    UserIdentityType.PHONE, phone.trim(), ACTIVE_IDENTITY_STATUS));
         }
     }
 

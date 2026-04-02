@@ -16,11 +16,11 @@ public record UserIdentityResponse(
         String identityType,
         /** 身份标识值。 */
         String identityValue,
-        /** 启用标记。 */
-        boolean enabled) {
+        /** 身份状态。 */
+        String status) {
 
     public static UserIdentityResponse from(UserIdentityDTO dto) {
         return new UserIdentityResponse(dto.getId(), dto.getTenantId(), dto.getUserId(), dto.getIdentityType(),
-                dto.getIdentityValue(), dto.isEnabled());
+                dto.getIdentityValue(), dto.getStatus());
     }
 }

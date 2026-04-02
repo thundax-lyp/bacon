@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.domain.UserIdentityId;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import lombok.Getter;
 
@@ -24,8 +25,8 @@ public class UserIdentity {
     private UserIdentityType identityType;
     /** 身份标识值。 */
     private String identityValue;
-    /** 启用标记。 */
-    private boolean enabled;
+    /** 身份状态。 */
+    private UserIdentityStatus status;
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
@@ -36,19 +37,19 @@ public class UserIdentity {
     private Instant updatedAt;
 
     public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, UserIdentityType identityType,
-                        String identityValue, boolean enabled) {
-        this(id, tenantId, userId, identityType, identityValue, enabled, null, null, null, null);
+                        String identityValue, UserIdentityStatus status) {
+        this(id, tenantId, userId, identityType, identityValue, status, null, null, null, null);
     }
 
     public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, UserIdentityType identityType,
-                        String identityValue, boolean enabled, String createdBy, Instant createdAt,
+                        String identityValue, UserIdentityStatus status, String createdBy, Instant createdAt,
                         String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.userId = userId;
         this.identityType = identityType;
         this.identityValue = identityValue;
-        this.enabled = enabled;
+        this.status = status;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
         this.updatedBy = updatedBy;

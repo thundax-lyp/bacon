@@ -24,6 +24,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
@@ -97,7 +98,7 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final UserIdentityDO toDataObject(UserIdentity userIdentity) {
         return new UserIdentityDO(userIdentity.getId(), userIdentity.getTenantId(), userIdentity.getUserId(),
                 userIdentity.getIdentityType() == null ? null : userIdentity.getIdentityType().value(),
-                userIdentity.getIdentityValue(), userIdentity.isEnabled(),
+                userIdentity.getIdentityValue(), userIdentity.getStatus() == null ? null : userIdentity.getStatus().value(),
                 userIdentity.getCreatedBy(), toLocalDateTime(userIdentity.getCreatedAt()), userIdentity.getUpdatedBy(),
                 toLocalDateTime(userIdentity.getUpdatedAt()));
     }
@@ -105,7 +106,7 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final UserIdentity toDomain(UserIdentityDO dataObject) {
         return new UserIdentity(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(),
                 UserIdentityType.fromValue(dataObject.getIdentityType()),
-                dataObject.getIdentityValue(), Boolean.TRUE.equals(dataObject.getEnabled()), dataObject.getCreatedBy(),
+                dataObject.getIdentityValue(), UserIdentityStatus.fromValue(dataObject.getStatus()), dataObject.getCreatedBy(),
                 toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 

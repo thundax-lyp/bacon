@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredentialDO;
@@ -58,7 +59,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(UserIdentityDO::getTenantId, tenantId)
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
                         .eq(UserIdentityDO::getIdentityValue, identityValue)
-                        .eq(UserIdentityDO::getEnabled, true)))
+                        .eq(UserIdentityDO::getStatus, UserIdentityStatus.ACTIVE.value())))
                 .map(this::toDomain);
     }
 
@@ -67,7 +68,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(UserIdentityDO::getTenantId, tenantId)
                         .eq(UserIdentityDO::getUserId, userId)
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
-                        .eq(UserIdentityDO::getEnabled, true)))
+                        .eq(UserIdentityDO::getStatus, UserIdentityStatus.ACTIVE.value())))
                 .map(this::toDomain);
     }
 
@@ -133,7 +134,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(UserIdentityDO::getTenantId, tenantId)
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
                         .like(UserIdentityDO::getIdentityValue, trim(identityValue))
-                        .eq(UserIdentityDO::getEnabled, true))
+                        .eq(UserIdentityDO::getStatus, UserIdentityStatus.ACTIVE.value()))
                 .stream()
                 .map(UserIdentityDO::getUserId)
                 .toList());

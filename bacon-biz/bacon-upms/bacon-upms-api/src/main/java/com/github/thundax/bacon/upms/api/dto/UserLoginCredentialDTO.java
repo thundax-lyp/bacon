@@ -26,8 +26,8 @@ public class UserLoginCredentialDTO {
     private String identityType;
     /** 身份标识值。 */
     private String identityValue;
-    /** 身份标识是否启用。 */
-    private boolean identityEnabled;
+    /** 身份标识状态。 */
+    private String identityStatus;
     /** 凭据主键。 */
     private String credentialId;
     /** 凭据类型。 */

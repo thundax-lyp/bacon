@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
     `user_id` varchar(64) NOT NULL,
     `identity_type` varchar(16) NOT NULL,
     `identity_value` varchar(255) NOT NULL,
-    `enabled` tinyint(1) NOT NULL,
+    `status` varchar(16) NOT NULL,
     `created_by` varchar(64) DEFAULT NULL,
     `created_at` datetime(3) NOT NULL,
     `updated_by` varchar(64) DEFAULT NULL,

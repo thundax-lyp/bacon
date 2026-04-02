@@ -234,7 +234,7 @@
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `identity_type` | `varchar(16)` | N | 标识类型，取值见 `identity_type` |
 | `identity_value` | `varchar(255)` | N | 标识值 |
-| `enabled` | `tinyint(1)` | N | 是否可用于认证 |
+| `status` | `varchar(16)` | N | 身份状态，固定为 `ACTIVE`、`DISABLED` |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `updated_by` | `varchar(64)` | Y | 更新人标识 |
@@ -777,7 +777,7 @@
 - `Menu.permission_code`、`Resource.permission_code` 全局唯一
 - `Resource(path, method)` 全局唯一
 - `UserIdentity(identity_type, identity_value)` 全局唯一
-- 每个 `User` 至少保留一个 `ACCOUNT` 类型且 `enabled = 1` 的身份标识
+- 每个 `User` 至少保留一个 `ACCOUNT` 类型且 `status = ACTIVE` 的身份标识
 - 每个 `Role` 固定一条 `DataPermissionRule`
 - 当 `data_scope_type != CUSTOM` 时，`bacon_upms_role_data_scope_rel` 不应存在有效记录
 - `status = DISABLED` 的 `Role`、`Menu`、`Resource` 不参与权限汇总结果

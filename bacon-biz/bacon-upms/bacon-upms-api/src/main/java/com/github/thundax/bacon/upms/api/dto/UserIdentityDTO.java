@@ -22,6 +22,6 @@ public class UserIdentityDTO {
     private String identityType;
     /** 身份标识值。 */
     private String identityValue;
-    /** 启用标记。 */
-    private boolean enabled;
+    /** 身份状态。 */
+    private String status;
 }

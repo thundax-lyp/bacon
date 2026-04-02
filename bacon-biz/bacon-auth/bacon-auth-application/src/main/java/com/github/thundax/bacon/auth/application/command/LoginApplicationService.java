@@ -80,7 +80,7 @@ public class LoginApplicationService {
         if (credential == null) {
             throw new BadRequestException("Invalid account or password");
         }
-        if (!credential.isIdentityEnabled()) {
+        if (!"ACTIVE".equals(credential.getIdentityStatus())) {
             throw new BadRequestException("Current account is disabled");
         }
         if (!UpmsStatusEnum.ENABLED.matches(credential.getStatus())) {

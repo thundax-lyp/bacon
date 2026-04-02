@@ -28,8 +28,8 @@ public class UserIdentityDO {
     private String identityType;
     @TableField("identity_value")
     private String identityValue;
-    @TableField("enabled")
-    private Boolean enabled;
+    @TableField("status")
+    private String status;
     @TableField("created_by")
     private String createdBy;
     @TableField("created_at")

@@ -86,7 +86,8 @@ public class UserApplicationService {
         return new UserIdentityDTO(userIdentity.getId() == null ? null : userIdentity.getId().value(),
                 userIdentity.getTenantId().value(),
                 userIdentity.getUserId().value(),
-                userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(), userIdentity.isEnabled());
+                userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(),
+                userIdentity.getStatus() == null ? null : userIdentity.getStatus().value());
     }
 
     public UserIdentityDTO getUserIdentity(String tenantId, String identityType, String identityValue) {
@@ -104,7 +105,8 @@ public class UserApplicationService {
         String phone = resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
         return new UserLoginCredentialDTO(user.getTenantId().value(), user.getId().value(),
                 account, phone,
-                userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
+                userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(),
+                userIdentity.getStatus() == null ? null : userIdentity.getStatus().value(),
                 passwordCredential.getId() == null ? null : passwordCredential.getId().value(),
                 passwordCredential.getCredentialType().value(), passwordCredential.getStatus().value(),
                 passwordCredential.isNeedChangePassword(), passwordCredential.getExpiresAt(),

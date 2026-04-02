@@ -123,7 +123,7 @@
 - `status`
 - `identityType`
 - `identityValue`
-- `identityEnabled`
+- `identityStatus`
 - `passwordHash`
 
 ## 6. Global Constraints

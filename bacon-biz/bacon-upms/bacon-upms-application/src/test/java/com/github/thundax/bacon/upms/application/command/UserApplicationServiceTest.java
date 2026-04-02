@@ -19,6 +19,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
@@ -186,9 +187,9 @@ class UserApplicationServiceTest {
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         UserIdentity accountIdentity = new UserIdentity(UserIdentityId.of("I201"), TENANT_ID, UserId.of("U101"),
-                UserIdentityType.ACCOUNT, "alice", true);
+                UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.ACTIVE);
         UserIdentity phoneIdentity = new UserIdentity(UserIdentityId.of("I202"), TENANT_ID, UserId.of("U101"),
-                UserIdentityType.PHONE, "13800000001", true);
+                UserIdentityType.PHONE, "13800000001", UserIdentityStatus.ACTIVE);
         UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"),
                 UserIdentityId.of("I201"), UserCredentialType.PASSWORD, UserCredentialFactorLevel.PRIMARY,
                 "{noop}identity", UserCredentialStatus.ACTIVE, true, 0, 5, null, null, null, null);
@@ -239,7 +240,7 @@ class UserApplicationServiceTest {
         when(userRepository.findUserIdentityByUserId(TENANT_ID, userId, identityType))
                 .thenReturn(Optional.of(new UserIdentity(
                         UserIdentityId.of(identityType == UserIdentityType.ACCOUNT ? "I-ACCOUNT" : "I-PHONE"),
-                        TENANT_ID, userId, identityType, identityValue, true)));
+                        TENANT_ID, userId, identityType, identityValue, UserIdentityStatus.ACTIVE)));
     }
 
     private byte[] createImageBytes(String format, int width, int height) throws Exception {

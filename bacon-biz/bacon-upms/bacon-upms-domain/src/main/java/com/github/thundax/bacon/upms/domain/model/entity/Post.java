@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -23,7 +24,7 @@ public class Post {
     /** 所属部门主键。 */
     private DepartmentId departmentId;
     /** 岗位状态。 */
-    private String status;
+    private PostStatus status;
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
@@ -33,11 +34,11 @@ public class Post {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Post(PostId id, TenantId tenantId, String code, String name, DepartmentId departmentId, String status) {
+    public Post(PostId id, TenantId tenantId, String code, String name, DepartmentId departmentId, PostStatus status) {
         this(id, tenantId, code, name, departmentId, status, null, null, null, null);
     }
 
-    public Post(PostId id, TenantId tenantId, String code, String name, DepartmentId departmentId, String status,
+    public Post(PostId id, TenantId tenantId, String code, String name, DepartmentId departmentId, PostStatus status,
                 String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;

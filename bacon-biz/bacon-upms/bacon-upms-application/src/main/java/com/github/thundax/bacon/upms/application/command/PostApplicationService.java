@@ -10,8 +10,10 @@ import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
+import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
+import java.util.Locale;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -51,7 +53,7 @@ public class PostApplicationService {
         validateRequired(code, "code");
         validateRequired(name, "name");
         return toDto(postRepository.save(new Post(ids.postId(), tenantId, normalize(code), normalize(name),
-                toDepartmentId(departmentId), UpmsStatusEnum.ENABLED.value())));
+                toDepartmentId(departmentId), PostStatus.ENABLED)));
     }
 
     public PostDTO updatePost(TenantId tenantId, PostId postId, String code, String name, String departmentId, String status) {
@@ -64,7 +66,7 @@ public class PostApplicationService {
                 normalize(code),
                 normalize(name),
                 toDepartmentId(departmentId),
-                normalizeNullable(status, currentPost.getStatus()),
+                toPostStatus(status, currentPost.getStatus()),
                 currentPost.getCreatedBy(),
                 currentPost.getCreatedAt(),
                 currentPost.getUpdatedBy(),
@@ -87,7 +89,8 @@ public class PostApplicationService {
 
     private PostDTO toDto(Post post, String tenantIdValue) {
         return new PostDTO(post.getId() == null ? null : post.getId().value(), tenantIdValue, post.getCode(), post.getName(),
-                post.getDepartmentId() == null ? null : post.getDepartmentId().value(), post.getStatus());
+                post.getDepartmentId() == null ? null : post.getDepartmentId().value(),
+                post.getStatus() == null ? null : post.getStatus().value());
     }
 
     private DepartmentId toDepartmentId(String departmentId) {
@@ -104,8 +107,11 @@ public class PostApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private String normalizeNullable(String value, String defaultValue) {
-        return value == null || value.isBlank() ? defaultValue : normalize(value);
+    private PostStatus toPostStatus(String value, PostStatus defaultValue) {
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        return PostStatus.fromValue(normalize(value).toUpperCase(Locale.ROOT));
     }
 
 }

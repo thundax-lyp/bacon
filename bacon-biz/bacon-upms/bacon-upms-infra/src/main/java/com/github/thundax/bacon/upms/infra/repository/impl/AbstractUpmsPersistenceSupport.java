@@ -15,6 +15,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
@@ -144,13 +145,14 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final PostDO toDataObject(Post post) {
         return new PostDO(post.getId(), post.getTenantId(), post.getCode(), post.getName(), post.getDepartmentId(),
-                post.getStatus(), post.getCreatedBy(), toLocalDateTime(post.getCreatedAt()), post.getUpdatedBy(),
+                post.getStatus() == null ? null : post.getStatus().value(),
+                post.getCreatedBy(), toLocalDateTime(post.getCreatedAt()), post.getUpdatedBy(),
                 toLocalDateTime(post.getUpdatedAt()));
     }
 
     protected final Post toDomain(PostDO dataObject) {
         return new Post(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
-                dataObject.getDepartmentId(), dataObject.getStatus(), dataObject.getCreatedBy(),
+                dataObject.getDepartmentId(), PostStatus.fromValue(dataObject.getStatus()), dataObject.getCreatedBy(),
                 toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 

@@ -16,6 +16,7 @@ import com.github.thundax.bacon.common.mybatis.handler.ResourceIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.RoleIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.SkuIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.StringArrayTypeHandler;
+import com.github.thundax.bacon.common.mybatis.handler.StoredObjectIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.TenantIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.UserCredentialIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.UserIdTypeHandler;
@@ -24,6 +25,7 @@ import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -84,5 +86,6 @@ public class MybatisPlusAutoConfiguration {
         registry.register(OrderId.class, OrderIdTypeHandler.class);
         registry.register(SkuId.class, SkuIdTypeHandler.class);
         registry.register(TenantId.class, TenantIdTypeHandler.class);
+        registry.register(StoredObjectId.class, StoredObjectIdTypeHandler.class);
     }
 }

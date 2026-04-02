@@ -2,6 +2,8 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StorageAuditOutboxDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.StorageAuditOutboxMapper;
@@ -46,8 +48,8 @@ class StorageAuditOutboxRepositoryImplTest {
         assertThat(result).hasSize(1);
         StorageAuditOutbox mapped = result.get(0);
         assertThat(mapped.getId()).isEqualTo(101L);
-        assertThat(mapped.getTenantId()).isEqualTo("tenant-a");
-        assertThat(mapped.getObjectId()).isEqualTo(9001L);
+        assertThat(mapped.getTenantId()).isEqualTo(TenantId.of("tenant-a"));
+        assertThat(mapped.getObjectId()).isEqualTo(StoredObjectId.of("O9001"));
         assertThat(mapped.getStatus()).isEqualTo(StorageAuditOutbox.STATUS_NEW);
         assertThat(mapped.getNextRetryAt()).isEqualTo(retryBefore.minusSeconds(60));
     }
@@ -117,8 +119,8 @@ class StorageAuditOutboxRepositoryImplTest {
     private StorageAuditOutboxDO buildOutboxDO(Long id, String status, Instant nextRetryAt) {
         StorageAuditOutboxDO dataObject = new StorageAuditOutboxDO();
         dataObject.setId(id);
-        dataObject.setTenantId("tenant-a");
-        dataObject.setObjectId(9001L);
+        dataObject.setTenantId(TenantId.of("tenant-a"));
+        dataObject.setObjectId(StoredObjectId.of("O9001"));
         dataObject.setOwnerType("USER");
         dataObject.setOwnerId("U-1");
         dataObject.setActionType("UPLOAD");

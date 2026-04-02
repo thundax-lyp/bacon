@@ -21,11 +21,11 @@ public interface StoredObjectFacade {
 
     void abortMultipartUpload(AbortMultipartUploadCommand command);
 
-    StoredObjectDTO getObjectById(Long objectId);
+    StoredObjectDTO getObjectById(String objectId);
 
-    void markObjectReferenced(Long objectId, String ownerType, String ownerId);
+    void markObjectReferenced(String objectId, String ownerType, String ownerId);
 
-    void clearObjectReference(Long objectId, String ownerType, String ownerId);
+    void clearObjectReference(String objectId, String ownerType, String ownerId);
 
-    void deleteObject(Long objectId);
+    void deleteObject(String objectId);
 }

@@ -1,9 +1,12 @@
 package com.github.thundax.bacon.storage.application.query;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,18 +38,18 @@ class StoredObjectQueryApplicationServiceTest {
 
     @Test
     void shouldRejectQueryForDeletedObject() {
-        StoredObject storedObject = StoredObject.newUploadedObject("tenant-a", "LOCAL_FILE", "default",
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
                 "attachment/object-d.bin", "d.bin", "application/octet-stream", 1024L, "/files/d.bin", null);
         storedObject.markDeleting();
         storedObject.markDeleted();
-        when(storedObjectRepository.findById(103L)).thenReturn(Optional.of(storedObject));
+        when(storedObjectRepository.findById(StoredObjectId.of("O103"))).thenReturn(Optional.of(storedObject));
 
-        assertThrows(NotFoundException.class, () -> service.getObjectById(103L));
+        assertThrows(NotFoundException.class, () -> service.getObjectById("O103"));
     }
 
     @Test
     void shouldPageObjectsForAdminManagement() {
-        StoredObject storedObject = StoredObject.newUploadedObject("tenant-a", "LOCAL_FILE", "default",
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
                 "attachment/object-e.bin", "e.bin", "application/octet-stream", 2048L, "/files/e.bin", null);
         when(storedObjectRepository.pageObjects(any()))
                 .thenReturn(new StoredObjectPageResult(List.of(storedObject), 1L));

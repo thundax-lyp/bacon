@@ -2,8 +2,11 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageQuery;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -18,21 +21,19 @@ import java.util.Optional;
 @Repository
 public class StoredObjectRepositoryImpl implements StoredObjectRepository {
 
-    private static final String BIZ_TAG = "storage_object";
-
     private final StoredObjectMapper storedObjectMapper;
-    private final IdGenerator idGenerator;
+    private final Ids ids;
 
-    public StoredObjectRepositoryImpl(StoredObjectMapper storedObjectMapper, IdGenerator idGenerator) {
+    public StoredObjectRepositoryImpl(StoredObjectMapper storedObjectMapper, Ids ids) {
         this.storedObjectMapper = storedObjectMapper;
-        this.idGenerator = idGenerator;
+        this.ids = ids;
     }
 
     @Override
     public StoredObject save(StoredObject storedObject) {
         StoredObjectDO dataObject = toDataObject(storedObject);
         if (dataObject.getId() == null) {
-            dataObject.setId(idGenerator.nextId(BIZ_TAG));
+            dataObject.setId(ids.storedObjectId());
             storedObjectMapper.insert(dataObject);
         } else {
             storedObjectMapper.updateById(dataObject);
@@ -41,7 +42,7 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     @Override
-    public Optional<StoredObject> findById(Long objectId) {
+    public Optional<StoredObject> findById(StoredObjectId objectId) {
         return Optional.ofNullable(storedObjectMapper.selectById(objectId)).map(this::toDomain);
     }
 
@@ -75,7 +76,7 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     private LambdaQueryWrapper<StoredObjectDO> buildQueryWrapper(StoredObjectPageQuery query) {
         LambdaQueryWrapper<StoredObjectDO> wrapper = Wrappers.lambdaQuery(StoredObjectDO.class);
         if (StringUtils.hasText(query.tenantId())) {
-            wrapper.eq(StoredObjectDO::getTenantId, query.tenantId().trim());
+            wrapper.eq(StoredObjectDO::getTenantId, TenantId.of(query.tenantId().trim()));
         }
         if (StringUtils.hasText(query.storageType())) {
             wrapper.eq(StoredObjectDO::getStorageType, query.storageType().trim());
@@ -96,7 +97,8 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     private StoredObjectDO toDataObject(StoredObject storedObject) {
-        return new StoredObjectDO(storedObject.getId(), storedObject.getTenantId(), storedObject.getStorageType(),
+        return new StoredObjectDO(storedObject.getId(), storedObject.getTenantId(),
+                storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
                 storedObject.getBucketName(), storedObject.getObjectKey(), storedObject.getOriginalFilename(),
                 storedObject.getContentType(), storedObject.getSize(), storedObject.getAccessEndpoint(),
                 storedObject.getObjectStatus(), storedObject.getReferenceStatus(), storedObject.getCreatedBy(),
@@ -104,7 +106,7 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     private StoredObject toDomain(StoredObjectDO dataObject) {
-        return new StoredObject(dataObject.getId(), dataObject.getTenantId(), dataObject.getStorageType(),
+        return new StoredObject(dataObject.getId(), dataObject.getTenantId(), StorageType.fromValue(dataObject.getStorageType()),
                 dataObject.getBucketName(), dataObject.getObjectKey(), dataObject.getOriginalFilename(),
                 dataObject.getContentType(), dataObject.getSize(), dataObject.getAccessEndpoint(),
                 dataObject.getObjectStatus(), dataObject.getReferenceStatus(), dataObject.getCreatedBy(),

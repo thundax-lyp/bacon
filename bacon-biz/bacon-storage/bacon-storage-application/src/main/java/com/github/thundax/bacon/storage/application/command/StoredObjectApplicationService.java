@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.storage.application.command;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.application.support.StoredObjectDeletionTransactionService;
@@ -9,6 +11,7 @@ import com.github.thundax.bacon.storage.application.support.StorageUploadLimitVa
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -50,7 +53,7 @@ public class StoredObjectApplicationService {
         storageUploadLimitValidator.validateSingleUpload(command.getSize());
         StoredObjectStorageResult storageResult = storedObjectStorageRepository.upload(command.getCategory(),
                 command.getOriginalFilename(), command.getContentType(), command.getInputStream());
-        StoredObject storedObject = StoredObject.newUploadedObject(command.getTenantId(), storageResult.getStorageType(),
+        StoredObject storedObject = StoredObject.newUploadedObject(toTenantId(command.getTenantId()), storageResult.getStorageType(),
                 storageResult.getBucketName(), storageResult.getObjectKey(), command.getOriginalFilename(),
                 command.getContentType(), command.getSize(), storageResult.getAccessEndpoint(), null);
         StoredObject savedObject = storedObjectRepository.save(storedObject);
@@ -60,43 +63,46 @@ public class StoredObjectApplicationService {
     }
 
     @Transactional
-    public void markObjectReferenced(Long objectId, String ownerType, String ownerId) {
-        StoredObject storedObject = storedObjectRepository.findById(objectId)
+    public void markObjectReferenced(String objectId, String ownerType, String ownerId) {
+        StoredObjectId storedObjectId = StoredObjectId.of(objectId);
+        StoredObject storedObject = storedObjectRepository.findById(storedObjectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         ensureAvailable(storedObject, objectId);
         String beforeStatus = storedObject.getReferenceStatus();
-        StoredObjectReference reference = StoredObjectReference.create(objectId, ownerType, ownerId);
+        StoredObjectReference reference = StoredObjectReference.create(storedObjectId, ownerType, ownerId);
         boolean created = storedObjectReferenceRepository.saveIfAbsent(reference);
-        StoredObject savedObject = syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(objectId));
+        StoredObject savedObject = syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(storedObjectId));
         if (!created) {
             return;
         }
-        storageAuditApplicationService.record(savedObject.getTenantId(), objectId, ownerType, ownerId,
+        storageAuditApplicationService.record(savedObject.getTenantId(), storedObjectId, ownerType, ownerId,
                 StorageAuditLog.ACTION_REFERENCE_ADD, beforeStatus, savedObject.getReferenceStatus());
     }
 
     @Transactional
-    public void clearObjectReference(Long objectId, String ownerType, String ownerId) {
-        StoredObject storedObject = storedObjectRepository.findById(objectId)
+    public void clearObjectReference(String objectId, String ownerType, String ownerId) {
+        StoredObjectId storedObjectId = StoredObjectId.of(objectId);
+        StoredObject storedObject = storedObjectRepository.findById(storedObjectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         String beforeStatus = storedObject.getReferenceStatus();
-        boolean deleted = storedObjectReferenceRepository.deleteByObjectIdAndOwner(objectId, ownerType, ownerId);
-        StoredObject savedObject = syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(objectId));
+        boolean deleted = storedObjectReferenceRepository.deleteByObjectIdAndOwner(storedObjectId, ownerType, ownerId);
+        StoredObject savedObject = syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(storedObjectId));
         if (!deleted) {
             return;
         }
-        storageAuditApplicationService.record(savedObject.getTenantId(), objectId, ownerType, ownerId,
+        storageAuditApplicationService.record(savedObject.getTenantId(), storedObjectId, ownerType, ownerId,
                 StorageAuditLog.ACTION_REFERENCE_CLEAR, beforeStatus, savedObject.getReferenceStatus());
     }
 
-    public void deleteObject(Long objectId) {
-        StoredObject storedObject = storedObjectDeletionTransactionService.markDeleting(objectId);
+    public void deleteObject(String objectId) {
+        StoredObjectId storedObjectId = StoredObjectId.of(objectId);
+        StoredObject storedObject = storedObjectDeletionTransactionService.markDeleting(storedObjectId);
         if (storedObject.isDeleted()) {
             return;
         }
         try {
             storedObjectStorageRepository.delete(storedObject);
-            storedObjectDeletionTransactionService.markDeleted(objectId);
+            storedObjectDeletionTransactionService.markDeleted(storedObjectId);
         } catch (RuntimeException ex) {
             log.warn("Stored object physical delete failed, objectId={}, objectKey={}, storageType={}",
                     storedObject.getId(), storedObject.getObjectKey(), storedObject.getStorageType(), ex);
@@ -105,13 +111,15 @@ public class StoredObjectApplicationService {
     }
 
     private StoredObjectDTO toDto(StoredObject storedObject) {
-        return new StoredObjectDTO(storedObject.getId(), storedObject.getStorageType(), storedObject.getBucketName(),
+        return new StoredObjectDTO(storedObject.getId() == null ? null : storedObject.getId().value(),
+                storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
+                storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
                 storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),
                 storedObject.getReferenceStatus(), storedObject.getCreatedAt());
     }
 
-    private void ensureAvailable(StoredObject storedObject, Long objectId) {
+    private void ensureAvailable(StoredObject storedObject, String objectId) {
         if (storedObject.isDeleting() || storedObject.isDeleted()) {
             throw new NotFoundException("Stored object is unavailable: " + objectId);
         }
@@ -127,5 +135,9 @@ public class StoredObjectApplicationService {
             return storedObjectRepository.save(storedObject);
         }
         return storedObject;
+    }
+
+    private TenantId toTenantId(String tenantId) {
+        return tenantId == null || tenantId.isBlank() ? null : TenantId.of(tenantId);
     }
 }

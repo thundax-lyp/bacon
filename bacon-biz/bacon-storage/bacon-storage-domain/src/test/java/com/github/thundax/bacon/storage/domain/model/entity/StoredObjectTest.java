@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,18 +12,18 @@ class StoredObjectTest {
 
     @Test
     void shouldBuildUploadedObjectWithDefaultStatuses() {
-        StoredObject storedObject = StoredObject.newUploadedObject("tenant-a", "LOCAL_FILE", "default",
-                "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", 1001L);
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE,
+                "default", "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", "u-1001");
 
         assertEquals(StoredObject.OBJECT_STATUS_ACTIVE, storedObject.getObjectStatus());
         assertEquals(StoredObject.REFERENCE_STATUS_UNREFERENCED, storedObject.getReferenceStatus());
-        assertEquals(1001L, storedObject.getCreatedBy());
-        assertEquals(1001L, storedObject.getUpdatedBy());
+        assertEquals("u-1001", storedObject.getCreatedBy());
+        assertEquals("u-1001", storedObject.getUpdatedBy());
     }
 
     @Test
     void shouldSwitchReferenceAndDeleteStatus() {
-        StoredObject storedObject = StoredObject.newUploadedObject("tenant-a", "LOCAL_FILE", "default",
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
                 "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", null);
 
         storedObject.markReferenced();
@@ -39,7 +41,7 @@ class StoredObjectTest {
 
     @Test
     void shouldRejectReferenceMutationWhenObjectIsDeleting() {
-        StoredObject storedObject = StoredObject.newUploadedObject("tenant-a", "LOCAL_FILE", "default",
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
                 "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", null);
 
         storedObject.markDeleting();

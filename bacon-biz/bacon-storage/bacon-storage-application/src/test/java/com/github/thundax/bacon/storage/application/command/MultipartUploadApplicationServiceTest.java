@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.storage.application.command;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
@@ -11,6 +13,7 @@ import com.github.thundax.bacon.storage.application.support.StorageUploadLimitVa
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
@@ -187,10 +190,11 @@ class MultipartUploadApplicationServiceTest {
                 MultipartUploadPart.create("upload-4", 1, "etag-1", 512L),
                 MultipartUploadPart.create("upload-4", 2, "etag-2", 512L)));
         when(storedObjectStorageRepository.completeMultipartUpload(eq(session), any()))
-                .thenReturn(new StoredObjectStorageResult("OSS", "bucket", "attachment/key.png", "http://test/key"));
+                .thenReturn(new StoredObjectStorageResult(StorageType.OSS, "bucket", "attachment/key.png",
+                        "http://test/key"));
         when(storedObjectRepository.save(any(StoredObject.class))).thenAnswer(invocation -> {
             StoredObject input = invocation.getArgument(0);
-            return new StoredObject(100L, input.getTenantId(), input.getStorageType(), input.getBucketName(),
+            return new StoredObject(StoredObjectId.of("O100"), input.getTenantId(), input.getStorageType(), input.getBucketName(),
                     input.getObjectKey(), input.getOriginalFilename(), input.getContentType(), input.getSize(),
                     input.getAccessEndpoint(), input.getObjectStatus(), input.getReferenceStatus(), input.getCreatedBy(),
                     input.getCreatedAt(), input.getUpdatedBy(), input.getUpdatedAt());
@@ -201,7 +205,7 @@ class MultipartUploadApplicationServiceTest {
         var dto = service.completeMultipartUpload(new CompleteMultipartUploadCommand("upload-4",
                 "GENERIC_ATTACHMENT", "owner-1", "tenant-a"));
 
-        assertEquals(100L, dto.getId());
+        assertEquals("O100", dto.getId());
         verify(multipartUploadPartRepository).deleteByUploadId("upload-4");
     }
 }

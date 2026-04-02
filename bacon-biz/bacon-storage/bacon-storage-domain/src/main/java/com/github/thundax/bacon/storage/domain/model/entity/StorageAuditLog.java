@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -20,9 +22,9 @@ public class StorageAuditLog {
     /** 主键。 */
     private Long id;
     /** 所属租户业务键。 */
-    private String tenantId;
+    private TenantId tenantId;
     /** 存储对象主键。 */
-    private Long objectId;
+    private StoredObjectId objectId;
     /** 引用方类型。 */
     private String ownerType;
     /** 引用方业务主键。 */
@@ -40,7 +42,8 @@ public class StorageAuditLog {
     /** 审计发生时间。 */
     private Instant occurredAt;
 
-    public StorageAuditLog(Long id, String tenantId, Long objectId, String ownerType, String ownerId, String actionType,
+    public StorageAuditLog(Long id, TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId,
+                           String actionType,
                            String beforeStatus, String afterStatus, String operatorType, Long operatorId,
                            Instant occurredAt) {
         this.id = id;
@@ -56,7 +59,7 @@ public class StorageAuditLog {
         this.occurredAt = occurredAt;
     }
 
-    public static StorageAuditLog systemAction(String tenantId, Long objectId, String ownerType, String ownerId,
+    public static StorageAuditLog systemAction(TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId,
                                                String actionType, String beforeStatus, String afterStatus) {
         return new StorageAuditLog(null, tenantId, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus,
                 OPERATOR_TYPE_SYSTEM, OPERATOR_ID_SYSTEM, Instant.now());

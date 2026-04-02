@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.storage.domain.model.valueobject;
 
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,7 +12,7 @@ import lombok.Getter;
 public class StoredObjectStorageResult {
 
     /** 底层存储类型。 */
-    private final String storageType;
+    private final StorageType storageType;
     /** 存储桶或本地逻辑目录。 */
     private final String bucketName;
     /** 底层对象键。 */

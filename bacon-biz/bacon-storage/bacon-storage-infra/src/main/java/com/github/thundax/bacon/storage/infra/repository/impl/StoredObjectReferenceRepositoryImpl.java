@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StoredObjectReferenceDO;
@@ -36,7 +37,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     @Override
-    public boolean deleteByObjectIdAndOwner(Long objectId, String ownerType, String ownerId) {
+    public boolean deleteByObjectIdAndOwner(StoredObjectId objectId, String ownerType, String ownerId) {
         return storedObjectReferenceMapper.delete(Wrappers.<StoredObjectReferenceDO>lambdaQuery()
                 .eq(StoredObjectReferenceDO::getObjectId, objectId)
                 .eq(StoredObjectReferenceDO::getOwnerType, ownerType)
@@ -44,7 +45,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     @Override
-    public boolean existsByObjectIdAndOwner(Long objectId, String ownerType, String ownerId) {
+    public boolean existsByObjectIdAndOwner(StoredObjectId objectId, String ownerType, String ownerId) {
         return storedObjectReferenceMapper.selectCount(Wrappers.<StoredObjectReferenceDO>lambdaQuery()
                 .eq(StoredObjectReferenceDO::getObjectId, objectId)
                 .eq(StoredObjectReferenceDO::getOwnerType, ownerType)
@@ -52,7 +53,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     @Override
-    public boolean existsByObjectId(Long objectId) {
+    public boolean existsByObjectId(StoredObjectId objectId) {
         return storedObjectReferenceMapper.selectCount(Wrappers.<StoredObjectReferenceDO>lambdaQuery()
                 .eq(StoredObjectReferenceDO::getObjectId, objectId)) > 0;
     }

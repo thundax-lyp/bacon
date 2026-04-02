@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.github.thundax.bacon.common.core.exception.SystemException;
-import com.github.thundax.bacon.storage.api.enums.StorageTypeEnum;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
@@ -49,7 +49,7 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
         try {
             Files.createDirectories(targetPath.getParent());
             Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
-            return new StoredObjectStorageResult(StorageTypeEnum.LOCAL_FILE.name(), bucketName, objectKey,
+            return new StoredObjectStorageResult(StorageType.LOCAL_FILE, bucketName, objectKey,
                     buildAccessEndpoint(objectKey));
         } catch (IOException ex) {
             throw new SystemException("Failed to store file to local storage", ex);
@@ -89,7 +89,7 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
                 }
             }
             deleteMultipartDirectory(session.getUploadId());
-            return new StoredObjectStorageResult(StorageTypeEnum.LOCAL_FILE.name(), bucketName, session.getObjectKey(),
+            return new StoredObjectStorageResult(StorageType.LOCAL_FILE, bucketName, session.getObjectKey(),
                     buildAccessEndpoint(session.getObjectKey()));
         } catch (IOException ex) {
             throw new SystemException("Failed to complete multipart upload in local storage", ex);

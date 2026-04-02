@@ -57,22 +57,22 @@ public class StoredObjectFacadeLocalImpl implements StoredObjectFacade {
     }
 
     @Override
-    public StoredObjectDTO getObjectById(Long objectId) {
+    public StoredObjectDTO getObjectById(String objectId) {
         return storedObjectQueryApplicationService.getObjectById(objectId);
     }
 
     @Override
-    public void markObjectReferenced(Long objectId, String ownerType, String ownerId) {
+    public void markObjectReferenced(String objectId, String ownerType, String ownerId) {
         storedObjectApplicationService.markObjectReferenced(objectId, ownerType, ownerId);
     }
 
     @Override
-    public void clearObjectReference(Long objectId, String ownerType, String ownerId) {
+    public void clearObjectReference(String objectId, String ownerType, String ownerId) {
         storedObjectApplicationService.clearObjectReference(objectId, ownerType, ownerId);
     }
 
     @Override
-    public void deleteObject(Long objectId) {
+    public void deleteObject(String objectId) {
         storedObjectApplicationService.deleteObject(objectId);
     }
 }

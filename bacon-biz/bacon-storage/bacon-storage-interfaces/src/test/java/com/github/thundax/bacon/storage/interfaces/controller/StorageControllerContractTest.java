@@ -44,7 +44,7 @@ class StorageControllerContractTest {
     @Test
     void shouldWrapPageObjectsForAdminFrontend() throws Exception {
         when(storedObjectQueryApplicationService.pageObjects(any())).thenReturn(new StoredObjectPageResultDTO(
-                List.of(new StoredObjectDTO(101L, "LOCAL_FILE", "default", "attachment/e.txt", "e.txt",
+                List.of(new StoredObjectDTO("O101", "LOCAL_FILE", "default", "attachment/e.txt", "e.txt",
                         "text/plain", 5L, "/files/attachment/e.txt", "ACTIVE", "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z"))), 1L, 1, 20));
 
@@ -56,26 +56,26 @@ class StorageControllerContractTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.total").value(1))
-                .andExpect(jsonPath("$.data.records[0].id").value(101));
+                .andExpect(jsonPath("$.data.records[0].id").value("O101"));
     }
 
     @Test
     void shouldWrapGetObjectForAdminFrontend() throws Exception {
-        when(storedObjectQueryApplicationService.getObjectById(100L)).thenReturn(new StoredObjectDTO(
-                100L, "LOCAL_FILE", "default", "attachment/a.txt", "a.txt", "text/plain", 3L,
+        when(storedObjectQueryApplicationService.getObjectById("O100")).thenReturn(new StoredObjectDTO(
+                "O100", "LOCAL_FILE", "default", "attachment/a.txt", "a.txt", "text/plain", 3L,
                 "/files/attachment/a.txt", "ACTIVE", "UNREFERENCED", Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(get("/api/storage/objects/{objectId}", 100L))
+        mockMvc.perform(get("/api/storage/objects/{objectId}", "O100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.id").value(100));
+                .andExpect(jsonPath("$.data.id").value("O100"));
     }
 
     @Test
     void shouldWrapDeleteForAdminFrontend() throws Exception {
-        doNothing().when(storedObjectApplicationService).deleteObject(100L);
+        doNothing().when(storedObjectApplicationService).deleteObject("O100");
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/storage/objects/{objectId}", 100L))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/storage/objects/{objectId}", "O100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data").doesNotExist());

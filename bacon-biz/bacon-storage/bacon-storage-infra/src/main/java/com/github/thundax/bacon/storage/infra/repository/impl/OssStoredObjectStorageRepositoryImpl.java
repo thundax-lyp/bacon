@@ -3,10 +3,10 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 import com.github.thundax.bacon.common.oss.client.ObjectStorageClient;
 import com.github.thundax.bacon.common.oss.model.ObjectStoragePart;
 import com.github.thundax.bacon.common.oss.model.ObjectStorageWriteResult;
-import com.github.thundax.bacon.storage.api.enums.StorageTypeEnum;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
@@ -74,7 +74,7 @@ public class OssStoredObjectStorageRepositoryImpl implements StoredObjectStorage
     }
 
     private StoredObjectStorageResult toStorageResult(ObjectStorageWriteResult result) {
-        return new StoredObjectStorageResult(StorageTypeEnum.OSS.name(), result.bucketName(), result.objectKey(),
+        return new StoredObjectStorageResult(StorageType.OSS, result.bucketName(), result.objectKey(),
                 result.accessEndpoint());
     }
 

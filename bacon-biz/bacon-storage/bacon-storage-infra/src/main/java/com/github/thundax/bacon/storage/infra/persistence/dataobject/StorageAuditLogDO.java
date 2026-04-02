@@ -2,6 +2,8 @@ package com.github.thundax.bacon.storage.infra.persistence.dataobject;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,10 +23,10 @@ public class StorageAuditLogDO {
     private Long id;
     /** 所属租户业务键。 */
     @TableField("tenant_id")
-    private String tenantId;
+    private TenantId tenantId;
     /** 存储对象主键。 */
     @TableField("object_id")
-    private Long objectId;
+    private StoredObjectId objectId;
     /** 引用方类型。 */
     @TableField("owner_type")
     private String ownerType;

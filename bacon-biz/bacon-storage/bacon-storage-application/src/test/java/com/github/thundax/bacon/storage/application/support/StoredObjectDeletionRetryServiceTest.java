@@ -1,7 +1,10 @@
 package com.github.thundax.bacon.storage.application.support;
 
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.application.config.StorageDeletionRetryProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
 import io.micrometer.core.instrument.Metrics;
@@ -56,7 +59,7 @@ class StoredObjectDeletionRetryServiceTest {
 
     @Test
     void shouldRetryDeletingObjectsAndMarkDeleted() {
-        StoredObject storedObject = deletingObject(100L, "attachment/a.bin");
+        StoredObject storedObject = deletingObject("O100", "attachment/a.bin");
         when(storedObjectRepository.listByObjectStatus(StoredObject.OBJECT_STATUS_DELETING, 10))
                 .thenReturn(List.of(storedObject));
 
@@ -64,13 +67,13 @@ class StoredObjectDeletionRetryServiceTest {
 
         assertEquals(1, completed);
         verify(storedObjectStorageRepository).delete(storedObject);
-        verify(storedObjectDeletionTransactionService).markDeleted(100L);
+        verify(storedObjectDeletionTransactionService).markDeleted(StoredObjectId.of("O100"));
         assertEquals(1.0d, meterRegistry.get("bacon.storage.deletion.retry.success.total").counter().count());
     }
 
     @Test
     void shouldKeepDeletingObjectForNextRetryWhenPhysicalDeleteFails() {
-        StoredObject storedObject = deletingObject(101L, "attachment/b.bin");
+        StoredObject storedObject = deletingObject("O101", "attachment/b.bin");
         when(storedObjectRepository.listByObjectStatus(StoredObject.OBJECT_STATUS_DELETING, 10))
                 .thenReturn(List.of(storedObject));
         doThrow(new IllegalStateException("delete-fail")).when(storedObjectStorageRepository).delete(storedObject);
@@ -78,7 +81,7 @@ class StoredObjectDeletionRetryServiceTest {
         int completed = service.retryDeletingObjects();
 
         assertEquals(0, completed);
-        verify(storedObjectDeletionTransactionService, never()).markDeleted(101L);
+        verify(storedObjectDeletionTransactionService, never()).markDeleted(StoredObjectId.of("O101"));
         assertEquals(1.0d, meterRegistry.get("bacon.storage.deletion.retry.fail.total").counter().count());
     }
 
@@ -92,11 +95,11 @@ class StoredObjectDeletionRetryServiceTest {
         verify(storedObjectRepository, never()).listByObjectStatus(eq(StoredObject.OBJECT_STATUS_DELETING), anyInt());
     }
 
-    private StoredObject deletingObject(Long id, String objectKey) {
-        StoredObject storedObject = StoredObject.newUploadedObject("tenant-a", "LOCAL_FILE", "default", objectKey,
+    private StoredObject deletingObject(String id, String objectKey) {
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default", objectKey,
                 "test.bin", "application/octet-stream", 1024L, "/files/test.bin", null);
         storedObject.markDeleting();
-        return new StoredObject(id, storedObject.getTenantId(), storedObject.getStorageType(), storedObject.getBucketName(),
+        return new StoredObject(StoredObjectId.of(id), storedObject.getTenantId(), storedObject.getStorageType(), storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
                 storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),
                 storedObject.getReferenceStatus(), storedObject.getCreatedBy(), storedObject.getCreatedAt(),

@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -16,8 +18,8 @@ public class StorageAuditOutbox {
     public static final String STATUS_DEAD = "DEAD";
 
     private final Long id;
-    private final String tenantId;
-    private final Long objectId;
+    private final TenantId tenantId;
+    private final StoredObjectId objectId;
     private final String ownerType;
     private final String ownerId;
     private final String actionType;
@@ -32,7 +34,8 @@ public class StorageAuditOutbox {
     private final Instant nextRetryAt;
     private final Instant updatedAt;
 
-    public StorageAuditOutbox(Long id, String tenantId, Long objectId, String ownerType, String ownerId, String actionType,
+    public StorageAuditOutbox(Long id, TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId,
+                              String actionType,
                               String beforeStatus, String afterStatus, String operatorType, Long operatorId,
                               Instant occurredAt, String errorMessage, String status, Integer retryCount,
                               Instant nextRetryAt, Instant updatedAt) {

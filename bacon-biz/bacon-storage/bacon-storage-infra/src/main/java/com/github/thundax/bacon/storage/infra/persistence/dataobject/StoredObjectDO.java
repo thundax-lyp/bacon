@@ -2,6 +2,8 @@ package com.github.thundax.bacon.storage.infra.persistence.dataobject;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,10 +20,10 @@ import java.time.Instant;
 public class StoredObjectDO {
 
     /** 主键。 */
-    private Long id;
+    private StoredObjectId id;
     /** 所属租户业务键。 */
     @TableField("tenant_id")
-    private String tenantId;
+    private TenantId tenantId;
     /** 底层存储类型。 */
     @TableField("storage_type")
     private String storageType;
@@ -51,13 +53,13 @@ public class StoredObjectDO {
     private String referenceStatus;
     /** 创建人。 */
     @TableField("created_by")
-    private Long createdBy;
+    private String createdBy;
     /** 创建时间。 */
     @TableField("created_at")
     private Instant createdAt;
     /** 更新人。 */
     @TableField("updated_by")
-    private Long updatedBy;
+    private String updatedBy;
     /** 更新时间。 */
     @TableField("updated_at")
     private Instant updatedAt;

@@ -11,7 +11,7 @@
 
 - `schema` 目录中的建表脚本
 - `data` 目录中的初始化数据脚本
-- `Auth` 与 `UPMS` 的执行顺序
+- `Auth`、`UPMS` 与 `Storage` 的执行顺序
 - 默认管理员与默认 `OAuth2 client` 的初始化说明
 
 当前范围不覆盖：
@@ -26,9 +26,11 @@
 db/
 ├── README.md
 ├── schema/
+│   ├── storage.sql
 │   ├── auth.sql
 │   └── upms.sql
 └── data/
+    ├── storage.sql
     ├── auth.sql
     └── upms.sql
 ```
@@ -62,6 +64,16 @@ db/
 - 用途：插入 `Auth` 初始化和测试数据
 - 覆盖对象：默认后台 `OAuth2 client`、管理员授权同意记录、审计日志
 
+### 4.5 `schema/storage.sql`
+
+- 用途：创建 `Storage` 全量表结构
+- 覆盖对象：`StoredObject`、`StoredObjectReference`、分段上传会话、分段上传分片、存储审计日志、审计补偿出站表
+
+### 4.6 `data/storage.sql`
+
+- 用途：预留 `Storage` 初始化和测试数据
+- 当前约定：暂无默认种子数据，脚本保留为空模板
+
 ## 5. Execution Order
 
 固定执行顺序：
@@ -70,11 +82,14 @@ db/
 2. `db/data/upms.sql`
 3. `db/schema/auth.sql`
 4. `db/data/auth.sql`
+5. `db/schema/storage.sql`
+6. `db/data/storage.sql`
 
 固定原因：
 
 - `Auth` 的测试数据依赖 `UPMS` 中已存在的 `tenant_id`、`user_id`、`identity_id`
 - 管理员授权同意与审计记录必须引用已存在的用户和身份
+- `Storage` 当前没有默认种子依赖，可在 `Auth`/`UPMS` 完成后独立执行
 
 ## 6. Seed Data Rules
 
@@ -116,6 +131,8 @@ mysql -u root -p < db/schema/upms.sql
 mysql -u root -p < db/data/upms.sql
 mysql -u root -p < db/schema/auth.sql
 mysql -u root -p < db/data/auth.sql
+mysql -u root -p < db/schema/storage.sql
+mysql -u root -p < db/data/storage.sql
 ```
 
 如果需要指定数据库：
@@ -125,6 +142,8 @@ mysql -u root -p bacon < db/schema/upms.sql
 mysql -u root -p bacon < db/data/upms.sql
 mysql -u root -p bacon < db/schema/auth.sql
 mysql -u root -p bacon < db/data/auth.sql
+mysql -u root -p bacon < db/schema/storage.sql
+mysql -u root -p bacon < db/data/storage.sql
 ```
 
 ## 9. Maintenance Rules

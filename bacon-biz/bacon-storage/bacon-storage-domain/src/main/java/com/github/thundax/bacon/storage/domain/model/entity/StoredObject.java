@@ -1,5 +1,8 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -17,11 +20,11 @@ public class StoredObject {
     public static final String REFERENCE_STATUS_UNREFERENCED = "UNREFERENCED";
 
     /** 主键。 */
-    private Long id;
+    private StoredObjectId id;
     /** 所属租户业务键。 */
-    private String tenantId;
+    private TenantId tenantId;
     /** 底层存储类型。 */
-    private String storageType;
+    private StorageType storageType;
     /** 存储桶或本地逻辑目录。 */
     private String bucketName;
     /** 底层对象键，全局唯一。 */
@@ -39,17 +42,17 @@ public class StoredObject {
     /** 引用状态。 */
     private String referenceStatus;
     /** 创建人。 */
-    private Long createdBy;
+    private String createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 更新人。 */
-    private Long updatedBy;
+    private String updatedBy;
     /** 更新时间。 */
     private Instant updatedAt;
 
-    public StoredObject(Long id, String tenantId, String storageType, String bucketName, String objectKey,
+    public StoredObject(StoredObjectId id, TenantId tenantId, StorageType storageType, String bucketName, String objectKey,
                         String originalFilename, String contentType, Long size, String accessEndpoint, String objectStatus,
-                        String referenceStatus, Long createdBy, Instant createdAt, Long updatedBy, Instant updatedAt) {
+                        String referenceStatus, String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.storageType = storageType;
@@ -67,9 +70,9 @@ public class StoredObject {
         this.updatedAt = updatedAt;
     }
 
-    public static StoredObject newUploadedObject(String tenantId, String storageType, String bucketName, String objectKey,
+    public static StoredObject newUploadedObject(TenantId tenantId, StorageType storageType, String bucketName, String objectKey,
                                                  String originalFilename, String contentType, Long size, String accessEndpoint,
-                                                 Long createdBy) {
+                                                 String createdBy) {
         Instant now = Instant.now();
         return new StoredObject(null, tenantId, storageType, bucketName, objectKey, originalFilename, contentType, size,
                 accessEndpoint, OBJECT_STATUS_ACTIVE, REFERENCE_STATUS_UNREFERENCED, createdBy, now, createdBy, now);

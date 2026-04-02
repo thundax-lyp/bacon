@@ -29,7 +29,8 @@
 - 字符集固定使用 `utf8mb4`
 - 排序规则使用数据库默认值
 - 时间字段统一使用 `datetime(3)`
-- 主键字段统一使用 `bigint`
+- 运行态自增主键统一使用 `bigint`
+- 业务主键和值对象字段按领域建模使用 `varchar`
 - 枚举字段统一使用 `varchar`
 - 文件内容固定存放在底层存储，不直接落数据库
 
@@ -57,6 +58,8 @@
 ### 5.2 Fixed Length Rules
 
 - `tenant_id`: `varchar(64)`
+- `id`: `varchar(64)`，仅适用于 `StoredObject.id`
+- `object_id`: `varchar(64)`
 - `storage_type`: `varchar(32)`
 - `bucket_name`: `varchar(128)`
 - `object_key`: `varchar(512)`
@@ -65,6 +68,8 @@
 - `access_endpoint`: `varchar(1024)`
 - `object_status`: `varchar(32)`
 - `reference_status`: `varchar(32)`
+- `created_by`: `varchar(64)`
+- `updated_by`: `varchar(64)`
 - `owner_type`: `varchar(64)`
 - `owner_id`: `varchar(64)`
 - `action_type`: `varchar(64)`
@@ -103,9 +108,9 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `varchar(64)` | N | 存储对象业务主键，对应 `StoredObjectId.value` |
 | `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
-| `storage_type` | `varchar(32)` | N | 底层存储类型 |
+| `storage_type` | `varchar(32)` | N | 底层存储类型，对应 `StorageType` |
 | `bucket_name` | `varchar(128)` | Y | 存储桶或本地逻辑目录 |
 | `object_key` | `varchar(512)` | N | 底层对象键，全局唯一 |
 | `original_filename` | `varchar(255)` | N | 原始文件名 |
@@ -114,9 +119,9 @@
 | `access_endpoint` | `varchar(1024)` | N | 当前访问端点 |
 | `object_status` | `varchar(32)` | N | 对象状态 |
 | `reference_status` | `varchar(32)` | N | 引用状态 |
-| `created_by` | `bigint` | Y | 创建人 |
+| `created_by` | `varchar(64)` | Y | 创建人 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `bigint` | Y | 更新人 |
+| `updated_by` | `varchar(64)` | Y | 更新人 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -139,7 +144,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `object_id` | `bigint` | N | 存储对象主键 |
+| `object_id` | `varchar(64)` | N | 存储对象业务主键 |
 | `owner_type` | `varchar(64)` | N | 引用方类型 |
 | `owner_id` | `varchar(64)` | N | 引用方业务主键 |
 
@@ -164,7 +169,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
-| `object_id` | `bigint` | Y | 存储对象主键 |
+| `object_id` | `varchar(64)` | Y | 存储对象业务主键 |
 | `owner_type` | `varchar(64)` | Y | 引用方类型 |
 | `owner_id` | `varchar(64)` | Y | 引用方业务主键 |
 | `action_type` | `varchar(64)` | N | 审计动作类型 |
@@ -235,7 +240,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | Y | 所属租户业务键 |
-| `object_id` | `bigint` | Y | 存储对象主键 |
+| `object_id` | `varchar(64)` | Y | 存储对象业务主键 |
 | `owner_type` | `varchar(64)` | Y | 引用方类型 |
 | `owner_id` | `varchar(64)` | Y | 引用方业务主键 |
 | `action_type` | `varchar(64)` | N | 审计动作类型 |

@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.application.query;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
@@ -25,8 +26,9 @@ public class StoredObjectQueryApplicationService {
         this.storedObjectRepository = storedObjectRepository;
     }
 
-    public StoredObjectDTO getObjectById(Long objectId) {
-        StoredObject storedObject = storedObjectRepository.findById(objectId)
+    public StoredObjectDTO getObjectById(String objectId) {
+        StoredObjectId storedObjectId = StoredObjectId.of(objectId);
+        StoredObject storedObject = storedObjectRepository.findById(storedObjectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         if (storedObject.isDeleting() || storedObject.isDeleted()) {
             throw new NotFoundException("Stored object is unavailable: " + objectId);
@@ -48,7 +50,9 @@ public class StoredObjectQueryApplicationService {
     }
 
     private StoredObjectDTO toDto(StoredObject storedObject) {
-        return new StoredObjectDTO(storedObject.getId(), storedObject.getStorageType(), storedObject.getBucketName(),
+        return new StoredObjectDTO(storedObject.getId() == null ? null : storedObject.getId().value(),
+                storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
+                storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
                 storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),
                 storedObject.getReferenceStatus(), storedObject.getCreatedAt());

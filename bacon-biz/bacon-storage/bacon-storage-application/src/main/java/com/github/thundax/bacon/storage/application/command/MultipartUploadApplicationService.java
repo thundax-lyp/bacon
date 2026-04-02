@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.storage.application.command;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
@@ -12,6 +13,7 @@ import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
@@ -101,7 +103,7 @@ public class MultipartUploadApplicationService {
         List<MultipartUploadPart> parts = multipartUploadPartRepository.listByUploadId(command.getUploadId());
         session.assertCompletable(parts);
         var storageResult = storedObjectStorageRepository.completeMultipartUpload(session, parts);
-        StoredObject storedObject = StoredObject.newUploadedObject(session.getTenantId(), storageResult.getStorageType(),
+        StoredObject storedObject = StoredObject.newUploadedObject(toTenantId(session.getTenantId()), storageResult.getStorageType(),
                 storageResult.getBucketName(), storageResult.getObjectKey(), session.getOriginalFilename(),
                 session.getContentType(), session.getTotalSize(), storageResult.getAccessEndpoint(), null);
         StoredObject savedObject = storedObjectRepository.save(storedObject);
@@ -110,10 +112,15 @@ public class MultipartUploadApplicationService {
         multipartUploadPartRepository.deleteByUploadId(command.getUploadId());
         storageAuditApplicationService.record(savedObject.getTenantId(), savedObject.getId(), session.getOwnerType(),
                 command.getOwnerId(), StorageAuditLog.ACTION_UPLOAD, null, savedObject.getObjectStatus());
-        return new StoredObjectDTO(savedObject.getId(), savedObject.getStorageType(), savedObject.getBucketName(),
+        return new StoredObjectDTO(savedObject.getId() == null ? null : savedObject.getId().value(),
+                savedObject.getStorageType() == null ? null : savedObject.getStorageType().value(), savedObject.getBucketName(),
                 savedObject.getObjectKey(), savedObject.getOriginalFilename(), savedObject.getContentType(),
                 savedObject.getSize(), savedObject.getAccessEndpoint(), savedObject.getObjectStatus(),
                 savedObject.getReferenceStatus(), savedObject.getCreatedAt());
+    }
+
+    private TenantId toTenantId(String tenantId) {
+        return tenantId == null || tenantId.isBlank() ? null : TenantId.of(tenantId);
     }
 
     @Transactional

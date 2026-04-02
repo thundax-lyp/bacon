@@ -98,7 +98,7 @@ public class StorageProviderController {
 
     @Operation(summary = "查询存储对象")
     @GetMapping("/objects/{objectId}")
-    public StoredObjectDTO getObjectById(@PathVariable("objectId") Long objectId) {
+    public StoredObjectDTO getObjectById(@PathVariable("objectId") String objectId) {
         return storedObjectQueryApplicationService.getObjectById(objectId);
     }
 
@@ -110,7 +110,7 @@ public class StorageProviderController {
 
     @Operation(summary = "建立存储对象引用")
     @PostMapping("/objects/{objectId}/references")
-    public void markObjectReferenced(@PathVariable("objectId") Long objectId,
+    public void markObjectReferenced(@PathVariable("objectId") String objectId,
                                      @RequestParam("ownerType") String ownerType,
                                      @RequestParam("ownerId") String ownerId) {
         storedObjectFacade.markObjectReferenced(objectId, ownerType, ownerId);
@@ -118,7 +118,7 @@ public class StorageProviderController {
 
     @Operation(summary = "清理存储对象引用")
     @DeleteMapping("/objects/{objectId}/references")
-    public void clearObjectReference(@PathVariable("objectId") Long objectId,
+    public void clearObjectReference(@PathVariable("objectId") String objectId,
                                      @RequestParam("ownerType") String ownerType,
                                      @RequestParam("ownerId") String ownerId) {
         storedObjectFacade.clearObjectReference(objectId, ownerType, ownerId);
@@ -126,7 +126,7 @@ public class StorageProviderController {
 
     @Operation(summary = "删除存储对象")
     @DeleteMapping("/objects/{objectId}")
-    public void deleteObject(@PathVariable("objectId") Long objectId) {
+    public void deleteObject(@PathVariable("objectId") String objectId) {
         storedObjectFacade.deleteObject(objectId);
     }
 }

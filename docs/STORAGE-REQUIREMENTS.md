@@ -163,7 +163,7 @@
 
 ## 5.1 Fixed Enums
 
-- `storageType` 固定为 `LOCAL_FILE`、`OSS`
+- `storageType` 固定由 `StorageType` 枚举承载，取值为 `LOCAL_FILE`、`OSS`
 - `objectStatus` 固定为 `ACTIVE`、`DELETING`、`DELETED`
 - `referenceStatus` 固定为 `UNREFERENCED`、`REFERENCED`
 - `uploadStatus` 固定为 `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
@@ -181,9 +181,9 @@
 
 `StoredObject` 固定字段：
 
-- `id`
-- `tenantId`
-- `storageType`
+- `id`，类型固定为 `StoredObjectId`，底层 `value` 使用字符串
+- `tenantId`，类型固定为 `TenantId`
+- `storageType`，类型固定为 `StorageType`
 - `bucketName`
 - `objectKey`
 - `originalFilename`
@@ -192,7 +192,9 @@
 - `accessEndpoint`
 - `objectStatus`
 - `referenceStatus`
+- `createdBy`，类型固定为 `String`
 - `createdAt`
+- `updatedBy`，类型固定为 `String`
 
 `StoredObjectReference` 固定字段：
 
@@ -322,7 +324,7 @@
 
 `StoredObjectDTO` 固定字段：
 
-- `id`
+- `id`，固定返回 `StoredObjectId.value`
 - `storageType`
 - `bucketName`
 - `objectKey`
@@ -365,7 +367,7 @@
 
 ## 5.6 Uniqueness And Index Rules
 
-- `StoredObject.id` 固定全局唯一
+- `StoredObject.id.value` 固定全局唯一
 - `StoredObject.objectKey` 固定全局唯一
 - `StoredObjectReference` 的 `(objectId, ownerType, ownerId)` 固定唯一
 - `MultipartUploadSession.uploadId` 固定全局唯一

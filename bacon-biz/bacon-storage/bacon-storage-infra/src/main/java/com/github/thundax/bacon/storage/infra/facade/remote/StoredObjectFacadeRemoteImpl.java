@@ -130,7 +130,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     }
 
     @Override
-    public StoredObjectDTO getObjectById(Long objectId) {
+    public StoredObjectDTO getObjectById(String objectId) {
         return request(restClient.get())
                 .uri("/providers/storage/objects/{objectId}", objectId)
                 .retrieve()
@@ -138,7 +138,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     }
 
     @Override
-    public void markObjectReferenced(Long objectId, String ownerType, String ownerId) {
+    public void markObjectReferenced(String objectId, String ownerType, String ownerId) {
         request(restClient.post())
                 .uri("/providers/storage/objects/{objectId}/references?ownerType={ownerType}&ownerId={ownerId}",
                         objectId, ownerType, ownerId)
@@ -147,7 +147,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     }
 
     @Override
-    public void clearObjectReference(Long objectId, String ownerType, String ownerId) {
+    public void clearObjectReference(String objectId, String ownerType, String ownerId) {
         request(restClient.delete())
                 .uri("/providers/storage/objects/{objectId}/references?ownerType={ownerType}&ownerId={ownerId}",
                         objectId, ownerType, ownerId)
@@ -156,7 +156,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     }
 
     @Override
-    public void deleteObject(Long objectId) {
+    public void deleteObject(String objectId) {
         request(restClient.delete())
                 .uri("/providers/storage/objects/{objectId}", objectId)
                 .retrieve()

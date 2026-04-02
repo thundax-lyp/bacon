@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.application.support;
 
 import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
@@ -29,7 +30,7 @@ public class StoredObjectDeletionTransactionService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public StoredObject markDeleting(Long objectId) {
+    public StoredObject markDeleting(StoredObjectId objectId) {
         StoredObject storedObject = storedObjectRepository.findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         if (storedObject.isDeleted() || storedObject.isDeleting()) {
@@ -43,7 +44,7 @@ public class StoredObjectDeletionTransactionService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markDeleted(Long objectId) {
+    public void markDeleted(StoredObjectId objectId) {
         StoredObject storedObject = storedObjectRepository.findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         if (storedObject.isDeleted()) {

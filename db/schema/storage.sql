@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `bacon_storage_object` (
-    `id` BIGINT NOT NULL COMMENT '主键',
+    `id` VARCHAR(64) NOT NULL COMMENT '存储对象业务主键',
     `tenant_id` VARCHAR(64) DEFAULT NULL COMMENT '所属租户业务键',
     `storage_type` VARCHAR(32) NOT NULL COMMENT '底层存储类型',
     `bucket_name` VARCHAR(128) DEFAULT NULL COMMENT '存储桶或本地逻辑目录',
@@ -10,9 +10,9 @@ CREATE TABLE IF NOT EXISTS `bacon_storage_object` (
     `access_endpoint` VARCHAR(1024) NOT NULL COMMENT '当前访问端点',
     `object_status` VARCHAR(32) NOT NULL COMMENT '对象状态',
     `reference_status` VARCHAR(32) NOT NULL COMMENT '引用状态',
-    `created_by` BIGINT DEFAULT NULL COMMENT '创建人',
+    `created_by` VARCHAR(64) DEFAULT NULL COMMENT '创建人',
     `created_at` DATETIME(3) NOT NULL COMMENT '创建时间',
-    `updated_by` BIGINT DEFAULT NULL COMMENT '更新人',
+    `updated_by` VARCHAR(64) DEFAULT NULL COMMENT '更新人',
     `updated_at` DATETIME(3) NOT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_object_key` (`object_key`),
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `bacon_storage_object` (
 
 CREATE TABLE IF NOT EXISTS `bacon_storage_object_reference` (
     `id` BIGINT NOT NULL COMMENT '主键',
-    `object_id` BIGINT NOT NULL COMMENT '存储对象主键',
+    `object_id` VARCHAR(64) NOT NULL COMMENT '存储对象业务主键',
     `owner_type` VARCHAR(64) NOT NULL COMMENT '引用方类型',
     `owner_id` VARCHAR(64) NOT NULL COMMENT '引用方业务主键',
     PRIMARY KEY (`id`),
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `bacon_storage_object_reference` (
 CREATE TABLE IF NOT EXISTS `bacon_storage_audit_log` (
     `id` BIGINT NOT NULL COMMENT '主键',
     `tenant_id` VARCHAR(64) DEFAULT NULL COMMENT '所属租户业务键',
-    `object_id` BIGINT DEFAULT NULL COMMENT '存储对象主键',
+    `object_id` VARCHAR(64) DEFAULT NULL COMMENT '存储对象业务主键',
     `owner_type` VARCHAR(64) DEFAULT NULL COMMENT '引用方类型',
     `owner_id` VARCHAR(64) DEFAULT NULL COMMENT '引用方业务主键',
     `action_type` VARCHAR(64) NOT NULL COMMENT '审计动作类型',
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `bacon_storage_audit_log` (
 CREATE TABLE IF NOT EXISTS `bacon_storage_audit_outbox` (
     `id` BIGINT NOT NULL COMMENT '主键',
     `tenant_id` VARCHAR(64) DEFAULT NULL COMMENT '所属租户业务键',
-    `object_id` BIGINT DEFAULT NULL COMMENT '存储对象主键',
+    `object_id` VARCHAR(64) DEFAULT NULL COMMENT '存储对象业务主键',
     `owner_type` VARCHAR(64) DEFAULT NULL COMMENT '引用方类型',
     `owner_id` VARCHAR(64) DEFAULT NULL COMMENT '引用方业务主键',
     `action_type` VARCHAR(64) NOT NULL COMMENT '审计动作类型',

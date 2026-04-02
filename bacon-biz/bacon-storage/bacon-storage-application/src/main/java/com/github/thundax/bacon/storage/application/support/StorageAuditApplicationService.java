@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.application.support;
 
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditLogRepository;
@@ -28,7 +30,7 @@ public class StorageAuditApplicationService {
         this.storageAuditOutboxRepository = storageAuditOutboxRepository;
     }
 
-    public void record(String tenantId, Long objectId, String ownerType, String ownerId, String actionType,
+    public void record(TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId, String actionType,
                        String beforeStatus, String afterStatus) {
         StorageAuditLog auditLog = StorageAuditLog.systemAction(tenantId, objectId, ownerType, ownerId,
                 actionType, beforeStatus, afterStatus);

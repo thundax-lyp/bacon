@@ -5,7 +5,7 @@
 本文档定义 `Auth` 业务域的数据库设计。  
 本文档可直接用于生成 `DDL`、`DataObject`、`Mapper`、`Repository` 与查询实现。  
 本文档只定义 `Auth` 自有的持久化对象、字段、索引、关联和查询模型，不重复 `Auth` 业务需求文档中的流程描述。  
-本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](./DATABASE-RULES.md) 为准。
+本文档必须遵守 [DATABASE-RULES.md](../00-governance/DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](../00-governance/DATABASE-RULES.md) 为准。
 
 ## 2. Scope
 

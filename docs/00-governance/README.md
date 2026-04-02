@@ -1,4 +1,4 @@
-# Docs README
+# Docs Index
 
 `docs` 目录用于提供工程级规则、业务需求、数据库设计和专项设计文档。
 
@@ -19,6 +19,14 @@
 5. 如涉及统一 ID，加载 [`UNIFIED-ID-DESIGN.md`](./UNIFIED-ID-DESIGN.md)
 6. 如涉及文档编写规则，加载 [`DOCUMENT-RULES.md`](./DOCUMENT-RULES.md)
 
+目录分层固定如下：
+
+- `00-governance`：工程级规则、架构、文档索引
+- `10-requirements`：业务需求文档
+- `20-database`：数据库设计文档
+- `30-designs`：专项设计与规划文档
+- `40-readiness`：上线准备、运行手册、发布清单
+
 ## 文档索引
 
 ### 工程级文档
@@ -34,36 +42,36 @@
 
 ### 业务需求文档
 
-- [`AUTH-REQUIREMENTS.md`](./AUTH-REQUIREMENTS.md)
+- [`AUTH-REQUIREMENTS.md`](../10-requirements/AUTH-REQUIREMENTS.md)
   - 认证、会话、OAuth2、认证审计
-- [`UPMS-REQUIREMENTS.md`](./UPMS-REQUIREMENTS.md)
+- [`UPMS-REQUIREMENTS.md`](../10-requirements/UPMS-REQUIREMENTS.md)
   - 用户、租户、组织、角色、菜单、资源、数据权限
-- [`ORDER-REQUIREMENTS.md`](./ORDER-REQUIREMENTS.md)
+- [`ORDER-REQUIREMENTS.md`](../10-requirements/ORDER-REQUIREMENTS.md)
   - 订单、取消、超时关闭、支付结果处理
-- [`INVENTORY-REQUIREMENTS.md`](./INVENTORY-REQUIREMENTS.md)
+- [`INVENTORY-REQUIREMENTS.md`](../10-requirements/INVENTORY-REQUIREMENTS.md)
   - 库存主数据、预占、释放、扣减、审计
-- [`PAYMENT-REQUIREMENTS.md`](./PAYMENT-REQUIREMENTS.md)
+- [`PAYMENT-REQUIREMENTS.md`](../10-requirements/PAYMENT-REQUIREMENTS.md)
   - 支付单、回调、关闭、支付审计
-- [`STORAGE-REQUIREMENTS.md`](./STORAGE-REQUIREMENTS.md)
+- [`STORAGE-REQUIREMENTS.md`](../10-requirements/STORAGE-REQUIREMENTS.md)
   - 统一存储对象、上传、引用、访问地址
 
 ### 专项设计文档
 
-- [`AUTH-LOGIN-DESIGN.md`](./AUTH-LOGIN-DESIGN.md)
+- [`AUTH-LOGIN-DESIGN.md`](../30-designs/AUTH-LOGIN-DESIGN.md)
   - 账号密码登录中的验证码、RSA、跨域凭据读取与 mono/micro 实现设计
-- [`PRODUCTION-UPGRADE-ROADMAP.md`](./PRODUCTION-UPGRADE-ROADMAP.md)
+- [`PRODUCTION-UPGRADE-ROADMAP.md`](../30-designs/PRODUCTION-UPGRADE-ROADMAP.md)
   - 项目未来 4 周的生产就绪度升级路线、交付物与验收门槛
-- [`STORAGE-LAUNCH-READINESS.md`](./STORAGE-LAUNCH-READINESS.md)
+- [`STORAGE-LAUNCH-READINESS.md`](../40-readiness/STORAGE-LAUNCH-READINESS.md)
   - `Storage` 模块上线准备清单与验收项
 
 ### 数据库设计文档
 
-- [`AUTH-DATABASE-DESIGN.md`](./AUTH-DATABASE-DESIGN.md)
-- [`UPMS-DATABASE-DESIGN.md`](./UPMS-DATABASE-DESIGN.md)
-- [`ORDER-DATABASE-DESIGN.md`](./ORDER-DATABASE-DESIGN.md)
-- [`INVENTORY-DATABASE-DESIGN.md`](./INVENTORY-DATABASE-DESIGN.md)
-- [`PAYMENT-DATABASE-DESIGN.md`](./PAYMENT-DATABASE-DESIGN.md)
-- [`STORAGE-DATABASE-DESIGN.md`](./STORAGE-DATABASE-DESIGN.md)
+- [`AUTH-DATABASE-DESIGN.md`](../20-database/AUTH-DATABASE-DESIGN.md)
+- [`UPMS-DATABASE-DESIGN.md`](../20-database/UPMS-DATABASE-DESIGN.md)
+- [`ORDER-DATABASE-DESIGN.md`](../20-database/ORDER-DATABASE-DESIGN.md)
+- [`INVENTORY-DATABASE-DESIGN.md`](../20-database/INVENTORY-DATABASE-DESIGN.md)
+- [`PAYMENT-DATABASE-DESIGN.md`](../20-database/PAYMENT-DATABASE-DESIGN.md)
+- [`STORAGE-DATABASE-DESIGN.md`](../20-database/STORAGE-DATABASE-DESIGN.md)
 
 这些文档都应在对应业务域 `*-REQUIREMENTS.md` 和 [`DATABASE-RULES.md`](./DATABASE-RULES.md) 之后再读取。
 

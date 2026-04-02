@@ -19,11 +19,16 @@
 
 ```text
 bacon
-├── bacon-app/      # 启动与装配层
-├── bacon-biz/      # 业务域模块
-├── bacon-common/   # 公共能力模块
-├── deploy/         # 部署样例与脚本
-└── docs/           # 架构、需求、数据库设计文档
+├── bacon-app/                  # 启动与装配层
+├── bacon-biz/                  # 业务域模块
+├── bacon-common/               # 公共能力模块
+├── deploy/                     # 部署样例与脚本
+└── docs/
+    ├── 00-governance/          # 架构、规则、文档入口
+    ├── 10-requirements/        # 业务需求
+    ├── 20-database/            # 数据库设计
+    ├── 30-designs/             # 专项设计与路线图
+    └── 40-readiness/           # 上线准备与运行手册
 ```
 
 关键目录：
@@ -46,24 +51,40 @@ bacon
 - 多实现互斥装配使用显式配置项配合 `@ConditionalOnProperty`
 - 环境边界切换优先使用 `@Profile`
 
-更多细节见 [ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/ARCHITECTURE.md)。
+更多细节见 [ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)。
 
-## 文档入口
+## 文档导航
+
+给人读的推荐顺序：
+
+1. 先看 [docs/00-governance/README.md](/Volumes/storage/workspace/bacon/docs/00-governance/README.md)
+2. 再看 [docs/00-governance/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)
+3. 然后按场景进入对应目录
+
+按场景找文档：
+
+- 工程规则与总索引：`docs/00-governance`
+- 业务需求：`docs/10-requirements`
+- 数据库设计：`docs/20-database`
+- 专项设计与路线图：`docs/30-designs`
+- 上线准备与运行手册：`docs/40-readiness`
+
+## 实现前阅读路径
 
 开始任何实现前，先读：
 
-1. [docs/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/ARCHITECTURE.md)
-2. [docs/README.md](/Volumes/storage/workspace/bacon/docs/README.md)
+1. [docs/00-governance/README.md](/Volumes/storage/workspace/bacon/docs/00-governance/README.md)
+2. [docs/00-governance/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)
 3. 对应业务域 `*-REQUIREMENTS.md`
 
 涉及数据库设计时，继续读：
 
-1. [docs/DATABASE-RULES.md](/Volumes/storage/workspace/bacon/docs/DATABASE-RULES.md)
+1. [docs/00-governance/DATABASE-RULES.md](/Volumes/storage/workspace/bacon/docs/00-governance/DATABASE-RULES.md)
 2. 对应业务域 `*-DATABASE-DESIGN.md`
 
 统一 ID 建模见：
 
-- [docs/UNIFIED-ID-DESIGN.md](/Volumes/storage/workspace/bacon/docs/UNIFIED-ID-DESIGN.md)
+- [docs/00-governance/UNIFIED-ID-DESIGN.md](/Volumes/storage/workspace/bacon/docs/00-governance/UNIFIED-ID-DESIGN.md)
 
 ## 本地构建
 
@@ -114,13 +135,14 @@ mvn -pl bacon-app/bacon-order-starter spring-boot:run
 
 ## 常用文档
 
-- [docs/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/ARCHITECTURE.md)
-- [docs/AUTH-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/AUTH-REQUIREMENTS.md)
-- [docs/UPMS-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/UPMS-REQUIREMENTS.md)
-- [docs/ORDER-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/ORDER-REQUIREMENTS.md)
-- [docs/INVENTORY-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/INVENTORY-REQUIREMENTS.md)
-- [docs/PAYMENT-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/PAYMENT-REQUIREMENTS.md)
-- [docs/STORAGE-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/STORAGE-REQUIREMENTS.md)
+- [docs/00-governance/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)
+- [docs/00-governance/README.md](/Volumes/storage/workspace/bacon/docs/00-governance/README.md)
+- [docs/10-requirements/AUTH-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/AUTH-REQUIREMENTS.md)
+- [docs/10-requirements/UPMS-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/UPMS-REQUIREMENTS.md)
+- [docs/10-requirements/ORDER-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/ORDER-REQUIREMENTS.md)
+- [docs/10-requirements/INVENTORY-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/INVENTORY-REQUIREMENTS.md)
+- [docs/10-requirements/PAYMENT-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/PAYMENT-REQUIREMENTS.md)
+- [docs/10-requirements/STORAGE-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/STORAGE-REQUIREMENTS.md)
 
 ## License
 

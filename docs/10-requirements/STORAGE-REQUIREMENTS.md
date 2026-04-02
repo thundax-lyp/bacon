@@ -10,7 +10,7 @@
 - 对外契约
 - 核心业务规则
 
-本文档不重复数据库字段明细，不重复上线整改清单。数据库细节见 `STORAGE-DATABASE-DESIGN.md`，上线验收见 `STORAGE-LAUNCH-READINESS.md`。
+本文档不重复数据库字段明细，不重复上线整改清单。数据库细节见 `../20-database/STORAGE-DATABASE-DESIGN.md`，上线验收见 `../40-readiness/STORAGE-LAUNCH-READINESS.md`。
 
 ## 2. Scope
 

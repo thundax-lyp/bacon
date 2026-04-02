@@ -5,7 +5,7 @@
 本文档定义 `Payment` 业务域的数据库设计。  
 本文档可直接用于生成 `DDL`、`DataObject`、`Mapper`、`Repository`、支付回调持久化和支付查询实现。  
 本文档只定义 `Payment` 自有的持久化对象、字段、索引、回调记录边界和查询模型，不重复业务需求文档中的流程描述。  
-本文档必须遵守 [DATABASE-RULES.md](./DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](./DATABASE-RULES.md) 为准。
+本文档必须遵守 [DATABASE-RULES.md](../00-governance/DATABASE-RULES.md)。如与工程级数据库规范冲突，以 [DATABASE-RULES.md](../00-governance/DATABASE-RULES.md) 为准。
 
 ## 2. Scope
 

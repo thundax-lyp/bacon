@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.application.support;
 
 import com.github.thundax.bacon.storage.application.config.StorageDeletionRetryProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
 import io.micrometer.core.instrument.Metrics;
@@ -37,7 +38,7 @@ public class StoredObjectDeletionRetryService {
             return 0;
         }
         List<StoredObject> deletingObjects = storedObjectRepository.listByObjectStatus(
-                StoredObject.OBJECT_STATUS_DELETING, Math.max(properties.getBatchSize(), 1));
+                StoredObjectStatus.DELETING, Math.max(properties.getBatchSize(), 1));
         int completedCount = 0;
         for (StoredObject storedObject : deletingObjects) {
             try {

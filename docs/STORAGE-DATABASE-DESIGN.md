@@ -48,8 +48,8 @@
 ### 5.1 Fixed Enums
 
 - `storage_type`: `LOCAL_FILE`、`OSS`
-- `object_status`: `ACTIVE`、`DELETING`、`DELETED`
-- `reference_status`: `UNREFERENCED`、`REFERENCED`
+- `object_status`: 对应 `StoredObjectStatus`，固定值 `ACTIVE`、`DELETING`、`DELETED`
+- `reference_status`: 对应 `StoredObjectReferenceStatus`，固定值 `UNREFERENCED`、`REFERENCED`
 - `upload_status`: `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
 - `action_type`: `UPLOAD`、`REFERENCE_ADD`、`REFERENCE_CLEAR`、`DELETE`
 - `status`: `NEW`、`PROCESSING`、`RETRYING`、`DEAD`
@@ -117,8 +117,8 @@
 | `content_type` | `varchar(128)` | N | 内容类型 |
 | `size` | `bigint` | N | 文件大小，字节 |
 | `access_endpoint` | `varchar(1024)` | N | 当前访问端点 |
-| `object_status` | `varchar(32)` | N | 对象状态 |
-| `reference_status` | `varchar(32)` | N | 引用状态 |
+| `object_status` | `varchar(32)` | N | 对象状态，对应 `StoredObjectStatus` |
+| `reference_status` | `varchar(32)` | N | 引用状态，对应 `StoredObjectReferenceStatus` |
 | `created_by` | `varchar(64)` | Y | 创建人 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
 | `updated_by` | `varchar(64)` | Y | 更新人 |

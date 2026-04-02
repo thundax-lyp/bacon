@@ -50,10 +50,10 @@ public class StoredObjectDeletionTransactionService {
         if (storedObject.isDeleted()) {
             return;
         }
-        String beforeStatus = storedObject.getObjectStatus();
+        String beforeStatus = storedObject.getObjectStatus().value();
         storedObject.markDeleted();
         StoredObject savedObject = storedObjectRepository.save(storedObject);
         storageAuditApplicationService.record(savedObject.getTenantId(), objectId, null, null,
-                StorageAuditLog.ACTION_DELETE, beforeStatus, savedObject.getObjectStatus());
+                StorageAuditLog.ACTION_DELETE, beforeStatus, savedObject.getObjectStatus().value());
     }
 }

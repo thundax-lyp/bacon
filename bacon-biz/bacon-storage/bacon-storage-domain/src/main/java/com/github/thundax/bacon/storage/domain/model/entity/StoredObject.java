@@ -2,6 +2,8 @@ package com.github.thundax.bacon.storage.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import lombok.Getter;
 
@@ -12,12 +14,6 @@ import java.time.Instant;
  */
 @Getter
 public class StoredObject {
-
-    public static final String OBJECT_STATUS_ACTIVE = "ACTIVE";
-    public static final String OBJECT_STATUS_DELETING = "DELETING";
-    public static final String OBJECT_STATUS_DELETED = "DELETED";
-    public static final String REFERENCE_STATUS_REFERENCED = "REFERENCED";
-    public static final String REFERENCE_STATUS_UNREFERENCED = "UNREFERENCED";
 
     /** 主键。 */
     private StoredObjectId id;
@@ -38,9 +34,9 @@ public class StoredObject {
     /** 由 Storage 派生的对象访问端点，仅用于展示/下载，不作为业务主数据持久化。 */
     private String accessEndpoint;
     /** 对象状态。 */
-    private String objectStatus;
+    private StoredObjectStatus objectStatus;
     /** 引用状态。 */
-    private String referenceStatus;
+    private StoredObjectReferenceStatus referenceStatus;
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
@@ -51,8 +47,9 @@ public class StoredObject {
     private Instant updatedAt;
 
     public StoredObject(StoredObjectId id, TenantId tenantId, StorageType storageType, String bucketName, String objectKey,
-                        String originalFilename, String contentType, Long size, String accessEndpoint, String objectStatus,
-                        String referenceStatus, String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
+                        String originalFilename, String contentType, Long size, String accessEndpoint,
+                        StoredObjectStatus objectStatus, StoredObjectReferenceStatus referenceStatus,
+                        String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.storageType = storageType;
@@ -75,36 +72,37 @@ public class StoredObject {
                                                  String createdBy) {
         Instant now = Instant.now();
         return new StoredObject(null, tenantId, storageType, bucketName, objectKey, originalFilename, contentType, size,
-                accessEndpoint, OBJECT_STATUS_ACTIVE, REFERENCE_STATUS_UNREFERENCED, createdBy, now, createdBy, now);
+                accessEndpoint, StoredObjectStatus.ACTIVE, StoredObjectReferenceStatus.UNREFERENCED, createdBy, now,
+                createdBy, now);
     }
 
     public boolean isDeleted() {
-        return OBJECT_STATUS_DELETED.equals(this.objectStatus);
+        return StoredObjectStatus.DELETED == this.objectStatus;
     }
 
     public boolean isDeleting() {
-        return OBJECT_STATUS_DELETING.equals(this.objectStatus);
+        return StoredObjectStatus.DELETING == this.objectStatus;
     }
 
     public boolean isReferenced() {
-        return REFERENCE_STATUS_REFERENCED.equals(this.referenceStatus);
+        return StoredObjectReferenceStatus.REFERENCED == this.referenceStatus;
     }
 
     public void markReferenced() {
         ensureActive("Referenced");
-        this.referenceStatus = REFERENCE_STATUS_REFERENCED;
+        this.referenceStatus = StoredObjectReferenceStatus.REFERENCED;
         this.updatedAt = Instant.now();
     }
 
     public void markUnreferenced() {
         ensureActive("Unreferenced");
-        this.referenceStatus = REFERENCE_STATUS_UNREFERENCED;
+        this.referenceStatus = StoredObjectReferenceStatus.UNREFERENCED;
         this.updatedAt = Instant.now();
     }
 
     public void markDeleting() {
         ensureActive("Deleting");
-        this.objectStatus = OBJECT_STATUS_DELETING;
+        this.objectStatus = StoredObjectStatus.DELETING;
         this.updatedAt = Instant.now();
     }
 
@@ -112,7 +110,7 @@ public class StoredObject {
         if (!isDeleting()) {
             throw new IllegalStateException("Deleted object must be in DELETING status first");
         }
-        this.objectStatus = OBJECT_STATUS_DELETED;
+        this.objectStatus = StoredObjectStatus.DELETED;
         this.updatedAt = Instant.now();
     }
 
@@ -122,7 +120,7 @@ public class StoredObject {
     }
 
     private void ensureActive(String action) {
-        if (!OBJECT_STATUS_ACTIVE.equals(this.objectStatus)) {
+        if (StoredObjectStatus.ACTIVE != this.objectStatus) {
             throw new IllegalStateException(action + " object must be in ACTIVE status");
         }
     }

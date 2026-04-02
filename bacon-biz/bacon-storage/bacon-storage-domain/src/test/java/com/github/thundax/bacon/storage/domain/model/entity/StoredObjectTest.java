@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import org.junit.jupiter.api.Test;
 
@@ -15,8 +17,8 @@ class StoredObjectTest {
         StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE,
                 "default", "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", "u-1001");
 
-        assertEquals(StoredObject.OBJECT_STATUS_ACTIVE, storedObject.getObjectStatus());
-        assertEquals(StoredObject.REFERENCE_STATUS_UNREFERENCED, storedObject.getReferenceStatus());
+        assertEquals(StoredObjectStatus.ACTIVE, storedObject.getObjectStatus());
+        assertEquals(StoredObjectReferenceStatus.UNREFERENCED, storedObject.getReferenceStatus());
         assertEquals("u-1001", storedObject.getCreatedBy());
         assertEquals("u-1001", storedObject.getUpdatedBy());
     }
@@ -30,7 +32,7 @@ class StoredObjectTest {
         assertTrue(storedObject.isReferenced());
 
         storedObject.markUnreferenced();
-        assertEquals(StoredObject.REFERENCE_STATUS_UNREFERENCED, storedObject.getReferenceStatus());
+        assertEquals(StoredObjectReferenceStatus.UNREFERENCED, storedObject.getReferenceStatus());
 
         storedObject.markDeleting();
         assertTrue(storedObject.isDeleting());

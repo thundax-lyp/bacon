@@ -11,7 +11,6 @@ import com.github.thundax.bacon.storage.application.support.StorageUploadLimitVa
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
-import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -58,7 +57,7 @@ public class StoredObjectApplicationService {
                 command.getContentType(), command.getSize(), storageResult.getAccessEndpoint(), null);
         StoredObject savedObject = storedObjectRepository.save(storedObject);
         storageAuditApplicationService.record(savedObject.getTenantId(), savedObject.getId(), command.getOwnerType(), null,
-                StorageAuditLog.ACTION_UPLOAD, null, savedObject.getObjectStatus());
+                StorageAuditLog.ACTION_UPLOAD, null, savedObject.getObjectStatus().value());
         return toDto(savedObject);
     }
 
@@ -68,7 +67,7 @@ public class StoredObjectApplicationService {
         StoredObject storedObject = storedObjectRepository.findById(storedObjectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         ensureAvailable(storedObject, objectId);
-        String beforeStatus = storedObject.getReferenceStatus();
+        String beforeStatus = storedObject.getReferenceStatus().value();
         StoredObjectReference reference = StoredObjectReference.create(storedObjectId, ownerType, ownerId);
         boolean created = storedObjectReferenceRepository.saveIfAbsent(reference);
         StoredObject savedObject = syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(storedObjectId));
@@ -76,7 +75,7 @@ public class StoredObjectApplicationService {
             return;
         }
         storageAuditApplicationService.record(savedObject.getTenantId(), storedObjectId, ownerType, ownerId,
-                StorageAuditLog.ACTION_REFERENCE_ADD, beforeStatus, savedObject.getReferenceStatus());
+                StorageAuditLog.ACTION_REFERENCE_ADD, beforeStatus, savedObject.getReferenceStatus().value());
     }
 
     @Transactional
@@ -84,14 +83,14 @@ public class StoredObjectApplicationService {
         StoredObjectId storedObjectId = StoredObjectId.of(objectId);
         StoredObject storedObject = storedObjectRepository.findById(storedObjectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
-        String beforeStatus = storedObject.getReferenceStatus();
+        String beforeStatus = storedObject.getReferenceStatus().value();
         boolean deleted = storedObjectReferenceRepository.deleteByObjectIdAndOwner(storedObjectId, ownerType, ownerId);
         StoredObject savedObject = syncReferenceStatus(storedObject, storedObjectReferenceRepository.existsByObjectId(storedObjectId));
         if (!deleted) {
             return;
         }
         storageAuditApplicationService.record(savedObject.getTenantId(), storedObjectId, ownerType, ownerId,
-                StorageAuditLog.ACTION_REFERENCE_CLEAR, beforeStatus, savedObject.getReferenceStatus());
+                StorageAuditLog.ACTION_REFERENCE_CLEAR, beforeStatus, savedObject.getReferenceStatus().value());
     }
 
     public void deleteObject(String objectId) {
@@ -115,8 +114,8 @@ public class StoredObjectApplicationService {
                 storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
                 storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
-                storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),
-                storedObject.getReferenceStatus(), storedObject.getCreatedAt());
+                storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus().value(),
+                storedObject.getReferenceStatus().value(), storedObject.getCreatedAt());
     }
 
     private void ensureAvailable(StoredObject storedObject, String objectId) {

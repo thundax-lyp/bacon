@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.domain.repository;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageQuery;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageResult;
 
@@ -14,7 +15,7 @@ public interface StoredObjectRepository {
 
     Optional<StoredObject> findById(StoredObjectId objectId);
 
-    List<StoredObject> listByObjectStatus(String objectStatus, int limit);
+    List<StoredObject> listByObjectStatus(StoredObjectStatus objectStatus, int limit);
 
     StoredObjectPageResult pageObjects(StoredObjectPageQuery query);
 }

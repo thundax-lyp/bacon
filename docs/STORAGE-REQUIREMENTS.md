@@ -164,8 +164,8 @@
 ## 5.1 Fixed Enums
 
 - `storageType` 固定由 `StorageType` 枚举承载，取值为 `LOCAL_FILE`、`OSS`
-- `objectStatus` 固定为 `ACTIVE`、`DELETING`、`DELETED`
-- `referenceStatus` 固定为 `UNREFERENCED`、`REFERENCED`
+- `objectStatus` 固定由 `StoredObjectStatus` 枚举承载，取值为 `ACTIVE`、`DELETING`、`DELETED`
+- `referenceStatus` 固定由 `StoredObjectReferenceStatus` 枚举承载，取值为 `UNREFERENCED`、`REFERENCED`
 - `uploadStatus` 固定为 `INITIATED`、`UPLOADING`、`COMPLETED`、`ABORTED`
 - `auditActionType` 固定为 `UPLOAD`、`DELETE`、`REFERENCE_ADD`、`REFERENCE_CLEAR`
 - `auditOutboxStatus` 固定为 `NEW`、`PROCESSING`、`RETRYING`、`DEAD`
@@ -190,8 +190,8 @@
 - `contentType`
 - `size`
 - `accessEndpoint`
-- `objectStatus`
-- `referenceStatus`
+- `objectStatus`，类型固定为 `StoredObjectStatus`
+- `referenceStatus`，类型固定为 `StoredObjectReferenceStatus`
 - `createdBy`，类型固定为 `String`
 - `createdAt`
 - `updatedBy`，类型固定为 `String`

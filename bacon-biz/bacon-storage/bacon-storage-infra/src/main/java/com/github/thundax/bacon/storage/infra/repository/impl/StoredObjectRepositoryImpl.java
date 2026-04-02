@@ -6,6 +6,8 @@ import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageQuery;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageResult;
@@ -47,9 +49,9 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     @Override
-    public List<StoredObject> listByObjectStatus(String objectStatus, int limit) {
+    public List<StoredObject> listByObjectStatus(StoredObjectStatus objectStatus, int limit) {
         return storedObjectMapper.selectList(Wrappers.<StoredObjectDO>lambdaQuery()
-                        .eq(StoredObjectDO::getObjectStatus, objectStatus)
+                        .eq(StoredObjectDO::getObjectStatus, objectStatus == null ? null : objectStatus.value())
                         .orderByAsc(StoredObjectDO::getUpdatedAt, StoredObjectDO::getId)
                         .last("limit " + limit))
                 .stream()
@@ -101,7 +103,9 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
                 storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
                 storedObject.getBucketName(), storedObject.getObjectKey(), storedObject.getOriginalFilename(),
                 storedObject.getContentType(), storedObject.getSize(), storedObject.getAccessEndpoint(),
-                storedObject.getObjectStatus(), storedObject.getReferenceStatus(), storedObject.getCreatedBy(),
+                storedObject.getObjectStatus() == null ? null : storedObject.getObjectStatus().value(),
+                storedObject.getReferenceStatus() == null ? null : storedObject.getReferenceStatus().value(),
+                storedObject.getCreatedBy(),
                 storedObject.getCreatedAt(), storedObject.getUpdatedBy(), storedObject.getUpdatedAt());
     }
 
@@ -109,7 +113,8 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
         return new StoredObject(dataObject.getId(), dataObject.getTenantId(), StorageType.fromValue(dataObject.getStorageType()),
                 dataObject.getBucketName(), dataObject.getObjectKey(), dataObject.getOriginalFilename(),
                 dataObject.getContentType(), dataObject.getSize(), dataObject.getAccessEndpoint(),
-                dataObject.getObjectStatus(), dataObject.getReferenceStatus(), dataObject.getCreatedBy(),
+                StoredObjectStatus.fromValue(dataObject.getObjectStatus()),
+                StoredObjectReferenceStatus.fromValue(dataObject.getReferenceStatus()), dataObject.getCreatedBy(),
                 dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
     }
 }

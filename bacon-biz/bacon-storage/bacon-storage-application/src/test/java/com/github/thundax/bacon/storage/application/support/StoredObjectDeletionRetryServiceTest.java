@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.application.config.StorageDeletionRetryProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
@@ -60,7 +61,7 @@ class StoredObjectDeletionRetryServiceTest {
     @Test
     void shouldRetryDeletingObjectsAndMarkDeleted() {
         StoredObject storedObject = deletingObject("O100", "attachment/a.bin");
-        when(storedObjectRepository.listByObjectStatus(StoredObject.OBJECT_STATUS_DELETING, 10))
+        when(storedObjectRepository.listByObjectStatus(StoredObjectStatus.DELETING, 10))
                 .thenReturn(List.of(storedObject));
 
         int completed = service.retryDeletingObjects();
@@ -74,7 +75,7 @@ class StoredObjectDeletionRetryServiceTest {
     @Test
     void shouldKeepDeletingObjectForNextRetryWhenPhysicalDeleteFails() {
         StoredObject storedObject = deletingObject("O101", "attachment/b.bin");
-        when(storedObjectRepository.listByObjectStatus(StoredObject.OBJECT_STATUS_DELETING, 10))
+        when(storedObjectRepository.listByObjectStatus(StoredObjectStatus.DELETING, 10))
                 .thenReturn(List.of(storedObject));
         doThrow(new IllegalStateException("delete-fail")).when(storedObjectStorageRepository).delete(storedObject);
 
@@ -92,7 +93,7 @@ class StoredObjectDeletionRetryServiceTest {
         int completed = service.retryDeletingObjects();
 
         assertEquals(0, completed);
-        verify(storedObjectRepository, never()).listByObjectStatus(eq(StoredObject.OBJECT_STATUS_DELETING), anyInt());
+        verify(storedObjectRepository, never()).listByObjectStatus(eq(StoredObjectStatus.DELETING), anyInt());
     }
 
     private StoredObject deletingObject(String id, String objectKey) {

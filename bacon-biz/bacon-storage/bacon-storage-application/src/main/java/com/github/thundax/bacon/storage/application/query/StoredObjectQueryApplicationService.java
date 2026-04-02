@@ -54,7 +54,7 @@ public class StoredObjectQueryApplicationService {
                 storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
                 storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
-                storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),
-                storedObject.getReferenceStatus(), storedObject.getCreatedAt());
+                storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus().value(),
+                storedObject.getReferenceStatus().value(), storedObject.getCreatedAt());
     }
 }

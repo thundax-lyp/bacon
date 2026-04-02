@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.persistence.dataobject;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -17,8 +18,8 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_upms_user_identity")
 public class UserIdentityDO {
 
-    @TableId(type = IdType.AUTO)
-    private Long id;
+    @TableId(type = IdType.INPUT)
+    private UserIdentityId id;
     @TableField("tenant_id")
     private TenantId tenantId;
     @TableField("user_id")

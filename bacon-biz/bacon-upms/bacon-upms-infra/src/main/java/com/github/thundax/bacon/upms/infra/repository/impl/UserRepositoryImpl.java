@@ -166,14 +166,15 @@ public class UserRepositoryImpl implements UserRepository {
 
     private UserIdentity replaceAccountIdentity(User user) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), "ACCOUNT");
-        return support.saveUserIdentity(new UserIdentity(null, user.getTenantId(), user.getId(), "ACCOUNT",
+        return support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(), "ACCOUNT",
                 user.getAccount(), true));
     }
 
     private void replacePhoneIdentity(User user) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), "PHONE");
         if (user.getPhone() != null && !user.getPhone().isBlank()) {
-            support.saveUserIdentity(new UserIdentity(null, user.getTenantId(), user.getId(), "PHONE", user.getPhone(), true));
+            support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(), "PHONE",
+                    user.getPhone(), true));
         }
     }
 

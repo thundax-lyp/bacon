@@ -141,7 +141,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     UserIdentity saveUserIdentity(UserIdentity userIdentity) {
         UserIdentityDO dataObject = toDataObject(userIdentity);
         LocalDateTime now = LocalDateTime.now();
-        if (dataObject.getId() == null) {
+        if (dataObject.getId() == null || userIdentityMapper.selectById(dataObject.getId()) == null) {
             dataObject.setCreatedAt(now);
             dataObject.setUpdatedAt(now);
             userIdentityMapper.insert(dataObject);

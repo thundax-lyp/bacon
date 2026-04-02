@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
@@ -176,8 +177,8 @@ class UserApplicationServiceTest {
         User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
-        UserIdentity accountIdentity = new UserIdentity(201L, TENANT_ID, UserId.of("U101"), "ACCOUNT", "alice", true);
-        UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"), 201L, "PASSWORD", "PRIMARY",
+        UserIdentity accountIdentity = new UserIdentity(UserIdentityId.of("I201"), TENANT_ID, UserId.of("U101"), "ACCOUNT", "alice", true);
+        UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"), UserIdentityId.of("I201"), "PASSWORD", "PRIMARY",
                 "{noop}identity", UserCredentialStatus.ACTIVE, true, 0, 5, null, null, null, null);
         when(tenantRepository.findTenantByTenantId(TENANT_ID))
                 .thenReturn(Optional.of(new Tenant("tenant-demo", "Demo Tenant", "TENANT_DEMO",
@@ -200,7 +201,7 @@ class UserApplicationServiceTest {
         User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
-        UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"), 201L, "PASSWORD", "PRIMARY",
+        UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"), UserIdentityId.of("I201"), "PASSWORD", "PRIMARY",
                 "{noop}identity", UserCredentialStatus.ACTIVE, false, 0, 5, null, null, null, null);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
         when(userRepository.findUserCredential(TENANT_ID, UserId.of("U101"), "PASSWORD")).thenReturn(Optional.of(passwordCredential));

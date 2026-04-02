@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import java.time.Instant;
 import lombok.Getter;
@@ -20,7 +21,7 @@ public class UserCredential {
     /** 关联用户主键。 */
     private UserId userId;
     /** 关联身份标识主键。 */
-    private Long identityId;
+    private UserIdentityId identityId;
     /** 凭据类型。 */
     private String credentialType;
     /** 因子等级。 */
@@ -52,7 +53,7 @@ public class UserCredential {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, Long identityId, String credentialType,
+    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, UserIdentityId identityId, String credentialType,
                           String factorLevel, String credentialValue, UserCredentialStatus status, boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
                           Instant expiresAt, Instant lastVerifiedAt) {
@@ -61,7 +62,7 @@ public class UserCredential {
                 lastVerifiedAt, null, null, null, null);
     }
 
-    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, Long identityId, String credentialType,
+    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, UserIdentityId identityId, String credentialType,
                           String factorLevel, String credentialValue, UserCredentialStatus status, boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
                           Instant expiresAt, Instant lastVerifiedAt, String createdBy,

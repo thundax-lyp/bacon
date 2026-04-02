@@ -68,6 +68,7 @@
 
 - `DepartmentId`
 - `UserId`
+- `UserIdentityId`
 - `RoleId`
 - `TenantId`
 - `OrderId`
@@ -89,6 +90,7 @@
 - 具体 ID 在创建时必须完成空值、类型和值域校验
 - 文本型 ID 的底层值不得为空白字符串
 - `UserId` 固定使用 `String`
+- `UserIdentityId` 固定使用 `String`
 - `TenantId` 固定承载租户领域主标识，例如 `T001`
 - `RoleId`、`SkuId`、`OrderId` 可承载字符串型或数值型值，但一个具体类型只能固定一种底层值类型
 - `BaseId<T>` 不得直接依赖 `MyBatis`、`JPA`、`Spring MVC`
@@ -126,6 +128,7 @@ OrderId orderId = ids.orderId();
 固定方法风格：
 
 - `ids.userId()`
+- `ids.userIdentityId()`
 - `ids.roleId()`
 - `ids.orderId()`
 - `ids.skuId()`

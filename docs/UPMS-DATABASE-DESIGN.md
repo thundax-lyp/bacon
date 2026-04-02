@@ -232,7 +232,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `varchar(64)` | N | 主键，固定使用 `DepartmentId` |
+| `id` | `varchar(64)` | N | 主键，固定使用 `UserIdentityId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
 | `identity_type` | `varchar(16)` | N | 标识类型，取值见 `identity_type` |
@@ -265,7 +265,7 @@
 | `id` | `varchar(64)` | N | 主键，固定使用 `UserCredentialId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `user_id` | `varchar(64)` | N | 用户主键，引用 `bacon_upms_user.id` |
-| `identity_id` | `bigint` | Y | 关联身份标识主键；社交登录可为空 |
+| `identity_id` | `varchar(64)` | Y | 关联身份标识主键，固定承载 `UserIdentityId`；社交登录可为空 |
 | `credential_type` | `varchar(32)` | N | 凭据类型，取值见 `credential_type` |
 | `factor_level` | `varchar(16)` | N | 因子级别，取值见 `factor_level` |
 | `credential_value` | `varchar(1024)` | N | 凭据值；`PASSWORD` 固定保存 `BCrypt` 哈希，`TOTP` 固定保存加密后的密钥材料 |

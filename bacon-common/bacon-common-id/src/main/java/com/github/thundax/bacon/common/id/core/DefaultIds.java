@@ -9,6 +9,7 @@ import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 
 public class DefaultIds implements Ids {
 
@@ -18,6 +19,7 @@ public class DefaultIds implements Ids {
     private static final String RESOURCE_ID_BIZ_TAG = "resource-id";
     private static final String USER_CREDENTIAL_ID_BIZ_TAG = "user-credential-id";
     private static final String USER_ID_BIZ_TAG = "user-id";
+    private static final String USER_IDENTITY_ID_BIZ_TAG = "user-identity-id";
     private static final String ROLE_ID_BIZ_TAG = "role-id";
     private static final String ORDER_ID_BIZ_TAG = "order-id";
     private static final String SKU_ID_BIZ_TAG = "sku-id";
@@ -56,6 +58,11 @@ public class DefaultIds implements Ids {
     @Override
     public UserId userId() {
         return UserId.of("U" + idGenerator.nextId(USER_ID_BIZ_TAG));
+    }
+
+    @Override
+    public UserIdentityId userIdentityId() {
+        return UserIdentityId.of("I" + idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG));
     }
 
     @Override

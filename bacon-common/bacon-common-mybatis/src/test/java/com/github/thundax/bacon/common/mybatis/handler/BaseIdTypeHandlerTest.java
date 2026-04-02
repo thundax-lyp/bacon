@@ -3,6 +3,7 @@ package com.github.thundax.bacon.common.mybatis.handler;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -54,6 +55,14 @@ class BaseIdTypeHandlerTest {
         ResultSet resultSet = resultSet(Map.of("tenant_id", "T001"));
 
         assertThat(handler.getNullableResult(resultSet, "tenant_id")).isEqualTo(TenantId.of("T001"));
+    }
+
+    @Test
+    void shouldReadUserIdentityIdentifierFromResultSet() throws Exception {
+        UserIdentityIdTypeHandler handler = new UserIdentityIdTypeHandler();
+        ResultSet resultSet = resultSet(Map.of("identity_id", "I1001"));
+
+        assertThat(handler.getNullableResult(resultSet, "identity_id")).isEqualTo(UserIdentityId.of("I1001"));
     }
 
     @Test

@@ -121,7 +121,7 @@
 | `session_id` | `varchar(64)` | N | 会话业务键，全局唯一 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键，承载 `TenantId` 文本值 |
 | `user_id` | `varchar(64)` | N | 用户主键，承载 `UserId` 文本值 |
-| `identity_id` | `bigint` | N | 身份主键 |
+| `identity_id` | `varchar(64)` | N | 身份主键，承载 `UserIdentityId` 文本值 |
 | `identity_type` | `varchar(16)` | N | 身份类型，取值见 `identity_type` |
 | `login_type` | `varchar(16)` | N | 登录方式，取值见 `login_type` |
 | `session_status` | `varchar(16)` | N | 会话状态，取值见 `session_status` |
@@ -339,7 +339,7 @@
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键，承载 `TenantId` 文本值 |
 | `user_id` | `varchar(64)` | Y | 用户主键；匿名或未定位用户时可为空，承载 `UserId` 文本值 |
-| `identity_id` | `bigint` | Y | 身份主键 |
+| `identity_id` | `varchar(64)` | Y | 身份主键，承载 `UserIdentityId` 文本值 |
 | `identity_type` | `varchar(16)` | Y | 身份类型 |
 | `session_id` | `varchar(64)` | Y | 关联会话业务键 |
 | `client_id` | `varchar(64)` | Y | 关联 OAuth2 客户端标识 |

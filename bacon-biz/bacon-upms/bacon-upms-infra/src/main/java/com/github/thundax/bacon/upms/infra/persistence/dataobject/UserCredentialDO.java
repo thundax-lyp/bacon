@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.persistence.dataobject;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
+import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -25,7 +26,7 @@ public class UserCredentialDO {
     @TableField("user_id")
     private UserId userId;
     @TableField("identity_id")
-    private Long identityId;
+    private UserIdentityId identityId;
     @TableField("credential_type")
     private String credentialType;
     @TableField("factor_level")

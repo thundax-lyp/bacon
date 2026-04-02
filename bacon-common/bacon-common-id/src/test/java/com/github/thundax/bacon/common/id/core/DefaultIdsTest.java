@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -19,15 +20,17 @@ class DefaultIdsTest {
         DefaultIds ids = new DefaultIds(idGenerator);
 
         UserId userId = ids.userId();
+        UserIdentityId userIdentityId = ids.userIdentityId();
         RoleId roleId = ids.roleId();
         OrderId orderId = ids.orderId();
         SkuId skuId = ids.skuId();
 
         assertThat(userId).isEqualTo(UserId.of("U1001"));
-        assertThat(roleId).isEqualTo(RoleId.of("1002"));
-        assertThat(orderId).isEqualTo(OrderId.of(1003L));
-        assertThat(skuId).isEqualTo(SkuId.of(1004L));
-        assertThat(idGenerator.bizTags).containsExactly("user-id", "role-id", "order-id", "sku-id");
+        assertThat(userIdentityId).isEqualTo(UserIdentityId.of("I1002"));
+        assertThat(roleId).isEqualTo(RoleId.of("1003"));
+        assertThat(orderId).isEqualTo(OrderId.of(1004L));
+        assertThat(skuId).isEqualTo(SkuId.of(1005L));
+        assertThat(idGenerator.bizTags).containsExactly("user-id", "user-identity-id", "role-id", "order-id", "sku-id");
     }
 
     private static final class RecordingIdGenerator implements IdGenerator {

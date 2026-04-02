@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -13,7 +14,7 @@ import java.time.Instant;
 public class UserIdentity {
 
     /** 身份标识主键。 */
-    private Long id;
+    private UserIdentityId id;
     /** 所属租户主键。 */
     private TenantId tenantId;
     /** 关联用户主键。 */
@@ -33,12 +34,12 @@ public class UserIdentity {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserIdentity(Long id, TenantId tenantId, UserId userId, String identityType,
+    public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, String identityType,
                         String identityValue, boolean enabled) {
         this(id, tenantId, userId, identityType, identityValue, enabled, null, null, null, null);
     }
 
-    public UserIdentity(Long id, TenantId tenantId, UserId userId, String identityType,
+    public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, String identityType,
                         String identityValue, boolean enabled, String createdBy, Instant createdAt,
                         String updatedBy, Instant updatedAt) {
         this.id = id;

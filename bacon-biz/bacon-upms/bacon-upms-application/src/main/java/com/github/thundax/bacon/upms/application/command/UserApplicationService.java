@@ -81,7 +81,8 @@ public class UserApplicationService {
     public UserIdentityDTO getUserIdentity(TenantId tenantId, String identityType, String identityValue) {
         UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, identityType, identityValue)
                 .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
-        return new UserIdentityDTO(userIdentity.getId(), userIdentity.getTenantId().value(),
+        return new UserIdentityDTO(userIdentity.getId() == null ? null : userIdentity.getId().value(),
+                userIdentity.getTenantId().value(),
                 userIdentity.getUserId().value(),
                 userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled());
     }

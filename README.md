@@ -1,14 +1,30 @@
 # Bacon
 
-面向企业级场景的后端业务平台，支持 `mono` 与 `micro` 双运行模式。
+面向企业级场景的后端业务平台。
 
-一个以 `AI-native engineering workflow` 为核心方法构建的后端工程样本：需求、设计、实现与文档在同一条智能协作链路中持续生成、校准与收敛。
+> 仓库中的全部文档与代码均由 AI 生成，并在统一约束下持续迭代，覆盖业务建模、架构设计、数据库设计与交付实现。
+
+## Highlights
+
+- `Runtime:` 支持 `mono` 与 `micro` 双运行模式，业务模块只维护一份核心实现
+- `Architecture:` 采用 `api / interfaces / application / domain / infra` 五层结构
+- `Docs:` 需求、数据库、架构、上线准备与代码保持同步收敛
+- `Harness:` 面向 `harness` 执行方式设计最小上下文加载协议
+- `Delivery:` 强调幂等、补偿、重试、数据库设计与发布准备
 
 ## 项目概览
 
-`Bacon` 是一个基于 `Java 17`、`Spring Boot 3.5`、`Spring Cloud 2025`、`Spring Cloud Alibaba 2025` 的 Maven 多模块工程。
+技术栈：
 
-当前核心业务域：
+- `Java 17`
+- `Spring Boot 3.5`
+- `Spring Cloud 2025`
+- `Spring Cloud Alibaba 2025`
+- `MyBatis-Plus`
+- `Redis / JetCache`
+- `RocketMQ`
+
+核心业务域：
 
 - `Auth`：认证、会话、OAuth2
 - `UPMS`：用户、租户、组织、角色、菜单、资源、数据权限
@@ -16,13 +32,6 @@
 - `Inventory`：库存查询、预占、释放、扣减、审计
 - `Payment`：支付单、回调、关单、状态查询
 - `Storage`：统一存储对象、上传、引用、访问地址
-
-这个仓库关注的不是单点功能堆砌，而是完整的工程表达：
-
-- 清晰的分层与模块边界
-- 可以同时支撑 `mono` 与 `micro` 的装配方式
-- 需求、数据库、架构、上线准备的文档化治理
-- 面向 AI / harness 的最小上下文加载协议
 
 ## 仓库结构
 
@@ -65,18 +74,14 @@ bacon
 
 ## Engineering Style
 
-这个仓库采用“文档先行、约束显式、结构优先”的工程风格：
-
-- 需求文档、数据库设计、架构约束与代码保持同步演进
-- AI 执行链路不依赖全仓扫描，而依赖最小上下文加载
-- 规则、实现、脚本和运行准备保持同源收敛
+- 文档先行，约束显式，结构优先
+- 智能协作执行链路不依赖全仓扫描，而依赖最小上下文加载
+- 规则、实现、脚本与运行准备保持同源收敛
 - 目标不是展示框架堆叠，而是展示可持续维护的工程组织能力
 
-## 规格说明
+## Docs Layout
 
 `docs/` 目录主要服务 harness / AI 执行链路，不作为人类主阅读入口。
-
-其中：
 
 - `docs/AGENT.md`：AI 文档加载协议
 - `docs/00-governance`：架构与工程级规则
@@ -85,7 +90,9 @@ bacon
 - `docs/30-designs`：专项方案与路线图
 - `docs/40-readiness`：上线准备与运行手册
 
-## 本地构建
+## Quick Start
+
+### Build
 
 在仓库根目录执行：
 
@@ -101,7 +108,7 @@ mvn checkstyle:check
 mvn -pl bacon-app/bacon-order-starter -am -DskipTests install
 ```
 
-## 本地运行
+## Run
 
 单体模式：
 
@@ -122,7 +129,7 @@ mvn -pl bacon-app/bacon-order-starter -am -DskipTests install
 mvn -pl bacon-app/bacon-order-starter spring-boot:run
 ```
 
-## 开发规则
+## Development Rules
 
 - 基础包名：`com.github.thundax.bacon`
 - Java、XML、YAML 统一使用 4 空格缩进
@@ -132,22 +139,16 @@ mvn -pl bacon-app/bacon-order-starter spring-boot:run
 - 领域对象、业务单号、数据库主键必须分开建模
 - 文档、代码、数据库结构必须同步演进
 
-## 常用文档
+## Key Docs
 
-- [docs/00-governance/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)
 - [docs/AGENT.md](/Volumes/storage/workspace/bacon/docs/AGENT.md)
+- [docs/00-governance/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)
 - [docs/10-requirements/AUTH-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/AUTH-REQUIREMENTS.md)
 - [docs/10-requirements/UPMS-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/UPMS-REQUIREMENTS.md)
 - [docs/10-requirements/ORDER-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/ORDER-REQUIREMENTS.md)
 - [docs/10-requirements/INVENTORY-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/INVENTORY-REQUIREMENTS.md)
 - [docs/10-requirements/PAYMENT-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/PAYMENT-REQUIREMENTS.md)
 - [docs/10-requirements/STORAGE-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/STORAGE-REQUIREMENTS.md)
-
-## Project Positioning
-
-`Bacon` 不是传统意义上的示例仓库，也不是单纯的脚手架演示。
-
-它更接近一个可持续演进的 `AI-first` 工程基座：让业务建模、架构约束、数据库设计、交付规范与实现过程在同一套语义系统中保持一致。
 
 ## License
 

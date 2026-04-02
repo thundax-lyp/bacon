@@ -203,7 +203,7 @@
 ### 9.3 Documentation Requirements
 
 - 所有新增规则必须写入 `docs`
-- `docs/00-governance/README.md` 必须能索引到本路线图
+- `docs/AGENT.md` 必须能索引到本路线图
 - 部署、告警、运行手册必须能独立阅读，不依赖代码上下文猜测
 
 ## 10. Open Items

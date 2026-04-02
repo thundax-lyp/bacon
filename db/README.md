@@ -25,7 +25,7 @@
 
 阅读数据库脚本前，固定先看以下文档：
 
-1. [docs/00-governance/README.md](/Volumes/storage/workspace/bacon/docs/00-governance/README.md)
+1. [docs/AGENT.md](/Volumes/storage/workspace/bacon/docs/AGENT.md)
 2. [docs/00-governance/DATABASE-RULES.md](/Volumes/storage/workspace/bacon/docs/00-governance/DATABASE-RULES.md)
 3. 对应业务域数据库设计文档，位于 `docs/20-database`
 

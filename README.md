@@ -24,7 +24,8 @@ bacon
 ├── bacon-common/               # 公共能力模块
 ├── deploy/                     # 部署样例与脚本
 └── docs/
-    ├── 00-governance/          # 架构、规则、文档入口
+    ├── AGENT.md                # harness / AI 文档加载入口
+    ├── 00-governance/          # 架构与全局规则
     ├── 10-requirements/        # 业务需求
     ├── 20-database/            # 数据库设计
     ├── 30-designs/             # 专项设计与路线图
@@ -53,38 +54,18 @@ bacon
 
 更多细节见 [ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)。
 
-## 文档导航
+## 规格说明
 
-给人读的推荐顺序：
+`docs/` 目录主要服务 harness / AI 执行链路，不作为人类主阅读入口。
 
-1. 先看 [docs/00-governance/README.md](/Volumes/storage/workspace/bacon/docs/00-governance/README.md)
-2. 再看 [docs/00-governance/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)
-3. 然后按场景进入对应目录
+其中：
 
-按场景找文档：
-
-- 工程规则与总索引：`docs/00-governance`
-- 业务需求：`docs/10-requirements`
-- 数据库设计：`docs/20-database`
-- 专项设计与路线图：`docs/30-designs`
-- 上线准备与运行手册：`docs/40-readiness`
-
-## 实现前阅读路径
-
-开始任何实现前，先读：
-
-1. [docs/00-governance/README.md](/Volumes/storage/workspace/bacon/docs/00-governance/README.md)
-2. [docs/00-governance/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)
-3. 对应业务域 `*-REQUIREMENTS.md`
-
-涉及数据库设计时，继续读：
-
-1. [docs/00-governance/DATABASE-RULES.md](/Volumes/storage/workspace/bacon/docs/00-governance/DATABASE-RULES.md)
-2. 对应业务域 `*-DATABASE-DESIGN.md`
-
-统一 ID 建模见：
-
-- [docs/00-governance/UNIFIED-ID-DESIGN.md](/Volumes/storage/workspace/bacon/docs/00-governance/UNIFIED-ID-DESIGN.md)
+- `docs/AGENT.md`：AI 文档加载协议
+- `docs/00-governance`：架构与工程级规则
+- `docs/10-requirements`：业务需求
+- `docs/20-database`：数据库设计
+- `docs/30-designs`：专项方案与路线图
+- `docs/40-readiness`：上线准备与运行手册
 
 ## 本地构建
 
@@ -136,7 +117,7 @@ mvn -pl bacon-app/bacon-order-starter spring-boot:run
 ## 常用文档
 
 - [docs/00-governance/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)
-- [docs/00-governance/README.md](/Volumes/storage/workspace/bacon/docs/00-governance/README.md)
+- [docs/AGENT.md](/Volumes/storage/workspace/bacon/docs/AGENT.md)
 - [docs/10-requirements/AUTH-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/AUTH-REQUIREMENTS.md)
 - [docs/10-requirements/UPMS-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/UPMS-REQUIREMENTS.md)
 - [docs/10-requirements/ORDER-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/ORDER-REQUIREMENTS.md)

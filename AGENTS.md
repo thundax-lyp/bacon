@@ -2,8 +2,8 @@
 
 ## Basic Rules
 
-- Read `docs/00-governance/README.md` first.
-- Follow `docs/00-governance/README.md` to load only the minimum required docs.
+- Read `docs/AGENT.md` first.
+- Follow `docs/AGENT.md` to load only the minimum required docs.
 - Read `docs/00-governance/ARCHITECTURE.md` before implementation work.
 - Do not use repository root `README.md` as implementation authority; it is a human overview, not the source of engineering rules.
 - Prefer the simplest workable solution.
@@ -16,7 +16,8 @@ This repository is a Maven multi-module Java 17 project rooted at `pom.xml`.
 - `bacon-app/`: runnable entry modules such as `bacon-mono-boot`, `bacon-gateway`, `bacon-register`, and service starters.
 - `bacon-biz/`: business domains such as `bacon-order`, `bacon-upms`, `bacon-inventory`, and `bacon-payment`.
 - `bacon-common/`: shared platform modules.
-- `docs/00-governance/`: rules, architecture, and global doc indexes.
+- `docs/AGENT.md`: AI-only docs loading guide.
+- `docs/00-governance/`: rules and architecture.
 - `docs/10-requirements/`: domain requirement docs.
 - `docs/20-database/`: database design docs.
 - `docs/30-designs/`: cross-cutting design and roadmap docs.

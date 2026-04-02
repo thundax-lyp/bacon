@@ -31,6 +31,8 @@ public class PaymentCallbackApplicationService {
         this.orderCommandFacade = orderCommandFacade;
     }
 
+    // Do not wrap the whole callback in one transaction: downstream order orchestration may fail,
+    // but callback evidence and local payment state still need to be retained.
     public void callbackPaid(String channelCode, Long tenantId, String paymentNo, String channelTransactionNo,
                              String channelStatus, String rawPayload) {
         validateChannel(channelCode);

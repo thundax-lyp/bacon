@@ -7,6 +7,7 @@ import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Set;
@@ -24,6 +25,7 @@ public class PaymentCloseApplicationService {
         this.paymentOperationLogSupport = paymentOperationLogSupport;
     }
 
+    @Transactional
     public PaymentCloseResultDTO closePayment(Long tenantId, String paymentNo, String reason) {
         if (!VALID_REASONS.contains(reason)) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_CLOSE_REASON, reason);

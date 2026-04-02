@@ -7,7 +7,6 @@ import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
-import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,13 +18,10 @@ public class MenuApplicationService {
 
     private final MenuRepository menuRepository;
     private final PermissionRepository permissionRepository;
-    private final TenantRepository tenantRepository;
 
-    public MenuApplicationService(MenuRepository menuRepository, PermissionRepository permissionRepository,
-                                  TenantRepository tenantRepository) {
+    public MenuApplicationService(MenuRepository menuRepository, PermissionRepository permissionRepository) {
         this.menuRepository = menuRepository;
         this.permissionRepository = permissionRepository;
-        this.tenantRepository = tenantRepository;
     }
 
     public List<UserMenuTreeDTO> toMenuTree(List<Menu> menus) {

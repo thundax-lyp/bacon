@@ -234,7 +234,7 @@ Auth 是 Bacon 的统一认证与会话业务域。
 
 ## 5.1 Fixed Enums
 
-- `identityType` 固定为 `ACCOUNT`、`PHONE`、`GITHUB`、`WECHAT`、`WECOM`
+- `identityType` 固定为 `ACCOUNT`、`EMAIL`、`PHONE`、`GITHUB`、`WECHAT`、`WECOM`
 - `loginType` 固定为 `PASSWORD`、`SMS`、`WECHAT`、`WECOM`、`GITHUB`
 - `secondFactorType` 固定为 `TOTP`
 - `sessionStatus` 固定为 `ACTIVE`、`LOGGED_OUT`、`INVALIDATED`、`EXPIRED`

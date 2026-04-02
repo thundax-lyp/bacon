@@ -58,7 +58,7 @@
 
 ### 5.1 Fixed Enums
 
-- `identity_type`: `ACCOUNT`、`PHONE`、`WECOM`、`GITHUB`
+- `identity_type`: `ACCOUNT`、`EMAIL`、`PHONE`、`WECOM`、`GITHUB`
 - `login_type`: `PASSWORD`、`SMS`、`WECOM`、`GITHUB`
 - `session_status`: `ACTIVE`、`LOGGED_OUT`、`INVALIDATED`、`EXPIRED`
 - `token_status`: `ACTIVE`、`USED`、`INVALIDATED`、`EXPIRED`

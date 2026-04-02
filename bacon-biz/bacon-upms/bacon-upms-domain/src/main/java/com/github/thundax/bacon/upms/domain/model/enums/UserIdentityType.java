@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.domain.model.enums;
 public enum UserIdentityType {
 
     ACCOUNT,
+    EMAIL,
     PHONE,
     GITHUB,
     WECHAT,

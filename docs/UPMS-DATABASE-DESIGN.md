@@ -77,7 +77,7 @@
 ### 5.1 Fixed Enums
 
 - `status`: `ENABLED`、`DISABLED`
-- `identity_type`: `ACCOUNT`、`PHONE`、`GITHUB`、`WECHAT`、`WECOM`
+- `identity_type`: `ACCOUNT`、`EMAIL`、`PHONE`、`GITHUB`、`WECHAT`、`WECOM`
 - `credential_type`: `PASSWORD`、`TOTP`
 - `credential_status`: `ACTIVE`、`LOCKED`、`EXPIRED`、`DISABLED`
 - `factor_level`: `PRIMARY`、`SECONDARY`

@@ -67,6 +67,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public Optional<UserIdentity> findUserIdentityByUserId(TenantId tenantId, UserId userId, UserIdentityType identityType) {
+        return support.findUserIdentityByUserId(tenantId, userId, identityType);
+    }
+
+    @Override
     public Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, UserCredentialType credentialType) {
         return support.findUserCredential(tenantId, userId, credentialType);
     }
@@ -88,13 +93,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User save(User user) {
+    public User save(User user, String account, String phone) {
         boolean newUser = user.getId() == null;
         User savedUser = user.getId() == null ? createUser(user) : updateUser(user);
         savedUser = support.saveUser(savedUser);
-        UserIdentity accountIdentity = replaceAccountIdentity(savedUser);
+        UserIdentity accountIdentity = replaceAccountIdentity(savedUser, account);
         upsertPasswordCredential(savedUser, accountIdentity, resolvePasswordHash(savedUser, newUser), newUser, false);
-        replacePhoneIdentity(savedUser);
+        replacePhoneIdentity(savedUser, phone);
         return savedUser;
     }
 
@@ -105,10 +110,8 @@ public class UserRepositoryImpl implements UserRepository {
         User updatedUser = new User(
                 currentUser.getId(),
                 currentUser.getTenantId(),
-                currentUser.getAccount(),
                 currentUser.getName(),
                 currentUser.getAvatarObjectId(),
-                currentUser.getPhone(),
                 currentUser.getDepartmentId(),
                 currentUser.getStatus(),
                 currentUser.getCreatedBy(),
@@ -116,7 +119,7 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getUpdatedBy(),
                 currentUser.getUpdatedAt());
         User savedUser = support.saveUser(updatedUser);
-        UserIdentity accountIdentity = replaceAccountIdentity(savedUser);
+        UserIdentity accountIdentity = requireUserIdentity(tenantId, userId, UserIdentityType.ACCOUNT);
         upsertPasswordCredential(savedUser, accountIdentity, passwordEncoder.encode(password), false, needChangePassword);
         return savedUser;
     }
@@ -142,8 +145,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private User createUser(User user) {
-        return new User(ids.userId(), user.getTenantId(), user.getAccount(), user.getName(), user.getAvatarObjectId(),
-                user.getPhone(), user.getDepartmentId(),
+        return new User(ids.userId(), user.getTenantId(), user.getName(), user.getAvatarObjectId(),
+                user.getDepartmentId(),
                 user.getStatus());
     }
 
@@ -153,10 +156,8 @@ public class UserRepositoryImpl implements UserRepository {
         return new User(
                 currentUser.getId(),
                 user.getTenantId(),
-                user.getAccount(),
                 user.getName(),
                 user.getAvatarObjectId(),
-                user.getPhone(),
                 user.getDepartmentId(),
                 user.getStatus(),
                 currentUser.getCreatedBy(),
@@ -165,18 +166,30 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getUpdatedAt());
     }
 
-    private UserIdentity replaceAccountIdentity(User user) {
+    private UserIdentity replaceAccountIdentity(User user, String account) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
         return support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
-                UserIdentityType.ACCOUNT, user.getAccount(), true));
+                UserIdentityType.ACCOUNT, requireIdentityValue(account, UserIdentityType.ACCOUNT), true));
     }
 
-    private void replacePhoneIdentity(User user) {
+    private void replacePhoneIdentity(User user, String phone) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
-        if (user.getPhone() != null && !user.getPhone().isBlank()) {
+        if (phone != null && !phone.isBlank()) {
             support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
-                    UserIdentityType.PHONE, user.getPhone(), true));
+                    UserIdentityType.PHONE, phone.trim(), true));
         }
+    }
+
+    private UserIdentity requireUserIdentity(TenantId tenantId, UserId userId, UserIdentityType identityType) {
+        return support.findUserIdentityByUserId(tenantId, userId, identityType)
+                .orElseThrow(() -> new IllegalArgumentException("User identity not found: " + userId + "/" + identityType.value()));
+    }
+
+    private String requireIdentityValue(String identityValue, UserIdentityType identityType) {
+        if (identityValue == null || identityValue.isBlank()) {
+            throw new IllegalArgumentException(identityType.value() + " identity must not be blank");
+        }
+        return identityValue.trim();
     }
 
     private String resolvePasswordHash(User user, boolean newUser) {

@@ -15,10 +15,8 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_tenant` (
 CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
     `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
-    `account` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
     `avatar_object_id` bigint DEFAULT NULL,
-    `phone` varchar(32) DEFAULT NULL,
     `department_id` varchar(64) DEFAULT NULL,
     `status` varchar(16) NOT NULL,
     `deleted` tinyint(1) NOT NULL,
@@ -27,7 +25,6 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
     `updated_by` varchar(64) DEFAULT NULL,
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_account` (`account`),
     KEY `idx_tenant_department_status` (`tenant_id`, `department_id`, `status`),
     KEY `idx_avatar_object_id` (`avatar_object_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -22,14 +22,10 @@ public class UserDO {
     private UserId id;
     @TableField("tenant_id")
     private TenantId tenantId;
-    @TableField("account")
-    private String account;
     @TableField("name")
     private String name;
     @TableField("avatar_object_id")
     private Long avatarObjectId;
-    @TableField("phone")
-    private String phone;
     @TableField("department_id")
     private DepartmentId departmentId;
     @TableField("status")

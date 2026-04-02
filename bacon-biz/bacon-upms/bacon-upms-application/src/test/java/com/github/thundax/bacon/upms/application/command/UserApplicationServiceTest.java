@@ -77,10 +77,10 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldUploadAvatarToStorageAndReplaceOldReference() throws Exception {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 301L, "13800000001",
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "Alice", 301L,
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
-        User savedUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 401L, "13800000001",
+        User savedUser = new User(UserId.of("U101"), TENANT_ID, "Alice", 401L,
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
@@ -88,14 +88,17 @@ class UserApplicationServiceTest {
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
 
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(currentUser));
+        mockIdentity(UserId.of("U101"), UserIdentityType.ACCOUNT, "alice");
+        mockIdentity(UserId.of("U101"), UserIdentityType.PHONE, "13800000001");
         when(storedObjectFacade.uploadObject(any())).thenReturn(storedObject);
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(userRepository.save(any(User.class), any(), any())).thenReturn(savedUser);
 
         UserDTO result = service.updateAvatar(TENANT_ID, "U101", "avatar.png", "image/png", 1024L,
                 new ByteArrayInputStream(createImageBytes("png", 256, 256)));
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository).save(userCaptor.capture());
+        verify(userRepository).save(userCaptor.capture(), org.mockito.ArgumentMatchers.eq("alice"),
+                org.mockito.ArgumentMatchers.eq("13800000001"));
         verify(storedObjectFacade).markObjectReferenced(401L, "UPMS_USER_AVATAR", "U101");
         verify(storedObjectFacade).clearObjectReference(301L, "UPMS_USER_AVATAR", "U101");
         assertThat(userCaptor.getValue().getAvatarObjectId()).isEqualTo(401L);
@@ -106,7 +109,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldRejectUnsupportedAvatarContentType() {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001",
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "Alice", null,
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(currentUser));
@@ -119,7 +122,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldRejectNonSquareAvatarImage() throws Exception {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001",
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "Alice", null,
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         byte[] bytes = createImageBytes("png", 256, 180);
@@ -133,11 +136,13 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001",
+        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", 501L,
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.pageUsers(TENANT_ID, null, null, null, null, 1, 20)).thenReturn(List.of(user));
         when(userRepository.countUsers(TENANT_ID, null, null, null, null)).thenReturn(1L);
+        mockIdentity(UserId.of("U101"), UserIdentityType.ACCOUNT, "alice");
+        mockIdentity(UserId.of("U101"), UserIdentityType.PHONE, "13800000001");
 
         UserPageResultDTO result = service.pageUsers(new UserPageQueryDTO(TENANT_ID, null, null, null, null, 1, 20));
 
@@ -150,7 +155,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldClearAvatarReferenceWhenDeletingUser() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001",
+        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", 501L,
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
@@ -164,7 +169,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldResolveAvatarAccessUrl() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001",
+        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", 501L,
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
@@ -177,11 +182,13 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldReturnLoginCredentialPasswordFromAccountIdentity() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001",
+        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", null,
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         UserIdentity accountIdentity = new UserIdentity(UserIdentityId.of("I201"), TENANT_ID, UserId.of("U101"),
                 UserIdentityType.ACCOUNT, "alice", true);
+        UserIdentity phoneIdentity = new UserIdentity(UserIdentityId.of("I202"), TENANT_ID, UserId.of("U101"),
+                UserIdentityType.PHONE, "13800000001", true);
         UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"),
                 UserIdentityId.of("I201"), UserCredentialType.PASSWORD, UserCredentialFactorLevel.PRIMARY,
                 "{noop}identity", UserCredentialStatus.ACTIVE, true, 0, 5, null, null, null, null);
@@ -190,6 +197,10 @@ class UserApplicationServiceTest {
                         TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
         when(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice"))
                 .thenReturn(Optional.of(accountIdentity));
+        when(userRepository.findUserIdentityByUserId(TENANT_ID, UserId.of("U101"), UserIdentityType.ACCOUNT))
+                .thenReturn(Optional.of(accountIdentity));
+        when(userRepository.findUserIdentityByUserId(TENANT_ID, UserId.of("U101"), UserIdentityType.PHONE))
+                .thenReturn(Optional.of(phoneIdentity));
         when(userRepository.findUserCredential(TENANT_ID, UserId.of("U101"), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
@@ -205,7 +216,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldValidateOldPasswordAgainstAccountIdentity() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001",
+        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", null,
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"),
@@ -222,6 +233,13 @@ class UserApplicationServiceTest {
         service.changePassword("tenant-demo", "U101", "old-password", "new-password");
 
         verify(userRepository).updatePassword(TENANT_ID, UserId.of("U101"), "new-password", false);
+    }
+
+    private void mockIdentity(UserId userId, UserIdentityType identityType, String identityValue) {
+        when(userRepository.findUserIdentityByUserId(TENANT_ID, userId, identityType))
+                .thenReturn(Optional.of(new UserIdentity(
+                        UserIdentityId.of(identityType == UserIdentityType.ACCOUNT ? "I-ACCOUNT" : "I-PHONE"),
+                        TENANT_ID, userId, identityType, identityValue, true)));
     }
 
     private byte[] createImageBytes(String format, int width, int height) throws Exception {

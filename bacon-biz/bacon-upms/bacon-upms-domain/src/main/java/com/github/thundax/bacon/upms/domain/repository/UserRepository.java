@@ -20,6 +20,8 @@ public interface UserRepository {
 
     Optional<UserIdentity> findUserIdentity(TenantId tenantId, UserIdentityType identityType, String identityValue);
 
+    Optional<UserIdentity> findUserIdentityByUserId(TenantId tenantId, UserId userId, UserIdentityType identityType);
+
     Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, UserCredentialType credentialType);
 
     List<User> pageUsers(TenantId tenantId, String account, String name, String phone, String status, int pageNo, int pageSize);
@@ -28,7 +30,7 @@ public interface UserRepository {
 
     List<User> listUsers(TenantId tenantId, String account, String name, String phone, String status);
 
-    User save(User user);
+    User save(User user, String account, String phone);
 
     User updatePassword(TenantId tenantId, UserId userId, String password, boolean needChangePassword);
 

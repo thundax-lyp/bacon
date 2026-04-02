@@ -100,8 +100,10 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Password credential not found"));
         User user = userRepository.findUserById(userIdentity.getTenantId(), userIdentity.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
+        String account = resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
+        String phone = resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
         return new UserLoginCredentialDTO(user.getTenantId().value(), user.getId().value(),
-                user.getAccount(), user.getPhone(),
+                account, phone,
                 userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
                 passwordCredential.getId() == null ? null : passwordCredential.getId().value(),
                 passwordCredential.getCredentialType().value(), passwordCredential.getStatus().value(),
@@ -138,8 +140,10 @@ public class UserApplicationService {
         validateRequired(account, "account");
         validateRequired(name, "name");
         ensureAccountUnique(tenantId, account, null);
-        User savedUser = userRepository.save(new User(null, tenantId, normalize(account), normalize(name), normalize(phone),
-                toDepartmentId(departmentId), UserStatus.ENABLED));
+        String normalizedAccount = normalize(account);
+        String normalizedPhone = normalize(phone);
+        User savedUser = userRepository.save(new User(null, tenantId, normalize(name), toDepartmentId(departmentId),
+                UserStatus.ENABLED), normalizedAccount, normalizedPhone);
         return toDetailedDto(savedUser);
     }
 
@@ -149,19 +153,19 @@ public class UserApplicationService {
         validateRequired(account, "account");
         validateRequired(name, "name");
         ensureAccountUnique(tenantId, account, domainUserId);
+        String normalizedAccount = normalize(account);
+        String normalizedPhone = normalize(phone);
         User savedUser = userRepository.save(new User(
                 currentUser.getId(),
                 tenantId,
-                normalize(account),
                 normalize(name),
                 currentUser.getAvatarObjectId(),
-                normalize(phone),
                 toDepartmentId(departmentId),
                 currentUser.getStatus(),
                 currentUser.getCreatedBy(),
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),
-                currentUser.getUpdatedAt()));
+                currentUser.getUpdatedAt()), normalizedAccount, normalizedPhone);
         return toDetailedDto(savedUser);
     }
 
@@ -174,16 +178,16 @@ public class UserApplicationService {
         User savedUser = userRepository.save(new User(
                 currentUser.getId(),
                 tenantId,
-                currentUser.getAccount(),
                 currentUser.getName(),
                 currentUser.getAvatarObjectId(),
-                currentUser.getPhone(),
                 currentUser.getDepartmentId(),
                 toDomainStatus(status),
                 currentUser.getCreatedBy(),
                 currentUser.getCreatedAt(),
                 currentUser.getUpdatedBy(),
-                currentUser.getUpdatedAt()));
+                currentUser.getUpdatedAt()),
+                requireIdentityValue(tenantId, currentUser.getId(), UserIdentityType.ACCOUNT),
+                resolveIdentityValue(tenantId, currentUser.getId(), UserIdentityType.PHONE));
         if (UserStatus.DISABLED == savedUser.getStatus()) {
             sessionCommandFacade.invalidateUserSessions(tenantId.value(), userId, "USER_DISABLED");
         }
@@ -291,16 +295,16 @@ public class UserApplicationService {
             User savedUser = userRepository.save(new User(
                     currentUser.getId(),
                     currentUser.getTenantId(),
-                    currentUser.getAccount(),
                     currentUser.getName(),
                     storedObject.getId(),
-                    currentUser.getPhone(),
                     currentUser.getDepartmentId(),
                     currentUser.getStatus(),
                     currentUser.getCreatedBy(),
                     currentUser.getCreatedAt(),
                     currentUser.getUpdatedBy(),
-                    currentUser.getUpdatedAt()));
+                    currentUser.getUpdatedAt()),
+                    requireIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.ACCOUNT),
+                    resolveIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.PHONE));
             if (previousAvatarObjectId != null && !previousAvatarObjectId.equals(storedObject.getId())) {
                 storedObjectFacade.clearObjectReference(previousAvatarObjectId, USER_AVATAR_OWNER_TYPE,
                         userId);
@@ -341,9 +345,23 @@ public class UserApplicationService {
     }
 
     private UserDTO toDto(User user, String avatarUrl, String tenantIdValue) {
-        return new UserDTO(user.getId().value(), tenantIdValue, user.getAccount(), user.getName(),
-                user.getAvatarObjectId(), user.getPhone(),
+        return new UserDTO(user.getId().value(), tenantIdValue,
+                resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT), user.getName(),
+                user.getAvatarObjectId(),
+                resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.PHONE),
                 user.getDepartmentId() == null ? null : user.getDepartmentId().value(), avatarUrl, user.getStatus().value());
+    }
+
+    private String requireIdentityValue(TenantId tenantId, UserId userId, UserIdentityType identityType) {
+        return userRepository.findUserIdentityByUserId(tenantId, userId, identityType)
+                .map(UserIdentity::getIdentityValue)
+                .orElseThrow(() -> new IllegalArgumentException("User identity not found: " + userId + "/" + identityType.value()));
+    }
+
+    private String resolveIdentityValue(TenantId tenantId, UserId userId, UserIdentityType identityType) {
+        return userRepository.findUserIdentityByUserId(tenantId, userId, identityType)
+                .map(UserIdentity::getIdentityValue)
+                .orElse(null);
     }
 
     private DepartmentId toDepartmentId(String departmentId) {

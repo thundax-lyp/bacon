@@ -51,18 +51,17 @@ INSERT INTO `bacon_upms_post` (
     `updated_at` = VALUES(`updated_at`);
 
 INSERT INTO `bacon_upms_user` (
-    `id`, `tenant_id`, `account`, `name`, `avatar_object_id`, `phone`, `department_id`,
+    `id`, `tenant_id`, `name`, `avatar_object_id`, `department_id`,
     `status`, `deleted`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES (
-    '2000001', 'T1000001', 'admin', '系统管理员', NULL, '13800000000', 'D1100002',
+    '2000001', 'T1000001', '系统管理员', NULL, 'D1100002',
     'ENABLED', 0,
     NULL, '2026-03-21 09:03:00.000', '2000001', '2026-03-21 09:03:00.000'
 ) ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`),
     `name` = VALUES(`name`),
     `avatar_object_id` = VALUES(`avatar_object_id`),
-    `phone` = VALUES(`phone`),
     `department_id` = VALUES(`department_id`),
     `status` = VALUES(`status`),
     `deleted` = VALUES(`deleted`),

@@ -121,10 +121,8 @@ class UpmsRepositoryIntegrationTest {
                     CREATE TABLE bacon_upms_user (
                         id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
-                        account varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
                         avatar_object_id bigint NULL,
-                        phone varchar(32) NULL,
                         department_id varchar(64) NULL,
                         status varchar(16) NOT NULL,
                         deleted boolean NOT NULL,
@@ -304,8 +302,8 @@ class UpmsRepositoryIntegrationTest {
                 ResourceType.API, "POST", "/users", ResourceStatus.ENABLED));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
-        User user = userRepository.save(new User(null, TENANT_ID, "alice", "Alice", 901L, "13800000001",
-                childDepartment.getId(), UserStatus.ENABLED));
+        User user = userRepository.save(new User(null, TENANT_ID, "Alice", 901L, childDepartment.getId(), UserStatus.ENABLED),
+                "alice", "13800000001");
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(resource.getCode()));
@@ -348,12 +346,12 @@ class UpmsRepositoryIntegrationTest {
                 ROOT_DEPARTMENT_ID, null, "ACTIVE"));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
-        User createdUser = userRepository.save(new User(null, TENANT_ID, "bob", "Bob", 1001L, "13800000002",
-                department.getId(), UserStatus.ENABLED));
+        User createdUser = userRepository.save(new User(null, TENANT_ID, "Bob", 1001L, department.getId(), UserStatus.ENABLED),
+                "bob", "13800000002");
 
         userRepository.assignRoles(TENANT_ID, createdUser.getId(), List.of(role.getId()));
-        User updatedUser = userRepository.save(new User(createdUser.getId(), TENANT_ID, "bob", "Bob", 1002L, "13900000003",
-                department.getId(), UserStatus.ENABLED));
+        User updatedUser = userRepository.save(new User(createdUser.getId(), TENANT_ID, "Bob", 1002L,
+                department.getId(), UserStatus.ENABLED), "bob", "13900000003");
 
         assertFalse(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000002").isPresent());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13900000003").isPresent());
@@ -375,8 +373,8 @@ class UpmsRepositoryIntegrationTest {
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
         Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
                 ROOT_DEPARTMENT_ID, null, "ACTIVE"));
-        User createdUser = userRepository.save(new User(null, TENANT_ID, "carol", "Carol", null, "13600000001",
-                department.getId(), UserStatus.ENABLED));
+        User createdUser = userRepository.save(new User(null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED),
+                "carol", "13600000001");
 
         String originalPasswordHash = userRepository.findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
@@ -410,8 +408,8 @@ class UpmsRepositoryIntegrationTest {
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(oldResource.getCode()));
         roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
-        User user = userRepository.save(new User(null, TENANT_ID, "manager", "Manager", null, "13700000001",
-                child.getId(), UserStatus.ENABLED));
+        User user = userRepository.save(new User(null, TENANT_ID, "Manager", null, child.getId(), UserStatus.ENABLED),
+                "manager", "13700000001");
         userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));
 
         assertEquals(Set.of("upms:old:view", "upms:old:edit"), permissionRepository.getUserPermissionCodes(TENANT_ID, user.getId()));

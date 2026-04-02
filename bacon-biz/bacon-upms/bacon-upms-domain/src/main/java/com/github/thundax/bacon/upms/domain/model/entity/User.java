@@ -18,14 +18,10 @@ public class User {
     private UserId id;
     /** 所属租户主键。 */
     private TenantId tenantId;
-    /** 登录账号。 */
-    private String account;
     /** 用户名称。 */
     private String name;
     /** 头像对象主键。 */
     private Long avatarObjectId;
-    /** 手机号。 */
-    private String phone;
     /** 所属部门主键。 */
     private DepartmentId departmentId;
     /** 用户状态。 */
@@ -39,33 +35,29 @@ public class User {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public User(UserId id, TenantId tenantId, String account, String name, String phone,
-                DepartmentId departmentId, UserStatus status) {
-        this(id, tenantId, account, name, null, phone, departmentId, status);
+    public User(UserId id, TenantId tenantId, String name, DepartmentId departmentId, UserStatus status) {
+        this(id, tenantId, name, null, departmentId, status);
     }
 
-    public User(UserId id, TenantId tenantId, String account, String name, Long avatarObjectId, String phone,
-                DepartmentId departmentId, UserStatus status) {
-        this(id, tenantId, account, name, avatarObjectId, phone, departmentId, status,
+    public User(UserId id, TenantId tenantId, String name, Long avatarObjectId, DepartmentId departmentId, UserStatus status) {
+        this(id, tenantId, name, avatarObjectId, departmentId, status,
                 null, null, null, null);
     }
 
-    public User(UserId id, TenantId tenantId, String account, String name, String phone,
-                DepartmentId departmentId, UserStatus status, String createdBy, Instant createdAt,
+    public User(UserId id, TenantId tenantId, String name, DepartmentId departmentId, UserStatus status, String createdBy,
+                Instant createdAt,
                 String updatedBy, Instant updatedAt) {
-        this(id, tenantId, account, name, null, phone, departmentId, status,
+        this(id, tenantId, name, null, departmentId, status,
                 createdBy, createdAt, updatedBy, updatedAt);
     }
 
-    public User(UserId id, TenantId tenantId, String account, String name, Long avatarObjectId, String phone,
-                DepartmentId departmentId, UserStatus status, String createdBy,
+    public User(UserId id, TenantId tenantId, String name, Long avatarObjectId, DepartmentId departmentId,
+                UserStatus status, String createdBy,
                 Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
-        this.account = account;
         this.name = name;
         this.avatarObjectId = avatarObjectId;
-        this.phone = phone;
         this.departmentId = departmentId;
         this.status = status;
         this.createdBy = createdBy;

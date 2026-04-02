@@ -48,7 +48,7 @@ INSERT INTO `bacon_auth_session` (
     `identity_type`, `login_type`, `session_status`,
     `issued_at`, `last_access_time`, `expire_at`, `logout_at`, `invalidate_reason`
 ) VALUES (
-    3000051, '8f5b16cf-94d2-4e8a-9d8d-bf41f9f10051', 'T1000001', '2000001', 2100001,
+    3000051, '8f5b16cf-94d2-4e8a-9d8d-bf41f9f10051', 'T1000001', '2000001', 'I2100001',
     'ACCOUNT', 'PASSWORD', 'ACTIVE',
     '2026-03-21 09:05:00.000', '2026-03-21 09:15:00.000', '2026-03-21 09:35:00.000', NULL, NULL
 ) ON DUPLICATE KEY UPDATE
@@ -147,7 +147,7 @@ INSERT INTO `bacon_auth_audit_log` (
     `session_id`, `client_id`, `action_type`, `result_status`,
     `failure_reason`, `request_ip`, `user_agent`, `occurred_at`
 ) VALUES (
-    3000201, 'T1000001', '2000001', 2100001, 'ACCOUNT',
+    3000201, 'T1000001', '2000001', 'I2100001', 'ACCOUNT',
     NULL, 'bacon-admin-web', 'SEED_INIT', 'SUCCESS',
     NULL, '127.0.0.1', 'db-seed', '2026-03-21 09:15:00.000'
 ) ON DUPLICATE KEY UPDATE

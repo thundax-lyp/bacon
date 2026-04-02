@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `bacon_upms_user_identity` (
-    `id` bigint NOT NULL AUTO_INCREMENT,
+    `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `user_id` varchar(64) NOT NULL,
     `identity_type` varchar(16) NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user_credential` (
     `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `user_id` varchar(64) NOT NULL,
-    `identity_id` bigint DEFAULT NULL,
+    `identity_id` varchar(64) DEFAULT NULL,
     `credential_type` varchar(32) NOT NULL,
     `factor_level` varchar(16) NOT NULL,
     `credential_value` varchar(1024) NOT NULL,

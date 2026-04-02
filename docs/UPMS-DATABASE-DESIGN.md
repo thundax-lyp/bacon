@@ -199,9 +199,7 @@
 |----|----|----|----|
 | `id` | `varchar(64)` | N | 用户主键，固定使用 `UserId` |
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
-| `account` | `varchar(64)` | N | 用户账号，全局唯一 |
 | `name` | `varchar(128)` | N | 用户名称 |
-| `phone` | `varchar(32)` | Y | 手机号 |
 | `department_id` | `varchar(64)` | Y | 部门主键，固定使用 `DepartmentId` |
 | `avatar_object_id` | `bigint` | Y | 用户头像对象主键，引用 `Storage` 域 `StoredObject` |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
@@ -214,7 +212,6 @@
 索引与约束：
 
 - `pk(id)`
-- `uk_account(account)`
 - `idx_tenant_department_status(tenant_id, department_id, status)`
 - `idx_avatar_object_id(avatar_object_id)`
 

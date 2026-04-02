@@ -73,11 +73,11 @@ INSERT INTO `bacon_upms_user_identity` (
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES
     (
-        2100001, 'T1000001', '2000001', 'ACCOUNT', 'admin', 1,
+        'I2100001', 'T1000001', '2000001', 'ACCOUNT', 'admin', 1,
         '2000001', '2026-03-21 09:04:00.000', '2000001', '2026-03-21 09:04:00.000'
     ),
     (
-        2100002, 'T1000001', '2000001', 'PHONE', '13800000000', 1,
+        'I2100002', 'T1000001', '2000001', 'PHONE', '13800000000', 1,
         '2000001', '2026-03-21 09:04:30.000', '2000001', '2026-03-21 09:04:30.000'
     )
 ON DUPLICATE KEY UPDATE
@@ -94,7 +94,7 @@ INSERT INTO `bacon_upms_user_credential` (
     `lock_reason`, `locked_until`, `expires_at`, `last_verified_at`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES (
-    'C2200001', 'T1000001', '2000001', 2100001, 'PASSWORD', 'PRIMARY',
+    'C2200001', 'T1000001', '2000001', 'I2100001', 'PASSWORD', 'PRIMARY',
     '$2y$10$yjKSvevJS2WNdyBKKD1EBut7GNXMGCNNJfWpMtS5DILA9.sdEeASG', 'ACTIVE', 0, 0, 5,
     NULL, NULL, '2026-06-19 09:04:00.000', NULL,
     '2000001', '2026-03-21 09:04:00.000', '2000001', '2026-03-21 09:04:00.000'

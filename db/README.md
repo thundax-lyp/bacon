@@ -79,6 +79,7 @@ db/
 ## 6. Seed Data Rules
 
 - 初始化数据使用固定主键和固定业务键
+- `UserIdentityId` 与所有 `identity_id` 引用固定使用字符串值，不使用数据库自增数值
 - 初始化脚本统一使用 `ON DUPLICATE KEY UPDATE`
 - 重复执行脚本时，目标是收敛到固定数据状态
 - 初始化数据中的密码和客户端密钥只提供明文说明，不在表中保存明文

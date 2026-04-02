@@ -8,6 +8,7 @@ import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleDO;
@@ -136,7 +137,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             roleDO.setUpdatedAt(now);
             roleMapper.updateById(roleDO);
         }
-        upsertDataPermissionRule(roleDO.getTenantId(), roleDO.getId(), roleDO.getDataScopeType(), now);
+        upsertDataPermissionRule(roleDO.getTenantId(), roleDO.getId(), RoleDataScopeType.fromValue(roleDO.getDataScopeType()), now);
         return toDomain(roleDO);
     }
 
@@ -250,7 +251,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
     }
 
-    void replaceRoleDataScope(TenantId tenantId, RoleId roleId, String dataScopeType, Collection<DepartmentId> departmentIds) {
+    void replaceRoleDataScope(TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType,
+                              Collection<DepartmentId> departmentIds) {
         LocalDateTime now = LocalDateTime.now();
         upsertDataPermissionRule(tenantId, roleId, dataScopeType, now);
         roleDataScopeRelMapper.delete(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
@@ -270,16 +272,17 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .eq(RoleMenuRelDO::getMenuId, menuId));
     }
 
-    private void upsertDataPermissionRule(TenantId tenantId, RoleId roleId, String dataScopeType, LocalDateTime now) {
+    private void upsertDataPermissionRule(TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType, LocalDateTime now) {
         DataPermissionRuleDO existing = dataPermissionRuleMapper.selectOne(Wrappers.<DataPermissionRuleDO>lambdaQuery()
                 .eq(DataPermissionRuleDO::getTenantId, tenantId)
                 .eq(DataPermissionRuleDO::getRoleId, roleId));
         if (existing == null) {
-            dataPermissionRuleMapper.insert(new DataPermissionRuleDO(null, tenantId, roleId, dataScopeType,
+            dataPermissionRuleMapper.insert(new DataPermissionRuleDO(null, tenantId, roleId,
+                    dataScopeType == null ? null : dataScopeType.value(),
                     null, now, null, now));
             return;
         }
-        existing.setDataScopeType(dataScopeType);
+        existing.setDataScopeType(dataScopeType == null ? null : dataScopeType.value());
         existing.setUpdatedAt(now);
         dataPermissionRuleMapper.updateById(existing);
     }

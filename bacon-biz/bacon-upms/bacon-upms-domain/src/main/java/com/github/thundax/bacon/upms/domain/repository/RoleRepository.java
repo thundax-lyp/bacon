@@ -6,6 +6,8 @@ import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -22,7 +24,7 @@ public interface RoleRepository {
 
     Role save(Role role);
 
-    Role updateStatus(TenantId tenantId, RoleId roleId, String status);
+    Role updateStatus(TenantId tenantId, RoleId roleId, RoleStatus status);
 
     void deleteRole(TenantId tenantId, RoleId roleId);
 
@@ -38,5 +40,5 @@ public interface RoleRepository {
 
     Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, RoleId roleId);
 
-    Set<DepartmentId> assignDataScope(TenantId tenantId, RoleId roleId, String dataScopeType, Set<DepartmentId> departmentIds);
+    Set<DepartmentId> assignDataScope(TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds);
 }

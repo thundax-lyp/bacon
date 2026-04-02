@@ -2,6 +2,9 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -21,11 +24,11 @@ public class Role {
     /** 角色名称。 */
     private String name;
     /** 角色类型。 */
-    private String roleType;
+    private RoleType roleType;
     /** 数据范围类型。 */
-    private String dataScopeType;
+    private RoleDataScopeType dataScopeType;
     /** 角色状态。 */
-    private String status;
+    private RoleStatus status;
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
@@ -35,13 +38,13 @@ public class Role {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Role(RoleId id, TenantId tenantId, String code, String name, String roleType,
-                String dataScopeType, String status) {
+    public Role(RoleId id, TenantId tenantId, String code, String name, RoleType roleType,
+                RoleDataScopeType dataScopeType, RoleStatus status) {
         this(id, tenantId, code, name, roleType, dataScopeType, status, null, null, null, null);
     }
 
-    public Role(RoleId id, TenantId tenantId, String code, String name, String roleType, String dataScopeType,
-                String status, String createdBy, Instant createdAt, String updatedBy,
+    public Role(RoleId id, TenantId tenantId, String code, String name, RoleType roleType, RoleDataScopeType dataScopeType,
+                RoleStatus status, String createdBy, Instant createdAt, String updatedBy,
                 Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;

@@ -16,6 +16,9 @@ import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
@@ -159,14 +162,18 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final RoleDO toDataObject(Role role) {
-        return new RoleDO(role.getId(), role.getTenantId(), role.getCode(), role.getName(), role.getRoleType(),
-                role.getDataScopeType(), role.getStatus(), role.getCreatedBy(), toLocalDateTime(role.getCreatedAt()),
+        return new RoleDO(role.getId(), role.getTenantId(), role.getCode(), role.getName(),
+                role.getRoleType() == null ? null : role.getRoleType().value(),
+                role.getDataScopeType() == null ? null : role.getDataScopeType().value(),
+                role.getStatus() == null ? null : role.getStatus().value(),
+                role.getCreatedBy(), toLocalDateTime(role.getCreatedAt()),
                 role.getUpdatedBy(), toLocalDateTime(role.getUpdatedAt()));
     }
 
     protected final Role toDomain(RoleDO dataObject) {
         return new Role(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
-                dataObject.getRoleType(), dataObject.getDataScopeType(), dataObject.getStatus(), dataObject.getCreatedBy(),
+                RoleType.fromValue(dataObject.getRoleType()), RoleDataScopeType.fromValue(dataObject.getDataScopeType()),
+                RoleStatus.fromValue(dataObject.getStatus()), dataObject.getCreatedBy(),
                 toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 

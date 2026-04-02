@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleDataScopeRelDO;
@@ -65,7 +66,7 @@ class RolePersistenceSupportTest {
         ArgumentCaptor<RoleDataScopeRelDO> relationCaptor = ArgumentCaptor.forClass(RoleDataScopeRelDO.class);
         when(dataPermissionRuleMapper.selectOne(any(Wrapper.class))).thenReturn(null);
 
-        support.replaceRoleDataScope(TENANT_ID, RoleId.of("9"), "CUSTOM",
+        support.replaceRoleDataScope(TENANT_ID, RoleId.of("9"), RoleDataScopeType.CUSTOM,
                 Set.of(DepartmentId.of("D11"), DepartmentId.of("D12")));
 
         verify(dataPermissionRuleMapper).insert(ruleCaptor.capture());

@@ -12,7 +12,11 @@ import com.github.thundax.bacon.upms.api.dto.RolePageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
@@ -67,8 +71,8 @@ public class RoleApplicationService {
         validateRequired(name, "name");
         validateRequired(roleType, "roleType");
         validateRequired(dataScopeType, "dataScopeType");
-        return toDto(roleRepository.save(new Role(null, tenantId, normalize(code), normalize(name), normalize(roleType),
-                normalize(dataScopeType), UpmsStatusEnum.ENABLED.value())));
+        return toDto(roleRepository.save(new Role(null, tenantId, normalize(code), normalize(name), toRoleType(roleType),
+                toRoleDataScopeType(dataScopeType), RoleStatus.ENABLED)));
     }
 
     public RoleDTO updateRole(TenantId tenantId, String roleId, String code, String name, String roleType, String dataScopeType) {
@@ -84,8 +88,8 @@ public class RoleApplicationService {
                 tenantId,
                 normalize(code),
                 normalize(name),
-                normalize(roleType),
-                normalize(dataScopeType),
+                toRoleType(roleType),
+                toRoleDataScopeType(dataScopeType),
                 currentRole.getStatus(),
                 currentRole.getCreatedBy(),
                 currentRole.getCreatedAt(),
@@ -95,7 +99,7 @@ public class RoleApplicationService {
 
     public RoleDTO updateRoleStatus(TenantId tenantId, String roleId, String status) {
         validateRequired(status, "status");
-        return toDto(roleRepository.updateStatus(tenantId, RoleId.of(roleId), normalize(status)));
+        return toDto(roleRepository.updateStatus(tenantId, RoleId.of(roleId), toRoleStatus(status)));
     }
 
     public void deleteRole(TenantId tenantId, String roleId) {
@@ -135,7 +139,8 @@ public class RoleApplicationService {
 
     public Set<DepartmentId> assignDataScope(TenantId tenantId, String roleId, String dataScopeType, Set<String> departmentIds) {
         validateRequired(dataScopeType, "dataScopeType");
-        return roleRepository.assignDataScope(tenantId, RoleId.of(roleId), normalize(dataScopeType), toDepartmentIds(departmentIds));
+        return roleRepository.assignDataScope(tenantId, RoleId.of(roleId), toRoleDataScopeType(dataScopeType),
+                toDepartmentIds(departmentIds));
     }
 
     private RoleDTO toDto(Role role) {
@@ -144,7 +149,9 @@ public class RoleApplicationService {
 
     private RoleDTO toDto(Role role, String tenantIdValue) {
         return new RoleDTO(role.getId() == null ? null : role.getId().value(), tenantIdValue, role.getCode(), role.getName(),
-                role.getRoleType(), role.getDataScopeType(), role.getStatus());
+                role.getRoleType() == null ? null : role.getRoleType().value(),
+                role.getDataScopeType() == null ? null : role.getDataScopeType().value(),
+                role.getStatus() == null ? null : role.getStatus().value());
     }
 
     private void validateRequired(String value, String fieldName) {
@@ -155,6 +162,21 @@ public class RoleApplicationService {
 
     private String normalize(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private RoleType toRoleType(String roleType) {
+        validateRequired(roleType, "roleType");
+        return RoleType.fromValue(normalize(roleType).toUpperCase(Locale.ROOT));
+    }
+
+    private RoleDataScopeType toRoleDataScopeType(String dataScopeType) {
+        validateRequired(dataScopeType, "dataScopeType");
+        return RoleDataScopeType.fromValue(normalize(dataScopeType).toUpperCase(Locale.ROOT));
+    }
+
+    private RoleStatus toRoleStatus(String status) {
+        validateRequired(status, "status");
+        return RoleStatus.fromValue(normalize(status).toUpperCase(Locale.ROOT));
     }
 
     private TenantId requireExistingTenantId(String tenantId) {

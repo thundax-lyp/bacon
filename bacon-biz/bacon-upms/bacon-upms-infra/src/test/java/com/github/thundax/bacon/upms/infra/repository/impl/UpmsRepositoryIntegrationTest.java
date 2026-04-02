@@ -12,6 +12,9 @@ import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
@@ -300,13 +303,15 @@ class UpmsRepositoryIntegrationTest {
         Menu childMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Users", rootMenu.getId(), "/system/users", "UserPage", "user", 2, "upms:user:view", List.of()));
         Resource resource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:user:edit", "Edit User",
                 ResourceType.API, "POST", "/users", ResourceStatus.ENABLED));
-        Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator", "SYSTEM", "SELF", "ACTIVE"));
+        Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator",
+                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
         User user = userRepository.save(new User(null, TENANT_ID, "alice", "Alice", 901L, "13800000001", null,
                 childDepartment.getId(), UserStatus.ENABLED));
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(resource.getCode()));
-        roleRepository.assignDataScope(TENANT_ID, role.getId(), "CUSTOM", Set.of(rootDepartment.getId(), childDepartment.getId()));
+        roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM,
+                Set.of(rootDepartment.getId(), childDepartment.getId()));
         userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));
 
         assertEquals(1, permissionRepository.listMenus(TENANT_ID).size());
@@ -344,7 +349,8 @@ class UpmsRepositoryIntegrationTest {
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
         Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
                 ROOT_DEPARTMENT_ID, null, "ACTIVE"));
-        Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin", "SYSTEM", "SELF", "ACTIVE"));
+        Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin",
+                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
         User createdUser = userRepository.save(new User(null, TENANT_ID, "bob", "Bob", 1001L, "13800000002", null,
                 department.getId(), UserStatus.ENABLED));
 
@@ -402,11 +408,12 @@ class UpmsRepositoryIntegrationTest {
                 ResourceType.API, "POST", "/old", ResourceStatus.ENABLED));
         Resource newResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:new:edit", "New Edit",
                 ResourceType.API, "PUT", "/new", ResourceStatus.ENABLED));
-        Role role = roleRepository.save(new Role(null, TENANT_ID, "MANAGER", "Manager", "SYSTEM", "SELF", "ACTIVE"));
+        Role role = roleRepository.save(new Role(null, TENANT_ID, "MANAGER", "Manager",
+                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(oldMenu.getId()));
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(oldResource.getCode()));
-        roleRepository.assignDataScope(TENANT_ID, role.getId(), "CUSTOM", Set.of(root.getId()));
+        roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
         User user = userRepository.save(new User(null, TENANT_ID, "manager", "Manager", null, "13700000001", null,
                 child.getId(), UserStatus.ENABLED));
@@ -418,7 +425,7 @@ class UpmsRepositoryIntegrationTest {
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(newMenu.getId()));
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(newResource.getCode()));
-        roleRepository.assignDataScope(TENANT_ID, role.getId(), "ALL", Set.of(child.getId()));
+        roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.ALL, Set.of(child.getId()));
 
         assertEquals(Set.of(newMenu.getId()), roleRepository.getAssignedMenus(TENANT_ID, role.getId()));
         assertEquals(Set.of(newResource.getCode()), roleRepository.getAssignedResources(TENANT_ID, role.getId()));

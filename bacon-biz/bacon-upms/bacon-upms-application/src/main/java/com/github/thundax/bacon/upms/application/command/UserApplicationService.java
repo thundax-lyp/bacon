@@ -355,8 +355,9 @@ public class UserApplicationService {
 
     private RoleDTO toRoleDto(Role role, String tenantIdValue) {
         return new RoleDTO(role.getId() == null ? null : role.getId().value(), tenantIdValue, role.getCode(), role.getName(),
-                role.getRoleType(),
-                role.getDataScopeType(), role.getStatus());
+                role.getRoleType() == null ? null : role.getRoleType().value(),
+                role.getDataScopeType() == null ? null : role.getDataScopeType().value(),
+                role.getStatus() == null ? null : role.getStatus().value());
     }
 
     private AvatarImage readAndValidateAvatar(String originalFilename, String contentType, Long size, InputStream inputStream) {

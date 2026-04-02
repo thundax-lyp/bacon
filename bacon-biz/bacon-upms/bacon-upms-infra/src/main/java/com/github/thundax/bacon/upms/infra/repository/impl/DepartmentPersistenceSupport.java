@@ -10,8 +10,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import javax.sql.DataSource;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 

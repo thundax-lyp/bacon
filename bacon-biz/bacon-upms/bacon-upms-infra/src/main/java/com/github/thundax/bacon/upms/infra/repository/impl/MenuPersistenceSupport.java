@@ -8,8 +8,6 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.MenuDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.MenuMapper;
 import java.util.List;
 import java.util.Optional;
-import javax.sql.DataSource;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 

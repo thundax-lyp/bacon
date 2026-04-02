@@ -6,7 +6,6 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageResultDTO;
-import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;

@@ -73,8 +73,8 @@ public class InventoryOperationLogSupport {
     private void saveAuditSafely(InventoryReservation reservation, String actionType, Instant occurredAt) {
         try {
             inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
-                reservation.getOrderNo(), reservation.getReservationNo(), actionType,
-                InventoryAuditLog.OPERATOR_TYPE_SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
+                    reservation.getOrderNo(), reservation.getReservationNo(), actionType,
+                    InventoryAuditLog.OPERATOR_TYPE_SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
             Metrics.counter("bacon.inventory.audit.write.success.total", "actionType", actionType).increment();
         } catch (RuntimeException ex) {
             Metrics.counter("bacon.inventory.audit.write.fail.total", "actionType", actionType).increment();

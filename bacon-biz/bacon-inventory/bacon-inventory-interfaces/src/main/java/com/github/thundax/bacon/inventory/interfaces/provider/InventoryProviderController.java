@@ -4,7 +4,6 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReleaseCommandDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReserveCommandDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;

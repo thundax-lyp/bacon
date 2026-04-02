@@ -2,6 +2,8 @@
 
 面向企业级场景的后端业务平台，支持 `mono` 与 `micro` 双运行模式。
 
+一个以 `AI-native engineering workflow` 为核心方法构建的后端工程样本：需求、设计、实现与文档在同一条智能协作链路中持续生成、校准与收敛。
+
 ## 项目概览
 
 `Bacon` 是一个基于 `Java 17`、`Spring Boot 3.5`、`Spring Cloud 2025`、`Spring Cloud Alibaba 2025` 的 Maven 多模块工程。
@@ -14,6 +16,13 @@
 - `Inventory`：库存查询、预占、释放、扣减、审计
 - `Payment`：支付单、回调、关单、状态查询
 - `Storage`：统一存储对象、上传、引用、访问地址
+
+这个仓库关注的不是单点功能堆砌，而是完整的工程表达：
+
+- 清晰的分层与模块边界
+- 可以同时支撑 `mono` 与 `micro` 的装配方式
+- 需求、数据库、架构、上线准备的文档化治理
+- 面向 AI / harness 的最小上下文加载协议
 
 ## 仓库结构
 
@@ -53,6 +62,15 @@ bacon
 - 环境边界切换优先使用 `@Profile`
 
 更多细节见 [ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)。
+
+## Engineering Style
+
+这个仓库采用“文档先行、约束显式、结构优先”的工程风格：
+
+- 需求文档、数据库设计、架构约束与代码保持同步演进
+- AI 执行链路不依赖全仓扫描，而依赖最小上下文加载
+- 规则、实现、脚本和运行准备保持同源收敛
+- 目标不是展示框架堆叠，而是展示可持续维护的工程组织能力
 
 ## 规格说明
 
@@ -124,6 +142,12 @@ mvn -pl bacon-app/bacon-order-starter spring-boot:run
 - [docs/10-requirements/INVENTORY-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/INVENTORY-REQUIREMENTS.md)
 - [docs/10-requirements/PAYMENT-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/PAYMENT-REQUIREMENTS.md)
 - [docs/10-requirements/STORAGE-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/STORAGE-REQUIREMENTS.md)
+
+## Project Positioning
+
+`Bacon` 不是传统意义上的示例仓库，也不是单纯的脚手架演示。
+
+它更接近一个可持续演进的 `AI-first` 工程基座：让业务建模、架构约束、数据库设计、交付规范与实现过程在同一套语义系统中保持一致。
 
 ## License
 

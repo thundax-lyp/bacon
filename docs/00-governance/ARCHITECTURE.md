@@ -92,6 +92,7 @@ bacon
 │   ├── pom.xml
 │   ├── bacon-common-bom/            # 统一版本管理
 │   ├── bacon-common-core/           # 异常 / 枚举 / 常量 / 工具
+│   ├── bacon-common-id/             # 统一 ID 类型 / 发号 / 转换器
 │   ├── bacon-common-log/            # 日志字段 / 事件类型 / 日志基础定义
 │   ├── bacon-common-web/            # 统一返回 / 全局异常 / Web 拦截
 │   ├── bacon-common-mybatis/        # MyBatis / MyBatis-Plus 基础封装
@@ -193,52 +194,53 @@ user-service
 
 ```text
 bacon-biz/bacon-order
-├── bacon-order-api
-│   └── com.github.thundax.bacon.order.api
-│       ├── facade
-│       └── dto
-│
-├── bacon-order-interfaces
-│   └── com.github.thundax.bacon.order.interfaces
-│       ├── controller
-│       ├── provider
-│       ├── facade
-│       ├── dto
-│       ├── response
-│       ├── assembler
-│       └── consumer
-│
 ├── bacon-order-application
 │   └── com.github.thundax.bacon.order.application
-│       ├── command
-│       ├── query
+│       ├── assembler
 │       ├── audit
-│       ├── support
+│       ├── command
 │       ├── executor
-│       └── assembler
+│       ├── query
+│       ├── support
+│
+├── bacon-order-api
+│   └── com.github.thundax.bacon.order.api
+│       ├── dto
+│       └── facade
 │
 ├── bacon-order-domain
 │   └── com.github.thundax.bacon.order.domain
-│       ├── model
-│       │   ├── entity
-│       │   ├── aggregate
-│       │   └── valueobject
-│       ├── service
-│       ├── repository
 │       ├── event
-│       └── factory
+│       ├── factory
+│       ├── model
+│       │   ├── aggregate
+│       │   ├── entity
+│       │   └── valueobject
+│       ├── repository
+│       └── service
+│
+├── bacon-order-interfaces
+│   └── com.github.thundax.bacon.order.interfaces
+│       ├── assembler
+│       ├── consumer
+│       ├── controller
+│       ├── dto
+│       ├── facade
+│       ├── provider
+│       └── response
 │
 └── bacon-order-infra
     └── com.github.thundax.bacon.order.infra
-        ├── persistence
-        │   ├── mapper
-        │   ├── dataobject
-        │   └── repositoryimpl
+        ├── cache
+        ├── config
         ├── facade
         │   └── remote
-        ├── cache
         ├── mq
-        └── config
+        ├── persistence
+        │   ├── dataobject
+        │   └── mapper
+        └── repository
+            └── impl
 ```
 
 ## 分层职责
@@ -255,7 +257,9 @@ bacon-biz/bacon-order
 - 面向统一接入协议层，承载 HTTP、消息消费以及服务提供方的 provider 入口适配。
 - 对外暴露 HTTP 接口、MQ consumer，并承载服务提供方的 provider 入口。
 - 承载本地 Facade 适配实现，固定放在 `interfaces.facade`，例如 `UserReadFacadeLocalImpl`。
-- 负责接收请求、参数校验、协议适配、返回值组装。
+- `interfaces.assembler` 固定只负责协议模型转换，例如 `Request -> Command/Query/DTO`、`DTO -> Response`，不得承载用例编排或跨仓储聚合逻辑。
+- `toDto`、`toResponse`、`toCommand`、`toQuery` 这类协议转换如被多个入口复用，固定提取到 `interfaces.assembler`；只在单一入口内使用一次的简单转换，可保留为入口类私有方法。
+- 负责接收请求、协议参数校验、协议适配、返回值组装。
 - 外部输入中的字符串租户标识、用户标识、角色标识等协议字段，固定在 `interfaces` 层完成解析与存在性校验；解析后的领域类型再传入 `application`。
 - provider 只是 `api.facade` 的传输适配入口，不额外定义第二套业务契约。
 - 可以依赖 `application`，不能直接访问 `domain repository` 或 `infra mapper`。
@@ -269,11 +273,15 @@ bacon-biz/bacon-order
 ### application
 - 负责用例编排、事务边界、权限校验、幂等控制、跨域协调。
 - 只表达业务动作，不关心数据库、远程调用、缓存具体实现。
+- `application.assembler` 只负责应用层结果组装与聚合投影，例如把多个领域对象或跨域返回拼装成 `DTO/Result`，不得回落为 HTTP `Request/Response` 转换器。
+- `toDto`、`toResult` 这类应用层结果转换如在多个用例或多个服务之间复用，固定提取到 `application.assembler`；只在单个 `ApplicationService` 内局部使用的简单转换，可保留为私有方法。
 - 对外暴露的方法入参固定优先使用 `TenantId`、`UserId`、`RoleId`、`DepartmentId` 等领域类型，不在 `application` 内重复承接字符串协议参数解析。
+- `application` 只负责用例级参数校验，例如某业务动作要求的必填字段、组合条件、幂等键和前置状态检查，不负责字符串协议字段解析。
 - 可以依赖 `domain` 和外部 `api.facade` 抽象，不能直接依赖其他域的 infra 实现。
 
 ### domain
 - 负责核心业务规则、聚合、一致性约束、领域服务、仓储接口定义。
+- 领域不变量、状态流转约束、聚合内部合法性校验固定归 `domain`。
 - 不关心 Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术细节。
 - 应尽量保持纯 Java，对框架依赖最小化。
 
@@ -281,6 +289,8 @@ bacon-biz/bacon-order
 - 负责持久化、远程调用客户端、缓存、消息发送、三方适配。
 - 实现 `domain.repository` 中定义的接口。
 - 承载远程 Facade 适配实现，固定放在 `infra.facade.remote`，例如 `UserReadFacadeRemoteImpl`。
+- 仓储实现固定放在 `infra.repository.impl`；如某业务域的仓储实现与 `Mapper/DataObject` 强绑定，也允许放在 `infra.persistence.repository.impl`，但同一业务域内目录语义必须保持一致。
+- `infra` 不承接业务入参校验，只负责数据库约束、远程调用错误、序列化错误等技术性失败暴露与转换。
 - 可以依赖数据库、中间件、SDK，但不能反向让 `domain` 依赖这些技术细节。
 - `Order`、`Payment`、`Inventory` 的业务单号生成固定由 `infra` 层集成发号中心客户端完成。
 

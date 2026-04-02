@@ -256,6 +256,7 @@ bacon-biz/bacon-order
 - 对外暴露 HTTP 接口、MQ consumer，并承载服务提供方的 provider 入口。
 - 承载本地 Facade 适配实现，固定放在 `interfaces.facade`，例如 `UserReadFacadeLocalImpl`。
 - 负责接收请求、参数校验、协议适配、返回值组装。
+- 外部输入中的字符串租户标识、用户标识、角色标识等协议字段，固定在 `interfaces` 层完成解析与存在性校验；解析后的领域类型再传入 `application`。
 - provider 只是 `api.facade` 的传输适配入口，不额外定义第二套业务契约。
 - 可以依赖 `application`，不能直接访问 `domain repository` 或 `infra mapper`。
 
@@ -268,6 +269,7 @@ bacon-biz/bacon-order
 ### application
 - 负责用例编排、事务边界、权限校验、幂等控制、跨域协调。
 - 只表达业务动作，不关心数据库、远程调用、缓存具体实现。
+- 对外暴露的方法入参固定优先使用 `TenantId`、`UserId`、`RoleId`、`DepartmentId` 等领域类型，不在 `application` 内重复承接字符串协议参数解析。
 - 可以依赖 `domain` 和外部 `api.facade` 抽象，不能直接依赖其他域的 infra 实现。
 
 ### domain

@@ -12,13 +12,11 @@ import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @Profile("!test")
-@ConditionalOnMissingBean(OAuthClientRepository.class)
 public class OAuthClientRepositoryImpl implements OAuthClientRepository {
 
     private static final TypeReference<LinkedHashSet<String>> STRING_SET_TYPE = new TypeReference<>() { };

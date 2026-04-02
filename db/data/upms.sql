@@ -52,11 +52,11 @@ INSERT INTO `bacon_upms_post` (
 
 INSERT INTO `bacon_upms_user` (
     `id`, `tenant_id`, `account`, `name`, `avatar_object_id`, `phone`, `department_id`,
-    `password_hash`, `need_change_password`, `status`, `deleted`,
+    `status`, `deleted`,
     `created_by`, `created_at`, `updated_by`, `updated_at`
 ) VALUES (
     '2000001', 'T1000001', 'admin', '系统管理员', NULL, '13800000000', 'D1100002',
-    '$2y$10$yjKSvevJS2WNdyBKKD1EBut7GNXMGCNNJfWpMtS5DILA9.sdEeASG', 0, 'ENABLED', 0,
+    'ENABLED', 0,
     NULL, '2026-03-21 09:03:00.000', '2000001', '2026-03-21 09:03:00.000'
 ) ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`),
@@ -64,8 +64,6 @@ INSERT INTO `bacon_upms_user` (
     `avatar_object_id` = VALUES(`avatar_object_id`),
     `phone` = VALUES(`phone`),
     `department_id` = VALUES(`department_id`),
-    `password_hash` = VALUES(`password_hash`),
-    `need_change_password` = VALUES(`need_change_password`),
     `status` = VALUES(`status`),
     `deleted` = VALUES(`deleted`),
     `updated_by` = VALUES(`updated_by`),
@@ -86,7 +84,34 @@ INSERT INTO `bacon_upms_user_identity` (
 ON DUPLICATE KEY UPDATE
     `tenant_id` = VALUES(`tenant_id`),
     `user_id` = VALUES(`user_id`),
+    `identity_value` = VALUES(`identity_value`),
     `enabled` = VALUES(`enabled`),
+    `updated_by` = VALUES(`updated_by`),
+    `updated_at` = VALUES(`updated_at`);
+
+INSERT INTO `bacon_upms_user_credential` (
+    `id`, `tenant_id`, `user_id`, `identity_id`, `credential_type`, `factor_level`,
+    `credential_value`, `status`, `need_change_password`, `failed_count`, `failed_limit`,
+    `lock_reason`, `locked_until`, `expires_at`, `last_verified_at`,
+    `created_by`, `created_at`, `updated_by`, `updated_at`
+) VALUES (
+    'C2200001', 'T1000001', '2000001', 2100001, 'PASSWORD', 'PRIMARY',
+    '$2y$10$yjKSvevJS2WNdyBKKD1EBut7GNXMGCNNJfWpMtS5DILA9.sdEeASG', 'ACTIVE', 0, 0, 5,
+    NULL, NULL, '2026-06-19 09:04:00.000', NULL,
+    '2000001', '2026-03-21 09:04:00.000', '2000001', '2026-03-21 09:04:00.000'
+) ON DUPLICATE KEY UPDATE
+    `tenant_id` = VALUES(`tenant_id`),
+    `user_id` = VALUES(`user_id`),
+    `identity_id` = VALUES(`identity_id`),
+    `credential_value` = VALUES(`credential_value`),
+    `status` = VALUES(`status`),
+    `need_change_password` = VALUES(`need_change_password`),
+    `failed_count` = VALUES(`failed_count`),
+    `failed_limit` = VALUES(`failed_limit`),
+    `lock_reason` = VALUES(`lock_reason`),
+    `locked_until` = VALUES(`locked_until`),
+    `expires_at` = VALUES(`expires_at`),
+    `last_verified_at` = VALUES(`last_verified_at`),
     `updated_by` = VALUES(`updated_by`),
     `updated_at` = VALUES(`updated_at`);
 

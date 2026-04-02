@@ -77,10 +77,10 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldUploadAvatarToStorageAndReplaceOldReference() throws Exception {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 301L, "13800000001", "{noop}123456",
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 301L, "13800000001",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
-        User savedUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 401L, "13800000001", "{noop}123456",
+        User savedUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 401L, "13800000001",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
@@ -106,7 +106,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldRejectUnsupportedAvatarContentType() {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}123456",
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(currentUser));
@@ -119,7 +119,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldRejectNonSquareAvatarImage() throws Exception {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}123456",
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         byte[] bytes = createImageBytes("png", 256, 180);
@@ -133,7 +133,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001", "{noop}123456",
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.pageUsers(TENANT_ID, null, null, null, null, 1, 20)).thenReturn(List.of(user));
@@ -150,7 +150,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldClearAvatarReferenceWhenDeletingUser() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001", "{noop}123456",
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
@@ -164,7 +164,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldResolveAvatarAccessUrl() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001", "{noop}123456",
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", 501L, "13800000001",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
@@ -177,7 +177,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldReturnLoginCredentialPasswordFromAccountIdentity() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user",
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         UserIdentity accountIdentity = new UserIdentity(UserIdentityId.of("I201"), TENANT_ID, UserId.of("U101"),
@@ -205,7 +205,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldValidateOldPasswordAgainstAccountIdentity() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user",
+        User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"),

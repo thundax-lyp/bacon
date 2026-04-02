@@ -30,8 +30,6 @@ public class UserDO {
     private Long avatarObjectId;
     @TableField("phone")
     private String phone;
-    @TableField("password_hash")
-    private String passwordHash;
     @TableField("department_id")
     private DepartmentId departmentId;
     @TableField("status")

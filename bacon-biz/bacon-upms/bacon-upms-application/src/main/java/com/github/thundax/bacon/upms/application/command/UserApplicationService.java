@@ -139,7 +139,7 @@ public class UserApplicationService {
         validateRequired(name, "name");
         ensureAccountUnique(tenantId, account, null);
         User savedUser = userRepository.save(new User(null, tenantId, normalize(account), normalize(name), normalize(phone),
-                null, toDepartmentId(departmentId), UserStatus.ENABLED));
+                toDepartmentId(departmentId), UserStatus.ENABLED));
         return toDetailedDto(savedUser);
     }
 
@@ -156,7 +156,6 @@ public class UserApplicationService {
                 normalize(name),
                 currentUser.getAvatarObjectId(),
                 normalize(phone),
-                currentUser.getPasswordHash(),
                 toDepartmentId(departmentId),
                 currentUser.getStatus(),
                 currentUser.getCreatedBy(),
@@ -179,7 +178,6 @@ public class UserApplicationService {
                 currentUser.getName(),
                 currentUser.getAvatarObjectId(),
                 currentUser.getPhone(),
-                currentUser.getPasswordHash(),
                 currentUser.getDepartmentId(),
                 toDomainStatus(status),
                 currentUser.getCreatedBy(),
@@ -229,7 +227,7 @@ public class UserApplicationService {
     }
 
     public void changePassword(TenantId tenantId, UserId userId, String oldPassword, String newPassword) {
-        User user = requireUser(tenantId, userId);
+        requireUser(tenantId, userId);
         UserCredential passwordCredential = userRepository.findUserCredential(tenantId, userId, UserCredentialType.PASSWORD)
                 .orElseThrow(() -> new IllegalArgumentException("Password credential not found: " + userId));
         validateRequired(oldPassword, "oldPassword");
@@ -297,7 +295,6 @@ public class UserApplicationService {
                     currentUser.getName(),
                     storedObject.getId(),
                     currentUser.getPhone(),
-                    currentUser.getPasswordHash(),
                     currentUser.getDepartmentId(),
                     currentUser.getStatus(),
                     currentUser.getCreatedBy(),

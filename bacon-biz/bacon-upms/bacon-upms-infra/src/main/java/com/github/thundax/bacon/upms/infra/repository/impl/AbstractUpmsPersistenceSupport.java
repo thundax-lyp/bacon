@@ -82,14 +82,14 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final UserDO toDataObject(User user) {
         return new UserDO(user.getId(), user.getTenantId(), user.getAccount(), user.getName(), user.getAvatarObjectId(),
-                user.getPhone(), user.getPasswordHash(), user.getDepartmentId(), user.getStatus().value(),
+                user.getPhone(), user.getDepartmentId(), user.getStatus().value(),
                 false, user.getCreatedBy(), toLocalDateTime(user.getCreatedAt()), user.getUpdatedBy(),
                 toLocalDateTime(user.getUpdatedAt()));
     }
 
     protected final User toDomain(UserDO userDO) {
         return new User(userDO.getId(), userDO.getTenantId(), userDO.getAccount(), userDO.getName(),
-                userDO.getAvatarObjectId(), userDO.getPhone(), userDO.getPasswordHash(), userDO.getDepartmentId(),
+                userDO.getAvatarObjectId(), userDO.getPhone(), userDO.getDepartmentId(),
                 UserStatus.valueOf(userDO.getStatus()), userDO.getCreatedBy(), toInstant(userDO.getCreatedAt()),
                 userDO.getUpdatedBy(), toInstant(userDO.getUpdatedAt()));
     }

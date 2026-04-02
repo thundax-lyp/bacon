@@ -43,7 +43,7 @@ class UserPersistenceSupportTest {
     @Test
     void shouldInsertUserAndMapGeneratedId() {
         ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
-        User newUser = new User(null, TENANT_ID, "alice", "Alice", 9001L, "13800000001", "ENC", DepartmentId.of("D11"),
+        User newUser = new User(null, TENANT_ID, "alice", "Alice", 9001L, "13800000001", DepartmentId.of("D11"),
                 UserStatus.ENABLED);
         UserId generatedId = UserId.of("U101");
 

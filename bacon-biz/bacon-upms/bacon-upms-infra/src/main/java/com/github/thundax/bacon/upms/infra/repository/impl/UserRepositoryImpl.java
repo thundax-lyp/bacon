@@ -93,7 +93,7 @@ public class UserRepositoryImpl implements UserRepository {
         User savedUser = user.getId() == null ? createUser(user) : updateUser(user);
         savedUser = support.saveUser(savedUser);
         UserIdentity accountIdentity = replaceAccountIdentity(savedUser);
-        upsertPasswordCredential(savedUser, accountIdentity, newUser, false);
+        upsertPasswordCredential(savedUser, accountIdentity, resolvePasswordHash(savedUser, newUser), newUser, false);
         replacePhoneIdentity(savedUser);
         return savedUser;
     }
@@ -109,7 +109,6 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getName(),
                 currentUser.getAvatarObjectId(),
                 currentUser.getPhone(),
-                passwordEncoder.encode(password),
                 currentUser.getDepartmentId(),
                 currentUser.getStatus(),
                 currentUser.getCreatedBy(),
@@ -118,7 +117,7 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getUpdatedAt());
         User savedUser = support.saveUser(updatedUser);
         UserIdentity accountIdentity = replaceAccountIdentity(savedUser);
-        upsertPasswordCredential(savedUser, accountIdentity, false, needChangePassword);
+        upsertPasswordCredential(savedUser, accountIdentity, passwordEncoder.encode(password), false, needChangePassword);
         return savedUser;
     }
 
@@ -144,7 +143,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     private User createUser(User user) {
         return new User(ids.userId(), user.getTenantId(), user.getAccount(), user.getName(), user.getAvatarObjectId(),
-                user.getPhone(), passwordEncoder.encode(DEFAULT_PASSWORD), user.getDepartmentId(),
+                user.getPhone(), user.getDepartmentId(),
                 user.getStatus());
     }
 
@@ -158,7 +157,6 @@ public class UserRepositoryImpl implements UserRepository {
                 user.getName(),
                 user.getAvatarObjectId(),
                 user.getPhone(),
-                user.getPasswordHash() == null ? currentUser.getPasswordHash() : user.getPasswordHash(),
                 user.getDepartmentId(),
                 user.getStatus(),
                 currentUser.getCreatedBy(),
@@ -181,7 +179,16 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
-    private void upsertPasswordCredential(User user, UserIdentity accountIdentity, boolean newUser,
+    private String resolvePasswordHash(User user, boolean newUser) {
+        if (newUser) {
+            return passwordEncoder.encode(DEFAULT_PASSWORD);
+        }
+        return support.findUserCredential(user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
+                .map(UserCredential::getCredentialValue)
+                .orElseGet(() -> passwordEncoder.encode(DEFAULT_PASSWORD));
+    }
+
+    private void upsertPasswordCredential(User user, UserIdentity accountIdentity, String passwordHash, boolean newUser,
                                           boolean needChangePassword) {
         UserCredential currentCredential = support.findUserCredential(user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .orElse(null);
@@ -192,7 +199,7 @@ public class UserRepositoryImpl implements UserRepository {
                 accountIdentity.getId(),
                 PASSWORD_CREDENTIAL_TYPE,
                 PRIMARY_FACTOR_LEVEL,
-                user.getPasswordHash(),
+                passwordHash,
                 UserCredentialStatus.ACTIVE,
                 newUser || needChangePassword,
                 0,

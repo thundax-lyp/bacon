@@ -20,8 +20,6 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
     `avatar_object_id` bigint DEFAULT NULL,
     `phone` varchar(32) DEFAULT NULL,
     `department_id` varchar(64) DEFAULT NULL,
-    `password_hash` varchar(255) NOT NULL,
-    `need_change_password` tinyint(1) NOT NULL,
     `status` varchar(16) NOT NULL,
     `deleted` tinyint(1) NOT NULL,
     `created_by` varchar(64) DEFAULT NULL,

@@ -125,7 +125,6 @@ class UpmsRepositoryIntegrationTest {
                         name varchar(128) NOT NULL,
                         avatar_object_id bigint NULL,
                         phone varchar(32) NULL,
-                        password_hash varchar(255) NOT NULL,
                         department_id varchar(64) NULL,
                         status varchar(16) NOT NULL,
                         deleted boolean NOT NULL,
@@ -305,7 +304,7 @@ class UpmsRepositoryIntegrationTest {
                 ResourceType.API, "POST", "/users", ResourceStatus.ENABLED));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
-        User user = userRepository.save(new User(null, TENANT_ID, "alice", "Alice", 901L, "13800000001", null,
+        User user = userRepository.save(new User(null, TENANT_ID, "alice", "Alice", 901L, "13800000001",
                 childDepartment.getId(), UserStatus.ENABLED));
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
@@ -320,11 +319,9 @@ class UpmsRepositoryIntegrationTest {
         assertNotNull(persistedUser.getId());
         assertTrue(persistedUser.getId().value().startsWith("U"));
         assertEquals(901L, persistedUser.getAvatarObjectId());
-        assertNotNull(persistedUser.getPasswordHash());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice").isPresent());
-        assertEquals(persistedUser.getPasswordHash(),
-                userRepository.findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD).orElseThrow()
-                        .getCredentialValue());
+        assertNotNull(userRepository.findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD)
+                .orElseThrow().getCredentialValue());
         assertTrue(userRepository.findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD).orElseThrow()
                 .isNeedChangePassword());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000001").isPresent());
@@ -351,18 +348,17 @@ class UpmsRepositoryIntegrationTest {
                 ROOT_DEPARTMENT_ID, null, "ACTIVE"));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
-        User createdUser = userRepository.save(new User(null, TENANT_ID, "bob", "Bob", 1001L, "13800000002", null,
+        User createdUser = userRepository.save(new User(null, TENANT_ID, "bob", "Bob", 1001L, "13800000002",
                 department.getId(), UserStatus.ENABLED));
 
         userRepository.assignRoles(TENANT_ID, createdUser.getId(), List.of(role.getId()));
         User updatedUser = userRepository.save(new User(createdUser.getId(), TENANT_ID, "bob", "Bob", 1002L, "13900000003",
-                createdUser.getPasswordHash(), department.getId(), UserStatus.ENABLED));
+                department.getId(), UserStatus.ENABLED));
 
         assertFalse(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000002").isPresent());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13900000003").isPresent());
-        assertEquals(updatedUser.getPasswordHash(),
-                userRepository.findUserCredential(TENANT_ID, updatedUser.getId(), UserCredentialType.PASSWORD).orElseThrow()
-                        .getCredentialValue());
+        assertNotNull(userRepository.findUserCredential(TENANT_ID, updatedUser.getId(), UserCredentialType.PASSWORD)
+                .orElseThrow().getCredentialValue());
         assertEquals(1002L, userRepository.findUserById(TENANT_ID, updatedUser.getId()).orElseThrow().getAvatarObjectId());
         assertTrue(departmentRepository.existsUserInDepartment(TENANT_ID, department.getId()));
 
@@ -379,7 +375,7 @@ class UpmsRepositoryIntegrationTest {
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
         Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
                 ROOT_DEPARTMENT_ID, null, "ACTIVE"));
-        User createdUser = userRepository.save(new User(null, TENANT_ID, "carol", "Carol", null, "13600000001", null,
+        User createdUser = userRepository.save(new User(null, TENANT_ID, "carol", "Carol", null, "13600000001",
                 department.getId(), UserStatus.ENABLED));
 
         String originalPasswordHash = userRepository.findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
@@ -392,7 +388,6 @@ class UpmsRepositoryIntegrationTest {
                 .orElseThrow()
                 .getCredentialValue();
         assertNotEquals(originalPasswordHash, updatedPasswordHash);
-        assertEquals(updatedUser.getPasswordHash(), updatedPasswordHash);
         assertFalse(userRepository.findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD).orElseThrow()
                 .isNeedChangePassword());
     }
@@ -415,7 +410,7 @@ class UpmsRepositoryIntegrationTest {
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(oldResource.getCode()));
         roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
-        User user = userRepository.save(new User(null, TENANT_ID, "manager", "Manager", null, "13700000001", null,
+        User user = userRepository.save(new User(null, TENANT_ID, "manager", "Manager", null, "13700000001",
                 child.getId(), UserStatus.ENABLED));
         userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));
 

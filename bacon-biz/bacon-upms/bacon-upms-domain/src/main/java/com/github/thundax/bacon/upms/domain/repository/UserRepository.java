@@ -30,7 +30,7 @@ public interface UserRepository {
 
     User save(User user);
 
-    User updatePassword(TenantId tenantId, UserId userId, String passwordHash, boolean needChangePassword);
+    User updatePassword(TenantId tenantId, UserId userId, String password, boolean needChangePassword);
 
     List<Role> assignRoles(TenantId tenantId, UserId userId, List<RoleId> roleIds);
 

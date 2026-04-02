@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class MenuApplicationService {
         return permissionRepository.listMenus(tenantId).stream().map(menu -> toTreeDto(menu, tenantIdValue)).toList();
     }
 
+    @Transactional
     public MenuTreeDTO createMenu(TenantId tenantId, String menuType, String name, String parentId, String routePath,
                                   String componentName, String icon, Integer sort, String permissionCode) {
         validateRequired(menuType, "menuType");
@@ -46,6 +48,7 @@ public class MenuApplicationService {
                 sort == null ? 0 : sort, normalize(permissionCode), List.of())));
     }
 
+    @Transactional
     public MenuTreeDTO updateMenu(TenantId tenantId, String menuId, String menuType, String name, String parentId, String routePath,
                                   String componentName, String icon, Integer sort, String permissionCode) {
         MenuId domainMenuId = MenuId.of(menuId);
@@ -63,6 +66,7 @@ public class MenuApplicationService {
                 sort == null ? currentMenu.getSort() : sort, normalize(permissionCode), List.of())));
     }
 
+    @Transactional
     public void deleteMenu(TenantId tenantId, String menuId) {
         MenuId domainMenuId = MenuId.of(menuId);
         menuRepository.findMenuById(tenantId, domainMenuId)
@@ -73,6 +77,7 @@ public class MenuApplicationService {
         menuRepository.deleteMenu(tenantId, domainMenuId);
     }
 
+    @Transactional
     public MenuTreeDTO updateMenuSort(TenantId tenantId, String menuId, Integer sort) {
         if (sort == null) {
             throw new IllegalArgumentException("sort must not be null");

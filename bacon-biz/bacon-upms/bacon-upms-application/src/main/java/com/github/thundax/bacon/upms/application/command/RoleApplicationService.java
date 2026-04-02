@@ -20,6 +20,7 @@ import java.util.Set;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RoleApplicationService {
@@ -65,6 +66,7 @@ public class RoleApplicationService {
                 pageNo, pageSize);
     }
 
+    @Transactional
     public RoleDTO createRole(TenantId tenantId, String code, String name, String roleType, String dataScopeType) {
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -74,6 +76,7 @@ public class RoleApplicationService {
                 toRoleDataScopeType(dataScopeType), RoleStatus.ENABLED)));
     }
 
+    @Transactional
     public RoleDTO updateRole(TenantId tenantId, String roleId, String code, String name, String roleType, String dataScopeType) {
         RoleId domainRoleId = RoleId.of(roleId);
         Role currentRole = roleRepository.findRoleById(tenantId, domainRoleId)
@@ -96,11 +99,13 @@ public class RoleApplicationService {
                 currentRole.getUpdatedAt())));
     }
 
+    @Transactional
     public RoleDTO updateRoleStatus(TenantId tenantId, String roleId, String status) {
         validateRequired(status, "status");
         return toDto(roleRepository.updateStatus(tenantId, RoleId.of(roleId), toRoleStatus(status)));
     }
 
+    @Transactional
     public void deleteRole(TenantId tenantId, String roleId) {
         RoleId domainRoleId = RoleId.of(roleId);
         roleRepository.findRoleById(tenantId, domainRoleId)
@@ -114,6 +119,7 @@ public class RoleApplicationService {
                 .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
     }
 
+    @Transactional
     public Set<String> assignMenus(TenantId tenantId, String roleId, Set<String> menuIds) {
         return roleRepository.assignMenus(tenantId, RoleId.of(roleId), toMenuIds(menuIds)).stream()
                 .map(MenuId::value)
@@ -124,6 +130,7 @@ public class RoleApplicationService {
         return roleRepository.getAssignedResources(tenantId, RoleId.of(roleId));
     }
 
+    @Transactional
     public Set<String> assignResources(TenantId tenantId, String roleId, Set<String> resourceCodes) {
         return roleRepository.assignResources(tenantId, RoleId.of(roleId), resourceCodes);
     }
@@ -136,6 +143,7 @@ public class RoleApplicationService {
         return roleRepository.getAssignedDataScopeDepartments(tenantId, RoleId.of(roleId));
     }
 
+    @Transactional
     public Set<DepartmentId> assignDataScope(TenantId tenantId, String roleId, String dataScopeType, Set<String> departmentIds) {
         validateRequired(dataScopeType, "dataScopeType");
         return roleRepository.assignDataScope(tenantId, RoleId.of(roleId), toRoleDataScopeType(dataScopeType),

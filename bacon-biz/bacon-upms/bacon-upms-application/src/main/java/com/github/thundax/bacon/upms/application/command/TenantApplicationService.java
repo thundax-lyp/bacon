@@ -13,6 +13,7 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TenantApplicationService {
@@ -40,6 +41,7 @@ public class TenantApplicationService {
         return createTenant(TenantId.of(tenantId), name, tenantCode, expiredAt);
     }
 
+    @Transactional
     public TenantDTO createTenant(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
         validateRequired(name, "name");
         validateRequired(tenantCode, "tenantCode");
@@ -58,6 +60,7 @@ public class TenantApplicationService {
         return updateTenant(TenantId.of(tenantId), name, tenantCode, expiredAt);
     }
 
+    @Transactional
     public TenantDTO updateTenant(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
         Tenant currentTenant = requireTenant(tenantId);
         validateRequired(name, "name");
@@ -84,6 +87,7 @@ public class TenantApplicationService {
         return updateTenantStatus(TenantId.of(tenantId), status);
     }
 
+    @Transactional
     public TenantDTO updateTenantStatus(TenantId tenantId, TenantStatusEnum status) {
         if (status == null) {
             throw new IllegalArgumentException("status must not be null");

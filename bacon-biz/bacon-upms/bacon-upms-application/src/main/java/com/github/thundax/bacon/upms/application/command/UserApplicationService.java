@@ -43,6 +43,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserApplicationService {
@@ -139,6 +140,7 @@ public class UserApplicationService {
                 pageNo, pageSize);
     }
 
+    @Transactional
     public UserDTO createUser(TenantId tenantId, String account, String name, String phone, String departmentId) {
         validateRequired(account, "account");
         validateRequired(name, "name");
@@ -150,6 +152,7 @@ public class UserApplicationService {
         return toDetailedDto(savedUser);
     }
 
+    @Transactional
     public UserDTO updateUser(TenantId tenantId, String userId, String account, String name, String phone, String departmentId) {
         UserId domainUserId = UserId.of(userId);
         User currentUser = requireUser(tenantId, domainUserId);
@@ -172,6 +175,7 @@ public class UserApplicationService {
         return toDetailedDto(savedUser);
     }
 
+    @Transactional
     public UserDTO updateUserStatus(TenantId tenantId, String userId, UpmsStatusEnum status) {
         UserId domainUserId = UserId.of(userId);
         User currentUser = requireUser(tenantId, domainUserId);
@@ -205,6 +209,7 @@ public class UserApplicationService {
         return Optional.ofNullable(resolveAvatarUrl(user.getAvatarObjectId()));
     }
 
+    @Transactional
     public void deleteUser(TenantId tenantId, String userId) {
         UserId domainUserId = UserId.of(userId);
         User currentUser = requireUser(tenantId, domainUserId);
@@ -216,6 +221,7 @@ public class UserApplicationService {
         sessionCommandFacade.invalidateUserSessions(tenantId.value(), userId, "USER_DELETED");
     }
 
+    @Transactional
     public UserDTO initPassword(TenantId tenantId, String userId) {
         UserId domainUserId = UserId.of(userId);
         requireUser(tenantId, domainUserId);
@@ -224,6 +230,7 @@ public class UserApplicationService {
         return toDetailedDto(user);
     }
 
+    @Transactional
     public UserDTO resetPassword(TenantId tenantId, String userId, String newPassword) {
         UserId domainUserId = UserId.of(userId);
         requireUser(tenantId, domainUserId);
@@ -233,6 +240,7 @@ public class UserApplicationService {
         return toDetailedDto(user);
     }
 
+    @Transactional
     public void changePassword(TenantId tenantId, UserId userId, String oldPassword, String newPassword) {
         requireUser(tenantId, userId);
         UserCredential passwordCredential = userRepository.findUserCredential(tenantId, userId, UserCredentialType.PASSWORD)
@@ -249,6 +257,7 @@ public class UserApplicationService {
         changePassword(requireExistingTenantId(tenantId), UserId.of(userId), oldPassword, newPassword);
     }
 
+    @Transactional
     public List<RoleDTO> assignRoles(TenantId tenantId, String userId, List<String> roleIds) {
         UserId domainUserId = UserId.of(userId);
         requireUser(tenantId, domainUserId);
@@ -271,6 +280,7 @@ public class UserApplicationService {
         return getRolesByUserId(tenantId, UserId.of(userId));
     }
 
+    @Transactional
     public List<UserDTO> importUsers(TenantId tenantId, List<UserImportCommand> commands) {
         if (commands == null || commands.isEmpty()) {
             return List.of();

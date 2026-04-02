@@ -10,19 +10,17 @@ import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
-import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ResourceApplicationService {
 
     private final ResourceRepository resourceRepository;
-    private final TenantRepository tenantRepository;
 
-    public ResourceApplicationService(ResourceRepository resourceRepository, TenantRepository tenantRepository) {
+    public ResourceApplicationService(ResourceRepository resourceRepository) {
         this.resourceRepository = resourceRepository;
-        this.tenantRepository = tenantRepository;
     }
 
     public ResourcePageResultDTO pageResources(ResourcePageQueryDTO query) {
@@ -45,6 +43,7 @@ public class ResourceApplicationService {
         return toDto(requireResource(tenantId, resourceId));
     }
 
+    @Transactional
     public ResourceDTO createResource(TenantId tenantId, String code, String name, String resourceType,
                                       String httpMethod, String uri) {
         validateRequired(code, "code");
@@ -55,6 +54,7 @@ public class ResourceApplicationService {
                 toResourceType(resourceType), normalize(httpMethod), normalize(uri), ResourceStatus.ENABLED)));
     }
 
+    @Transactional
     public ResourceDTO updateResource(TenantId tenantId, String resourceId, String code, String name, String resourceType,
                                       String httpMethod, String uri, String status) {
         Resource currentResource = requireResource(tenantId, resourceId);
@@ -77,6 +77,7 @@ public class ResourceApplicationService {
                 currentResource.getUpdatedAt())));
     }
 
+    @Transactional
     public void deleteResource(TenantId tenantId, String resourceId) {
         requireResource(tenantId, resourceId);
         resourceRepository.delete(tenantId, ResourceId.of(resourceId));

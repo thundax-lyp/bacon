@@ -16,6 +16,8 @@ import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
@@ -182,7 +184,9 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final ResourceDO toDataObject(Resource resource) {
         return new ResourceDO(resource.getId(), resource.getTenantId(), resource.getCode(), resource.getName(),
-                resource.getResourceType(), resource.getHttpMethod(), resource.getUri(), resource.getStatus(),
+                resource.getResourceType() == null ? null : resource.getResourceType().value(),
+                resource.getHttpMethod(), resource.getUri(),
+                resource.getStatus() == null ? null : resource.getStatus().value(),
                 resource.getCreatedBy(), toLocalDateTime(resource.getCreatedAt()), resource.getUpdatedBy(),
                 toLocalDateTime(resource.getUpdatedAt()));
     }
@@ -190,7 +194,8 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final Resource toDomain(ResourceDO dataObject) {
         ResourceId resourceId = dataObject.getId();
         return new Resource(resourceId, dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
-                dataObject.getResourceType(), dataObject.getHttpMethod(), dataObject.getUri(), dataObject.getStatus(),
+                ResourceType.fromValue(dataObject.getResourceType()), dataObject.getHttpMethod(), dataObject.getUri(),
+                ResourceStatus.fromValue(dataObject.getStatus()),
                 dataObject.getCreatedBy(), toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(),
                 toInstant(dataObject.getUpdatedAt()));
     }

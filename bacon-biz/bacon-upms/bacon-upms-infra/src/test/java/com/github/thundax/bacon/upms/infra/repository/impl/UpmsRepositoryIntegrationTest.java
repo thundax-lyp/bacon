@@ -13,6 +13,8 @@ import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.common.id.core.DefaultIds;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -296,7 +298,8 @@ class UpmsRepositoryIntegrationTest {
         Department childDepartment = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations", rootDepartment.getId(), null, "ACTIVE"));
         Menu rootMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "System", ROOT_MENU_ID, "/system", "SystemPage", "shield", 1, null, List.of()));
         Menu childMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Users", rootMenu.getId(), "/system/users", "UserPage", "user", 2, "upms:user:view", List.of()));
-        Resource resource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:user:edit", "Edit User", "API", "POST", "/users", "ACTIVE"));
+        Resource resource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:user:edit", "Edit User",
+                ResourceType.API, "POST", "/users", ResourceStatus.ENABLED));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator", "SYSTEM", "SELF", "ACTIVE"));
         User user = userRepository.save(new User(null, TENANT_ID, "alice", "Alice", 901L, "13800000001", null,
                 childDepartment.getId(), UserStatus.ENABLED));
@@ -395,8 +398,10 @@ class UpmsRepositoryIntegrationTest {
         Department child = departmentRepository.save(new Department(CHILD_DEPARTMENT_ID, TENANT_ID, "CHILD", "Child", root.getId(), null, "ACTIVE"));
         Menu oldMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Old", ROOT_MENU_ID, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
         Menu newMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "New", ROOT_MENU_ID, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
-        Resource oldResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:old:edit", "Old Edit", "API", "POST", "/old", "ACTIVE"));
-        Resource newResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:new:edit", "New Edit", "API", "PUT", "/new", "ACTIVE"));
+        Resource oldResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:old:edit", "Old Edit",
+                ResourceType.API, "POST", "/old", ResourceStatus.ENABLED));
+        Resource newResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:new:edit", "New Edit",
+                ResourceType.API, "PUT", "/new", ResourceStatus.ENABLED));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "MANAGER", "Manager", "SYSTEM", "SELF", "ACTIVE"));
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(oldMenu.getId()));

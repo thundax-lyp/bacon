@@ -8,8 +8,11 @@ import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
+import java.util.Locale;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -50,7 +53,7 @@ public class ResourceApplicationService {
         validateRequired(resourceType, "resourceType");
         validateRequired(uri, "uri");
         return toDto(resourceRepository.save(new Resource(null, tenantId, normalize(code), normalize(name),
-                normalize(resourceType), normalize(httpMethod), normalize(uri), UpmsStatusEnum.ENABLED.value())));
+                toResourceType(resourceType), normalize(httpMethod), normalize(uri), ResourceStatus.ENABLED)));
     }
 
     public ResourceDTO updateResource(TenantId tenantId, String resourceId, String code, String name, String resourceType,
@@ -65,10 +68,10 @@ public class ResourceApplicationService {
                 tenantId,
                 normalize(code),
                 normalize(name),
-                normalize(resourceType),
+                toResourceType(resourceType),
                 normalize(httpMethod),
                 normalize(uri),
-                normalizeNullable(status, currentResource.getStatus()),
+                toResourceStatus(status, currentResource.getStatus()),
                 currentResource.getCreatedBy(),
                 currentResource.getCreatedAt(),
                 currentResource.getUpdatedBy(),
@@ -92,7 +95,9 @@ public class ResourceApplicationService {
     private ResourceDTO toDto(Resource resource, String tenantIdValue) {
         return new ResourceDTO(resource.getId() == null ? null : resource.getId().value(), tenantIdValue, resource.getCode(),
                 resource.getName(),
-                resource.getResourceType(), resource.getHttpMethod(), resource.getUri(), resource.getStatus());
+                resource.getResourceType() == null ? null : resource.getResourceType().value(),
+                resource.getHttpMethod(), resource.getUri(),
+                resource.getStatus() == null ? null : resource.getStatus().value());
     }
 
     private void validateRequired(String value, String fieldName) {
@@ -105,8 +110,16 @@ public class ResourceApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private String normalizeNullable(String value, String defaultValue) {
-        return value == null || value.isBlank() ? defaultValue : normalize(value);
+    private ResourceType toResourceType(String resourceType) {
+        validateRequired(resourceType, "resourceType");
+        return ResourceType.fromValue(normalize(resourceType).toUpperCase(Locale.ROOT));
+    }
+
+    private ResourceStatus toResourceStatus(String status, ResourceStatus defaultValue) {
+        if (status == null || status.isBlank()) {
+            return defaultValue;
+        }
+        return ResourceStatus.fromValue(normalize(status).toUpperCase(Locale.ROOT));
     }
 
 }

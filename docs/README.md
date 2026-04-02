@@ -51,6 +51,8 @@
 
 - [`AUTH-LOGIN-DESIGN.md`](./AUTH-LOGIN-DESIGN.md)
   - 账号密码登录中的验证码、RSA、跨域凭据读取与 mono/micro 实现设计
+- [`PRODUCTION-UPGRADE-ROADMAP.md`](./PRODUCTION-UPGRADE-ROADMAP.md)
+  - 项目未来 4 周的生产就绪度升级路线、交付物与验收门槛
 - [`STORAGE-LAUNCH-READINESS.md`](./STORAGE-LAUNCH-READINESS.md)
   - `Storage` 模块上线准备清单与验收项
 

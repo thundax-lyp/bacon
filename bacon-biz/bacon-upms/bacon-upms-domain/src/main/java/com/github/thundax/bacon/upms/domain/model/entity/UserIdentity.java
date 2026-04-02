@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.domain.UserIdentityId;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -20,7 +21,7 @@ public class UserIdentity {
     /** 关联用户主键。 */
     private UserId userId;
     /** 身份标识类型。 */
-    private String identityType;
+    private UserIdentityType identityType;
     /** 身份标识值。 */
     private String identityValue;
     /** 启用标记。 */
@@ -34,12 +35,12 @@ public class UserIdentity {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, String identityType,
+    public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, UserIdentityType identityType,
                         String identityValue, boolean enabled) {
         this(id, tenantId, userId, identityType, identityValue, enabled, null, null, null, null);
     }
 
-    public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, String identityType,
+    public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, UserIdentityType identityType,
                         String identityValue, boolean enabled, String createdBy, Instant createdAt,
                         String updatedBy, Instant updatedAt) {
         this.id = id;

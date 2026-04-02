@@ -7,6 +7,8 @@ import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,9 +18,9 @@ public interface UserRepository {
 
     Optional<User> findUserByAccount(TenantId tenantId, String account);
 
-    Optional<UserIdentity> findUserIdentity(TenantId tenantId, String identityType, String identityValue);
+    Optional<UserIdentity> findUserIdentity(TenantId tenantId, UserIdentityType identityType, String identityValue);
 
-    Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, String credentialType);
+    Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, UserCredentialType credentialType);
 
     List<User> pageUsers(TenantId tenantId, String account, String name, String phone, String status, int pageNo, int pageSize);
 

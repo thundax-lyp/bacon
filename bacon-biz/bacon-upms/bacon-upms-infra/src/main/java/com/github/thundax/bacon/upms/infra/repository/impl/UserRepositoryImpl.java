@@ -9,7 +9,10 @@ import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.time.Instant;
@@ -25,8 +28,8 @@ import org.springframework.stereotype.Repository;
 public class UserRepositoryImpl implements UserRepository {
 
     private static final String DEFAULT_PASSWORD = "123456";
-    private static final String PASSWORD_CREDENTIAL_TYPE = "PASSWORD";
-    private static final String PRIMARY_FACTOR_LEVEL = "PRIMARY";
+    private static final UserCredentialType PASSWORD_CREDENTIAL_TYPE = UserCredentialType.PASSWORD;
+    private static final UserCredentialFactorLevel PRIMARY_FACTOR_LEVEL = UserCredentialFactorLevel.PRIMARY;
     private static final int PASSWORD_FAILED_LIMIT = 5;
     private static final long PASSWORD_EXPIRE_DAYS = 90L;
 
@@ -59,12 +62,12 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<UserIdentity> findUserIdentity(TenantId tenantId, String identityType, String identityValue) {
+    public Optional<UserIdentity> findUserIdentity(TenantId tenantId, UserIdentityType identityType, String identityValue) {
         return support.findUserIdentity(tenantId, identityType, identityValue);
     }
 
     @Override
-    public Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, String credentialType) {
+    public Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, UserCredentialType credentialType) {
         return support.findUserCredential(tenantId, userId, credentialType);
     }
 
@@ -165,16 +168,16 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private UserIdentity replaceAccountIdentity(User user) {
-        support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), "ACCOUNT");
-        return support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(), "ACCOUNT",
-                user.getAccount(), true));
+        support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
+        return support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
+                UserIdentityType.ACCOUNT, user.getAccount(), true));
     }
 
     private void replacePhoneIdentity(User user) {
-        support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), "PHONE");
+        support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
         if (user.getPhone() != null && !user.getPhone().isBlank()) {
-            support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(), "PHONE",
-                    user.getPhone(), true));
+            support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
+                    UserIdentityType.PHONE, user.getPhone(), true));
         }
     }
 

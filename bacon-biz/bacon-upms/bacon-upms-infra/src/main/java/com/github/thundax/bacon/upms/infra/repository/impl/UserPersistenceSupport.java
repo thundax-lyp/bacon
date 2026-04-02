@@ -7,6 +7,8 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredentialDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserIdentityDO;
@@ -52,20 +54,20 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    Optional<UserIdentity> findUserIdentity(TenantId tenantId, String identityType, String identityValue) {
+    Optional<UserIdentity> findUserIdentity(TenantId tenantId, UserIdentityType identityType, String identityValue) {
         return Optional.ofNullable(userIdentityMapper.selectOne(Wrappers.<UserIdentityDO>lambdaQuery()
                         .eq(UserIdentityDO::getTenantId, tenantId)
-                        .eq(UserIdentityDO::getIdentityType, identityType)
+                        .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
                         .eq(UserIdentityDO::getIdentityValue, identityValue)
                         .eq(UserIdentityDO::getEnabled, true)))
                 .map(this::toDomain);
     }
 
-    Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, String credentialType) {
+    Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, UserCredentialType credentialType) {
         return Optional.ofNullable(userCredentialMapper.selectOne(Wrappers.<UserCredentialDO>lambdaQuery()
                         .eq(UserCredentialDO::getTenantId, tenantId)
                         .eq(UserCredentialDO::getUserId, userId)
-                        .eq(UserCredentialDO::getCredentialType, credentialType)))
+                        .eq(UserCredentialDO::getCredentialType, credentialType == null ? null : credentialType.value())))
                 .map(this::toDomain);
     }
 
@@ -131,11 +133,11 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .eq(UserIdentityDO::getUserId, userId));
     }
 
-    void deleteUserIdentitiesByUserAndType(TenantId tenantId, UserId userId, String identityType) {
+    void deleteUserIdentitiesByUserAndType(TenantId tenantId, UserId userId, UserIdentityType identityType) {
         userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery()
                 .eq(UserIdentityDO::getTenantId, tenantId)
                 .eq(UserIdentityDO::getUserId, userId)
-                .eq(UserIdentityDO::getIdentityType, identityType));
+                .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value()));
     }
 
     UserIdentity saveUserIdentity(UserIdentity userIdentity) {

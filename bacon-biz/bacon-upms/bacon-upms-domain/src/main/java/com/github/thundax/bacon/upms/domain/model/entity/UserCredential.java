@@ -4,7 +4,9 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.domain.UserIdentityId;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -23,9 +25,9 @@ public class UserCredential {
     /** 关联身份标识主键。 */
     private UserIdentityId identityId;
     /** 凭据类型。 */
-    private String credentialType;
+    private UserCredentialType credentialType;
     /** 因子等级。 */
-    private String factorLevel;
+    private UserCredentialFactorLevel factorLevel;
     /** 凭据值。 */
     private String credentialValue;
     /** 凭据状态。 */
@@ -53,8 +55,9 @@ public class UserCredential {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, UserIdentityId identityId, String credentialType,
-                          String factorLevel, String credentialValue, UserCredentialStatus status, boolean needChangePassword,
+    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, UserIdentityId identityId, UserCredentialType credentialType,
+                          UserCredentialFactorLevel factorLevel, String credentialValue, UserCredentialStatus status,
+                          boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
                           Instant expiresAt, Instant lastVerifiedAt) {
         this(id, tenantId, userId, identityId, credentialType, factorLevel, credentialValue, status,
@@ -62,8 +65,9 @@ public class UserCredential {
                 lastVerifiedAt, null, null, null, null);
     }
 
-    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, UserIdentityId identityId, String credentialType,
-                          String factorLevel, String credentialValue, UserCredentialStatus status, boolean needChangePassword,
+    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, UserIdentityId identityId, UserCredentialType credentialType,
+                          UserCredentialFactorLevel factorLevel, String credentialValue, UserCredentialStatus status,
+                          boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
                           Instant expiresAt, Instant lastVerifiedAt, String createdBy,
                           Instant createdAt, String updatedBy, Instant updatedAt) {

@@ -15,7 +15,10 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
@@ -87,20 +90,24 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final UserIdentityDO toDataObject(UserIdentity userIdentity) {
         return new UserIdentityDO(userIdentity.getId(), userIdentity.getTenantId(), userIdentity.getUserId(),
-                userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
+                userIdentity.getIdentityType() == null ? null : userIdentity.getIdentityType().value(),
+                userIdentity.getIdentityValue(), userIdentity.isEnabled(),
                 userIdentity.getCreatedBy(), toLocalDateTime(userIdentity.getCreatedAt()), userIdentity.getUpdatedBy(),
                 toLocalDateTime(userIdentity.getUpdatedAt()));
     }
 
     protected final UserIdentity toDomain(UserIdentityDO dataObject) {
-        return new UserIdentity(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(), dataObject.getIdentityType(),
+        return new UserIdentity(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(),
+                UserIdentityType.fromValue(dataObject.getIdentityType()),
                 dataObject.getIdentityValue(), Boolean.TRUE.equals(dataObject.getEnabled()), dataObject.getCreatedBy(),
                 toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 
     protected final UserCredentialDO toDataObject(UserCredential userCredential) {
         return new UserCredentialDO(userCredential.getId(), userCredential.getTenantId(), userCredential.getUserId(),
-                userCredential.getIdentityId(), userCredential.getCredentialType(), userCredential.getFactorLevel(),
+                userCredential.getIdentityId(),
+                userCredential.getCredentialType() == null ? null : userCredential.getCredentialType().value(),
+                userCredential.getFactorLevel() == null ? null : userCredential.getFactorLevel().value(),
                 userCredential.getCredentialValue(), userCredential.getStatus().value(), userCredential.isNeedChangePassword(),
                 userCredential.getFailedCount(), userCredential.getFailedLimit(), userCredential.getLockReason(),
                 toLocalDateTime(userCredential.getLockedUntil()), toLocalDateTime(userCredential.getExpiresAt()),
@@ -111,7 +118,8 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final UserCredential toDomain(UserCredentialDO dataObject) {
         return new UserCredential(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(),
-                dataObject.getIdentityId(), dataObject.getCredentialType(), dataObject.getFactorLevel(),
+                dataObject.getIdentityId(), UserCredentialType.fromValue(dataObject.getCredentialType()),
+                UserCredentialFactorLevel.fromValue(dataObject.getFactorLevel()),
                 dataObject.getCredentialValue(), UserCredentialStatus.valueOf(dataObject.getStatus()),
                 Boolean.TRUE.equals(dataObject.getNeedChangePassword()),
                 dataObject.getFailedCount() == null ? 0 : dataObject.getFailedCount(),

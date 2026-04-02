@@ -22,6 +22,8 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
@@ -79,12 +81,12 @@ public class UserApplicationService {
     }
 
     public UserIdentityDTO getUserIdentity(TenantId tenantId, String identityType, String identityValue) {
-        UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, identityType, identityValue)
+        UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, toIdentityType(identityType), identityValue)
                 .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
         return new UserIdentityDTO(userIdentity.getId() == null ? null : userIdentity.getId().value(),
                 userIdentity.getTenantId().value(),
                 userIdentity.getUserId().value(),
-                userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled());
+                userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(), userIdentity.isEnabled());
     }
 
     public UserIdentityDTO getUserIdentity(String tenantId, String identityType, String identityValue) {
@@ -92,17 +94,17 @@ public class UserApplicationService {
     }
 
     public UserLoginCredentialDTO getUserLoginCredential(TenantId tenantId, String identityType, String identityValue) {
-        UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, identityType, identityValue)
+        UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, toIdentityType(identityType), identityValue)
                 .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
-        UserCredential passwordCredential = userRepository.findUserCredential(tenantId, userIdentity.getUserId(), "PASSWORD")
+        UserCredential passwordCredential = userRepository.findUserCredential(tenantId, userIdentity.getUserId(), UserCredentialType.PASSWORD)
                 .orElseThrow(() -> new IllegalArgumentException("Password credential not found"));
         User user = userRepository.findUserById(userIdentity.getTenantId(), userIdentity.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
         return new UserLoginCredentialDTO(user.getTenantId().value(), user.getId().value(),
                 user.getAccount(), user.getPhone(),
-                userIdentity.getIdentityType(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
+                userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(), userIdentity.isEnabled(),
                 passwordCredential.getId() == null ? null : passwordCredential.getId().value(),
-                passwordCredential.getCredentialType(), passwordCredential.getStatus().value(),
+                passwordCredential.getCredentialType().value(), passwordCredential.getStatus().value(),
                 passwordCredential.isNeedChangePassword(), passwordCredential.getExpiresAt(),
                 passwordCredential.getLockedUntil(), false, List.of(), user.getStatus().value(),
                 passwordCredential.getCredentialValue());
@@ -228,7 +230,7 @@ public class UserApplicationService {
 
     public void changePassword(TenantId tenantId, UserId userId, String oldPassword, String newPassword) {
         User user = requireUser(tenantId, userId);
-        UserCredential passwordCredential = userRepository.findUserCredential(tenantId, userId, "PASSWORD")
+        UserCredential passwordCredential = userRepository.findUserCredential(tenantId, userId, UserCredentialType.PASSWORD)
                 .orElseThrow(() -> new IllegalArgumentException("Password credential not found: " + userId));
         validateRequired(oldPassword, "oldPassword");
         validateRequired(newPassword, "newPassword");
@@ -458,6 +460,11 @@ public class UserApplicationService {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " must not be blank");
         }
+    }
+
+    private UserIdentityType toIdentityType(String identityType) {
+        validateRequired(identityType, "identityType");
+        return UserIdentityType.fromValue(normalize(identityType).toUpperCase(Locale.ROOT));
     }
 
     private String normalize(String value) {

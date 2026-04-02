@@ -16,7 +16,10 @@ import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
@@ -177,14 +180,18 @@ class UserApplicationServiceTest {
         User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
-        UserIdentity accountIdentity = new UserIdentity(UserIdentityId.of("I201"), TENANT_ID, UserId.of("U101"), "ACCOUNT", "alice", true);
-        UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"), UserIdentityId.of("I201"), "PASSWORD", "PRIMARY",
+        UserIdentity accountIdentity = new UserIdentity(UserIdentityId.of("I201"), TENANT_ID, UserId.of("U101"),
+                UserIdentityType.ACCOUNT, "alice", true);
+        UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"),
+                UserIdentityId.of("I201"), UserCredentialType.PASSWORD, UserCredentialFactorLevel.PRIMARY,
                 "{noop}identity", UserCredentialStatus.ACTIVE, true, 0, 5, null, null, null, null);
         when(tenantRepository.findTenantByTenantId(TENANT_ID))
                 .thenReturn(Optional.of(new Tenant("tenant-demo", "Demo Tenant", "TENANT_DEMO",
                         TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
-        when(userRepository.findUserIdentity(TENANT_ID, "ACCOUNT", "alice")).thenReturn(Optional.of(accountIdentity));
-        when(userRepository.findUserCredential(TENANT_ID, UserId.of("U101"), "PASSWORD")).thenReturn(Optional.of(passwordCredential));
+        when(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice"))
+                .thenReturn(Optional.of(accountIdentity));
+        when(userRepository.findUserCredential(TENANT_ID, UserId.of("U101"), UserCredentialType.PASSWORD))
+                .thenReturn(Optional.of(passwordCredential));
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
 
         UserLoginCredentialDTO credential = service.getUserLoginCredential("tenant-demo", "ACCOUNT", "alice");
@@ -201,10 +208,12 @@ class UserApplicationServiceTest {
         User user = new User(UserId.of("U101"), TENANT_ID, "alice", "Alice", null, "13800000001", "{noop}user",
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
-        UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"), UserIdentityId.of("I201"), "PASSWORD", "PRIMARY",
+        UserCredential passwordCredential = new UserCredential(UserCredentialId.of("C301"), TENANT_ID, UserId.of("U101"),
+                UserIdentityId.of("I201"), UserCredentialType.PASSWORD, UserCredentialFactorLevel.PRIMARY,
                 "{noop}identity", UserCredentialStatus.ACTIVE, false, 0, 5, null, null, null, null);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
-        when(userRepository.findUserCredential(TENANT_ID, UserId.of("U101"), "PASSWORD")).thenReturn(Optional.of(passwordCredential));
+        when(userRepository.findUserCredential(TENANT_ID, UserId.of("U101"), UserCredentialType.PASSWORD))
+                .thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);
         when(tenantRepository.findTenantByTenantId(TENANT_ID))
                 .thenReturn(Optional.of(new Tenant("tenant-demo", "Demo Tenant", "TENANT_DEMO",

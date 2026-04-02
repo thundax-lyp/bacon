@@ -11,20 +11,18 @@ import com.github.thundax.bacon.upms.api.dto.PostPageResultDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
-import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PostApplicationService {
 
     private final PostRepository postRepository;
-    private final TenantRepository tenantRepository;
     private final Ids ids;
 
-    public PostApplicationService(PostRepository postRepository, TenantRepository tenantRepository, Ids ids) {
+    public PostApplicationService(PostRepository postRepository, Ids ids) {
         this.postRepository = postRepository;
-        this.tenantRepository = tenantRepository;
         this.ids = ids;
     }
 
@@ -48,6 +46,7 @@ public class PostApplicationService {
         return toDto(requirePost(tenantId, postId));
     }
 
+    @Transactional
     public PostDTO createPost(TenantId tenantId, String code, String name, String departmentId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -55,6 +54,7 @@ public class PostApplicationService {
                 toDepartmentId(departmentId), PostStatus.ENABLED)));
     }
 
+    @Transactional
     public PostDTO updatePost(TenantId tenantId, PostId postId, String code, String name, String departmentId, String status) {
         Post currentPost = requirePost(tenantId, postId);
         validateRequired(code, "code");
@@ -72,6 +72,7 @@ public class PostApplicationService {
                 currentPost.getUpdatedAt())));
     }
 
+    @Transactional
     public void deletePost(TenantId tenantId, PostId postId) {
         requirePost(tenantId, postId);
         postRepository.delete(tenantId, postId);

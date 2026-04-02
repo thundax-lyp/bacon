@@ -6,6 +6,7 @@ import com.alicp.jetcache.Cache;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -122,7 +123,7 @@ class UpmsRepositoryIntegrationTest {
                         id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
                         name varchar(128) NOT NULL,
-                        avatar_object_id bigint NULL,
+                        avatar_object_id varchar(64) NULL,
                         department_id varchar(64) NULL,
                         status varchar(16) NOT NULL,
                         deleted boolean NOT NULL,
@@ -302,7 +303,8 @@ class UpmsRepositoryIntegrationTest {
                 ResourceType.API, "POST", "/users", ResourceStatus.ENABLED));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
-        User user = userRepository.save(new User(null, TENANT_ID, "Alice", 901L, childDepartment.getId(), UserStatus.ENABLED),
+        User user = userRepository.save(new User(null, TENANT_ID, "Alice", StoredObjectId.of("O901"),
+                childDepartment.getId(), UserStatus.ENABLED),
                 "alice", "13800000001");
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
@@ -316,7 +318,7 @@ class UpmsRepositoryIntegrationTest {
         User persistedUser = userRepository.findUserByAccount(TENANT_ID, "alice").orElseThrow();
         assertNotNull(persistedUser.getId());
         assertTrue(persistedUser.getId().value().startsWith("U"));
-        assertEquals(901L, persistedUser.getAvatarObjectId());
+        assertEquals(StoredObjectId.of("O901"), persistedUser.getAvatarObjectId());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice").isPresent());
         assertNotNull(userRepository.findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow().getCredentialValue());
@@ -346,18 +348,20 @@ class UpmsRepositoryIntegrationTest {
                 ROOT_DEPARTMENT_ID, null, "ACTIVE"));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
-        User createdUser = userRepository.save(new User(null, TENANT_ID, "Bob", 1001L, department.getId(), UserStatus.ENABLED),
+        User createdUser = userRepository.save(new User(null, TENANT_ID, "Bob", StoredObjectId.of("O1001"),
+                department.getId(), UserStatus.ENABLED),
                 "bob", "13800000002");
 
         userRepository.assignRoles(TENANT_ID, createdUser.getId(), List.of(role.getId()));
-        User updatedUser = userRepository.save(new User(createdUser.getId(), TENANT_ID, "Bob", 1002L,
+        User updatedUser = userRepository.save(new User(createdUser.getId(), TENANT_ID, "Bob", StoredObjectId.of("O1002"),
                 department.getId(), UserStatus.ENABLED), "bob", "13900000003");
 
         assertFalse(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000002").isPresent());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13900000003").isPresent());
         assertNotNull(userRepository.findUserCredential(TENANT_ID, updatedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow().getCredentialValue());
-        assertEquals(1002L, userRepository.findUserById(TENANT_ID, updatedUser.getId()).orElseThrow().getAvatarObjectId());
+        assertEquals(StoredObjectId.of("O1002"),
+                userRepository.findUserById(TENANT_ID, updatedUser.getId()).orElseThrow().getAvatarObjectId());
         assertTrue(departmentRepository.existsUserInDepartment(TENANT_ID, department.getId()));
 
         userRepository.deleteUser(TENANT_ID, updatedUser.getId());

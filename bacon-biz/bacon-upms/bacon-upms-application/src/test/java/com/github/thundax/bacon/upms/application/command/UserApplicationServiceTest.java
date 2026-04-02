@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -78,14 +79,14 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldUploadAvatarToStorageAndReplaceOldReference() throws Exception {
-        User currentUser = new User(UserId.of("U101"), TENANT_ID, "Alice", 301L,
+        User currentUser = new User(UserId.of("U101"), TENANT_ID, "Alice", StoredObjectId.of("O301"),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
-        User savedUser = new User(UserId.of("U101"), TENANT_ID, "Alice", 401L,
+        User savedUser = new User(UserId.of("U101"), TENANT_ID, "Alice", StoredObjectId.of("O401"),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
-        storedObject.setId(401L);
+        storedObject.setId("O401");
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
 
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(currentUser));
@@ -100,10 +101,10 @@ class UserApplicationServiceTest {
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture(), org.mockito.ArgumentMatchers.eq("alice"),
                 org.mockito.ArgumentMatchers.eq("13800000001"));
-        verify(storedObjectFacade).markObjectReferenced(401L, "UPMS_USER_AVATAR", "U101");
-        verify(storedObjectFacade).clearObjectReference(301L, "UPMS_USER_AVATAR", "U101");
-        assertThat(userCaptor.getValue().getAvatarObjectId()).isEqualTo(401L);
-        assertThat(result.getAvatarObjectId()).isEqualTo(401L);
+        verify(storedObjectFacade).markObjectReferenced("O401", "UPMS_USER_AVATAR", "U101");
+        verify(storedObjectFacade).clearObjectReference("O301", "UPMS_USER_AVATAR", "U101");
+        assertThat(userCaptor.getValue().getAvatarObjectId()).isEqualTo(StoredObjectId.of("O401"));
+        assertThat(result.getAvatarObjectId()).isEqualTo("O401");
         assertThat(result.getId()).isEqualTo("U101");
         assertThat(result.getAvatarUrl()).isEqualTo("https://cdn.example.com/avatar/401.png");
     }
@@ -137,7 +138,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", 501L,
+        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", StoredObjectId.of("O501"),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.pageUsers(TENANT_ID, null, null, null, null, 1, 20)).thenReturn(List.of(user));
@@ -149,14 +150,14 @@ class UserApplicationServiceTest {
 
         assertThat(result.getRecords()).hasSize(1);
         assertThat(result.getRecords().get(0).getTenantId()).isEqualTo("tenant-demo");
-        assertThat(result.getRecords().get(0).getAvatarObjectId()).isEqualTo(501L);
+        assertThat(result.getRecords().get(0).getAvatarObjectId()).isEqualTo("O501");
         assertThat(result.getRecords().get(0).getAvatarUrl()).isNull();
         verify(storedObjectFacade, never()).getObjectById(any());
     }
 
     @Test
     void shouldClearAvatarReferenceWhenDeletingUser() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", 501L,
+        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", StoredObjectId.of("O501"),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
@@ -164,19 +165,19 @@ class UserApplicationServiceTest {
         service.deleteUser(TENANT_ID, "U101");
 
         verify(userRepository).deleteUser(TENANT_ID, UserId.of("U101"));
-        verify(storedObjectFacade).clearObjectReference(501L, "UPMS_USER_AVATAR", "U101");
+        verify(storedObjectFacade).clearObjectReference("O501", "UPMS_USER_AVATAR", "U101");
         verify(sessionCommandFacade).invalidateUserSessions("tenant-demo", "U101", "USER_DELETED");
     }
 
     @Test
     void shouldResolveAvatarAccessUrl() {
-        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", 501L,
+        User user = new User(UserId.of("U101"), TENANT_ID, "Alice", StoredObjectId.of("O501"),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
         when(userRepository.findUserById(TENANT_ID, UserId.of("U101"))).thenReturn(Optional.of(user));
-        when(storedObjectFacade.getObjectById(501L)).thenReturn(storedObject);
+        when(storedObjectFacade.getObjectById("O501")).thenReturn(storedObject);
 
         assertThat(service.getAvatarAccessUrl(TENANT_ID, "U101")).contains("https://cdn.example.com/avatar/501.png");
     }

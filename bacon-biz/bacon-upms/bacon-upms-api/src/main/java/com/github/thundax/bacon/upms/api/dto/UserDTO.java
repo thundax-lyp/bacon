@@ -21,7 +21,7 @@ public class UserDTO {
     /** 用户名称。 */
     private String name;
     /** 头像对象主键。 */
-    private Long avatarObjectId;
+    private String avatarObjectId;
     /** 手机号。 */
     private String phone;
     /** 所属部门主键。 */

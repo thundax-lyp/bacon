@@ -201,7 +201,7 @@
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `name` | `varchar(128)` | N | 用户名称 |
 | `department_id` | `varchar(64)` | Y | 部门主键，固定使用 `DepartmentId` |
-| `avatar_object_id` | `bigint` | Y | 用户头像对象主键，引用 `Storage` 域 `StoredObject` |
+| `avatar_object_id` | `varchar(64)` | Y | 用户头像对象主键，固定使用 `StoredObjectId`，引用 `Storage` 域 `StoredObject` |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |

@@ -15,7 +15,7 @@ public record UserResponse(
         /** 用户名称。 */
         String name,
         /** 头像对象主键。 */
-        Long avatarObjectId,
+        String avatarObjectId,
         /** 手机号。 */
         String phone,
         /** 所属部门主键。 */

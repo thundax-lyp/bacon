@@ -4,6 +4,7 @@ import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
@@ -209,7 +210,7 @@ public class UserApplicationService {
         User currentUser = requireUser(tenantId, domainUserId);
         userRepository.deleteUser(tenantId, domainUserId);
         if (currentUser.getAvatarObjectId() != null) {
-            storedObjectFacade.clearObjectReference(currentUser.getAvatarObjectId(), USER_AVATAR_OWNER_TYPE,
+            storedObjectFacade.clearObjectReference(currentUser.getAvatarObjectId().value(), USER_AVATAR_OWNER_TYPE,
                     userId);
         }
         sessionCommandFacade.invalidateUserSessions(tenantId.value(), userId, "USER_DELETED");
@@ -292,13 +293,13 @@ public class UserApplicationService {
         AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
         StoredObjectDTO storedObject = uploadAvatarObject(tenantId, avatarImage);
         storedObjectFacade.markObjectReferenced(storedObject.getId(), USER_AVATAR_OWNER_TYPE, userId);
-        Long previousAvatarObjectId = currentUser.getAvatarObjectId();
+        StoredObjectId previousAvatarObjectId = currentUser.getAvatarObjectId();
         try {
             User savedUser = userRepository.save(new User(
                     currentUser.getId(),
                     currentUser.getTenantId(),
                     currentUser.getName(),
-                    storedObject.getId(),
+                    StoredObjectId.of(storedObject.getId()),
                     currentUser.getDepartmentId(),
                     currentUser.getStatus(),
                     currentUser.getCreatedBy(),
@@ -307,8 +308,8 @@ public class UserApplicationService {
                     currentUser.getUpdatedAt()),
                     requireIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.ACCOUNT),
                     resolveIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.PHONE));
-            if (previousAvatarObjectId != null && !previousAvatarObjectId.equals(storedObject.getId())) {
-                storedObjectFacade.clearObjectReference(previousAvatarObjectId, USER_AVATAR_OWNER_TYPE,
+            if (previousAvatarObjectId != null && !previousAvatarObjectId.value().equals(storedObject.getId())) {
+                storedObjectFacade.clearObjectReference(previousAvatarObjectId.value(), USER_AVATAR_OWNER_TYPE,
                         userId);
             }
             return toDto(savedUser, storedObject.getAccessEndpoint(), savedUser.getTenantId().value());
@@ -349,7 +350,7 @@ public class UserApplicationService {
     private UserDTO toDto(User user, String avatarUrl, String tenantIdValue) {
         return new UserDTO(user.getId().value(), tenantIdValue,
                 resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT), user.getName(),
-                user.getAvatarObjectId(),
+                user.getAvatarObjectId() == null ? null : user.getAvatarObjectId().value(),
                 resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.PHONE),
                 user.getDepartmentId() == null ? null : user.getDepartmentId().value(), avatarUrl, user.getStatus().value());
     }
@@ -440,11 +441,11 @@ public class UserApplicationService {
         }
     }
 
-    private String resolveAvatarUrl(Long avatarObjectId) {
+    private String resolveAvatarUrl(StoredObjectId avatarObjectId) {
         if (avatarObjectId == null) {
             return null;
         }
-        StoredObjectDTO storedObject = storedObjectFacade.getObjectById(avatarObjectId);
+        StoredObjectDTO storedObject = storedObjectFacade.getObjectById(avatarObjectId.value());
         return storedObject == null ? null : storedObject.getAccessEndpoint();
     }
 

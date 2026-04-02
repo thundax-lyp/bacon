@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
@@ -21,7 +22,7 @@ public class User {
     /** 用户名称。 */
     private String name;
     /** 头像对象主键。 */
-    private Long avatarObjectId;
+    private StoredObjectId avatarObjectId;
     /** 所属部门主键。 */
     private DepartmentId departmentId;
     /** 用户状态。 */
@@ -39,7 +40,8 @@ public class User {
         this(id, tenantId, name, null, departmentId, status);
     }
 
-    public User(UserId id, TenantId tenantId, String name, Long avatarObjectId, DepartmentId departmentId, UserStatus status) {
+    public User(UserId id, TenantId tenantId, String name, StoredObjectId avatarObjectId, DepartmentId departmentId,
+                UserStatus status) {
         this(id, tenantId, name, avatarObjectId, departmentId, status,
                 null, null, null, null);
     }
@@ -51,7 +53,7 @@ public class User {
                 createdBy, createdAt, updatedBy, updatedAt);
     }
 
-    public User(UserId id, TenantId tenantId, String name, Long avatarObjectId, DepartmentId departmentId,
+    public User(UserId id, TenantId tenantId, String name, StoredObjectId avatarObjectId, DepartmentId departmentId,
                 UserStatus status, String createdBy,
                 Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;

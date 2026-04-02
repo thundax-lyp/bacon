@@ -12,6 +12,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -87,6 +88,7 @@ public class DepartmentApplicationService {
                 .toList();
     }
 
+    @Transactional
     public DepartmentDTO createDepartment(TenantId tenantId, String code, String name, String parentId, String leaderUserId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -96,6 +98,7 @@ public class DepartmentApplicationService {
                 parentDepartmentId, toUserId(leaderUserId), UpmsStatusEnum.ENABLED.value())));
     }
 
+    @Transactional
     public DepartmentDTO updateDepartment(TenantId tenantId, String departmentId, String code, String name, String parentId,
                                           String leaderUserId) {
         DepartmentId targetDepartmentId = toDepartmentId(departmentId);
@@ -122,6 +125,7 @@ public class DepartmentApplicationService {
                 currentDepartment.getUpdatedAt())));
     }
 
+    @Transactional
     public void deleteDepartment(TenantId tenantId, String departmentId) {
         DepartmentId targetDepartmentId = toDepartmentId(departmentId);
         departmentRepository.findDepartmentById(tenantId, targetDepartmentId)

@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.auth.interfaces.architecture;
 
-import com.github.thundax.bacon.common.test.architecture.LayeredArchitectureRuleSupport;
-import org.junit.jupiter.api.Test;
+import com.github.thundax.bacon.common.test.architecture.AbstractLayeredArchitectureTest;
 
-class AuthLayeredArchitectureTest {
+class AuthLayeredArchitectureTest extends AbstractLayeredArchitectureTest {
 
-    @Test
-    void shouldFollowLayerDependencyDirection() {
-        LayeredArchitectureRuleSupport.assertDefaultDirection("com.github.thundax.bacon.auth");
+    @Override
+    protected String basePackage() {
+        return "com.github.thundax.bacon.auth";
     }
 }

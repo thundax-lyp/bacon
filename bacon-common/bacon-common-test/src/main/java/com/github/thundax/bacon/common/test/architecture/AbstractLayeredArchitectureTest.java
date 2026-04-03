@@ -1,0 +1,57 @@
+package com.github.thundax.bacon.common.test.architecture;
+
+import com.tngtech.archunit.core.domain.JavaClasses;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public abstract class AbstractLayeredArchitectureTest {
+
+    private JavaClasses classes;
+
+    protected abstract String basePackage();
+
+    @BeforeAll
+    void loadClasses() {
+        this.classes = LayeredArchitectureRuleSupport.importDomainClasses(basePackage());
+    }
+
+    protected JavaClasses classes() {
+        return classes;
+    }
+
+    @Test
+    @DisplayName("默认分层依赖方向：domain/application/interfaces/infra 只能沿既定方向依赖")
+    void shouldFollowDefaultDirection() {
+        LayeredArchitectureRuleSupport.domainShouldNotDependOnOuterLayers(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.applicationShouldNotDependOnInterfacesOrOwnInfra(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnDomainOrOwnInfra(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.infraShouldNotDependOnApplicationOrInterfaces(basePackage()).check(classes());
+    }
+
+    @Test
+    @DisplayName("interfaces 不得直接依赖 infra.persistence.mapper")
+    void shouldKeepInterfacesAwayFromPersistenceMapper() {
+        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnPersistenceMapper(basePackage()).check(classes());
+    }
+
+    @Test
+    @DisplayName("interfaces 不得直接依赖其他业务域的 infra")
+    void shouldKeepInterfacesAwayFromOtherDomainInfra() {
+        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnOtherDomainInfra(basePackage()).check(classes());
+    }
+
+    @Test
+    @DisplayName("application 不得依赖本域或他域的 infra")
+    void shouldKeepApplicationAwayFromInfra() {
+        LayeredArchitectureRuleSupport.applicationShouldNotDependOnAnyDomainInfra(basePackage()).check(classes());
+    }
+
+    @Test
+    @DisplayName("domain 不得依赖 Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术包")
+    void shouldKeepDomainAwayFromTechnicalPackages() {
+        LayeredArchitectureRuleSupport.domainShouldNotDependOnTechnicalPackages(basePackage()).check(classes());
+    }
+}

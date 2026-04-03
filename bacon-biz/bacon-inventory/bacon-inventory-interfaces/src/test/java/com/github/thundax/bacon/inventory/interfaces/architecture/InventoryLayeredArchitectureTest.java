@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.inventory.interfaces.architecture;
 
-import com.github.thundax.bacon.common.test.architecture.LayeredArchitectureRuleSupport;
-import org.junit.jupiter.api.Test;
+import com.github.thundax.bacon.common.test.architecture.AbstractLayeredArchitectureTest;
 
-class InventoryLayeredArchitectureTest {
+class InventoryLayeredArchitectureTest extends AbstractLayeredArchitectureTest {
 
-    @Test
-    void shouldFollowLayerDependencyDirection() {
-        LayeredArchitectureRuleSupport.assertDefaultDirection("com.github.thundax.bacon.inventory");
+    @Override
+    protected String basePackage() {
+        return "com.github.thundax.bacon.inventory";
     }
 }

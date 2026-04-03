@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.upms.interfaces.architecture;
 
-import com.github.thundax.bacon.common.test.architecture.LayeredArchitectureRuleSupport;
-import org.junit.jupiter.api.Test;
+import com.github.thundax.bacon.common.test.architecture.AbstractLayeredArchitectureTest;
 
-class UpmsLayeredArchitectureTest {
+class UpmsLayeredArchitectureTest extends AbstractLayeredArchitectureTest {
 
-    @Test
-    void shouldFollowLayerDependencyDirection() {
-        LayeredArchitectureRuleSupport.assertDefaultDirection("com.github.thundax.bacon.upms");
+    @Override
+    protected String basePackage() {
+        return "com.github.thundax.bacon.upms";
     }
 }

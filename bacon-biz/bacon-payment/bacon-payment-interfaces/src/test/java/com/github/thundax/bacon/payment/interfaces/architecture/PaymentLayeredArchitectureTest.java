@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.payment.interfaces.architecture;
 
-import com.github.thundax.bacon.common.test.architecture.LayeredArchitectureRuleSupport;
-import org.junit.jupiter.api.Test;
+import com.github.thundax.bacon.common.test.architecture.AbstractLayeredArchitectureTest;
 
-class PaymentLayeredArchitectureTest {
+class PaymentLayeredArchitectureTest extends AbstractLayeredArchitectureTest {
 
-    @Test
-    void shouldFollowLayerDependencyDirection() {
-        LayeredArchitectureRuleSupport.assertDefaultDirection("com.github.thundax.bacon.payment");
+    @Override
+    protected String basePackage() {
+        return "com.github.thundax.bacon.payment";
     }
 }

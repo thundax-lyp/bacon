@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -12,10 +13,6 @@ import java.time.Instant;
 @Getter
 public class StorageAuditLog {
 
-    public static final String ACTION_UPLOAD = "UPLOAD";
-    public static final String ACTION_REFERENCE_ADD = "REFERENCE_ADD";
-    public static final String ACTION_REFERENCE_CLEAR = "REFERENCE_CLEAR";
-    public static final String ACTION_DELETE = "DELETE";
     public static final String OPERATOR_TYPE_SYSTEM = "SYSTEM";
     public static final Long OPERATOR_ID_SYSTEM = 0L;
 
@@ -30,7 +27,7 @@ public class StorageAuditLog {
     /** 引用方业务主键。 */
     private String ownerId;
     /** 审计动作类型。 */
-    private String actionType;
+    private StorageAuditActionType actionType;
     /** 变更前状态。 */
     private String beforeStatus;
     /** 变更后状态。 */
@@ -43,7 +40,7 @@ public class StorageAuditLog {
     private Instant occurredAt;
 
     public StorageAuditLog(Long id, TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId,
-                           String actionType,
+                           StorageAuditActionType actionType,
                            String beforeStatus, String afterStatus, String operatorType, Long operatorId,
                            Instant occurredAt) {
         this.id = id;
@@ -60,7 +57,7 @@ public class StorageAuditLog {
     }
 
     public static StorageAuditLog systemAction(TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId,
-                                               String actionType, String beforeStatus, String afterStatus) {
+                                               StorageAuditActionType actionType, String beforeStatus, String afterStatus) {
         return new StorageAuditLog(null, tenantId, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus,
                 OPERATOR_TYPE_SYSTEM, OPERATOR_ID_SYSTEM, Instant.now());
     }

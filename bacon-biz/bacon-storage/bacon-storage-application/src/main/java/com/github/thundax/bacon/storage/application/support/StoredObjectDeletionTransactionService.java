@@ -3,7 +3,7 @@ package com.github.thundax.bacon.storage.application.support;
 import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -54,6 +54,6 @@ public class StoredObjectDeletionTransactionService {
         storedObject.markDeleted();
         StoredObject savedObject = storedObjectRepository.save(storedObject);
         storageAuditApplicationService.record(savedObject.getTenantId(), objectId, null, null,
-                StorageAuditLog.ACTION_DELETE, beforeStatus, savedObject.getObjectStatus().value());
+                StorageAuditActionType.DELETE, beforeStatus, savedObject.getObjectStatus().value());
     }
 }

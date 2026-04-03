@@ -24,7 +24,7 @@ public class StorageAuditLogRepositoryImpl implements StorageAuditLogRepository 
     public void save(StorageAuditLog storageAuditLog) {
         StorageAuditLogDO dataObject = new StorageAuditLogDO(idGenerator.nextId(BIZ_TAG), storageAuditLog.getTenantId(),
                 storageAuditLog.getObjectId(), storageAuditLog.getOwnerType(), storageAuditLog.getOwnerId(),
-                storageAuditLog.getActionType(), storageAuditLog.getBeforeStatus(), storageAuditLog.getAfterStatus(),
+                storageAuditLog.getActionType().value(), storageAuditLog.getBeforeStatus(), storageAuditLog.getAfterStatus(),
                 storageAuditLog.getOperatorType(), storageAuditLog.getOperatorId(), storageAuditLog.getOccurredAt());
         storageAuditLogMapper.insert(dataObject);
     }

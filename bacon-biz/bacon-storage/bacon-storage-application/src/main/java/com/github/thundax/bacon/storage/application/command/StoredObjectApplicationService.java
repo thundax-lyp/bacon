@@ -8,7 +8,7 @@ import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.application.support.StoredObjectDeletionTransactionService;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
-import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectReference;
@@ -57,7 +57,7 @@ public class StoredObjectApplicationService {
                 command.getContentType(), command.getSize(), storageResult.getAccessEndpoint(), null);
         StoredObject savedObject = storedObjectRepository.save(storedObject);
         storageAuditApplicationService.record(savedObject.getTenantId(), savedObject.getId(), command.getOwnerType(), null,
-                StorageAuditLog.ACTION_UPLOAD, null, savedObject.getObjectStatus().value());
+                StorageAuditActionType.UPLOAD, null, savedObject.getObjectStatus().value());
         return toDto(savedObject);
     }
 
@@ -75,7 +75,7 @@ public class StoredObjectApplicationService {
             return;
         }
         storageAuditApplicationService.record(savedObject.getTenantId(), storedObjectId, ownerType, ownerId,
-                StorageAuditLog.ACTION_REFERENCE_ADD, beforeStatus, savedObject.getReferenceStatus().value());
+                StorageAuditActionType.REFERENCE_ADD, beforeStatus, savedObject.getReferenceStatus().value());
     }
 
     @Transactional
@@ -90,7 +90,7 @@ public class StoredObjectApplicationService {
             return;
         }
         storageAuditApplicationService.record(savedObject.getTenantId(), storedObjectId, ownerType, ownerId,
-                StorageAuditLog.ACTION_REFERENCE_CLEAR, beforeStatus, savedObject.getReferenceStatus().value());
+                StorageAuditActionType.REFERENCE_CLEAR, beforeStatus, savedObject.getReferenceStatus().value());
     }
 
     public void deleteObject(String objectId) {

@@ -2,7 +2,9 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxStatus;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditOutboxRepository;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StorageAuditOutboxDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.StorageAuditOutboxMapper;
@@ -28,19 +30,19 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
     public void save(StorageAuditOutbox storageAuditOutbox) {
         StorageAuditOutboxDO dataObject = new StorageAuditOutboxDO(idGenerator.nextId(BIZ_TAG),
                 storageAuditOutbox.getTenantId(), storageAuditOutbox.getObjectId(), storageAuditOutbox.getOwnerType(),
-                storageAuditOutbox.getOwnerId(), storageAuditOutbox.getActionType(), storageAuditOutbox.getBeforeStatus(),
+                storageAuditOutbox.getOwnerId(), storageAuditOutbox.getActionType().value(), storageAuditOutbox.getBeforeStatus(),
                 storageAuditOutbox.getAfterStatus(), storageAuditOutbox.getOperatorType(),
                 storageAuditOutbox.getOperatorId(), storageAuditOutbox.getOccurredAt(),
-                storageAuditOutbox.getErrorMessage(), storageAuditOutbox.getStatus(),
+                storageAuditOutbox.getErrorMessage(), storageAuditOutbox.getStatus().value(),
                 storageAuditOutbox.getRetryCount(), storageAuditOutbox.getNextRetryAt(),
                 storageAuditOutbox.getUpdatedAt());
         storageAuditOutboxMapper.insert(dataObject);
     }
 
     @Override
-    public List<StorageAuditOutbox> listRetryable(List<String> statuses, Instant retryBefore, int limit) {
+    public List<StorageAuditOutbox> listRetryable(List<StorageAuditOutboxStatus> statuses, Instant retryBefore, int limit) {
         return storageAuditOutboxMapper.selectList(Wrappers.<StorageAuditOutboxDO>lambdaQuery()
-                        .in(StorageAuditOutboxDO::getStatus, statuses)
+                        .in(StorageAuditOutboxDO::getStatus, toValues(statuses))
                         .le(StorageAuditOutboxDO::getNextRetryAt, retryBefore)
                         .orderByAsc(StorageAuditOutboxDO::getNextRetryAt)
                         .last("limit " + limit))
@@ -50,13 +52,14 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
     }
 
     @Override
-    public boolean claimForProcessing(Long id, List<String> statuses, Instant retryBefore, Instant updatedAt) {
+    public boolean claimForProcessing(Long id, List<StorageAuditOutboxStatus> statuses, Instant retryBefore,
+                                      Instant updatedAt) {
         StorageAuditOutboxDO update = new StorageAuditOutboxDO();
-        update.setStatus(StorageAuditOutbox.STATUS_PROCESSING);
+        update.setStatus(StorageAuditOutboxStatus.PROCESSING.value());
         update.setUpdatedAt(updatedAt);
         return storageAuditOutboxMapper.update(update, Wrappers.<StorageAuditOutboxDO>lambdaUpdate()
                 .eq(StorageAuditOutboxDO::getId, id)
-                .in(StorageAuditOutboxDO::getStatus, statuses)
+                .in(StorageAuditOutboxDO::getStatus, toValues(statuses))
                 .le(StorageAuditOutboxDO::getNextRetryAt, retryBefore)) > 0;
     }
 
@@ -66,13 +69,13 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
     }
 
     @Override
-    public void updateForRetry(Long id, int retryCount, Instant nextRetryAt, String errorMessage, String status,
-                               Instant updatedAt) {
+    public void updateForRetry(Long id, int retryCount, Instant nextRetryAt, String errorMessage,
+                               StorageAuditOutboxStatus status, Instant updatedAt) {
         StorageAuditOutboxDO update = new StorageAuditOutboxDO();
         update.setRetryCount(retryCount);
         update.setNextRetryAt(nextRetryAt);
         update.setErrorMessage(errorMessage);
-        update.setStatus(status);
+        update.setStatus(status.value());
         update.setUpdatedAt(updatedAt);
         storageAuditOutboxMapper.update(update, Wrappers.<StorageAuditOutboxDO>lambdaUpdate()
                 .eq(StorageAuditOutboxDO::getId, id));
@@ -83,7 +86,7 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
         StorageAuditOutboxDO update = new StorageAuditOutboxDO();
         update.setRetryCount(retryCount);
         update.setErrorMessage(errorMessage);
-        update.setStatus(StorageAuditOutbox.STATUS_DEAD);
+        update.setStatus(StorageAuditOutboxStatus.DEAD.value());
         update.setUpdatedAt(updatedAt);
         storageAuditOutboxMapper.update(update, Wrappers.<StorageAuditOutboxDO>lambdaUpdate()
                 .eq(StorageAuditOutboxDO::getId, id));
@@ -92,7 +95,7 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
     @Override
     public int deleteExpiredDead(Instant updatedBefore, int limit) {
         List<Long> ids = storageAuditOutboxMapper.selectList(Wrappers.<StorageAuditOutboxDO>lambdaQuery()
-                        .eq(StorageAuditOutboxDO::getStatus, StorageAuditOutbox.STATUS_DEAD)
+                        .eq(StorageAuditOutboxDO::getStatus, StorageAuditOutboxStatus.DEAD.value())
                         .lt(StorageAuditOutboxDO::getUpdatedAt, updatedBefore)
                         .orderByAsc(StorageAuditOutboxDO::getUpdatedAt)
                         .last("limit " + limit))
@@ -107,10 +110,16 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
 
     private StorageAuditOutbox toDomain(StorageAuditOutboxDO dataObject) {
         return new StorageAuditOutbox(dataObject.getId(), dataObject.getTenantId(), dataObject.getObjectId(),
-                dataObject.getOwnerType(), dataObject.getOwnerId(), dataObject.getActionType(),
+                dataObject.getOwnerType(), dataObject.getOwnerId(), StorageAuditActionType.fromValue(dataObject.getActionType()),
                 dataObject.getBeforeStatus(), dataObject.getAfterStatus(), dataObject.getOperatorType(),
                 dataObject.getOperatorId(), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
-                dataObject.getStatus(), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
+                StorageAuditOutboxStatus.fromValue(dataObject.getStatus()), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
                 dataObject.getUpdatedAt());
+    }
+
+    private List<String> toValues(List<StorageAuditOutboxStatus> statuses) {
+        return statuses.stream()
+                .map(StorageAuditOutboxStatus::value)
+                .toList();
     }
 }

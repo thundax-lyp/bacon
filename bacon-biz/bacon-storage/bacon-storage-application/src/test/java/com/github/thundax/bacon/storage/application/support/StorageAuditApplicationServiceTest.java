@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.application.support;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditLogRepository;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditOutboxRepository;
 import io.micrometer.core.instrument.Metrics;
@@ -45,7 +46,7 @@ class StorageAuditApplicationServiceTest {
     @Test
     void shouldIncrementSuccessMetricWhenAuditLogSaved() {
         service.record(TenantId.of("tenant-a"), StoredObjectId.of("O100"), "GENERIC_ATTACHMENT", "owner-1",
-                "UPLOAD", null, "ACTIVE");
+                StorageAuditActionType.UPLOAD, null, "ACTIVE");
 
         verify(storageAuditLogRepository).save(any());
         assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.write.success.total")
@@ -59,7 +60,7 @@ class StorageAuditApplicationServiceTest {
         doThrow(new IllegalStateException("force-fail-audit")).when(storageAuditLogRepository).save(any());
 
         service.record(TenantId.of("tenant-a"), StoredObjectId.of("O100"), "GENERIC_ATTACHMENT", "owner-1",
-                "UPLOAD", null, "ACTIVE");
+                StorageAuditActionType.UPLOAD, null, "ACTIVE");
 
         verify(storageAuditOutboxRepository).save(any());
         assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.write.fail.total")
@@ -78,7 +79,7 @@ class StorageAuditApplicationServiceTest {
         doThrow(new IllegalStateException("force-fail-outbox")).when(storageAuditOutboxRepository).save(any());
 
         service.record(TenantId.of("tenant-a"), StoredObjectId.of("O100"), "GENERIC_ATTACHMENT", "owner-1",
-                "UPLOAD", null, "ACTIVE");
+                StorageAuditActionType.UPLOAD, null, "ACTIVE");
 
         assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.outbox.persist.fail.total")
                 .tag("actionType", "UPLOAD")

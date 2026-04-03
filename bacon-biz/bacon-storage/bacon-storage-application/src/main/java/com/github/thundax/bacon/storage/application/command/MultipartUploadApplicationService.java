@@ -12,10 +12,10 @@ import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
-import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
@@ -112,7 +112,7 @@ public class MultipartUploadApplicationService {
         multipartUploadSessionRepository.save(session);
         multipartUploadPartRepository.deleteByUploadId(command.getUploadId());
         storageAuditApplicationService.record(savedObject.getTenantId(), savedObject.getId(), session.getOwnerType(),
-                command.getOwnerId(), StorageAuditLog.ACTION_UPLOAD, null, savedObject.getObjectStatus().value());
+                command.getOwnerId(), StorageAuditActionType.UPLOAD, null, savedObject.getObjectStatus().value());
         return new StoredObjectDTO(savedObject.getId() == null ? null : savedObject.getId().value(),
                 savedObject.getStorageType() == null ? null : savedObject.getStorageType().value(), savedObject.getBucketName(),
                 savedObject.getObjectKey(), savedObject.getOriginalFilename(), savedObject.getContentType(),

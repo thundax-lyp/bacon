@@ -5,6 +5,8 @@ import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxStatus;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StorageAuditOutboxDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.StorageAuditOutboxMapper;
 import org.junit.jupiter.api.Test;
@@ -38,11 +40,11 @@ class StorageAuditOutboxRepositoryImplTest {
     @Test
     void shouldMapRetryableOutboxFromDataObject() {
         Instant retryBefore = Instant.parse("2026-03-27T10:00:00Z");
-        StorageAuditOutboxDO outbox = buildOutboxDO(101L, StorageAuditOutbox.STATUS_NEW, retryBefore.minusSeconds(60));
+        StorageAuditOutboxDO outbox = buildOutboxDO(101L, StorageAuditOutboxStatus.NEW.value(), retryBefore.minusSeconds(60));
         when(storageAuditOutboxMapper.selectList(any(Wrapper.class))).thenReturn(List.of(outbox));
 
         List<StorageAuditOutbox> result = storageAuditOutboxRepository.listRetryable(
-                List.of(StorageAuditOutbox.STATUS_NEW, StorageAuditOutbox.STATUS_RETRYING), retryBefore, 50);
+                List.of(StorageAuditOutboxStatus.NEW, StorageAuditOutboxStatus.RETRYING), retryBefore, 50);
 
         verify(storageAuditOutboxMapper).selectList(any(Wrapper.class));
         assertThat(result).hasSize(1);
@@ -50,7 +52,8 @@ class StorageAuditOutboxRepositoryImplTest {
         assertThat(mapped.getId()).isEqualTo(101L);
         assertThat(mapped.getTenantId()).isEqualTo(TenantId.of("tenant-a"));
         assertThat(mapped.getObjectId()).isEqualTo(StoredObjectId.of("O9001"));
-        assertThat(mapped.getStatus()).isEqualTo(StorageAuditOutbox.STATUS_NEW);
+        assertThat(mapped.getActionType()).isEqualTo(StorageAuditActionType.UPLOAD);
+        assertThat(mapped.getStatus()).isEqualTo(StorageAuditOutboxStatus.NEW);
         assertThat(mapped.getNextRetryAt()).isEqualTo(retryBefore.minusSeconds(60));
     }
 
@@ -62,14 +65,14 @@ class StorageAuditOutboxRepositoryImplTest {
         ArgumentCaptor<Wrapper<StorageAuditOutboxDO>> wrapperCaptor = ArgumentCaptor.forClass(Wrapper.class);
 
         storageAuditOutboxRepository.updateForRetry(201L, 2, nextRetryAt, "temporary-error",
-                StorageAuditOutbox.STATUS_RETRYING, updatedAt);
+                StorageAuditOutboxStatus.RETRYING, updatedAt);
 
         verify(storageAuditOutboxMapper).update(updateCaptor.capture(), wrapperCaptor.capture());
         StorageAuditOutboxDO update = updateCaptor.getValue();
         assertThat(update.getRetryCount()).isEqualTo(2);
         assertThat(update.getNextRetryAt()).isEqualTo(nextRetryAt);
         assertThat(update.getErrorMessage()).isEqualTo("temporary-error");
-        assertThat(update.getStatus()).isEqualTo(StorageAuditOutbox.STATUS_RETRYING);
+        assertThat(update.getStatus()).isEqualTo(StorageAuditOutboxStatus.RETRYING.value());
         assertThat(update.getUpdatedAt()).isEqualTo(updatedAt);
         assertThat(wrapperCaptor.getValue()).isNotNull();
     }
@@ -86,7 +89,7 @@ class StorageAuditOutboxRepositoryImplTest {
         StorageAuditOutboxDO update = updateCaptor.getValue();
         assertThat(update.getRetryCount()).isEqualTo(5);
         assertThat(update.getErrorMessage()).isEqualTo("permanent-error");
-        assertThat(update.getStatus()).isEqualTo(StorageAuditOutbox.STATUS_DEAD);
+        assertThat(update.getStatus()).isEqualTo(StorageAuditOutboxStatus.DEAD.value());
         assertThat(update.getUpdatedAt()).isEqualTo(updatedAt);
         assertThat(wrapperCaptor.getValue()).isNotNull();
     }
@@ -95,8 +98,8 @@ class StorageAuditOutboxRepositoryImplTest {
     void shouldDeleteExpiredDeadOutboxBySelectedIds() {
         Instant updatedBefore = Instant.parse("2026-03-27T10:00:00Z");
         when(storageAuditOutboxMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
-                buildOutboxDO(401L, StorageAuditOutbox.STATUS_DEAD, updatedBefore.minusSeconds(120)),
-                buildOutboxDO(402L, StorageAuditOutbox.STATUS_DEAD, updatedBefore.minusSeconds(60))));
+                buildOutboxDO(401L, StorageAuditOutboxStatus.DEAD.value(), updatedBefore.minusSeconds(120)),
+                buildOutboxDO(402L, StorageAuditOutboxStatus.DEAD.value(), updatedBefore.minusSeconds(60))));
         when(storageAuditOutboxMapper.deleteByIds(List.of(401L, 402L))).thenReturn(2);
 
         int deleted = storageAuditOutboxRepository.deleteExpiredDead(updatedBefore, 20);

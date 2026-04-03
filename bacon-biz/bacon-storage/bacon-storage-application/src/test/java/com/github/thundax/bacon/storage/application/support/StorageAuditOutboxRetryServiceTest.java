@@ -4,6 +4,8 @@ import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.application.config.StorageAuditRetryProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxStatus;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditLogRepository;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditOutboxRepository;
 import io.micrometer.core.instrument.Metrics;
@@ -80,7 +82,7 @@ class StorageAuditOutboxRetryServiceTest {
         service.retryOutbox();
 
         verify(storageAuditOutboxRepository).updateForRetry(eq(101L), eq(1), any(), eq("retry-fail"),
-                eq(StorageAuditOutbox.STATUS_RETRYING), any());
+                eq(StorageAuditOutboxStatus.RETRYING), any());
         assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.retry.fail.total")
                 .tag("actionType", "UPLOAD").counter().count());
     }
@@ -126,8 +128,7 @@ class StorageAuditOutboxRetryServiceTest {
     private StorageAuditOutbox outbox(Long id, int retryCount) {
         Instant now = Instant.parse("2026-03-27T12:00:00Z");
         return new StorageAuditOutbox(id, TenantId.of("tenant-a"), StoredObjectId.of("O100"), "GENERIC_ATTACHMENT",
-                "owner-1",
-                "UPLOAD", null, "ACTIVE", "SYSTEM", 0L, now, "force-fail-audit",
-                StorageAuditOutbox.STATUS_NEW, retryCount, now, now);
+                "owner-1", StorageAuditActionType.UPLOAD, null, "ACTIVE", "SYSTEM", 0L, now, "force-fail-audit",
+                StorageAuditOutboxStatus.NEW, retryCount, now, now);
     }
 }

@@ -54,4 +54,16 @@ public abstract class AbstractLayeredArchitectureTest {
     void shouldKeepDomainAwayFromTechnicalPackages() {
         LayeredArchitectureRuleSupport.domainShouldNotDependOnTechnicalPackages(basePackage()).check(classes());
     }
+
+    @Test
+    @DisplayName("@SysLog 只能出现在 interfaces.controller")
+    void shouldKeepSysLogInInterfacesController() {
+        LayeredArchitectureRuleSupport.sysLogShouldOnlyAppearInInterfacesController(basePackage()).check(classes());
+    }
+
+    @Test
+    @DisplayName("@Transactional 默认只允许出现在 application")
+    void shouldKeepTransactionalInApplication() {
+        LayeredArchitectureRuleSupport.transactionalShouldOnlyAppearInApplication(basePackage()).check(classes());
+    }
 }

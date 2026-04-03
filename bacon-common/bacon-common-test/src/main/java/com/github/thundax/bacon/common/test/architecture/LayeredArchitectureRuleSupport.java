@@ -1,8 +1,10 @@
 package com.github.thundax.bacon.common.test.architecture;
 
 import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -16,6 +18,10 @@ import java.util.function.Predicate;
 public final class LayeredArchitectureRuleSupport {
 
     private static final String ROOT_PACKAGE = "com.github.thundax.bacon";
+    private static final String SYS_LOG_ANNOTATION = "com.github.thundax.bacon.common.log.annotation.SysLog";
+    private static final List<String> TRANSACTIONAL_ANNOTATIONS = List.of(
+            "org.springframework.transaction.annotation.Transactional",
+            "jakarta.transaction.Transactional");
     private static final List<String> DOMAIN_FORBIDDEN_TECH_PACKAGES = List.of(
             "org.springframework.web.",
             "org.springframework.http.",
@@ -128,8 +134,62 @@ public final class LayeredArchitectureRuleSupport {
                 "domain 不得依赖 Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术包");
     }
 
+    public static ArchRule sysLogShouldOnlyAppearInInterfacesController(String basePackage) {
+        return noClassesOutsidePackageShouldUseAnnotations(
+                basePackage + ".interfaces.controller..",
+                List.of(SYS_LOG_ANNOTATION),
+                "@SysLog",
+                "@SysLog 只能出现在 interfaces.controller");
+    }
+
+    public static ArchRule transactionalShouldOnlyAppearInApplication(String basePackage) {
+        return noClassesOutsidePackageShouldUseAnnotations(
+                basePackage + ".application..",
+                TRANSACTIONAL_ANNOTATIONS,
+                "@Transactional",
+                "@Transactional 默认只允许出现在 application");
+    }
+
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {
         return DOMAIN_FORBIDDEN_TECH_PACKAGES.stream().anyMatch(packageName::startsWith);
+    }
+
+    private static ArchRule noClassesOutsidePackageShouldUseAnnotations(
+            String allowedPackage,
+            List<String> annotationNames,
+            String annotationDescription,
+            String because) {
+        return ArchRuleDefinition.noClasses()
+                .that().resideOutsideOfPackage(allowedPackage)
+                .should(new ArchCondition<>("use " + annotationDescription) {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        if (hasAnyAnnotation(item.getAnnotations(), annotationNames)) {
+                            events.add(SimpleConditionEvent.violated(
+                                    item,
+                                    item.getName() + " is annotated with " + annotationDescription));
+                        }
+                        for (JavaCodeUnit codeUnit : item.getCodeUnits()) {
+                            if (hasAnyAnnotation(codeUnit.getAnnotations(), annotationNames)) {
+                                events.add(SimpleConditionEvent.violated(
+                                        codeUnit,
+                                        codeUnit.getFullName() + " is annotated with " + annotationDescription));
+                            }
+                        }
+                    }
+                })
+                .because(because);
+    }
+
+    private static boolean hasAnyAnnotation(
+            Iterable<? extends JavaAnnotation<?>> annotations,
+            List<String> annotationNames) {
+        for (JavaAnnotation<?> annotation : annotations) {
+            if (annotationNames.contains(annotation.getRawType().getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ArchRule noDirectDependencies(

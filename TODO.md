@@ -7,8 +7,6 @@
 ### 1. 第一优先级：使用 ArchUnit 落地硬规则
 
 - 校验 `infra` 只能作为实现层依赖 `domain.repository`
-- 校验 `@SysLog` 只能出现在 `interfaces.controller`
-- 校验 `@Transactional` 默认只允许出现在 `application`
 
 ### 2. 第二优先级：使用自定义测试落地项目特有规则
 
@@ -40,8 +38,6 @@
 1. 再补 2 到 4 个最关键的自定义架构测试：
    - `application` 不新增字符串 `tenantId` 重载
    - `Response` 只在 `interfaces`
-   - `@SysLog` 只在 `controller`
-   - `@Transactional` 只在 `application`
 2. 最后再考虑把 `toDto` / `assembler` 的规则细化成更严格的测试
 
 ### 5. 实施注意事项

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
+import com.github.thundax.bacon.common.core.util.MoneyCurrencyValidator;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -107,9 +108,9 @@ public class Order {
         this.inventoryStatus = inventoryStatus;
         this.paymentNo = paymentNo;
         this.reservationNo = reservationNo;
-        ensureMoneyCurrency(currencyCode, totalAmount, payableAmount, paidAmount);
+        MoneyCurrencyValidator.ensureSameCurrency(currencyCode, totalAmount, payableAmount, paidAmount);
         this.currencyCode = currencyCode;
-        ensureMoneyCurrency(totalAmount, payableAmount, paidAmount);
+        MoneyCurrencyValidator.ensureSameCurrency(totalAmount, payableAmount, paidAmount);
         this.totalAmount = totalAmount;
         this.payableAmount = payableAmount;
         this.remark = remark;
@@ -240,7 +241,7 @@ public class Order {
     public void markPaid(PaymentNo paymentNo, String channelCode, Money paidAmount, Instant paidTime) {
         // 订单支付成功是主状态终局之一，只允许从待支付进入，避免重复回调覆盖终态。
         ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
-        ensureMoneyCurrency(totalAmount, paidAmount);
+        MoneyCurrencyValidator.ensureSameCurrency(totalAmount, paidAmount);
         this.orderStatus = OrderStatus.PAID;
         this.payStatus = PayStatus.PAID;
         this.paymentNo = paymentNo;
@@ -306,31 +307,4 @@ public class Order {
         throw new IllegalStateException("Invalid order status: " + getOrderStatusValue());
     }
 
-    private void ensureMoneyCurrency(Money base, Money... others) {
-        if (base == null || others == null) {
-            return;
-        }
-        for (Money other : others) {
-            if (other == null) {
-                continue;
-            }
-            if (base.currencyCode() != other.currencyCode()) {
-                throw new IllegalArgumentException("order money currency code mismatch");
-            }
-        }
-    }
-
-    private void ensureMoneyCurrency(CurrencyCode currencyCode, Money... monies) {
-        if (currencyCode == null || monies == null) {
-            return;
-        }
-        for (Money money : monies) {
-            if (money == null) {
-                continue;
-            }
-            if (currencyCode != money.currencyCode()) {
-                throw new IllegalArgumentException("order currency code mismatch");
-            }
-        }
-    }
 }

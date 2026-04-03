@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.core.enums.CurrencyCode;
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
@@ -222,7 +224,7 @@ public class OrderRepositorySupport {
     private OrderDO toDataObject(Order order) {
         return new OrderDO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getCurrencyCode(),
-                order.getTotalAmount(), order.getPayableAmount(), order.getRemark(), order.getCancelReason(),
+                order.getTotalAmount().value(), order.getPayableAmount().value(), order.getRemark(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), Instant.now(), order.getExpiredAt(), order.getPaidAt(),
                 order.getClosedAt());
     }
@@ -249,18 +251,26 @@ public class OrderRepositorySupport {
                 dataObject.getInventoryStatus(),
                 paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo(),
                 inventorySnapshot == null ? null : inventorySnapshot.getReservationNo(),
-                dataObject.getCurrencyCode(), dataObject.getTotalAmount(),
-                dataObject.getPayableAmount(), dataObject.getRemark(), dataObject.getCancelReason(),
+                toMoney(dataObject.getTotalAmount(), dataObject.getCurrencyCode()),
+                toMoney(dataObject.getPayableAmount(), dataObject.getCurrencyCode()),
+                dataObject.getRemark(), dataObject.getCancelReason(),
                 dataObject.getCloseReason(), dataObject.getCreatedAt(), dataObject.getExpiredAt(),
                 dataObject.getPaidAt(), dataObject.getClosedAt(),
                 paymentSnapshot == null ? null : paymentSnapshot.getChannelCode(),
-                paymentSnapshot == null ? null : paymentSnapshot.getPaidAmount(),
+                paymentSnapshot == null ? null : toMoney(paymentSnapshot.getPaidAmount(), dataObject.getCurrencyCode()),
                 paymentSnapshot == null ? null : paymentSnapshot.getChannelStatus(),
                 paymentSnapshot == null ? null : paymentSnapshot.getFailureReason(),
                 null,
                 inventorySnapshot == null ? null : inventorySnapshot.getWarehouseId(),
                 inventorySnapshot == null ? null : inventorySnapshot.getFailureReason(),
                 null, null, null);
+    }
+
+    private Money toMoney(java.math.BigDecimal value, String currencyCode) {
+        if (value == null || currencyCode == null || currencyCode.isBlank()) {
+            return null;
+        }
+        return Money.of(value, CurrencyCode.fromValue(currencyCode));
     }
 
     private OrderItem toDomain(OrderItemDO dataObject) {

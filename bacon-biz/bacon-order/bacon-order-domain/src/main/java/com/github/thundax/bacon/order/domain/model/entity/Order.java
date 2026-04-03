@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
-import java.math.BigDecimal;
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -48,18 +48,16 @@ public class Order {
     private String paymentNo;
     /** 库存预占单号。 */
     private String reservationNo;
-    /** 币种编码。 */
-    private String currencyCode;
     /** 订单总金额。 */
-    private BigDecimal totalAmount;
+    private Money totalAmount;
     /** 应付金额。 */
-    private BigDecimal payableAmount;
+    private Money payableAmount;
     /** 订单备注。 */
     private final String remark;
     /** 支付渠道编码。 */
     private String paymentChannelCode;
     /** 支付成功金额。 */
-    private BigDecimal paidAmount;
+    private Money paidAmount;
     /** 支付渠道状态。 */
     private String paymentChannelStatus;
     /** 支付失败原因。 */
@@ -89,18 +87,18 @@ public class Order {
     /** 订单关闭时间。 */
     private Instant closedAt;
 
-    public Order(Long id, Long tenantId, String orderNo, Long userId, String currencyCode,
-                 BigDecimal totalAmount, BigDecimal payableAmount, String remark, Instant expiredAt) {
+    public Order(Long id, Long tenantId, String orderNo, Long userId, Money totalAmount,
+                 Money payableAmount, String remark, Instant expiredAt) {
         this(id, tenantId, orderNo, userId, ORDER_STATUS_CREATED, PAY_STATUS_UNPAID, INVENTORY_STATUS_UNRESERVED,
-                null, null, currencyCode, totalAmount, payableAmount, remark, null, null, Instant.now(),
+                null, null, totalAmount, payableAmount, remark, null, null, Instant.now(),
                 expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     private Order(Long id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
-                  String inventoryStatus, String paymentNo, String reservationNo, String currencyCode,
-                  BigDecimal totalAmount, BigDecimal payableAmount, String remark, String cancelReason,
+                  String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
+                  Money payableAmount, String remark, String cancelReason,
                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
-                  String paymentChannelCode, BigDecimal paidAmount, String paymentChannelStatus,
+                  String paymentChannelCode, Money paidAmount, String paymentChannelStatus,
                   String paymentFailureReason, Instant paymentFailedAt, Long warehouseId,
                   String inventoryFailureReason, String inventoryReleaseReason, Instant inventoryReleasedAt,
                   Instant inventoryDeductedAt) {
@@ -113,7 +111,8 @@ public class Order {
         this.inventoryStatus = inventoryStatus;
         this.paymentNo = paymentNo;
         this.reservationNo = reservationNo;
-        this.currencyCode = currencyCode;
+        ensureMoneyCurrency(totalAmount, payableAmount);
+        ensureMoneyCurrency(totalAmount, paidAmount);
         this.totalAmount = totalAmount;
         this.payableAmount = payableAmount;
         this.remark = remark;
@@ -136,19 +135,23 @@ public class Order {
     }
 
     public static Order rehydrate(Long id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
-                                  String inventoryStatus, String paymentNo, String reservationNo, String currencyCode,
-                                  BigDecimal totalAmount, BigDecimal payableAmount, String remark, String cancelReason,
+                                  String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
+                                  Money payableAmount, String remark, String cancelReason,
                                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,
-                                  Instant closedAt, String paymentChannelCode, BigDecimal paidAmount,
+                                  Instant closedAt, String paymentChannelCode, Money paidAmount,
                                   String paymentChannelStatus, String paymentFailureReason, Instant paymentFailedAt,
                                   Long warehouseId, String inventoryFailureReason, String inventoryReleaseReason,
                                   Instant inventoryReleasedAt, Instant inventoryDeductedAt) {
         // 持久化重建必须保留主单与支付/库存派生状态，避免查询和回写时把终态信息重置成初始值。
         return new Order(id, tenantId, orderNo, userId, orderStatus, payStatus, inventoryStatus, paymentNo,
-                reservationNo, currencyCode, totalAmount, payableAmount, remark, cancelReason, closeReason, createdAt,
+                reservationNo, totalAmount, payableAmount, remark, cancelReason, closeReason, createdAt,
                 expiredAt, paidAt, closedAt, paymentChannelCode, paidAmount, paymentChannelStatus, paymentFailureReason,
                 paymentFailedAt, warehouseId, inventoryFailureReason, inventoryReleaseReason, inventoryReleasedAt,
                 inventoryDeductedAt);
+    }
+
+    public String getCurrencyCode() {
+        return totalAmount == null ? null : totalAmount.currencyCode().value();
     }
 
     public void setId(Long id) {
@@ -204,9 +207,10 @@ public class Order {
         this.paymentChannelCode = channelCode;
     }
 
-    public void markPaid(String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
+    public void markPaid(String paymentNo, String channelCode, Money paidAmount, Instant paidTime) {
         // 订单支付成功是主状态终局之一，只允许从待支付进入，避免重复回调覆盖终态。
         ensureOrderStatus(ORDER_STATUS_PENDING_PAYMENT);
+        ensureMoneyCurrency(totalAmount, paidAmount);
         this.orderStatus = ORDER_STATUS_PAID;
         this.payStatus = PAY_STATUS_PAID;
         this.paymentNo = paymentNo;
@@ -270,5 +274,14 @@ public class Order {
             }
         }
         throw new IllegalStateException("Invalid order status: " + orderStatus);
+    }
+
+    private void ensureMoneyCurrency(Money left, Money right) {
+        if (left == null || right == null) {
+            return;
+        }
+        if (left.currencyCode() != right.currencyCode()) {
+            throw new IllegalArgumentException("order money currency code mismatch");
+        }
     }
 }

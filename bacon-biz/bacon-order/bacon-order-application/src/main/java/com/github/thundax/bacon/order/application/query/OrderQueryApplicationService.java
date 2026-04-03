@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.application.query;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
@@ -58,7 +59,8 @@ public class OrderQueryApplicationService {
     private OrderSummaryDTO toSummary(Order order) {
         return new OrderSummaryDTO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNo(),
-                order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(),
+                order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount().value(),
+                order.getPayableAmount().value(),
                 order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt());
     }
 
@@ -75,7 +77,7 @@ public class OrderQueryApplicationService {
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(),
                 paymentSnapshot == null ? order.getPaymentNo() : paymentSnapshot.paymentNo(),
                 inventorySnapshot == null ? order.getReservationNo() : inventorySnapshot.reservationNo(),
-                order.getCurrencyCode(), order.getTotalAmount(), order.getPayableAmount(), order.getCancelReason(),
+                order.getCurrencyCode(), order.getTotalAmount().value(), order.getPayableAmount().value(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(), itemDtos,
                 buildPaymentSnapshot(order, paymentSnapshot), buildInventorySnapshot(order, inventorySnapshot),
                 order.getPaidAt(), order.getClosedAt());
@@ -88,7 +90,7 @@ public class OrderQueryApplicationService {
         String paymentNo = paymentSnapshot == null ? order.getPaymentNo() : paymentSnapshot.paymentNo();
         String payStatus = paymentSnapshot == null ? order.getPayStatus() : paymentSnapshot.payStatus();
         String channelCode = paymentSnapshot == null ? order.getPaymentChannelCode() : paymentSnapshot.channelCode();
-        BigDecimal paidAmount = paymentSnapshot == null ? order.getPaidAmount() : paymentSnapshot.paidAmount();
+        BigDecimal paidAmount = paymentSnapshot == null ? toAmountValue(order.getPaidAmount()) : paymentSnapshot.paidAmount();
         String channelStatus = paymentSnapshot == null
                 ? order.getPaymentChannelStatus() : paymentSnapshot.channelStatus();
         String failureReason = paymentSnapshot == null
@@ -99,6 +101,10 @@ public class OrderQueryApplicationService {
                 + ",paidAmount=" + Objects.toString(paidAmount, "N/A")
                 + ",channelStatus=" + Objects.toString(channelStatus, "N/A")
                 + ",failureReason=" + Objects.toString(failureReason, "N/A");
+    }
+
+    private BigDecimal toAmountValue(Money money) {
+        return money == null ? null : money.value();
     }
 
     private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {

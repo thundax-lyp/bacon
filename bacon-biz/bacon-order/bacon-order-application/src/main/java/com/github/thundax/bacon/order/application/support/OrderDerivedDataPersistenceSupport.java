@@ -24,7 +24,8 @@ public class OrderDerivedDataPersistenceSupport {
         Instant now = Instant.now();
         if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
             orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), order.getId(),
-                    order.getPaymentNo(), order.getPaymentChannelCode(), order.getPayStatus(), order.getPaidAmount(),
+                    order.getPaymentNo(), order.getPaymentChannelCode(), order.getPayStatus(),
+                    order.getPaidAmount() == null ? null : order.getPaidAmount().value(),
                     order.getPaidAt(), order.getPaymentFailureReason(), order.getPaymentChannelStatus(), now));
         }
         if (order.getReservationNo() != null && !order.getReservationNo().isBlank()) {

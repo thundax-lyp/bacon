@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.order.application.command;
 
+import com.github.thundax.bacon.common.core.enums.CurrencyCode;
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
@@ -50,7 +52,8 @@ public class OrderPaymentResultApplicationService {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         String beforeStatus = order.getOrderStatus();
-        order.markPaid(paymentNo, channelCode, paidAmount, paidTime);
+        order.markPaid(paymentNo, channelCode, Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCode())),
+                paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
         InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(tenantId, orderNo);
         if (!Order.INVENTORY_STATUS_DEDUCTED.equals(deductResult.getInventoryStatus())) {

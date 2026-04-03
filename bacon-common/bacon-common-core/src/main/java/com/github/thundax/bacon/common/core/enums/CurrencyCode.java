@@ -20,6 +20,9 @@ public enum CurrencyCode {
     }
 
     public static CurrencyCode fromValue(String value) {
+        if ("CNY".equals(value)) {
+            return RMB;
+        }
         for (CurrencyCode currencyCode : values()) {
             if (currencyCode.value.equals(value)) {
                 return currencyCode;

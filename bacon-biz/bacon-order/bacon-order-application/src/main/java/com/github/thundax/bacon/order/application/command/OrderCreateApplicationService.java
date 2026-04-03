@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.order.application.command;
 
+import com.github.thundax.bacon.common.core.enums.CurrencyCode;
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
@@ -44,8 +46,9 @@ public class OrderCreateApplicationService {
                 .map(this::calculateLineAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         String orderNo = orderNoGenerator.nextOrderNo();
+        CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
         Order order = orderDomainService.create(null, command.tenantId(), orderNo, command.userId(),
-                resolveCurrencyCode(command.currencyCode()), totalAmount, totalAmount, command.remark(),
+                Money.of(totalAmount, currencyCode), Money.of(totalAmount, currencyCode), command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
         orderRepository.saveItems(savedOrder.getTenantId(), savedOrder.getId(), items.stream()
@@ -60,7 +63,7 @@ public class OrderCreateApplicationService {
         return new OrderSummaryDTO(savedOrder.getId(), savedOrder.getTenantId(), savedOrder.getOrderNo(),
                 savedOrder.getUserId(), savedOrder.getOrderStatus(), savedOrder.getPayStatus(),
                 savedOrder.getInventoryStatus(), savedOrder.getPaymentNo(), savedOrder.getReservationNo(),
-                savedOrder.getCurrencyCode(), savedOrder.getTotalAmount(), savedOrder.getPayableAmount(),
+                savedOrder.getCurrencyCode(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
                 savedOrder.getCancelReason(), savedOrder.getCloseReason(), savedOrder.getCreatedAt(),
                 savedOrder.getExpiredAt());
     }
@@ -72,7 +75,9 @@ public class OrderCreateApplicationService {
         return item.salePrice().multiply(BigDecimal.valueOf(item.quantity()));
     }
 
-    private String resolveCurrencyCode(String currencyCode) {
-        return currencyCode == null || currencyCode.isBlank() ? "CNY" : currencyCode;
+    private CurrencyCode resolveCurrencyCode(String currencyCode) {
+        return currencyCode == null || currencyCode.isBlank()
+                ? CurrencyCode.RMB
+                : CurrencyCode.fromValue(currencyCode);
     }
 }

@@ -87,15 +87,13 @@
 
 | Column | Type | Null | Description |
 | --- | --- | --- | --- |
-| `id` | `bigint` | N | 运行态主键 |
 | `object_id` | `varchar(64)` | N | 存储对象业务主键 |
 | `owner_type` | `varchar(64)` | N | 引用方类型 |
 | `owner_id` | `varchar(64)` | N | 引用方业务主键 |
 
 约束和索引：
 
-- `PRIMARY KEY (id)`
-- `UNIQUE KEY uk_object_owner (object_id, owner_type, owner_id)`
+- `PRIMARY KEY (object_id, owner_type, owner_id)`
 - `KEY idx_owner (owner_type, owner_id)`
 
 ### 5.3 `bacon_storage_audit_log`

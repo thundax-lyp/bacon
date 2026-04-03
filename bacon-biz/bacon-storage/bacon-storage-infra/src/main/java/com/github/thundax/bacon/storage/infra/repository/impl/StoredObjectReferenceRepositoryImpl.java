@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectReference;
@@ -13,21 +12,15 @@ import org.springframework.dao.DuplicateKeyException;
 @Repository
 public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenceRepository {
 
-    private static final String BIZ_TAG = "storage_object_reference";
-
     private final StoredObjectReferenceMapper storedObjectReferenceMapper;
-    private final IdGenerator idGenerator;
 
-    public StoredObjectReferenceRepositoryImpl(StoredObjectReferenceMapper storedObjectReferenceMapper,
-                                               IdGenerator idGenerator) {
+    public StoredObjectReferenceRepositoryImpl(StoredObjectReferenceMapper storedObjectReferenceMapper) {
         this.storedObjectReferenceMapper = storedObjectReferenceMapper;
-        this.idGenerator = idGenerator;
     }
 
     @Override
     public boolean saveIfAbsent(StoredObjectReference storedObjectReference) {
         StoredObjectReferenceDO dataObject = toDataObject(storedObjectReference);
-        dataObject.setId(dataObject.getId() == null ? idGenerator.nextId(BIZ_TAG) : dataObject.getId());
         try {
             storedObjectReferenceMapper.insert(dataObject);
             return true;
@@ -59,7 +52,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     private StoredObjectReferenceDO toDataObject(StoredObjectReference storedObjectReference) {
-        return new StoredObjectReferenceDO(null, storedObjectReference.getObjectId(),
+        return new StoredObjectReferenceDO(storedObjectReference.getObjectId(),
                 storedObjectReference.getOwnerType(), storedObjectReference.getOwnerId());
     }
 }

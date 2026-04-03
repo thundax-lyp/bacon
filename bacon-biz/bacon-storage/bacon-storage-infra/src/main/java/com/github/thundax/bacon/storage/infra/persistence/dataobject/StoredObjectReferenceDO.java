@@ -16,8 +16,6 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_storage_object_reference")
 public class StoredObjectReferenceDO {
 
-    /** 主键。 */
-    private Long id;
     /** 存储对象主键。 */
     @TableField("object_id")
     private StoredObjectId objectId;

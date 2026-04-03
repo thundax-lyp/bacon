@@ -12,23 +12,25 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("bacon_order_inventory_snapshot")
-public class OrderInventorySnapshotDataObject {
+@TableName("bacon_order_audit_log")
+public class OrderAuditLogDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
     @TableField("tenant_id")
     private Long tenantId;
-    @TableField("order_id")
-    private Long orderId;
-    @TableField("reservation_no")
-    private String reservationNo;
-    @TableField("inventory_status")
-    private String inventoryStatus;
-    @TableField("warehouse_id")
-    private Long warehouseId;
-    @TableField("failure_reason")
-    private String failureReason;
-    @TableField("updated_at")
-    private Instant updatedAt;
+    @TableField("order_no")
+    private String orderNo;
+    @TableField("action_type")
+    private String actionType;
+    @TableField("before_status")
+    private String beforeStatus;
+    @TableField("after_status")
+    private String afterStatus;
+    @TableField("operator_type")
+    private String operatorType;
+    @TableField("operator_id")
+    private Long operatorId;
+    @TableField("occurred_at")
+    private Instant occurredAt;
 }

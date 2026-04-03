@@ -73,6 +73,18 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
+    @DisplayName("DO：持久化对象，命名 {业务对象}DO，目录 infra/persistence/dataobject/")
+    void shouldFollowDataObjectRule() {
+        NamingAndPlacementRuleSupport.dataObjectShouldUseDONameAndPackage(basePackage()).check(classes());
+    }
+
+    @Test
+    @DisplayName("持久化对象不再使用 DataObject 后缀")
+    void shouldNotUseDataObjectSuffix() {
+        NamingAndPlacementRuleSupport.shouldNotUseDataObjectSuffix(basePackage()).check(classes());
+    }
+
+    @Test
     @DisplayName("Converter：对象转换，命名 {业务对象}Converter，目录 infra/repository/converter/")
     void shouldFollowConverterRule() {
         NamingAndPlacementRuleSupport.converterShouldUseConverterNameAndPackage(basePackage()).check(classes());

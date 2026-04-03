@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_order_order")
-public class OrderDataObject {
+public class OrderDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;

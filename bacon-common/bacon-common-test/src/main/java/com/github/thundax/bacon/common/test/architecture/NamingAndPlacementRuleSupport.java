@@ -88,6 +88,21 @@ public final class NamingAndPlacementRuleSupport {
                 .because("Mapper -> infra.persistence.mapper");
     }
 
+    public static ArchRule dataObjectShouldUseDONameAndPackage(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that().haveSimpleNameEndingWith("DO")
+                .should().resideInAPackage(basePackage + ".infra.persistence.dataobject..")
+                .allowEmptyShould(true)
+                .because("DO -> infra.persistence.dataobject");
+    }
+
+    public static ArchRule shouldNotUseDataObjectSuffix(String basePackage) {
+        return ArchRuleDefinition.noClasses()
+                .that().resideInAPackage(basePackage + "..")
+                .should().haveSimpleNameEndingWith("DataObject")
+                .because("持久化对象统一使用 DO 后缀，不再使用 DataObject");
+    }
+
     public static ArchRule converterShouldUseConverterNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that().haveSimpleNameEndingWith("Converter")

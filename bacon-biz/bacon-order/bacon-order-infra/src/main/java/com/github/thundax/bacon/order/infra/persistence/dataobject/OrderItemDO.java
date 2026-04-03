@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_order_item")
-public class OrderItemDataObject {
+public class OrderItemDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;

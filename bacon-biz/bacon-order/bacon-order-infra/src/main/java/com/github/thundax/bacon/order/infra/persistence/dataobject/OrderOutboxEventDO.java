@@ -12,13 +12,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("bacon_order_dead_letter")
-public class OrderOutboxDeadLetterDataObject {
+@TableName("bacon_order_outbox")
+public class OrderOutboxEventDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
-    @TableField("outbox_id")
-    private Long outboxId;
     @TableField("tenant_id")
     private Long tenantId;
     @TableField("order_no")
@@ -29,22 +27,22 @@ public class OrderOutboxDeadLetterDataObject {
     private String businessKey;
     @TableField("payload")
     private String payload;
+    @TableField("status")
+    private String status;
     @TableField("retry_count")
     private Integer retryCount;
+    @TableField("next_retry_at")
+    private Instant nextRetryAt;
+    @TableField("processing_owner")
+    private String processingOwner;
+    @TableField("lease_until")
+    private Instant leaseUntil;
+    @TableField("claimed_at")
+    private Instant claimedAt;
     @TableField("error_message")
     private String errorMessage;
     @TableField("dead_reason")
     private String deadReason;
-    @TableField("dead_at")
-    private Instant deadAt;
-    @TableField("replay_status")
-    private String replayStatus;
-    @TableField("replay_count")
-    private Integer replayCount;
-    @TableField("last_replay_at")
-    private Instant lastReplayAt;
-    @TableField("last_replay_message")
-    private String lastReplayMessage;
     @TableField("created_at")
     private Instant createdAt;
     @TableField("updated_at")

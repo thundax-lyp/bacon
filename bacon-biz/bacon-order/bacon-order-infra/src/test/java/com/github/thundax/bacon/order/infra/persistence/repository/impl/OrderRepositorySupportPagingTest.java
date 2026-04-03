@@ -3,7 +3,7 @@ package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
-import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDataObject;
+import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderAuditLogMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderInventorySnapshotMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderItemMapper;
@@ -23,7 +23,7 @@ class OrderRepositorySupportPagingTest {
 
     @Test
     void shouldPageBySqlLimitInsteadOfApplicationMemoryFiltering() {
-        AtomicReference<LambdaQueryWrapper<OrderDataObject>> pagedWrapperRef = new AtomicReference<>();
+        AtomicReference<LambdaQueryWrapper<OrderDO>> pagedWrapperRef = new AtomicReference<>();
         OrderMapper orderMapper = createOrderMapper(pagedWrapperRef);
         OrderPaymentSnapshotMapper paymentMapper = createSnapshotMapper(OrderPaymentSnapshotMapper.class);
         OrderInventorySnapshotMapper inventoryMapper = createSnapshotMapper(OrderInventorySnapshotMapper.class);
@@ -41,19 +41,19 @@ class OrderRepositorySupportPagingTest {
         assertEquals("ORD-1002", result.records().get(0).getOrderNo());
         assertEquals("ORD-1001", result.records().get(1).getOrderNo());
 
-        LambdaQueryWrapper<OrderDataObject> pagedWrapper = pagedWrapperRef.get();
+        LambdaQueryWrapper<OrderDO> pagedWrapper = pagedWrapperRef.get();
         assertNotNull(pagedWrapper);
     }
 
     @SuppressWarnings("unchecked")
-    private OrderMapper createOrderMapper(AtomicReference<LambdaQueryWrapper<OrderDataObject>> pagedWrapperRef) {
+    private OrderMapper createOrderMapper(AtomicReference<LambdaQueryWrapper<OrderDO>> pagedWrapperRef) {
         return (OrderMapper) Proxy.newProxyInstance(OrderMapper.class.getClassLoader(),
                 new Class[]{OrderMapper.class}, (proxy, method, args) -> {
                     if ("selectCount".equals(method.getName())) {
                         return 3L;
                     }
                     if ("selectList".equals(method.getName())) {
-                        LambdaQueryWrapper<OrderDataObject> wrapper = (LambdaQueryWrapper<OrderDataObject>) args[0];
+                        LambdaQueryWrapper<OrderDO> wrapper = (LambdaQueryWrapper<OrderDO>) args[0];
                         pagedWrapperRef.set(wrapper);
                         return List.of(
                                 buildOrder(2L, "ORD-1002", Instant.parse("2026-03-26T11:00:00Z")),
@@ -81,8 +81,8 @@ class OrderRepositorySupportPagingTest {
                 (proxy, method, args) -> null);
     }
 
-    private OrderDataObject buildOrder(Long id, String orderNo, Instant createdAt) {
-        return new OrderDataObject(id, 1001L, orderNo, 2001L,
+    private OrderDO buildOrder(Long id, String orderNo, Instant createdAt) {
+        return new OrderDO(id, 1001L, orderNo, 2001L,
                 "CREATED", "UNPAID", "UNRESERVED", "CNY",
                 BigDecimal.TEN, BigDecimal.TEN, "remark", null,
                 null, createdAt, createdAt, createdAt.plusSeconds(1800), null, null);

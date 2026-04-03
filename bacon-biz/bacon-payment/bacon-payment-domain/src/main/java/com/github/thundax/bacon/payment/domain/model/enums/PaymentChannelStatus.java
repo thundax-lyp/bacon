@@ -5,27 +5,16 @@ package com.github.thundax.bacon.payment.domain.model.enums;
  */
 public enum PaymentChannelStatus {
 
-    PAYING("PAYING"),
-    SUCCESS("SUCCESS"),
-    FAILED("FAILED"),
-    CLOSED("CLOSED");
-
-    private final String value;
-
-    PaymentChannelStatus(String value) {
-        this.value = value;
-    }
+    PAYING,
+    SUCCESS,
+    FAILED,
+    CLOSED;
 
     public String value() {
-        return value;
+        return name();
     }
 
     public static PaymentChannelStatus fromValue(String value) {
-        for (PaymentChannelStatus status : values()) {
-            if (status.value.equals(value)) {
-                return status;
-            }
-        }
-        throw new IllegalArgumentException("Unsupported payment channel status: " + value);
+        return value == null ? null : PaymentChannelStatus.valueOf(value);
     }
 }

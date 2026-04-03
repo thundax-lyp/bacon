@@ -8,24 +8,17 @@ import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
  */
 public enum PaymentChannelCode {
 
-    MOCK("MOCK");
-
-    private final String value;
-
-    PaymentChannelCode(String value) {
-        this.value = value;
-    }
+    MOCK;
 
     public String value() {
-        return value;
+        return name();
     }
 
     public static PaymentChannelCode fromValue(String value) {
-        for (PaymentChannelCode channelCode : values()) {
-            if (channelCode.value.equals(value)) {
-                return channelCode;
-            }
+        try {
+            return value == null ? null : PaymentChannelCode.valueOf(value);
+        } catch (IllegalArgumentException ex) {
+            throw new PaymentDomainException(PaymentErrorCode.INVALID_CHANNEL_CODE, value);
         }
-        throw new PaymentDomainException(PaymentErrorCode.INVALID_CHANNEL_CODE, value);
     }
 }

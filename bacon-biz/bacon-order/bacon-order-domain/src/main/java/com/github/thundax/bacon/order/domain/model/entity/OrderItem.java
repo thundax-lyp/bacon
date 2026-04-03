@@ -4,10 +4,12 @@ import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import lombok.Getter;
 
 /**
  * 订单项领域实体。
  */
+@Getter
 public class OrderItem {
 
     /** 所属租户主键。 */
@@ -37,38 +39,6 @@ public class OrderItem {
         this.quantity = quantity;
         this.salePrice = salePrice;
         this.lineAmount = lineAmount;
-    }
-
-    public TenantId getTenantId() {
-        return tenantId;
-    }
-
-    public OrderId getOrderId() {
-        return orderId;
-    }
-
-    public SkuId getSkuId() {
-        return skuId;
-    }
-
-    public String getSkuName() {
-        return skuName;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public Money getSalePrice() {
-        return salePrice;
-    }
-
-    public Money getLineAmount() {
-        return lineAmount;
     }
 
     public Long getTenantIdValue() {

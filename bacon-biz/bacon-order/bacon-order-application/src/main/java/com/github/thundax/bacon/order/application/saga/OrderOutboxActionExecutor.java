@@ -79,7 +79,7 @@ public class OrderOutboxActionExecutor {
         List<OrderItem> items = orderRepository.findItemsByOrderId(order.getTenantIdValue(), toOrderIdValue(order),
                 order.getCurrencyCode());
         List<InventoryReservationItemDTO> reserveItems = items.stream()
-                .map(item -> new InventoryReservationItemDTO(item.getSkuId(), item.getQuantity()))
+                .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
                 .toList();
         InventoryReservationResultDTO reserveResult = inventoryCommandFacade.reserveStock(order.getTenantIdValue(),
                 order.getOrderNoValue(), reserveItems);

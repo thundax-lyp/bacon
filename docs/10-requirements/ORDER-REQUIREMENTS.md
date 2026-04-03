@@ -235,7 +235,7 @@ Order 是 Bacon 的统一订单业务域。
 ## 5.3 Fixed Fields
 
 - `Order` 至少包含 `id`、`tenantId`、`orderNo`、`userId`、`orderStatus`、`payStatus`、`inventoryStatus`、`currencyCode`、`totalAmount`、`payableAmount`、`remark`、`cancelReason`、`closeReason`、`createdAt`、`expiredAt`、`paidAt`、`closedAt`
-- `OrderItem` 至少包含 `id`、`tenantId`、`orderId`、`skuId`、`skuName`、`quantity`、`salePrice`、`lineAmount`
+- `OrderItem` 至少包含 `id`、`tenantId`、`orderId`、`skuId`、`skuName`、`imageUrl`、`quantity`、`salePrice`、`lineAmount`
 - `OrderAmount` 至少包含 `totalAmount`、`payableAmount`、`currencyCode`
 - `OrderSnapshot` 至少包含 `order`、`items`、`paymentSnapshot`、`inventorySnapshot`
 - `OrderPaymentSnapshot` 至少包含 `orderId`、`paymentNo`、`channelCode`、`payStatus`、`paidAmount`、`paidTime`、`failureReason`、`channelStatus`
@@ -254,7 +254,7 @@ Order 是 Bacon 的统一订单业务域。
 ## 5.4 Fixed Request Contracts
 
 - `CreateOrderRequest` 至少包含 `tenantId`、`userId`、`currencyCode`、`channelCode`、`items`、`remark`
-- `CreateOrderRequest.items` 至少包含 `skuId`、`skuName`、`quantity`、`salePrice`
+- `CreateOrderRequest.items` 至少包含 `skuId`、`skuName`、`imageUrl`、`quantity`、`salePrice`
 - `CancelOrderRequest` 至少包含 `tenantId`、`orderNo`、`reason`、`operatorType`、`operatorId`
 - `CloseExpiredOrderRequest` 至少包含 `tenantId`、`orderNo`、`reason`
 - `OrderPageQuery` 至少包含 `tenantId`、`userId`、`orderNo`、`orderStatus`、`payStatus`、`inventoryStatus`、`createdAtFrom`、`createdAtTo`、`pageNo`、`pageSize`

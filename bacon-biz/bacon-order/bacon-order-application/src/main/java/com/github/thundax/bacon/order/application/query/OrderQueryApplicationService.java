@@ -72,7 +72,7 @@ public class OrderQueryApplicationService {
                 order.getOrderNoValue()).orElse(null);
         List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantIdValue(), toOrderIdValue(order),
                         order.getCurrencyCode()).stream()
-                .map(item -> new OrderItemDTO(item.getSkuId(), item.getSkuName(), item.getQuantity(),
+                .map(item -> new OrderItemDTO(item.getSkuIdValue(), item.getSkuName(), item.getImageUrl(), item.getQuantity(),
                         item.getSalePrice().value(), item.getLineAmount().value()))
                 .toList();
         return new OrderDetailDTO(toOrderIdValue(order), order.getTenantIdValue(), order.getOrderNoValue(), toUserIdValue(order),

@@ -64,6 +64,7 @@
 - `currency_code`: `varchar(16)`
 - `channel_code`: `varchar(32)`
 - `sku_name`: `varchar(128)`
+- `image_url`: `varchar(512)`
 - `remark`: `varchar(255)`
 - `failure_reason`: `varchar(255)`
 - `channel_status`: `varchar(64)`
@@ -134,7 +135,7 @@
 用途：
 
 - 持久化订单明细
-- 保存下单时的商品名称和单价快照
+- 保存下单时的商品名称、图片和单价快照
 
 字段定义：
 
@@ -145,6 +146,7 @@
 | `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `sku_id` | `bigint` | N | SKU 主键 |
 | `sku_name` | `varchar(128)` | N | SKU 名称快照 |
+| `image_url` | `varchar(512)` | Y | 商品图片地址快照 |
 | `quantity` | `int` | N | 下单数量 |
 | `sale_price` | `decimal(18,2)` | N | 销售价 |
 | `line_amount` | `decimal(18,2)` | N | 行金额 |

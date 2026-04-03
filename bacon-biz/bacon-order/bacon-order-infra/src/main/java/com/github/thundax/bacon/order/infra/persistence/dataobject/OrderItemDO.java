@@ -25,6 +25,8 @@ public class OrderItemDO {
     private Long skuId;
     @TableField("sku_name")
     private String skuName;
+    @TableField("image_url")
+    private String imageUrl;
     @TableField("quantity")
     private Integer quantity;
     @TableField("sale_price")

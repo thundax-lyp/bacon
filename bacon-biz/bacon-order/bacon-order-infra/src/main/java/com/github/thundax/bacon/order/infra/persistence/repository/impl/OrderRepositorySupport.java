@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
@@ -96,8 +97,9 @@ public class OrderRepositorySupport {
             return;
         }
         for (OrderItem item : items) {
-            orderItemMapper.insert(new OrderItemDO(null, item.getTenantIdValue(), item.getOrderIdValue(), item.getSkuId(),
-                    item.getSkuName(), item.getQuantity(), item.getSalePrice().value(), item.getLineAmount().value()));
+            orderItemMapper.insert(new OrderItemDO(null, item.getTenantIdValue(), item.getOrderIdValue(), item.getSkuIdValue(),
+                    item.getSkuName(), item.getImageUrl(), item.getQuantity(), item.getSalePrice().value(),
+                    item.getLineAmount().value()));
         }
     }
 
@@ -345,9 +347,14 @@ public class OrderRepositorySupport {
 
     private OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
         CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(currencyCode);
-        return new OrderItem(toDomainTenantId(dataObject.getTenantId()), toDomainOrderId(dataObject.getOrderId()), dataObject.getSkuId(),
-                dataObject.getSkuName(), dataObject.getQuantity(), Money.of(dataObject.getSalePrice(), resolvedCurrencyCode),
+        return new OrderItem(toDomainTenantId(dataObject.getTenantId()), toDomainOrderId(dataObject.getOrderId()),
+                toDomainSkuId(dataObject.getSkuId()), dataObject.getSkuName(), dataObject.getImageUrl(),
+                dataObject.getQuantity(), Money.of(dataObject.getSalePrice(), resolvedCurrencyCode),
                 Money.of(dataObject.getLineAmount(), resolvedCurrencyCode));
+    }
+
+    private SkuId toDomainSkuId(Long skuId) {
+        return skuId == null ? null : SkuId.of(skuId);
     }
 
     private OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {

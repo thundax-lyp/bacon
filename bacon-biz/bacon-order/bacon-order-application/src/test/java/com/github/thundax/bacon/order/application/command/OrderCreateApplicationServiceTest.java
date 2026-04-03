@@ -56,7 +56,8 @@ class OrderCreateApplicationServiceTest {
 
         OrderSummaryDTO result = service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "remark",
                 Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(101L, "demo-item", 2, BigDecimal.valueOf(10)))));
+                List.of(new CreateOrderItemCommand(101L, "demo-item", "https://cdn.example.com/101.png", 2,
+                        BigDecimal.valueOf(10)))));
 
         assertEquals("ORD-10001", result.getOrderNo());
         assertEquals(1001L, result.getTenantId());
@@ -65,6 +66,8 @@ class OrderCreateApplicationServiceTest {
         assertEquals("UNPAID", result.getPayStatus());
         assertEquals("RESERVING", result.getInventoryStatus());
         assertEquals(1, queryService.getByOrderNo(1001L, "ORD-10001").getItems().size());
+        assertEquals("https://cdn.example.com/101.png",
+                queryService.getByOrderNo(1001L, "ORD-10001").getItems().get(0).getImageUrl());
     }
 
     @Test
@@ -79,13 +82,16 @@ class OrderCreateApplicationServiceTest {
         OrderQueryApplicationService queryService = new OrderQueryApplicationService(repository);
         createService.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "r1",
                 Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(101L, "item-1", 1, BigDecimal.valueOf(10)))));
+                List.of(new CreateOrderItemCommand(101L, "item-1", "https://cdn.example.com/101.png", 1,
+                        BigDecimal.valueOf(10)))));
         OrderSummaryDTO paid = createService.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "r2",
                 Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(102L, "item-2", 1, BigDecimal.valueOf(20)))));
+                List.of(new CreateOrderItemCommand(102L, "item-2", "https://cdn.example.com/102.png", 1,
+                        BigDecimal.valueOf(20)))));
         createService.create(new CreateOrderCommand(1002L, 2002L, "CNY", "MOCK", "r3",
                 Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(103L, "item-3", 1, BigDecimal.valueOf(30)))));
+                List.of(new CreateOrderItemCommand(103L, "item-3", "https://cdn.example.com/103.png", 1,
+                        BigDecimal.valueOf(30)))));
         Order paidOrder = repository.findByOrderNo(1001L, paid.getOrderNo()).orElseThrow();
         paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseNo.of("1"));
         paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
@@ -113,7 +119,8 @@ class OrderCreateApplicationServiceTest {
                 new OrderDerivedDataPersistenceSupport(repository));
         OrderSummaryDTO created = createService.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "r1",
                 Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(101L, "item-1", 1, BigDecimal.valueOf(10)))));
+                List.of(new CreateOrderItemCommand(101L, "item-1", "https://cdn.example.com/101.png", 1,
+                        BigDecimal.valueOf(10)))));
 
         cancelService.cancel(1001L, created.getOrderNo(), "SYSTEM_CANCELLED");
         Order found = repository.findByOrderNo(1001L, created.getOrderNo()).orElseThrow();
@@ -130,7 +137,8 @@ class OrderCreateApplicationServiceTest {
                 new FailedInventoryCommandFacade(), new SuccessPaymentCommandFacade());
         OrderSummaryDTO summary = service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "remark",
                 Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(101L, "demo-item", 2, BigDecimal.valueOf(10)))));
+                List.of(new CreateOrderItemCommand(101L, "demo-item", "https://cdn.example.com/101.png", 2,
+                        BigDecimal.valueOf(10)))));
         assertEquals("RESERVING_STOCK", summary.getOrderStatus());
     }
 
@@ -142,7 +150,8 @@ class OrderCreateApplicationServiceTest {
                 inventoryFacade, new FailedPaymentCommandFacade());
         OrderSummaryDTO summary = service.create(new CreateOrderCommand(1001L, 2001L, "CNY", "MOCK", "remark",
                 Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(101L, "demo-item", 2, BigDecimal.valueOf(10)))));
+                List.of(new CreateOrderItemCommand(101L, "demo-item", "https://cdn.example.com/101.png", 2,
+                        BigDecimal.valueOf(10)))));
         assertEquals("RESERVING_STOCK", summary.getOrderStatus());
     }
 

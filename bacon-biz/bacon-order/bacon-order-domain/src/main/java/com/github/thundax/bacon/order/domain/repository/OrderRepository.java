@@ -23,7 +23,7 @@ public interface OrderRepository {
 
     void savePaymentSnapshot(OrderPaymentSnapshot snapshot);
 
-    Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId);
+    Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId, String currencyCode);
 
     void saveInventorySnapshot(OrderInventorySnapshot snapshot);
 

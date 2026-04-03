@@ -67,7 +67,7 @@ public class OrderQueryApplicationService {
 
     private OrderDetailDTO toDetail(Order order) {
         OrderPaymentSnapshot paymentSnapshot = orderRepository.findPaymentSnapshotByOrderId(order.getTenantIdValue(),
-                toOrderIdValue(order)).orElse(null);
+                toOrderIdValue(order), order.getCurrencyCode()).orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderNo(order.getTenantIdValue(),
                 order.getOrderNoValue()).orElse(null);
         List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantIdValue(), toOrderIdValue(order),
@@ -77,7 +77,7 @@ public class OrderQueryApplicationService {
                 .toList();
         return new OrderDetailDTO(toOrderIdValue(order), order.getTenantIdValue(), order.getOrderNoValue(), toUserIdValue(order),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(),
-                paymentSnapshot == null ? order.getPaymentNoValue() : paymentSnapshot.paymentNo(),
+                paymentSnapshot == null ? order.getPaymentNoValue() : paymentSnapshot.paymentNoValue(),
                 inventorySnapshot == null ? order.getReservationNoValue() : inventorySnapshot.reservationNoValue(),
                 order.getCurrencyCode(), order.getTotalAmount().value(), order.getPayableAmount().value(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(), itemDtos,
@@ -89,12 +89,12 @@ public class OrderQueryApplicationService {
         if (paymentSnapshot == null && order.getPaymentNoValue() == null) {
             return null;
         }
-        String paymentNo = paymentSnapshot == null ? order.getPaymentNoValue() : paymentSnapshot.paymentNo();
-        String payStatus = paymentSnapshot == null ? order.getPayStatus() : paymentSnapshot.payStatus();
-        String channelCode = paymentSnapshot == null ? order.getPaymentChannelCode() : paymentSnapshot.channelCode();
-        BigDecimal paidAmount = paymentSnapshot == null ? toAmountValue(order.getPaidAmount()) : paymentSnapshot.paidAmount();
+        String paymentNo = paymentSnapshot == null ? order.getPaymentNoValue() : paymentSnapshot.paymentNoValue();
+        String payStatus = paymentSnapshot == null ? order.getPayStatus() : paymentSnapshot.payStatusValue();
+        String channelCode = paymentSnapshot == null ? order.getPaymentChannelCode() : paymentSnapshot.channelCodeValue();
+        BigDecimal paidAmount = paymentSnapshot == null ? toAmountValue(order.getPaidAmount()) : toAmountValue(paymentSnapshot.paidAmount());
         String channelStatus = paymentSnapshot == null
-                ? order.getPaymentChannelStatus() : paymentSnapshot.channelStatus();
+                ? order.getPaymentChannelStatus() : paymentSnapshot.channelStatusValue();
         String failureReason = paymentSnapshot == null
                 ? order.getPaymentFailureReason() : paymentSnapshot.failureReason();
         return "paymentNo=" + paymentNo

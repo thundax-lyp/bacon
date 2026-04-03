@@ -1,6 +1,12 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
-import java.math.BigDecimal;
+import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
+import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import java.time.Instant;
 
 /**
@@ -10,24 +16,52 @@ public record OrderPaymentSnapshot(
         /** 快照主键。 */
         Long id,
         /** 所属租户主键。 */
-        Long tenantId,
+        TenantId tenantId,
         /** 订单主键。 */
-        Long orderId,
+        OrderId orderId,
         /** 支付单号。 */
-        String paymentNo,
+        PaymentNo paymentNo,
         /** 支付渠道编码。 */
-        String channelCode,
+        PaymentChannel channelCode,
         /** 支付状态。 */
-        String payStatus,
+        PayStatus payStatus,
         /** 已支付金额。 */
-        BigDecimal paidAmount,
+        Money paidAmount,
         /** 支付完成时间。 */
         Instant paidTime,
         /** 失败原因。 */
         String failureReason,
         /** 支付渠道状态。 */
-        String channelStatus,
+        PaymentChannelStatus channelStatus,
         /** 最后更新时间。 */
         Instant updatedAt
 ) {
+
+    public Long tenantIdValue() {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    public Long orderIdValue() {
+        return orderId == null ? null : Long.valueOf(orderId.value());
+    }
+
+    public String paymentNoValue() {
+        return paymentNo == null ? null : paymentNo.value();
+    }
+
+    public String channelCodeValue() {
+        return channelCode == null ? null : channelCode.value();
+    }
+
+    public String payStatusValue() {
+        return payStatus == null ? null : payStatus.value();
+    }
+
+    public java.math.BigDecimal paidAmountValue() {
+        return paidAmount == null ? null : paidAmount.value();
+    }
+
+    public String channelStatusValue() {
+        return channelStatus == null ? null : channelStatus.value();
+    }
 }

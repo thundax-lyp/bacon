@@ -341,13 +341,13 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
-            paymentSnapshots.put(snapshot.orderId(), snapshot);
+            paymentSnapshots.put(snapshot.orderIdValue(), snapshot);
         }
 
         @Override
-        public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId) {
+        public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId, String currencyCode) {
             OrderPaymentSnapshot snapshot = paymentSnapshots.get(orderId);
-            if (snapshot == null || !tenantId.equals(snapshot.tenantId())) {
+            if (snapshot == null || !tenantId.equals(snapshot.tenantIdValue())) {
                 return Optional.empty();
             }
             return Optional.of(snapshot);

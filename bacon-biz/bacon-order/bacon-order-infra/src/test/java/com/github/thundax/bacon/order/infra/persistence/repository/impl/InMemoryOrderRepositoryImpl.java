@@ -67,13 +67,13 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     @Override
     public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
-        paymentSnapshotStorage.put(snapshot.orderId(), snapshot);
+        paymentSnapshotStorage.put(snapshot.orderIdValue(), snapshot);
     }
 
     @Override
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId) {
+    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId, String currencyCode) {
         OrderPaymentSnapshot snapshot = paymentSnapshotStorage.get(orderId);
-        if (snapshot == null || !tenantId.equals(snapshot.tenantId())) {
+        if (snapshot == null || !tenantId.equals(snapshot.tenantIdValue())) {
             return Optional.empty();
         }
         return Optional.of(snapshot);

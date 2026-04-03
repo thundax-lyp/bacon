@@ -54,8 +54,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId) {
-        return support.findPaymentSnapshotByOrderId(tenantId, orderId);
+    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId, String currencyCode) {
+        return support.findPaymentSnapshotByOrderId(tenantId, orderId, currencyCode);
     }
 
     @Override

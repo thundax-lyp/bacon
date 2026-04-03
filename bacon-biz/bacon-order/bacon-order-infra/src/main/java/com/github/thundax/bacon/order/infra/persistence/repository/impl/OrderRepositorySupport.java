@@ -16,6 +16,7 @@ import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
+import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
@@ -116,8 +117,8 @@ public class OrderRepositorySupport {
     public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
         OrderPaymentSnapshotDO existing = orderPaymentSnapshotMapper.selectOne(
                 Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
-                        .eq(OrderPaymentSnapshotDO::getTenantId, snapshot.tenantId())
-                        .eq(OrderPaymentSnapshotDO::getOrderId, snapshot.orderId()));
+                        .eq(OrderPaymentSnapshotDO::getTenantId, snapshot.tenantIdValue())
+                        .eq(OrderPaymentSnapshotDO::getOrderId, snapshot.orderIdValue()));
         OrderPaymentSnapshotDO dataObject = toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
         // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
@@ -129,12 +130,12 @@ public class OrderRepositorySupport {
         orderPaymentSnapshotMapper.updateById(dataObject);
     }
 
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId) {
+    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId, String currencyCode) {
         return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(
                 Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
                         .eq(OrderPaymentSnapshotDO::getTenantId, tenantId)
                         .eq(OrderPaymentSnapshotDO::getOrderId, orderId)))
-                .map(this::toDomain);
+                .map(dataObject -> toDomain(dataObject, currencyCode));
     }
 
     public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
@@ -361,16 +362,21 @@ public class OrderRepositorySupport {
     }
 
     private OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {
-        return new OrderPaymentSnapshotDO(snapshot.id(), snapshot.tenantId(), snapshot.orderId(),
-                snapshot.paymentNo(), snapshot.channelCode(), snapshot.payStatus(), snapshot.paidAmount(),
-                snapshot.paidTime(), snapshot.failureReason(), snapshot.channelStatus(), snapshot.updatedAt());
+        return new OrderPaymentSnapshotDO(snapshot.id(), snapshot.tenantIdValue(), snapshot.orderIdValue(),
+                snapshot.paymentNoValue(), snapshot.channelCodeValue(), snapshot.payStatusValue(), snapshot.paidAmountValue(),
+                snapshot.paidTime(), snapshot.failureReason(), snapshot.channelStatusValue(), snapshot.updatedAt());
     }
 
-    private OrderPaymentSnapshot toDomain(OrderPaymentSnapshotDO dataObject) {
-        return new OrderPaymentSnapshot(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderId(),
-                dataObject.getPaymentNo(), dataObject.getChannelCode(), dataObject.getPayStatus(),
-                dataObject.getPaidAmount(), dataObject.getPaidTime(), dataObject.getFailureReason(),
-                dataObject.getChannelStatus(), dataObject.getUpdatedAt());
+    private OrderPaymentSnapshot toDomain(OrderPaymentSnapshotDO dataObject, String currencyCode) {
+        return new OrderPaymentSnapshot(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()),
+                toDomainOrderId(dataObject.getOrderId()), toDomainPaymentNo(dataObject.getPaymentNo()),
+                toDomainPaymentChannel(dataObject.getChannelCode()), toDomainPayStatus(dataObject.getPayStatus()),
+                toMoney(dataObject.getPaidAmount(), currencyCode), dataObject.getPaidTime(), dataObject.getFailureReason(),
+                toDomainPaymentChannelStatus(dataObject.getChannelStatus()), dataObject.getUpdatedAt());
+    }
+
+    private PaymentChannelStatus toDomainPaymentChannelStatus(String channelStatus) {
+        return channelStatus == null ? null : PaymentChannelStatus.fromValue(channelStatus);
     }
 
     private OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {

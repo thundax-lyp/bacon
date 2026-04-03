@@ -14,11 +14,11 @@ import lombok.NoArgsConstructor;
 public class InventoryAuditDeadLetterDTO {
 
     /** 死信记录主键。 */
-    private Long id;
+    private String id;
     /** 审计出站主键。 */
-    private Long outboxId;
+    private String outboxId;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private String tenantId;
     /** 订单号。 */
     private String orderNo;
     /** 预占单号。 */
@@ -54,5 +54,5 @@ public class InventoryAuditDeadLetterDTO {
     /** 回放操作人类型。 */
     private String replayOperatorType;
     /** 回放操作人主键。 */
-    private Long replayOperatorId;
+    private String replayOperatorId;
 }

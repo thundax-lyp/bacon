@@ -8,11 +8,11 @@ import java.time.Instant;
  */
 public record InventoryAuditDeadLetterResponse(
         /** 死信记录主键。 */
-        Long id,
+        String id,
         /** 审计出站主键。 */
-        Long outboxId,
+        String outboxId,
         /** 所属租户主键。 */
-        Long tenantId,
+        String tenantId,
         /** 订单号。 */
         String orderNo,
         /** 预占单号。 */
@@ -48,7 +48,7 @@ public record InventoryAuditDeadLetterResponse(
         /** 回放操作人类型。 */
         String replayOperatorType,
         /** 回放操作人主键。 */
-        Long replayOperatorId) {
+        String replayOperatorId) {
 
     public static InventoryAuditDeadLetterResponse from(InventoryAuditDeadLetterDTO dto) {
         return new InventoryAuditDeadLetterResponse(dto.getId(), dto.getOutboxId(), dto.getTenantId(),

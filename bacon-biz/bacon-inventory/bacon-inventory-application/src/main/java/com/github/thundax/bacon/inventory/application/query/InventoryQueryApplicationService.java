@@ -129,13 +129,14 @@ public class InventoryQueryApplicationService {
     }
 
     private InventoryAuditDeadLetterDTO toAuditDeadLetterDto(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDTO(deadLetter.getId(), deadLetter.getOutboxId(), deadLetter.getTenantId(),
+        return new InventoryAuditDeadLetterDTO(toStringValue(deadLetter.getId()), toStringValue(deadLetter.getOutboxId()),
+                toStringValue(deadLetter.getTenantId()),
                 deadLetter.getOrderNo(), deadLetter.getReservationNo(), deadLetter.getActionType(),
                 deadLetter.getOperatorType(), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(), deadLetter.getReplayStatus(), deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
-                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), deadLetter.getReplayOperatorId());
+                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), toStringValue(deadLetter.getReplayOperatorId()));
     }
 
     private String normalizeStatus(String status) {
@@ -143,5 +144,9 @@ public class InventoryQueryApplicationService {
             return null;
         }
         return status.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String toStringValue(Long value) {
+        return value == null ? null : String.valueOf(value);
     }
 }

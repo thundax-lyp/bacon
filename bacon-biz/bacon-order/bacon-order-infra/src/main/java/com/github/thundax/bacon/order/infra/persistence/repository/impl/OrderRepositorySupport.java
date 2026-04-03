@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
@@ -223,7 +224,7 @@ public class OrderRepositorySupport {
     }
 
     private OrderDO toDataObject(Order order) {
-        return new OrderDO(toDatabaseOrderId(order.getId()), order.getTenantId(), order.getOrderNo(), order.getUserId(),
+        return new OrderDO(toDatabaseOrderId(order.getId()), order.getTenantId(), order.getOrderNo(), toDatabaseUserId(order.getUserId()),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getCurrencyCode(),
                 order.getTotalAmount().value(), order.getPayableAmount().value(), order.getRemark(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), Instant.now(), order.getExpiredAt(), order.getPaidAt(),
@@ -248,7 +249,7 @@ public class OrderRepositorySupport {
         // rehydrate 时优先用快照表补回 paymentNo/reservationNo 等派生字段，
         // 因为这些字段在 strict 持久化模型里并不全部固化在订单主表。
         return Order.rehydrate(toDomainOrderId(dataObject.getId()), dataObject.getTenantId(), dataObject.getOrderNo(),
-                dataObject.getUserId(), dataObject.getOrderStatus(), dataObject.getPayStatus(),
+                toDomainUserId(dataObject.getUserId()), dataObject.getOrderStatus(), dataObject.getPayStatus(),
                 dataObject.getInventoryStatus(),
                 paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo(),
                 inventorySnapshot == null ? null : inventorySnapshot.getReservationNo(),
@@ -280,6 +281,14 @@ public class OrderRepositorySupport {
 
     private OrderId toDomainOrderId(Long orderId) {
         return orderId == null ? null : OrderId.of(String.valueOf(orderId));
+    }
+
+    private Long toDatabaseUserId(UserId userId) {
+        return userId == null ? null : Long.valueOf(userId.value());
+    }
+
+    private UserId toDomainUserId(Long userId) {
+        return userId == null ? null : UserId.of(String.valueOf(userId));
     }
 
     private OrderItem toDomain(OrderItemDO dataObject) {

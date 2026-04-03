@@ -2,6 +2,7 @@ package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -38,7 +39,7 @@ public class Order {
     /** 订单号。 */
     private final String orderNo;
     /** 下单用户主键。 */
-    private final Long userId;
+    private final UserId userId;
     /** 订单状态。 */
     private String orderStatus;
     /** 支付状态。 */
@@ -88,14 +89,14 @@ public class Order {
     /** 订单关闭时间。 */
     private Instant closedAt;
 
-    public Order(OrderId id, Long tenantId, String orderNo, Long userId, Money totalAmount,
+    public Order(OrderId id, Long tenantId, String orderNo, UserId userId, Money totalAmount,
                  Money payableAmount, String remark, Instant expiredAt) {
         this(id, tenantId, orderNo, userId, ORDER_STATUS_CREATED, PAY_STATUS_UNPAID, INVENTORY_STATUS_UNRESERVED,
                 null, null, totalAmount, payableAmount, remark, null, null, Instant.now(),
                 expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
-    private Order(OrderId id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
+    private Order(OrderId id, Long tenantId, String orderNo, UserId userId, String orderStatus, String payStatus,
                   String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
                   Money payableAmount, String remark, String cancelReason,
                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
@@ -135,7 +136,7 @@ public class Order {
         this.inventoryDeductedAt = inventoryDeductedAt;
     }
 
-    public static Order rehydrate(OrderId id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
+    public static Order rehydrate(OrderId id, Long tenantId, String orderNo, UserId userId, String orderStatus, String payStatus,
                                   String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
                                   Money payableAmount, String remark, String cancelReason,
                                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,

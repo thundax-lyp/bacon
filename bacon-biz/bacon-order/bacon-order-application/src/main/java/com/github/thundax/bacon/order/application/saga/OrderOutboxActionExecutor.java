@@ -106,7 +106,7 @@ public class OrderOutboxActionExecutor {
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
         PaymentCreateResultDTO paymentResult = paymentCommandFacade.createPayment(order.getTenantId(), order.getOrderNo(),
-                order.getUserId(), order.getPayableAmount().value(), channelCode, "order:" + order.getOrderNo(),
+                toUserIdValue(order), order.getPayableAmount().value(), channelCode, "order:" + order.getOrderNo(),
                 order.getExpiredAt());
         // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
         if (paymentResult.getPaymentNo() == null || paymentResult.getPaymentNo().isBlank()
@@ -132,6 +132,10 @@ public class OrderOutboxActionExecutor {
 
     private Long toOrderIdValue(Order order) {
         return order.getId() == null ? null : Long.valueOf(order.getId().value());
+    }
+
+    private Long toUserIdValue(Order order) {
+        return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
     }
 
     private void executeReleaseStock(OrderOutboxEvent event) {

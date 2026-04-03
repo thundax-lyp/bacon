@@ -108,7 +108,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     public OrderPageResult pageOrders(OrderPageQuery query) {
         List<Order> filtered = storage.values().stream()
                 .filter(order -> query.tenantId() == null || query.tenantId().equals(order.getTenantId()))
-                .filter(order -> query.userId() == null || query.userId().equals(order.getUserId()))
+                .filter(order -> query.userId() == null || query.userId().equals(toUserIdValue(order)))
                 .filter(order -> query.orderNo() == null || order.getOrderNo().contains(query.orderNo()))
                 .filter(order -> query.orderStatus() == null || query.orderStatus().equals(order.getOrderStatus()))
                 .filter(order -> query.payStatus() == null || query.payStatus().equals(order.getPayStatus()))
@@ -135,5 +135,9 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     private Long toOrderIdValue(Order order) {
         return order.getId() == null ? null : Long.valueOf(order.getId().value());
+    }
+
+    private Long toUserIdValue(Order order) {
+        return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
     }
 }

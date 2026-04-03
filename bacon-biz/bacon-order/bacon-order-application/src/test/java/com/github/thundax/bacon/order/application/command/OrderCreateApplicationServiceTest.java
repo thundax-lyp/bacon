@@ -55,7 +55,7 @@ class OrderCreateApplicationServiceTest {
 
         assertEquals("ORD-10001", result.getOrderNo());
         assertEquals(1001L, result.getTenantId());
-        assertEquals(BigDecimal.valueOf(20), result.getTotalAmount());
+        assertEquals(new BigDecimal("20.00"), result.getTotalAmount());
         assertEquals("RESERVING_STOCK", result.getOrderStatus());
         assertEquals("UNPAID", result.getPayStatus());
         assertEquals("RESERVING", result.getInventoryStatus());
@@ -370,7 +370,7 @@ class OrderCreateApplicationServiceTest {
         public OrderPageResult pageOrders(OrderPageQuery query) {
             List<Order> filtered = storage.values().stream()
                     .filter(order -> query.tenantId() == null || query.tenantId().equals(order.getTenantId()))
-                    .filter(order -> query.userId() == null || query.userId().equals(order.getUserId()))
+                    .filter(order -> query.userId() == null || query.userId().equals(toUserIdValue(order)))
                     .filter(order -> query.orderNo() == null || order.getOrderNo().contains(query.orderNo()))
                     .filter(order -> query.orderStatus() == null || query.orderStatus().equals(order.getOrderStatus()))
                     .filter(order -> query.payStatus() == null || query.payStatus().equals(order.getPayStatus()))
@@ -395,6 +395,10 @@ class OrderCreateApplicationServiceTest {
 
         private Long toOrderIdValue(Order order) {
             return order.getId() == null ? null : Long.valueOf(order.getId().value());
+        }
+
+        private Long toUserIdValue(Order order) {
+            return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
         }
     }
 

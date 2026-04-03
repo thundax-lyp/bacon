@@ -2,6 +2,7 @@ package com.github.thundax.bacon.order.application.command;
 
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
@@ -47,12 +48,12 @@ public class OrderCreateApplicationService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         String orderNo = orderNoGenerator.nextOrderNo();
         CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
-        Order order = orderDomainService.create(null, command.tenantId(), orderNo, command.userId(),
+        Order order = orderDomainService.create(null, command.tenantId(), orderNo, toUserId(command.userId()),
                 Money.of(totalAmount, currencyCode), Money.of(totalAmount, currencyCode), command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
-        orderRepository.saveItems(savedOrder.getTenantId(), savedOrder.getId(), items.stream()
-                .map(item -> new OrderItem(savedOrder.getTenantId(), savedOrder.getId(), item.skuId(), item.skuName(),
+        orderRepository.saveItems(savedOrder.getTenantId(), toOrderIdValue(savedOrder), items.stream()
+                .map(item -> new OrderItem(savedOrder.getTenantId(), toOrderIdValue(savedOrder), item.skuId(), item.skuName(),
                         item.quantity(), item.salePrice(), calculateLineAmount(item)))
                 .toList());
         savedOrder.markReservingStock();
@@ -61,7 +62,7 @@ public class OrderCreateApplicationService {
                 command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, Order.ORDER_STATUS_CREATED);
         return new OrderSummaryDTO(toOrderIdValue(savedOrder), savedOrder.getTenantId(), savedOrder.getOrderNo(),
-                savedOrder.getUserId(), savedOrder.getOrderStatus(), savedOrder.getPayStatus(),
+                toUserIdValue(savedOrder), savedOrder.getOrderStatus(), savedOrder.getPayStatus(),
                 savedOrder.getInventoryStatus(), savedOrder.getPaymentNo(), savedOrder.getReservationNo(),
                 savedOrder.getCurrencyCode(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
                 savedOrder.getCancelReason(), savedOrder.getCloseReason(), savedOrder.getCreatedAt(),
@@ -83,5 +84,13 @@ public class OrderCreateApplicationService {
 
     private Long toOrderIdValue(Order order) {
         return order.getId() == null ? null : Long.valueOf(order.getId().value());
+    }
+
+    private UserId toUserId(Long userId) {
+        return userId == null ? null : UserId.of(String.valueOf(userId));
+    }
+
+    private Long toUserIdValue(Order order) {
+        return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
     }
 }

@@ -57,7 +57,7 @@ public class OrderQueryApplicationService {
     }
 
     private OrderSummaryDTO toSummary(Order order) {
-        return new OrderSummaryDTO(toOrderIdValue(order), order.getTenantId(), order.getOrderNo(), order.getUserId(),
+        return new OrderSummaryDTO(toOrderIdValue(order), order.getTenantId(), order.getOrderNo(), toUserIdValue(order),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNo(),
                 order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
@@ -66,14 +66,14 @@ public class OrderQueryApplicationService {
 
     private OrderDetailDTO toDetail(Order order) {
         OrderPaymentSnapshot paymentSnapshot = orderRepository.findPaymentSnapshotByOrderId(order.getTenantId(),
-                order.getId()).orElse(null);
+                toOrderIdValue(order)).orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderId(order.getTenantId(),
-                order.getId()).orElse(null);
-        List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantId(), order.getId()).stream()
+                toOrderIdValue(order)).orElse(null);
+        List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantId(), toOrderIdValue(order)).stream()
                 .map(item -> new OrderItemDTO(item.getSkuId(), item.getSkuName(), item.getQuantity(),
                         item.getSalePrice(), item.getLineAmount()))
                 .toList();
-        return new OrderDetailDTO(toOrderIdValue(order), order.getTenantId(), order.getOrderNo(), order.getUserId(),
+        return new OrderDetailDTO(toOrderIdValue(order), order.getTenantId(), order.getOrderNo(), toUserIdValue(order),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(),
                 paymentSnapshot == null ? order.getPaymentNo() : paymentSnapshot.paymentNo(),
                 inventorySnapshot == null ? order.getReservationNo() : inventorySnapshot.reservationNo(),
@@ -109,6 +109,10 @@ public class OrderQueryApplicationService {
 
     private Long toOrderIdValue(Order order) {
         return order.getId() == null ? null : Long.valueOf(order.getId().value());
+    }
+
+    private Long toUserIdValue(Order order) {
+        return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
     }
 
     private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {

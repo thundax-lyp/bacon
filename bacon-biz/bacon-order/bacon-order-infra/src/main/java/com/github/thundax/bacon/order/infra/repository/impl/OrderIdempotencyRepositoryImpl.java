@@ -3,7 +3,6 @@ package com.github.thundax.bacon.order.infra.repository.impl;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
-import com.github.thundax.bacon.order.infra.persistence.repository.impl.OrderIdempotencyRepositorySupport;
 import java.time.Instant;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;

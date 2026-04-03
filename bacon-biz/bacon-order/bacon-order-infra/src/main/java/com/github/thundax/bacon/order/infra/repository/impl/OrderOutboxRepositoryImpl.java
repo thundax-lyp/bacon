@@ -2,7 +2,6 @@ package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
-import com.github.thundax.bacon.order.infra.persistence.repository.impl.OrderOutboxRepositorySupport;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.context.annotation.Profile;

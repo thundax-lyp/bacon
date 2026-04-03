@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.infra.persistence.repository.impl;
+package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.TenantId;

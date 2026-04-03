@@ -8,6 +8,7 @@ import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
+import com.github.thundax.bacon.order.domain.model.entity.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderDomainService;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
@@ -60,7 +61,7 @@ public class OrderCreateApplicationService {
         orderRepository.save(savedOrder);
         orderOutboxActionExecutor.enqueueReserveStock(savedOrder.getTenantId(), savedOrder.getOrderNo(),
                 command.channelCode());
-        orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, Order.ORDER_STATUS_CREATED);
+        orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED.value());
         return new OrderSummaryDTO(toOrderIdValue(savedOrder), savedOrder.getTenantId(), savedOrder.getOrderNo(),
                 toUserIdValue(savedOrder), savedOrder.getOrderStatus(), savedOrder.getPayStatus(),
                 savedOrder.getInventoryStatus(), savedOrder.getPaymentNo(), savedOrder.getReservationNo(),

@@ -12,13 +12,6 @@ import lombok.Getter;
 @Getter
 public class Order {
 
-    public static final String ORDER_STATUS_CREATED = "CREATED";
-    public static final String ORDER_STATUS_RESERVING_STOCK = "RESERVING_STOCK";
-    public static final String ORDER_STATUS_PENDING_PAYMENT = "PENDING_PAYMENT";
-    public static final String ORDER_STATUS_PAID = "PAID";
-    public static final String ORDER_STATUS_CANCELLED = "CANCELLED";
-    public static final String ORDER_STATUS_CLOSED = "CLOSED";
-
     public static final String PAY_STATUS_UNPAID = "UNPAID";
     public static final String PAY_STATUS_PAYING = "PAYING";
     public static final String PAY_STATUS_PAID = "PAID";
@@ -41,7 +34,7 @@ public class Order {
     /** 下单用户主键。 */
     private final UserId userId;
     /** 订单状态。 */
-    private String orderStatus;
+    private OrderStatus orderStatus;
     /** 支付状态。 */
     private String payStatus;
     /** 库存状态。 */
@@ -91,12 +84,12 @@ public class Order {
 
     public Order(OrderId id, Long tenantId, String orderNo, UserId userId, Money totalAmount,
                  Money payableAmount, String remark, Instant expiredAt) {
-        this(id, tenantId, orderNo, userId, ORDER_STATUS_CREATED, PAY_STATUS_UNPAID, INVENTORY_STATUS_UNRESERVED,
+        this(id, tenantId, orderNo, userId, OrderStatus.CREATED, PAY_STATUS_UNPAID, INVENTORY_STATUS_UNRESERVED,
                 null, null, totalAmount, payableAmount, remark, null, null, Instant.now(),
                 expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
-    private Order(OrderId id, Long tenantId, String orderNo, UserId userId, String orderStatus, String payStatus,
+    private Order(OrderId id, Long tenantId, String orderNo, UserId userId, OrderStatus orderStatus, String payStatus,
                   String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
                   Money payableAmount, String remark, String cancelReason,
                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
@@ -136,7 +129,7 @@ public class Order {
         this.inventoryDeductedAt = inventoryDeductedAt;
     }
 
-    public static Order rehydrate(OrderId id, Long tenantId, String orderNo, UserId userId, String orderStatus, String payStatus,
+    public static Order rehydrate(OrderId id, Long tenantId, String orderNo, UserId userId, OrderStatus orderStatus, String payStatus,
                                   String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
                                   Money payableAmount, String remark, String cancelReason,
                                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,
@@ -156,20 +149,28 @@ public class Order {
         return totalAmount == null ? null : totalAmount.currencyCode().value();
     }
 
+    public String getOrderStatus() {
+        return orderStatus == null ? null : orderStatus.value();
+    }
+
+    public OrderStatus getOrderStatusEnum() {
+        return orderStatus;
+    }
+
     public void setId(OrderId id) {
         this.id = id;
     }
 
     public void markReservingStock() {
         // 只有新建订单才能进入预占库存阶段，避免取消/关闭后的订单再次触发库存链路。
-        ensureOrderStatus(ORDER_STATUS_CREATED);
-        this.orderStatus = ORDER_STATUS_RESERVING_STOCK;
+        ensureOrderStatus(OrderStatus.CREATED);
+        this.orderStatus = OrderStatus.RESERVING_STOCK;
         this.inventoryStatus = INVENTORY_STATUS_RESERVING;
     }
 
     public void markInventoryReserved(String reservationNo, Long warehouseId) {
         // 预占成功只更新库存侧派生状态，主单仍停留在 RESERVING_STOCK，等待创建支付单后再切到待支付。
-        ensureOrderStatus(ORDER_STATUS_RESERVING_STOCK);
+        ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.reservationNo = reservationNo;
         this.warehouseId = warehouseId;
         this.inventoryStatus = INVENTORY_STATUS_RESERVED;
@@ -202,8 +203,8 @@ public class Order {
 
     public void markPendingPayment(String paymentNo, String channelCode) {
         // 订单只有完成库存预占后才能进入待支付，避免出现未锁库存就暴露支付入口。
-        ensureOrderStatus(ORDER_STATUS_RESERVING_STOCK);
-        this.orderStatus = ORDER_STATUS_PENDING_PAYMENT;
+        ensureOrderStatus(OrderStatus.RESERVING_STOCK);
+        this.orderStatus = OrderStatus.PENDING_PAYMENT;
         this.payStatus = PAY_STATUS_PAYING;
         this.paymentNo = paymentNo;
         this.paymentChannelCode = channelCode;
@@ -211,9 +212,9 @@ public class Order {
 
     public void markPaid(String paymentNo, String channelCode, Money paidAmount, Instant paidTime) {
         // 订单支付成功是主状态终局之一，只允许从待支付进入，避免重复回调覆盖终态。
-        ensureOrderStatus(ORDER_STATUS_PENDING_PAYMENT);
+        ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
         ensureMoneyCurrency(totalAmount, paidAmount);
-        this.orderStatus = ORDER_STATUS_PAID;
+        this.orderStatus = OrderStatus.PAID;
         this.payStatus = PAY_STATUS_PAID;
         this.paymentNo = paymentNo;
         this.paymentChannelCode = channelCode;
@@ -223,8 +224,8 @@ public class Order {
 
     public void markPaymentFailed(String paymentNo, String reason, String channelStatus, Instant failedAt) {
         // 支付失败会把主单直接收口为 CLOSED；后续库存释放只是派生补偿，不再改变主单终态。
-        ensureOrderStatus(ORDER_STATUS_PENDING_PAYMENT);
-        this.orderStatus = ORDER_STATUS_CLOSED;
+        ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
+        this.orderStatus = OrderStatus.CLOSED;
         this.payStatus = PAY_STATUS_FAILED;
         this.paymentNo = paymentNo;
         this.paymentFailureReason = reason;
@@ -236,24 +237,24 @@ public class Order {
 
     public void closeByInventoryReserveFailed(String reason) {
         // 库存预占失败发生在支付创建之前，因此直接关闭订单，不保留待支付状态。
-        ensureOrderStatus(ORDER_STATUS_RESERVING_STOCK);
-        this.orderStatus = ORDER_STATUS_CLOSED;
+        ensureOrderStatus(OrderStatus.RESERVING_STOCK);
+        this.orderStatus = OrderStatus.CLOSED;
         this.closeReason = reason;
         this.closedAt = Instant.now();
     }
 
     public void closeByPaymentCreateFailed(String reason) {
         // 创建支付单失败时主单仍在 RESERVING_STOCK；这里直接关单，后续由外部补偿释放已预占的库存。
-        ensureOrderStatus(ORDER_STATUS_RESERVING_STOCK);
-        this.orderStatus = ORDER_STATUS_CLOSED;
+        ensureOrderStatus(OrderStatus.RESERVING_STOCK);
+        this.orderStatus = OrderStatus.CLOSED;
         this.closeReason = reason;
         this.closedAt = Instant.now();
     }
 
     public void closeExpired(String reason) {
         // 超时关闭允许覆盖“未开始预占”和“已生成支付单但未支付”两种场景，统一收口为 CLOSED/CLOSED。
-        ensureOrderStatus(ORDER_STATUS_CREATED, ORDER_STATUS_PENDING_PAYMENT);
-        this.orderStatus = ORDER_STATUS_CLOSED;
+        ensureOrderStatus(OrderStatus.CREATED, OrderStatus.PENDING_PAYMENT);
+        this.orderStatus = OrderStatus.CLOSED;
         this.payStatus = PAY_STATUS_CLOSED;
         this.closeReason = reason;
         this.closedAt = Instant.now();
@@ -261,21 +262,21 @@ public class Order {
 
     public void cancel(String reason) {
         // 用户取消比超时更宽松，允许在库存预占中止损；库存释放由调用方根据当前派生状态决定是否执行。
-        ensureOrderStatus(ORDER_STATUS_CREATED, ORDER_STATUS_PENDING_PAYMENT, ORDER_STATUS_RESERVING_STOCK);
-        this.orderStatus = ORDER_STATUS_CANCELLED;
+        ensureOrderStatus(OrderStatus.CREATED, OrderStatus.PENDING_PAYMENT, OrderStatus.RESERVING_STOCK);
+        this.orderStatus = OrderStatus.CANCELLED;
         this.payStatus = PAY_STATUS_CLOSED;
         this.cancelReason = reason;
         this.closedAt = Instant.now();
     }
 
-    private void ensureOrderStatus(String... expectedStatuses) {
+    private void ensureOrderStatus(OrderStatus... expectedStatuses) {
         // 订单实体只负责守住主状态机，不在这里做幂等静默；上层应用服务应先决定是否短路。
-        for (String expectedStatus : expectedStatuses) {
-            if (expectedStatus.equals(orderStatus)) {
+        for (OrderStatus expectedStatus : expectedStatuses) {
+            if (expectedStatus == orderStatus) {
                 return;
             }
         }
-        throw new IllegalStateException("Invalid order status: " + orderStatus);
+        throw new IllegalStateException("Invalid order status: " + getOrderStatus());
     }
 
     private void ensureMoneyCurrency(Money left, Money right) {

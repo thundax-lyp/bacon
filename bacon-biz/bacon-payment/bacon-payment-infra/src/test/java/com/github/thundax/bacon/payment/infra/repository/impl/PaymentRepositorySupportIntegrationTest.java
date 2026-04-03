@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentAuditLogMapper;
 import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentCallbackRecordMapper;
 import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentOrderMapper;
@@ -100,7 +101,7 @@ class PaymentRepositorySupportIntegrationTest {
     void shouldPersistAndReadBackOrderCallbackAndAuditLog() {
         PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), "PAY-IT-10001", "ORD-IT-10001",
                 UserId.of("2001"),
-                "MOCK", new BigDecimal("88.80"), "integration-payment",
+                PaymentChannelCode.MOCK, new BigDecimal("88.80"), "integration-payment",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z"));
         paymentOrder.markPaying();
 

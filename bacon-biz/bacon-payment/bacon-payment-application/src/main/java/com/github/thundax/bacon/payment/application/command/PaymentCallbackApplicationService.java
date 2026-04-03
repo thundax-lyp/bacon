@@ -7,6 +7,7 @@ import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
@@ -109,9 +110,7 @@ public class PaymentCallbackApplicationService {
     }
 
     private void validateChannel(String channelCode) {
-        if (!PaymentOrder.CHANNEL_MOCK.equals(channelCode)) {
-            throw new PaymentDomainException(PaymentErrorCode.INVALID_CHANNEL_CODE, channelCode);
-        }
+        PaymentChannelCode.fromValue(channelCode);
     }
 
     private void validateSuccessCallbackPayload(String channelTransactionNo, String channelStatus, String rawPayload) {

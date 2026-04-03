@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -40,7 +41,7 @@ class PaymentRepositorySupportTest {
 
         PaymentOrder persisted = support.saveOrder(new PaymentOrder(null, TenantId.of("1001"), "PAY-10001",
                 "ORD-10001", UserId.of("2001"),
-                "MOCK", new BigDecimal("88.80"), "strict-insert",
+                PaymentChannelCode.MOCK, new BigDecimal("88.80"), "strict-insert",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z")));
 
         assertNotNull(insertedRef.get());
@@ -60,7 +61,7 @@ class PaymentRepositorySupportTest {
         PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9001"), TenantId.of("1001"),
                 "PAY-10002", "ORD-10002",
                 UserId.of("2002"),
-                "MOCK", new BigDecimal("99.90"), BigDecimal.ZERO, "strict-update",
+                PaymentChannelCode.MOCK, new BigDecimal("99.90"), BigDecimal.ZERO, "strict-update",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentStatus.PAYING, null, null, null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));
@@ -83,7 +84,7 @@ class PaymentRepositorySupportTest {
         PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9002"), TenantId.of("1001"),
                 "PAY-10009", "ORD-10009",
                 UserId.of("2009"),
-                "MOCK", new BigDecimal("66.00"), BigDecimal.ZERO, "strict-conflict",
+                PaymentChannelCode.MOCK, new BigDecimal("66.00"), BigDecimal.ZERO, "strict-conflict",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentStatus.PAYING, null, null, null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));

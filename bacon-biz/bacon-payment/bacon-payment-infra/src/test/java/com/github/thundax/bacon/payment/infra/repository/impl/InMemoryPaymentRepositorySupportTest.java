@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -20,7 +21,7 @@ class InMemoryPaymentRepositorySupportTest {
         InMemoryPaymentRepositorySupport repository = new InMemoryPaymentRepositorySupport();
         PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), "PAY-10001", "ORD-10001",
                 UserId.of("2001"),
-                "MOCK", new BigDecimal("88.80"), "test-payment",
+                PaymentChannelCode.MOCK, new BigDecimal("88.80"), "test-payment",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z"));
         paymentOrder.markPaying();
 

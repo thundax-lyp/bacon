@@ -9,6 +9,7 @@ import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentAuditLogDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentCallbackRecordDO;
@@ -136,7 +137,7 @@ public class PaymentRepositorySupport {
         // strict 持久化模型里，主表只固化主单核心字段；渠道交易号、回调摘要等证据留在回调表。
         return new PaymentOrderDO(toDatabaseId(paymentOrder.getId()), toDatabaseTenantId(paymentOrder.getTenantId()),
                 paymentOrder.getPaymentNo(),
-                paymentOrder.getOrderNo(), toDatabaseUserId(paymentOrder.getUserId()), paymentOrder.getChannelCode(),
+                paymentOrder.getOrderNo(), toDatabaseUserId(paymentOrder.getUserId()), paymentOrder.getChannelCode().value(),
                 paymentOrder.getPaymentStatus().value(), paymentOrder.getAmount(), paymentOrder.getPaidAmount(),
                 paymentOrder.getSubject(), paymentOrder.getCreatedAt(), now, paymentOrder.getExpiredAt(),
                 paymentOrder.getPaidAt(), paymentOrder.getClosedAt());
@@ -146,7 +147,8 @@ public class PaymentRepositorySupport {
         // rehydrate 主单时不会从主表反填渠道回调细节，查询层需要时再结合 callback record 补足展示信息。
         return PaymentOrder.rehydrate(toDomainId(dataObject.getId()), toDomainTenantId(dataObject.getTenantId()),
                 dataObject.getPaymentNo(),
-                dataObject.getOrderNo(), toDomainUserId(dataObject.getUserId()), dataObject.getChannelCode(),
+                dataObject.getOrderNo(), toDomainUserId(dataObject.getUserId()),
+                PaymentChannelCode.fromValue(dataObject.getChannelCode()),
                 dataObject.getAmount(), dataObject.getPaidAmount(), dataObject.getSubject(), dataObject.getCreatedAt(),
                 dataObject.getExpiredAt(), dataObject.getPaidAt(), dataObject.getClosedAt(),
                 PaymentStatus.fromValue(dataObject.getPaymentStatus()),

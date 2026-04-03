@@ -3,6 +3,7 @@ package com.github.thundax.bacon.payment.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import lombok.Getter;
 
@@ -20,7 +21,7 @@ public class PaymentOrder {
     public static final String STATUS_PAID = PaymentStatus.PAID.name();
     public static final String STATUS_FAILED = PaymentStatus.FAILED.name();
     public static final String STATUS_CLOSED = PaymentStatus.CLOSED.name();
-    public static final String CHANNEL_MOCK = "MOCK";
+    public static final String CHANNEL_MOCK = PaymentChannelCode.MOCK.value();
 
     /** 支付主单主键。 */
     private final PaymentOrderId id;
@@ -33,7 +34,7 @@ public class PaymentOrder {
     /** 支付用户主键。 */
     private final UserId userId;
     /** 支付渠道编码。 */
-    private final String channelCode;
+    private final PaymentChannelCode channelCode;
     /** 支付金额。 */
     private final BigDecimal amount;
     /** 支付标题。 */
@@ -58,7 +59,7 @@ public class PaymentOrder {
     private String callbackSummary;
 
     public PaymentOrder(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo, UserId userId,
-                        String channelCode,
+                        PaymentChannelCode channelCode,
                         BigDecimal amount, String subject, Instant expiredAt, Instant createdAt) {
         this.id = id;
         this.tenantId = tenantId;
@@ -76,7 +77,8 @@ public class PaymentOrder {
 
     public static PaymentOrder rehydrate(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo,
                                          UserId userId,
-                                         String channelCode, BigDecimal amount, BigDecimal paidAmount, String subject,
+                                         PaymentChannelCode channelCode, BigDecimal amount, BigDecimal paidAmount,
+                                         String subject,
                                          Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
                                          PaymentStatus paymentStatus, String channelTransactionNo, String channelStatus,
                                          String callbackSummary) {

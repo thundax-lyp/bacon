@@ -11,6 +11,7 @@ import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicatio
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
@@ -263,6 +264,10 @@ class PaymentApplicationServiceTest {
 
         private static String txnKey(Long tenantId, String channelCode, String channelTransactionNo) {
             return tenantId + ":" + channelCode + ":" + channelTransactionNo;
+        }
+
+        private static String txnKey(Long tenantId, PaymentChannelCode channelCode, String channelTransactionNo) {
+            return txnKey(tenantId, channelCode.value(), channelTransactionNo);
         }
     }
 

@@ -8,6 +8,7 @@ import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentChannelPayload;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import com.github.thundax.bacon.payment.domain.service.PaymentNoGenerator;
@@ -44,7 +45,7 @@ public class PaymentCreateApplicationService {
             throw new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE, "payment-no-generator");
         }
         PaymentOrder paymentOrder = new PaymentOrder(null, toTenantId(tenantId), paymentNo, orderNo, toUserId(userId),
-                channelCode, amount, subject, expiredAt, Instant.now());
+                PaymentChannelCode.fromValue(channelCode), amount, subject, expiredAt, Instant.now());
         // 创建后立即进入 PAYING，表示渠道拉起参数已经准备好，后续只等待回调或显式关闭。
         paymentOrder.markPaying();
         PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);
@@ -57,16 +58,14 @@ public class PaymentCreateApplicationService {
         if (amount == null || amount.signum() <= 0) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_PAYMENT_AMOUNT);
         }
-        if (!PaymentOrder.CHANNEL_MOCK.equals(channelCode)) {
-            throw new PaymentDomainException(PaymentErrorCode.INVALID_CHANNEL_CODE, channelCode);
-        }
+        PaymentChannelCode.fromValue(channelCode);
         if (expiredAt == null || !expiredAt.isAfter(Instant.now())) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_EXPIRED_AT);
         }
     }
 
     private PaymentChannelPayload buildPayload(PaymentOrder paymentOrder) {
-        return new PaymentChannelPayload(paymentOrder.getPaymentNo(), paymentOrder.getChannelCode(),
+        return new PaymentChannelPayload(paymentOrder.getPaymentNo(), paymentOrder.getChannelCode().value(),
                 "mock://pay/" + paymentOrder.getPaymentNo());
     }
 
@@ -78,7 +77,8 @@ public class PaymentCreateApplicationService {
         Instant dtoExpiredAt = PaymentStatus.PAYING == paymentOrder.getPaymentStatus() ? paymentOrder.getExpiredAt() : null;
         return new PaymentCreateResultDTO(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(),
-                paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus().value(), payPayload, dtoExpiredAt, failureReason);
+                paymentOrder.getChannelCode().value(), paymentOrder.getPaymentStatus().value(), payPayload, dtoExpiredAt,
+                failureReason);
     }
 
     private TenantId toTenantId(Long tenantId) {

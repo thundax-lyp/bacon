@@ -29,7 +29,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
     @Test
     void shouldCreateAndProcessReplayTask() {
         TestLogRepository repository = new TestLogRepository();
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(101L, 201L, 3001L, "ORDER-1", "RSV-1",
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(101L, 3001L, "ORDER-1", "RSV-1",
                 InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z")));
@@ -84,7 +84,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
 
         @Override
         public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-            deadLetters.put(deadLetter.getId(), deadLetter);
+            deadLetters.put(deadLetter.getOutboxId(), deadLetter);
         }
 
         @Override
@@ -96,7 +96,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
                                                      String operatorType, Long operatorId, Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id);
-            if (deadLetter == null || !String.valueOf(tenantId).equals(deadLetter.getTenantId())) {
+            if (deadLetter == null || !String.valueOf(tenantId).equals(deadLetter.getTenantId().value())) {
                 return false;
             }
             if (!InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.equals(deadLetter.getReplayStatus())

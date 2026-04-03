@@ -33,7 +33,6 @@ public class InMemoryInventoryRepositorySupport {
     private final AtomicLong ledgerIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditLogIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditOutboxIdGenerator = new AtomicLong(1000L);
-    private final AtomicLong auditDeadLetterIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditReplayTaskIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditReplayTaskItemIdGenerator = new AtomicLong(1000L);
     private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
@@ -285,17 +284,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-        if (deadLetter.getId() == null) {
-            deadLetter = new InventoryAuditDeadLetter(auditDeadLetterIdGenerator.getAndIncrement(), deadLetter.getOutboxId(),
-                    deadLetter.getTenantId(), deadLetter.getOrderNo(), deadLetter.getReservationNo(),
-                    deadLetter.getActionType(), deadLetter.getOperatorType(), deadLetter.getOperatorId(),
-                    deadLetter.getOccurredAt(), deadLetter.getRetryCount(), deadLetter.getErrorMessage(),
-                    deadLetter.getDeadReason(), deadLetter.getDeadAt(), deadLetter.getReplayStatus(),
-                    deadLetter.getReplayCount(), deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(),
-                    deadLetter.getLastReplayError(), deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(),
-                    deadLetter.getReplayOperatorId());
-        }
-        auditDeadLetters.computeIfAbsent(reservationKey(deadLetter.getTenantId(), deadLetter.getOrderNo()),
+        auditDeadLetters.computeIfAbsent(reservationKey(deadLetter.getTenantId().value(), deadLetter.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(deadLetter);
     }
@@ -304,12 +293,12 @@ public class InMemoryInventoryRepositorySupport {
                                                                 String replayStatus, int pageNo, int pageSize) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> item.getTenantId().equals(String.valueOf(tenantId)))
-                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo()))
+                .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
+                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo().value()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
                         || replayStatus.equals(item.getReplayStatus()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditDeadLetter::getDeadAt).reversed()
-                        .thenComparing(InventoryAuditDeadLetter::getId, java.util.Comparator.reverseOrder()))
+                        .thenComparing(InventoryAuditDeadLetter::getOutboxId, java.util.Comparator.reverseOrder()))
                 .skip((long) (pageNo - 1) * pageSize)
                 .limit(pageSize)
                 .toList();
@@ -318,8 +307,8 @@ public class InMemoryInventoryRepositorySupport {
     public long countAuditDeadLetters(Long tenantId, String orderNo, String replayStatus) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> item.getTenantId().equals(String.valueOf(tenantId)))
-                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo()))
+                .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
+                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo().value()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
                         || replayStatus.equals(item.getReplayStatus()))
                 .count();
@@ -328,14 +317,14 @@ public class InMemoryInventoryRepositorySupport {
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(Long id) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> item.getId().equals(id))
+                .filter(item -> item.getOutboxId().equals(id))
                 .findFirst();
     }
 
     public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
                                                  String operatorType, Long operatorId, Instant replayAt) {
         return findAuditDeadLetterById(id)
-                .filter(item -> item.getTenantId().equals(String.valueOf(tenantId)))
+                .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
                 .filter(item -> InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.equals(item.getReplayStatus())
                         || InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.equals(item.getReplayStatus()))
                 .map(item -> {

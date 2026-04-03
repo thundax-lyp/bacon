@@ -1,7 +1,9 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
@@ -17,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class InventoryAuditCompensationApplicationService {
 
-    private static final String REPLAY_OPERATOR_TYPE = "MANUAL";
+    private static final InventoryAuditOperatorType REPLAY_OPERATOR_TYPE = InventoryAuditOperatorType.MANUAL;
 
     private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
     private final InventoryAuditReplayTransactionExecutor inventoryAuditReplayTransactionService;
@@ -32,7 +34,7 @@ public class InventoryAuditCompensationApplicationService {
         InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository.findAuditDeadLetterById(deadLetterId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
                         "dead-letter-not-found:" + deadLetterId));
-        if (!Objects.equals(toStringValue(tenantId), deadLetter.getTenantId())) {
+        if (!Objects.equals(toTenantId(tenantId), deadLetter.getTenantId())) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "dead-letter-tenant-mismatch");
         }
         if (InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED.equals(deadLetter.getReplayStatus())) {
@@ -43,14 +45,14 @@ public class InventoryAuditCompensationApplicationService {
         Instant replayAt = Instant.now();
         // 回放前先认领死信，确保同一条死信在人工操作和后台任务并发时只会有一个执行者真正进入事务。
         boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(deadLetterId, tenantId, resolvedReplayKey,
-                REPLAY_OPERATOR_TYPE, operatorId, replayAt);
+                REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt);
         if (!claimed) {
             return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED,
                     resolvedReplayKey, "dead-letter-not-claimable");
         }
         try {
             return inventoryAuditReplayTransactionService.replayClaimedDeadLetter(deadLetter, resolvedReplayKey,
-                    REPLAY_OPERATOR_TYPE, operatorId, replayAt);
+                    REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt);
         } catch (RuntimeException txException) {
             String truncatedError = truncateError(txException.getMessage());
             Metrics.counter("bacon.inventory.audit.replay.tx.fail.total").increment();
@@ -59,7 +61,7 @@ public class InventoryAuditCompensationApplicationService {
             try {
                 // 事务层抛异常后，再走单独的补偿事务把死信状态和失败审计补全，避免原事务整体回滚后没有追踪痕迹。
                 inventoryAuditReplayTransactionService.compensateReplayTxFailure(deadLetter, resolvedReplayKey,
-                        REPLAY_OPERATOR_TYPE, operatorId, replayAt, truncatedError);
+                        REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt, truncatedError);
                 Metrics.counter("bacon.inventory.audit.replay.tx.compensate.success.total").increment();
             } catch (RuntimeException compensateException) {
                 Metrics.counter("bacon.inventory.audit.replay.tx.compensate.fail.total").increment();
@@ -92,7 +94,7 @@ public class InventoryAuditCompensationApplicationService {
             return replayKey;
         }
         int replayCount = deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount();
-        return "DLQ-" + deadLetter.getId() + "-R" + (replayCount + 1);
+        return "DLQ-" + deadLetter.getOutboxId() + "-R" + (replayCount + 1);
     }
 
     private String truncateError(String message) {
@@ -102,7 +104,7 @@ public class InventoryAuditCompensationApplicationService {
         return message.length() <= 512 ? message : message.substring(0, 512);
     }
 
-    private String toStringValue(Long value) {
-        return value == null ? null : String.valueOf(value);
+    private TenantId toTenantId(Long value) {
+        return value == null ? null : TenantId.of(String.valueOf(value));
     }
 }

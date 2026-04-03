@@ -12,8 +12,11 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
@@ -344,7 +347,7 @@ public class InventoryRepositorySupport {
             query.eq(InventoryAuditDeadLetterDO::getReplayStatus, replayStatus);
         }
         return auditDeadLetterMapper.selectList(query
-                        .orderByDesc(InventoryAuditDeadLetterDO::getDeadAt, InventoryAuditDeadLetterDO::getId)
+                        .orderByDesc(InventoryAuditDeadLetterDO::getDeadAt, InventoryAuditDeadLetterDO::getOutboxId)
                         .last("limit " + offset + ", " + pageSize))
                 .stream()
                 .map(this::toDomain)
@@ -365,13 +368,15 @@ public class InventoryRepositorySupport {
     }
 
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(Long id) {
-        return Optional.ofNullable(auditDeadLetterMapper.selectById(id)).map(this::toDomain);
+        return Optional.ofNullable(auditDeadLetterMapper.selectOne(Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
+                .eq(InventoryAuditDeadLetterDO::getOutboxId, id)))
+                .map(this::toDomain);
     }
 
     public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
                                                  String operatorType, Long operatorId, Instant replayAt) {
         return auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
-                .eq(InventoryAuditDeadLetterDO::getId, id)
+                .eq(InventoryAuditDeadLetterDO::getOutboxId, id)
                 .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId)
                 .in(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditDeadLetter.REPLAY_STATUS_PENDING,
                         InventoryAuditDeadLetter.REPLAY_STATUS_FAILED)
@@ -387,7 +392,7 @@ public class InventoryRepositorySupport {
     public void markAuditDeadLetterReplaySuccess(Long id, String replayKey, String operatorType, Long operatorId,
                                                  Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
-                .eq(InventoryAuditDeadLetterDO::getId, id)
+                .eq(InventoryAuditDeadLetterDO::getOutboxId, id)
                 .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED)
                 .setSql("replay_count = ifnull(replay_count, 0) + 1")
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
@@ -401,7 +406,7 @@ public class InventoryRepositorySupport {
     public void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
                                                 String replayError, Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
-                .eq(InventoryAuditDeadLetterDO::getId, id)
+                .eq(InventoryAuditDeadLetterDO::getOutboxId, id)
                 .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED)
                 .setSql("replay_count = ifnull(replay_count, 0) + 1")
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
@@ -646,9 +651,9 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxId(), toLongValue(deadLetter.getTenantId()),
-                deadLetter.getOrderNo(), deadLetter.getReservationNo(), deadLetter.getActionType(),
-                deadLetter.getOperatorType(), toLongValue(deadLetter.getOperatorId()), deadLetter.getOccurredAt(),
+        return new InventoryAuditDeadLetterDO(null, deadLetter.getOutboxId(), toLongValue(deadLetter.getTenantId()),
+                toStringValue(deadLetter.getOrderNo()), deadLetter.getReservationNo(), deadLetter.getActionType().value(),
+                deadLetter.getOperatorType().value(), toLongValue(deadLetter.getOperatorId()), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(), deadLetter.getReplayStatus(), deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
@@ -656,9 +661,11 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
-        return new InventoryAuditDeadLetter(dataObject.getId(), dataObject.getOutboxId(), toStringValue(dataObject.getTenantId()),
-                dataObject.getOrderNo(), dataObject.getReservationNo(), dataObject.getActionType(),
-                dataObject.getOperatorType(), toStringValue(dataObject.getOperatorId()), dataObject.getOccurredAt(),
+        return new InventoryAuditDeadLetter(dataObject.getOutboxId(), toTenantId(dataObject.getTenantId()),
+                toOrderNo(dataObject.getOrderNo()), dataObject.getReservationNo(),
+                InventoryAuditActionType.fromValue(dataObject.getActionType()),
+                InventoryAuditOperatorType.fromValue(dataObject.getOperatorType()),
+                toStringValue(dataObject.getOperatorId()), dataObject.getOccurredAt(),
                 dataObject.getRetryCount(), dataObject.getErrorMessage(), dataObject.getDeadReason(),
                 dataObject.getDeadAt(), dataObject.getReplayStatus(), dataObject.getReplayCount(),
                 dataObject.getLastReplayAt(), dataObject.getLastReplayResult(), dataObject.getLastReplayError(),
@@ -693,6 +700,18 @@ public class InventoryRepositorySupport {
 
     private String toStringValue(Long value) {
         return value == null ? null : String.valueOf(value);
+    }
+
+    private String toStringValue(OrderNo value) {
+        return value == null ? null : value.value();
+    }
+
+    private TenantId toTenantId(Long value) {
+        return value == null ? null : TenantId.of(String.valueOf(value));
+    }
+
+    private OrderNo toOrderNo(String value) {
+        return value == null ? null : OrderNo.of(value);
     }
 
     private Long toLongValue(String value) {

@@ -396,10 +396,10 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-            if (deadLetter.getId() == null) {
-                deadLetter.setId(deadLetterIdGenerator.incrementAndGet());
+            if (deadLetter.getOutboxId() == null) {
+                deadLetter.setOutboxId(deadLetterIdGenerator.incrementAndGet());
             }
-            deadLetterMap.put(deadLetter.getId(), deadLetter);
+            deadLetterMap.put(deadLetter.getOutboxId(), deadLetter);
         }
 
         private int deadLetterCount() {

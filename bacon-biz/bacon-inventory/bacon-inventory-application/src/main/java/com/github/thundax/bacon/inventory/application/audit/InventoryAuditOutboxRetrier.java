@@ -1,8 +1,12 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -102,9 +106,11 @@ public class InventoryAuditOutboxRetrier {
                         item.getId(), owner);
                 return;
             }
-            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, item.getId(), item.getTenantId(),
-                    item.getOrderNo(), item.getReservationNo(), item.getActionType(), item.getOperatorType(),
-                    item.getOperatorId(), item.getOccurredAt(), nextRetryCount, errorMessage, deadReason, now,
+            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(item.getId(),
+                    TenantId.of(item.getTenantId()), OrderNo.of(item.getOrderNo()), item.getReservationNo(),
+                    InventoryAuditActionType.fromValue(item.getActionType()),
+                    InventoryAuditOperatorType.fromValue(item.getOperatorType()), item.getOperatorId(),
+                    item.getOccurredAt(), nextRetryCount, errorMessage, deadReason, now,
                     InventoryAuditDeadLetter.REPLAY_STATUS_PENDING, 0, null, null, null, null, null, null));
             Metrics.counter("bacon.inventory.audit.retry.dead.total", "actionType", item.getActionType()).increment();
             log.error("ALERT inventory audit retry exhausted, outboxId={}, orderNo={}, reservationNo={}, actionType={}",

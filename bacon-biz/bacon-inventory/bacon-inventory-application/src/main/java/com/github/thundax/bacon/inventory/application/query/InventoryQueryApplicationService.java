@@ -131,10 +131,10 @@ public class InventoryQueryApplicationService {
     }
 
     private InventoryAuditDeadLetterDTO toAuditDeadLetterDto(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDTO(toStringValue(deadLetter.getId()), toStringValue(deadLetter.getOutboxId()),
-                deadLetter.getTenantId(),
-                deadLetter.getOrderNo(), deadLetter.getReservationNo(), deadLetter.getActionType(),
-                deadLetter.getOperatorType(), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
+        return new InventoryAuditDeadLetterDTO(toStringValue(deadLetter.getOutboxId()), toStringValue(deadLetter.getOutboxId()),
+                toStringValue(deadLetter.getTenantId()),
+                toStringValue(deadLetter.getOrderNo()), deadLetter.getReservationNo(), toStringValue(deadLetter.getActionType()),
+                toStringValue(deadLetter.getOperatorType()), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(), deadLetter.getReplayStatus(), deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
@@ -150,6 +150,18 @@ public class InventoryQueryApplicationService {
 
     private String toStringValue(Long value) {
         return value == null ? null : String.valueOf(value);
+    }
+
+    private String toStringValue(com.github.thundax.bacon.common.id.domain.TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    private String toStringValue(com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    private String toStringValue(Enum<?> value) {
+        return value == null ? null : value.name();
     }
 
     private Long toLongValue(com.github.thundax.bacon.common.id.domain.TenantId tenantId) {

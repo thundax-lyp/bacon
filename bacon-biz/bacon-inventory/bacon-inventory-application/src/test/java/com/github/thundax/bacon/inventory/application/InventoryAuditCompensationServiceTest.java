@@ -26,7 +26,7 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldReplayDeadLetterSuccessfully() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1001L, 2001L, 3001L, "ORDER-1", "RSV-1",
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1001L, 3001L, "ORDER-1", "RSV-1",
                 InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 3, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z")));
@@ -46,12 +46,12 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldBatchReplayAndKeepRunningItemsUnchanged() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1002L, 2002L, 3001L, "ORDER-2", "RSV-2",
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1002L, 3001L, "ORDER-2", "RSV-2",
                 InventoryAuditLog.ACTION_RELEASE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
                 InventoryAuditDeadLetter.REPLAY_STATUS_PENDING, 0, null, null, null, null, null, null));
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1003L, 2003L, 3001L, "ORDER-3", "RSV-3",
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1003L, 3001L, "ORDER-3", "RSV-3",
                 InventoryAuditLog.ACTION_DEDUCT, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
@@ -69,7 +69,7 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldCompensateWhenReplayTransactionFails() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository, new FailingOnceTransactionExecutor());
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1004L, 2004L, 3001L, "ORDER-4", "RSV-4",
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1004L, 3001L, "ORDER-4", "RSV-4",
                 InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z")));
@@ -134,7 +134,7 @@ class InventoryAuditCompensationApplicationServiceTest {
 
         @Override
         public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-            deadLetters.put(deadLetter.getId(), deadLetter);
+            deadLetters.put(deadLetter.getOutboxId(), deadLetter);
         }
 
         @Override
@@ -146,7 +146,7 @@ class InventoryAuditCompensationApplicationServiceTest {
         public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
                                                      String operatorType, Long operatorId, Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id);
-            if (deadLetter == null || !String.valueOf(tenantId).equals(deadLetter.getTenantId())) {
+            if (deadLetter == null || !String.valueOf(tenantId).equals(deadLetter.getTenantId().value())) {
                 return false;
             }
             if (!InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.equals(deadLetter.getReplayStatus())

@@ -157,7 +157,7 @@ public class OrderRepositorySupport {
     public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
         OrderInventorySnapshotDO existing = orderInventorySnapshotMapper.selectOne(
                 Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                        .eq(OrderInventorySnapshotDO::getTenantId, snapshot.tenantIdValue())
+                        .eq(OrderInventorySnapshotDO::getTenantId, String.valueOf(snapshot.tenantIdValue()))
                         .eq(OrderInventorySnapshotDO::getOrderNo, snapshot.orderNoValue()));
         OrderInventorySnapshotDO dataObject = toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
@@ -174,7 +174,7 @@ public class OrderRepositorySupport {
     public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
         return Optional.ofNullable(orderInventorySnapshotMapper.selectOne(
                 Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                        .eq(OrderInventorySnapshotDO::getTenantId, tenantId)
+                        .eq(OrderInventorySnapshotDO::getTenantId, String.valueOf(tenantId))
                         .eq(OrderInventorySnapshotDO::getOrderNo, orderNo)))
                 .map(this::toDomain);
     }
@@ -445,14 +445,14 @@ public class OrderRepositorySupport {
     }
 
     private OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {
-        return new OrderInventorySnapshotDO(null, snapshot.tenantIdValue(), snapshot.orderNoValue(),
+        return new OrderInventorySnapshotDO(null, String.valueOf(snapshot.tenantIdValue()), snapshot.orderNoValue(),
                 snapshot.reservationNoValue(), snapshot.inventoryStatusValue(), toDatabaseWarehouseNo(snapshot.warehouseNo()),
                 snapshot.failureReason(),
                 snapshot.updatedAt());
     }
 
     private OrderInventorySnapshot toDomain(OrderInventorySnapshotDO dataObject) {
-        return new OrderInventorySnapshot(toDomainTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
+        return new OrderInventorySnapshot(toDomainOrderTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
                 toDomainReservationNo(dataObject.getReservationNo()), toDomainInventoryStatus(dataObject.getInventoryStatus()),
                 toDomainWarehouseNo(dataObject.getWarehouseNo()),
                 dataObject.getFailureReason(), dataObject.getUpdatedAt());

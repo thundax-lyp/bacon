@@ -7,7 +7,7 @@ import java.time.Instant;
  */
 public record PaymentAuditLogResponse(
         /** 所属租户主键。 */
-        Long tenantId,
+        String tenantId,
         /** 支付单号。 */
         String paymentNo,
         /** 操作类型。 */
@@ -19,7 +19,7 @@ public record PaymentAuditLogResponse(
         /** 操作人类型。 */
         String operatorType,
         /** 操作人主键。 */
-        Long operatorId,
+        String operatorId,
         /** 发生时间。 */
         Instant occurredAt) {
 }

@@ -55,7 +55,7 @@ class PaymentAuditLogControllerContractTest {
 
         @Override
         public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
-            return List.of(new PaymentAuditLogDTO(tenantId, paymentNo, "CREATE", null, "PAYING",
+            return List.of(new PaymentAuditLogDTO(String.valueOf(tenantId), paymentNo, "CREATE", null, "PAYING",
                     "SYSTEM", "0", Instant.parse("2026-03-27T10:00:00Z")));
         }
     }

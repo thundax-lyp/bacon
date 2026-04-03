@@ -143,7 +143,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `bigint` | N | 主键，仅 DO 内部使用 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `sku_id` | `bigint` | N | SKU 主键 |

@@ -17,8 +17,6 @@ public class OrderOutboxDeadLetter {
     public static final String REPLAY_STATUS_SUCCESS = "SUCCESS";
     public static final String REPLAY_STATUS_FAILED = "FAILED";
 
-    /** 死信记录主键。 */
-    private Long id;
     /** 出站事件主键。 */
     private Long outboxId;
     /** 所属租户主键。 */

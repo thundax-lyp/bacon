@@ -240,7 +240,7 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {
-        return new OrderOutboxDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxId(), deadLetter.getTenantId(),
+        return new OrderOutboxDeadLetterDO(null, deadLetter.getOutboxId(), deadLetter.getTenantId(),
                 deadLetter.getOrderNo(), deadLetter.getEventType(), deadLetter.getBusinessKey(), deadLetter.getPayload(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(), deadLetter.getDeadAt(),
                 deadLetter.getReplayStatus(), deadLetter.getReplayCount(), deadLetter.getLastReplayAt(),

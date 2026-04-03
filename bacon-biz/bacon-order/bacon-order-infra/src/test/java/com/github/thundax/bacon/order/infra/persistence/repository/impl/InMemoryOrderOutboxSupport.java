@@ -142,9 +142,6 @@ public class InMemoryOrderOutboxSupport {
 
     public synchronized void saveDeadLetter(OrderOutboxDeadLetter deadLetter) {
         Instant now = Instant.now();
-        if (deadLetter.getId() == null) {
-            deadLetter.setId(deadLetterIdGenerator.getAndIncrement());
-        }
         if (deadLetter.getReplayStatus() == null) {
             deadLetter.setReplayStatus(OrderOutboxDeadLetter.REPLAY_STATUS_PENDING);
         }
@@ -155,7 +152,7 @@ public class InMemoryOrderOutboxSupport {
             deadLetter.setCreatedAt(now);
         }
         deadLetter.setUpdatedAt(now);
-        deadLetterStorage.put(deadLetter.getId(), copy(deadLetter));
+        deadLetterStorage.put(deadLetterIdGenerator.getAndIncrement(), copy(deadLetter));
     }
 
     private boolean isClaimedBy(OrderOutboxEvent event, String processingOwner) {
@@ -180,7 +177,7 @@ public class InMemoryOrderOutboxSupport {
     }
 
     private OrderOutboxDeadLetter copy(OrderOutboxDeadLetter source) {
-        return new OrderOutboxDeadLetter(source.getId(), source.getOutboxId(), source.getTenantId(),
+        return new OrderOutboxDeadLetter(source.getOutboxId(), source.getTenantId(),
                 source.getOrderNo(), source.getEventType(), source.getBusinessKey(), source.getPayload(),
                 source.getRetryCount(), source.getErrorMessage(), source.getDeadReason(), source.getDeadAt(),
                 source.getReplayStatus(), source.getReplayCount(), source.getLastReplayAt(),

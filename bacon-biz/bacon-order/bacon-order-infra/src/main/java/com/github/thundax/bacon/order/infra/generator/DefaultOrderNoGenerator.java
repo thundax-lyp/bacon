@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.generator;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,10 +21,10 @@ public class DefaultOrderNoGenerator implements OrderNoGenerator {
     }
 
     @Override
-    public String nextOrderNo() {
+    public OrderNo nextOrderNo() {
         long id = idGenerator.nextId(BIZ_TYPE);
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
         String suffix = String.format("%06d", Math.floorMod(id, 1_000_000L));
-        return PREFIX + timestamp + suffix;
+        return OrderNo.of(PREFIX + timestamp + suffix);
     }
 }

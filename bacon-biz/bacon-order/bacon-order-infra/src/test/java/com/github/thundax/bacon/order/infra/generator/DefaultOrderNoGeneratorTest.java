@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import org.junit.jupiter.api.Test;
 
 class DefaultOrderNoGeneratorTest {
@@ -16,9 +17,9 @@ class DefaultOrderNoGeneratorTest {
         };
         DefaultOrderNoGenerator generator = new DefaultOrderNoGenerator(idGenerator);
 
-        String orderNo = generator.nextOrderNo();
+        OrderNo orderNo = generator.nextOrderNo();
 
-        assertTrue(orderNo.matches("ORD\\d{14}\\d{6}"));
-        assertEquals("012345", orderNo.substring(orderNo.length() - 6));
+        assertTrue(orderNo.value().matches("ORD\\d{14}\\d{6}"));
+        assertEquals("012345", orderNo.value().substring(orderNo.value().length() - 6));
     }
 }

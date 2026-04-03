@@ -49,7 +49,7 @@ public class OrderCreateApplicationService {
         BigDecimal totalAmount = items.stream()
                 .map(this::calculateLineAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        OrderNo orderNo = OrderNo.of(orderNoGenerator.nextOrderNo());
+        OrderNo orderNo = orderNoGenerator.nextOrderNo();
         CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
         Order order = orderDomainService.create(null, toTenantId(command.tenantId()), orderNo, toUserId(command.userId()),
                 Money.of(totalAmount, currencyCode), Money.of(totalAmount, currencyCode), command.remark(),

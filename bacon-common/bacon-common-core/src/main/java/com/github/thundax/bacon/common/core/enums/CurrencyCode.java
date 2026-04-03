@@ -1,0 +1,30 @@
+package com.github.thundax.bacon.common.core.enums;
+
+/**
+ * 币种编码。
+ */
+public enum CurrencyCode {
+
+    CNY("CNY"),
+    USD("USD"),
+    JPY("JPY");
+
+    private final String value;
+
+    CurrencyCode(String value) {
+        this.value = value;
+    }
+
+    public String value() {
+        return value;
+    }
+
+    public static CurrencyCode fromValue(String value) {
+        for (CurrencyCode currencyCode : values()) {
+            if (currencyCode.value.equals(value)) {
+                return currencyCode;
+            }
+        }
+        throw new IllegalArgumentException("Unsupported currency code: " + value);
+    }
+}

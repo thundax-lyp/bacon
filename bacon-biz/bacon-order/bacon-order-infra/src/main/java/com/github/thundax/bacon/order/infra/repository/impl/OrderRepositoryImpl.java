@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.infra.persistence.repository.impl;
+package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
@@ -8,6 +8,7 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
+import com.github.thundax.bacon.order.infra.persistence.repository.impl.OrderRepositorySupport;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;

@@ -293,6 +293,7 @@ public class OrderRepositorySupport {
                 toDomainPayStatus(dataObject.getPayStatus()), toDomainInventoryStatus(dataObject.getInventoryStatus()),
                 toDomainPaymentNo(paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo()),
                 toDomainReservationNo(inventorySnapshot == null ? null : inventorySnapshot.getReservationNo()),
+                toDomainCurrencyCode(dataObject.getCurrencyCode()),
                 toMoney(dataObject.getTotalAmount(), dataObject.getCurrencyCode()),
                 toMoney(dataObject.getPayableAmount(), dataObject.getCurrencyCode()),
                 dataObject.getRemark(), dataObject.getCancelReason(),
@@ -353,6 +354,10 @@ public class OrderRepositorySupport {
 
     private PaymentChannel toDomainPaymentChannel(String paymentChannelCode) {
         return paymentChannelCode == null ? null : PaymentChannel.fromValue(paymentChannelCode);
+    }
+
+    private CurrencyCode toDomainCurrencyCode(String currencyCode) {
+        return currencyCode == null ? null : CurrencyCode.fromValue(currencyCode);
     }
 
     private Long toDatabaseUserId(UserId userId) {

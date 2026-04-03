@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -13,6 +14,7 @@ import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.Getter;
 
 /**
@@ -39,6 +41,9 @@ public class Order {
     private PaymentNo paymentNo;
     /** 库存预占单号。 */
     private ReservationNo reservationNo;
+    /** 币种编码。 */
+    @Getter(AccessLevel.NONE)
+    private final CurrencyCode currencyCode;
     /** 订单总金额。 */
     private Money totalAmount;
     /** 应付金额。 */
@@ -78,15 +83,15 @@ public class Order {
     /** 订单关闭时间。 */
     private Instant closedAt;
 
-    public Order(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, Money totalAmount,
+    public Order(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, CurrencyCode currencyCode, Money totalAmount,
                  Money payableAmount, String remark, Instant expiredAt) {
         this(id, tenantId, orderNo, userId, OrderStatus.CREATED, PayStatus.UNPAID, InventoryStatus.UNRESERVED,
-                null, null, totalAmount, payableAmount, remark, null, null, Instant.now(),
+                null, null, currencyCode, totalAmount, payableAmount, remark, null, null, Instant.now(),
                 expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     private Order(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, OrderStatus orderStatus, PayStatus payStatus,
-                  InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo, Money totalAmount,
+                  InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo, CurrencyCode currencyCode, Money totalAmount,
                   Money payableAmount, String remark, String cancelReason,
                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
                   PaymentChannel paymentChannelCode, Money paidAmount, String paymentChannelStatus,
@@ -102,6 +107,10 @@ public class Order {
         this.inventoryStatus = inventoryStatus;
         this.paymentNo = paymentNo;
         this.reservationNo = reservationNo;
+        ensureMoneyCurrency(currencyCode, totalAmount);
+        ensureMoneyCurrency(currencyCode, payableAmount);
+        ensureMoneyCurrency(currencyCode, paidAmount);
+        this.currencyCode = currencyCode;
         ensureMoneyCurrency(totalAmount, payableAmount);
         ensureMoneyCurrency(totalAmount, paidAmount);
         this.totalAmount = totalAmount;
@@ -126,7 +135,8 @@ public class Order {
     }
 
     public static Order rehydrate(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, OrderStatus orderStatus,
-                                  PayStatus payStatus, InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo, Money totalAmount,
+                                  PayStatus payStatus, InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo,
+                                  CurrencyCode currencyCode, Money totalAmount,
                                   Money payableAmount, String remark, String cancelReason,
                                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,
                                   Instant closedAt, PaymentChannel paymentChannelCode, Money paidAmount,
@@ -135,14 +145,18 @@ public class Order {
                                   Instant inventoryReleasedAt, Instant inventoryDeductedAt) {
         // 持久化重建必须保留主单与支付/库存派生状态，避免查询和回写时把终态信息重置成初始值。
         return new Order(id, tenantId, orderNo, userId, orderStatus, payStatus, inventoryStatus, paymentNo,
-                reservationNo, totalAmount, payableAmount, remark, cancelReason, closeReason, createdAt,
+                reservationNo, currencyCode, totalAmount, payableAmount, remark, cancelReason, closeReason, createdAt,
                 expiredAt, paidAt, closedAt, paymentChannelCode, paidAmount, paymentChannelStatus, paymentFailureReason,
                 paymentFailedAt, warehouseNo, inventoryFailureReason, inventoryReleaseReason, inventoryReleasedAt,
                 inventoryDeductedAt);
     }
 
     public String getCurrencyCode() {
-        return totalAmount == null ? null : totalAmount.currencyCode().value();
+        return currencyCode == null ? null : currencyCode.value();
+    }
+
+    public CurrencyCode getCurrencyCodeEnum() {
+        return currencyCode;
     }
 
     public String getOrderStatus() {
@@ -325,6 +339,15 @@ public class Order {
         }
         if (left.currencyCode() != right.currencyCode()) {
             throw new IllegalArgumentException("order money currency code mismatch");
+        }
+    }
+
+    private void ensureMoneyCurrency(CurrencyCode currencyCode, Money money) {
+        if (currencyCode == null || money == null) {
+            return;
+        }
+        if (currencyCode != money.currencyCode()) {
+            throw new IllegalArgumentException("order currency code mismatch");
         }
     }
 }

@@ -54,7 +54,7 @@ public class OrderCreateApplicationService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         OrderNo orderNo = orderNoGenerator.nextOrderNo();
         CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
-        Order order = orderFactory.create(null, toTenantId(command.tenantId()), orderNo, toUserId(command.userId()),
+        Order order = orderFactory.create(null, toTenantId(command.tenantId()), orderNo, toUserId(command.userId()), currencyCode,
                 Money.of(totalAmount, currencyCode), Money.of(totalAmount, currencyCode), command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);

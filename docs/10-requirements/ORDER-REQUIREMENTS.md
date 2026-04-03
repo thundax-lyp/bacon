@@ -255,6 +255,7 @@ Order 是 Bacon 的统一订单业务域。
 
 固定约束：
 
+- `Order.currencyCode` 使用 `CurrencyCode`
 - `OrderPaymentSnapshot.tenantId` 使用 `TenantId`
 - `OrderPaymentSnapshot.orderId` 使用 `OrderId`
 - `OrderPaymentSnapshot.paymentNo` 使用 `PaymentNo`

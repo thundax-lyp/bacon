@@ -5,6 +5,8 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -322,9 +324,9 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId) {
+        public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
             return itemStorage.getOrDefault(orderId, List.of()).stream()
-                    .filter(item -> tenantId.equals(item.getTenantId()))
+                    .filter(item -> tenantId.equals(item.getTenantIdValue()))
                     .toList();
         }
 

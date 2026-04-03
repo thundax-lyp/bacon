@@ -70,9 +70,10 @@ public class OrderQueryApplicationService {
                 toOrderIdValue(order)).orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderNo(order.getTenantIdValue(),
                 order.getOrderNoValue()).orElse(null);
-        List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantIdValue(), toOrderIdValue(order)).stream()
+        List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantIdValue(), toOrderIdValue(order),
+                        order.getCurrencyCode()).stream()
                 .map(item -> new OrderItemDTO(item.getSkuId(), item.getSkuName(), item.getQuantity(),
-                        item.getSalePrice(), item.getLineAmount()))
+                        item.getSalePrice().value(), item.getLineAmount().value()))
                 .toList();
         return new OrderDetailDTO(toOrderIdValue(order), order.getTenantIdValue(), order.getOrderNoValue(), toUserIdValue(order),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(),

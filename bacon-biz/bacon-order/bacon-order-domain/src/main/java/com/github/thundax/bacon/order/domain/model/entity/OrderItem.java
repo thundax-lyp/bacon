@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
-import java.math.BigDecimal;
+import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 
 /**
  * 订单项领域实体。
@@ -8,9 +10,9 @@ import java.math.BigDecimal;
 public class OrderItem {
 
     /** 所属租户主键。 */
-    private final Long tenantId;
+    private final TenantId tenantId;
     /** 所属订单主键。 */
-    private final Long orderId;
+    private final OrderId orderId;
     /** 商品 SKU 主键。 */
     private final Long skuId;
     /** 商品 SKU 名称。 */
@@ -18,12 +20,12 @@ public class OrderItem {
     /** 购买数量。 */
     private final Integer quantity;
     /** 销售价。 */
-    private final BigDecimal salePrice;
+    private final Money salePrice;
     /** 行金额。 */
-    private final BigDecimal lineAmount;
+    private final Money lineAmount;
 
-    public OrderItem(Long tenantId, Long orderId, Long skuId, String skuName, Integer quantity, BigDecimal salePrice,
-                     BigDecimal lineAmount) {
+    public OrderItem(TenantId tenantId, OrderId orderId, Long skuId, String skuName, Integer quantity, Money salePrice,
+                     Money lineAmount) {
         this.tenantId = tenantId;
         this.orderId = orderId;
         this.skuId = skuId;
@@ -33,11 +35,11 @@ public class OrderItem {
         this.lineAmount = lineAmount;
     }
 
-    public Long getTenantId() {
+    public TenantId getTenantId() {
         return tenantId;
     }
 
-    public Long getOrderId() {
+    public OrderId getOrderId() {
         return orderId;
     }
 
@@ -53,11 +55,19 @@ public class OrderItem {
         return quantity;
     }
 
-    public BigDecimal getSalePrice() {
+    public Money getSalePrice() {
         return salePrice;
     }
 
-    public BigDecimal getLineAmount() {
+    public Money getLineAmount() {
         return lineAmount;
+    }
+
+    public Long getTenantIdValue() {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    public Long getOrderIdValue() {
+        return orderId == null ? null : Long.valueOf(orderId.value());
     }
 }

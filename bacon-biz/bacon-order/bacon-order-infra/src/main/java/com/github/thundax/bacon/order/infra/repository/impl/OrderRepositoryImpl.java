@@ -44,8 +44,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId) {
-        return support.findItemsByOrderId(tenantId, orderId);
+    public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
+        return support.findItemsByOrderId(tenantId, orderId, currencyCode);
     }
 
     @Override

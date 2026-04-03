@@ -96,18 +96,18 @@ public class OrderRepositorySupport {
             return;
         }
         for (OrderItem item : items) {
-            orderItemMapper.insert(new OrderItemDO(null, item.getTenantId(), item.getOrderId(), item.getSkuId(),
-                    item.getSkuName(), item.getQuantity(), item.getSalePrice(), item.getLineAmount()));
+            orderItemMapper.insert(new OrderItemDO(null, item.getTenantIdValue(), item.getOrderIdValue(), item.getSkuId(),
+                    item.getSkuName(), item.getQuantity(), item.getSalePrice().value(), item.getLineAmount().value()));
         }
     }
 
-    public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId) {
+    public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
         return orderItemMapper.selectList(Wrappers.<OrderItemDO>lambdaQuery()
                         .eq(OrderItemDO::getTenantId, tenantId)
                         .eq(OrderItemDO::getOrderId, orderId)
                         .orderByAsc(OrderItemDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(dataObject -> toDomain(dataObject, currencyCode))
                 .toList();
     }
 
@@ -343,9 +343,11 @@ public class OrderRepositorySupport {
         return inventoryStatus == null ? null : InventoryStatus.fromValue(inventoryStatus);
     }
 
-    private OrderItem toDomain(OrderItemDO dataObject) {
-        return new OrderItem(dataObject.getTenantId(), dataObject.getOrderId(), dataObject.getSkuId(),
-                dataObject.getSkuName(), dataObject.getQuantity(), dataObject.getSalePrice(), dataObject.getLineAmount());
+    private OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
+        CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(currencyCode);
+        return new OrderItem(toDomainTenantId(dataObject.getTenantId()), toDomainOrderId(dataObject.getOrderId()), dataObject.getSkuId(),
+                dataObject.getSkuName(), dataObject.getQuantity(), Money.of(dataObject.getSalePrice(), resolvedCurrencyCode),
+                Money.of(dataObject.getLineAmount(), resolvedCurrencyCode));
     }
 
     private OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {

@@ -2,6 +2,7 @@ package com.github.thundax.bacon.order.application.command;
 
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
@@ -56,8 +57,9 @@ public class OrderCreateApplicationService {
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
         orderRepository.saveItems(savedOrder.getTenantIdValue(), toOrderIdValue(savedOrder), items.stream()
-                .map(item -> new OrderItem(savedOrder.getTenantIdValue(), toOrderIdValue(savedOrder), item.skuId(), item.skuName(),
-                        item.quantity(), item.salePrice(), calculateLineAmount(item)))
+                .map(item -> new OrderItem(savedOrder.getTenantId(), toOrderId(savedOrder), item.skuId(), item.skuName(),
+                        item.quantity(), Money.of(item.salePrice(), currencyCode),
+                        Money.of(calculateLineAmount(item), currencyCode)))
                 .toList());
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);
@@ -87,6 +89,10 @@ public class OrderCreateApplicationService {
 
     private Long toOrderIdValue(Order order) {
         return order.getId() == null ? null : Long.valueOf(order.getId().value());
+    }
+
+    private OrderId toOrderId(Order order) {
+        return order.getId();
     }
 
     private UserId toUserId(Long userId) {

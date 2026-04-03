@@ -19,7 +19,7 @@ public interface OrderRepository {
 
     void saveItems(Long tenantId, Long orderId, List<OrderItem> items);
 
-    List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId);
+    List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode);
 
     void savePaymentSnapshot(OrderPaymentSnapshot snapshot);
 

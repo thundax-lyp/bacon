@@ -29,8 +29,6 @@ public class OrderItemDO {
     private String imageUrl;
     @TableField("quantity")
     private Integer quantity;
-    @TableField("currency_code")
-    private String currencyCode;
     @TableField("sale_price")
     private BigDecimal salePrice;
     @TableField("line_amount")

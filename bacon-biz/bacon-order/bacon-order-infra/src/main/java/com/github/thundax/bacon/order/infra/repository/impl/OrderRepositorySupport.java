@@ -113,8 +113,7 @@ public class OrderRepositorySupport {
         for (OrderItem item : items) {
             orderItemMapper.insert(new OrderItemDO(idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG), item.getTenantIdValue(),
                     String.valueOf(item.getOrderIdValue()), String.valueOf(item.getSkuIdValue()),
-                    item.getSkuName(), item.getImageUrl(), item.getQuantity(), item.getSalePrice().currencyCode().value(),
-                    item.getSalePrice().value(),
+                    item.getSkuName(), item.getImageUrl(), item.getQuantity(), item.getSalePrice().value(),
                     item.getLineAmount().value()));
         }
     }
@@ -413,10 +412,7 @@ public class OrderRepositorySupport {
     }
 
     private OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
-        String resolvedCurrencyCodeValue = dataObject.getCurrencyCode() == null || dataObject.getCurrencyCode().isBlank()
-                ? currencyCode
-                : dataObject.getCurrencyCode();
-        CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(resolvedCurrencyCodeValue);
+        CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(currencyCode);
         return new OrderItem(toDomainTenantId(dataObject.getTenantId()), toDomainOrderId(dataObject.getOrderId()),
                 toDomainSkuId(dataObject.getSkuId()), dataObject.getSkuName(), dataObject.getImageUrl(),
                 dataObject.getQuantity(), Money.of(dataObject.getSalePrice(), resolvedCurrencyCode),

@@ -153,7 +153,6 @@
 | `sku_name` | `varchar(128)` | N | SKU 名称快照 |
 | `image_url` | `varchar(512)` | Y | 商品图片地址快照 |
 | `quantity` | `int` | N | 下单数量 |
-| `currency_code` | `varchar(16)` | N | 明细金额币种编码 |
 | `sale_price` | `decimal(18,2)` | N | 销售价 |
 | `line_amount` | `decimal(18,2)` | N | 行金额 |
 

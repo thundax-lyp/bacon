@@ -29,7 +29,7 @@ public class OrderQueryApplicationService {
         OrderDetailDTO dto = orderRepository.findById(orderId)
                 .map(this::toDetail)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
-        if (tenantId != null && !tenantId.equals(dto.getTenantId())) {
+        if (tenantId != null && !String.valueOf(tenantId).equals(dto.getTenantId())) {
             throw new IllegalArgumentException("Order not found: " + orderId);
         }
         return dto;
@@ -58,7 +58,7 @@ public class OrderQueryApplicationService {
     }
 
     private OrderSummaryDTO toSummary(Order order) {
-        return new OrderSummaryDTO(toOrderIdValue(order), toTenantIdValue(order), order.getOrderNoValue(), toUserIdValue(order),
+        return new OrderSummaryDTO(toOrderIdValue(order), toLongTenantIdValue(order), order.getOrderNoValue(), toLongUserIdValue(order),
                 order.getOrderStatusValue(), order.getPayStatusValue(), order.getInventoryStatusValue(), order.getPaymentNoValue(),
                 order.getReservationNoValue(), order.getCurrencyCodeValue(), order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
@@ -66,16 +66,16 @@ public class OrderQueryApplicationService {
     }
 
     private OrderDetailDTO toDetail(Order order) {
-        OrderPaymentSnapshot paymentSnapshot = orderRepository.findPaymentSnapshotByOrderId(toTenantIdValue(order),
+        OrderPaymentSnapshot paymentSnapshot = orderRepository.findPaymentSnapshotByOrderId(toLongTenantIdValue(order),
                 toOrderIdValue(order), order.getCurrencyCodeValue()).orElse(null);
-        OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderNo(toTenantIdValue(order),
+        OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderNo(toLongTenantIdValue(order),
                 order.getOrderNoValue()).orElse(null);
-        List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(toTenantIdValue(order), toOrderIdValue(order),
+        List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(toLongTenantIdValue(order), toOrderIdValue(order),
                         order.getCurrencyCodeValue()).stream()
                 .map(item -> new OrderItemDTO(item.getSkuIdValue(), item.getSkuName(), item.getImageUrl(), item.getQuantity(),
                         item.getSalePrice().value(), item.getLineAmount().value()))
                 .toList();
-        return new OrderDetailDTO(toOrderIdValue(order), toTenantIdValue(order), order.getOrderNoValue(), toUserIdValue(order),
+        return new OrderDetailDTO(toOrderIdValue(order), toStringTenantIdValue(order), order.getOrderNoValue(), toStringUserIdValue(order),
                 order.getOrderStatusValue(), order.getPayStatusValue(), order.getInventoryStatusValue(),
                 paymentSnapshot == null ? order.getPaymentNoValue() : paymentSnapshot.paymentNoValue(),
                 inventorySnapshot == null ? order.getReservationNoValue() : inventorySnapshot.reservationNoValue(),
@@ -113,12 +113,20 @@ public class OrderQueryApplicationService {
         return order.getId() == null ? null : Long.valueOf(order.getId().value());
     }
 
-    private Long toTenantIdValue(Order order) {
+    private Long toLongTenantIdValue(Order order) {
         return order.getTenantIdValue() == null ? null : Long.valueOf(order.getTenantIdValue());
     }
 
-    private Long toUserIdValue(Order order) {
+    private String toStringTenantIdValue(Order order) {
+        return order.getTenantIdValue();
+    }
+
+    private Long toLongUserIdValue(Order order) {
         return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
+    }
+
+    private String toStringUserIdValue(Order order) {
+        return order.getUserId() == null ? null : order.getUserId().value();
     }
 
     private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {

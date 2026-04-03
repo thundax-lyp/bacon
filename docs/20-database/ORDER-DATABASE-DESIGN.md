@@ -177,7 +177,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
+| `order_id` | `varchar(64)` | N | 订单主键，关联 `bacon_order_order.id` |
 | `payment_no` | `varchar(64)` | N | 支付单号，全局唯一 |
 | `channel_code` | `varchar(32)` | N | 渠道编码 |
 | `pay_status` | `varchar(16)` | N | 支付状态，取值见 `pay_status` |

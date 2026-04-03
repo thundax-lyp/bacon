@@ -51,6 +51,7 @@ public class OrderRepositorySupport {
 
     private static final String ORDER_ID_BIZ_TAG = "order-id";
     private static final String AUDIT_LOG_ID_BIZ_TAG = "order_audit_log_id";
+    private static final String PAYMENT_SNAPSHOT_ID_BIZ_TAG = "order_payment_snapshot_id";
     private static final String INVENTORY_SNAPSHOT_ID_BIZ_TAG = "order_inventory_snapshot_id";
     private static final String ORDER_ITEM_ID_BIZ_TAG = "order_item_id";
 
@@ -132,11 +133,12 @@ public class OrderRepositorySupport {
         OrderPaymentSnapshotDO existing = orderPaymentSnapshotMapper.selectOne(
                 Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
                         .eq(OrderPaymentSnapshotDO::getTenantId, snapshot.tenantIdValue())
-                        .eq(OrderPaymentSnapshotDO::getOrderId, snapshot.orderIdValue()));
+                        .eq(OrderPaymentSnapshotDO::getOrderId, String.valueOf(snapshot.orderIdValue())));
         OrderPaymentSnapshotDO dataObject = toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
         // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
         if (existing == null) {
+            dataObject.setId(idGenerator.nextId(PAYMENT_SNAPSHOT_ID_BIZ_TAG));
             orderPaymentSnapshotMapper.insert(dataObject);
             return;
         }
@@ -148,7 +150,7 @@ public class OrderRepositorySupport {
         return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(
                 Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
                         .eq(OrderPaymentSnapshotDO::getTenantId, tenantId)
-                        .eq(OrderPaymentSnapshotDO::getOrderId, orderId)))
+                        .eq(OrderPaymentSnapshotDO::getOrderId, String.valueOf(orderId))))
                 .map(dataObject -> toDomain(dataObject, currencyCode));
     }
 
@@ -214,12 +216,11 @@ public class OrderRepositorySupport {
         List<String> orderNos = pageOrders.stream()
                 .map(OrderDO::getOrderNo)
                 .toList();
-        List<Long> orderIds = pageOrders.stream()
+        List<String> orderIds = pageOrders.stream()
                 .map(OrderDO::getId)
-                .map(this::toLongOrderId)
                 .toList();
         // 分页查询先批量拉主单，再一次性批量拉支付/库存快照，避免逐单 N+1 查询。
-        Map<Long, OrderPaymentSnapshotDO> paymentSnapshotMap = orderPaymentSnapshotMapper.selectList(
+        Map<String, OrderPaymentSnapshotDO> paymentSnapshotMap = orderPaymentSnapshotMapper.selectList(
                         Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
                                 .in(OrderPaymentSnapshotDO::getOrderId, orderIds))
                 .stream()
@@ -232,7 +233,7 @@ public class OrderRepositorySupport {
                 .collect(Collectors.toMap(OrderInventorySnapshotDO::getOrderNo, Function.identity(),
                         (left, right) -> left));
         List<Order> records = pageOrders.stream()
-                .map(orderData -> toDomain(orderData, paymentSnapshotMap.get(toLongOrderId(orderData.getId())),
+                .map(orderData -> toDomain(orderData, paymentSnapshotMap.get(orderData.getId()),
                         inventorySnapshotMap.get(orderData.getOrderNo())))
                 .toList();
         return records;
@@ -274,7 +275,7 @@ public class OrderRepositorySupport {
         OrderPaymentSnapshotDO paymentSnapshot = orderPaymentSnapshotMapper.selectOne(
                 Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
                         .eq(OrderPaymentSnapshotDO::getTenantId, toLongTenantId(dataObject.getTenantId()))
-                        .eq(OrderPaymentSnapshotDO::getOrderId, toLongOrderId(dataObject.getId())));
+                        .eq(OrderPaymentSnapshotDO::getOrderId, dataObject.getId()));
         OrderInventorySnapshotDO inventorySnapshot = orderInventorySnapshotMapper.selectOne(
                 Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
                         .eq(OrderInventorySnapshotDO::getTenantId, toLongTenantId(dataObject.getTenantId()))
@@ -426,7 +427,7 @@ public class OrderRepositorySupport {
     }
 
     private OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {
-        return new OrderPaymentSnapshotDO(snapshot.id(), snapshot.tenantIdValue(), snapshot.orderIdValue(),
+        return new OrderPaymentSnapshotDO(snapshot.id(), snapshot.tenantIdValue(), String.valueOf(snapshot.orderIdValue()),
                 snapshot.paymentNoValue(), snapshot.channelCodeValue(), snapshot.payStatusValue(), snapshot.paidAmountValue(),
                 snapshot.paidTime(), snapshot.failureReason(), snapshot.channelStatusValue(), snapshot.updatedAt());
     }

@@ -58,19 +58,19 @@ public class OrderCreateApplicationService {
                 Money.of(totalAmount, currencyCode), Money.of(totalAmount, currencyCode), command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
-        orderRepository.saveItems(savedOrder.getTenantIdValue(), toOrderIdValue(savedOrder), items.stream()
+        orderRepository.saveItems(toTenantIdValue(savedOrder), toOrderIdValue(savedOrder), items.stream()
                 .map(item -> new OrderItem(savedOrder.getTenantId(), toOrderId(savedOrder), toSkuId(item.skuId()),
                         item.skuName(), item.imageUrl(), item.quantity(), Money.of(item.salePrice(), currencyCode),
                         Money.of(calculateLineAmount(item), currencyCode)))
                 .toList());
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);
-        orderOutboxActionExecutor.enqueueReserveStock(savedOrder.getTenantIdValue(), savedOrder.getOrderNoValue(),
+        orderOutboxActionExecutor.enqueueReserveStock(toTenantIdValue(savedOrder), savedOrder.getOrderNoValue(),
                 command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
-        return new OrderSummaryDTO(toOrderIdValue(savedOrder), savedOrder.getTenantIdValue(), savedOrder.getOrderNoValue(),
-                toUserIdValue(savedOrder), savedOrder.getOrderStatus(), savedOrder.getPayStatus(),
-                savedOrder.getInventoryStatus(), savedOrder.getPaymentNoValue(), savedOrder.getReservationNoValue(),
+        return new OrderSummaryDTO(toOrderIdValue(savedOrder), toTenantIdValue(savedOrder), savedOrder.getOrderNoValue(),
+                toUserIdValue(savedOrder), savedOrder.getOrderStatusValue(), savedOrder.getPayStatusValue(),
+                savedOrder.getInventoryStatusValue(), savedOrder.getPaymentNoValue(), savedOrder.getReservationNoValue(),
                 savedOrder.getCurrencyCodeValue(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
                 savedOrder.getCancelReason(), savedOrder.getCloseReason(), savedOrder.getCreatedAt(),
                 savedOrder.getExpiredAt());
@@ -91,6 +91,10 @@ public class OrderCreateApplicationService {
 
     private Long toOrderIdValue(Order order) {
         return order.getId() == null ? null : Long.valueOf(order.getId().value());
+    }
+
+    private Long toTenantIdValue(Order order) {
+        return order.getTenantIdValue() == null ? null : Long.valueOf(order.getTenantIdValue());
     }
 
     private OrderId toOrderId(Order order) {

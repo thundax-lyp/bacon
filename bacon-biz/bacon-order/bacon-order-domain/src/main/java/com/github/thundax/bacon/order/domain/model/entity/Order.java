@@ -15,6 +15,7 @@ import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import java.time.Instant;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 订单主单领域实体。
@@ -23,6 +24,7 @@ import lombok.Getter;
 public class Order {
 
     /** 订单主键。 */
+    @Setter
     private OrderId id;
     /** 所属租户主键。 */
     private final TenantId tenantId;
@@ -105,12 +107,9 @@ public class Order {
         this.inventoryStatus = inventoryStatus;
         this.paymentNo = paymentNo;
         this.reservationNo = reservationNo;
-        ensureMoneyCurrency(currencyCode, totalAmount);
-        ensureMoneyCurrency(currencyCode, payableAmount);
-        ensureMoneyCurrency(currencyCode, paidAmount);
+        ensureMoneyCurrency(currencyCode, totalAmount, payableAmount, paidAmount);
         this.currencyCode = currencyCode;
-        ensureMoneyCurrency(totalAmount, payableAmount);
-        ensureMoneyCurrency(totalAmount, paidAmount);
+        ensureMoneyCurrency(totalAmount, payableAmount, paidAmount);
         this.totalAmount = totalAmount;
         this.payableAmount = payableAmount;
         this.remark = remark;
@@ -153,36 +152,24 @@ public class Order {
         return currencyCode == null ? null : currencyCode.value();
     }
 
-    public String getOrderStatus() {
+    public String getOrderStatusValue() {
         return orderStatus == null ? null : orderStatus.value();
     }
 
-    public OrderStatus getOrderStatusEnum() {
-        return orderStatus;
-    }
-
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    public String getTenantIdValue() {
+        return tenantId == null ? null : tenantId.value();
     }
 
     public String getOrderNoValue() {
         return orderNo == null ? null : orderNo.value();
     }
 
-    public String getPayStatus() {
+    public String getPayStatusValue() {
         return payStatus == null ? null : payStatus.value();
     }
 
-    public PayStatus getPayStatusEnum() {
-        return payStatus;
-    }
-
-    public String getInventoryStatus() {
+    public String getInventoryStatusValue() {
         return inventoryStatus == null ? null : inventoryStatus.value();
-    }
-
-    public InventoryStatus getInventoryStatusEnum() {
-        return inventoryStatus;
     }
 
     public String getPaymentNoValue() {
@@ -193,16 +180,8 @@ public class Order {
         return reservationNo == null ? null : reservationNo.value();
     }
 
-    public String getPaymentChannelCode() {
+    public String getPaymentChannelCodeValue() {
         return paymentChannelCode == null ? null : paymentChannelCode.value();
-    }
-
-    public PaymentChannel getPaymentChannelEnum() {
-        return paymentChannelCode;
-    }
-
-    public void setId(OrderId id) {
-        this.id = id;
     }
 
     public void markReservingStock() {
@@ -324,24 +303,34 @@ public class Order {
                 return;
             }
         }
-        throw new IllegalStateException("Invalid order status: " + getOrderStatus());
+        throw new IllegalStateException("Invalid order status: " + getOrderStatusValue());
     }
 
-    private void ensureMoneyCurrency(Money left, Money right) {
-        if (left == null || right == null) {
+    private void ensureMoneyCurrency(Money base, Money... others) {
+        if (base == null || others == null) {
             return;
         }
-        if (left.currencyCode() != right.currencyCode()) {
-            throw new IllegalArgumentException("order money currency code mismatch");
+        for (Money other : others) {
+            if (other == null) {
+                continue;
+            }
+            if (base.currencyCode() != other.currencyCode()) {
+                throw new IllegalArgumentException("order money currency code mismatch");
+            }
         }
     }
 
-    private void ensureMoneyCurrency(CurrencyCode currencyCode, Money money) {
-        if (currencyCode == null || money == null) {
+    private void ensureMoneyCurrency(CurrencyCode currencyCode, Money... monies) {
+        if (currencyCode == null || monies == null) {
             return;
         }
-        if (currencyCode != money.currencyCode()) {
-            throw new IllegalArgumentException("order currency code mismatch");
+        for (Money money : monies) {
+            if (money == null) {
+                continue;
+            }
+            if (currencyCode != money.currencyCode()) {
+                throw new IllegalArgumentException("order currency code mismatch");
+            }
         }
     }
 }

@@ -34,19 +34,19 @@ public class OrderDerivedDataPersistenceSupport {
         Instant now = Instant.now();
         if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
             orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), toOrderId(order),
-                    toPaymentNo(order.getPaymentNoValue()), toPaymentChannel(order.getPaymentChannelCode()),
-                    toPayStatus(order.getPayStatus()),
+                    toPaymentNo(order.getPaymentNoValue()), toPaymentChannel(order.getPaymentChannelCodeValue()),
+                    toPayStatus(order.getPayStatusValue()),
                     toMoney(order.getPaidAmount(), order.getCurrencyCodeValue()),
                     order.getPaidAt(), order.getPaymentFailureReason(),
                     toPaymentChannelStatus(order.getPaymentChannelStatus()), now));
         }
         if (order.getReservationNoValue() != null && !order.getReservationNoValue().isBlank()) {
             orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(order.getTenantId(), order.getOrderNo(),
-                    order.getReservationNo(), order.getInventoryStatusEnum(), order.getWarehouseNo(),
+                    order.getReservationNo(), order.getInventoryStatus(), order.getWarehouseNo(),
                     order.getInventoryFailureReason(), now));
         }
         orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNo(), actionType,
-                beforeStatus, order.getOrderStatusEnum(), OperatorType.SYSTEM, OPERATOR_ID_SYSTEM, now));
+                beforeStatus, order.getOrderStatus(), OperatorType.SYSTEM, OPERATOR_ID_SYSTEM, now));
     }
 
     private OrderId toOrderId(Order order) {

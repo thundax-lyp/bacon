@@ -57,7 +57,7 @@ public class OrderPaymentResultApplicationService {
                             BigDecimal paidAmount, Instant paidTime) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
-        OrderStatus beforeStatus = order.getOrderStatusEnum();
+        OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaid(toPaymentNo(paymentNo), channelCode, Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCodeValue())),
                 paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
@@ -80,7 +80,7 @@ public class OrderPaymentResultApplicationService {
                                      String channelStatus, Instant failedTime) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
-        OrderStatus beforeStatus = order.getOrderStatusEnum();
+        OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaymentFailed(toPaymentNo(paymentNo), reason, channelStatus, failedTime);
         // 支付失败后的主目标是回收预占库存，因此这里固定走 releaseReservedStock，而不是尝试别的库存路径。
         InventoryReservationResultDTO releaseResult =

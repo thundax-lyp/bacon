@@ -47,7 +47,7 @@ public class OrderCancelApplicationService {
     private void doCancel(Long tenantId, String orderNo, String reason) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
-        OrderStatus beforeStatus = order.getOrderStatusEnum();
+        OrderStatus beforeStatus = order.getOrderStatus();
         order.cancel(reason);
         // 同步主流程里先改订单主状态，再尝试释放库存和关闭支付；即使后续远程动作部分失败，主单也已明确进入取消态。
         InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);

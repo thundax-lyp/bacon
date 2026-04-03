@@ -81,12 +81,12 @@ public class OrderOutboxActionExecutor {
 
     private void executeReserveStock(OrderOutboxEvent event) {
         Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
-        List<OrderItem> items = orderRepository.findItemsByOrderId(order.getTenantIdValue(), toOrderIdValue(order),
+        List<OrderItem> items = orderRepository.findItemsByOrderId(toTenantIdValue(order), toOrderIdValue(order),
                 order.getCurrencyCodeValue());
         List<InventoryReservationItemDTO> reserveItems = items.stream()
                 .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
                 .toList();
-        InventoryReservationResultDTO reserveResult = inventoryCommandFacade.reserveStock(order.getTenantIdValue(),
+        InventoryReservationResultDTO reserveResult = inventoryCommandFacade.reserveStock(toTenantIdValue(order),
                 order.getOrderNoValue(), reserveItems);
         // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
         if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
@@ -121,7 +121,7 @@ public class OrderOutboxActionExecutor {
         Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
-        PaymentCreateResultDTO paymentResult = paymentCommandFacade.createPayment(order.getTenantIdValue(), order.getOrderNoValue(),
+        PaymentCreateResultDTO paymentResult = paymentCommandFacade.createPayment(toTenantIdValue(order), order.getOrderNoValue(),
                 toUserIdValue(order), order.getPayableAmount().value(), channelCode, "order:" + order.getOrderNoValue(),
                 order.getExpiredAt());
         // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
@@ -151,6 +151,10 @@ public class OrderOutboxActionExecutor {
         return order.getId() == null ? null : Long.valueOf(order.getId().value());
     }
 
+    private Long toTenantIdValue(Order order) {
+        return order.getTenantIdValue() == null ? null : Long.valueOf(order.getTenantIdValue());
+    }
+
     private Long toUserIdValue(Order order) {
         return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
     }
@@ -158,7 +162,7 @@ public class OrderOutboxActionExecutor {
     private void executeReleaseStock(OrderOutboxEvent event) {
         Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
         String reason = OrderOutboxPayloadCodec.decode(event.getPayload()).getOrDefault("reason", "SYSTEM_CANCELLED");
-        InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(order.getTenantIdValue(),
+        InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(toTenantIdValue(order),
                 order.getOrderNoValue(), reason);
         // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
@@ -171,7 +175,7 @@ public class OrderOutboxActionExecutor {
                     resolveFailureReason(releaseResult.getFailureReason(), reason));
         }
         orderRepository.save(order);
-        orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RELEASE, order.getOrderStatusEnum());
+        orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RELEASE, order.getOrderStatus());
     }
 
     private Order findOrder(Long tenantId, String orderNo) {

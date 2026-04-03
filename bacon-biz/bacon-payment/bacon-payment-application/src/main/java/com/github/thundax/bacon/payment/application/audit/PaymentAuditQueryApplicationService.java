@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.application.audit;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import java.util.List;
@@ -17,9 +18,13 @@ public class PaymentAuditQueryApplicationService {
     public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
         return paymentAuditLogRepository.findAuditLogsByPaymentNo(tenantId, paymentNo)
                 .stream()
-                .map(auditLog -> new PaymentAuditLogDTO(auditLog.getTenantId(), auditLog.getPaymentNo(),
+                .map(auditLog -> new PaymentAuditLogDTO(toLongTenantValue(auditLog.getTenantId()), auditLog.getPaymentNo(),
                         auditLog.getActionType(), auditLog.getBeforeStatus(), auditLog.getAfterStatus(),
                         auditLog.getOperatorType(), auditLog.getOperatorId(), auditLog.getOccurredAt()))
                 .toList();
+    }
+
+    private Long toLongTenantValue(TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
     }
 }

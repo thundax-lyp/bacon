@@ -10,6 +10,9 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
+import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentAuditLogMapper;
 import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentCallbackRecordMapper;
 import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentOrderMapper;
@@ -101,7 +104,7 @@ class PaymentRepositorySupportIntegrationTest {
 
     @Test
     void shouldPersistAndReadBackOrderCallbackAndAuditLog() {
-        PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), "PAY-IT-10001", "ORD-IT-10001",
+        PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), PaymentNo.of("PAY-IT-10001"), OrderNo.of("ORD-IT-10001"),
                 UserId.of("2001"),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "integration-payment",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z"));
@@ -109,10 +112,10 @@ class PaymentRepositorySupportIntegrationTest {
 
         PaymentOrder persistedOrder = paymentRepositorySupport.saveOrder(paymentOrder);
         PaymentCallbackRecord persistedCallback = paymentRepositorySupport.saveCallbackRecord(new PaymentCallbackRecord(
-                null, 1001L, persistedOrder.getPaymentNo(), persistedOrder.getOrderNo(), "MOCK", "TXN-IT-10001",
+                null, 1001L, persistedOrder.getPaymentNo().value(), persistedOrder.getOrderNo().value(), "MOCK", "TXN-IT-10001",
                 "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}", Instant.parse("2026-03-27T10:01:00Z")));
-        paymentRepositorySupport.saveAuditLog(new PaymentAuditLog(null, 1001L, persistedOrder.getPaymentNo(),
-                PaymentAuditLog.ACTION_CREATE, null, PaymentOrder.STATUS_PAYING,
+        paymentRepositorySupport.saveAuditLog(new PaymentAuditLog(null, TenantId.of("1001"), persistedOrder.getPaymentNo().value(),
+                PaymentAuditLog.ACTION_CREATE, null, PaymentStatus.PAYING.value(),
                 PaymentAuditLog.OPERATOR_SYSTEM, 0L, Instant.parse("2026-03-27T10:00:00Z")));
 
         PaymentOrder reloadedOrder = paymentRepositorySupport.findOrderByPaymentNo(1001L, "PAY-IT-10001").orElseThrow();
@@ -123,9 +126,9 @@ class PaymentRepositorySupportIntegrationTest {
         assertNotNull(persistedOrder.getId());
         assertEquals(PaymentOrderId.of("1"), persistedOrder.getId());
         assertNotNull(persistedCallback.getId());
-        assertEquals("ORD-IT-10001", reloadedOrder.getOrderNo());
+        assertEquals("ORD-IT-10001", reloadedOrder.getOrderNo().value());
         assertEquals("TXN-IT-10001", reloadedCallback.getChannelTransactionNo());
-        assertEquals(1, paymentRepositorySupport.findAuditLogsByPaymentNo(1001L, persistedOrder.getPaymentNo()).size());
+        assertEquals(1, paymentRepositorySupport.findAuditLogsByPaymentNo(1001L, persistedOrder.getPaymentNo().value()).size());
     }
 
     @Configuration(proxyBeanMethods = false)

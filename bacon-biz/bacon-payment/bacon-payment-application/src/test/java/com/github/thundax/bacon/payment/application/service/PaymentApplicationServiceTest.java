@@ -13,6 +13,8 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecor
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
+import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
@@ -43,7 +45,7 @@ class PaymentApplicationServiceTest {
 
         assertEquals("PAY-20001", result.getPaymentNo());
         assertEquals("ORD-10001", result.getOrderNo());
-        assertEquals(PaymentOrder.STATUS_PAYING, result.getPaymentStatus());
+        assertEquals(PaymentStatus.PAYING.value(), result.getPaymentStatus());
         assertEquals(1, repository.findAuditLogsByPaymentNo(1001L, "PAY-20001").size());
     }
 
@@ -82,7 +84,7 @@ class PaymentApplicationServiceTest {
                 "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL");
         PaymentDetailDTO detail = queryService.getByPaymentNo(1001L, created.getPaymentNo());
 
-        assertEquals(PaymentOrder.STATUS_PAID, detail.getPaymentStatus());
+        assertEquals(PaymentStatus.PAID.value(), detail.getPaymentStatus());
         assertEquals("TXN-1", detail.getChannelTransactionNo());
         assertEquals("SUCCESS", detail.getChannelStatus());
         assertEquals(1, orderCommandFacade.markPaidCount);
@@ -115,11 +117,11 @@ class PaymentApplicationServiceTest {
         assertEquals(PaymentAuditLog.ACTION_CREATE, auditLogs.get(0).getActionType());
         assertEquals(PaymentAuditLog.ACTION_CALLBACK_PAID, auditLogs.get(1).getActionType());
         assertEquals(PaymentAuditLog.ACTION_CALLBACK_PAID, auditLogs.get(2).getActionType());
-        assertEquals(PaymentOrder.STATUS_PAID, auditLogs.get(2).getBeforeStatus());
-        assertEquals(PaymentOrder.STATUS_PAID, auditLogs.get(2).getAfterStatus());
+        assertEquals(PaymentStatus.PAID.value(), auditLogs.get(2).getBeforeStatus());
+        assertEquals(PaymentStatus.PAID.value(), auditLogs.get(2).getAfterStatus());
         assertEquals(PaymentAuditLog.ACTION_CALLBACK_FAILED, auditLogs.get(3).getActionType());
-        assertEquals(PaymentOrder.STATUS_PAID, auditLogs.get(3).getBeforeStatus());
-        assertEquals(PaymentOrder.STATUS_PAID, auditLogs.get(3).getAfterStatus());
+        assertEquals(PaymentStatus.PAID.value(), auditLogs.get(3).getBeforeStatus());
+        assertEquals(PaymentStatus.PAID.value(), auditLogs.get(3).getAfterStatus());
         assertEquals(1, orderCommandFacade.markPaidCount);
         assertEquals(0, orderCommandFacade.markFailedCount);
     }
@@ -139,7 +141,7 @@ class PaymentApplicationServiceTest {
 
         assertEquals("SUCCESS", first.getCloseResult());
         assertEquals("SUCCESS", second.getCloseResult());
-        assertEquals(PaymentOrder.STATUS_CLOSED, second.getPaymentStatus());
+        assertEquals(PaymentStatus.CLOSED.value(), second.getPaymentStatus());
         assertEquals(2, repository.findAuditLogsByPaymentNo(1001L, created.getPaymentNo()).size());
     }
 
@@ -251,12 +253,20 @@ class PaymentApplicationServiceTest {
             return tenantId.value() + ":" + paymentNo;
         }
 
+        private static String paymentKey(TenantId tenantId, PaymentNo paymentNo) {
+            return paymentKey(tenantId, paymentNo.value());
+        }
+
         private static String paymentKey(Long tenantId, String paymentNo) {
             return tenantId + ":" + paymentNo;
         }
 
         private static String orderKey(TenantId tenantId, String orderNo) {
             return tenantId.value() + ":" + orderNo;
+        }
+
+        private static String orderKey(TenantId tenantId, OrderNo orderNo) {
+            return orderKey(tenantId, orderNo.value());
         }
 
         private static String orderKey(Long tenantId, String orderNo) {

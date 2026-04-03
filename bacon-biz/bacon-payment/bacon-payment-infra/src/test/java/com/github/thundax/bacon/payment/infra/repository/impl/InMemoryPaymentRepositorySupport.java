@@ -7,6 +7,8 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -109,12 +111,20 @@ public class InMemoryPaymentRepositorySupport {
         return tenantId.value() + ":" + paymentNo;
     }
 
+    private static String paymentKey(TenantId tenantId, PaymentNo paymentNo) {
+        return paymentKey(tenantId, paymentNo.value());
+    }
+
     private static String paymentKey(Long tenantId, String paymentNo) {
         return tenantId + ":" + paymentNo;
     }
 
     private static String orderKey(TenantId tenantId, String orderNo) {
         return tenantId.value() + ":" + orderNo;
+    }
+
+    private static String orderKey(TenantId tenantId, OrderNo orderNo) {
+        return orderKey(tenantId, orderNo.value());
     }
 
     private static String orderKey(Long tenantId, String orderNo) {

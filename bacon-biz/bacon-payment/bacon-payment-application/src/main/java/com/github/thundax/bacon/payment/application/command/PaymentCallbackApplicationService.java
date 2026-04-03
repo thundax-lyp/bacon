@@ -8,6 +8,7 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
@@ -45,7 +46,8 @@ public class PaymentCallbackApplicationService {
         // 成功回调先按渠道交易号落幂等记录，再驱动主单状态；这样即使后续编排失败，也不会丢失渠道侧证据。
         PaymentCallbackRecord callbackRecord = existing == null
                 ? paymentCallbackRecordRepository.save(new PaymentCallbackRecord(null, tenantId,
-                paymentNo, paymentOrder.getOrderNo(), channelCode, channelTransactionNo, channelStatus, rawPayload, Instant.now()))
+                paymentNo, paymentOrder.getOrderNo().value(), channelCode, channelTransactionNo, channelStatus, rawPayload,
+                Instant.now()))
                 : existing;
         // 已支付或已终态的单子不再重复改主单，只补审计，避免重复回调把最终状态重新覆盖。
         if (PaymentStatus.PAID == paymentOrder.getPaymentStatus()) {
@@ -63,11 +65,11 @@ public class PaymentCallbackApplicationService {
         Instant paidTime = Instant.now();
         // 支付域以本单金额作为最终入账金额，不信任重复回调里可能变化的金额字段，减少渠道模拟数据带来的歧义。
         paymentOrder.markPaid(paymentOrder.getAmount(), paidTime, callbackRecord.getChannelTransactionNo(),
-                callbackRecord.getChannelStatus(), callbackRecord.summarize());
+                PaymentChannelStatus.fromValue(callbackRecord.getChannelStatus()), callbackRecord.summarize());
         paymentOrderRepository.save(paymentOrder);
         paymentOperationLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
                 beforeStatus, paymentOrder.getPaymentStatus().value(), paidTime);
-        orderCommandFacade.markPaid(tenantId, paymentOrder.getOrderNo(), paymentNo, channelCode,
+        orderCommandFacade.markPaid(tenantId, paymentOrder.getOrderNo().value(), paymentNo, channelCode,
                 paymentOrder.getAmount().value(), paidTime);
     }
 
@@ -85,7 +87,7 @@ public class PaymentCallbackApplicationService {
                 || !channelStatus.equals(latestRecord.getChannelStatus())
                 || !rawPayload.equals(latestRecord.getRawPayload())) {
             paymentCallbackRecordRepository.save(new PaymentCallbackRecord(null, tenantId,
-                    paymentNo, paymentOrder.getOrderNo(), channelCode, null, channelStatus, rawPayload, Instant.now()));
+                    paymentNo, paymentOrder.getOrderNo().value(), channelCode, null, channelStatus, rawPayload, Instant.now()));
         }
         // 已支付、已失败或已关闭都视为终态，失败回调只记审计，不允许把终态主单重新拉回失败流程。
         if (PaymentStatus.PAID == paymentOrder.getPaymentStatus()) {
@@ -102,11 +104,13 @@ public class PaymentCallbackApplicationService {
         String beforeStatus = paymentOrder.getPaymentStatus().value();
         Instant failedTime = Instant.now();
         // 回调摘要只保留截断后的原始载荷，避免把超长渠道报文直接写进主单，主单字段只承载查询常用摘要。
-        paymentOrder.markFailed(channelStatus, rawPayload.length() <= 255 ? rawPayload : rawPayload.substring(0, 255));
+        paymentOrder.markFailed(PaymentChannelStatus.fromValue(channelStatus),
+                rawPayload.length() <= 255 ? rawPayload : rawPayload.substring(0, 255));
         paymentOrderRepository.save(paymentOrder);
         paymentOperationLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_FAILED, tenantId, paymentNo,
                 beforeStatus, paymentOrder.getPaymentStatus().value(), failedTime);
-        orderCommandFacade.markPaymentFailed(tenantId, paymentOrder.getOrderNo(), paymentNo, reason, channelStatus, failedTime);
+        orderCommandFacade.markPaymentFailed(tenantId, paymentOrder.getOrderNo().value(), paymentNo, reason, channelStatus,
+                failedTime);
     }
 
     private void validateChannel(String channelCode) {
@@ -120,6 +124,7 @@ public class PaymentCallbackApplicationService {
         if (channelStatus == null || channelStatus.isBlank()) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "channelStatus");
         }
+        PaymentChannelStatus.fromValue(channelStatus);
         if (rawPayload == null || rawPayload.isBlank()) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "rawPayload");
         }
@@ -129,6 +134,7 @@ public class PaymentCallbackApplicationService {
         if (channelStatus == null || channelStatus.isBlank()) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "channelStatus");
         }
+        PaymentChannelStatus.fromValue(channelStatus);
         if (rawPayload == null || rawPayload.isBlank()) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "rawPayload");
         }

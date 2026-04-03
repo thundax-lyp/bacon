@@ -8,6 +8,8 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -20,7 +22,7 @@ class InMemoryPaymentRepositorySupportTest {
     @Test
     void shouldPersistPaymentOrderAndSupportOrderScopedIdempotentLookup() {
         InMemoryPaymentRepositorySupport repository = new InMemoryPaymentRepositorySupport();
-        PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), "PAY-10001", "ORD-10001",
+        PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), PaymentNo.of("PAY-10001"), OrderNo.of("ORD-10001"),
                 UserId.of("2001"),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "test-payment",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z"));
@@ -29,8 +31,8 @@ class InMemoryPaymentRepositorySupportTest {
         PaymentOrder persisted = repository.saveOrder(paymentOrder);
 
         assertEquals(PaymentOrderId.of("1000"), persisted.getId());
-        assertEquals("PAY-10001", repository.findOrderByPaymentNo(1001L, "PAY-10001").orElseThrow().getPaymentNo());
-        assertEquals("ORD-10001", repository.findOrderByOrderNo(1001L, "ORD-10001").orElseThrow().getOrderNo());
+        assertEquals("PAY-10001", repository.findOrderByPaymentNo(1001L, "PAY-10001").orElseThrow().getPaymentNo().value());
+        assertEquals("ORD-10001", repository.findOrderByOrderNo(1001L, "ORD-10001").orElseThrow().getOrderNo().value());
     }
 
     @Test
@@ -44,9 +46,9 @@ class InMemoryPaymentRepositorySupportTest {
         repository.saveCallbackRecord(new PaymentCallbackRecord(null, 1001L, "PAY-10002", "ORD-10002", "MOCK",
                 "TXN-2", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}", second));
 
-        repository.saveAuditLog(new PaymentAuditLog(null, 1001L, "PAY-10002",
+        repository.saveAuditLog(new PaymentAuditLog(null, TenantId.of("1001"), "PAY-10002",
                 PaymentAuditLog.ACTION_CREATE, null, "PAYING", PaymentAuditLog.OPERATOR_SYSTEM, 0L, first));
-        repository.saveAuditLog(new PaymentAuditLog(null, 1001L, "PAY-10002",
+        repository.saveAuditLog(new PaymentAuditLog(null, TenantId.of("1001"), "PAY-10002",
                 PaymentAuditLog.ACTION_CALLBACK_PAID, "PAYING", "PAID", PaymentAuditLog.OPERATOR_CHANNEL, 0L, second));
 
         PaymentCallbackRecord latest = repository.findLatestCallbackByPaymentNo(1001L, "PAY-10002").orElseThrow();

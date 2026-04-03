@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.application.audit;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -25,19 +26,23 @@ public class PaymentOperationLogSupport {
     }
 
     public void recordCreate(Long tenantId, String paymentNo, String afterStatus, java.time.Instant occurredAt) {
-        saveSafely(new PaymentAuditLog(null, tenantId, paymentNo, PaymentAuditLog.ACTION_CREATE, null,
+        saveSafely(new PaymentAuditLog(null, toTenantId(tenantId), paymentNo, PaymentAuditLog.ACTION_CREATE, null,
                 afterStatus, PaymentAuditLog.OPERATOR_SYSTEM, 0L, occurredAt));
     }
 
     public void recordCallback(String actionType, Long tenantId, String paymentNo, String beforeStatus,
                                String afterStatus, java.time.Instant occurredAt) {
-        saveSafely(new PaymentAuditLog(null, tenantId, paymentNo, actionType, beforeStatus, afterStatus,
+        saveSafely(new PaymentAuditLog(null, toTenantId(tenantId), paymentNo, actionType, beforeStatus, afterStatus,
                 PaymentAuditLog.OPERATOR_CHANNEL, 0L, occurredAt));
     }
 
     public void recordClose(Long tenantId, String paymentNo, String beforeStatus, String afterStatus,
                             java.time.Instant occurredAt) {
-        saveSafely(new PaymentAuditLog(null, tenantId, paymentNo, PaymentAuditLog.ACTION_CLOSE, beforeStatus,
+        saveSafely(new PaymentAuditLog(null, toTenantId(tenantId), paymentNo, PaymentAuditLog.ACTION_CLOSE, beforeStatus,
                 afterStatus, PaymentAuditLog.OPERATOR_SYSTEM, 0L, occurredAt));
+    }
+
+    private TenantId toTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
     }
 }

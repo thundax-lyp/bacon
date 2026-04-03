@@ -10,6 +10,8 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecor
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
+import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentAuditLogDO;
@@ -42,15 +44,15 @@ class PaymentRepositorySupportTest {
                 createIdGenerator()
         );
 
-        PaymentOrder persisted = support.saveOrder(new PaymentOrder(null, TenantId.of("1001"), "PAY-10001",
-                "ORD-10001", UserId.of("2001"),
+        PaymentOrder persisted = support.saveOrder(new PaymentOrder(null, TenantId.of("1001"), PaymentNo.of("PAY-10001"),
+                OrderNo.of("ORD-10001"), UserId.of("2001"),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "strict-insert",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z")));
 
         assertNotNull(insertedRef.get());
         assertEquals("PAY-10001", insertedRef.get().getPaymentNo());
         assertEquals(PaymentOrderId.of("8001"), persisted.getId());
-        assertEquals("ORD-10001", persisted.getOrderNo());
+        assertEquals("ORD-10001", persisted.getOrderNo().value());
     }
 
     @Test
@@ -63,7 +65,7 @@ class PaymentRepositorySupportTest {
                 createIdGenerator()
         );
         PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9001"), TenantId.of("1001"),
-                "PAY-10002", "ORD-10002",
+                PaymentNo.of("PAY-10002"), OrderNo.of("ORD-10002"),
                 UserId.of("2002"),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("99.90")), Money.zero(), "strict-update",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
@@ -74,8 +76,8 @@ class PaymentRepositorySupportTest {
 
         assertNotNull(updatedRef.get());
         assertEquals(9001L, updatedRef.get().getId());
-        assertEquals(PaymentOrder.STATUS_CLOSED, updatedRef.get().getPaymentStatus());
-        assertEquals(PaymentOrder.STATUS_CLOSED, persisted.getPaymentStatus().value());
+        assertEquals(PaymentStatus.CLOSED.value(), updatedRef.get().getPaymentStatus());
+        assertEquals(PaymentStatus.CLOSED.value(), persisted.getPaymentStatus().value());
     }
 
     @Test
@@ -87,7 +89,7 @@ class PaymentRepositorySupportTest {
                 createIdGenerator()
         );
         PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9002"), TenantId.of("1001"),
-                "PAY-10009", "ORD-10009",
+                PaymentNo.of("PAY-10009"), OrderNo.of("ORD-10009"),
                 UserId.of("2009"),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("66.00")), Money.zero(), "strict-conflict",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
@@ -102,17 +104,17 @@ class PaymentRepositorySupportTest {
     @Test
     void shouldMapStrictReadModelsFromMappers() {
         PaymentOrderDO orderDataObject = new PaymentOrderDO(9101L, "1001", "PAY-10003", "ORD-10003", "2003",
-                "MOCK", PaymentOrder.STATUS_PAID, new BigDecimal("128.00"), new BigDecimal("128.00"),
+                "MOCK", PaymentStatus.PAID.value(), new BigDecimal("128.00"), new BigDecimal("128.00"),
                 "strict-read", Instant.parse("2026-03-27T10:10:00Z"), Instant.parse("2026-03-27T10:11:00Z"),
                 Instant.parse("2026-03-27T10:40:00Z"), Instant.parse("2026-03-27T10:11:30Z"), null);
         PaymentCallbackRecordDO callbackDataObject = new PaymentCallbackRecordDO(9201L, "1001", "PAY-10003", "ORD-10003",
                 "MOCK", "TXN-10003", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}",
                 Instant.parse("2026-03-27T10:11:20Z"));
         PaymentAuditLogDO createLog = new PaymentAuditLogDO(9301L, "1001", "PAY-10003", PaymentAuditLog.ACTION_CREATE,
-                null, PaymentOrder.STATUS_PAYING, PaymentAuditLog.OPERATOR_SYSTEM, "0",
+                null, PaymentStatus.PAYING.value(), PaymentAuditLog.OPERATOR_SYSTEM, "0",
                 Instant.parse("2026-03-27T10:10:00Z"));
         PaymentAuditLogDO paidLog = new PaymentAuditLogDO(9302L, "1001", "PAY-10003", PaymentAuditLog.ACTION_CALLBACK_PAID,
-                PaymentOrder.STATUS_PAYING, PaymentOrder.STATUS_PAID, PaymentAuditLog.OPERATOR_CHANNEL, "0",
+                PaymentStatus.PAYING.value(), PaymentStatus.PAID.value(), PaymentAuditLog.OPERATOR_CHANNEL, "0",
                 Instant.parse("2026-03-27T10:11:30Z"));
 
         PaymentRepositorySupport support = new PaymentRepositorySupport(
@@ -126,7 +128,7 @@ class PaymentRepositorySupportTest {
         PaymentCallbackRecord latestCallback = support.findLatestCallbackByPaymentNo(1001L, "PAY-10003").orElseThrow();
         List<PaymentAuditLog> auditLogs = support.findAuditLogsByPaymentNo(1001L, "PAY-10003");
 
-        assertEquals(PaymentOrder.STATUS_PAID, paymentOrder.getPaymentStatus().value());
+        assertEquals(PaymentStatus.PAID.value(), paymentOrder.getPaymentStatus().value());
         assertEquals("TXN-10003", latestCallback.getChannelTransactionNo());
         assertEquals(2, auditLogs.size());
         assertEquals(PaymentAuditLog.ACTION_CREATE, auditLogs.get(0).getActionType());

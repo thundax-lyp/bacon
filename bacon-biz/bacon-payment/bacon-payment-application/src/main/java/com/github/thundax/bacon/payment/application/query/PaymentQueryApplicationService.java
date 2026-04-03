@@ -35,20 +35,20 @@ public class PaymentQueryApplicationService {
 
     private PaymentDetailDTO toDetail(PaymentOrder paymentOrder) {
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
-                .findLatestCallbackByPaymentNo(toLongTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo())
+                .findLatestCallbackByPaymentNo(toLongTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo().value())
                 .orElse(null);
         // 详情查询优先使用主单快照字段；只有主单还没固化对应信息时，才退回最近回调记录补齐展示字段。
         String channelTransactionNo = paymentOrder.getChannelTransactionNo() != null
                 ? paymentOrder.getChannelTransactionNo()
                 : latestRecord != null ? latestRecord.getChannelTransactionNo() : null;
         String channelStatus = paymentOrder.getChannelStatus() != null
-                ? paymentOrder.getChannelStatus()
+                ? paymentOrder.getChannelStatus().value()
                 : latestRecord != null ? latestRecord.getChannelStatus() : null;
         String callbackSummary = paymentOrder.getCallbackSummary() != null
                 ? paymentOrder.getCallbackSummary()
                 : latestRecord != null ? latestRecord.summarize() : null;
-        return new PaymentDetailDTO(toStringTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
-                paymentOrder.getOrderNo(),
+        return new PaymentDetailDTO(toStringTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo().value(),
+                paymentOrder.getOrderNo().value(),
                 toStringUserValue(paymentOrder.getUserId()), paymentOrder.getChannelCode().value(),
                 paymentOrder.getPaymentStatus().value(), paymentOrder.getAmount().value(),
                 paymentOrder.getPaidAmount().value(),

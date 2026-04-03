@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -20,7 +21,7 @@ public class PaymentAuditLog {
     /** 审计日志主键。 */
     private final Long id;
     /** 所属租户主键。 */
-    private final Long tenantId;
+    private final TenantId tenantId;
     /** 支付单号。 */
     private final String paymentNo;
     /** 操作类型。 */
@@ -36,7 +37,7 @@ public class PaymentAuditLog {
     /** 发生时间。 */
     private final Instant occurredAt;
 
-    public PaymentAuditLog(Long id, Long tenantId, String paymentNo, String actionType, String beforeStatus,
+    public PaymentAuditLog(Long id, TenantId tenantId, String paymentNo, String actionType, String beforeStatus,
                            String afterStatus, String operatorType, Long operatorId, Instant occurredAt) {
         this.id = id;
         this.tenantId = tenantId;

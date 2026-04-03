@@ -6,9 +6,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,8 +47,8 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     @Override
     public Optional<Order> findByOrderNo(Long tenantId, String orderNo) {
         return storage.values().stream()
-                .filter(order -> tenantId.equals(order.getTenantId()))
-                .filter(order -> orderNo.equals(order.getOrderNo()))
+                .filter(order -> tenantId.equals(order.getTenantIdValue()))
+                .filter(order -> orderNo.equals(order.getOrderNoValue()))
                 .findFirst();
     }
 
@@ -105,27 +104,41 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public OrderPageResult pageOrders(OrderPageQuery query) {
+    public long countOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                            String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
+        return filterOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
+                .size();
+    }
+
+    @Override
+    public List<Order> pageOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                                  String inventoryStatus, Instant createdAtFrom, Instant createdAtTo,
+                                  int offset, int limit) {
+        List<Order> filtered = filterOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus,
+                createdAtFrom, createdAtTo);
+        int normalizedOffset = Math.max(offset, 0);
+        int normalizedLimit = Math.max(limit, 1);
+        return filtered.stream()
+                .skip(normalizedOffset)
+                .limit(normalizedLimit)
+                .toList();
+    }
+
+    private List<Order> filterOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                                     String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
         List<Order> filtered = storage.values().stream()
-                .filter(order -> query.tenantId() == null || query.tenantId().equals(order.getTenantId()))
-                .filter(order -> query.userId() == null || query.userId().equals(toUserIdValue(order)))
-                .filter(order -> query.orderNo() == null || order.getOrderNo().contains(query.orderNo()))
-                .filter(order -> query.orderStatus() == null || query.orderStatus().equals(order.getOrderStatus()))
-                .filter(order -> query.payStatus() == null || query.payStatus().equals(order.getPayStatus()))
-                .filter(order -> query.inventoryStatus() == null || query.inventoryStatus().equals(order.getInventoryStatus()))
-                .filter(order -> query.createdAtFrom() == null || !order.getCreatedAt().isBefore(query.createdAtFrom()))
-                .filter(order -> query.createdAtTo() == null || !order.getCreatedAt().isAfter(query.createdAtTo()))
+                .filter(order -> tenantId == null || tenantId.equals(order.getTenantIdValue()))
+                .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
+                .filter(order -> orderNo == null || order.getOrderNoValue().contains(orderNo))
+                .filter(order -> orderStatus == null || orderStatus.equals(order.getOrderStatus()))
+                .filter(order -> payStatus == null || payStatus.equals(order.getPayStatus()))
+                .filter(order -> inventoryStatus == null || inventoryStatus.equals(order.getInventoryStatus()))
+                .filter(order -> createdAtFrom == null || !order.getCreatedAt().isBefore(createdAtFrom))
+                .filter(order -> createdAtTo == null || !order.getCreatedAt().isAfter(createdAtTo))
                 .sorted(Comparator.comparing(Order::getCreatedAt).reversed()
                         .thenComparing(this::toOrderIdValue, Comparator.reverseOrder()))
                 .toList();
-        long total = filtered.size();
-        int offset = Math.max(query.offset(), 0);
-        int limit = Math.max(query.limit(), 1);
-        List<Order> records = filtered.stream()
-                .skip(offset)
-                .limit(limit)
-                .toList();
-        return new OrderPageResult(records, total);
+        return filtered;
     }
 
     @Override

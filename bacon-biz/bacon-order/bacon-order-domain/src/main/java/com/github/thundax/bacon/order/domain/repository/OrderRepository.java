@@ -5,9 +5,7 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
-
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +33,12 @@ public interface OrderRepository {
 
     List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo);
 
-    OrderPageResult pageOrders(OrderPageQuery query);
+    long countOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                     String inventoryStatus, Instant createdAtFrom, Instant createdAtTo);
+
+    List<Order> pageOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                           String inventoryStatus, Instant createdAtFrom, Instant createdAtTo,
+                           int offset, int limit);
 
     List<Order> findAll();
 }

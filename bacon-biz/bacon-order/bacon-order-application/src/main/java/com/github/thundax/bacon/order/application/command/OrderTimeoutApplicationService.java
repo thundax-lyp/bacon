@@ -6,6 +6,7 @@ import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecu
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import org.springframework.stereotype.Service;
@@ -45,8 +46,8 @@ public class OrderTimeoutApplicationService {
         String beforeStatus = order.getOrderStatus();
         order.closeExpired(reason);
         // 超时关单的资源回收顺序固定为“先关支付，再释放库存”，与订单生命周期的依赖方向保持一致。
-        if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
-            paymentCommandFacade.closePayment(tenantId, order.getPaymentNo(), reason);
+        if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
+            paymentCommandFacade.closePayment(tenantId, order.getPaymentNoValue(), reason);
         }
         InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);
         applyReleaseResult(order, releaseResult, reason);
@@ -56,16 +57,20 @@ public class OrderTimeoutApplicationService {
 
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
+            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
         // 库存释放异常只体现在派生状态上，主订单仍保持 CLOSED，等待后续补偿或人工处理。
-        order.markInventoryFailed(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
+        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
     private String resolveFailureReason(String reason, String defaultReason) {
         return reason == null || reason.isBlank() ? defaultReason : reason;
+    }
+
+    private ReservationNo toReservationNo(String reservationNo) {
+        return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 }

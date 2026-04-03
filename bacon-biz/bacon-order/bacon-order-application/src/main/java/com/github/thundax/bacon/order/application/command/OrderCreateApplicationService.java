@@ -2,6 +2,7 @@ package com.github.thundax.bacon.order.application.command;
 
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
@@ -12,6 +13,7 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderDomainService;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -47,24 +49,24 @@ public class OrderCreateApplicationService {
         BigDecimal totalAmount = items.stream()
                 .map(this::calculateLineAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        String orderNo = orderNoGenerator.nextOrderNo();
+        OrderNo orderNo = OrderNo.of(orderNoGenerator.nextOrderNo());
         CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
-        Order order = orderDomainService.create(null, command.tenantId(), orderNo, toUserId(command.userId()),
+        Order order = orderDomainService.create(null, toTenantId(command.tenantId()), orderNo, toUserId(command.userId()),
                 Money.of(totalAmount, currencyCode), Money.of(totalAmount, currencyCode), command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
-        orderRepository.saveItems(savedOrder.getTenantId(), toOrderIdValue(savedOrder), items.stream()
-                .map(item -> new OrderItem(savedOrder.getTenantId(), toOrderIdValue(savedOrder), item.skuId(), item.skuName(),
+        orderRepository.saveItems(savedOrder.getTenantIdValue(), toOrderIdValue(savedOrder), items.stream()
+                .map(item -> new OrderItem(savedOrder.getTenantIdValue(), toOrderIdValue(savedOrder), item.skuId(), item.skuName(),
                         item.quantity(), item.salePrice(), calculateLineAmount(item)))
                 .toList());
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);
-        orderOutboxActionExecutor.enqueueReserveStock(savedOrder.getTenantId(), savedOrder.getOrderNo(),
+        orderOutboxActionExecutor.enqueueReserveStock(savedOrder.getTenantIdValue(), savedOrder.getOrderNoValue(),
                 command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED.value());
-        return new OrderSummaryDTO(toOrderIdValue(savedOrder), savedOrder.getTenantId(), savedOrder.getOrderNo(),
+        return new OrderSummaryDTO(toOrderIdValue(savedOrder), savedOrder.getTenantIdValue(), savedOrder.getOrderNoValue(),
                 toUserIdValue(savedOrder), savedOrder.getOrderStatus(), savedOrder.getPayStatus(),
-                savedOrder.getInventoryStatus(), savedOrder.getPaymentNo(), savedOrder.getReservationNo(),
+                savedOrder.getInventoryStatus(), savedOrder.getPaymentNoValue(), savedOrder.getReservationNoValue(),
                 savedOrder.getCurrencyCode(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
                 savedOrder.getCancelReason(), savedOrder.getCloseReason(), savedOrder.getCreatedAt(),
                 savedOrder.getExpiredAt());
@@ -89,6 +91,10 @@ public class OrderCreateApplicationService {
 
     private UserId toUserId(Long userId) {
         return userId == null ? null : UserId.of(String.valueOf(userId));
+    }
+
+    private TenantId toTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
     }
 
     private Long toUserIdValue(Order order) {

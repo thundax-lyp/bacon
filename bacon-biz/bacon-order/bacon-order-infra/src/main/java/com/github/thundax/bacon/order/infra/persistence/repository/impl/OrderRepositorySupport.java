@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
@@ -13,8 +14,10 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
+import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderAuditLogDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderInventorySnapshotDO;
@@ -169,16 +172,21 @@ public class OrderRepositorySupport {
                 .toList();
     }
 
-    public OrderPageResult pageOrders(OrderPageQuery query) {
-        long total = Optional.ofNullable(orderMapper.selectCount(buildPageQuery(query))).orElse(0L);
-        if (total <= 0) {
-            return new OrderPageResult(List.of(), 0L);
-        }
-        List<OrderDO> pageOrders = orderMapper.selectList(buildPageQuery(query)
+    public long countOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                            String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
+        return Optional.ofNullable(orderMapper.selectCount(buildPageQuery(tenantId, userId, orderNo, orderStatus,
+                payStatus, inventoryStatus, createdAtFrom, createdAtTo))).orElse(0L);
+    }
+
+    public List<Order> pageOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                                  String inventoryStatus, Instant createdAtFrom, Instant createdAtTo,
+                                  int offset, int limit) {
+        List<OrderDO> pageOrders = orderMapper.selectList(buildPageQuery(tenantId, userId, orderNo, orderStatus,
+                        payStatus, inventoryStatus, createdAtFrom, createdAtTo)
                 .orderByDesc(OrderDO::getCreatedAt, OrderDO::getId)
-                .last("limit " + query.offset() + "," + query.limit()));
+                .last("limit " + offset + "," + limit));
         if (pageOrders.isEmpty()) {
-            return new OrderPageResult(List.of(), total);
+            return List.of();
         }
         List<Long> orderIds = pageOrders.stream()
                 .map(OrderDO::getId)
@@ -200,7 +208,7 @@ public class OrderRepositorySupport {
                 .map(orderData -> toDomain(orderData, paymentSnapshotMap.get(orderData.getId()),
                         inventorySnapshotMap.get(orderData.getId())))
                 .toList();
-        return new OrderPageResult(records, total);
+        return records;
     }
 
     public List<Order> findAll() {
@@ -212,22 +220,21 @@ public class OrderRepositorySupport {
     }
 
     private com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<OrderDO> buildPageQuery(
-            OrderPageQuery query) {
+            Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+            String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
         return Wrappers.<OrderDO>lambdaQuery()
-                .eq(query.tenantId() != null, OrderDO::getTenantId, query.tenantId())
-                .eq(query.userId() != null, OrderDO::getUserId, query.userId())
-                .like(query.orderNo() != null && !query.orderNo().isBlank(), OrderDO::getOrderNo, query.orderNo())
-                .eq(query.orderStatus() != null && !query.orderStatus().isBlank(),
-                        OrderDO::getOrderStatus, query.orderStatus())
-                .eq(query.payStatus() != null && !query.payStatus().isBlank(), OrderDO::getPayStatus, query.payStatus())
-                .eq(query.inventoryStatus() != null && !query.inventoryStatus().isBlank(),
-                        OrderDO::getInventoryStatus, query.inventoryStatus())
-                .ge(query.createdAtFrom() != null, OrderDO::getCreatedAt, query.createdAtFrom())
-                .le(query.createdAtTo() != null, OrderDO::getCreatedAt, query.createdAtTo());
+                .eq(tenantId != null, OrderDO::getTenantId, tenantId)
+                .eq(userId != null, OrderDO::getUserId, userId)
+                .like(orderNo != null && !orderNo.isBlank(), OrderDO::getOrderNo, orderNo)
+                .eq(orderStatus != null && !orderStatus.isBlank(), OrderDO::getOrderStatus, orderStatus)
+                .eq(payStatus != null && !payStatus.isBlank(), OrderDO::getPayStatus, payStatus)
+                .eq(inventoryStatus != null && !inventoryStatus.isBlank(), OrderDO::getInventoryStatus, inventoryStatus)
+                .ge(createdAtFrom != null, OrderDO::getCreatedAt, createdAtFrom)
+                .le(createdAtTo != null, OrderDO::getCreatedAt, createdAtTo);
     }
 
     private OrderDO toDataObject(Order order) {
-        return new OrderDO(toDatabaseOrderId(order.getId()), order.getTenantId(), order.getOrderNo(),
+        return new OrderDO(toDatabaseOrderId(order.getId()), toDatabaseTenantId(order.getTenantId()), toDatabaseOrderNo(order.getOrderNo()),
                 toDatabaseUserId(order.getUserId()),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getCurrencyCode(),
                 order.getTotalAmount().value(), order.getPayableAmount().value(), order.getRemark(), order.getCancelReason(),
@@ -252,17 +259,17 @@ public class OrderRepositorySupport {
                            OrderInventorySnapshotDO inventorySnapshot) {
         // rehydrate 时优先用快照表补回 paymentNo/reservationNo 等派生字段，
         // 因为这些字段在 strict 持久化模型里并不全部固化在订单主表。
-        return Order.rehydrate(toDomainOrderId(dataObject.getId()), dataObject.getTenantId(), dataObject.getOrderNo(),
+        return Order.rehydrate(toDomainOrderId(dataObject.getId()), toDomainTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
                 toDomainUserId(dataObject.getUserId()), toDomainOrderStatus(dataObject.getOrderStatus()),
                 toDomainPayStatus(dataObject.getPayStatus()), toDomainInventoryStatus(dataObject.getInventoryStatus()),
-                paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo(),
-                inventorySnapshot == null ? null : inventorySnapshot.getReservationNo(),
+                toDomainPaymentNo(paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo()),
+                toDomainReservationNo(inventorySnapshot == null ? null : inventorySnapshot.getReservationNo()),
                 toMoney(dataObject.getTotalAmount(), dataObject.getCurrencyCode()),
                 toMoney(dataObject.getPayableAmount(), dataObject.getCurrencyCode()),
                 dataObject.getRemark(), dataObject.getCancelReason(),
                 dataObject.getCloseReason(), dataObject.getCreatedAt(), dataObject.getExpiredAt(),
                 dataObject.getPaidAt(), dataObject.getClosedAt(),
-                paymentSnapshot == null ? null : paymentSnapshot.getChannelCode(),
+                toDomainPaymentChannel(paymentSnapshot == null ? null : paymentSnapshot.getChannelCode()),
                 paymentSnapshot == null ? null : toMoney(paymentSnapshot.getPaidAmount(), dataObject.getCurrencyCode()),
                 paymentSnapshot == null ? null : paymentSnapshot.getChannelStatus(),
                 paymentSnapshot == null ? null : paymentSnapshot.getFailureReason(),
@@ -285,6 +292,34 @@ public class OrderRepositorySupport {
 
     private OrderId toDomainOrderId(Long orderId) {
         return orderId == null ? null : OrderId.of(String.valueOf(orderId));
+    }
+
+    private Long toDatabaseTenantId(TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    private TenantId toDomainTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+    }
+
+    private String toDatabaseOrderNo(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    private OrderNo toDomainOrderNo(String orderNo) {
+        return orderNo == null ? null : OrderNo.of(orderNo);
+    }
+
+    private PaymentNo toDomainPaymentNo(String paymentNo) {
+        return paymentNo == null ? null : PaymentNo.of(paymentNo);
+    }
+
+    private ReservationNo toDomainReservationNo(String reservationNo) {
+        return reservationNo == null ? null : ReservationNo.of(reservationNo);
+    }
+
+    private PaymentChannel toDomainPaymentChannel(String paymentChannelCode) {
+        return paymentChannelCode == null ? null : PaymentChannel.fromValue(paymentChannelCode);
     }
 
     private Long toDatabaseUserId(UserId userId) {

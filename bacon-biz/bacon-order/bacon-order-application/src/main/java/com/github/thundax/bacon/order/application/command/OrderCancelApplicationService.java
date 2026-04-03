@@ -6,6 +6,7 @@ import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecu
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import org.springframework.stereotype.Service;
@@ -48,8 +49,8 @@ public class OrderCancelApplicationService {
         // 同步主流程里先改订单主状态，再尝试释放库存和关闭支付；即使后续远程动作部分失败，主单也已明确进入取消态。
         InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);
         applyReleaseResult(order, releaseResult, reason);
-        if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
-            paymentCommandFacade.closePayment(tenantId, order.getPaymentNo(), reason);
+        if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
+            paymentCommandFacade.closePayment(tenantId, order.getPaymentNoValue(), reason);
         }
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CANCEL, beforeStatus);
@@ -57,16 +58,20 @@ public class OrderCancelApplicationService {
 
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
+            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
         // 释放失败只更新库存派生状态，方便后续排障或补偿，不会把已经确定的取消主状态回滚掉。
-        order.markInventoryFailed(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
+        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
     private String resolveFailureReason(String reason, String defaultReason) {
         return reason == null || reason.isBlank() ? defaultReason : reason;
+    }
+
+    private ReservationNo toReservationNo(String reservationNo) {
+        return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 }

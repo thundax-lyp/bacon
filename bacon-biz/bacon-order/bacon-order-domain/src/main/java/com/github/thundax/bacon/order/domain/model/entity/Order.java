@@ -2,10 +2,15 @@ package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -18,9 +23,9 @@ public class Order {
     /** 订单主键。 */
     private OrderId id;
     /** 所属租户主键。 */
-    private final Long tenantId;
+    private final TenantId tenantId;
     /** 订单号。 */
-    private final String orderNo;
+    private final OrderNo orderNo;
     /** 下单用户主键。 */
     private final UserId userId;
     /** 订单状态。 */
@@ -30,9 +35,9 @@ public class Order {
     /** 库存状态。 */
     private InventoryStatus inventoryStatus;
     /** 支付单号。 */
-    private String paymentNo;
+    private PaymentNo paymentNo;
     /** 库存预占单号。 */
-    private String reservationNo;
+    private ReservationNo reservationNo;
     /** 订单总金额。 */
     private Money totalAmount;
     /** 应付金额。 */
@@ -40,7 +45,7 @@ public class Order {
     /** 订单备注。 */
     private final String remark;
     /** 支付渠道编码。 */
-    private String paymentChannelCode;
+    private PaymentChannel paymentChannelCode;
     /** 支付成功金额。 */
     private Money paidAmount;
     /** 支付渠道状态。 */
@@ -72,18 +77,18 @@ public class Order {
     /** 订单关闭时间。 */
     private Instant closedAt;
 
-    public Order(OrderId id, Long tenantId, String orderNo, UserId userId, Money totalAmount,
+    public Order(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, Money totalAmount,
                  Money payableAmount, String remark, Instant expiredAt) {
         this(id, tenantId, orderNo, userId, OrderStatus.CREATED, PayStatus.UNPAID, InventoryStatus.UNRESERVED,
                 null, null, totalAmount, payableAmount, remark, null, null, Instant.now(),
                 expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
-    private Order(OrderId id, Long tenantId, String orderNo, UserId userId, OrderStatus orderStatus, PayStatus payStatus,
-                  InventoryStatus inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
+    private Order(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, OrderStatus orderStatus, PayStatus payStatus,
+                  InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo, Money totalAmount,
                   Money payableAmount, String remark, String cancelReason,
                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
-                  String paymentChannelCode, Money paidAmount, String paymentChannelStatus,
+                  PaymentChannel paymentChannelCode, Money paidAmount, String paymentChannelStatus,
                   String paymentFailureReason, Instant paymentFailedAt, Long warehouseId,
                   String inventoryFailureReason, String inventoryReleaseReason, Instant inventoryReleasedAt,
                   Instant inventoryDeductedAt) {
@@ -119,11 +124,11 @@ public class Order {
         this.inventoryDeductedAt = inventoryDeductedAt;
     }
 
-    public static Order rehydrate(OrderId id, Long tenantId, String orderNo, UserId userId, OrderStatus orderStatus, PayStatus payStatus,
-                                  InventoryStatus inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
+    public static Order rehydrate(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, OrderStatus orderStatus,
+                                  PayStatus payStatus, InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo, Money totalAmount,
                                   Money payableAmount, String remark, String cancelReason,
                                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,
-                                  Instant closedAt, String paymentChannelCode, Money paidAmount,
+                                  Instant closedAt, PaymentChannel paymentChannelCode, Money paidAmount,
                                   String paymentChannelStatus, String paymentFailureReason, Instant paymentFailedAt,
                                   Long warehouseId, String inventoryFailureReason, String inventoryReleaseReason,
                                   Instant inventoryReleasedAt, Instant inventoryDeductedAt) {
@@ -147,6 +152,14 @@ public class Order {
         return orderStatus;
     }
 
+    public Long getTenantIdValue() {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    public String getOrderNoValue() {
+        return orderNo == null ? null : orderNo.value();
+    }
+
     public String getPayStatus() {
         return payStatus == null ? null : payStatus.value();
     }
@@ -163,6 +176,22 @@ public class Order {
         return inventoryStatus;
     }
 
+    public String getPaymentNoValue() {
+        return paymentNo == null ? null : paymentNo.value();
+    }
+
+    public String getReservationNoValue() {
+        return reservationNo == null ? null : reservationNo.value();
+    }
+
+    public String getPaymentChannelCode() {
+        return paymentChannelCode == null ? null : paymentChannelCode.value();
+    }
+
+    public PaymentChannel getPaymentChannelEnum() {
+        return paymentChannelCode;
+    }
+
     public void setId(OrderId id) {
         this.id = id;
     }
@@ -174,7 +203,7 @@ public class Order {
         this.inventoryStatus = InventoryStatus.RESERVING;
     }
 
-    public void markInventoryReserved(String reservationNo, Long warehouseId) {
+    public void markInventoryReserved(ReservationNo reservationNo, Long warehouseId) {
         // 预占成功只更新库存侧派生状态，主单仍停留在 RESERVING_STOCK，等待创建支付单后再切到待支付。
         ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.reservationNo = reservationNo;
@@ -182,7 +211,7 @@ public class Order {
         this.inventoryStatus = InventoryStatus.RESERVED;
     }
 
-    public void markInventoryReleased(String reservationNo, Long warehouseId, String releaseReason, Instant releasedAt) {
+    public void markInventoryReleased(ReservationNo reservationNo, Long warehouseId, String releaseReason, Instant releasedAt) {
         // 释放库存可能发生在取消、超时或支付失败之后，因此这里不再约束主单状态，只回写库存派生结果。
         this.reservationNo = reservationNo;
         this.warehouseId = warehouseId;
@@ -191,7 +220,7 @@ public class Order {
         this.inventoryStatus = InventoryStatus.RELEASED;
     }
 
-    public void markInventoryDeducted(String reservationNo, Long warehouseId, Instant deductedAt) {
+    public void markInventoryDeducted(ReservationNo reservationNo, Long warehouseId, Instant deductedAt) {
         // 扣减库存同样属于支付成功后的派生结果回写，不反向改变订单主状态。
         this.reservationNo = reservationNo;
         this.warehouseId = warehouseId;
@@ -199,7 +228,7 @@ public class Order {
         this.inventoryStatus = InventoryStatus.DEDUCTED;
     }
 
-    public void markInventoryFailed(String reservationNo, Long warehouseId, String failureReason) {
+    public void markInventoryFailed(ReservationNo reservationNo, Long warehouseId, String failureReason) {
         // 这里记录的是库存侧最终失败事实，调用方会基于该结果决定是否补偿，不在实体内隐式关闭订单。
         this.reservationNo = reservationNo;
         this.warehouseId = warehouseId;
@@ -207,28 +236,28 @@ public class Order {
         this.inventoryStatus = InventoryStatus.FAILED;
     }
 
-    public void markPendingPayment(String paymentNo, String channelCode) {
+    public void markPendingPayment(PaymentNo paymentNo, String channelCode) {
         // 订单只有完成库存预占后才能进入待支付，避免出现未锁库存就暴露支付入口。
         ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.orderStatus = OrderStatus.PENDING_PAYMENT;
         this.payStatus = PayStatus.PAYING;
         this.paymentNo = paymentNo;
-        this.paymentChannelCode = channelCode;
+        this.paymentChannelCode = PaymentChannel.fromValue(channelCode);
     }
 
-    public void markPaid(String paymentNo, String channelCode, Money paidAmount, Instant paidTime) {
+    public void markPaid(PaymentNo paymentNo, String channelCode, Money paidAmount, Instant paidTime) {
         // 订单支付成功是主状态终局之一，只允许从待支付进入，避免重复回调覆盖终态。
         ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
         ensureMoneyCurrency(totalAmount, paidAmount);
         this.orderStatus = OrderStatus.PAID;
         this.payStatus = PayStatus.PAID;
         this.paymentNo = paymentNo;
-        this.paymentChannelCode = channelCode;
+        this.paymentChannelCode = PaymentChannel.fromValue(channelCode);
         this.paidAmount = paidAmount;
         this.paidAt = paidTime;
     }
 
-    public void markPaymentFailed(String paymentNo, String reason, String channelStatus, Instant failedAt) {
+    public void markPaymentFailed(PaymentNo paymentNo, String reason, String channelStatus, Instant failedAt) {
         // 支付失败会把主单直接收口为 CLOSED；后续库存释放只是派生补偿，不再改变主单终态。
         ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
         this.orderStatus = OrderStatus.CLOSED;

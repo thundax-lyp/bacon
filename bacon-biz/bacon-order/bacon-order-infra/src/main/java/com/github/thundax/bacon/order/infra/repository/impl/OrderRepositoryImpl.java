@@ -5,10 +5,9 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.infra.persistence.repository.impl.OrderRepositorySupport;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;
@@ -80,8 +79,18 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public OrderPageResult pageOrders(OrderPageQuery query) {
-        return support.pageOrders(query);
+    public long countOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                            String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
+        return support.countOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus,
+                createdAtFrom, createdAtTo);
+    }
+
+    @Override
+    public List<Order> pageOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                                  String inventoryStatus, Instant createdAtFrom, Instant createdAtTo,
+                                  int offset, int limit) {
+        return support.pageOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus,
+                createdAtFrom, createdAtTo, offset, limit);
     }
 
     @Override

@@ -18,8 +18,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
+import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
@@ -82,8 +82,8 @@ class OrderCreateApplicationServiceTest {
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(103L, "item-3", 1, BigDecimal.valueOf(30)))));
         Order paidOrder = repository.findByOrderNo(1001L, paid.getOrderNo()).orElseThrow();
-        paidOrder.markInventoryReserved("RSV-" + paid.getOrderNo(), 1L);
-        paidOrder.markPendingPayment("PAY-" + paid.getOrderNo(), "MOCK");
+        paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), 1L);
+        paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
         repository.save(paidOrder);
         paymentResultService.markPaid(1001L, paid.getOrderNo(), "PAY-1", "MOCK", BigDecimal.valueOf(20),
                 Instant.parse("2026-03-26T10:00:00Z"));
@@ -310,8 +310,8 @@ class OrderCreateApplicationServiceTest {
         @Override
         public Optional<Order> findByOrderNo(Long tenantId, String orderNo) {
             return storage.values().stream()
-                    .filter(order -> tenantId.equals(order.getTenantId()))
-                    .filter(order -> orderNo.equals(order.getOrderNo()))
+                    .filter(order -> tenantId.equals(order.getTenantIdValue()))
+                    .filter(order -> orderNo.equals(order.getOrderNoValue()))
                     .findFirst();
         }
 
@@ -367,25 +367,38 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public OrderPageResult pageOrders(OrderPageQuery query) {
+        public long countOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                                String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
+            return filterOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus,
+                    createdAtFrom, createdAtTo).size();
+        }
+
+        @Override
+        public List<Order> pageOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                                      String inventoryStatus, Instant createdAtFrom, Instant createdAtTo,
+                                      int offset, int limit) {
+            return filterOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus,
+                    createdAtFrom, createdAtTo).stream()
+                    .skip(offset)
+                    .limit(limit)
+                    .toList();
+        }
+
+        private List<Order> filterOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
+                                         String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
             List<Order> filtered = storage.values().stream()
-                    .filter(order -> query.tenantId() == null || query.tenantId().equals(order.getTenantId()))
-                    .filter(order -> query.userId() == null || query.userId().equals(toUserIdValue(order)))
-                    .filter(order -> query.orderNo() == null || order.getOrderNo().contains(query.orderNo()))
-                    .filter(order -> query.orderStatus() == null || query.orderStatus().equals(order.getOrderStatus()))
-                    .filter(order -> query.payStatus() == null || query.payStatus().equals(order.getPayStatus()))
-                    .filter(order -> query.inventoryStatus() == null || query.inventoryStatus().equals(order.getInventoryStatus()))
-                    .filter(order -> query.createdAtFrom() == null || !order.getCreatedAt().isBefore(query.createdAtFrom()))
-                    .filter(order -> query.createdAtTo() == null || !order.getCreatedAt().isAfter(query.createdAtTo()))
+                    .filter(order -> tenantId == null || tenantId.equals(order.getTenantIdValue()))
+                    .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
+                    .filter(order -> orderNo == null || order.getOrderNoValue().contains(orderNo))
+                    .filter(order -> orderStatus == null || orderStatus.equals(order.getOrderStatus()))
+                    .filter(order -> payStatus == null || payStatus.equals(order.getPayStatus()))
+                    .filter(order -> inventoryStatus == null || inventoryStatus.equals(order.getInventoryStatus()))
+                    .filter(order -> createdAtFrom == null || !order.getCreatedAt().isBefore(createdAtFrom))
+                    .filter(order -> createdAtTo == null || !order.getCreatedAt().isAfter(createdAtTo))
                     .sorted(Comparator.comparing(Order::getCreatedAt).reversed()
                             .thenComparing(this::toOrderIdValue, Comparator.reverseOrder()))
                     .toList();
-            long total = filtered.size();
-            List<Order> records = filtered.stream()
-                    .skip(query.offset())
-                    .limit(query.limit())
-                    .toList();
-            return new OrderPageResult(records, total);
+            return filtered;
         }
 
         @Override

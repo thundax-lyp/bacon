@@ -1,8 +1,6 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderAuditLogMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderInventorySnapshotMapper;
@@ -32,14 +30,15 @@ class OrderRepositorySupportPagingTest {
                 createNoopMapper(OrderItemMapper.class), paymentMapper, inventoryMapper,
                 createNoopMapper(OrderAuditLogMapper.class));
 
-        OrderPageResult result = support.pageOrders(new OrderPageQuery(
-                1001L, null, null, null, null, null,
-                null, null, 1, 2));
+        long total = support.countOrders(1001L, null, null, null, null, null,
+                null, null);
+        java.util.List<com.github.thundax.bacon.order.domain.model.entity.Order> result = support.pageOrders(
+                1001L, null, null, null, null, null, null, null, 1, 2);
 
-        assertEquals(3L, result.total());
-        assertEquals(2, result.records().size());
-        assertEquals("ORD-1002", result.records().get(0).getOrderNo());
-        assertEquals("ORD-1001", result.records().get(1).getOrderNo());
+        assertEquals(3L, total);
+        assertEquals(2, result.size());
+        assertEquals("ORD-1002", result.get(0).getOrderNoValue());
+        assertEquals("ORD-1001", result.get(1).getOrderNoValue());
 
         LambdaQueryWrapper<OrderDO> pagedWrapper = pagedWrapperRef.get();
         assertNotNull(pagedWrapper);

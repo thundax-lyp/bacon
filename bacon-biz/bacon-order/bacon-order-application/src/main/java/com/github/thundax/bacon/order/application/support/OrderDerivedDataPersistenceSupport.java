@@ -22,18 +22,18 @@ public class OrderDerivedDataPersistenceSupport {
 
     public void persist(Order order, String actionType, String beforeStatus) {
         Instant now = Instant.now();
-        if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
-            orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), toOrderIdValue(order),
-                    order.getPaymentNo(), order.getPaymentChannelCode(), order.getPayStatus(),
+        if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
+            orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantIdValue(), toOrderIdValue(order),
+                    order.getPaymentNoValue(), order.getPaymentChannelCode(), order.getPayStatus(),
                     order.getPaidAmount() == null ? null : order.getPaidAmount().value(),
                     order.getPaidAt(), order.getPaymentFailureReason(), order.getPaymentChannelStatus(), now));
         }
-        if (order.getReservationNo() != null && !order.getReservationNo().isBlank()) {
-            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(null, order.getTenantId(), toOrderIdValue(order),
-                    order.getReservationNo(), order.getInventoryStatus(), order.getWarehouseId(),
+        if (order.getReservationNoValue() != null && !order.getReservationNoValue().isBlank()) {
+            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(null, order.getTenantIdValue(), toOrderIdValue(order),
+                    order.getReservationNoValue(), order.getInventoryStatus(), order.getWarehouseId(),
                     order.getInventoryFailureReason(), now));
         }
-        orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNo(), actionType,
+        orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantIdValue(), order.getOrderNoValue(), actionType,
                 beforeStatus, order.getOrderStatus(), OPERATOR_TYPE_SYSTEM, OPERATOR_ID_SYSTEM, now));
     }
 

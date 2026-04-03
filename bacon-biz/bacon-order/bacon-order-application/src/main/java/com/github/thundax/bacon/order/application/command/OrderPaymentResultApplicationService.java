@@ -9,6 +9,8 @@ import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersis
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
+import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
@@ -53,17 +55,17 @@ public class OrderPaymentResultApplicationService {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         String beforeStatus = order.getOrderStatus();
-        order.markPaid(paymentNo, channelCode, Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCode())),
+        order.markPaid(toPaymentNo(paymentNo), channelCode, Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCode())),
                 paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
         InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(tenantId, orderNo);
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
             String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
-            order.markInventoryFailed(deductResult.getReservationNo(), deductResult.getWarehouseId(), reason);
+            order.markInventoryFailed(toReservationNo(deductResult.getReservationNo()), deductResult.getWarehouseId(), reason);
             orderRepository.save(order);
             throw new IllegalStateException(reason);
         }
-        order.markInventoryDeducted(deductResult.getReservationNo(), deductResult.getWarehouseId(),
+        order.markInventoryDeducted(toReservationNo(deductResult.getReservationNo()), deductResult.getWarehouseId(),
                 deductResult.getDeductedAt());
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
@@ -74,7 +76,7 @@ public class OrderPaymentResultApplicationService {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         String beforeStatus = order.getOrderStatus();
-        order.markPaymentFailed(paymentNo, reason, channelStatus, failedTime);
+        order.markPaymentFailed(toPaymentNo(paymentNo), reason, channelStatus, failedTime);
         // 支付失败后的主目标是回收预占库存，因此这里固定走 releaseReservedStock，而不是尝试别的库存路径。
         InventoryReservationResultDTO releaseResult =
                 inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, "PAYMENT_FAILED");
@@ -85,15 +87,23 @@ public class OrderPaymentResultApplicationService {
 
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
+            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
-        order.markInventoryFailed(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
+        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
     private String resolveFailureReason(String reason, String defaultReason) {
         return reason == null || reason.isBlank() ? defaultReason : reason;
+    }
+
+    private PaymentNo toPaymentNo(String paymentNo) {
+        return paymentNo == null ? null : PaymentNo.of(paymentNo);
+    }
+
+    private ReservationNo toReservationNo(String reservationNo) {
+        return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 }

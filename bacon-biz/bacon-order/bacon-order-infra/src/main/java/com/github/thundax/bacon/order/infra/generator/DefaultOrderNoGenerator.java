@@ -2,13 +2,16 @@ package com.github.thundax.bacon.order.infra.generator;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DefaultOrderNoGenerator implements OrderNoGenerator {
 
     private static final String BIZ_TYPE = "order";
-    private static final String PREFIX = "ORD-";
+    private static final String PREFIX = "ORD";
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final IdGenerator idGenerator;
 
@@ -19,6 +22,8 @@ public class DefaultOrderNoGenerator implements OrderNoGenerator {
     @Override
     public String nextOrderNo() {
         long id = idGenerator.nextId(BIZ_TYPE);
-        return PREFIX + id;
+        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+        String suffix = String.format("%06d", Math.floorMod(id, 1_000_000L));
+        return PREFIX + timestamp + suffix;
     }
 }

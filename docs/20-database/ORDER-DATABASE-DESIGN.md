@@ -55,6 +55,8 @@
 - `inventory_status`: `UNRESERVED`、`RESERVING`、`RESERVED`、`RELEASED`、`DEDUCTED`、`FAILED`
 - `cancel_reason`: `USER_CANCELLED`、`SYSTEM_CANCELLED`
 - `close_reason`: `INVENTORY_RESERVE_FAILED`、`PAYMENT_CREATE_FAILED`、`PAYMENT_FAILED`、`TIMEOUT_CLOSED`
+- `action_type`: `ORDER_CREATE`、`ORDER_CANCEL`、`ORDER_MARK_PAID`、`ORDER_MARK_PAYMENT_FAILED`、`ORDER_CLOSE_EXPIRED`、`OUTBOX_RESERVE_FAILED`、`OUTBOX_RESERVE_OK`、`OUTBOX_CREATE_PAYMENT_FAILED`、`OUTBOX_CREATE_PAYMENT_OK`、`OUTBOX_RELEASE`
+- `operator_type`: `SYSTEM`、`USER`、`ADMIN`
 
 ### 5.2 Fixed Length Rules
 
@@ -231,12 +233,12 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
-| `tenant_id` | `bigint` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
-| `action_type` | `varchar(64)` | N | 操作类型 |
-| `before_status` | `varchar(32)` | Y | 变更前订单状态 |
-| `after_status` | `varchar(32)` | Y | 变更后订单状态 |
-| `operator_type` | `varchar(32)` | Y | 操作人类型 |
+| `action_type` | `varchar(64)` | N | 操作类型，取值见 `action_type` |
+| `before_status` | `varchar(32)` | Y | 变更前订单状态，取值见 `order_status` |
+| `after_status` | `varchar(32)` | Y | 变更后订单状态，取值见 `order_status` |
+| `operator_type` | `varchar(32)` | Y | 操作人类型，取值见 `operator_type` |
 | `operator_id` | `varchar(64)` | Y | 操作人标识 |
 | `occurred_at` | `datetime(3)` | N | 事件发生时间 |
 

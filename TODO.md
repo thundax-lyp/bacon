@@ -6,10 +6,6 @@
 
 ### 1. 第一优先级：使用 ArchUnit 落地硬规则
 
-- 校验 `interfaces` 不得直接依赖 `infra.persistence.mapper`
-- 校验 `interfaces` 不得直接依赖其他业务域的 `infra`
-- 校验 `application` 不得依赖本域或他域的 `infra`
-- 校验 `domain` 不得依赖 Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术包
 - 校验 `infra` 只能作为实现层依赖 `domain.repository`
 - 校验 `@SysLog` 只能出现在 `interfaces.controller`
 - 校验 `@Transactional` 默认只允许出现在 `application`

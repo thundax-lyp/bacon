@@ -69,7 +69,7 @@ public class PaymentCreateApplicationService {
     }
 
     private PaymentChannelPayload buildPayload(PaymentOrder paymentOrder) {
-        return new PaymentChannelPayload(paymentOrder.getPaymentNo().value(), paymentOrder.getChannelCode().value(),
+        return new PaymentChannelPayload(paymentOrder.getPaymentNo(), paymentOrder.getChannelCode(),
                 "mock://pay/" + paymentOrder.getPaymentNo().value());
     }
 

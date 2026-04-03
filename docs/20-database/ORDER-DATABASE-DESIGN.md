@@ -263,7 +263,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 雪花主键 |
+| `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
 | `event_id` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |

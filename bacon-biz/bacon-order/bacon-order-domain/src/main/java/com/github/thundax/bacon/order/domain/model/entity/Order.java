@@ -2,10 +2,12 @@ package com.github.thundax.bacon.order.domain.model.entity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import lombok.Getter;
 
 /**
  * 订单主单领域实体。
  */
+@Getter
 public class Order {
 
     public static final String ORDER_STATUS_CREATED = "CREATED";
@@ -147,122 +149,6 @@ public class Order {
                 expiredAt, paidAt, closedAt, paymentChannelCode, paidAmount, paymentChannelStatus, paymentFailureReason,
                 paymentFailedAt, warehouseId, inventoryFailureReason, inventoryReleaseReason, inventoryReleasedAt,
                 inventoryDeductedAt);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getOrderNo() {
-        return orderNo;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public String getOrderStatus() {
-        return orderStatus;
-    }
-
-    public String getPayStatus() {
-        return payStatus;
-    }
-
-    public String getInventoryStatus() {
-        return inventoryStatus;
-    }
-
-    public String getPaymentNo() {
-        return paymentNo;
-    }
-
-    public String getReservationNo() {
-        return reservationNo;
-    }
-
-    public String getCurrencyCode() {
-        return currencyCode;
-    }
-
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
-    }
-
-    public BigDecimal getPayableAmount() {
-        return payableAmount;
-    }
-
-    public String getCancelReason() {
-        return cancelReason;
-    }
-
-    public String getCloseReason() {
-        return closeReason;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getExpiredAt() {
-        return expiredAt;
-    }
-
-    public Instant getPaidAt() {
-        return paidAt;
-    }
-
-    public Instant getClosedAt() {
-        return closedAt;
-    }
-
-    public String getPaymentChannelCode() {
-        return paymentChannelCode;
-    }
-
-    public BigDecimal getPaidAmount() {
-        return paidAmount;
-    }
-
-    public String getPaymentChannelStatus() {
-        return paymentChannelStatus;
-    }
-
-    public String getPaymentFailureReason() {
-        return paymentFailureReason;
-    }
-
-    public Instant getPaymentFailedAt() {
-        return paymentFailedAt;
-    }
-
-    public Long getWarehouseId() {
-        return warehouseId;
-    }
-
-    public String getInventoryFailureReason() {
-        return inventoryFailureReason;
-    }
-
-    public String getInventoryReleaseReason() {
-        return inventoryReleaseReason;
-    }
-
-    public Instant getInventoryReleasedAt() {
-        return inventoryReleasedAt;
-    }
-
-    public Instant getInventoryDeductedAt() {
-        return inventoryDeductedAt;
     }
 
     public void setId(Long id) {

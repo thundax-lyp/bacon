@@ -235,7 +235,7 @@ Order 是 Bacon 的统一订单业务域。
 ## 5.3 Fixed Fields
 
 - `Order` 至少包含 `id`、`tenantId`、`orderNo`、`userId`、`orderStatus`、`payStatus`、`inventoryStatus`、`currencyCode`、`totalAmount`、`payableAmount`、`remark`、`cancelReason`、`closeReason`、`createdAt`、`expiredAt`、`paidAt`、`closedAt`
-- `OrderItem` 至少包含 `id`、`tenantId`、`orderId`、`skuId`、`skuName`、`imageUrl`、`quantity`、`salePrice`、`lineAmount`
+- `OrderItem` 至少包含 `tenantId`、`orderId`、`skuId`、`skuName`、`imageUrl`、`quantity`、`salePrice`、`lineAmount`
 - `OrderAmount` 至少包含 `totalAmount`、`payableAmount`、`currencyCode`
 - `OrderSnapshot` 至少包含 `order`、`items`、`paymentSnapshot`、`inventorySnapshot`
 - `OrderPaymentSnapshot` 至少包含 `orderId`、`paymentNo`、`channelCode`、`payStatus`、`paidAmount`、`paidTime`、`failureReason`、`channelStatus`
@@ -268,7 +268,6 @@ Order 是 Bacon 的统一订单业务域。
 
 - `Order.id` 全局唯一
 - `Order.orderNo` 全局唯一
-- `OrderItem.id` 全局唯一
 - `OrderPaymentSnapshot.paymentNo` 全局唯一
 - `OrderInventorySnapshot.reservationNo` 全局唯一
 - `Order` 必须建立 `(tenantId, userId, createdAt)` 索引

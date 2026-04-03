@@ -73,11 +73,9 @@ public final class NamingAndPlacementRuleSupport {
     public static ArchRule repositoryImplShouldUseRepositoryImplNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that().haveSimpleNameEndingWith("RepositoryImpl")
-                .should().resideInAnyPackage(
-                        basePackage + ".infra.repository.impl..",
-                        basePackage + ".infra.persistence.repository.impl..")
+                .should().resideInAPackage(basePackage + ".infra.repository.impl..")
                 .allowEmptyShould(true)
-                .because("RepositoryImpl -> infra.repository.impl, temporarily allows infra.persistence.repository.impl");
+                .because("RepositoryImpl -> infra.repository.impl");
     }
 
     public static ArchRule mapperShouldUseMapperNameAndPackage(String basePackage) {

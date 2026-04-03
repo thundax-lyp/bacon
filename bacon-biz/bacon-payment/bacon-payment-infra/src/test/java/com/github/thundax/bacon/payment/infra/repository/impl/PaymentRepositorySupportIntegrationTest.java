@@ -9,7 +9,10 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
@@ -112,11 +115,12 @@ class PaymentRepositorySupportIntegrationTest {
 
         PaymentOrder persistedOrder = paymentRepositorySupport.saveOrder(paymentOrder);
         PaymentCallbackRecord persistedCallback = paymentRepositorySupport.saveCallbackRecord(new PaymentCallbackRecord(
-                null, 1001L, persistedOrder.getPaymentNo().value(), persistedOrder.getOrderNo().value(), "MOCK", "TXN-IT-10001",
-                "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}", Instant.parse("2026-03-27T10:01:00Z")));
-        paymentRepositorySupport.saveAuditLog(new PaymentAuditLog(null, TenantId.of("1001"), persistedOrder.getPaymentNo().value(),
-                PaymentAuditLog.ACTION_CREATE, null, PaymentStatus.PAYING.value(),
-                PaymentAuditLog.OPERATOR_SYSTEM, 0L, Instant.parse("2026-03-27T10:00:00Z")));
+                null, TenantId.of("1001"), persistedOrder.getPaymentNo(), persistedOrder.getOrderNo(), PaymentChannelCode.MOCK,
+                "TXN-IT-10001", PaymentChannelStatus.SUCCESS, "{\"tradeStatus\":\"SUCCESS\"}",
+                Instant.parse("2026-03-27T10:01:00Z")));
+        paymentRepositorySupport.saveAuditLog(new PaymentAuditLog(null, TenantId.of("1001"), persistedOrder.getPaymentNo(),
+                PaymentAuditActionType.CREATE, null, PaymentStatus.PAYING, PaymentAuditOperatorType.SYSTEM, "0",
+                Instant.parse("2026-03-27T10:00:00Z")));
 
         PaymentOrder reloadedOrder = paymentRepositorySupport.findOrderByPaymentNo(1001L, "PAY-IT-10001").orElseThrow();
         PaymentCallbackRecord reloadedCallback = paymentRepositorySupport

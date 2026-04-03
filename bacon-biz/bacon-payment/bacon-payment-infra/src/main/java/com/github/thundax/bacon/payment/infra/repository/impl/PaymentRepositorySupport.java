@@ -11,6 +11,8 @@ import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
@@ -206,35 +208,37 @@ public class PaymentRepositorySupport {
     }
 
     private PaymentCallbackRecordDO toDataObject(PaymentCallbackRecord callbackRecord) {
-        return new PaymentCallbackRecordDO(callbackRecord.getId(), String.valueOf(callbackRecord.getTenantId()),
-                callbackRecord.getPaymentNo(), callbackRecord.getOrderNo(), callbackRecord.getChannelCode(),
-                callbackRecord.getChannelTransactionNo(), callbackRecord.getChannelStatus(),
+        return new PaymentCallbackRecordDO(callbackRecord.getId(), toDatabaseTenantId(callbackRecord.getTenantId()),
+                callbackRecord.getPaymentNo().value(), callbackRecord.getOrderNo().value(), callbackRecord.getChannelCode().value(),
+                callbackRecord.getChannelTransactionNo(), callbackRecord.getChannelStatus().value(),
                 callbackRecord.getRawPayload(), callbackRecord.getReceivedAt());
     }
 
     private PaymentCallbackRecord toDomain(PaymentCallbackRecordDO dataObject) {
-        return new PaymentCallbackRecord(dataObject.getId(), Long.valueOf(dataObject.getTenantId()), dataObject.getPaymentNo(),
-                dataObject.getOrderNo(), dataObject.getChannelCode(), dataObject.getChannelTransactionNo(),
-                dataObject.getChannelStatus(), dataObject.getRawPayload(), dataObject.getReceivedAt());
+        return new PaymentCallbackRecord(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()),
+                toPaymentNo(dataObject.getPaymentNo()), toOrderNo(dataObject.getOrderNo()),
+                PaymentChannelCode.fromValue(dataObject.getChannelCode()), dataObject.getChannelTransactionNo(),
+                PaymentChannelStatus.fromValue(dataObject.getChannelStatus()), dataObject.getRawPayload(), dataObject.getReceivedAt());
     }
 
     private PaymentAuditLogDO toDataObject(PaymentAuditLog auditLog) {
-        return new PaymentAuditLogDO(auditLog.getId(), toDatabaseTenantId(auditLog.getTenantId()), auditLog.getPaymentNo(),
-                auditLog.getActionType(), auditLog.getBeforeStatus(), auditLog.getAfterStatus(),
-                auditLog.getOperatorType(), toDatabaseOperatorId(auditLog.getOperatorId()), auditLog.getOccurredAt());
+        return new PaymentAuditLogDO(auditLog.getId(), toDatabaseTenantId(auditLog.getTenantId()), auditLog.getPaymentNo().value(),
+                auditLog.getActionType().value(), toStatusValue(auditLog.getBeforeStatus()), toStatusValue(auditLog.getAfterStatus()),
+                auditLog.getOperatorType().value(), auditLog.getOperatorId(), auditLog.getOccurredAt());
     }
 
     private PaymentAuditLog toDomain(PaymentAuditLogDO dataObject) {
-        return new PaymentAuditLog(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()), dataObject.getPaymentNo(),
-                dataObject.getActionType(), dataObject.getBeforeStatus(), dataObject.getAfterStatus(),
-                dataObject.getOperatorType(), toDomainOperatorId(dataObject.getOperatorId()), dataObject.getOccurredAt());
+        return new PaymentAuditLog(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()), toPaymentNo(dataObject.getPaymentNo()),
+                PaymentAuditActionType.fromValue(dataObject.getActionType()), toPaymentStatus(dataObject.getBeforeStatus()),
+                toPaymentStatus(dataObject.getAfterStatus()), PaymentAuditOperatorType.fromValue(dataObject.getOperatorType()),
+                dataObject.getOperatorId(), dataObject.getOccurredAt());
     }
 
-    private String toDatabaseOperatorId(Long operatorId) {
-        return operatorId == null ? null : String.valueOf(operatorId);
+    private String toStatusValue(PaymentStatus paymentStatus) {
+        return paymentStatus == null ? null : paymentStatus.value();
     }
 
-    private Long toDomainOperatorId(String operatorId) {
-        return operatorId == null ? null : Long.valueOf(operatorId);
+    private PaymentStatus toPaymentStatus(String paymentStatus) {
+        return paymentStatus == null ? null : PaymentStatus.fromValue(paymentStatus);
     }
 }

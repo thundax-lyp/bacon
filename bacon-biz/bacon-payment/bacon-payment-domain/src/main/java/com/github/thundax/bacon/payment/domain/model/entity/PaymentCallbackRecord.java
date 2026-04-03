@@ -1,5 +1,10 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
+import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -13,24 +18,25 @@ public class PaymentCallbackRecord {
     /** 回调记录主键。 */
     private final Long id;
     /** 所属租户主键。 */
-    private final Long tenantId;
+    private final TenantId tenantId;
     /** 支付单号。 */
-    private final String paymentNo;
+    private final PaymentNo paymentNo;
     /** 关联订单号。 */
-    private final String orderNo;
+    private final OrderNo orderNo;
     /** 支付渠道编码。 */
-    private final String channelCode;
+    private final PaymentChannelCode channelCode;
     /** 支付渠道交易号。 */
     private final String channelTransactionNo;
     /** 支付渠道状态。 */
-    private final String channelStatus;
+    private final PaymentChannelStatus channelStatus;
     /** 原始回调载荷。 */
     private final String rawPayload;
     /** 接收时间。 */
     private final Instant receivedAt;
 
-    public PaymentCallbackRecord(Long id, Long tenantId, String paymentNo, String orderNo, String channelCode,
-                                 String channelTransactionNo, String channelStatus, String rawPayload, Instant receivedAt) {
+    public PaymentCallbackRecord(Long id, TenantId tenantId, PaymentNo paymentNo, OrderNo orderNo, PaymentChannelCode channelCode,
+                                 String channelTransactionNo, PaymentChannelStatus channelStatus, String rawPayload,
+                                 Instant receivedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.paymentNo = paymentNo;
@@ -44,7 +50,7 @@ public class PaymentCallbackRecord {
 
     public String summarize() {
         if (rawPayload == null || rawPayload.isBlank()) {
-            return channelStatus;
+            return channelStatus == null ? null : channelStatus.value();
         }
         return rawPayload.length() <= 255 ? rawPayload : rawPayload.substring(0, 255);
     }

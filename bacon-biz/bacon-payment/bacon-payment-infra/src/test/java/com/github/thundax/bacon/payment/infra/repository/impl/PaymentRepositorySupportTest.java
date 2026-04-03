@@ -8,7 +8,10 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
@@ -110,11 +113,11 @@ class PaymentRepositorySupportTest {
         PaymentCallbackRecordDO callbackDataObject = new PaymentCallbackRecordDO(9201L, "1001", "PAY-10003", "ORD-10003",
                 "MOCK", "TXN-10003", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}",
                 Instant.parse("2026-03-27T10:11:20Z"));
-        PaymentAuditLogDO createLog = new PaymentAuditLogDO(9301L, "1001", "PAY-10003", PaymentAuditLog.ACTION_CREATE,
-                null, PaymentStatus.PAYING.value(), PaymentAuditLog.OPERATOR_SYSTEM, "0",
+        PaymentAuditLogDO createLog = new PaymentAuditLogDO(9301L, "1001", "PAY-10003", PaymentAuditActionType.CREATE.value(),
+                null, PaymentStatus.PAYING.value(), PaymentAuditOperatorType.SYSTEM.value(), "0",
                 Instant.parse("2026-03-27T10:10:00Z"));
-        PaymentAuditLogDO paidLog = new PaymentAuditLogDO(9302L, "1001", "PAY-10003", PaymentAuditLog.ACTION_CALLBACK_PAID,
-                PaymentStatus.PAYING.value(), PaymentStatus.PAID.value(), PaymentAuditLog.OPERATOR_CHANNEL, "0",
+        PaymentAuditLogDO paidLog = new PaymentAuditLogDO(9302L, "1001", "PAY-10003", PaymentAuditActionType.CALLBACK_PAID.value(),
+                PaymentStatus.PAYING.value(), PaymentStatus.PAID.value(), PaymentAuditOperatorType.CHANNEL.value(), "0",
                 Instant.parse("2026-03-27T10:11:30Z"));
 
         PaymentRepositorySupport support = new PaymentRepositorySupport(
@@ -131,8 +134,8 @@ class PaymentRepositorySupportTest {
         assertEquals(PaymentStatus.PAID.value(), paymentOrder.getPaymentStatus().value());
         assertEquals("TXN-10003", latestCallback.getChannelTransactionNo());
         assertEquals(2, auditLogs.size());
-        assertEquals(PaymentAuditLog.ACTION_CREATE, auditLogs.get(0).getActionType());
-        assertEquals(PaymentAuditLog.ACTION_CALLBACK_PAID, auditLogs.get(1).getActionType());
+        assertEquals(PaymentAuditActionType.CREATE, auditLogs.get(0).getActionType());
+        assertEquals(PaymentAuditActionType.CALLBACK_PAID, auditLogs.get(1).getActionType());
     }
 
     @SuppressWarnings("unchecked")

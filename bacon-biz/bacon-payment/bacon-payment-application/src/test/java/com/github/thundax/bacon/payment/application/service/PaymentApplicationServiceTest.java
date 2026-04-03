@@ -11,7 +11,9 @@ import com.github.thundax.bacon.payment.application.query.PaymentQueryApplicatio
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
@@ -114,14 +116,14 @@ class PaymentApplicationServiceTest {
         List<PaymentAuditLog> auditLogs = repository.findAuditLogsByPaymentNo(1001L, created.getPaymentNo());
 
         assertEquals(4, auditLogs.size());
-        assertEquals(PaymentAuditLog.ACTION_CREATE, auditLogs.get(0).getActionType());
-        assertEquals(PaymentAuditLog.ACTION_CALLBACK_PAID, auditLogs.get(1).getActionType());
-        assertEquals(PaymentAuditLog.ACTION_CALLBACK_PAID, auditLogs.get(2).getActionType());
-        assertEquals(PaymentStatus.PAID.value(), auditLogs.get(2).getBeforeStatus());
-        assertEquals(PaymentStatus.PAID.value(), auditLogs.get(2).getAfterStatus());
-        assertEquals(PaymentAuditLog.ACTION_CALLBACK_FAILED, auditLogs.get(3).getActionType());
-        assertEquals(PaymentStatus.PAID.value(), auditLogs.get(3).getBeforeStatus());
-        assertEquals(PaymentStatus.PAID.value(), auditLogs.get(3).getAfterStatus());
+        assertEquals(PaymentAuditActionType.CREATE, auditLogs.get(0).getActionType());
+        assertEquals(PaymentAuditActionType.CALLBACK_PAID, auditLogs.get(1).getActionType());
+        assertEquals(PaymentAuditActionType.CALLBACK_PAID, auditLogs.get(2).getActionType());
+        assertEquals(PaymentStatus.PAID, auditLogs.get(2).getBeforeStatus());
+        assertEquals(PaymentStatus.PAID, auditLogs.get(2).getAfterStatus());
+        assertEquals(PaymentAuditActionType.CALLBACK_FAILED, auditLogs.get(3).getActionType());
+        assertEquals(PaymentStatus.PAID, auditLogs.get(3).getBeforeStatus());
+        assertEquals(PaymentStatus.PAID, auditLogs.get(3).getAfterStatus());
         assertEquals(1, orderCommandFacade.markPaidCount);
         assertEquals(0, orderCommandFacade.markFailedCount);
     }
@@ -275,6 +277,10 @@ class PaymentApplicationServiceTest {
 
         private static String txnKey(Long tenantId, String channelCode, String channelTransactionNo) {
             return tenantId + ":" + channelCode + ":" + channelTransactionNo;
+        }
+
+        private static String txnKey(TenantId tenantId, PaymentChannelCode channelCode, String channelTransactionNo) {
+            return txnKey(Long.valueOf(tenantId.value()), channelCode.value(), channelTransactionNo);
         }
 
         private static String txnKey(Long tenantId, PaymentChannelCode channelCode, String channelTransactionNo) {

@@ -43,7 +43,7 @@ public class PaymentQueryApplicationService {
                 : latestRecord != null ? latestRecord.getChannelTransactionNo() : null;
         String channelStatus = paymentOrder.getChannelStatus() != null
                 ? paymentOrder.getChannelStatus().value()
-                : latestRecord != null ? latestRecord.getChannelStatus() : null;
+                : latestRecord != null ? latestRecord.getChannelStatus().value() : null;
         String callbackSummary = paymentOrder.getCallbackSummary() != null
                 ? paymentOrder.getCallbackSummary()
                 : latestRecord != null ? latestRecord.summarize() : null;

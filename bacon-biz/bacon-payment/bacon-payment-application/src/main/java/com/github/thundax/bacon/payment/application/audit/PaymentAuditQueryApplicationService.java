@@ -18,13 +18,18 @@ public class PaymentAuditQueryApplicationService {
     public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
         return paymentAuditLogRepository.findAuditLogsByPaymentNo(tenantId, paymentNo)
                 .stream()
-                .map(auditLog -> new PaymentAuditLogDTO(toLongTenantValue(auditLog.getTenantId()), auditLog.getPaymentNo(),
-                        auditLog.getActionType(), auditLog.getBeforeStatus(), auditLog.getAfterStatus(),
-                        auditLog.getOperatorType(), auditLog.getOperatorId(), auditLog.getOccurredAt()))
+                .map(auditLog -> new PaymentAuditLogDTO(toLongTenantValue(auditLog.getTenantId()), auditLog.getPaymentNo().value(),
+                        auditLog.getActionType().value(), toStatusValue(auditLog.getBeforeStatus()),
+                        toStatusValue(auditLog.getAfterStatus()), auditLog.getOperatorType().value(), auditLog.getOperatorId(),
+                        auditLog.getOccurredAt()))
                 .toList();
     }
 
     private Long toLongTenantValue(TenantId tenantId) {
         return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    private String toStatusValue(com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus status) {
+        return status == null ? null : status.value();
     }
 }

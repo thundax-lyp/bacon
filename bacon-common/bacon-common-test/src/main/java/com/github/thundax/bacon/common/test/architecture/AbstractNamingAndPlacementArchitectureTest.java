@@ -60,7 +60,7 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
-    @DisplayName("RepositoryImpl：仓储实现，命名 {业务对象}RepositoryImpl，目录 infra/repository/impl/，与持久化模型强绑定时可用 infra/persistence/repository/impl/")
+    @DisplayName("RepositoryImpl：仓储实现，命名 {业务对象}RepositoryImpl，目录 infra/repository/impl/")
     void shouldFollowRepositoryImplRule() {
         NamingAndPlacementRuleSupport.repositoryImplShouldUseRepositoryImplNameAndPackage(basePackage())
                 .check(classes());

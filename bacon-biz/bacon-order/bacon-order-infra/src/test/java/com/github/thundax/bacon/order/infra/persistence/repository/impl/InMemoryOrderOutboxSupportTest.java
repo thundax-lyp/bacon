@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -14,8 +17,8 @@ class InMemoryOrderOutboxSupportTest {
     @Test
     void saveOutboxEventShouldGenerateTechnicalIdAndBusinessEventId() {
         InMemoryOrderOutboxSupport support = new InMemoryOrderOutboxSupport();
-        OrderOutboxEvent event = new OrderOutboxEvent(null, null, 1001L, "ORD-1",
-                OrderOutboxEvent.EVENT_RESERVE_STOCK, "1001:ORD-1:RESERVE", "{\"channelCode\":\"MOCK\"}",
+        OrderOutboxEvent event = new OrderOutboxEvent(null, null, TenantId.of("1001"), OrderNo.of("ORD-1"),
+                OrderOutboxEventType.RESERVE_STOCK, "1001:ORD-1:RESERVE", "{\"channelCode\":\"MOCK\"}",
                 null, null, null, null, null, null, null, null, Instant.now(), Instant.now());
 
         support.saveOutboxEvent(event);

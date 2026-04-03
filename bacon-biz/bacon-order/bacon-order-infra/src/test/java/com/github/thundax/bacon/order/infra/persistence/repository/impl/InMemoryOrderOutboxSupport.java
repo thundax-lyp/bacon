@@ -1,7 +1,10 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventId;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -32,7 +35,7 @@ public class InMemoryOrderOutboxSupport {
             event.setEventId(EventId.of("EVT" + outboxEventIdGenerator.getAndIncrement()));
         }
         if (event.getStatus() == null) {
-            event.setStatus(OrderOutboxEvent.STATUS_NEW);
+            event.setStatus(OrderOutboxStatus.NEW);
         }
         if (event.getRetryCount() == null) {
             event.setRetryCount(0);
@@ -47,8 +50,8 @@ public class InMemoryOrderOutboxSupport {
     public synchronized List<OrderOutboxEvent> claimRetryableOutbox(Instant now, int limit, String processingOwner,
                                                                      Instant leaseUntil) {
         List<OrderOutboxEvent> candidates = outboxStorage.values().stream()
-                .filter(event -> OrderOutboxEvent.STATUS_NEW.equals(event.getStatus())
-                        || OrderOutboxEvent.STATUS_RETRYING.equals(event.getStatus()))
+                .filter(event -> OrderOutboxStatus.NEW == event.getStatus()
+                        || OrderOutboxStatus.RETRYING == event.getStatus())
                 .filter(event -> event.getNextRetryAt() == null || !event.getNextRetryAt().isAfter(now))
                 .sorted(Comparator.comparing(OrderOutboxEvent::getCreatedAt)
                         .thenComparing(OrderOutboxEvent::getId))
@@ -60,14 +63,14 @@ public class InMemoryOrderOutboxSupport {
             if (stored == null) {
                 continue;
             }
-            if (!(OrderOutboxEvent.STATUS_NEW.equals(stored.getStatus())
-                    || OrderOutboxEvent.STATUS_RETRYING.equals(stored.getStatus()))) {
+            if (!(OrderOutboxStatus.NEW == stored.getStatus()
+                    || OrderOutboxStatus.RETRYING == stored.getStatus())) {
                 continue;
             }
             if (stored.getNextRetryAt() != null && stored.getNextRetryAt().isAfter(now)) {
                 continue;
             }
-            stored.setStatus(OrderOutboxEvent.STATUS_PROCESSING);
+            stored.setStatus(OrderOutboxStatus.PROCESSING);
             stored.setProcessingOwner(processingOwner);
             stored.setLeaseUntil(leaseUntil);
             stored.setClaimedAt(now);
@@ -80,10 +83,10 @@ public class InMemoryOrderOutboxSupport {
     public synchronized int releaseExpiredLease(Instant now) {
         int updated = 0;
         for (OrderOutboxEvent event : outboxStorage.values()) {
-            if (OrderOutboxEvent.STATUS_PROCESSING.equals(event.getStatus())
+            if (OrderOutboxStatus.PROCESSING == event.getStatus()
                     && event.getLeaseUntil() != null
                     && !event.getLeaseUntil().isAfter(now)) {
-                event.setStatus(OrderOutboxEvent.STATUS_RETRYING);
+                event.setStatus(OrderOutboxStatus.RETRYING);
                 event.setProcessingOwner(null);
                 event.setLeaseUntil(null);
                 event.setClaimedAt(null);
@@ -100,7 +103,7 @@ public class InMemoryOrderOutboxSupport {
         if (event == null || !isClaimedBy(event, processingOwner)) {
             return false;
         }
-        event.setStatus(OrderOutboxEvent.STATUS_RETRYING);
+        event.setStatus(OrderOutboxStatus.RETRYING);
         event.setRetryCount(retryCount);
         event.setNextRetryAt(nextRetryAt);
         event.setErrorMessage(truncate(errorMessage));
@@ -117,7 +120,7 @@ public class InMemoryOrderOutboxSupport {
         if (event == null || !isClaimedBy(event, processingOwner)) {
             return false;
         }
-        event.setStatus(OrderOutboxEvent.STATUS_DEAD);
+        event.setStatus(OrderOutboxStatus.DEAD);
         event.setRetryCount(retryCount);
         event.setDeadReason(deadReason);
         event.setErrorMessage(truncate(errorMessage));
@@ -156,7 +159,7 @@ public class InMemoryOrderOutboxSupport {
     }
 
     private boolean isClaimedBy(OrderOutboxEvent event, String processingOwner) {
-        return OrderOutboxEvent.STATUS_PROCESSING.equals(event.getStatus())
+        return OrderOutboxStatus.PROCESSING == event.getStatus()
                 && processingOwner.equals(event.getProcessingOwner());
     }
 
@@ -168,7 +171,9 @@ public class InMemoryOrderOutboxSupport {
     }
 
     private OrderOutboxEvent copy(OrderOutboxEvent source) {
-        return new OrderOutboxEvent(source.getId(), source.getEventId(), source.getTenantId(), source.getOrderNo(), source.getEventType(),
+        return new OrderOutboxEvent(source.getId(), source.getEventId(),
+                source.getTenantId() == null ? null : TenantId.of(source.getTenantId().value()),
+                source.getOrderNo() == null ? null : OrderNo.of(source.getOrderNo().value()), source.getEventType(),
                 source.getBusinessKey(), source.getPayload(), source.getStatus(), source.getRetryCount(),
                 source.getNextRetryAt(), source.getProcessingOwner(), source.getLeaseUntil(), source.getClaimedAt(),
                 source.getErrorMessage(), source.getDeadReason(), source.getCreatedAt(), source.getUpdatedAt());

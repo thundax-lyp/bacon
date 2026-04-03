@@ -3,15 +3,19 @@ package com.github.thundax.bacon.order.application.saga;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
@@ -50,24 +54,24 @@ public class OrderOutboxActionExecutor {
     public void enqueueReserveStock(Long tenantId, String orderNo, String channelCode) {
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode == null ? "MOCK" : channelCode);
-        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, null, tenantId, orderNo,
-                OrderOutboxEvent.EVENT_RESERVE_STOCK,
+        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, null, toTenantId(tenantId), toOrderNo(orderNo),
+                OrderOutboxEventType.RESERVE_STOCK,
                 tenantId + ":" + orderNo + ":RESERVE", OrderOutboxPayloadCodec.encode(payload),
-                OrderOutboxEvent.STATUS_NEW, 0, null, null, null, null, null,
+                OrderOutboxStatus.NEW, 0, null, null, null, null, null,
                 null, Instant.now(), Instant.now()));
     }
 
     public void executeClaimed(OrderOutboxEvent event) {
         // Outbox 事件是订单创建链路的异步阶段机，事件类型决定当前推进到哪一步。
-        if (OrderOutboxEvent.EVENT_RESERVE_STOCK.equals(event.getEventType())) {
+        if (OrderOutboxEventType.RESERVE_STOCK == event.getEventType()) {
             executeReserveStock(event);
             return;
         }
-        if (OrderOutboxEvent.EVENT_CREATE_PAYMENT.equals(event.getEventType())) {
+        if (OrderOutboxEventType.CREATE_PAYMENT == event.getEventType()) {
             executeCreatePayment(event);
             return;
         }
-        if (OrderOutboxEvent.EVENT_RELEASE_STOCK.equals(event.getEventType())) {
+        if (OrderOutboxEventType.RELEASE_STOCK == event.getEventType()) {
             executeReleaseStock(event);
             return;
         }
@@ -75,7 +79,7 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReserveStock(OrderOutboxEvent event) {
-        Order order = findOrder(event.getTenantId(), event.getOrderNo());
+        Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
         List<OrderItem> items = orderRepository.findItemsByOrderId(order.getTenantIdValue(), toOrderIdValue(order),
                 order.getCurrencyCode());
         List<InventoryReservationItemDTO> reserveItems = items.stream()
@@ -104,15 +108,15 @@ public class OrderOutboxActionExecutor {
         String channelCode = source.getOrDefault("channelCode", "MOCK");
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode);
-        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, null, order.getTenantIdValue(), order.getOrderNoValue(),
-                OrderOutboxEvent.EVENT_CREATE_PAYMENT,
+        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, null, order.getTenantId(), order.getOrderNo(),
+                OrderOutboxEventType.CREATE_PAYMENT,
                 order.getTenantIdValue() + ":" + order.getOrderNoValue() + ":CREATE_PAYMENT",
-                OrderOutboxPayloadCodec.encode(payload), OrderOutboxEvent.STATUS_NEW, 0, null, null, null,
+                OrderOutboxPayloadCodec.encode(payload), OrderOutboxStatus.NEW, 0, null, null, null,
                 null, null, null, Instant.now(), Instant.now()));
     }
 
     private void executeCreatePayment(OrderOutboxEvent event) {
-        Order order = findOrder(event.getTenantId(), event.getOrderNo());
+        Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
         PaymentCreateResultDTO paymentResult = paymentCommandFacade.createPayment(order.getTenantIdValue(), order.getOrderNoValue(),
@@ -128,10 +132,10 @@ public class OrderOutboxActionExecutor {
 
             Map<String, String> releasePayload = new LinkedHashMap<>();
             releasePayload.put("reason", CLOSE_REASON_PAYMENT_CREATE_FAILED);
-            orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, null, order.getTenantIdValue(), order.getOrderNoValue(),
-                    OrderOutboxEvent.EVENT_RELEASE_STOCK,
+            orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, null, order.getTenantId(), order.getOrderNo(),
+                    OrderOutboxEventType.RELEASE_STOCK,
                     order.getTenantIdValue() + ":" + order.getOrderNoValue() + ":RELEASE_PAYMENT_CREATE_FAILED",
-                    OrderOutboxPayloadCodec.encode(releasePayload), OrderOutboxEvent.STATUS_NEW, 0, null,
+                    OrderOutboxPayloadCodec.encode(releasePayload), OrderOutboxStatus.NEW, 0, null,
                     null, null, null, null, null, Instant.now(), Instant.now()));
             return;
         }
@@ -150,7 +154,7 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReleaseStock(OrderOutboxEvent event) {
-        Order order = findOrder(event.getTenantId(), event.getOrderNo());
+        Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
         String reason = OrderOutboxPayloadCodec.decode(event.getPayload()).getOrDefault("reason", "SYSTEM_CANCELLED");
         InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(order.getTenantIdValue(),
                 order.getOrderNoValue(), reason);
@@ -183,5 +187,13 @@ public class OrderOutboxActionExecutor {
 
     private WarehouseNo toWarehouseNo(Long warehouseId) {
         return warehouseId == null ? null : WarehouseNo.of(String.valueOf(warehouseId));
+    }
+
+    private TenantId toTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+    }
+
+    private OrderNo toOrderNo(String orderNo) {
+        return orderNo == null ? null : OrderNo.of(orderNo);
     }
 }

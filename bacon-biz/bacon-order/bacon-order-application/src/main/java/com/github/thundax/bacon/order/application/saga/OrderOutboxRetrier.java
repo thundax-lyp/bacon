@@ -82,11 +82,11 @@ public class OrderOutboxRetrier {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (orderOutboxRepository.markDeadClaimed(event.getId(), owner, nextRetryCount, deadReason, message, now)) {
                 orderOutboxDeadLetterRepository.saveDeadLetter(new OrderOutboxDeadLetter(null, event.getId(),
-                        event.getTenantId(), event.getOrderNo(), event.getEventType(), event.getBusinessKey(),
+                        event.getTenantIdValue(), event.getOrderNoValue(), event.getEventTypeValue(), event.getBusinessKey(),
                         event.getPayload(), nextRetryCount, message, deadReason, now,
                         OrderOutboxDeadLetter.REPLAY_STATUS_PENDING, 0, null, null, now, now));
                 log.error("ALERT order outbox retry exhausted, outboxId={}, eventType={}, orderNo={}",
-                        event.getId(), event.getEventType(), event.getOrderNo(), ex);
+                        event.getId(), event.getEventTypeValue(), event.getOrderNoValue(), ex);
             }
             return;
         }
@@ -94,7 +94,7 @@ public class OrderOutboxRetrier {
         Instant nextRetryAt = now.plusSeconds(nextDelaySeconds(nextRetryCount));
         orderOutboxRepository.markRetryingClaimed(event.getId(), owner, nextRetryCount, nextRetryAt, message, now);
         log.warn("Order outbox retry failed, outboxId={}, eventType={}, orderNo={}, retryCount={}",
-                event.getId(), event.getEventType(), event.getOrderNo(), nextRetryCount, ex);
+                event.getId(), event.getEventTypeValue(), event.getOrderNoValue(), nextRetryCount, ex);
     }
 
     private long nextDelaySeconds(int retryCount) {

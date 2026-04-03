@@ -2,9 +2,13 @@ package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventId;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxDeadLetterDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxEventDO;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderOutboxDeadLetterMapper;
@@ -41,7 +45,7 @@ public class OrderOutboxRepositorySupport {
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
         dataObject.setUpdatedAt(now);
         if (dataObject.getStatus() == null) {
-            dataObject.setStatus(OrderOutboxEvent.STATUS_NEW);
+            dataObject.setStatus(OrderOutboxStatus.NEW.value());
         }
         if (dataObject.getRetryCount() == null) {
             dataObject.setRetryCount(0);
@@ -60,8 +64,8 @@ public class OrderOutboxRepositorySupport {
 
     public List<OrderOutboxEvent> claimRetryableOutbox(Instant now, int limit, String processingOwner, Instant leaseUntil) {
         List<OrderOutboxEventDO> candidates = outboxEventMapper.selectList(Wrappers.<OrderOutboxEventDO>lambdaQuery()
-                        .in(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_NEW,
-                                OrderOutboxEvent.STATUS_RETRYING)
+                        .in(OrderOutboxEventDO::getStatus, OrderOutboxStatus.NEW.value(),
+                                OrderOutboxStatus.RETRYING.value())
                         .and(wrapper -> wrapper.isNull(OrderOutboxEventDO::getNextRetryAt)
                                 .or().le(OrderOutboxEventDO::getNextRetryAt, now))
                         .orderByAsc(OrderOutboxEventDO::getCreatedAt, OrderOutboxEventDO::getId)
@@ -79,10 +83,10 @@ public class OrderOutboxRepositorySupport {
             }
             int updated = outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDO>lambdaUpdate()
                     .eq(OrderOutboxEventDO::getId, candidate.getId())
-                    .in(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_NEW, OrderOutboxEvent.STATUS_RETRYING)
+                    .in(OrderOutboxEventDO::getStatus, OrderOutboxStatus.NEW.value(), OrderOutboxStatus.RETRYING.value())
                     .and(wrapper -> wrapper.isNull(OrderOutboxEventDO::getNextRetryAt)
                             .or().le(OrderOutboxEventDO::getNextRetryAt, now))
-                    .set(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_PROCESSING)
+                    .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
                     .set(OrderOutboxEventDO::getProcessingOwner, processingOwner)
                     .set(OrderOutboxEventDO::getLeaseUntil, leaseUntil)
                     .set(OrderOutboxEventDO::getClaimedAt, now)
@@ -101,9 +105,9 @@ public class OrderOutboxRepositorySupport {
     public int releaseExpiredLease(Instant now) {
         // 租约过期的 PROCESSING 事件统一回到 RETRYING，等待下一轮重试器重新认领。
         return outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDO>lambdaUpdate()
-                .eq(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_PROCESSING)
+                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
                 .le(OrderOutboxEventDO::getLeaseUntil, now)
-                .set(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_RETRYING)
+                .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.RETRYING.value())
                 .set(OrderOutboxEventDO::getProcessingOwner, null)
                 .set(OrderOutboxEventDO::getLeaseUntil, null)
                 .set(OrderOutboxEventDO::getClaimedAt, null)
@@ -115,9 +119,9 @@ public class OrderOutboxRepositorySupport {
         // 只有当前 owner 仍持有执行权时才允许改回 RETRYING，避免旧节点回写覆盖新节点状态。
         return outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDO>lambdaUpdate()
                 .eq(OrderOutboxEventDO::getId, outboxId)
-                .eq(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_PROCESSING)
+                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
                 .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)
-                .set(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_RETRYING)
+                .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.RETRYING.value())
                 .set(OrderOutboxEventDO::getRetryCount, retryCount)
                 .set(OrderOutboxEventDO::getNextRetryAt, nextRetryAt)
                 .set(OrderOutboxEventDO::getErrorMessage, truncate(errorMessage))
@@ -132,9 +136,9 @@ public class OrderOutboxRepositorySupport {
         // DEAD 也是带 owner 条件的 CAS 更新，确保只有最后一次失败的真实执行者能把事件送进死信。
         return outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDO>lambdaUpdate()
                 .eq(OrderOutboxEventDO::getId, outboxId)
-                .eq(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_PROCESSING)
+                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
                 .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)
-                .set(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_DEAD)
+                .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.DEAD.value())
                 .set(OrderOutboxEventDO::getRetryCount, retryCount)
                 .set(OrderOutboxEventDO::getDeadReason, deadReason)
                 .set(OrderOutboxEventDO::getErrorMessage, truncate(errorMessage))
@@ -147,7 +151,7 @@ public class OrderOutboxRepositorySupport {
     public boolean deleteClaimed(Long outboxId, String processingOwner) {
         return outboxEventMapper.delete(Wrappers.<OrderOutboxEventDO>lambdaQuery()
                 .eq(OrderOutboxEventDO::getId, outboxId)
-                .eq(OrderOutboxEventDO::getStatus, OrderOutboxEvent.STATUS_PROCESSING)
+                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
                 .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)) > 0;
     }
 
@@ -173,16 +177,19 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxEventDO toDataObject(OrderOutboxEvent event) {
-        return new OrderOutboxEventDO(event.getId(), toDatabaseEventId(event.getEventId()), event.getTenantId(), event.getOrderNo(),
-                event.getEventType(), event.getBusinessKey(), event.getPayload(), event.getStatus(),
+        return new OrderOutboxEventDO(event.getId(), toDatabaseEventId(event.getEventId()), toDatabaseTenantId(event.getTenantId()),
+                toDatabaseOrderNo(event.getOrderNo()), toDatabaseEventType(event.getEventType()), event.getBusinessKey(),
+                event.getPayload(), toDatabaseStatus(event.getStatus()),
                 event.getRetryCount(), event.getNextRetryAt(), event.getProcessingOwner(), event.getLeaseUntil(),
                 event.getClaimedAt(), event.getErrorMessage(), event.getDeadReason(), event.getCreatedAt(),
                 event.getUpdatedAt());
     }
 
     private OrderOutboxEvent toDomain(OrderOutboxEventDO dataObject) {
-        return new OrderOutboxEvent(dataObject.getId(), toDomainEventId(dataObject.getEventId()), dataObject.getTenantId(), dataObject.getOrderNo(),
-                dataObject.getEventType(), dataObject.getBusinessKey(), dataObject.getPayload(), dataObject.getStatus(),
+        return new OrderOutboxEvent(dataObject.getId(), toDomainEventId(dataObject.getEventId()),
+                toDomainTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
+                toDomainEventType(dataObject.getEventType()), dataObject.getBusinessKey(), dataObject.getPayload(),
+                toDomainStatus(dataObject.getStatus()),
                 dataObject.getRetryCount(), dataObject.getNextRetryAt(), dataObject.getProcessingOwner(),
                 dataObject.getLeaseUntil(), dataObject.getClaimedAt(), dataObject.getErrorMessage(),
                 dataObject.getDeadReason(), dataObject.getCreatedAt(), dataObject.getUpdatedAt());
@@ -198,6 +205,38 @@ public class OrderOutboxRepositorySupport {
 
     private EventId toDomainEventId(String eventId) {
         return eventId == null ? null : EventId.of(eventId);
+    }
+
+    private Long toDatabaseTenantId(TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    private TenantId toDomainTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+    }
+
+    private String toDatabaseOrderNo(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    private OrderNo toDomainOrderNo(String orderNo) {
+        return orderNo == null ? null : OrderNo.of(orderNo);
+    }
+
+    private String toDatabaseEventType(OrderOutboxEventType eventType) {
+        return eventType == null ? null : eventType.value();
+    }
+
+    private OrderOutboxEventType toDomainEventType(String eventType) {
+        return eventType == null ? null : OrderOutboxEventType.fromValue(eventType);
+    }
+
+    private String toDatabaseStatus(OrderOutboxStatus status) {
+        return status == null ? null : status.value();
+    }
+
+    private OrderOutboxStatus toDomainStatus(String status) {
+        return status == null ? null : OrderOutboxStatus.fromValue(status);
     }
 
     private OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {

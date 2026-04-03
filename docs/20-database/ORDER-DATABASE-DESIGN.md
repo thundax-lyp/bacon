@@ -302,7 +302,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 雪花主键，仅 DO 内部使用 |
+| `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
 | `outbox_id` | `bigint` | N | outbox 主键 |
 | `event_id` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |

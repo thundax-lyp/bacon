@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -22,7 +23,7 @@ public class PaymentOrder {
     /** 支付主单主键。 */
     private final PaymentOrderId id;
     /** 所属租户主键。 */
-    private final Long tenantId;
+    private final TenantId tenantId;
     /** 支付单号。 */
     private final String paymentNo;
     /** 关联订单号。 */
@@ -54,7 +55,7 @@ public class PaymentOrder {
     /** 最近一次回调摘要。 */
     private String callbackSummary;
 
-    public PaymentOrder(PaymentOrderId id, Long tenantId, String paymentNo, String orderNo, Long userId, String channelCode,
+    public PaymentOrder(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo, Long userId, String channelCode,
                         BigDecimal amount, String subject, Instant expiredAt, Instant createdAt) {
         this.id = id;
         this.tenantId = tenantId;
@@ -70,7 +71,7 @@ public class PaymentOrder {
         this.paidAmount = BigDecimal.ZERO;
     }
 
-    public static PaymentOrder rehydrate(PaymentOrderId id, Long tenantId, String paymentNo, String orderNo, Long userId,
+    public static PaymentOrder rehydrate(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo, Long userId,
                                          String channelCode, BigDecimal amount, BigDecimal paidAmount, String subject,
                                          Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
                                          String paymentStatus, String channelTransactionNo, String channelStatus,

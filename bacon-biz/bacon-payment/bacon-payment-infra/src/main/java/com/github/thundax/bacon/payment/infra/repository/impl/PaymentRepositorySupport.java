@@ -2,6 +2,7 @@ package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
@@ -131,7 +132,8 @@ public class PaymentRepositorySupport {
 
     private PaymentOrderDO toDataObject(PaymentOrder paymentOrder, Instant now) {
         // strict 持久化模型里，主表只固化主单核心字段；渠道交易号、回调摘要等证据留在回调表。
-        return new PaymentOrderDO(toDatabaseId(paymentOrder.getId()), paymentOrder.getTenantId(), paymentOrder.getPaymentNo(),
+        return new PaymentOrderDO(toDatabaseId(paymentOrder.getId()), toDatabaseTenantId(paymentOrder.getTenantId()),
+                paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(), paymentOrder.getUserId(), paymentOrder.getChannelCode(),
                 paymentOrder.getPaymentStatus(), paymentOrder.getAmount(), paymentOrder.getPaidAmount(),
                 paymentOrder.getSubject(), paymentOrder.getCreatedAt(), now, paymentOrder.getExpiredAt(),
@@ -140,7 +142,8 @@ public class PaymentRepositorySupport {
 
     private PaymentOrder toDomain(PaymentOrderDO dataObject) {
         // rehydrate 主单时不会从主表反填渠道回调细节，查询层需要时再结合 callback record 补足展示信息。
-        return PaymentOrder.rehydrate(toDomainId(dataObject.getId()), dataObject.getTenantId(), dataObject.getPaymentNo(),
+        return PaymentOrder.rehydrate(toDomainId(dataObject.getId()), toDomainTenantId(dataObject.getTenantId()),
+                dataObject.getPaymentNo(),
                 dataObject.getOrderNo(), dataObject.getUserId(), dataObject.getChannelCode(),
                 dataObject.getAmount(), dataObject.getPaidAmount(), dataObject.getSubject(), dataObject.getCreatedAt(),
                 dataObject.getExpiredAt(), dataObject.getPaidAt(), dataObject.getClosedAt(), dataObject.getPaymentStatus(),
@@ -153,6 +156,14 @@ public class PaymentRepositorySupport {
 
     private PaymentOrderId toDomainId(Long id) {
         return id == null ? null : PaymentOrderId.of(String.valueOf(id));
+    }
+
+    private Long toDatabaseTenantId(TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    private TenantId toDomainTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
     }
 
     private PaymentCallbackRecordDO toDataObject(PaymentCallbackRecord callbackRecord) {

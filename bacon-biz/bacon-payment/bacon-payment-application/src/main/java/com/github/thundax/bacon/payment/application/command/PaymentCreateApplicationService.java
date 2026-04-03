@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.application.command;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
@@ -40,7 +41,7 @@ public class PaymentCreateApplicationService {
         if (paymentNo == null || paymentNo.isBlank()) {
             throw new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE, "payment-no-generator");
         }
-        PaymentOrder paymentOrder = new PaymentOrder(null, tenantId, paymentNo, orderNo, userId,
+        PaymentOrder paymentOrder = new PaymentOrder(null, toTenantId(tenantId), paymentNo, orderNo, userId,
                 channelCode, amount, subject, expiredAt, Instant.now());
         // 创建后立即进入 PAYING，表示渠道拉起参数已经准备好，后续只等待回调或显式关闭。
         paymentOrder.markPaying();
@@ -73,7 +74,16 @@ public class PaymentCreateApplicationService {
         // 只有处于 PAYING 的支付单才继续暴露 payPayload 和过期时间；终态单查询时不再返回重新拉起信息。
         String payPayload = PaymentOrder.STATUS_PAYING.equals(paymentOrder.getPaymentStatus()) ? channelPayload.getPayUrl() : null;
         Instant dtoExpiredAt = PaymentOrder.STATUS_PAYING.equals(paymentOrder.getPaymentStatus()) ? paymentOrder.getExpiredAt() : null;
-        return new PaymentCreateResultDTO(paymentOrder.getTenantId(), paymentOrder.getPaymentNo(), paymentOrder.getOrderNo(),
+        return new PaymentCreateResultDTO(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
+                paymentOrder.getOrderNo(),
                 paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus(), payPayload, dtoExpiredAt, failureReason);
+    }
+
+    private TenantId toTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+    }
+
+    private Long toTenantValue(TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
     }
 }

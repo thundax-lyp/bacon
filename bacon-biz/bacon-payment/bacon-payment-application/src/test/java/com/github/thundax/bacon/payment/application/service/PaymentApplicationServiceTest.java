@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.application.service;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
@@ -244,8 +245,16 @@ class PaymentApplicationServiceTest {
             return List.copyOf(auditLogsByPaymentNo.getOrDefault(paymentKey(tenantId, paymentNo), List.of()));
         }
 
+        private static String paymentKey(TenantId tenantId, String paymentNo) {
+            return tenantId.value() + ":" + paymentNo;
+        }
+
         private static String paymentKey(Long tenantId, String paymentNo) {
             return tenantId + ":" + paymentNo;
+        }
+
+        private static String orderKey(TenantId tenantId, String orderNo) {
+            return tenantId.value() + ":" + orderNo;
         }
 
         private static String orderKey(Long tenantId, String orderNo) {

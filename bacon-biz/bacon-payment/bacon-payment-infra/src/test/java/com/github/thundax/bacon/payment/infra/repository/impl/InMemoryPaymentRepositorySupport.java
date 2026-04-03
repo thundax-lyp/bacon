@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -49,11 +50,11 @@ public class InMemoryPaymentRepositorySupport {
     }
 
     public Optional<PaymentOrder> findOrderByPaymentNo(Long tenantId, String paymentNo) {
-        return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(tenantId, paymentNo)));
+        return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(TenantId.of(String.valueOf(tenantId)), paymentNo)));
     }
 
     public Optional<PaymentOrder> findOrderByOrderNo(Long tenantId, String orderNo) {
-        return Optional.ofNullable(paymentsByOrderNo.get(orderKey(tenantId, orderNo)));
+        return Optional.ofNullable(paymentsByOrderNo.get(orderKey(TenantId.of(String.valueOf(tenantId)), orderNo)));
     }
 
     public PaymentCallbackRecord saveCallbackRecord(PaymentCallbackRecord callbackRecord) {
@@ -83,7 +84,8 @@ public class InMemoryPaymentRepositorySupport {
     }
 
     public List<PaymentCallbackRecord> findCallbacksByPaymentNo(Long tenantId, String paymentNo) {
-        return List.copyOf(callbackRecordsByPaymentNo.getOrDefault(paymentKey(tenantId, paymentNo), List.of()));
+        return List.copyOf(callbackRecordsByPaymentNo.getOrDefault(paymentKey(TenantId.of(String.valueOf(tenantId)),
+                paymentNo), List.of()));
     }
 
     public void saveAuditLog(PaymentAuditLog auditLog) {
@@ -101,8 +103,16 @@ public class InMemoryPaymentRepositorySupport {
         return List.copyOf(auditLogsByPaymentNo.getOrDefault(paymentKey(tenantId, paymentNo), List.of()));
     }
 
+    private static String paymentKey(TenantId tenantId, String paymentNo) {
+        return tenantId.value() + ":" + paymentNo;
+    }
+
     private static String paymentKey(Long tenantId, String paymentNo) {
         return tenantId + ":" + paymentNo;
+    }
+
+    private static String orderKey(TenantId tenantId, String orderNo) {
+        return tenantId.value() + ":" + orderNo;
     }
 
     private static String orderKey(Long tenantId, String orderNo) {

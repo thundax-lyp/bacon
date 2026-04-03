@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.application.query;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -33,7 +34,7 @@ public class PaymentQueryApplicationService {
 
     private PaymentDetailDTO toDetail(PaymentOrder paymentOrder) {
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
-                .findLatestCallbackByPaymentNo(paymentOrder.getTenantId(), paymentOrder.getPaymentNo())
+                .findLatestCallbackByPaymentNo(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo())
                 .orElse(null);
         // 详情查询优先使用主单快照字段；只有主单还没固化对应信息时，才退回最近回调记录补齐展示字段。
         String channelTransactionNo = paymentOrder.getChannelTransactionNo() != null
@@ -45,10 +46,15 @@ public class PaymentQueryApplicationService {
         String callbackSummary = paymentOrder.getCallbackSummary() != null
                 ? paymentOrder.getCallbackSummary()
                 : latestRecord != null ? latestRecord.summarize() : null;
-        return new PaymentDetailDTO(paymentOrder.getTenantId(), paymentOrder.getPaymentNo(), paymentOrder.getOrderNo(),
+        return new PaymentDetailDTO(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
+                paymentOrder.getOrderNo(),
                 paymentOrder.getUserId(), paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus(),
                 paymentOrder.getAmount(), paymentOrder.getPaidAmount(), paymentOrder.getCreatedAt(),
                 paymentOrder.getExpiredAt(), paymentOrder.getPaidAt(), paymentOrder.getSubject(),
                 paymentOrder.getClosedAt(), channelTransactionNo, channelStatus, callbackSummary);
+    }
+
+    private Long toTenantValue(TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
     }
 }

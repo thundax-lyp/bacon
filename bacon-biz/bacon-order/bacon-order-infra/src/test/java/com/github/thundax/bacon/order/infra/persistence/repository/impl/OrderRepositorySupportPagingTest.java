@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.infra.repository.impl.OrderRepositorySupport;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderAuditLogMapper;
@@ -26,10 +27,11 @@ class OrderRepositorySupportPagingTest {
         OrderMapper orderMapper = createOrderMapper(pagedWrapperRef);
         OrderPaymentSnapshotMapper paymentMapper = createSnapshotMapper(OrderPaymentSnapshotMapper.class);
         OrderInventorySnapshotMapper inventoryMapper = createSnapshotMapper(OrderInventorySnapshotMapper.class);
+        IdGenerator idGenerator = bizTag -> 1L;
 
         OrderRepositorySupport support = new OrderRepositorySupport(orderMapper,
                 createNoopMapper(OrderItemMapper.class), paymentMapper, inventoryMapper,
-                createNoopMapper(OrderAuditLogMapper.class));
+                createNoopMapper(OrderAuditLogMapper.class), idGenerator);
 
         long total = support.countOrders(1001L, null, null, null, null, null,
                 null, null);

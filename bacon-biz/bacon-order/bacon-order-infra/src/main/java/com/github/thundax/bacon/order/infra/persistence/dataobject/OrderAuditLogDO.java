@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_order_audit_log")
 public class OrderAuditLogDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
     @TableField("tenant_id")
     private String tenantId;

@@ -3,6 +3,7 @@ package com.github.thundax.bacon.order.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -48,22 +49,27 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 public class OrderRepositorySupport {
 
+    private static final String AUDIT_LOG_ID_BIZ_TAG = "order_audit_log_id";
+
     private final OrderMapper orderMapper;
     private final OrderItemMapper orderItemMapper;
     private final OrderPaymentSnapshotMapper orderPaymentSnapshotMapper;
     private final OrderInventorySnapshotMapper orderInventorySnapshotMapper;
     private final OrderAuditLogMapper orderAuditLogMapper;
+    private final IdGenerator idGenerator;
 
     public OrderRepositorySupport(OrderMapper orderMapper,
                                   OrderItemMapper orderItemMapper,
                                   OrderPaymentSnapshotMapper orderPaymentSnapshotMapper,
                                   OrderInventorySnapshotMapper orderInventorySnapshotMapper,
-                                  OrderAuditLogMapper orderAuditLogMapper) {
+                                  OrderAuditLogMapper orderAuditLogMapper,
+                                  IdGenerator idGenerator) {
         this.orderMapper = orderMapper;
         this.orderItemMapper = orderItemMapper;
         this.orderPaymentSnapshotMapper = orderPaymentSnapshotMapper;
         this.orderInventorySnapshotMapper = orderInventorySnapshotMapper;
         this.orderAuditLogMapper = orderAuditLogMapper;
+        this.idGenerator = idGenerator;
         log.info("Using MyBatis-Plus order repository");
     }
 
@@ -165,7 +171,11 @@ public class OrderRepositorySupport {
     }
 
     public void saveAuditLog(OrderAuditLog auditLog) {
-        orderAuditLogMapper.insert(toDataObject(auditLog));
+        OrderAuditLogDO dataObject = toDataObject(auditLog);
+        if (dataObject.getId() == null) {
+            dataObject.setId(idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG));
+        }
+        orderAuditLogMapper.insert(dataObject);
     }
 
     public List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo) {

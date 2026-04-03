@@ -173,7 +173,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `payment_no` | `varchar(64)` | N | 支付单号，全局唯一 |

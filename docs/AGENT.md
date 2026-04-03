@@ -18,6 +18,7 @@
 按任务补充：
 
 - 业务实现：读取对应 [`10-requirements/*-REQUIREMENTS.md`](./10-requirements)
+- 新增类、重命名、目录调整、分层判断：再读 [`00-governance/NAMING-AND-PLACEMENT-RULES.md`](./00-governance/NAMING-AND-PLACEMENT-RULES.md)
 - 数据库相关：再读 [`00-governance/DATABASE-RULES.md`](./00-governance/DATABASE-RULES.md) 和对应 [`20-database/*-DATABASE-DESIGN.md`](./20-database)
 - 统一 ID 相关：再读 [`00-governance/UNIFIED-ID-DESIGN.md`](./00-governance/UNIFIED-ID-DESIGN.md)
 - 文档编写相关：再读 [`00-governance/DOCUMENT-RULES.md`](./00-governance/DOCUMENT-RULES.md)
@@ -55,4 +56,5 @@
 - Single-domain task: do not load other domain requirements by default
 - Database-only task: do not load all requirements by default
 - Cross-domain workflow: load only the involved domains
+- Class creation, renaming, placement, or layering tasks: load naming and placement rules on demand
 - If a design or readiness doc is referenced by the active requirement, load it on demand

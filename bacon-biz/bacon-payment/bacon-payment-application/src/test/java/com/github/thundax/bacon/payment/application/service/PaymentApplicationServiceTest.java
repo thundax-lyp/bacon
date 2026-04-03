@@ -12,6 +12,7 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
@@ -153,7 +154,7 @@ class PaymentApplicationServiceTest {
                 BigDecimal.ONE, "MOCK", "audit-fail", Instant.now().plusSeconds(1800)));
 
         assertEquals("PAY-20005", result.getPaymentNo());
-        assertEquals(PaymentOrder.STATUS_PAYING, repository.findOrderByPaymentNo(1001L, "PAY-20005").orElseThrow().getPaymentStatus());
+        assertEquals(PaymentStatus.PAYING, repository.findOrderByPaymentNo(1001L, "PAY-20005").orElseThrow().getPaymentStatus());
         assertEquals(0, repository.findAuditLogsByPaymentNo(1001L, "PAY-20005").size());
     }
 
@@ -173,7 +174,7 @@ class PaymentApplicationServiceTest {
                 "{\"tradeStatus\":\"SUCCESS\"}"));
 
         PaymentOrder paymentOrder = repository.findOrderByPaymentNo(1001L, "PAY-20006").orElseThrow();
-        assertEquals(PaymentOrder.STATUS_PAID, paymentOrder.getPaymentStatus());
+        assertEquals(PaymentStatus.PAID, paymentOrder.getPaymentStatus());
         assertEquals(1, orderCommandFacade.markPaidCount);
     }
 

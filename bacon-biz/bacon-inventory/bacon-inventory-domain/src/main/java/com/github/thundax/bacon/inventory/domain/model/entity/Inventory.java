@@ -18,8 +18,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Inventory {
 
-    public static final String STATUS_ENABLED = InventoryStatus.ENABLED.value();
-    public static final String STATUS_DISABLED = InventoryStatus.DISABLED.value();
     public static final WarehouseId DEFAULT_WAREHOUSE_ID = WarehouseId.of("1");
 
     /** 库存主键。 */

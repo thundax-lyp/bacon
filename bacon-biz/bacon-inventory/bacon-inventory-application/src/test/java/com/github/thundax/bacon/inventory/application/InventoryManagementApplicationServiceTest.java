@@ -6,6 +6,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -26,13 +27,13 @@ class InventoryManagementApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
-        InventoryStockDTO result = service.createInventory(1001L, 103L, 30, Inventory.STATUS_ENABLED);
+        InventoryStockDTO result = service.createInventory(1001L, 103L, 30, InventoryStatus.ENABLED.value());
 
         assertEquals(103L, result.getSkuId());
         assertEquals(30, result.getOnHandQuantity());
         assertEquals(0, result.getReservedQuantity());
         assertEquals(30, result.getAvailableQuantity());
-        assertEquals(Inventory.STATUS_ENABLED, result.getStatus());
+        assertEquals(InventoryStatus.ENABLED.value(), result.getStatus());
     }
 
     @Test
@@ -40,10 +41,10 @@ class InventoryManagementApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
-        InventoryStockDTO result = service.updateInventoryStatus(1001L, 101L, Inventory.STATUS_DISABLED);
+        InventoryStockDTO result = service.updateInventoryStatus(1001L, 101L, InventoryStatus.DISABLED.value());
 
-        assertEquals(Inventory.STATUS_DISABLED, result.getStatus());
-        assertEquals(Inventory.STATUS_DISABLED, repository.findInventory(1001L, 101L).orElseThrow().getStatus().value());
+        assertEquals(InventoryStatus.DISABLED.value(), result.getStatus());
+        assertEquals(InventoryStatus.DISABLED.value(), repository.findInventory(1001L, 101L).orElseThrow().getStatus().value());
     }
 
     private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,
@@ -53,7 +54,7 @@ class InventoryManagementApplicationServiceTest {
 
         private TestInventoryRepository() {
             inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100,
-                    Inventory.STATUS_ENABLED, 0L, Instant.now()));
+                    InventoryStatus.ENABLED.value(), 0L, Instant.now()));
         }
 
         @Override

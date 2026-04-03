@@ -8,6 +8,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -88,7 +89,7 @@ class InventoryControllerContractTest {
             InventoryReservationRepository, InventoryLogRepository {
 
         private final Inventory stock = new Inventory(1L, 1001L, 101L, 1L, 100,
-                10, 90, Inventory.STATUS_ENABLED, 1L, Instant.parse("2026-03-26T10:00:00Z"));
+                10, 90, InventoryStatus.ENABLED.value(), 1L, Instant.parse("2026-03-26T10:00:00Z"));
 
         @Override
         public Optional<Inventory> findInventory(Long tenantId, Long skuId) {

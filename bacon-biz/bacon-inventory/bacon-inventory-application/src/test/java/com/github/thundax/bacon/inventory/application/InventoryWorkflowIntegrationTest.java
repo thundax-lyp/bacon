@@ -12,6 +12,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutb
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
@@ -159,7 +160,7 @@ class InventoryWorkflowIntegrationTest {
         private OptimisticInventoryRepository(boolean failAuditPersist) {
             this.failAuditPersist = failAuditPersist;
             inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L,
-                    100, 0, 100, Inventory.STATUS_ENABLED, 0L,
+                    100, 0, 100, InventoryStatus.ENABLED.value(), 0L,
                     Instant.parse("2026-03-26T09:59:00Z")));
         }
 

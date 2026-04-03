@@ -7,6 +7,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -28,7 +29,7 @@ class InventoryQueryApplicationServiceTest {
         InventoryQueryApplicationService service = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         InventoryPageResultDTO result = service.pageInventories(new InventoryPageQueryDTO(1001L, null,
-                Inventory.STATUS_ENABLED, 1, 2));
+                InventoryStatus.ENABLED.value(), 1, 2));
 
         assertEquals(2, result.getRecords().size());
         assertEquals(3, result.getTotal());
@@ -57,13 +58,13 @@ class InventoryQueryApplicationServiceTest {
 
         private TestInventoryRepository() {
             inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100,
-                    Inventory.STATUS_ENABLED, 0L, Instant.now()));
+                    InventoryStatus.ENABLED.value(), 0L, Instant.now()));
             inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, 1L, 80, 0, 80,
-                    Inventory.STATUS_DISABLED, 0L, Instant.now()));
+                    InventoryStatus.DISABLED.value(), 0L, Instant.now()));
             inventories.put(key(1001L, 103L), new Inventory(3L, 1001L, 103L, 1L, 60, 0, 60,
-                    Inventory.STATUS_ENABLED, 0L, Instant.now()));
+                    InventoryStatus.ENABLED.value(), 0L, Instant.now()));
             inventories.put(key(1001L, 104L), new Inventory(4L, 1001L, 104L, 1L, 40, 0, 40,
-                    Inventory.STATUS_ENABLED, 0L, Instant.now()));
+                    InventoryStatus.ENABLED.value(), 0L, Instant.now()));
         }
 
         @Override

@@ -238,7 +238,7 @@ Order 是 Bacon 的统一订单业务域。
 - `OrderItem` 至少包含 `tenantId`、`orderId`、`skuId`、`skuName`、`imageUrl`、`quantity`、`salePrice`、`lineAmount`
 - `OrderAmount` 至少包含 `totalAmount`、`payableAmount`、`currencyCode`
 - `OrderSnapshot` 至少包含 `order`、`items`、`paymentSnapshot`、`inventorySnapshot`
-- `OrderPaymentSnapshot` 至少包含 `orderId`、`paymentNo`、`channelCode`、`payStatus`、`paidAmount`、`paidTime`、`failureReason`、`channelStatus`
+- `OrderPaymentSnapshot` 至少包含 `tenantId`、`orderId`、`paymentNo`、`channelCode`、`payStatus`、`paidAmount`、`paidTime`、`failureReason`、`channelStatus`
 - `OrderInventorySnapshot` 至少包含 `tenantId`、`orderNo`、`reservationNo`、`inventoryStatus`、`warehouseNo`、`failureReason`
 - `OrderAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
 
@@ -250,6 +250,16 @@ Order 是 Bacon 的统一订单业务域。
 - `OrderPaymentSnapshot.failureReason`、`channelStatus` 来自支付失败结果
 - `OrderInventorySnapshot.warehouseNo`、`failureReason` 来自 `Inventory`
 - `OrderInventorySnapshot.inventoryStatus` 来自 `InventoryReservationResultDTO.inventoryStatus`
+
+固定约束：
+
+- `OrderPaymentSnapshot.tenantId` 使用 `TenantId`
+- `OrderPaymentSnapshot.orderId` 使用 `OrderId`
+- `OrderPaymentSnapshot.paymentNo` 使用 `PaymentNo`
+- `OrderPaymentSnapshot.channelCode` 使用 `PaymentChannel`
+- `OrderPaymentSnapshot.payStatus` 使用 `PayStatus`
+- `OrderPaymentSnapshot.paidAmount` 使用 `Money`
+- `OrderPaymentSnapshot.channelStatus` 使用 `PaymentChannelStatus`
 
 ## 5.4 Fixed Request Contracts
 

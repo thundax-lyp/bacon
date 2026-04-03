@@ -15,10 +15,10 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_payment_callback_record")
 public class PaymentCallbackRecordDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
     @TableField("tenant_id")
-    private Long tenantId;
+    private String tenantId;
     @TableField("payment_no")
     private String paymentNo;
     @TableField("order_no")

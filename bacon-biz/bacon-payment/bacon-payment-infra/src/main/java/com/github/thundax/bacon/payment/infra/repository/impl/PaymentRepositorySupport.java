@@ -2,6 +2,7 @@ package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -30,16 +31,22 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 public class PaymentRepositorySupport {
 
+    private static final String PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG = "payment_callback_record_id";
+    private static final String PAYMENT_AUDIT_LOG_ID_BIZ_TAG = "payment_audit_log_id";
+
     private final PaymentOrderMapper paymentOrderMapper;
     private final PaymentCallbackRecordMapper paymentCallbackRecordMapper;
     private final PaymentAuditLogMapper paymentAuditLogMapper;
+    private final IdGenerator idGenerator;
 
     public PaymentRepositorySupport(PaymentOrderMapper paymentOrderMapper,
                                     PaymentCallbackRecordMapper paymentCallbackRecordMapper,
-                                    PaymentAuditLogMapper paymentAuditLogMapper) {
+                                    PaymentAuditLogMapper paymentAuditLogMapper,
+                                    IdGenerator idGenerator) {
         this.paymentOrderMapper = paymentOrderMapper;
         this.paymentCallbackRecordMapper = paymentCallbackRecordMapper;
         this.paymentAuditLogMapper = paymentAuditLogMapper;
+        this.idGenerator = idGenerator;
         log.info("Using MyBatis-Plus payment repository");
     }
 
@@ -60,14 +67,14 @@ public class PaymentRepositorySupport {
 
     public Optional<PaymentOrder> findOrderByPaymentNo(Long tenantId, String paymentNo) {
         return Optional.ofNullable(paymentOrderMapper.selectOne(Wrappers.<PaymentOrderDO>lambdaQuery()
-                        .eq(PaymentOrderDO::getTenantId, tenantId)
+                        .eq(PaymentOrderDO::getTenantId, String.valueOf(tenantId))
                         .eq(PaymentOrderDO::getPaymentNo, paymentNo)))
                 .map(this::toDomain);
     }
 
     public Optional<PaymentOrder> findOrderByOrderNo(Long tenantId, String orderNo) {
         return Optional.ofNullable(paymentOrderMapper.selectOne(Wrappers.<PaymentOrderDO>lambdaQuery()
-                        .eq(PaymentOrderDO::getTenantId, tenantId)
+                        .eq(PaymentOrderDO::getTenantId, String.valueOf(tenantId))
                         .eq(PaymentOrderDO::getOrderNo, orderNo)))
                 .map(this::toDomain);
     }
@@ -76,6 +83,7 @@ public class PaymentRepositorySupport {
         PaymentCallbackRecordDO dataObject = toDataObject(callbackRecord);
         // 回调记录以追加为主；只有明确带 id 的场景才走更新，避免正常回调把历史证据覆盖掉。
         if (dataObject.getId() == null) {
+            dataObject.setId(idGenerator.nextId(PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG));
             paymentCallbackRecordMapper.insert(dataObject);
         } else {
             paymentCallbackRecordMapper.updateById(dataObject);
@@ -86,7 +94,7 @@ public class PaymentRepositorySupport {
     public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(Long tenantId, String paymentNo) {
         // “最新回调”按 receivedAt + id 倒序取一条，用于查询兜底补全，而不是主单最终状态来源。
         return paymentCallbackRecordMapper.selectList(Wrappers.<PaymentCallbackRecordDO>lambdaQuery()
-                        .eq(PaymentCallbackRecordDO::getTenantId, tenantId)
+                        .eq(PaymentCallbackRecordDO::getTenantId, String.valueOf(tenantId))
                         .eq(PaymentCallbackRecordDO::getPaymentNo, paymentNo)
                         .orderByDesc(PaymentCallbackRecordDO::getReceivedAt, PaymentCallbackRecordDO::getId)
                         .last("limit 1"))
@@ -98,7 +106,7 @@ public class PaymentRepositorySupport {
     public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(Long tenantId, String channelCode,
                                                                               String channelTransactionNo) {
         return Optional.ofNullable(paymentCallbackRecordMapper.selectOne(Wrappers.<PaymentCallbackRecordDO>lambdaQuery()
-                        .eq(PaymentCallbackRecordDO::getTenantId, tenantId)
+                        .eq(PaymentCallbackRecordDO::getTenantId, String.valueOf(tenantId))
                         .eq(PaymentCallbackRecordDO::getChannelCode, channelCode)
                         .eq(PaymentCallbackRecordDO::getChannelTransactionNo, channelTransactionNo)))
                 .map(this::toDomain);
@@ -106,7 +114,7 @@ public class PaymentRepositorySupport {
 
     public List<PaymentCallbackRecord> findCallbacksByPaymentNo(Long tenantId, String paymentNo) {
         return paymentCallbackRecordMapper.selectList(Wrappers.<PaymentCallbackRecordDO>lambdaQuery()
-                        .eq(PaymentCallbackRecordDO::getTenantId, tenantId)
+                        .eq(PaymentCallbackRecordDO::getTenantId, String.valueOf(tenantId))
                         .eq(PaymentCallbackRecordDO::getPaymentNo, paymentNo)
                         .orderByDesc(PaymentCallbackRecordDO::getReceivedAt, PaymentCallbackRecordDO::getId))
                 .stream()
@@ -118,6 +126,7 @@ public class PaymentRepositorySupport {
         PaymentAuditLogDO dataObject = toDataObject(auditLog);
         // 支付审计正常情况下只追加；保留 updateById 只是为了兼容少量测试或补数据场景。
         if (dataObject.getId() == null) {
+            dataObject.setId(idGenerator.nextId(PAYMENT_AUDIT_LOG_ID_BIZ_TAG));
             paymentAuditLogMapper.insert(dataObject);
             return;
         }
@@ -126,7 +135,7 @@ public class PaymentRepositorySupport {
 
     public List<PaymentAuditLog> findAuditLogsByPaymentNo(Long tenantId, String paymentNo) {
         return paymentAuditLogMapper.selectList(Wrappers.<PaymentAuditLogDO>lambdaQuery()
-                        .eq(PaymentAuditLogDO::getTenantId, tenantId)
+                        .eq(PaymentAuditLogDO::getTenantId, String.valueOf(tenantId))
                         .eq(PaymentAuditLogDO::getPaymentNo, paymentNo)
                         .orderByAsc(PaymentAuditLogDO::getOccurredAt, PaymentAuditLogDO::getId))
                 .stream()
@@ -169,44 +178,52 @@ public class PaymentRepositorySupport {
         return id == null ? null : PaymentOrderId.of(String.valueOf(id));
     }
 
-    private Long toDatabaseTenantId(TenantId tenantId) {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    private String toDatabaseTenantId(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
     }
 
-    private TenantId toDomainTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+    private TenantId toDomainTenantId(String tenantId) {
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 
-    private Long toDatabaseUserId(UserId userId) {
-        return userId == null ? null : Long.valueOf(userId.value());
+    private String toDatabaseUserId(UserId userId) {
+        return userId == null ? null : userId.value();
     }
 
-    private UserId toDomainUserId(Long userId) {
-        return userId == null ? null : UserId.of(String.valueOf(userId));
+    private UserId toDomainUserId(String userId) {
+        return userId == null ? null : UserId.of(userId);
     }
 
     private PaymentCallbackRecordDO toDataObject(PaymentCallbackRecord callbackRecord) {
-        return new PaymentCallbackRecordDO(callbackRecord.getId(), callbackRecord.getTenantId(),
+        return new PaymentCallbackRecordDO(callbackRecord.getId(), String.valueOf(callbackRecord.getTenantId()),
                 callbackRecord.getPaymentNo(), callbackRecord.getOrderNo(), callbackRecord.getChannelCode(),
                 callbackRecord.getChannelTransactionNo(), callbackRecord.getChannelStatus(),
                 callbackRecord.getRawPayload(), callbackRecord.getReceivedAt());
     }
 
     private PaymentCallbackRecord toDomain(PaymentCallbackRecordDO dataObject) {
-        return new PaymentCallbackRecord(dataObject.getId(), dataObject.getTenantId(), dataObject.getPaymentNo(),
+        return new PaymentCallbackRecord(dataObject.getId(), Long.valueOf(dataObject.getTenantId()), dataObject.getPaymentNo(),
                 dataObject.getOrderNo(), dataObject.getChannelCode(), dataObject.getChannelTransactionNo(),
                 dataObject.getChannelStatus(), dataObject.getRawPayload(), dataObject.getReceivedAt());
     }
 
     private PaymentAuditLogDO toDataObject(PaymentAuditLog auditLog) {
-        return new PaymentAuditLogDO(auditLog.getId(), auditLog.getTenantId(), auditLog.getPaymentNo(),
+        return new PaymentAuditLogDO(auditLog.getId(), String.valueOf(auditLog.getTenantId()), auditLog.getPaymentNo(),
                 auditLog.getActionType(), auditLog.getBeforeStatus(), auditLog.getAfterStatus(),
-                auditLog.getOperatorType(), auditLog.getOperatorId(), auditLog.getOccurredAt());
+                auditLog.getOperatorType(), toDatabaseOperatorId(auditLog.getOperatorId()), auditLog.getOccurredAt());
     }
 
     private PaymentAuditLog toDomain(PaymentAuditLogDO dataObject) {
-        return new PaymentAuditLog(dataObject.getId(), dataObject.getTenantId(), dataObject.getPaymentNo(),
+        return new PaymentAuditLog(dataObject.getId(), Long.valueOf(dataObject.getTenantId()), dataObject.getPaymentNo(),
                 dataObject.getActionType(), dataObject.getBeforeStatus(), dataObject.getAfterStatus(),
-                dataObject.getOperatorType(), dataObject.getOperatorId(), dataObject.getOccurredAt());
+                dataObject.getOperatorType(), toDomainOperatorId(dataObject.getOperatorId()), dataObject.getOccurredAt());
+    }
+
+    private String toDatabaseOperatorId(Long operatorId) {
+        return operatorId == null ? null : String.valueOf(operatorId);
+    }
+
+    private Long toDomainOperatorId(String operatorId) {
+        return operatorId == null ? null : Long.valueOf(operatorId);
     }
 }

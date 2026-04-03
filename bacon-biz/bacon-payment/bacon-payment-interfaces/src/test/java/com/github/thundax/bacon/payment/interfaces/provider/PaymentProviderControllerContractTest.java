@@ -144,7 +144,7 @@ class PaymentProviderControllerContractTest {
             if (Long.valueOf(9999L).equals(tenantId)) {
                 throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
             }
-            return new PaymentDetailDTO(tenantId, paymentNo, "ORD-10001", 2001L, "MOCK", "PAID",
+            return new PaymentDetailDTO(String.valueOf(tenantId), paymentNo, "ORD-10001", "2001", "MOCK", "PAID",
                     new BigDecimal("88.80"), new BigDecimal("88.80"), Instant.parse("2026-03-27T10:00:00Z"),
                     Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:01:00Z"),
                     "provider-payment", null, "TXN-10001", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");

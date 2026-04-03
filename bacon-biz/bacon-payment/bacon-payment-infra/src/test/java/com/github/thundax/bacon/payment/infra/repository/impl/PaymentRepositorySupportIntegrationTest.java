@@ -2,6 +2,7 @@ package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -46,10 +47,10 @@ class PaymentRepositorySupportIntegrationTest {
             statement.execute("""
                     CREATE TABLE bacon_payment_order (
                         id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         payment_no varchar(64) NOT NULL,
                         order_no varchar(64) NOT NULL,
-                        user_id bigint NOT NULL,
+                        user_id varchar(64) NOT NULL,
                         channel_code varchar(32) NOT NULL,
                         payment_status varchar(16) NOT NULL,
                         amount decimal(18,2) NOT NULL,
@@ -68,8 +69,8 @@ class PaymentRepositorySupportIntegrationTest {
 
             statement.execute("""
                     CREATE TABLE bacon_payment_callback_record (
-                        id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         payment_no varchar(64) NOT NULL,
                         order_no varchar(64) NOT NULL,
                         channel_code varchar(32) NOT NULL,
@@ -83,14 +84,14 @@ class PaymentRepositorySupportIntegrationTest {
 
             statement.execute("""
                     CREATE TABLE bacon_payment_audit_log (
-                        id bigint NOT NULL AUTO_INCREMENT,
-                        tenant_id bigint NOT NULL,
+                        id bigint NOT NULL,
+                        tenant_id varchar(64) NOT NULL,
                         payment_no varchar(64) NOT NULL,
                         action_type varchar(64) NOT NULL,
                         before_status varchar(16) NULL,
                         after_status varchar(16) NULL,
                         operator_type varchar(32) NULL,
-                        operator_id bigint NULL,
+                        operator_id varchar(64) NULL,
                         occurred_at timestamp(3) NOT NULL,
                         PRIMARY KEY (id)
                     )
@@ -150,8 +151,15 @@ class PaymentRepositorySupportIntegrationTest {
         @Bean
         PaymentRepositorySupport paymentRepositorySupport(PaymentOrderMapper paymentOrderMapper,
                                                          PaymentCallbackRecordMapper paymentCallbackRecordMapper,
-                                                         PaymentAuditLogMapper paymentAuditLogMapper) {
-            return new PaymentRepositorySupport(paymentOrderMapper, paymentCallbackRecordMapper, paymentAuditLogMapper);
+                                                         PaymentAuditLogMapper paymentAuditLogMapper,
+                                                         IdGenerator idGenerator) {
+            return new PaymentRepositorySupport(paymentOrderMapper, paymentCallbackRecordMapper, paymentAuditLogMapper,
+                    idGenerator);
+        }
+
+        @Bean
+        IdGenerator idGenerator() {
+            return bizTag -> 1L;
         }
     }
 }

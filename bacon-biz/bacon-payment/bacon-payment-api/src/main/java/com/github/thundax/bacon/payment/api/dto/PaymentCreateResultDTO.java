@@ -15,7 +15,7 @@ import java.time.Instant;
 public class PaymentCreateResultDTO {
 
     /** 所属租户主键。 */
-    private Long tenantId;
+    private String tenantId;
     /** 支付单号。 */
     private String paymentNo;
     /** 关联订单号。 */

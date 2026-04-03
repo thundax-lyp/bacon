@@ -29,13 +29,14 @@ public class PaymentCallbackController {
     @PostMapping("/{channelCode}")
     public void callback(@PathVariable("channelCode") @NotBlank String channelCode,
                          @Valid @RequestBody PaymentCallbackRequest request) {
+        Long tenantId = Long.valueOf(request.getTenantId());
         if (request.isSuccess()) {
-            paymentCallbackApplicationService.callbackPaid(channelCode, request.getTenantId(),
+            paymentCallbackApplicationService.callbackPaid(channelCode, tenantId,
                     request.getPaymentNo(), request.getChannelTransactionNo(),
                     request.getChannelStatus(), request.getRawPayload());
             return;
         }
-        paymentCallbackApplicationService.callbackFailed(channelCode, request.getTenantId(),
+        paymentCallbackApplicationService.callbackFailed(channelCode, tenantId,
                 request.getPaymentNo(), request.getChannelStatus(), request.getRawPayload(), request.getReason());
     }
 }

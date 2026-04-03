@@ -35,7 +35,7 @@ public class PaymentQueryApplicationService {
 
     private PaymentDetailDTO toDetail(PaymentOrder paymentOrder) {
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
-                .findLatestCallbackByPaymentNo(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo())
+                .findLatestCallbackByPaymentNo(toLongTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo())
                 .orElse(null);
         // 详情查询优先使用主单快照字段；只有主单还没固化对应信息时，才退回最近回调记录补齐展示字段。
         String channelTransactionNo = paymentOrder.getChannelTransactionNo() != null
@@ -47,9 +47,9 @@ public class PaymentQueryApplicationService {
         String callbackSummary = paymentOrder.getCallbackSummary() != null
                 ? paymentOrder.getCallbackSummary()
                 : latestRecord != null ? latestRecord.summarize() : null;
-        return new PaymentDetailDTO(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
+        return new PaymentDetailDTO(toStringTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(),
-                toUserValue(paymentOrder.getUserId()), paymentOrder.getChannelCode().value(),
+                toStringUserValue(paymentOrder.getUserId()), paymentOrder.getChannelCode().value(),
                 paymentOrder.getPaymentStatus().value(), paymentOrder.getAmount().value(),
                 paymentOrder.getPaidAmount().value(),
                 paymentOrder.getCreatedAt(),
@@ -57,11 +57,15 @@ public class PaymentQueryApplicationService {
                 paymentOrder.getClosedAt(), channelTransactionNo, channelStatus, callbackSummary);
     }
 
-    private Long toTenantValue(TenantId tenantId) {
+    private Long toLongTenantValue(TenantId tenantId) {
         return tenantId == null ? null : Long.valueOf(tenantId.value());
     }
 
-    private Long toUserValue(UserId userId) {
-        return userId == null ? null : Long.valueOf(userId.value());
+    private String toStringTenantValue(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    private String toStringUserValue(UserId userId) {
+        return userId == null ? null : userId.value();
     }
 }

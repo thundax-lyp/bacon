@@ -15,10 +15,10 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_payment_audit_log")
 public class PaymentAuditLogDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
     @TableField("tenant_id")
-    private Long tenantId;
+    private String tenantId;
     @TableField("payment_no")
     private String paymentNo;
     @TableField("action_type")
@@ -30,7 +30,7 @@ public class PaymentAuditLogDO {
     @TableField("operator_type")
     private String operatorType;
     @TableField("operator_id")
-    private Long operatorId;
+    private String operatorId;
     @TableField("occurred_at")
     private Instant occurredAt;
 }

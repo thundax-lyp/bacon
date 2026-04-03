@@ -19,13 +19,13 @@ public class PaymentOrderDO {
     @TableId(type = IdType.AUTO)
     private Long id;
     @TableField("tenant_id")
-    private Long tenantId;
+    private String tenantId;
     @TableField("payment_no")
     private String paymentNo;
     @TableField("order_no")
     private String orderNo;
     @TableField("user_id")
-    private Long userId;
+    private String userId;
     @TableField("channel_code")
     private String channelCode;
     @TableField("payment_status")

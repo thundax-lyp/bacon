@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,10 +14,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "支付渠道回调请求")
 public class PaymentCallbackRequest {
 
-    @NotNull
-    @Positive
+    @NotBlank
     @Schema(description = "租户ID", example = "1001")
-    private Long tenantId;
+    private String tenantId;
 
     @NotBlank
     @Schema(description = "支付单号", example = "PAY202603230001")

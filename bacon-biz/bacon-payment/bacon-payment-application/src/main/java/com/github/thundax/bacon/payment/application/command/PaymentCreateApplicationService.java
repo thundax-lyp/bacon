@@ -86,8 +86,8 @@ public class PaymentCreateApplicationService {
         return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
     }
 
-    private Long toTenantValue(TenantId tenantId) {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    private String toTenantValue(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
     }
 
     private UserId toUserId(Long userId) {

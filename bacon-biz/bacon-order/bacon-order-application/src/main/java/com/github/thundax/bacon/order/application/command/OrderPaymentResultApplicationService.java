@@ -58,7 +58,7 @@ public class OrderPaymentResultApplicationService {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatusEnum();
-        order.markPaid(toPaymentNo(paymentNo), channelCode, Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCode())),
+        order.markPaid(toPaymentNo(paymentNo), channelCode, Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCodeValue())),
                 paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
         InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(tenantId, orderNo);

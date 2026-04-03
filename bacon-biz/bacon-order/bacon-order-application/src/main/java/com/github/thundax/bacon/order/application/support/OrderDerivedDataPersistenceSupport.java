@@ -36,7 +36,7 @@ public class OrderDerivedDataPersistenceSupport {
             orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), toOrderId(order),
                     toPaymentNo(order.getPaymentNoValue()), toPaymentChannel(order.getPaymentChannelCode()),
                     toPayStatus(order.getPayStatus()),
-                    toMoney(order.getPaidAmount(), order.getCurrencyCode()),
+                    toMoney(order.getPaidAmount(), order.getCurrencyCodeValue()),
                     order.getPaidAt(), order.getPaymentFailureReason(),
                     toPaymentChannelStatus(order.getPaymentChannelStatus()), now));
         }

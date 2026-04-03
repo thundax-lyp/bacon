@@ -263,7 +263,7 @@ public class OrderRepositorySupport {
     private OrderDO toDataObject(Order order) {
         return new OrderDO(toDatabaseOrderId(order.getId()), toDatabaseOrderTenantId(order.getTenantId()), toDatabaseOrderNo(order.getOrderNo()),
                 toDatabaseOrderUserId(order.getUserId()),
-                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getCurrencyCode(),
+                order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getCurrencyCodeValue(),
                 order.getTotalAmount().value(), order.getPayableAmount().value(), order.getRemark(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), Instant.now(), order.getExpiredAt(), order.getPaidAt(),
                 order.getClosedAt());

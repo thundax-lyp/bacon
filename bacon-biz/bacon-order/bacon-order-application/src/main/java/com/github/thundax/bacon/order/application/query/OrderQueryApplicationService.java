@@ -60,18 +60,18 @@ public class OrderQueryApplicationService {
     private OrderSummaryDTO toSummary(Order order) {
         return new OrderSummaryDTO(toOrderIdValue(order), order.getTenantIdValue(), order.getOrderNoValue(), toUserIdValue(order),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNoValue(),
-                order.getReservationNoValue(), order.getCurrencyCode(), order.getTotalAmount().value(),
+                order.getReservationNoValue(), order.getCurrencyCodeValue(), order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
                 order.getCancelReason(), order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt());
     }
 
     private OrderDetailDTO toDetail(Order order) {
         OrderPaymentSnapshot paymentSnapshot = orderRepository.findPaymentSnapshotByOrderId(order.getTenantIdValue(),
-                toOrderIdValue(order), order.getCurrencyCode()).orElse(null);
+                toOrderIdValue(order), order.getCurrencyCodeValue()).orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderNo(order.getTenantIdValue(),
                 order.getOrderNoValue()).orElse(null);
         List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantIdValue(), toOrderIdValue(order),
-                        order.getCurrencyCode()).stream()
+                        order.getCurrencyCodeValue()).stream()
                 .map(item -> new OrderItemDTO(item.getSkuIdValue(), item.getSkuName(), item.getImageUrl(), item.getQuantity(),
                         item.getSalePrice().value(), item.getLineAmount().value()))
                 .toList();
@@ -79,7 +79,7 @@ public class OrderQueryApplicationService {
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(),
                 paymentSnapshot == null ? order.getPaymentNoValue() : paymentSnapshot.paymentNoValue(),
                 inventorySnapshot == null ? order.getReservationNoValue() : inventorySnapshot.reservationNoValue(),
-                order.getCurrencyCode(), order.getTotalAmount().value(), order.getPayableAmount().value(), order.getCancelReason(),
+                order.getCurrencyCodeValue(), order.getTotalAmount().value(), order.getPayableAmount().value(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(), itemDtos,
                 buildPaymentSnapshot(order, paymentSnapshot), buildInventorySnapshot(order, inventorySnapshot),
                 order.getPaidAt(), order.getClosedAt());

@@ -71,7 +71,7 @@ public class OrderCreateApplicationService {
         return new OrderSummaryDTO(toOrderIdValue(savedOrder), savedOrder.getTenantIdValue(), savedOrder.getOrderNoValue(),
                 toUserIdValue(savedOrder), savedOrder.getOrderStatus(), savedOrder.getPayStatus(),
                 savedOrder.getInventoryStatus(), savedOrder.getPaymentNoValue(), savedOrder.getReservationNoValue(),
-                savedOrder.getCurrencyCode(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
+                savedOrder.getCurrencyCodeValue(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
                 savedOrder.getCancelReason(), savedOrder.getCloseReason(), savedOrder.getCreatedAt(),
                 savedOrder.getExpiredAt());
     }

@@ -14,7 +14,6 @@ import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import java.time.Instant;
-import lombok.AccessLevel;
 import lombok.Getter;
 
 /**
@@ -42,7 +41,6 @@ public class Order {
     /** 库存预占单号。 */
     private ReservationNo reservationNo;
     /** 币种编码。 */
-    @Getter(AccessLevel.NONE)
     private final CurrencyCode currencyCode;
     /** 订单总金额。 */
     private Money totalAmount;
@@ -151,12 +149,8 @@ public class Order {
                 inventoryDeductedAt);
     }
 
-    public String getCurrencyCode() {
+    public String getCurrencyCodeValue() {
         return currencyCode == null ? null : currencyCode.value();
-    }
-
-    public CurrencyCode getCurrencyCodeEnum() {
-        return currencyCode;
     }
 
     public String getOrderStatus() {

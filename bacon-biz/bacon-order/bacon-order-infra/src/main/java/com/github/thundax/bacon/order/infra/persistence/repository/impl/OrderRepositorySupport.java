@@ -373,13 +373,13 @@ public class OrderRepositorySupport {
     }
 
     private OrderAuditLogDO toDataObject(OrderAuditLog auditLog) {
-        return new OrderAuditLogDO(auditLog.id(), auditLog.tenantId(), auditLog.orderNo(), auditLog.actionType(),
+        return new OrderAuditLogDO(auditLog.id(), toDatabaseTenantId(auditLog.tenantId()), auditLog.orderNo(), auditLog.actionType(),
                 auditLog.beforeStatus(), auditLog.afterStatus(), auditLog.operatorType(), auditLog.operatorId(),
                 auditLog.occurredAt());
     }
 
     private OrderAuditLog toDomain(OrderAuditLogDO dataObject) {
-        return new OrderAuditLog(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
+        return new OrderAuditLog(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()), dataObject.getOrderNo(),
                 dataObject.getActionType(), dataObject.getBeforeStatus(), dataObject.getAfterStatus(),
                 dataObject.getOperatorType(), dataObject.getOperatorId(), dataObject.getOccurredAt());
     }

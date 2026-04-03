@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
@@ -94,7 +95,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     @Override
     public void saveAuditLog(OrderAuditLog auditLog) {
-        String key = auditLog.tenantId() + ":" + auditLog.orderNo();
+        String key = toTenantIdValue(auditLog.tenantId()) + ":" + auditLog.orderNo();
         auditLogStorage.computeIfAbsent(key, unused -> new java.util.ArrayList<>()).add(auditLog);
     }
 
@@ -152,5 +153,9 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     private Long toUserIdValue(Order order) {
         return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
+    }
+
+    private Long toTenantIdValue(TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
     }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import java.time.Instant;
 
 /**
@@ -9,7 +10,7 @@ public record OrderAuditLog(
         /** 审计日志主键。 */
         Long id,
         /** 所属租户主键。 */
-        Long tenantId,
+        TenantId tenantId,
         /** 订单号。 */
         String orderNo,
         /** 操作类型。 */

@@ -4,6 +4,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.common.id.domain.OrderId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -18,6 +19,7 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
@@ -279,8 +281,8 @@ class OrderCreateApplicationServiceTest {
         private final AtomicLong seq = new AtomicLong(10000);
 
         @Override
-        public String nextOrderNo() {
-            return "ORD-" + seq.incrementAndGet();
+        public OrderNo nextOrderNo() {
+            return OrderNo.of("ORD-" + seq.incrementAndGet());
         }
     }
 
@@ -357,7 +359,7 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void saveAuditLog(OrderAuditLog auditLog) {
-            String key = auditLog.tenantId() + ":" + auditLog.orderNo();
+            String key = toTenantIdValue(auditLog.tenantId()) + ":" + auditLog.orderNo();
             auditLogs.computeIfAbsent(key, unused -> new java.util.ArrayList<>()).add(auditLog);
         }
 
@@ -412,6 +414,10 @@ class OrderCreateApplicationServiceTest {
 
         private Long toUserIdValue(Order order) {
             return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
+        }
+
+        private Long toTenantIdValue(TenantId tenantId) {
+            return tenantId == null ? null : Long.valueOf(tenantId.value());
         }
     }
 

@@ -33,7 +33,7 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getReservationNoValue(), order.getInventoryStatus(), order.getWarehouseId(),
                     order.getInventoryFailureReason(), now));
         }
-        orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantIdValue(), order.getOrderNoValue(), actionType,
+        orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNoValue(), actionType,
                 beforeStatus, order.getOrderStatus(), OPERATOR_TYPE_SYSTEM, OPERATOR_ID_SYSTEM, now));
     }
 

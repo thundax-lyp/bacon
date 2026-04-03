@@ -78,7 +78,7 @@ class PaymentRepositorySupportTest {
         PaymentOrder persisted = support.saveOrder(paymentOrder);
 
         assertNotNull(updatedRef.get());
-        assertEquals(9001L, updatedRef.get().getId());
+        assertEquals("9001", updatedRef.get().getId());
         assertEquals(PaymentStatus.CLOSED.value(), updatedRef.get().getPaymentStatus());
         assertEquals(PaymentStatus.CLOSED.value(), persisted.getPaymentStatus().value());
     }
@@ -106,7 +106,7 @@ class PaymentRepositorySupportTest {
 
     @Test
     void shouldMapStrictReadModelsFromMappers() {
-        PaymentOrderDO orderDataObject = new PaymentOrderDO(9101L, "1001", "PAY-10003", "ORD-10003", "2003",
+        PaymentOrderDO orderDataObject = new PaymentOrderDO("9101", "1001", "PAY-10003", "ORD-10003", "2003",
                 "MOCK", PaymentStatus.PAID.value(), new BigDecimal("128.00"), new BigDecimal("128.00"),
                 "strict-read", Instant.parse("2026-03-27T10:10:00Z"), Instant.parse("2026-03-27T10:11:00Z"),
                 Instant.parse("2026-03-27T10:40:00Z"), Instant.parse("2026-03-27T10:11:30Z"), null);
@@ -154,7 +154,7 @@ class PaymentRepositorySupportTest {
                 new Class[]{PaymentOrderMapper.class}, (proxy, method, args) -> {
                     if ("insert".equals(method.getName())) {
                         PaymentOrderDO dataObject = (PaymentOrderDO) args[0];
-                        dataObject.setId(8001L);
+                        dataObject.setId("8001");
                         insertedRef.set(dataObject);
                         return 1;
                     }

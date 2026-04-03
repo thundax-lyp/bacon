@@ -16,8 +16,8 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_payment_order")
 public class PaymentOrderDO {
 
-    @TableId(type = IdType.AUTO)
-    private Long id;
+    @TableId(type = IdType.INPUT)
+    private String id;
     @TableField("tenant_id")
     private String tenantId;
     @TableField("payment_no")

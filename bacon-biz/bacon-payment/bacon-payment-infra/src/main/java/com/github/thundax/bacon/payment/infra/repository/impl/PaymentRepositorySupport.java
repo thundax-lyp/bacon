@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 public class PaymentRepositorySupport {
 
+    private static final String PAYMENT_ORDER_ID_BIZ_TAG = "payment_order_id";
     private static final String PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG = "payment_callback_record_id";
     private static final String PAYMENT_AUDIT_LOG_ID_BIZ_TAG = "payment_audit_log_id";
 
@@ -59,6 +60,7 @@ public class PaymentRepositorySupport {
         Instant now = Instant.now();
         PaymentOrderDO dataObject = toDataObject(paymentOrder, now);
         if (dataObject.getId() == null) {
+            dataObject.setId(String.valueOf(idGenerator.nextId(PAYMENT_ORDER_ID_BIZ_TAG)));
             paymentOrderMapper.insert(dataObject);
         } else {
             // 更新 0 行直接视为持久化冲突，避免应用层把“对象已保存”误判成成功。
@@ -175,12 +177,12 @@ public class PaymentRepositorySupport {
         return value == null ? Money.zero() : Money.of(value);
     }
 
-    private Long toDatabaseId(PaymentOrderId paymentOrderId) {
-        return paymentOrderId == null ? null : Long.valueOf(paymentOrderId.value());
+    private String toDatabaseId(PaymentOrderId paymentOrderId) {
+        return paymentOrderId == null ? null : paymentOrderId.value();
     }
 
-    private PaymentOrderId toDomainId(Long id) {
-        return id == null ? null : PaymentOrderId.of(String.valueOf(id));
+    private PaymentOrderId toDomainId(String id) {
+        return id == null ? null : PaymentOrderId.of(id);
     }
 
     private String toDatabaseTenantId(TenantId tenantId) {

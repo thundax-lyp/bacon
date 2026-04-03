@@ -52,7 +52,7 @@ class PaymentRepositorySupportIntegrationTest {
 
             statement.execute("""
                     CREATE TABLE bacon_payment_order (
-                        id bigint NOT NULL AUTO_INCREMENT,
+                        id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
                         payment_no varchar(64) NOT NULL,
                         order_no varchar(64) NOT NULL,

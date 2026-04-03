@@ -259,8 +259,9 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
-| `tenant_id` | `bigint` | N | 租户业务键 |
+| `id` | `bigint` | N | 雪花主键 |
+| `event_id` | `varchar(64)` | N | 事件业务标识 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `event_type` | `varchar(64)` | N | 事件类型 |
 | `business_key` | `varchar(128)` | N | 幂等业务键 |
@@ -299,6 +300,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键，仅 DO 内部使用 |
 | `outbox_id` | `bigint` | N | outbox 主键 |
+| `event_id` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `event_type` | `varchar(64)` | N | 事件类型 |

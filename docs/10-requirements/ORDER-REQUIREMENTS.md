@@ -241,6 +241,8 @@ Order 是 Bacon 的统一订单业务域。
 - `OrderPaymentSnapshot` 至少包含 `tenantId`、`orderId`、`paymentNo`、`channelCode`、`payStatus`、`paidAmount`、`paidTime`、`failureReason`、`channelStatus`
 - `OrderInventorySnapshot` 至少包含 `tenantId`、`orderNo`、`reservationNo`、`inventoryStatus`、`warehouseNo`、`failureReason`
 - `OrderAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
+- `OrderOutboxEvent` 至少包含 `id`、`eventId`、`tenantId`、`orderNo`、`eventType`、`businessKey`、`payload`、`status`、`retryCount`、`createdAt`、`updatedAt`
+- `OrderOutboxDeadLetter` 至少包含 `outboxId`、`eventId`、`tenantId`、`orderNo`、`eventType`、`businessKey`、`payload`、`retryCount`、`deadReason`、`deadAt`、`replayStatus`、`replayCount`
 
 ### 5.3.1 Snapshot Mapping Rule
 
@@ -403,6 +405,16 @@ Order 是 Bacon 的统一订单业务域。
 - 重试耗尽后必须进入 dead-letter，并提供后续重放能力
 - outbox 事件必须携带幂等业务键 `businessKey`，并在数据库层做唯一约束
 - 允许同步“立即尝试”，但同步失败不得丢弃事件，必须由 outbox 重试接管
+- `OrderOutboxEvent.eventId` 使用 `EventId`，作为事件业务标识
+- `OrderOutboxEvent.tenantId` 使用 `TenantId`
+- `OrderOutboxEvent.orderNo` 使用 `OrderNo`
+- `OrderOutboxEvent.eventType` 使用 `OrderOutboxEventType`
+- `OrderOutboxEvent.status` 使用 `OrderOutboxStatus`
+- `OrderOutboxDeadLetter.eventId` 使用 `EventId`
+- `OrderOutboxDeadLetter.tenantId` 使用 `TenantId`
+- `OrderOutboxDeadLetter.orderNo` 使用 `OrderNo`
+- `OrderOutboxDeadLetter.eventType` 使用 `OrderOutboxEventType`
+- `OrderOutboxDeadLetter.replayStatus` 使用 `OrderOutboxReplayStatus`
 
 ## 7. Functional Requirements
 

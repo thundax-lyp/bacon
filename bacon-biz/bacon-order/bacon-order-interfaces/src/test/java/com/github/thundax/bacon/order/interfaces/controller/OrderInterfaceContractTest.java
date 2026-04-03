@@ -168,7 +168,7 @@ class OrderInterfaceContractTest {
 
         @Override
         public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
-            if (Long.valueOf(9999L).equals(query.getTenantId())) {
+            if ("9999".equals(query.getTenantId())) {
                 throw new IllegalArgumentException("Invalid tenant: " + query.getTenantId());
             }
             OrderSummaryDTO summary = new OrderSummaryDTO(1L, 1001L, "ORD-1", 2001L,

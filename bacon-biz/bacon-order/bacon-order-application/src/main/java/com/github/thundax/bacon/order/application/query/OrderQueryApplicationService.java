@@ -45,11 +45,11 @@ public class OrderQueryApplicationService {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         int offset = Math.max(0, (pageNo - 1) * pageSize);
-        long total = orderRepository.countOrders(query.getTenantId(), query.getUserId(), query.getOrderNo(),
+        long total = orderRepository.countOrders(toLongValue(query.getTenantId()), toLongValue(query.getUserId()), query.getOrderNo(),
                 query.getOrderStatus(), query.getPayStatus(), query.getInventoryStatus(),
                 query.getCreatedAtFrom(), query.getCreatedAtTo());
-        List<Order> pageOrders = total <= 0 ? List.of() : orderRepository.pageOrders(query.getTenantId(),
-                query.getUserId(), query.getOrderNo(), query.getOrderStatus(), query.getPayStatus(),
+        List<Order> pageOrders = total <= 0 ? List.of() : orderRepository.pageOrders(toLongValue(query.getTenantId()),
+                toLongValue(query.getUserId()), query.getOrderNo(), query.getOrderStatus(), query.getPayStatus(),
                 query.getInventoryStatus(), query.getCreatedAtFrom(), query.getCreatedAtTo(), offset, pageSize);
         List<OrderSummaryDTO> records = pageOrders.stream()
                 .map(this::toSummary)
@@ -127,6 +127,10 @@ public class OrderQueryApplicationService {
 
     private String toStringUserIdValue(Order order) {
         return order.getUserId() == null ? null : order.getUserId().value();
+    }
+
+    private Long toLongValue(String value) {
+        return value == null ? null : Long.valueOf(value);
     }
 
     private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {

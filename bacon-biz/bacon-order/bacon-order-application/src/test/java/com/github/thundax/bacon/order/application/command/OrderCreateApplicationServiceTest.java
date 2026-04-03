@@ -99,7 +99,7 @@ class OrderCreateApplicationServiceTest {
         paymentResultService.markPaid(1001L, paid.getOrderNo(), "PAY-1", "MOCK", BigDecimal.valueOf(20),
                 Instant.parse("2026-03-26T10:00:00Z"));
 
-        OrderPageResultDTO page = queryService.pageOrders(new OrderPageQueryDTO(1001L, 2001L, null, null, "UNPAID",
+        OrderPageResultDTO page = queryService.pageOrders(new OrderPageQueryDTO("1001", "2001", null, null, "UNPAID",
                 null, null, null, 1, 10));
 
         assertEquals(1, page.getTotal());
@@ -479,7 +479,7 @@ class OrderCreateApplicationServiceTest {
         @Override
         public PaymentCreateResultDTO createPayment(Long tenantId, String orderNo, Long userId, BigDecimal amount,
                                                     String channelCode, String subject, Instant expiredAt) {
-            return new PaymentCreateResultDTO(tenantId, "PAY-" + orderNo, orderNo, channelCode, "PAYING",
+            return new PaymentCreateResultDTO(String.valueOf(tenantId), "PAY-" + orderNo, orderNo, channelCode, "PAYING",
                     "mock://pay/" + orderNo, expiredAt, null);
         }
 
@@ -494,7 +494,7 @@ class OrderCreateApplicationServiceTest {
         @Override
         public PaymentCreateResultDTO createPayment(Long tenantId, String orderNo, Long userId, BigDecimal amount,
                                                     String channelCode, String subject, Instant expiredAt) {
-            return new PaymentCreateResultDTO(tenantId, null, orderNo, channelCode, "FAILED", null, expiredAt,
+            return new PaymentCreateResultDTO(String.valueOf(tenantId), null, orderNo, channelCode, "FAILED", null, expiredAt,
                     "payment channel unavailable");
         }
     }

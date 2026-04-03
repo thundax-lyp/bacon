@@ -289,7 +289,7 @@ bacon-biz/bacon-order
 - 负责持久化、远程调用客户端、缓存、消息发送、三方适配。
 - 实现 `domain.repository` 中定义的接口。
 - 承载远程 Facade 适配实现，固定放在 `infra.facade.remote`，例如 `UserReadFacadeRemoteImpl`。
-- 仓储实现固定放在 `infra.repository.impl`；如某业务域的仓储实现与 `Mapper/DataObject` 强绑定，也允许放在 `infra.persistence.repository.impl`，但同一业务域内目录语义必须保持一致。
+- 仓储实现固定放在 `infra.repository.impl`。
 - `infra` 不承接业务入参校验，只负责数据库约束、远程调用错误、序列化错误等技术性失败暴露与转换。
 - 可以依赖数据库、中间件、SDK，但不能反向让 `domain` 依赖这些技术细节。
 - `Order`、`Payment`、`Inventory` 的业务单号生成固定由 `infra` 层集成发号中心客户端完成。

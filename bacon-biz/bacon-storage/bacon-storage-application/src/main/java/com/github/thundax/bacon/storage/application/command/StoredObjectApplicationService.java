@@ -10,8 +10,8 @@ import com.github.thundax.bacon.storage.application.support.StorageAuditApplicat
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
-import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
+import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectReference;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;

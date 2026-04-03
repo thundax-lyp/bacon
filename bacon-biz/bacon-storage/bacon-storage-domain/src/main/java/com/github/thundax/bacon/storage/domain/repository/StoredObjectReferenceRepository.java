@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.storage.domain.repository;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
+import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectReference;
 
 public interface StoredObjectReferenceRepository {
 

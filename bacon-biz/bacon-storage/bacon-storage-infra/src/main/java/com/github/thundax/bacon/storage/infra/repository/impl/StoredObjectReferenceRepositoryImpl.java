@@ -3,8 +3,8 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
+import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectReference;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StoredObjectReferenceDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.StoredObjectReferenceMapper;
 import org.springframework.stereotype.Repository;
@@ -59,7 +59,7 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
     }
 
     private StoredObjectReferenceDO toDataObject(StoredObjectReference storedObjectReference) {
-        return new StoredObjectReferenceDO(storedObjectReference.getId(), storedObjectReference.getObjectId(),
+        return new StoredObjectReferenceDO(null, storedObjectReference.getObjectId(),
                 storedObjectReference.getOwnerType(), storedObjectReference.getOwnerId());
     }
 }

@@ -1,22 +1,20 @@
-package com.github.thundax.bacon.storage.domain.model.entity;
+package com.github.thundax.bacon.storage.domain.model.valueobject;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import lombok.Getter;
 
 /**
- * 存储对象引用关系实体。
+ * 存储对象引用关系值对象。
  */
 @Getter
 public class StoredObjectReference {
 
-    /** 主键。 */
-    private Long id;
     /** 存储对象主键。 */
-    private StoredObjectId objectId;
+    private final StoredObjectId objectId;
     /** 引用方类型。 */
-    private String ownerType;
+    private final String ownerType;
     /** 引用方业务主键。 */
-    private String ownerId;
+    private final String ownerId;
 
     public static StoredObjectReference create(StoredObjectId objectId, String ownerType, String ownerId) {
         if (objectId == null) {
@@ -28,11 +26,10 @@ public class StoredObjectReference {
         if (ownerId == null || ownerId.isBlank()) {
             throw new IllegalArgumentException("ownerId must not be blank");
         }
-        return new StoredObjectReference(null, objectId, ownerType, ownerId);
+        return new StoredObjectReference(objectId, ownerType, ownerId);
     }
 
-    public StoredObjectReference(Long id, StoredObjectId objectId, String ownerType, String ownerId) {
-        this.id = id;
+    public StoredObjectReference(StoredObjectId objectId, String ownerType, String ownerId) {
         this.objectId = objectId;
         this.ownerType = ownerType;
         this.ownerId = ownerId;

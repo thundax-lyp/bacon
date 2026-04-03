@@ -29,8 +29,8 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getPaidAt(), order.getPaymentFailureReason(), order.getPaymentChannelStatus(), now));
         }
         if (order.getReservationNoValue() != null && !order.getReservationNoValue().isBlank()) {
-            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(null, order.getTenantIdValue(), toOrderIdValue(order),
-                    order.getReservationNoValue(), order.getInventoryStatus(), order.getWarehouseNo(),
+            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(order.getTenantId(), order.getOrderNo(),
+                    order.getReservationNo(), order.getInventoryStatusEnum(), order.getWarehouseNo(),
                     order.getInventoryFailureReason(), now));
         }
         orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNoValue(), actionType,

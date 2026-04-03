@@ -138,8 +138,8 @@ public class OrderRepositorySupport {
     public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
         OrderInventorySnapshotDO existing = orderInventorySnapshotMapper.selectOne(
                 Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                        .eq(OrderInventorySnapshotDO::getTenantId, snapshot.tenantId())
-                        .eq(OrderInventorySnapshotDO::getOrderId, snapshot.orderId()));
+                        .eq(OrderInventorySnapshotDO::getTenantId, snapshot.tenantIdValue())
+                        .eq(OrderInventorySnapshotDO::getOrderNo, snapshot.orderNoValue()));
         OrderInventorySnapshotDO dataObject = toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
         // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
@@ -151,11 +151,11 @@ public class OrderRepositorySupport {
         orderInventorySnapshotMapper.updateById(dataObject);
     }
 
-    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderId(Long tenantId, Long orderId) {
+    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
         return Optional.ofNullable(orderInventorySnapshotMapper.selectOne(
                 Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
                         .eq(OrderInventorySnapshotDO::getTenantId, tenantId)
-                        .eq(OrderInventorySnapshotDO::getOrderId, orderId)))
+                        .eq(OrderInventorySnapshotDO::getOrderNo, orderNo)))
                 .map(this::toDomain);
     }
 
@@ -189,8 +189,8 @@ public class OrderRepositorySupport {
         if (pageOrders.isEmpty()) {
             return List.of();
         }
-        List<Long> orderIds = pageOrders.stream()
-                .map(OrderDO::getId)
+        List<String> orderNos = pageOrders.stream()
+                .map(OrderDO::getOrderNo)
                 .toList();
         // 分页查询先批量拉主单，再一次性批量拉支付/库存快照，避免逐单 N+1 查询。
         Map<Long, OrderPaymentSnapshotDO> paymentSnapshotMap = orderPaymentSnapshotMapper.selectList(
@@ -201,13 +201,13 @@ public class OrderRepositorySupport {
                         (left, right) -> left));
         Map<Long, OrderInventorySnapshotDO> inventorySnapshotMap = orderInventorySnapshotMapper.selectList(
                         Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                                .in(OrderInventorySnapshotDO::getOrderId, orderIds))
+                                .in(OrderInventorySnapshotDO::getOrderNo, orderNos))
                 .stream()
-                .collect(Collectors.toMap(OrderInventorySnapshotDO::getOrderId, Function.identity(),
+                .collect(Collectors.toMap(OrderInventorySnapshotDO::getOrderNo, Function.identity(),
                         (left, right) -> left));
         List<Order> records = pageOrders.stream()
                 .map(orderData -> toDomain(orderData, paymentSnapshotMap.get(orderData.getId()),
-                        inventorySnapshotMap.get(orderData.getId())))
+                        inventorySnapshotMap.get(orderData.getOrderNo())))
                 .toList();
         return records;
     }
@@ -252,7 +252,7 @@ public class OrderRepositorySupport {
         OrderInventorySnapshotDO inventorySnapshot = orderInventorySnapshotMapper.selectOne(
                 Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
                         .eq(OrderInventorySnapshotDO::getTenantId, dataObject.getTenantId())
-                        .eq(OrderInventorySnapshotDO::getOrderId, dataObject.getId()));
+                        .eq(OrderInventorySnapshotDO::getOrderNo, dataObject.getOrderNo()));
         return toDomain(dataObject, paymentSnapshot, inventorySnapshot);
     }
 
@@ -362,15 +362,16 @@ public class OrderRepositorySupport {
     }
 
     private OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {
-        return new OrderInventorySnapshotDO(snapshot.id(), snapshot.tenantId(), snapshot.orderId(),
-                snapshot.reservationNo(), snapshot.inventoryStatus(), toDatabaseWarehouseNo(snapshot.warehouseNo()),
+        return new OrderInventorySnapshotDO(null, snapshot.tenantIdValue(), snapshot.orderNoValue(),
+                snapshot.reservationNoValue(), snapshot.inventoryStatusValue(), toDatabaseWarehouseNo(snapshot.warehouseNo()),
                 snapshot.failureReason(),
                 snapshot.updatedAt());
     }
 
     private OrderInventorySnapshot toDomain(OrderInventorySnapshotDO dataObject) {
-        return new OrderInventorySnapshot(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderId(),
-                dataObject.getReservationNo(), dataObject.getInventoryStatus(), toDomainWarehouseNo(dataObject.getWarehouseNo()),
+        return new OrderInventorySnapshot(toDomainTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
+                toDomainReservationNo(dataObject.getReservationNo()), toDomainInventoryStatus(dataObject.getInventoryStatus()),
+                toDomainWarehouseNo(dataObject.getWarehouseNo()),
                 dataObject.getFailureReason(), dataObject.getUpdatedAt());
     }
 

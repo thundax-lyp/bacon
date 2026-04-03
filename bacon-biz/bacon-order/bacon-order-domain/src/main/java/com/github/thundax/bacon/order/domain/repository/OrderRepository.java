@@ -27,7 +27,7 @@ public interface OrderRepository {
 
     void saveInventorySnapshot(OrderInventorySnapshot snapshot);
 
-    Optional<OrderInventorySnapshot> findInventorySnapshotByOrderId(Long tenantId, Long orderId);
+    Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo);
 
     void saveAuditLog(OrderAuditLog auditLog);
 

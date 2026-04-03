@@ -198,9 +198,9 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `bigint` | N | 主键，仅 DO 内部使用 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
-| `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
+| `order_no` | `varchar(64)` | N | 订单业务键 |
 | `reservation_no` | `varchar(64)` | N | 预占单号，全局唯一 |
 | `inventory_status` | `varchar(16)` | N | 库存状态，取值见 `inventory_status` |
 | `warehouse_no` | `varchar(64)` | Y | 仓库业务编号 |
@@ -210,7 +210,7 @@
 索引与约束：
 
 - `pk(id)`
-- `uk_order_id(order_id)`
+- `uk_tenant_order_no(tenant_id, order_no)`
 - `uk_reservation_no(reservation_no)`
 
 ### 7.5 `bacon_order_audit_log`
@@ -351,7 +351,7 @@
 
 - `bacon_order_item.order_id` 关联 `bacon_order_order.id`
 - `bacon_order_payment_snapshot.order_id` 关联 `bacon_order_order.id`
-- `bacon_order_inventory_snapshot.order_id` 关联 `bacon_order_order.id`
+- `bacon_order_inventory_snapshot.order_no` 关联 `bacon_order_order.order_no`
 - 当前设计不强制数据库外键
 - `payment_no` 和 `reservation_no` 是跨域快照业务键，不替代对端主表
 

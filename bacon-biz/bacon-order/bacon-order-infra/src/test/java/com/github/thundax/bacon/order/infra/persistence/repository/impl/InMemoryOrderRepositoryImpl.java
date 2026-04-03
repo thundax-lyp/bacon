@@ -27,7 +27,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     private final Map<Long, Order> storage = new ConcurrentHashMap<>();
     private final Map<Long, List<OrderItem>> itemsStorage = new ConcurrentHashMap<>();
     private final Map<Long, OrderPaymentSnapshot> paymentSnapshotStorage = new ConcurrentHashMap<>();
-    private final Map<Long, OrderInventorySnapshot> inventorySnapshotStorage = new ConcurrentHashMap<>();
+    private final Map<String, OrderInventorySnapshot> inventorySnapshotStorage = new ConcurrentHashMap<>();
     private final Map<String, List<OrderAuditLog>> auditLogStorage = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1000L);
 
@@ -81,13 +81,13 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     @Override
     public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
-        inventorySnapshotStorage.put(snapshot.orderId(), snapshot);
+        inventorySnapshotStorage.put(snapshot.orderNoValue(), snapshot);
     }
 
     @Override
-    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderId(Long tenantId, Long orderId) {
-        OrderInventorySnapshot snapshot = inventorySnapshotStorage.get(orderId);
-        if (snapshot == null || !tenantId.equals(snapshot.tenantId())) {
+    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
+        OrderInventorySnapshot snapshot = inventorySnapshotStorage.get(orderNo);
+        if (snapshot == null || !tenantId.equals(snapshot.tenantIdValue())) {
             return Optional.empty();
         }
         return Optional.of(snapshot);

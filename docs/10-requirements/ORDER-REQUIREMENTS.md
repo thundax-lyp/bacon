@@ -239,7 +239,7 @@ Order 是 Bacon 的统一订单业务域。
 - `OrderAmount` 至少包含 `totalAmount`、`payableAmount`、`currencyCode`
 - `OrderSnapshot` 至少包含 `order`、`items`、`paymentSnapshot`、`inventorySnapshot`
 - `OrderPaymentSnapshot` 至少包含 `orderId`、`paymentNo`、`channelCode`、`payStatus`、`paidAmount`、`paidTime`、`failureReason`、`channelStatus`
-- `OrderInventorySnapshot` 至少包含 `orderId`、`reservationNo`、`inventoryStatus`、`warehouseNo`、`failureReason`
+- `OrderInventorySnapshot` 至少包含 `tenantId`、`orderNo`、`reservationNo`、`inventoryStatus`、`warehouseNo`、`failureReason`
 - `OrderAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`actionType`、`beforeStatus`、`afterStatus`、`operatorType`、`operatorId`、`occurredAt`
 
 ### 5.3.1 Snapshot Mapping Rule

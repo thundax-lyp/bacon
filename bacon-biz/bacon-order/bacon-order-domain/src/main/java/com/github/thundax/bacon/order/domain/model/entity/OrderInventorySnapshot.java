@@ -1,5 +1,9 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import java.time.Instant;
 
@@ -7,16 +11,14 @@ import java.time.Instant;
  * 订单库存快照。
  */
 public record OrderInventorySnapshot(
-        /** 快照主键。 */
-        Long id,
         /** 所属租户主键。 */
-        Long tenantId,
-        /** 订单主键。 */
-        Long orderId,
+        TenantId tenantId,
+        /** 订单号。 */
+        OrderNo orderNo,
         /** 库存预占单号。 */
-        String reservationNo,
+        ReservationNo reservationNo,
         /** 库存状态。 */
-        String inventoryStatus,
+        InventoryStatus inventoryStatus,
         /** 仓库业务编号。 */
         WarehouseNo warehouseNo,
         /** 失败原因。 */
@@ -24,6 +26,22 @@ public record OrderInventorySnapshot(
         /** 最后更新时间。 */
         Instant updatedAt
 ) {
+
+    public Long tenantIdValue() {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    public String orderNoValue() {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    public String reservationNoValue() {
+        return reservationNo == null ? null : reservationNo.value();
+    }
+
+    public String inventoryStatusValue() {
+        return inventoryStatus == null ? null : inventoryStatus.value();
+    }
 
     public String warehouseNoValue() {
         return warehouseNo == null ? null : warehouseNo.value();

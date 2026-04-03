@@ -68,8 +68,8 @@ public class OrderQueryApplicationService {
     private OrderDetailDTO toDetail(Order order) {
         OrderPaymentSnapshot paymentSnapshot = orderRepository.findPaymentSnapshotByOrderId(order.getTenantIdValue(),
                 toOrderIdValue(order)).orElse(null);
-        OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderId(order.getTenantIdValue(),
-                toOrderIdValue(order)).orElse(null);
+        OrderInventorySnapshot inventorySnapshot = orderRepository.findInventorySnapshotByOrderNo(order.getTenantIdValue(),
+                order.getOrderNoValue()).orElse(null);
         List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantIdValue(), toOrderIdValue(order)).stream()
                 .map(item -> new OrderItemDTO(item.getSkuId(), item.getSkuName(), item.getQuantity(),
                         item.getSalePrice(), item.getLineAmount()))
@@ -77,7 +77,7 @@ public class OrderQueryApplicationService {
         return new OrderDetailDTO(toOrderIdValue(order), order.getTenantIdValue(), order.getOrderNoValue(), toUserIdValue(order),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(),
                 paymentSnapshot == null ? order.getPaymentNoValue() : paymentSnapshot.paymentNo(),
-                inventorySnapshot == null ? order.getReservationNoValue() : inventorySnapshot.reservationNo(),
+                inventorySnapshot == null ? order.getReservationNoValue() : inventorySnapshot.reservationNoValue(),
                 order.getCurrencyCode(), order.getTotalAmount().value(), order.getPayableAmount().value(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), order.getExpiredAt(), itemDtos,
                 buildPaymentSnapshot(order, paymentSnapshot), buildInventorySnapshot(order, inventorySnapshot),
@@ -118,8 +118,8 @@ public class OrderQueryApplicationService {
 
     private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {
         String reservationNo = Objects.toString(
-                inventorySnapshot == null ? order.getReservationNoValue() : inventorySnapshot.reservationNo(), "N/A");
-        String inventoryStatus = inventorySnapshot == null ? order.getInventoryStatus() : inventorySnapshot.inventoryStatus();
+                inventorySnapshot == null ? order.getReservationNoValue() : inventorySnapshot.reservationNoValue(), "N/A");
+        String inventoryStatus = inventorySnapshot == null ? order.getInventoryStatus() : inventorySnapshot.inventoryStatusValue();
         String warehouseNo = inventorySnapshot == null ? order.getWarehouseNoValue() : inventorySnapshot.warehouseNoValue();
         String failureReason = inventorySnapshot == null
                 ? order.getInventoryFailureReason() : inventorySnapshot.failureReason();

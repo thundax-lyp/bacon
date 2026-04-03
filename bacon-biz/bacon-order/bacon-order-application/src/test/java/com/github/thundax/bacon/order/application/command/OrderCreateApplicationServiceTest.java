@@ -290,7 +290,7 @@ class OrderCreateApplicationServiceTest {
         private final Map<Long, Order> storage = new ConcurrentHashMap<>();
         private final Map<Long, List<OrderItem>> itemStorage = new ConcurrentHashMap<>();
         private final Map<Long, OrderPaymentSnapshot> paymentSnapshots = new ConcurrentHashMap<>();
-        private final Map<Long, OrderInventorySnapshot> inventorySnapshots = new ConcurrentHashMap<>();
+        private final Map<String, OrderInventorySnapshot> inventorySnapshots = new ConcurrentHashMap<>();
         private final Map<String, List<OrderAuditLog>> auditLogs = new ConcurrentHashMap<>();
         private final AtomicLong idGenerator = new AtomicLong(1000L);
 
@@ -344,13 +344,13 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
-            inventorySnapshots.put(snapshot.orderId(), snapshot);
+            inventorySnapshots.put(snapshot.orderNoValue(), snapshot);
         }
 
         @Override
-        public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderId(Long tenantId, Long orderId) {
-            OrderInventorySnapshot snapshot = inventorySnapshots.get(orderId);
-            if (snapshot == null || !tenantId.equals(snapshot.tenantId())) {
+        public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
+            OrderInventorySnapshot snapshot = inventorySnapshots.get(orderNo);
+            if (snapshot == null || !tenantId.equals(snapshot.tenantIdValue())) {
                 return Optional.empty();
             }
             return Optional.of(snapshot);

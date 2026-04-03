@@ -64,8 +64,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderId(Long tenantId, Long orderId) {
-        return support.findInventorySnapshotByOrderId(tenantId, orderId);
+    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
+        return support.findInventorySnapshotByOrderNo(tenantId, orderNo);
     }
 
     @Override

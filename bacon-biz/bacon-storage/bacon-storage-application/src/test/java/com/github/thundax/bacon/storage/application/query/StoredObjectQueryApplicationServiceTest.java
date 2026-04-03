@@ -7,7 +7,6 @@ import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
-import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,9 +50,10 @@ class StoredObjectQueryApplicationServiceTest {
     void shouldPageObjectsForAdminManagement() {
         StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
                 "attachment/object-e.bin", "e.bin", "application/octet-stream", 2048L, "/files/e.bin", null);
+        when(storedObjectRepository.countObjects(eq("tenant-a"), eq("LOCAL_FILE"), eq("ACTIVE"), eq("UNREFERENCED"),
+                eq("e.bin"), eq("attachment"))).thenReturn(1L);
         when(storedObjectRepository.pageObjects(eq("tenant-a"), eq("LOCAL_FILE"), eq("ACTIVE"), eq("UNREFERENCED"),
-                eq("e.bin"), eq("attachment"), eq(0), eq(200)))
-                .thenReturn(new StoredObjectPageResult(List.of(storedObject), 1L));
+                eq("e.bin"), eq("attachment"), eq(0), eq(200))).thenReturn(List.of(storedObject));
 
         StoredObjectPageResultDTO result = service.pageObjects(new StoredObjectPageQueryDTO(
                 "tenant-a", "LOCAL_FILE", "ACTIVE", "UNREFERENCED", "e.bin", "attachment", 0, 500));

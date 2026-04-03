@@ -7,7 +7,6 @@ import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
-import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import org.springframework.stereotype.Service;
 
@@ -39,13 +38,14 @@ public class StoredObjectQueryApplicationService {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         int offset = Math.max(0, (pageNo - 1) * pageSize);
-        StoredObjectPageResult pageResult = storedObjectRepository.pageObjects(query.getTenantId(), query.getStorageType(),
-                query.getObjectStatus(), query.getReferenceStatus(), query.getOriginalFilename(), query.getObjectKey(),
-                offset, pageSize);
-        List<StoredObjectDTO> records = pageResult.records().stream()
+        long total = storedObjectRepository.countObjects(query.getTenantId(), query.getStorageType(),
+                query.getObjectStatus(), query.getReferenceStatus(), query.getOriginalFilename(), query.getObjectKey());
+        List<StoredObjectDTO> records = (total <= 0 ? List.<StoredObject>of()
+                : storedObjectRepository.pageObjects(query.getTenantId(), query.getStorageType(), query.getObjectStatus(),
+                query.getReferenceStatus(), query.getOriginalFilename(), query.getObjectKey(), offset, pageSize)).stream()
                 .map(this::toDto)
                 .toList();
-        return new StoredObjectPageResultDTO(records, pageResult.total(), pageNo, pageSize);
+        return new StoredObjectPageResultDTO(records, total, pageNo, pageSize);
     }
 
     private StoredObjectDTO toDto(StoredObject storedObject) {

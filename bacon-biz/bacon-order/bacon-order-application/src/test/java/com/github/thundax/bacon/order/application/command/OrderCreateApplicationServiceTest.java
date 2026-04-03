@@ -369,7 +369,7 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void saveAuditLog(OrderAuditLog auditLog) {
-            String key = toTenantIdValue(auditLog.tenantId()) + ":" + auditLog.orderNo();
+            String key = toTenantIdValue(auditLog.tenantId()) + ":" + auditLog.orderNo().value();
             auditLogs.computeIfAbsent(key, unused -> new java.util.ArrayList<>()).add(auditLog);
         }
 

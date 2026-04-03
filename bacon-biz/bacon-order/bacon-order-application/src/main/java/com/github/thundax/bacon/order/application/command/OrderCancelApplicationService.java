@@ -6,6 +6,8 @@ import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecu
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderCancelApplicationService {
 
-    private static final String ACTION_CANCEL = "ORDER_CANCEL";
+    private static final OrderAuditActionType ACTION_CANCEL = OrderAuditActionType.ORDER_CANCEL;
 
     private final OrderRepository orderRepository;
     private final InventoryCommandFacade inventoryCommandFacade;
@@ -45,7 +47,7 @@ public class OrderCancelApplicationService {
     private void doCancel(Long tenantId, String orderNo, String reason) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
-        String beforeStatus = order.getOrderStatus();
+        OrderStatus beforeStatus = order.getOrderStatusEnum();
         order.cancel(reason);
         // 同步主流程里先改订单主状态，再尝试释放库存和关闭支付；即使后续远程动作部分失败，主单也已明确进入取消态。
         InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);

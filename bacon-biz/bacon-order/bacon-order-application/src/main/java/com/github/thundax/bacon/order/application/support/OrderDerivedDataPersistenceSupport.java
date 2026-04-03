@@ -8,9 +8,12 @@ import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.enums.OperatorType;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import java.time.Instant;
@@ -19,7 +22,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderDerivedDataPersistenceSupport {
 
-    private static final String OPERATOR_TYPE_SYSTEM = "SYSTEM";
     private static final String OPERATOR_ID_SYSTEM = "0";
 
     private final OrderRepository orderRepository;
@@ -28,7 +30,7 @@ public class OrderDerivedDataPersistenceSupport {
         this.orderRepository = orderRepository;
     }
 
-    public void persist(Order order, String actionType, String beforeStatus) {
+    public void persist(Order order, OrderAuditActionType actionType, OrderStatus beforeStatus) {
         Instant now = Instant.now();
         if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
             orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), toOrderId(order),
@@ -43,8 +45,8 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getReservationNo(), order.getInventoryStatusEnum(), order.getWarehouseNo(),
                     order.getInventoryFailureReason(), now));
         }
-        orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNoValue(), actionType,
-                beforeStatus, order.getOrderStatus(), OPERATOR_TYPE_SYSTEM, OPERATOR_ID_SYSTEM, now));
+        orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNo(), actionType,
+                beforeStatus, order.getOrderStatusEnum(), OperatorType.SYSTEM, OPERATOR_ID_SYSTEM, now));
     }
 
     private OrderId toOrderId(Order order) {

@@ -8,6 +8,8 @@ import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecu
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
@@ -19,8 +21,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderPaymentResultApplicationService {
 
-    private static final String ACTION_MARK_PAID = "ORDER_MARK_PAID";
-    private static final String ACTION_MARK_PAYMENT_FAILED = "ORDER_MARK_PAYMENT_FAILED";
+    private static final OrderAuditActionType ACTION_MARK_PAID = OrderAuditActionType.ORDER_MARK_PAID;
+    private static final OrderAuditActionType ACTION_MARK_PAYMENT_FAILED = OrderAuditActionType.ORDER_MARK_PAYMENT_FAILED;
 
     private final OrderRepository orderRepository;
     private final InventoryCommandFacade inventoryCommandFacade;
@@ -55,7 +57,7 @@ public class OrderPaymentResultApplicationService {
                             BigDecimal paidAmount, Instant paidTime) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
-        String beforeStatus = order.getOrderStatus();
+        OrderStatus beforeStatus = order.getOrderStatusEnum();
         order.markPaid(toPaymentNo(paymentNo), channelCode, Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCode())),
                 paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
@@ -78,7 +80,7 @@ public class OrderPaymentResultApplicationService {
                                      String channelStatus, Instant failedTime) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
-        String beforeStatus = order.getOrderStatus();
+        OrderStatus beforeStatus = order.getOrderStatusEnum();
         order.markPaymentFailed(toPaymentNo(paymentNo), reason, channelStatus, failedTime);
         // 支付失败后的主目标是回收预占库存，因此这里固定走 releaseReservedStock，而不是尝试别的库存路径。
         InventoryReservationResultDTO releaseResult =

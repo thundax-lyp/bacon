@@ -11,6 +11,7 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
@@ -94,14 +95,15 @@ public class OrderOutboxActionExecutor {
                     toWarehouseNo(reserveResult.getWarehouseId()), reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
             orderRepository.save(order);
-            orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_RESERVE_FAILED",
-                    OrderStatus.RESERVING_STOCK.value());
+            orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RESERVE_FAILED,
+                    OrderStatus.RESERVING_STOCK);
             return;
         }
         order.markInventoryReserved(toReservationNo(reserveResult.getReservationNo()),
                 toWarehouseNo(reserveResult.getWarehouseId()));
         orderRepository.save(order);
-        orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_RESERVE_OK", OrderStatus.RESERVING_STOCK.value());
+        orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RESERVE_OK,
+                OrderStatus.RESERVING_STOCK);
 
         // 只有库存预占成功后才补发创建支付事件，确保支付链路依赖的库存前置条件已经成立。
         Map<String, String> source = OrderOutboxPayloadCodec.decode(event.getPayload());
@@ -127,8 +129,8 @@ public class OrderOutboxActionExecutor {
                 || !PayStatus.PAYING.value().equals(paymentResult.getPaymentStatus())) {
             order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
             orderRepository.save(order);
-            orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_CREATE_PAYMENT_FAILED",
-                    OrderStatus.RESERVING_STOCK.value());
+            orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_CREATE_PAYMENT_FAILED,
+                    OrderStatus.RESERVING_STOCK);
 
             Map<String, String> releasePayload = new LinkedHashMap<>();
             releasePayload.put("reason", CLOSE_REASON_PAYMENT_CREATE_FAILED);
@@ -141,8 +143,8 @@ public class OrderOutboxActionExecutor {
         }
         order.markPendingPayment(PaymentNo.of(paymentResult.getPaymentNo()), paymentResult.getChannelCode());
         orderRepository.save(order);
-        orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_CREATE_PAYMENT_OK",
-                OrderStatus.RESERVING_STOCK.value());
+        orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_CREATE_PAYMENT_OK,
+                OrderStatus.RESERVING_STOCK);
     }
 
     private Long toOrderIdValue(Order order) {
@@ -169,7 +171,7 @@ public class OrderOutboxActionExecutor {
                     resolveFailureReason(releaseResult.getFailureReason(), reason));
         }
         orderRepository.save(order);
-        orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_RELEASE", order.getOrderStatus());
+        orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RELEASE, order.getOrderStatusEnum());
     }
 
     private Order findOrder(Long tenantId, String orderNo) {

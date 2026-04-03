@@ -11,6 +11,7 @@ import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
+import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderDomainService;
@@ -23,7 +24,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderCreateApplicationService {
 
-    private static final String ACTION_CREATE = "ORDER_CREATE";
+    private static final OrderAuditActionType ACTION_CREATE = OrderAuditActionType.ORDER_CREATE;
 
     private final OrderRepository orderRepository;
     private final OrderDomainService orderDomainService = new OrderDomainService();
@@ -66,7 +67,7 @@ public class OrderCreateApplicationService {
         orderRepository.save(savedOrder);
         orderOutboxActionExecutor.enqueueReserveStock(savedOrder.getTenantIdValue(), savedOrder.getOrderNoValue(),
                 command.channelCode());
-        orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED.value());
+        orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
         return new OrderSummaryDTO(toOrderIdValue(savedOrder), savedOrder.getTenantIdValue(), savedOrder.getOrderNoValue(),
                 toUserIdValue(savedOrder), savedOrder.getOrderStatus(), savedOrder.getPayStatus(),
                 savedOrder.getInventoryStatus(), savedOrder.getPaymentNoValue(), savedOrder.getReservationNoValue(),

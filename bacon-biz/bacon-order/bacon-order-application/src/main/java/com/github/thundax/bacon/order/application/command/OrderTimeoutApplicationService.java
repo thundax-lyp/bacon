@@ -6,6 +6,8 @@ import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecu
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
@@ -15,7 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderTimeoutApplicationService {
 
-    private static final String ACTION_CLOSE_EXPIRED = "ORDER_CLOSE_EXPIRED";
+    private static final OrderAuditActionType ACTION_CLOSE_EXPIRED = OrderAuditActionType.ORDER_CLOSE_EXPIRED;
 
     private final OrderRepository orderRepository;
     private final InventoryCommandFacade inventoryCommandFacade;
@@ -44,7 +46,7 @@ public class OrderTimeoutApplicationService {
     private void doCloseExpiredOrder(Long tenantId, String orderNo, String reason) {
         Order order = orderRepository.findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
-        String beforeStatus = order.getOrderStatus();
+        OrderStatus beforeStatus = order.getOrderStatusEnum();
         order.closeExpired(reason);
         // 超时关单的资源回收顺序固定为“先关支付，再释放库存”，与订单生命周期的依赖方向保持一致。
         if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {

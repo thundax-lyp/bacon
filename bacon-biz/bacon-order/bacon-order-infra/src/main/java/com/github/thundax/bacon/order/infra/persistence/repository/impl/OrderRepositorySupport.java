@@ -13,6 +13,8 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OperatorType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
@@ -394,15 +396,37 @@ public class OrderRepositorySupport {
     }
 
     private OrderAuditLogDO toDataObject(OrderAuditLog auditLog) {
-        return new OrderAuditLogDO(auditLog.id(), toDatabaseTenantId(auditLog.tenantId()), auditLog.orderNo(), auditLog.actionType(),
-                auditLog.beforeStatus(), auditLog.afterStatus(), auditLog.operatorType(), auditLog.operatorId(),
-                auditLog.occurredAt());
+        return new OrderAuditLogDO(auditLog.id(), toDatabaseTenantId(auditLog.tenantId()), toDatabaseOrderNo(auditLog.orderNo()),
+                toDatabaseOrderAuditActionType(auditLog.actionType()), toDatabaseOrderStatus(auditLog.beforeStatus()),
+                toDatabaseOrderStatus(auditLog.afterStatus()), toDatabaseOperatorType(auditLog.operatorType()),
+                auditLog.operatorId(), auditLog.occurredAt());
     }
 
     private OrderAuditLog toDomain(OrderAuditLogDO dataObject) {
-        return new OrderAuditLog(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()), dataObject.getOrderNo(),
-                dataObject.getActionType(), dataObject.getBeforeStatus(), dataObject.getAfterStatus(),
-                dataObject.getOperatorType(), dataObject.getOperatorId(), dataObject.getOccurredAt());
+        return new OrderAuditLog(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
+                toDomainOrderAuditActionType(dataObject.getActionType()), toDomainOrderStatus(dataObject.getBeforeStatus()),
+                toDomainOrderStatus(dataObject.getAfterStatus()), toDomainOperatorType(dataObject.getOperatorType()),
+                dataObject.getOperatorId(), dataObject.getOccurredAt());
+    }
+
+    private String toDatabaseOrderAuditActionType(OrderAuditActionType actionType) {
+        return actionType == null ? null : actionType.value();
+    }
+
+    private OrderAuditActionType toDomainOrderAuditActionType(String actionType) {
+        return actionType == null ? null : OrderAuditActionType.fromValue(actionType);
+    }
+
+    private String toDatabaseOrderStatus(OrderStatus orderStatus) {
+        return orderStatus == null ? null : orderStatus.value();
+    }
+
+    private String toDatabaseOperatorType(OperatorType operatorType) {
+        return operatorType == null ? null : operatorType.value();
+    }
+
+    private OperatorType toDomainOperatorType(String operatorType) {
+        return operatorType == null ? null : OperatorType.fromValue(operatorType);
     }
 
     private String toDatabaseWarehouseNo(WarehouseNo warehouseNo) {

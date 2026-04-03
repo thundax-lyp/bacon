@@ -3,7 +3,6 @@ package com.github.thundax.bacon.storage.domain.repository;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
-import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageQuery;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectPageResult;
 
 import java.util.List;
@@ -17,5 +16,7 @@ public interface StoredObjectRepository {
 
     List<StoredObject> listByObjectStatus(StoredObjectStatus objectStatus, int limit);
 
-    StoredObjectPageResult pageObjects(StoredObjectPageQuery query);
+    StoredObjectPageResult pageObjects(String tenantId, String storageType, String objectStatus,
+                                       String referenceStatus, String originalFilename, String objectKey,
+                                       int offset, int limit);
 }

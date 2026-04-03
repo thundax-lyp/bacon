@@ -20,7 +20,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,7 +51,8 @@ class StoredObjectQueryApplicationServiceTest {
     void shouldPageObjectsForAdminManagement() {
         StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
                 "attachment/object-e.bin", "e.bin", "application/octet-stream", 2048L, "/files/e.bin", null);
-        when(storedObjectRepository.pageObjects(any()))
+        when(storedObjectRepository.pageObjects(eq("tenant-a"), eq("LOCAL_FILE"), eq("ACTIVE"), eq("UNREFERENCED"),
+                eq("e.bin"), eq("attachment"), eq(0), eq(200)))
                 .thenReturn(new StoredObjectPageResult(List.of(storedObject), 1L));
 
         StoredObjectPageResultDTO result = service.pageObjects(new StoredObjectPageQueryDTO(

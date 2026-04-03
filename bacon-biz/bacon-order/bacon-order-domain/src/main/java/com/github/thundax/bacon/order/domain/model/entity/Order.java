@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
-import com.github.thundax.bacon.common.core.util.MoneyCurrencyValidator;
+import com.github.thundax.bacon.common.core.util.MoneyValidator;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -108,9 +108,9 @@ public class Order {
         this.inventoryStatus = inventoryStatus;
         this.paymentNo = paymentNo;
         this.reservationNo = reservationNo;
-        MoneyCurrencyValidator.ensureSameCurrency(currencyCode, totalAmount, payableAmount, paidAmount);
+        MoneyValidator.ensureSameCurrency(currencyCode, totalAmount, payableAmount, paidAmount);
         this.currencyCode = currencyCode;
-        MoneyCurrencyValidator.ensureSameCurrency(totalAmount, payableAmount, paidAmount);
+        MoneyValidator.ensureSameCurrency(totalAmount, payableAmount, paidAmount);
         this.totalAmount = totalAmount;
         this.payableAmount = payableAmount;
         this.remark = remark;
@@ -241,7 +241,7 @@ public class Order {
     public void markPaid(PaymentNo paymentNo, String channelCode, Money paidAmount, Instant paidTime) {
         // 订单支付成功是主状态终局之一，只允许从待支付进入，避免重复回调覆盖终态。
         ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
-        MoneyCurrencyValidator.ensureSameCurrency(totalAmount, paidAmount);
+        MoneyValidator.ensureSameCurrency(totalAmount, paidAmount);
         this.orderStatus = OrderStatus.PAID;
         this.payStatus = PayStatus.PAID;
         this.paymentNo = paymentNo;

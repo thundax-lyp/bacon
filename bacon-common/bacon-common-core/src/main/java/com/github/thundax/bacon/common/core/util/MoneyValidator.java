@@ -3,9 +3,9 @@ package com.github.thundax.bacon.common.core.util;
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 
-public final class MoneyCurrencyValidator {
+public final class MoneyValidator {
 
-    private MoneyCurrencyValidator() {
+    private MoneyValidator() {
     }
 
     public static void ensureSameCurrency(Money base, Money... others) {

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -34,7 +35,8 @@ public class InMemoryPaymentRepositorySupport {
 
     public PaymentOrder saveOrder(PaymentOrder paymentOrder) {
         PaymentOrder persisted = paymentOrder.getId() == null
-                ? PaymentOrder.rehydrate(paymentOrderIdGenerator.getAndIncrement(), paymentOrder.getTenantId(),
+                ? PaymentOrder.rehydrate(PaymentOrderId.of(String.valueOf(paymentOrderIdGenerator.getAndIncrement())),
+                paymentOrder.getTenantId(),
                 paymentOrder.getPaymentNo(), paymentOrder.getOrderNo(), paymentOrder.getUserId(),
                 paymentOrder.getChannelCode(), paymentOrder.getAmount(), paymentOrder.getPaidAmount(),
                 paymentOrder.getSubject(), paymentOrder.getCreatedAt(), paymentOrder.getExpiredAt(),

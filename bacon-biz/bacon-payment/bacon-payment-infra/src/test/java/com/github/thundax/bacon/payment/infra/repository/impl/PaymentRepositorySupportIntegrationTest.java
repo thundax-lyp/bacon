@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -114,6 +115,7 @@ class PaymentRepositorySupportIntegrationTest {
                 .orElseThrow();
 
         assertNotNull(persistedOrder.getId());
+        assertEquals(PaymentOrderId.of("1"), persistedOrder.getId());
         assertNotNull(persistedCallback.getId());
         assertEquals("ORD-IT-10001", reloadedOrder.getOrderNo());
         assertEquals("TXN-IT-10001", reloadedCallback.getChannelTransactionNo());

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -9,7 +10,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryPaymentRepositorySupportTest {
 
@@ -23,7 +23,7 @@ class InMemoryPaymentRepositorySupportTest {
 
         PaymentOrder persisted = repository.saveOrder(paymentOrder);
 
-        assertTrue(persisted.getId() != null && persisted.getId() > 0);
+        assertEquals(PaymentOrderId.of("1000"), persisted.getId());
         assertEquals("PAY-10001", repository.findOrderByPaymentNo(1001L, "PAY-10001").orElseThrow().getPaymentNo());
         assertEquals("ORD-10001", repository.findOrderByOrderNo(1001L, "ORD-10001").orElseThrow().getOrderNo());
     }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -20,9 +21,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class PaymentRepositorySupportTest {
 
@@ -41,7 +41,7 @@ class PaymentRepositorySupportTest {
 
         assertNotNull(insertedRef.get());
         assertEquals("PAY-10001", insertedRef.get().getPaymentNo());
-        assertTrue(persisted.getId() != null && persisted.getId() > 0);
+        assertEquals(PaymentOrderId.of("8001"), persisted.getId());
         assertEquals("ORD-10001", persisted.getOrderNo());
     }
 
@@ -53,7 +53,8 @@ class PaymentRepositorySupportTest {
                 createCallbackMapper(null, null, null),
                 createAuditLogMapper(null, null)
         );
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(9001L, 1001L, "PAY-10002", "ORD-10002", 2002L,
+        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9001"), 1001L, "PAY-10002", "ORD-10002",
+                2002L,
                 "MOCK", new BigDecimal("99.90"), BigDecimal.ZERO, "strict-update",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentOrder.STATUS_PAYING, null, null, null);
@@ -74,7 +75,8 @@ class PaymentRepositorySupportTest {
                 createCallbackMapper(null, null, null),
                 createAuditLogMapper(null, null)
         );
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(9002L, 1001L, "PAY-10009", "ORD-10009", 2009L,
+        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9002"), 1001L, "PAY-10009", "ORD-10009",
+                2009L,
                 "MOCK", new BigDecimal("66.00"), BigDecimal.ZERO, "strict-conflict",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentOrder.STATUS_PAYING, null, null, null);

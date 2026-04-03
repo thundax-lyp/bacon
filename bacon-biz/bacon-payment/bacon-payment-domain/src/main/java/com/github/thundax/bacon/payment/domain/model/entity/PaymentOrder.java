@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -19,7 +20,7 @@ public class PaymentOrder {
     public static final String CHANNEL_MOCK = "MOCK";
 
     /** 支付主单主键。 */
-    private final Long id;
+    private final PaymentOrderId id;
     /** 所属租户主键。 */
     private final Long tenantId;
     /** 支付单号。 */
@@ -53,7 +54,7 @@ public class PaymentOrder {
     /** 最近一次回调摘要。 */
     private String callbackSummary;
 
-    public PaymentOrder(Long id, Long tenantId, String paymentNo, String orderNo, Long userId, String channelCode,
+    public PaymentOrder(PaymentOrderId id, Long tenantId, String paymentNo, String orderNo, Long userId, String channelCode,
                         BigDecimal amount, String subject, Instant expiredAt, Instant createdAt) {
         this.id = id;
         this.tenantId = tenantId;
@@ -69,7 +70,7 @@ public class PaymentOrder {
         this.paidAmount = BigDecimal.ZERO;
     }
 
-    public static PaymentOrder rehydrate(Long id, Long tenantId, String paymentNo, String orderNo, Long userId,
+    public static PaymentOrder rehydrate(PaymentOrderId id, Long tenantId, String paymentNo, String orderNo, Long userId,
                                          String channelCode, BigDecimal amount, BigDecimal paidAmount, String subject,
                                          Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
                                          String paymentStatus, String channelTransactionNo, String channelStatus,

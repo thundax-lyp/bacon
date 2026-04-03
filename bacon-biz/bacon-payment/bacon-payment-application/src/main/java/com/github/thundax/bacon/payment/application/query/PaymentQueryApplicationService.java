@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.application.query;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -48,7 +49,7 @@ public class PaymentQueryApplicationService {
                 : latestRecord != null ? latestRecord.summarize() : null;
         return new PaymentDetailDTO(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(),
-                paymentOrder.getUserId(), paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus(),
+                toUserValue(paymentOrder.getUserId()), paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus(),
                 paymentOrder.getAmount(), paymentOrder.getPaidAmount(), paymentOrder.getCreatedAt(),
                 paymentOrder.getExpiredAt(), paymentOrder.getPaidAt(), paymentOrder.getSubject(),
                 paymentOrder.getClosedAt(), channelTransactionNo, channelStatus, callbackSummary);
@@ -56,5 +57,9 @@ public class PaymentQueryApplicationService {
 
     private Long toTenantValue(TenantId tenantId) {
         return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    private Long toUserValue(UserId userId) {
+        return userId == null ? null : Long.valueOf(userId.value());
     }
 }

@@ -2,6 +2,7 @@ package com.github.thundax.bacon.payment.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -29,7 +30,7 @@ public class PaymentOrder {
     /** 关联订单号。 */
     private final String orderNo;
     /** 支付用户主键。 */
-    private final Long userId;
+    private final UserId userId;
     /** 支付渠道编码。 */
     private final String channelCode;
     /** 支付金额。 */
@@ -55,7 +56,8 @@ public class PaymentOrder {
     /** 最近一次回调摘要。 */
     private String callbackSummary;
 
-    public PaymentOrder(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo, Long userId, String channelCode,
+    public PaymentOrder(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo, UserId userId,
+                        String channelCode,
                         BigDecimal amount, String subject, Instant expiredAt, Instant createdAt) {
         this.id = id;
         this.tenantId = tenantId;
@@ -71,7 +73,8 @@ public class PaymentOrder {
         this.paidAmount = BigDecimal.ZERO;
     }
 
-    public static PaymentOrder rehydrate(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo, Long userId,
+    public static PaymentOrder rehydrate(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo,
+                                         UserId userId,
                                          String channelCode, BigDecimal amount, BigDecimal paidAmount, String subject,
                                          Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
                                          String paymentStatus, String channelTransactionNo, String channelStatus,

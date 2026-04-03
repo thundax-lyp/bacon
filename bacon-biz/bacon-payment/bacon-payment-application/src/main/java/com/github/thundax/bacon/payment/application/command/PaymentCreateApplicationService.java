@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
@@ -41,7 +42,7 @@ public class PaymentCreateApplicationService {
         if (paymentNo == null || paymentNo.isBlank()) {
             throw new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE, "payment-no-generator");
         }
-        PaymentOrder paymentOrder = new PaymentOrder(null, toTenantId(tenantId), paymentNo, orderNo, userId,
+        PaymentOrder paymentOrder = new PaymentOrder(null, toTenantId(tenantId), paymentNo, orderNo, toUserId(userId),
                 channelCode, amount, subject, expiredAt, Instant.now());
         // 创建后立即进入 PAYING，表示渠道拉起参数已经准备好，后续只等待回调或显式关闭。
         paymentOrder.markPaying();
@@ -85,5 +86,9 @@ public class PaymentCreateApplicationService {
 
     private Long toTenantValue(TenantId tenantId) {
         return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    private UserId toUserId(Long userId) {
+        return userId == null ? null : UserId.of(String.valueOf(userId));
     }
 }

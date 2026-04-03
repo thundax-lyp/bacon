@@ -2,6 +2,7 @@ package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
@@ -37,7 +38,7 @@ class PaymentRepositorySupportTest {
         );
 
         PaymentOrder persisted = support.saveOrder(new PaymentOrder(null, TenantId.of("1001"), "PAY-10001",
-                "ORD-10001", 2001L,
+                "ORD-10001", UserId.of("2001"),
                 "MOCK", new BigDecimal("88.80"), "strict-insert",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z")));
 
@@ -57,7 +58,7 @@ class PaymentRepositorySupportTest {
         );
         PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9001"), TenantId.of("1001"),
                 "PAY-10002", "ORD-10002",
-                2002L,
+                UserId.of("2002"),
                 "MOCK", new BigDecimal("99.90"), BigDecimal.ZERO, "strict-update",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentOrder.STATUS_PAYING, null, null, null);
@@ -80,7 +81,7 @@ class PaymentRepositorySupportTest {
         );
         PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9002"), TenantId.of("1001"),
                 "PAY-10009", "ORD-10009",
-                2009L,
+                UserId.of("2009"),
                 "MOCK", new BigDecimal("66.00"), BigDecimal.ZERO, "strict-conflict",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentOrder.STATUS_PAYING, null, null, null);

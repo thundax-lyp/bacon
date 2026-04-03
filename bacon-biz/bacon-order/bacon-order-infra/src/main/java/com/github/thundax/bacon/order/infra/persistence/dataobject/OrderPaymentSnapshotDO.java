@@ -19,7 +19,7 @@ public class OrderPaymentSnapshotDO {
     @TableId(type = IdType.INPUT)
     private Long id;
     @TableField("tenant_id")
-    private Long tenantId;
+    private String tenantId;
     @TableField("order_id")
     private String orderId;
     @TableField("payment_no")

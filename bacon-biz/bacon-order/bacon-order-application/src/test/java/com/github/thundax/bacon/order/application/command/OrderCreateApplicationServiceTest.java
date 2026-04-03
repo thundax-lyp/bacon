@@ -335,7 +335,7 @@ class OrderCreateApplicationServiceTest {
         @Override
         public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
             return itemStorage.getOrDefault(orderId, List.of()).stream()
-                    .filter(item -> tenantId.equals(item.getTenantIdValue()))
+                    .filter(item -> String.valueOf(tenantId).equals(String.valueOf(item.getTenantIdValue())))
                     .toList();
         }
 

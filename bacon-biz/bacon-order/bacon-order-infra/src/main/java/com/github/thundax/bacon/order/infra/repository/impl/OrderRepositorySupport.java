@@ -105,13 +105,13 @@ public class OrderRepositorySupport {
     public void saveItems(Long tenantId, Long orderId, List<OrderItem> items) {
         // 订单项采用“先删后插”的整包替换策略，保持应用层传入的 items 列表就是该订单的权威快照。
         orderItemMapper.delete(Wrappers.<OrderItemDO>lambdaQuery()
-                .eq(OrderItemDO::getTenantId, tenantId)
+                .eq(OrderItemDO::getTenantId, String.valueOf(tenantId))
                 .eq(OrderItemDO::getOrderId, String.valueOf(orderId)));
         if (items == null || items.isEmpty()) {
             return;
         }
         for (OrderItem item : items) {
-            orderItemMapper.insert(new OrderItemDO(idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG), item.getTenantIdValue(),
+            orderItemMapper.insert(new OrderItemDO(idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG), String.valueOf(item.getTenantIdValue()),
                     String.valueOf(item.getOrderIdValue()), String.valueOf(item.getSkuIdValue()),
                     item.getSkuName(), item.getImageUrl(), item.getQuantity(), item.getSalePrice().value(),
                     item.getLineAmount().value()));
@@ -120,7 +120,7 @@ public class OrderRepositorySupport {
 
     public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
         return orderItemMapper.selectList(Wrappers.<OrderItemDO>lambdaQuery()
-                        .eq(OrderItemDO::getTenantId, tenantId)
+                        .eq(OrderItemDO::getTenantId, String.valueOf(tenantId))
                         .eq(OrderItemDO::getOrderId, String.valueOf(orderId))
                         .orderByAsc(OrderItemDO::getId))
                 .stream()
@@ -131,7 +131,7 @@ public class OrderRepositorySupport {
     public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
         OrderPaymentSnapshotDO existing = orderPaymentSnapshotMapper.selectOne(
                 Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
-                        .eq(OrderPaymentSnapshotDO::getTenantId, snapshot.tenantIdValue())
+                        .eq(OrderPaymentSnapshotDO::getTenantId, String.valueOf(snapshot.tenantIdValue()))
                         .eq(OrderPaymentSnapshotDO::getOrderId, String.valueOf(snapshot.orderIdValue())));
         OrderPaymentSnapshotDO dataObject = toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
@@ -148,7 +148,7 @@ public class OrderRepositorySupport {
     public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId, String currencyCode) {
         return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(
                 Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
-                        .eq(OrderPaymentSnapshotDO::getTenantId, tenantId)
+                        .eq(OrderPaymentSnapshotDO::getTenantId, String.valueOf(tenantId))
                         .eq(OrderPaymentSnapshotDO::getOrderId, String.valueOf(orderId))))
                 .map(dataObject -> toDomain(dataObject, currencyCode));
     }
@@ -413,7 +413,7 @@ public class OrderRepositorySupport {
 
     private OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
         CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(currencyCode);
-        return new OrderItem(toDomainTenantId(dataObject.getTenantId()), toDomainOrderId(dataObject.getOrderId()),
+        return new OrderItem(toDomainOrderTenantId(dataObject.getTenantId()), toDomainOrderId(dataObject.getOrderId()),
                 toDomainSkuId(dataObject.getSkuId()), dataObject.getSkuName(), dataObject.getImageUrl(),
                 dataObject.getQuantity(), Money.of(dataObject.getSalePrice(), resolvedCurrencyCode),
                 Money.of(dataObject.getLineAmount(), resolvedCurrencyCode));
@@ -428,13 +428,13 @@ public class OrderRepositorySupport {
     }
 
     private OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {
-        return new OrderPaymentSnapshotDO(snapshot.id(), snapshot.tenantIdValue(), String.valueOf(snapshot.orderIdValue()),
+        return new OrderPaymentSnapshotDO(snapshot.id(), String.valueOf(snapshot.tenantIdValue()), String.valueOf(snapshot.orderIdValue()),
                 snapshot.paymentNoValue(), snapshot.channelCodeValue(), snapshot.payStatusValue(), snapshot.paidAmountValue(),
                 snapshot.paidTime(), snapshot.failureReason(), snapshot.channelStatusValue(), snapshot.updatedAt());
     }
 
     private OrderPaymentSnapshot toDomain(OrderPaymentSnapshotDO dataObject, String currencyCode) {
-        return new OrderPaymentSnapshot(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()),
+        return new OrderPaymentSnapshot(dataObject.getId(), toDomainOrderTenantId(dataObject.getTenantId()),
                 toDomainOrderId(dataObject.getOrderId()), toDomainPaymentNo(dataObject.getPaymentNo()),
                 toDomainPaymentChannel(dataObject.getChannelCode()), toDomainPayStatus(dataObject.getPayStatus()),
                 toMoney(dataObject.getPaidAmount(), currencyCode), dataObject.getPaidTime(), dataObject.getFailureReason(),

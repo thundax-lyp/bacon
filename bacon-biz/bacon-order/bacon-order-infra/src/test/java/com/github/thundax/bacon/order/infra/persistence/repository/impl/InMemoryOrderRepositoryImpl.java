@@ -61,7 +61,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     @Override
     public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
         return itemsStorage.getOrDefault(orderId, List.of()).stream()
-                .filter(item -> tenantId.equals(item.getTenantIdValue()))
+                .filter(item -> String.valueOf(tenantId).equals(String.valueOf(item.getTenantIdValue())))
                 .toList();
     }
 

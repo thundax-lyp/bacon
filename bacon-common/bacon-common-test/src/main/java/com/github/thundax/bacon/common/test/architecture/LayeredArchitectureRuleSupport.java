@@ -150,6 +150,24 @@ public final class LayeredArchitectureRuleSupport {
                 "@Transactional 默认只允许出现在 application");
     }
 
+    public static ArchRule infraShouldOnlyDependOnDomainRepositoryAsImplementation(String basePackage) {
+        return ArchRuleDefinition.noClasses()
+                .that().resideInAPackage(basePackage + ".infra..")
+                .and().resideOutsideOfPackage(basePackage + ".infra.repository.impl..")
+                .should(new ArchCondition<>("depend on domain.repository") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (Dependency dependency : item.getDirectDependenciesFromSelf()) {
+                            String targetPackage = dependency.getTargetClass().getPackageName();
+                            if (targetPackage.startsWith(basePackage + ".domain.repository.")) {
+                                events.add(SimpleConditionEvent.violated(item, dependency.getDescription()));
+                            }
+                        }
+                    }
+                })
+                .because("infra 只能作为实现层依赖 domain.repository");
+    }
+
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {
         return DOMAIN_FORBIDDEN_TECH_PACKAGES.stream().anyMatch(packageName::startsWith);
     }

@@ -66,4 +66,11 @@ public abstract class AbstractLayeredArchitectureTest {
     void shouldKeepTransactionalInApplication() {
         LayeredArchitectureRuleSupport.transactionalShouldOnlyAppearInApplication(basePackage()).check(classes());
     }
+
+    @Test
+    @DisplayName("infra 只能作为实现层依赖 domain.repository")
+    void shouldKeepDomainRepositoryDependencyInsideInfraRepositoryImpl() {
+        LayeredArchitectureRuleSupport.infraShouldOnlyDependOnDomainRepositoryAsImplementation(basePackage())
+                .check(classes());
+    }
 }

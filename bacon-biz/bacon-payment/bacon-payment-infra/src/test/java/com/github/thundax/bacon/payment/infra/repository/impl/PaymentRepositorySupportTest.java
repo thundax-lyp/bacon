@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentAuditLogDO;
@@ -61,7 +62,7 @@ class PaymentRepositorySupportTest {
                 UserId.of("2002"),
                 "MOCK", new BigDecimal("99.90"), BigDecimal.ZERO, "strict-update",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
-                null, null, PaymentOrder.STATUS_PAYING, null, null, null);
+                null, null, PaymentStatus.PAYING, null, null, null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));
 
         PaymentOrder persisted = support.saveOrder(paymentOrder);
@@ -69,7 +70,7 @@ class PaymentRepositorySupportTest {
         assertNotNull(updatedRef.get());
         assertEquals(9001L, updatedRef.get().getId());
         assertEquals(PaymentOrder.STATUS_CLOSED, updatedRef.get().getPaymentStatus());
-        assertEquals(PaymentOrder.STATUS_CLOSED, persisted.getPaymentStatus());
+        assertEquals(PaymentOrder.STATUS_CLOSED, persisted.getPaymentStatus().value());
     }
 
     @Test
@@ -84,7 +85,7 @@ class PaymentRepositorySupportTest {
                 UserId.of("2009"),
                 "MOCK", new BigDecimal("66.00"), BigDecimal.ZERO, "strict-conflict",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
-                null, null, PaymentOrder.STATUS_PAYING, null, null, null);
+                null, null, PaymentStatus.PAYING, null, null, null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));
 
         PaymentDomainException ex = assertThrows(PaymentDomainException.class, () -> support.saveOrder(paymentOrder));
@@ -118,7 +119,7 @@ class PaymentRepositorySupportTest {
         PaymentCallbackRecord latestCallback = support.findLatestCallbackByPaymentNo(1001L, "PAY-10003").orElseThrow();
         List<PaymentAuditLog> auditLogs = support.findAuditLogsByPaymentNo(1001L, "PAY-10003");
 
-        assertEquals(PaymentOrder.STATUS_PAID, paymentOrder.getPaymentStatus());
+        assertEquals(PaymentOrder.STATUS_PAID, paymentOrder.getPaymentStatus().value());
         assertEquals("TXN-10003", latestCallback.getChannelTransactionNo());
         assertEquals(2, auditLogs.size());
         assertEquals(PaymentAuditLog.ACTION_CREATE, auditLogs.get(0).getActionType());

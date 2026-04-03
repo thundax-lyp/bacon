@@ -9,6 +9,7 @@ import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentAuditLogDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentCallbackRecordDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentOrderDO;
@@ -136,7 +137,7 @@ public class PaymentRepositorySupport {
         return new PaymentOrderDO(toDatabaseId(paymentOrder.getId()), toDatabaseTenantId(paymentOrder.getTenantId()),
                 paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(), toDatabaseUserId(paymentOrder.getUserId()), paymentOrder.getChannelCode(),
-                paymentOrder.getPaymentStatus(), paymentOrder.getAmount(), paymentOrder.getPaidAmount(),
+                paymentOrder.getPaymentStatus().value(), paymentOrder.getAmount(), paymentOrder.getPaidAmount(),
                 paymentOrder.getSubject(), paymentOrder.getCreatedAt(), now, paymentOrder.getExpiredAt(),
                 paymentOrder.getPaidAt(), paymentOrder.getClosedAt());
     }
@@ -147,7 +148,8 @@ public class PaymentRepositorySupport {
                 dataObject.getPaymentNo(),
                 dataObject.getOrderNo(), toDomainUserId(dataObject.getUserId()), dataObject.getChannelCode(),
                 dataObject.getAmount(), dataObject.getPaidAmount(), dataObject.getSubject(), dataObject.getCreatedAt(),
-                dataObject.getExpiredAt(), dataObject.getPaidAt(), dataObject.getClosedAt(), dataObject.getPaymentStatus(),
+                dataObject.getExpiredAt(), dataObject.getPaidAt(), dataObject.getClosedAt(),
+                PaymentStatus.fromValue(dataObject.getPaymentStatus()),
                 null, null, null);
     }
 

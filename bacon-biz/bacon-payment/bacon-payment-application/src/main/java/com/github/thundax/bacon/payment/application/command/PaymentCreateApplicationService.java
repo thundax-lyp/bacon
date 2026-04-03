@@ -8,6 +8,7 @@ import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentChannelPayload;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import com.github.thundax.bacon.payment.domain.service.PaymentNoGenerator;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,7 @@ public class PaymentCreateApplicationService {
         // 创建后立即进入 PAYING，表示渠道拉起参数已经准备好，后续只等待回调或显式关闭。
         paymentOrder.markPaying();
         PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);
-        paymentOperationLogSupport.recordCreate(tenantId, paymentNo, paymentOrder.getPaymentStatus(),
+        paymentOperationLogSupport.recordCreate(tenantId, paymentNo, paymentOrder.getPaymentStatus().value(),
                 persistedOrder.getCreatedAt());
         return toCreateResult(persistedOrder, buildPayload(persistedOrder), null);
     }
@@ -73,11 +74,11 @@ public class PaymentCreateApplicationService {
                                                   PaymentChannelPayload channelPayload,
                                                   String failureReason) {
         // 只有处于 PAYING 的支付单才继续暴露 payPayload 和过期时间；终态单查询时不再返回重新拉起信息。
-        String payPayload = PaymentOrder.STATUS_PAYING.equals(paymentOrder.getPaymentStatus()) ? channelPayload.getPayUrl() : null;
-        Instant dtoExpiredAt = PaymentOrder.STATUS_PAYING.equals(paymentOrder.getPaymentStatus()) ? paymentOrder.getExpiredAt() : null;
+        String payPayload = PaymentStatus.PAYING == paymentOrder.getPaymentStatus() ? channelPayload.getPayUrl() : null;
+        Instant dtoExpiredAt = PaymentStatus.PAYING == paymentOrder.getPaymentStatus() ? paymentOrder.getExpiredAt() : null;
         return new PaymentCreateResultDTO(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(),
-                paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus(), payPayload, dtoExpiredAt, failureReason);
+                paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus().value(), payPayload, dtoExpiredAt, failureReason);
     }
 
     private TenantId toTenantId(Long tenantId) {

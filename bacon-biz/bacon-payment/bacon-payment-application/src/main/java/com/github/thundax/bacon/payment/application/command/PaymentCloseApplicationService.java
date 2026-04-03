@@ -5,6 +5,7 @@ import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSup
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
+import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import org.springframework.stereotype.Service;
 
@@ -31,25 +32,25 @@ public class PaymentCloseApplicationService {
         PaymentOrder paymentOrder = paymentOrderRepository.findOrderByPaymentNo(tenantId, paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         // 已关闭视为幂等成功；已支付和已失败则显式拒绝关闭，避免把终态单误判成可关闭状态。
-        if (PaymentOrder.STATUS_CLOSED.equals(paymentOrder.getPaymentStatus())) {
+        if (PaymentStatus.CLOSED == paymentOrder.getPaymentStatus()) {
             return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
-                    paymentOrder.getPaymentStatus(), "SUCCESS", reason, null);
+                    paymentOrder.getPaymentStatus().value(), "SUCCESS", reason, null);
         }
-        if (PaymentOrder.STATUS_PAID.equals(paymentOrder.getPaymentStatus())) {
+        if (PaymentStatus.PAID == paymentOrder.getPaymentStatus()) {
             return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
-                    paymentOrder.getPaymentStatus(), "FAILED", reason, "Paid payment cannot be closed");
+                    paymentOrder.getPaymentStatus().value(), "FAILED", reason, "Paid payment cannot be closed");
         }
-        if (PaymentOrder.STATUS_FAILED.equals(paymentOrder.getPaymentStatus())) {
+        if (PaymentStatus.FAILED == paymentOrder.getPaymentStatus()) {
             return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
-                    paymentOrder.getPaymentStatus(), "FAILED", reason, "Failed payment cannot be closed");
+                    paymentOrder.getPaymentStatus().value(), "FAILED", reason, "Failed payment cannot be closed");
         }
-        String beforeStatus = paymentOrder.getPaymentStatus();
+        String beforeStatus = paymentOrder.getPaymentStatus().value();
         Instant closedAt = Instant.now();
         paymentOrder.close(closedAt);
         paymentOrderRepository.save(paymentOrder);
-        paymentOperationLogSupport.recordClose(tenantId, paymentNo, beforeStatus, paymentOrder.getPaymentStatus(),
+        paymentOperationLogSupport.recordClose(tenantId, paymentNo, beforeStatus, paymentOrder.getPaymentStatus().value(),
                 closedAt);
         return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
-                paymentOrder.getPaymentStatus(), "SUCCESS", reason, null);
+                paymentOrder.getPaymentStatus().value(), "SUCCESS", reason, null);
     }
 }

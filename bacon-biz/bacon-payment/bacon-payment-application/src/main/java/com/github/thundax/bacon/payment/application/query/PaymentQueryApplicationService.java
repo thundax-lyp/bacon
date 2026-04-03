@@ -49,7 +49,7 @@ public class PaymentQueryApplicationService {
                 : latestRecord != null ? latestRecord.summarize() : null;
         return new PaymentDetailDTO(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(),
-                toUserValue(paymentOrder.getUserId()), paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus(),
+                toUserValue(paymentOrder.getUserId()), paymentOrder.getChannelCode(), paymentOrder.getPaymentStatus().value(),
                 paymentOrder.getAmount(), paymentOrder.getPaidAmount(), paymentOrder.getCreatedAt(),
                 paymentOrder.getExpiredAt(), paymentOrder.getPaidAt(), paymentOrder.getSubject(),
                 paymentOrder.getClosedAt(), channelTransactionNo, channelStatus, callbackSummary);

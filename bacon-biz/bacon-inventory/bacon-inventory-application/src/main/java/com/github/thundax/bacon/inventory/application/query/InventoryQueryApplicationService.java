@@ -15,6 +15,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDead
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
@@ -111,13 +112,14 @@ public class InventoryQueryApplicationService {
     }
 
     private InventoryStockDTO toStockDto(Inventory inventory) {
-        return new InventoryStockDTO(inventory.getTenantId(), inventory.getSkuId(), inventory.getWarehouseId(),
+        return new InventoryStockDTO(toLongValue(inventory.getTenantId()), toLongValue(inventory.getSkuId()),
+                toLongValue(inventory.getWarehouseId()),
                 inventory.getOnHandQuantity(), inventory.getReservedQuantity(), inventory.getAvailableQuantity(),
-                inventory.getStatus(), inventory.getUpdatedAt());
+                inventory.getStatus().value(), inventory.getUpdatedAt());
     }
 
     private InventoryLedgerDTO toLedgerDto(InventoryLedger ledger) {
-        return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantId(), ledger.getOrderNo(),
+        return new InventoryLedgerDTO(ledger.getId(), toLongValue(ledger.getTenantId()), ledger.getOrderNo(),
                 ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
@@ -130,13 +132,13 @@ public class InventoryQueryApplicationService {
 
     private InventoryAuditDeadLetterDTO toAuditDeadLetterDto(InventoryAuditDeadLetter deadLetter) {
         return new InventoryAuditDeadLetterDTO(toStringValue(deadLetter.getId()), toStringValue(deadLetter.getOutboxId()),
-                toStringValue(deadLetter.getTenantId()),
+                deadLetter.getTenantId(),
                 deadLetter.getOrderNo(), deadLetter.getReservationNo(), deadLetter.getActionType(),
                 deadLetter.getOperatorType(), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(), deadLetter.getReplayStatus(), deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
-                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), toStringValue(deadLetter.getReplayOperatorId()));
+                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), deadLetter.getReplayOperatorId());
     }
 
     private String normalizeStatus(String status) {
@@ -148,5 +150,17 @@ public class InventoryQueryApplicationService {
 
     private String toStringValue(Long value) {
         return value == null ? null : String.valueOf(value);
+    }
+
+    private Long toLongValue(com.github.thundax.bacon.common.id.domain.TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    private Long toLongValue(com.github.thundax.bacon.common.id.domain.SkuId skuId) {
+        return skuId == null ? null : skuId.value();
+    }
+
+    private Long toLongValue(com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId warehouseId) {
+        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
     }
 }

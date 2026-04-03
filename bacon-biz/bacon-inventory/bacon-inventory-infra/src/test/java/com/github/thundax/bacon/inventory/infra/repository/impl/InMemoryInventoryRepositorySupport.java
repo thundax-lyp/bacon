@@ -55,8 +55,8 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<Inventory> findInventories(Long tenantId) {
         return inventories.values().stream()
-                .filter(inventory -> inventory.getTenantId().equals(tenantId))
-                .sorted(java.util.Comparator.comparing(Inventory::getSkuId))
+                .filter(inventory -> inventory.getTenantId().value().equals(String.valueOf(tenantId)))
+                .sorted(java.util.Comparator.comparing(inventory -> inventory.getSkuId().value()))
                 .toList();
     }
 
@@ -69,8 +69,8 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
         return findInventories(tenantId).stream()
-                .filter(inventory -> skuId == null || inventory.getSkuId().equals(skuId))
-                .filter(inventory -> status == null || status.equals(inventory.getStatus()))
+                .filter(inventory -> skuId == null || inventory.getSkuId().value().equals(skuId))
+                .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                 .skip((long) (pageNo - 1) * pageSize)
                 .limit(pageSize)
                 .toList();
@@ -78,20 +78,21 @@ public class InMemoryInventoryRepositorySupport {
 
     public long countInventories(Long tenantId, Long skuId, String status) {
         return findInventories(tenantId).stream()
-                .filter(inventory -> skuId == null || inventory.getSkuId().equals(skuId))
-                .filter(inventory -> status == null || status.equals(inventory.getStatus()))
+                .filter(inventory -> skuId == null || inventory.getSkuId().value().equals(skuId))
+                .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                 .count();
     }
 
     public Inventory saveInventory(Inventory inventory) {
         if (inventory.getId() == null) {
-            inventory = new Inventory(inventoryIdGenerator.getAndIncrement(), inventory.getTenantId(), inventory.getSkuId(),
-                    inventory.getWarehouseId(), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
-                    inventory.getAvailableQuantity(), inventory.getStatus(), inventory.getVersion(), inventory.getUpdatedAt());
+            inventory = new Inventory(String.valueOf(inventoryIdGenerator.getAndIncrement()), inventory.getTenantId().value(),
+                    inventory.getSkuId().value(), Long.valueOf(inventory.getWarehouseId().value()), inventory.getOnHandQuantity(),
+                    inventory.getReservedQuantity(), inventory.getAvailableQuantity(), inventory.getStatus(),
+                    inventory.getVersion(), inventory.getUpdatedAt());
         }
         Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
         inventory.markPersisted(version);
-        inventories.put(key(inventory.getTenantId(), inventory.getSkuId()), inventory);
+        inventories.put(key(inventory.getTenantId().value(), inventory.getSkuId().value()), inventory);
         return inventory;
     }
 
@@ -121,7 +122,7 @@ public class InMemoryInventoryRepositorySupport {
                     ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
                     ledger.getQuantity(), ledger.getOccurredAt());
         }
-        ledgers.computeIfAbsent(reservationKey(ledger.getTenantId(), ledger.getOrderNo()), key -> new ArrayList<>())
+        ledgers.computeIfAbsent(reservationKey(ledger.getTenantId().value(), ledger.getOrderNo()), key -> new ArrayList<>())
                 .add(ledger);
     }
 
@@ -303,7 +304,7 @@ public class InMemoryInventoryRepositorySupport {
                                                                 String replayStatus, int pageNo, int pageSize) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> item.getTenantId().equals(tenantId))
+                .filter(item -> item.getTenantId().equals(String.valueOf(tenantId)))
                 .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
                         || replayStatus.equals(item.getReplayStatus()))
@@ -317,7 +318,7 @@ public class InMemoryInventoryRepositorySupport {
     public long countAuditDeadLetters(Long tenantId, String orderNo, String replayStatus) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> item.getTenantId().equals(tenantId))
+                .filter(item -> item.getTenantId().equals(String.valueOf(tenantId)))
                 .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
                         || replayStatus.equals(item.getReplayStatus()))
@@ -334,14 +335,14 @@ public class InMemoryInventoryRepositorySupport {
     public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
                                                  String operatorType, Long operatorId, Instant replayAt) {
         return findAuditDeadLetterById(id)
-                .filter(item -> item.getTenantId().equals(tenantId))
+                .filter(item -> item.getTenantId().equals(String.valueOf(tenantId)))
                 .filter(item -> InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.equals(item.getReplayStatus())
                         || InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.equals(item.getReplayStatus()))
                 .map(item -> {
                     item.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_RUNNING);
                     item.setReplayKey(replayKey);
                     item.setReplayOperatorType(operatorType);
-                    item.setReplayOperatorId(operatorId);
+                    item.setReplayOperatorId(String.valueOf(operatorId));
                     item.setLastReplayAt(replayAt);
                     item.setLastReplayResult("RUNNING");
                     item.setLastReplayError(null);
@@ -357,7 +358,7 @@ public class InMemoryInventoryRepositorySupport {
             item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
             item.setReplayKey(replayKey);
             item.setReplayOperatorType(operatorType);
-            item.setReplayOperatorId(operatorId);
+            item.setReplayOperatorId(String.valueOf(operatorId));
             item.setLastReplayAt(replayAt);
             item.setLastReplayResult("SUCCEEDED");
             item.setLastReplayError(null);
@@ -371,7 +372,7 @@ public class InMemoryInventoryRepositorySupport {
             item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
             item.setReplayKey(replayKey);
             item.setReplayOperatorType(operatorType);
-            item.setReplayOperatorId(operatorId);
+            item.setReplayOperatorId(String.valueOf(operatorId));
             item.setLastReplayAt(replayAt);
             item.setLastReplayResult("FAILED");
             item.setLastReplayError(replayError);
@@ -484,7 +485,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(task -> InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
                 .filter(task -> processingOwner.equals(task.getProcessingOwner()))
                 .ifPresent(task -> {
-                    task.setStatus(status);
+                    task.setStatus(com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus.fromValue(status));
                     task.setLastError(lastError);
                     task.setProcessingOwner(null);
                     task.setLeaseUntil(null);
@@ -495,7 +496,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> tenantId.equals(task.getTenantId()))
+                .filter(task -> String.valueOf(tenantId).equals(task.getTenantId()))
                 .filter(task -> InventoryAuditReplayTask.STATUS_PENDING.equals(task.getStatus())
                         || InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
                 .map(task -> {
@@ -510,7 +511,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> tenantId.equals(task.getTenantId()))
+                .filter(task -> String.valueOf(tenantId).equals(task.getTenantId()))
                 .filter(task -> InventoryAuditReplayTask.STATUS_PAUSED.equals(task.getStatus()))
                 .map(task -> {
                     task.setStatus(InventoryAuditReplayTask.STATUS_PENDING);
@@ -524,7 +525,15 @@ public class InMemoryInventoryRepositorySupport {
         return tenantId + ":" + skuId;
     }
 
+    private static String key(String tenantId, Long skuId) {
+        return tenantId + ":" + skuId;
+    }
+
     private static String reservationKey(Long tenantId, String orderNo) {
+        return tenantId + ":" + orderNo;
+    }
+
+    private static String reservationKey(String tenantId, String orderNo) {
         return tenantId + ":" + orderNo;
     }
 

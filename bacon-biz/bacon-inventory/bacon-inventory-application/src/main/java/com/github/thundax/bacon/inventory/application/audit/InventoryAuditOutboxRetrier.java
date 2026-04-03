@@ -75,9 +75,9 @@ public class InventoryAuditOutboxRetrier {
     private void retryOne(InventoryAuditOutbox item, Instant now, String owner) {
         try {
             // outbox 重试的目标很单一：把原始审计事件补写回正式审计表，成功后立即删除 outbox。
-            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, item.getTenantId(), item.getOrderNo(),
-                    item.getReservationNo(), item.getActionType(), item.getOperatorType(), item.getOperatorId(),
-                    item.getOccurredAt()));
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, toLongValue(item.getTenantId()),
+                    item.getOrderNo(), item.getReservationNo(), item.getActionType(), item.getOperatorType(),
+                    toLongValue(item.getOperatorId()), item.getOccurredAt()));
             if (!inventoryAuditOutboxRepository.deleteAuditOutboxClaimed(item.getId(), owner)) {
                 Metrics.counter("bacon.inventory.audit.retry.cas_conflict.total", "actionType", item.getActionType()).increment();
                 log.warn("Inventory audit retry skip delete due to owner mismatch, outboxId={}, owner={}",
@@ -138,5 +138,9 @@ public class InventoryAuditOutboxRetrier {
             return "UNKNOWN";
         }
         return message.length() <= 512 ? message : message.substring(0, 512);
+    }
+
+    private Long toLongValue(String value) {
+        return value == null ? null : Long.valueOf(value);
     }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -50,7 +51,7 @@ public class InventoryOperationLogSupport {
     private void recordLedgerBatch(InventoryReservation reservation, List<InventoryReservationItem> items,
                                    String ledgerType, Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(),
+            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, TenantId.of(String.valueOf(reservation.getTenantId())),
                     reservation.getOrderNo(), reservation.getReservationNo(), item.getSkuId(),
                     reservation.getWarehouseId(), ledgerType, item.getQuantity(), occurredAt));
         }

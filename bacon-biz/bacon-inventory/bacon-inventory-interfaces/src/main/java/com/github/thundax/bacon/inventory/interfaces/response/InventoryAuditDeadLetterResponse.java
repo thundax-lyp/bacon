@@ -22,7 +22,7 @@ public record InventoryAuditDeadLetterResponse(
         /** 操作人类型。 */
         String operatorType,
         /** 操作人主键。 */
-        Long operatorId,
+        String operatorId,
         /** 原始发生时间。 */
         Instant occurredAt,
         /** 重试次数。 */

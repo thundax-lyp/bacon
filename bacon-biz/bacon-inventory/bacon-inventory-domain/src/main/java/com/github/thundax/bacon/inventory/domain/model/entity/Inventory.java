@@ -1,7 +1,12 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,18 +18,18 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Inventory {
 
-    public static final String STATUS_ENABLED = "ENABLED";
-    public static final String STATUS_DISABLED = "DISABLED";
-    public static final Long DEFAULT_WAREHOUSE_ID = 1L;
+    public static final String STATUS_ENABLED = InventoryStatus.ENABLED.value();
+    public static final String STATUS_DISABLED = InventoryStatus.DISABLED.value();
+    public static final WarehouseId DEFAULT_WAREHOUSE_ID = WarehouseId.of("1");
 
     /** 库存主键。 */
-    private Long id;
+    private InventoryId id;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private TenantId tenantId;
     /** 商品 SKU 主键。 */
-    private Long skuId;
+    private SkuId skuId;
     /** 仓库主键。 */
-    private Long warehouseId;
+    private WarehouseId warehouseId;
     /** 在库数量。 */
     private Integer onHandQuantity;
     /** 预占数量。 */
@@ -32,22 +37,53 @@ public class Inventory {
     /** 可用数量。 */
     private Integer availableQuantity;
     /** 库存状态。 */
-    private String status;
+    private InventoryStatus status;
     /** 乐观锁版本号。 */
     private Long version;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
+    public Inventory(Long id, Long tenantId, Long skuId, Long warehouseId, Integer onHandQuantity,
+                     Integer reservedQuantity, Integer availableQuantity, String status, Long version, Instant updatedAt) {
+        this(id == null ? null : InventoryId.of(String.valueOf(id)),
+                tenantId == null ? null : TenantId.of(String.valueOf(tenantId)),
+                skuId == null ? null : SkuId.of(skuId),
+                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)),
+                onHandQuantity, reservedQuantity, availableQuantity, normalizeStatus(status), version, updatedAt);
+    }
+
+    public Inventory(Long id, Long tenantId, Long skuId, Long warehouseId, Integer onHandQuantity,
+                     Integer reservedQuantity, Integer availableQuantity, InventoryStatus status, Long version, Instant updatedAt) {
+        this(id == null ? null : InventoryId.of(String.valueOf(id)),
+                tenantId == null ? null : TenantId.of(String.valueOf(tenantId)),
+                skuId == null ? null : SkuId.of(skuId),
+                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)),
+                onHandQuantity, reservedQuantity, availableQuantity, status, version, updatedAt);
+    }
+
+    public Inventory(String id, String tenantId, Long skuId, Long warehouseId, Integer onHandQuantity,
+                     Integer reservedQuantity, Integer availableQuantity, InventoryStatus status, Long version, Instant updatedAt) {
+        this(id == null ? null : InventoryId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                skuId == null ? null : SkuId.of(skuId),
+                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)),
+                onHandQuantity, reservedQuantity, availableQuantity, status, version, updatedAt);
+    }
+
     public static Inventory create(Long id, Long tenantId, Long skuId, Integer onHandQuantity, String status, Instant createdAt) {
+        return create(id == null ? null : String.valueOf(id), String.valueOf(tenantId), skuId, onHandQuantity, status, createdAt);
+    }
+
+    public static Inventory create(String id, String tenantId, Long skuId, Integer onHandQuantity, String status, Instant createdAt) {
         if (tenantId == null || skuId == null) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
         }
         if (onHandQuantity == null || onHandQuantity < 0) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_ON_HAND_QUANTITY, String.valueOf(skuId));
         }
-        String normalizedStatus = normalizeStatus(status);
+        InventoryStatus normalizedStatus = normalizeStatus(status);
         // 新建库存时把 reserved/available 一次性归位，后续所有数量变化都只通过领域方法推进。
-        return new Inventory(id, tenantId, skuId, DEFAULT_WAREHOUSE_ID, onHandQuantity, 0, onHandQuantity,
+        return new Inventory(id, tenantId, skuId, Long.valueOf(DEFAULT_WAREHOUSE_ID.value()), onHandQuantity, 0, onHandQuantity,
                 normalizedStatus, 0L, createdAt);
     }
 
@@ -103,14 +139,14 @@ public class Inventory {
     }
 
     private void ensureEnabled() {
-        if (STATUS_DISABLED.equals(status)) {
-            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_DISABLED, String.valueOf(skuId));
+        if (InventoryStatus.DISABLED.equals(status)) {
+            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_DISABLED, String.valueOf(skuId.value()));
         }
     }
 
     private void validateQuantity(int quantity) {
         if (quantity <= 0) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_QUANTITY, String.valueOf(skuId));
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_QUANTITY, String.valueOf(skuId.value()));
         }
     }
 
@@ -120,10 +156,11 @@ public class Inventory {
         updatedAt = operatedAt;
     }
 
-    private static String normalizeStatus(String status) {
-        if (STATUS_ENABLED.equals(status) || STATUS_DISABLED.equals(status)) {
-            return status;
+    private static InventoryStatus normalizeStatus(String status) {
+        try {
+            return InventoryStatus.fromValue(status);
+        } catch (IllegalArgumentException ex) {
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_STATUS, String.valueOf(status));
         }
-        throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_STATUS, String.valueOf(status));
     }
 }

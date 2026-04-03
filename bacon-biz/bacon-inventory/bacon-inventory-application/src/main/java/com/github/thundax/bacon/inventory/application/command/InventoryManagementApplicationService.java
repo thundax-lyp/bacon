@@ -43,8 +43,9 @@ public class InventoryManagementApplicationService {
     }
 
     private InventoryStockDTO toStockDto(Inventory inventory) {
-        return new InventoryStockDTO(inventory.getTenantId(), inventory.getSkuId(), inventory.getWarehouseId(),
+        return new InventoryStockDTO(Long.valueOf(inventory.getTenantId().value()), inventory.getSkuId().value(),
+                Long.valueOf(inventory.getWarehouseId().value()),
                 inventory.getOnHandQuantity(), inventory.getReservedQuantity(), inventory.getAvailableQuantity(),
-                inventory.getStatus(), inventory.getUpdatedAt());
+                inventory.getStatus().value(), inventory.getUpdatedAt());
     }
 }

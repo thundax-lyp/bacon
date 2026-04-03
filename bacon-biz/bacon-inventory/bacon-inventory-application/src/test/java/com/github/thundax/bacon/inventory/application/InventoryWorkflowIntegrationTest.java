@@ -171,7 +171,7 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public List<Inventory> findInventories(Long tenantId) {
             return inventories.values().stream()
-                    .filter(item -> item.getTenantId().equals(tenantId))
+                    .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
                     .map(this::copy)
                     .toList();
         }
@@ -188,8 +188,8 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
-                    .filter(item -> skuId == null || item.getSkuId().equals(skuId))
-                    .filter(item -> status == null || status.equals(item.getStatus()))
+                    .filter(item -> skuId == null || item.getSkuId().value().equals(skuId))
+                    .filter(item -> status == null || status.equals(item.getStatus().value()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)
                     .toList();
@@ -202,7 +202,7 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public synchronized Inventory saveInventory(Inventory inventory) {
-            Inventory current = inventories.get(key(inventory.getTenantId(), inventory.getSkuId()));
+            Inventory current = inventories.get(key(inventory.getTenantId().value(), inventory.getSkuId().value()));
             if (current == null) {
                 throw new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(inventory.getSkuId()));
             }
@@ -212,7 +212,7 @@ class InventoryWorkflowIntegrationTest {
             }
             Inventory persisted = copy(inventory);
             persisted.markPersisted(current.getVersion() + 1);
-            inventories.put(key(persisted.getTenantId(), persisted.getSkuId()), persisted);
+            inventories.put(key(persisted.getTenantId().value(), persisted.getSkuId().value()), persisted);
             return copy(persisted);
         }
 
@@ -234,7 +234,7 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public void saveLedger(InventoryLedger ledger) {
-            ledgers.computeIfAbsent(reservationKey(ledger.getTenantId(), ledger.getOrderNo()),
+            ledgers.computeIfAbsent(reservationKey(Long.valueOf(ledger.getTenantId().value()), ledger.getOrderNo()),
                             ignored -> new ArrayList<>())
                     .add(ledger);
         }
@@ -412,6 +412,10 @@ class InventoryWorkflowIntegrationTest {
         }
 
         private static String key(Long tenantId, Long skuId) {
+            return tenantId + ":" + skuId;
+        }
+
+        private static String key(String tenantId, Long skuId) {
             return tenantId + ":" + skuId;
         }
 

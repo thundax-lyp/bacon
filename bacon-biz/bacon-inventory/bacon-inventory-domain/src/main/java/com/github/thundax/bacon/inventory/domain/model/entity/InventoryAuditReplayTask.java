@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,21 +14,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InventoryAuditReplayTask {
 
-    public static final String STATUS_PENDING = "PENDING";
-    public static final String STATUS_RUNNING = "RUNNING";
-    public static final String STATUS_PAUSED = "PAUSED";
-    public static final String STATUS_SUCCEEDED = "SUCCEEDED";
-    public static final String STATUS_FAILED = "FAILED";
-    public static final String STATUS_CANCELED = "CANCELED";
+    public static final InventoryAuditReplayTaskStatus STATUS_PENDING = InventoryAuditReplayTaskStatus.PENDING;
+    public static final InventoryAuditReplayTaskStatus STATUS_RUNNING = InventoryAuditReplayTaskStatus.RUNNING;
+    public static final InventoryAuditReplayTaskStatus STATUS_PAUSED = InventoryAuditReplayTaskStatus.PAUSED;
+    public static final InventoryAuditReplayTaskStatus STATUS_SUCCEEDED = InventoryAuditReplayTaskStatus.SUCCEEDED;
+    public static final InventoryAuditReplayTaskStatus STATUS_FAILED = InventoryAuditReplayTaskStatus.FAILED;
+    public static final InventoryAuditReplayTaskStatus STATUS_CANCELED = InventoryAuditReplayTaskStatus.CANCELED;
 
     /** 回放任务主键。 */
     private Long id;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private String tenantId;
     /** 任务编号。 */
     private String taskNo;
     /** 任务状态。 */
-    private String status;
+    private InventoryAuditReplayTaskStatus status;
     /** 总任务数。 */
     private Integer totalCount;
     /** 已处理数量。 */
@@ -41,7 +42,7 @@ public class InventoryAuditReplayTask {
     /** 操作人类型。 */
     private String operatorType;
     /** 操作人主键。 */
-    private Long operatorId;
+    private String operatorId;
     /** 当前处理节点标识。 */
     private String processingOwner;
     /** 租约到期时间。 */
@@ -58,4 +59,27 @@ public class InventoryAuditReplayTask {
     private Instant finishedAt;
     /** 最后更新时间。 */
     private Instant updatedAt;
+
+    public InventoryAuditReplayTask(Long id, Long tenantId, String taskNo, String status, Integer totalCount,
+                                    Integer processedCount, Integer successCount, Integer failedCount,
+                                    String replayKeyPrefix, String operatorType, Long operatorId,
+                                    String processingOwner, Instant leaseUntil, String lastError, Instant createdAt,
+                                    Instant startedAt, Instant pausedAt, Instant finishedAt, Instant updatedAt) {
+        this(id, tenantId == null ? null : String.valueOf(tenantId), taskNo,
+                status == null ? null : InventoryAuditReplayTaskStatus.fromValue(status), totalCount, processedCount,
+                successCount, failedCount, replayKeyPrefix, operatorType,
+                operatorId == null ? null : String.valueOf(operatorId), processingOwner, leaseUntil, lastError,
+                createdAt, startedAt, pausedAt, finishedAt, updatedAt);
+    }
+
+    public InventoryAuditReplayTask(Long id, Long tenantId, String taskNo, InventoryAuditReplayTaskStatus status,
+                                    Integer totalCount, Integer processedCount, Integer successCount,
+                                    Integer failedCount, String replayKeyPrefix, String operatorType, Long operatorId,
+                                    String processingOwner, Instant leaseUntil, String lastError, Instant createdAt,
+                                    Instant startedAt, Instant pausedAt, Instant finishedAt, Instant updatedAt) {
+        this(id, tenantId == null ? null : String.valueOf(tenantId), taskNo, status, totalCount, processedCount,
+                successCount, failedCount, replayKeyPrefix, operatorType,
+                operatorId == null ? null : String.valueOf(operatorId), processingOwner, leaseUntil, lastError,
+                createdAt, startedAt, pausedAt, finishedAt, updatedAt);
+    }
 }

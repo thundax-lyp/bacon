@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
@@ -10,6 +12,9 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;
@@ -561,16 +566,16 @@ public class InventoryRepositorySupport {
     }
 
     private Inventory toDomain(InventoryDO dataObject) {
-        return new Inventory(dataObject.getId(), dataObject.getTenantId(), dataObject.getSkuId(), dataObject.getWarehouseId(),
+        return new Inventory(String.valueOf(dataObject.getId()), String.valueOf(dataObject.getTenantId()), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getOnHandQuantity(), dataObject.getReservedQuantity(), dataObject.getAvailableQuantity(),
-                dataObject.getStatus(), dataObject.getVersion(),
+                InventoryStatus.fromValue(dataObject.getStatus()), dataObject.getVersion(),
                 dataObject.getUpdatedAt() == null ? dataObject.getCreatedAt() : dataObject.getUpdatedAt());
     }
 
     private InventoryDO toDataObject(Inventory inventory) {
-        return new InventoryDO(inventory.getId(), inventory.getTenantId(), inventory.getSkuId(),
-                inventory.getWarehouseId(), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
-                inventory.getAvailableQuantity(), inventory.getStatus(), inventory.getVersion(), null,
+        return new InventoryDO(toLongValue(inventory.getId()), toLongValue(inventory.getTenantId()), toLongValue(inventory.getSkuId()),
+                toLongValue(inventory.getWarehouseId()), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
+                inventory.getAvailableQuantity(), inventory.getStatus().value(), inventory.getVersion(), null,
                 inventory.getUpdatedAt(), null,
                 inventory.getUpdatedAt());
     }
@@ -599,13 +604,13 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryLedger toDomain(InventoryLedgerDO dataObject) {
-        return new InventoryLedger(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
+        return new InventoryLedger(dataObject.getId(), TenantId.of(String.valueOf(dataObject.getTenantId())), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getLedgerType(), dataObject.getQuantity(), dataObject.getOccurredAt());
     }
 
     private InventoryLedgerDO toDataObject(InventoryLedger ledger) {
-        return new InventoryLedgerDO(ledger.getId(), ledger.getTenantId(), ledger.getOrderNo(),
+        return new InventoryLedgerDO(ledger.getId(), Long.valueOf(ledger.getTenantId().value()), ledger.getOrderNo(),
                 ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
@@ -623,65 +628,90 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditOutboxDO toDataObject(InventoryAuditOutbox outbox) {
-        return new InventoryAuditOutboxDO(outbox.getId(), outbox.getTenantId(), outbox.getOrderNo(),
+        return new InventoryAuditOutboxDO(outbox.getId(), toLongValue(outbox.getTenantId()), outbox.getOrderNo(),
                 outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
-                outbox.getOperatorId(), outbox.getOccurredAt(), outbox.getErrorMessage(),
-                outbox.getStatus(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(),
+                toLongValue(outbox.getOperatorId()), outbox.getOccurredAt(), outbox.getErrorMessage(),
+                outbox.getStatus().value(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(),
                 outbox.getLeaseUntil(), outbox.getClaimedAt(), outbox.getDeadReason(), outbox.getFailedAt(),
                 outbox.getUpdatedAt());
     }
 
     private InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
-        return new InventoryAuditOutbox(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
+        return new InventoryAuditOutbox(dataObject.getId(), toStringValue(dataObject.getTenantId()), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getActionType(), dataObject.getOperatorType(),
-                dataObject.getOperatorId(), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
-                dataObject.getStatus(), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
+                toStringValue(dataObject.getOperatorId()), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
+                com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus.fromValue(dataObject.getStatus()), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
                 dataObject.getProcessingOwner(), dataObject.getLeaseUntil(), dataObject.getClaimedAt(),
                 dataObject.getDeadReason(), dataObject.getFailedAt(), dataObject.getUpdatedAt());
     }
 
     private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxId(), deadLetter.getTenantId(),
+        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxId(), toLongValue(deadLetter.getTenantId()),
                 deadLetter.getOrderNo(), deadLetter.getReservationNo(), deadLetter.getActionType(),
-                deadLetter.getOperatorType(), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
+                deadLetter.getOperatorType(), toLongValue(deadLetter.getOperatorId()), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(), deadLetter.getReplayStatus(), deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
-                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), deadLetter.getReplayOperatorId());
+                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), toLongValue(deadLetter.getReplayOperatorId()));
     }
 
     private InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
-        return new InventoryAuditDeadLetter(dataObject.getId(), dataObject.getOutboxId(), dataObject.getTenantId(),
+        return new InventoryAuditDeadLetter(dataObject.getId(), dataObject.getOutboxId(), toStringValue(dataObject.getTenantId()),
                 dataObject.getOrderNo(), dataObject.getReservationNo(), dataObject.getActionType(),
-                dataObject.getOperatorType(), dataObject.getOperatorId(), dataObject.getOccurredAt(),
+                dataObject.getOperatorType(), toStringValue(dataObject.getOperatorId()), dataObject.getOccurredAt(),
                 dataObject.getRetryCount(), dataObject.getErrorMessage(), dataObject.getDeadReason(),
                 dataObject.getDeadAt(), dataObject.getReplayStatus(), dataObject.getReplayCount(),
                 dataObject.getLastReplayAt(), dataObject.getLastReplayResult(), dataObject.getLastReplayError(),
-                dataObject.getReplayKey(), dataObject.getReplayOperatorType(), dataObject.getReplayOperatorId());
+                dataObject.getReplayKey(), dataObject.getReplayOperatorType(), toStringValue(dataObject.getReplayOperatorId()));
     }
 
     private InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {
-        return new InventoryAuditReplayTaskDO(task.getId(), task.getTenantId(), task.getTaskNo(), task.getStatus(),
+        return new InventoryAuditReplayTaskDO(task.getId(), toLongValue(task.getTenantId()), task.getTaskNo(), task.getStatus().value(),
                 task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
-                task.getReplayKeyPrefix(), task.getOperatorType(), task.getOperatorId(), task.getProcessingOwner(),
+                task.getReplayKeyPrefix(), task.getOperatorType(), toLongValue(task.getOperatorId()), task.getProcessingOwner(),
                 task.getLeaseUntil(), task.getLastError(), task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(),
                 task.getFinishedAt(), task.getUpdatedAt());
     }
 
     private InventoryAuditReplayTask toDomain(InventoryAuditReplayTaskDO dataObject) {
-        return new InventoryAuditReplayTask(dataObject.getId(), dataObject.getTenantId(), dataObject.getTaskNo(),
-                dataObject.getStatus(), dataObject.getTotalCount(), dataObject.getProcessedCount(),
+        return new InventoryAuditReplayTask(dataObject.getId(), toStringValue(dataObject.getTenantId()), dataObject.getTaskNo(),
+                com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus.fromValue(dataObject.getStatus()), dataObject.getTotalCount(), dataObject.getProcessedCount(),
                 dataObject.getSuccessCount(), dataObject.getFailedCount(), dataObject.getReplayKeyPrefix(),
-                dataObject.getOperatorType(), dataObject.getOperatorId(), dataObject.getProcessingOwner(),
+                dataObject.getOperatorType(), toStringValue(dataObject.getOperatorId()), dataObject.getProcessingOwner(),
                 dataObject.getLeaseUntil(), dataObject.getLastError(), dataObject.getCreatedAt(),
                 dataObject.getStartedAt(), dataObject.getPausedAt(), dataObject.getFinishedAt(),
                 dataObject.getUpdatedAt());
     }
 
     private InventoryAuditReplayTaskItem toDomain(InventoryAuditReplayTaskItemDO dataObject) {
-        return new InventoryAuditReplayTaskItem(dataObject.getId(), dataObject.getTaskId(), dataObject.getTenantId(),
+        return new InventoryAuditReplayTaskItem(dataObject.getId(), toStringValue(dataObject.getTaskId()),
+                toStringValue(dataObject.getTenantId()),
                 dataObject.getDeadLetterId(), dataObject.getItemStatus(), dataObject.getReplayStatus(),
                 dataObject.getReplayKey(), dataObject.getResultMessage(), dataObject.getStartedAt(),
                 dataObject.getFinishedAt(), dataObject.getUpdatedAt());
+    }
+
+    private String toStringValue(Long value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private Long toLongValue(String value) {
+        return value == null ? null : Long.valueOf(value);
+    }
+
+    private Long toLongValue(InventoryId inventoryId) {
+        return inventoryId == null ? null : Long.valueOf(inventoryId.value());
+    }
+
+    private Long toLongValue(TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    private Long toLongValue(SkuId skuId) {
+        return skuId == null ? null : skuId.value();
+    }
+
+    private Long toLongValue(WarehouseId warehouseId) {
+        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
     }
 }

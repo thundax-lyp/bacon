@@ -28,7 +28,7 @@ public class InventoryAuditDeadLetterDTO {
     /** 操作人类型。 */
     private String operatorType;
     /** 操作人主键。 */
-    private Long operatorId;
+    private String operatorId;
     /** 原始发生时间。 */
     private Instant occurredAt;
     /** 重试次数。 */

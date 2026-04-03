@@ -5,6 +5,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
@@ -38,7 +39,7 @@ public class InventoryAuditReplayTaskApplicationService {
                 createDTO.getDeadLetterIds().size(), 0, 0, 0, createDTO.getReplayKeyPrefix(), OPERATOR_TYPE_MANUAL,
                 createDTO.getOperatorId(), null, null, null, now, null, null, null, now);
         InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
-        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getId(), saved.getTenantId(),
+        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getId(), toLongValue(saved.getTenantId()),
                 createDTO.getDeadLetterIds(), now);
         Metrics.counter("bacon.inventory.audit.replay.task.created.total").increment();
         return toDto(saved);
@@ -107,8 +108,8 @@ public class InventoryAuditReplayTaskApplicationService {
             Instant startedAt = Instant.now();
             try {
                 String replayKey = buildReplayKey(task, item);
-                InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(task.getTenantId(),
-                        item.getDeadLetterId(), replayKey, task.getOperatorId());
+                InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(toLongValue(task.getTenantId()),
+                        item.getDeadLetterId(), replayKey, toLongValue(task.getOperatorId()));
                 String itemStatus = InventoryAuditReplayTaskItem.STATUS_FAILED;
                 if (InventoryAuditReplayTaskItem.STATUS_SUCCEEDED.equals(result.getReplayStatus())) {
                     itemStatus = InventoryAuditReplayTaskItem.STATUS_SUCCEEDED;
@@ -142,11 +143,11 @@ public class InventoryAuditReplayTaskApplicationService {
     private void finishTask(Long taskId, String processingOwner) {
         InventoryAuditReplayTask latest = getTaskById(taskId);
         // 整个任务只要存在失败项就标记 FAILED；只有全部成功才算 SUCCEEDED，便于上层按任务粒度判断是否还需人工介入。
-        String status = Integer.valueOf(0).equals(latest.getFailedCount())
+        InventoryAuditReplayTaskStatus status = Integer.valueOf(0).equals(latest.getFailedCount())
                 ? InventoryAuditReplayTask.STATUS_SUCCEEDED
                 : InventoryAuditReplayTask.STATUS_FAILED;
-        inventoryAuditReplayTaskRepository.finishAuditReplayTask(taskId, processingOwner, status, latest.getLastError(), Instant.now());
-        Metrics.counter("bacon.inventory.audit.replay.task.finished.total", "status", status).increment();
+        inventoryAuditReplayTaskRepository.finishAuditReplayTask(taskId, processingOwner, status.value(), latest.getLastError(), Instant.now());
+        Metrics.counter("bacon.inventory.audit.replay.task.finished.total", "status", status.value()).increment();
     }
 
     private String buildReplayKey(InventoryAuditReplayTask task, InventoryAuditReplayTaskItem item) {
@@ -171,22 +172,30 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     private void ensureTaskTenant(InventoryAuditReplayTask task, Long tenantId) {
-        if (!Objects.equals(task.getTenantId(), tenantId)) {
+        if (!Objects.equals(task.getTenantId(), toStringValue(tenantId))) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN,
                     "replay-task-tenant-mismatch");
         }
     }
 
-    private boolean isTerminal(String status) {
+    private boolean isTerminal(InventoryAuditReplayTaskStatus status) {
         return InventoryAuditReplayTask.STATUS_SUCCEEDED.equals(status)
                 || InventoryAuditReplayTask.STATUS_FAILED.equals(status)
                 || InventoryAuditReplayTask.STATUS_CANCELED.equals(status);
     }
 
     private InventoryAuditReplayTaskDTO toDto(InventoryAuditReplayTask task) {
-        return new InventoryAuditReplayTaskDTO(task.getId(), task.getTenantId(), task.getTaskNo(), task.getStatus(),
+        return new InventoryAuditReplayTaskDTO(task.getId(), task.getTenantId(), task.getTaskNo(), task.getStatus().value(),
                 task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
                 task.getReplayKeyPrefix(), task.getOperatorId(), task.getLastError(), task.getCreatedAt(),
                 task.getStartedAt(), task.getPausedAt(), task.getFinishedAt(), task.getUpdatedAt());
+    }
+
+    private String toStringValue(Long value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private Long toLongValue(String value) {
+        return value == null ? null : Long.valueOf(value);
     }
 }

@@ -139,7 +139,7 @@ public class InventoryReservationApplicationService {
                 .filter(java.util.Objects::nonNull)
                 .collect(java.util.stream.Collectors.toSet());
         Map<Long, Inventory> inventoryBySku = inventoryStockRepository.findInventories(tenantId, skuIds).stream()
-                .collect(java.util.stream.Collectors.toMap(Inventory::getSkuId, inventory -> inventory));
+                .collect(java.util.stream.Collectors.toMap(inventory -> inventory.getSkuId().value(), inventory -> inventory));
         for (InventoryReservationItemDTO item : items) {
             if (item.getSkuId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
                 return ReservationValidationResult.failed(InventoryErrorCode.INVALID_QUANTITY.code());

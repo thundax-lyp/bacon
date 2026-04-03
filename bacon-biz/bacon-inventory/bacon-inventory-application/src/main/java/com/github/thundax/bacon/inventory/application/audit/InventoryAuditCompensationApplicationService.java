@@ -32,7 +32,7 @@ public class InventoryAuditCompensationApplicationService {
         InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository.findAuditDeadLetterById(deadLetterId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
                         "dead-letter-not-found:" + deadLetterId));
-        if (!Objects.equals(tenantId, deadLetter.getTenantId())) {
+        if (!Objects.equals(toStringValue(tenantId), deadLetter.getTenantId())) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "dead-letter-tenant-mismatch");
         }
         if (InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED.equals(deadLetter.getReplayStatus())) {
@@ -100,5 +100,9 @@ public class InventoryAuditCompensationApplicationService {
             return "UNKNOWN";
         }
         return message.length() <= 512 ? message : message.substring(0, 512);
+    }
+
+    private String toStringValue(Long value) {
+        return value == null ? null : String.valueOf(value);
     }
 }

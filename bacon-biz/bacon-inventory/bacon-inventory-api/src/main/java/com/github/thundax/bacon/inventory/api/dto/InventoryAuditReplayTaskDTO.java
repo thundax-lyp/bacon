@@ -16,7 +16,7 @@ public class InventoryAuditReplayTaskDTO {
     /** 回放任务主键。 */
     private Long taskId;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private String tenantId;
     /** 任务编号。 */
     private String taskNo;
     /** 任务状态。 */
@@ -32,7 +32,7 @@ public class InventoryAuditReplayTaskDTO {
     /** 回放幂等键前缀。 */
     private String replayKeyPrefix;
     /** 操作人主键。 */
-    private Long operatorId;
+    private String operatorId;
     /** 最近一次错误。 */
     private String lastError;
     /** 创建时间。 */

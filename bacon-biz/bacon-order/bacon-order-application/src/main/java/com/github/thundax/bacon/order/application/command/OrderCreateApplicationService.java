@@ -9,12 +9,12 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
+import com.github.thundax.bacon.order.domain.factory.OrderFactory;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
-import com.github.thundax.bacon.order.domain.service.OrderDomainService;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import java.math.BigDecimal;
@@ -27,7 +27,7 @@ public class OrderCreateApplicationService {
     private static final OrderAuditActionType ACTION_CREATE = OrderAuditActionType.ORDER_CREATE;
 
     private final OrderRepository orderRepository;
-    private final OrderDomainService orderDomainService = new OrderDomainService();
+    private final OrderFactory orderFactory = new OrderFactory();
     private final OrderNoGenerator orderNoGenerator;
     private final OrderOutboxActionExecutor orderOutboxActionExecutor;
     private final OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport;
@@ -54,7 +54,7 @@ public class OrderCreateApplicationService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         OrderNo orderNo = orderNoGenerator.nextOrderNo();
         CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
-        Order order = orderDomainService.create(null, toTenantId(command.tenantId()), orderNo, toUserId(command.userId()),
+        Order order = orderFactory.create(null, toTenantId(command.tenantId()), orderNo, toUserId(command.userId()),
                 Money.of(totalAmount, currencyCode), Money.of(totalAmount, currencyCode), command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);

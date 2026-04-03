@@ -18,7 +18,7 @@ public class OrderAuditLogDO {
     @TableId(type = IdType.AUTO)
     private Long id;
     @TableField("tenant_id")
-    private Long tenantId;
+    private String tenantId;
     @TableField("order_no")
     private String orderNo;
     @TableField("action_type")

@@ -170,7 +170,7 @@ public class OrderRepositorySupport {
 
     public List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo) {
         return orderAuditLogMapper.selectList(Wrappers.<OrderAuditLogDO>lambdaQuery()
-                        .eq(OrderAuditLogDO::getTenantId, tenantId)
+                        .eq(OrderAuditLogDO::getTenantId, toDatabaseAuditTenantId(tenantId))
                         .eq(OrderAuditLogDO::getOrderNo, orderNo)
                         .orderByAsc(OrderAuditLogDO::getOccurredAt, OrderAuditLogDO::getId))
                 .stream()
@@ -396,17 +396,29 @@ public class OrderRepositorySupport {
     }
 
     private OrderAuditLogDO toDataObject(OrderAuditLog auditLog) {
-        return new OrderAuditLogDO(auditLog.id(), toDatabaseTenantId(auditLog.tenantId()), toDatabaseOrderNo(auditLog.orderNo()),
+        return new OrderAuditLogDO(auditLog.id(), toDatabaseAuditTenantId(auditLog.tenantId()), toDatabaseOrderNo(auditLog.orderNo()),
                 toDatabaseOrderAuditActionType(auditLog.actionType()), toDatabaseOrderStatus(auditLog.beforeStatus()),
                 toDatabaseOrderStatus(auditLog.afterStatus()), toDatabaseOperatorType(auditLog.operatorType()),
                 auditLog.operatorId(), auditLog.occurredAt());
     }
 
     private OrderAuditLog toDomain(OrderAuditLogDO dataObject) {
-        return new OrderAuditLog(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
+        return new OrderAuditLog(dataObject.getId(), toDomainAuditTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
                 toDomainOrderAuditActionType(dataObject.getActionType()), toDomainOrderStatus(dataObject.getBeforeStatus()),
                 toDomainOrderStatus(dataObject.getAfterStatus()), toDomainOperatorType(dataObject.getOperatorType()),
                 dataObject.getOperatorId(), dataObject.getOccurredAt());
+    }
+
+    private String toDatabaseAuditTenantId(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    private String toDatabaseAuditTenantId(Long tenantId) {
+        return tenantId == null ? null : String.valueOf(tenantId);
+    }
+
+    private TenantId toDomainAuditTenantId(String tenantId) {
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 
     private String toDatabaseOrderAuditActionType(OrderAuditActionType actionType) {

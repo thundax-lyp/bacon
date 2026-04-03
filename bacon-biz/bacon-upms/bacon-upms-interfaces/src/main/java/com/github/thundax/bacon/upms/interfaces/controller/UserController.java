@@ -18,6 +18,7 @@ import com.github.thundax.bacon.upms.interfaces.dto.UserPasswordResetRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserRoleAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.resolver.TenantRequestResolver;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserIdentityResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserPageResponse;

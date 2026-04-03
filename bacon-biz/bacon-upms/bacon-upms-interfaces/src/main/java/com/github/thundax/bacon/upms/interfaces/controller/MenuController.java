@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuSortUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.resolver.TenantRequestResolver;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.response.MenuTreeResponse;
 import io.swagger.v3.oas.annotations.Operation;

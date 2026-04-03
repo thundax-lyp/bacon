@@ -11,6 +11,7 @@ import com.github.thundax.bacon.upms.application.command.PostApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.PostCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.resolver.TenantRequestResolver;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.response.PostPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.PostResponse;

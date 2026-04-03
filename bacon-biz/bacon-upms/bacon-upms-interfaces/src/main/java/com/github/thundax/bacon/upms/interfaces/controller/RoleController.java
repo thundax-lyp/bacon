@@ -15,6 +15,7 @@ import com.github.thundax.bacon.upms.interfaces.dto.RolePageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleResourceAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.resolver.TenantRequestResolver;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RoleDataScopeResponse;
 import com.github.thundax.bacon.upms.interfaces.response.RolePageResponse;

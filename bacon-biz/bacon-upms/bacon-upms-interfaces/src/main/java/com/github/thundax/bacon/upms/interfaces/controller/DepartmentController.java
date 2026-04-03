@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.application.command.DepartmentApplicationSe
 import com.github.thundax.bacon.upms.interfaces.dto.DepartmentBatchQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.DepartmentCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.DepartmentUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.resolver.TenantRequestResolver;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.response.DepartmentResponse;
 import com.github.thundax.bacon.upms.interfaces.response.DepartmentTreeResponse;

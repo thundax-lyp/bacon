@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.interfaces.controller;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
+import com.github.thundax.bacon.upms.interfaces.resolver.TenantRequestResolver;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

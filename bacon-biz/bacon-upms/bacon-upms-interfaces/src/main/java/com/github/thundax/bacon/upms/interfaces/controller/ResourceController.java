@@ -9,6 +9,7 @@ import com.github.thundax.bacon.upms.application.command.ResourceApplicationServ
 import com.github.thundax.bacon.upms.interfaces.dto.ResourceCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.ResourcePageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.ResourceUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.resolver.TenantRequestResolver;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.response.ResourcePageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.ResourceResponse;

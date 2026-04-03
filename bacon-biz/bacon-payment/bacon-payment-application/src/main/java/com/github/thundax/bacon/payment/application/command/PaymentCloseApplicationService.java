@@ -33,15 +33,15 @@ public class PaymentCloseApplicationService {
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         // 已关闭视为幂等成功；已支付和已失败则显式拒绝关闭，避免把终态单误判成可关闭状态。
         if (PaymentStatus.CLOSED == paymentOrder.getPaymentStatus()) {
-            return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
+            return new PaymentCloseResultDTO(toTenantValue(tenantId), paymentNo, paymentOrder.getOrderNo(),
                     paymentOrder.getPaymentStatus().value(), "SUCCESS", reason, null);
         }
         if (PaymentStatus.PAID == paymentOrder.getPaymentStatus()) {
-            return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
+            return new PaymentCloseResultDTO(toTenantValue(tenantId), paymentNo, paymentOrder.getOrderNo(),
                     paymentOrder.getPaymentStatus().value(), "FAILED", reason, "Paid payment cannot be closed");
         }
         if (PaymentStatus.FAILED == paymentOrder.getPaymentStatus()) {
-            return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
+            return new PaymentCloseResultDTO(toTenantValue(tenantId), paymentNo, paymentOrder.getOrderNo(),
                     paymentOrder.getPaymentStatus().value(), "FAILED", reason, "Failed payment cannot be closed");
         }
         String beforeStatus = paymentOrder.getPaymentStatus().value();
@@ -50,7 +50,11 @@ public class PaymentCloseApplicationService {
         paymentOrderRepository.save(paymentOrder);
         paymentOperationLogSupport.recordClose(tenantId, paymentNo, beforeStatus, paymentOrder.getPaymentStatus().value(),
                 closedAt);
-        return new PaymentCloseResultDTO(tenantId, paymentNo, paymentOrder.getOrderNo(),
+        return new PaymentCloseResultDTO(toTenantValue(tenantId), paymentNo, paymentOrder.getOrderNo(),
                 paymentOrder.getPaymentStatus().value(), "SUCCESS", reason, null);
+    }
+
+    private String toTenantValue(Long tenantId) {
+        return tenantId == null ? null : tenantId.toString();
     }
 }

@@ -16,13 +16,13 @@ import java.time.Instant;
 public class PaymentSummaryDTO {
 
     /** 所属租户主键。 */
-    private Long tenantId;
+    private String tenantId;
     /** 支付单号。 */
     private String paymentNo;
     /** 关联订单号。 */
     private String orderNo;
     /** 支付用户主键。 */
-    private Long userId;
+    private String userId;
     /** 支付渠道编码。 */
     private String channelCode;
     /** 支付状态。 */

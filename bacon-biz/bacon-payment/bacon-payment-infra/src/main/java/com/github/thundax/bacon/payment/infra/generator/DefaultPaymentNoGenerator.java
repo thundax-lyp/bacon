@@ -2,13 +2,16 @@ package com.github.thundax.bacon.payment.infra.generator;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.payment.domain.service.PaymentNoGenerator;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DefaultPaymentNoGenerator implements PaymentNoGenerator {
 
     private static final String BIZ_TYPE = "payment";
-    private static final String PREFIX = "PAY-";
+    private static final String PREFIX = "PAY";
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final IdGenerator idGenerator;
 
@@ -19,6 +22,8 @@ public class DefaultPaymentNoGenerator implements PaymentNoGenerator {
     @Override
     public String nextPaymentNo() {
         long id = idGenerator.nextId(BIZ_TYPE);
-        return PREFIX + id;
+        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+        String suffix = String.format("%06d", Math.floorMod(id, 1_000_000L));
+        return PREFIX + timestamp + suffix;
     }
 }

@@ -6,6 +6,12 @@ server:
 spring:
   application:
     name: bacon-payment-service
+  main:
+    banner-mode: off
+
+mybatis-plus:
+  global-config:
+    banner: false
 
 bacon:
   runtime:

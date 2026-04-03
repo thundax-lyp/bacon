@@ -6,10 +6,16 @@ server:
 spring:
   application:
     name: bacon-order-service
+  main:
+    banner-mode: off
   boot:
     admin:
       client:
         enabled: false
+
+mybatis-plus:
+  global-config:
+    banner: false
 
 bacon:
   runtime:

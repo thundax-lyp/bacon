@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.domain.repository;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -10,33 +11,29 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
-    default boolean claimExpiredProcessing(Long tenantId, String orderNo, String paymentNo, String eventType,
+    default boolean claimExpiredProcessing(OrderIdempotencyRecordKey key,
                                            String processingOwner, Instant leaseUntil, Instant claimedAt,
                                            Instant updatedAt) {
         return false;
     }
 
-    default Optional<OrderIdempotencyRecord> findByBusinessKey(Long tenantId, String orderNo,
-                                                                String paymentNo, String eventType) {
+    default Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
         return Optional.empty();
     }
 
-    default boolean markSuccess(Long tenantId, String orderNo, String paymentNo, String eventType,
-                                Instant updatedAt) {
+    default boolean markSuccess(OrderIdempotencyRecordKey key, Instant updatedAt) {
         return false;
     }
 
-    default boolean markFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
-                               String lastError, Instant updatedAt) {
+    default boolean markFailed(OrderIdempotencyRecordKey key, String lastError, Instant updatedAt) {
         return false;
     }
 
-    default boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
-                                    Instant updatedAt) {
+    default boolean retryFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
         return false;
     }
 
-    default boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
+    default boolean retryFromFailed(OrderIdempotencyRecordKey key,
                                     String processingOwner, Instant leaseUntil, Instant claimedAt, Instant updatedAt) {
         return false;
     }

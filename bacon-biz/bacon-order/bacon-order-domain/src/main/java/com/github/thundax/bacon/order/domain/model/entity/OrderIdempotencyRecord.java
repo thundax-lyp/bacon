@@ -1,5 +1,9 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,22 +17,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrderIdempotencyRecord {
 
-    public static final String STATUS_PROCESSING = "PROCESSING";
-    public static final String STATUS_SUCCESS = "SUCCESS";
-    public static final String STATUS_FAILED = "FAILED";
-
-    /** 幂等记录主键。 */
-    private Long id;
-    /** 所属租户主键。 */
-    private Long tenantId;
-    /** 订单号。 */
-    private String orderNo;
-    /** 支付单号。 */
-    private String paymentNo;
-    /** 事件类型。 */
-    private String eventType;
+    /** 幂等业务键。 */
+    private OrderIdempotencyRecordKey key;
     /** 当前处理状态。 */
-    private String status;
+    private OrderIdempotencyStatus status;
     /** 尝试次数。 */
     private Integer attemptCount;
     /** 最近一次错误信息。 */
@@ -43,4 +35,32 @@ public class OrderIdempotencyRecord {
     private Instant createdAt;
     /** 最后更新时间。 */
     private Instant updatedAt;
+
+    public Long getTenantIdValue() {
+        return key == null ? null : Long.valueOf(key.tenantId().value());
+    }
+
+    public String getOrderNoValue() {
+        return key == null ? null : key.orderNo().value();
+    }
+
+    public String getEventTypeValue() {
+        return key == null ? null : key.eventType();
+    }
+
+    public String getStatusValue() {
+        return status == null ? null : status.value();
+    }
+
+    public TenantId getTenantId() {
+        return key == null ? null : key.tenantId();
+    }
+
+    public OrderNo getOrderNo() {
+        return key == null ? null : key.orderNo();
+    }
+
+    public String getEventType() {
+        return key == null ? null : key.eventType();
+    }
 }

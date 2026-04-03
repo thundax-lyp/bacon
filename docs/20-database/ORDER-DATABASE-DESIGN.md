@@ -329,10 +329,8 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
-| `payment_no` | `varchar(64)` | N | 支付单号，非支付事件固定为空字符串 |
 | `event_type` | `varchar(64)` | N | 幂等事件类型 |
 | `status` | `varchar(16)` | N | 处理状态：`PROCESSING`、`SUCCESS`、`FAILED` |
 | `attempt_count` | `int` | N | 尝试次数 |
@@ -345,8 +343,7 @@
 
 索引与约束：
 
-- `pk(id)`
-- `uk_tenant_order_payment_event(tenant_id, order_no, payment_no, event_type)`
+- `uk_tenant_order_event(tenant_id, order_no, event_type)`
 - `idx_status_updated(status, updated_at)`
 - `idx_status_lease(status, lease_until)`
 
@@ -373,7 +370,7 @@
 - `id` 是数据库主键；`order_no` 是业务单号；二者不得混用
 - `OrderPaymentSnapshot` 和 `OrderInventorySnapshot` 是订单侧只读快照，不承载对端主数据
 - `OrderOutboxEvent.business_key + event_type` 必须全局幂等
-- `OrderIdempotencyRecord` 必须按 `(tenant_id, order_no, payment_no, event_type)` 建唯一约束
+- `OrderIdempotencyRecord` 必须按 `(tenant_id, order_no, event_type)` 建唯一约束
 - `OrderIdempotencyRecord` 的 `PROCESSING` 状态必须维护 `processing_owner + lease_until`
 
 ## 10. Query Model Rules

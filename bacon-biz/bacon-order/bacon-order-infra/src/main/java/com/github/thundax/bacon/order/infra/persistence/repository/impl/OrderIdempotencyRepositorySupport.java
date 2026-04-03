@@ -1,7 +1,11 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
+import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderIdempotencyRecordDO;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderIdempotencyRecordMapper;
 import java.time.Instant;
@@ -25,7 +29,7 @@ public class OrderIdempotencyRepositorySupport {
     public boolean createProcessing(OrderIdempotencyRecord record) {
         OrderIdempotencyRecordDO dataObject = toDataObject(record);
         Instant now = Instant.now();
-        dataObject.setStatus(OrderIdempotencyRecord.STATUS_PROCESSING);
+        dataObject.setStatus(OrderIdempotencyStatus.PROCESSING.value());
         dataObject.setAttemptCount(dataObject.getAttemptCount() == null ? 1 : dataObject.getAttemptCount());
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
         dataObject.setUpdatedAt(now);
@@ -33,8 +37,7 @@ public class OrderIdempotencyRepositorySupport {
         try {
             // 幂等首执依赖唯一业务键插入；插入冲突不算异常，而是说明已经存在并发或历史记录。
             mapper.insert(dataObject);
-            record.setId(dataObject.getId());
-            record.setStatus(dataObject.getStatus());
+            record.setStatus(OrderIdempotencyStatus.fromValue(dataObject.getStatus()));
             record.setAttemptCount(dataObject.getAttemptCount());
             record.setProcessingOwner(dataObject.getProcessingOwner());
             record.setLeaseUntil(dataObject.getLeaseUntil());
@@ -47,16 +50,15 @@ public class OrderIdempotencyRepositorySupport {
         }
     }
 
-    public boolean claimExpiredProcessing(Long tenantId, String orderNo, String paymentNo, String eventType,
+    public boolean claimExpiredProcessing(OrderIdempotencyRecordKey key,
                                           String processingOwner, Instant leaseUntil, Instant claimedAt,
                                           Instant updatedAt) {
         // 只有租约过期的 PROCESSING 记录才允许被重新认领，避免多个节点并发接管同一业务动作。
         return mapper.update(null, Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
-                .eq(OrderIdempotencyRecordDO::getTenantId, tenantId)
-                .eq(OrderIdempotencyRecordDO::getOrderNo, orderNo)
-                .eq(OrderIdempotencyRecordDO::getPaymentNo, paymentNo)
-                .eq(OrderIdempotencyRecordDO::getEventType, eventType)
-                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyRecord.STATUS_PROCESSING)
+                .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
+                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
                 .and(wrapper -> wrapper.isNull(OrderIdempotencyRecordDO::getLeaseUntil)
                         .or().le(OrderIdempotencyRecordDO::getLeaseUntil, claimedAt))
                 .set(OrderIdempotencyRecordDO::getProcessingOwner, processingOwner)
@@ -65,25 +67,22 @@ public class OrderIdempotencyRepositorySupport {
                 .set(OrderIdempotencyRecordDO::getUpdatedAt, updatedAt)) > 0;
     }
 
-    public Optional<OrderIdempotencyRecord> findByBusinessKey(Long tenantId, String orderNo, String paymentNo,
-                                                               String eventType) {
+    public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
         return Optional.ofNullable(mapper.selectOne(Wrappers.<OrderIdempotencyRecordDO>lambdaQuery()
-                        .eq(OrderIdempotencyRecordDO::getTenantId, tenantId)
-                        .eq(OrderIdempotencyRecordDO::getOrderNo, orderNo)
-                        .eq(OrderIdempotencyRecordDO::getPaymentNo, paymentNo)
-                        .eq(OrderIdempotencyRecordDO::getEventType, eventType)))
+                        .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                        .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                        .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())))
                 .map(this::toDomain);
     }
 
-    public boolean markSuccess(Long tenantId, String orderNo, String paymentNo, String eventType, Instant updatedAt) {
+    public boolean markSuccess(OrderIdempotencyRecordKey key, Instant updatedAt) {
         // 成功回写要求当前状态仍是 PROCESSING，确保只有真正拿到执行权的节点才能结束这条幂等记录。
         return mapper.update(null, Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
-                .eq(OrderIdempotencyRecordDO::getTenantId, tenantId)
-                .eq(OrderIdempotencyRecordDO::getOrderNo, orderNo)
-                .eq(OrderIdempotencyRecordDO::getPaymentNo, paymentNo)
-                .eq(OrderIdempotencyRecordDO::getEventType, eventType)
-                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyRecord.STATUS_PROCESSING)
-                .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyRecord.STATUS_SUCCESS)
+                .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
+                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
+                .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.SUCCESS.value())
                 .set(OrderIdempotencyRecordDO::getLastError, null)
                 .set(OrderIdempotencyRecordDO::getProcessingOwner, null)
                 .set(OrderIdempotencyRecordDO::getLeaseUntil, null)
@@ -91,16 +90,14 @@ public class OrderIdempotencyRepositorySupport {
                 .set(OrderIdempotencyRecordDO::getUpdatedAt, updatedAt)) > 0;
     }
 
-    public boolean markFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
-                              String lastError, Instant updatedAt) {
+    public boolean markFailed(OrderIdempotencyRecordKey key, String lastError, Instant updatedAt) {
         // 失败同样只允许从 PROCESSING -> FAILED，避免旧节点把后来已成功的记录重新覆盖成失败。
         return mapper.update(null, Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
-                .eq(OrderIdempotencyRecordDO::getTenantId, tenantId)
-                .eq(OrderIdempotencyRecordDO::getOrderNo, orderNo)
-                .eq(OrderIdempotencyRecordDO::getPaymentNo, paymentNo)
-                .eq(OrderIdempotencyRecordDO::getEventType, eventType)
-                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyRecord.STATUS_PROCESSING)
-                .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyRecord.STATUS_FAILED)
+                .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
+                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
+                .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.FAILED.value())
                 .set(OrderIdempotencyRecordDO::getLastError, truncate(lastError))
                 .set(OrderIdempotencyRecordDO::getProcessingOwner, null)
                 .set(OrderIdempotencyRecordDO::getLeaseUntil, null)
@@ -108,20 +105,19 @@ public class OrderIdempotencyRepositorySupport {
                 .set(OrderIdempotencyRecordDO::getUpdatedAt, updatedAt)) > 0;
     }
 
-    public boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType, Instant updatedAt) {
-        return retryFromFailed(tenantId, orderNo, paymentNo, eventType, null, null, null, updatedAt);
+    public boolean retryFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
+        return retryFromFailed(key, null, null, null, updatedAt);
     }
 
-    public boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
+    public boolean retryFromFailed(OrderIdempotencyRecordKey key,
                                    String processingOwner, Instant leaseUntil, Instant claimedAt, Instant updatedAt) {
         // 从 FAILED 重新进入 PROCESSING 时会自增 attemptCount，用于区分首次执行和显式重试次数。
         return mapper.update(null, Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
-                .eq(OrderIdempotencyRecordDO::getTenantId, tenantId)
-                .eq(OrderIdempotencyRecordDO::getOrderNo, orderNo)
-                .eq(OrderIdempotencyRecordDO::getPaymentNo, paymentNo)
-                .eq(OrderIdempotencyRecordDO::getEventType, eventType)
-                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyRecord.STATUS_FAILED)
-                .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyRecord.STATUS_PROCESSING)
+                .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
+                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.FAILED.value())
+                .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
                 .setSql("attempt_count = attempt_count + 1")
                 .set(OrderIdempotencyRecordDO::getLastError, null)
                 .set(OrderIdempotencyRecordDO::getProcessingOwner, processingOwner)
@@ -133,9 +129,9 @@ public class OrderIdempotencyRepositorySupport {
     public int recoverExpiredProcessing(Instant now, String recoverMessage) {
         // 过期恢复不会直接改成 SUCCESS，而是统一转 FAILED，交回应用层决定是否再次重试。
         return mapper.update(null, Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
-                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyRecord.STATUS_PROCESSING)
+                .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
                 .le(OrderIdempotencyRecordDO::getLeaseUntil, now)
-                .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyRecord.STATUS_FAILED)
+                .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.FAILED.value())
                 .set(OrderIdempotencyRecordDO::getLastError, truncate(recoverMessage))
                 .set(OrderIdempotencyRecordDO::getProcessingOwner, null)
                 .set(OrderIdempotencyRecordDO::getLeaseUntil, null)
@@ -152,21 +148,35 @@ public class OrderIdempotencyRepositorySupport {
 
     private OrderIdempotencyRecordDO toDataObject(OrderIdempotencyRecord record) {
         // paymentNo 在无值场景统一归一化为空串，确保数据库唯一键对“无支付单号事件”也稳定生效。
-        return new OrderIdempotencyRecordDO(record.getId(), record.getTenantId(), record.getOrderNo(),
-                normalizePaymentNo(record.getPaymentNo()), record.getEventType(), record.getStatus(),
+        return new OrderIdempotencyRecordDO(toDatabaseTenantId(record.getTenantId()),
+                toDatabaseOrderNo(record.getOrderNo()), record.getEventTypeValue(), record.getStatusValue(),
                 record.getAttemptCount(), record.getLastError(), record.getProcessingOwner(),
                 record.getLeaseUntil(), record.getClaimedAt(), record.getCreatedAt(), record.getUpdatedAt());
     }
 
     private OrderIdempotencyRecord toDomain(OrderIdempotencyRecordDO dataObject) {
-        return new OrderIdempotencyRecord(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
-                dataObject.getPaymentNo(), dataObject.getEventType(), dataObject.getStatus(),
+        return new OrderIdempotencyRecord(OrderIdempotencyRecordKey.of(toDomainTenantId(dataObject.getTenantId()),
+                toDomainOrderNo(dataObject.getOrderNo()), dataObject.getEventType()),
+                OrderIdempotencyStatus.fromValue(dataObject.getStatus()),
                 dataObject.getAttemptCount(), dataObject.getLastError(), dataObject.getProcessingOwner(),
                 dataObject.getLeaseUntil(), dataObject.getClaimedAt(), dataObject.getCreatedAt(),
                 dataObject.getUpdatedAt());
     }
 
-    private String normalizePaymentNo(String paymentNo) {
-        return paymentNo == null ? "" : paymentNo;
+    private Long toDatabaseTenantId(TenantId tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
     }
+
+    private TenantId toDomainTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+    }
+
+    private String toDatabaseOrderNo(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    private OrderNo toDomainOrderNo(String orderNo) {
+        return orderNo == null ? null : OrderNo.of(orderNo);
+    }
+
 }

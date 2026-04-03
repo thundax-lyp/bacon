@@ -1,6 +1,10 @@
 package com.github.thundax.bacon.order.application.executor;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
+import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import java.time.Instant;
 import java.util.Map;
@@ -11,7 +15,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,8 +56,10 @@ class OrderIdempotencyExecutorTest {
         OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(repository);
         AtomicInteger executedTimes = new AtomicInteger(0);
 
-        OrderIdempotencyRecord stale = new OrderIdempotencyRecord(1L, 1001L, "ORD-3", "PAY-3",
-                OrderIdempotencyExecutor.EVENT_MARK_PAID, OrderIdempotencyRecord.STATUS_PROCESSING, 1, null,
+        OrderIdempotencyRecord stale = new OrderIdempotencyRecord(
+                OrderIdempotencyRecordKey.of(TenantId.of("1001"), OrderNo.of("ORD-3"),
+                        OrderIdempotencyExecutor.EVENT_MARK_PAID),
+                OrderIdempotencyStatus.PROCESSING, 1, null,
                 "stale-owner", Instant.now().minusSeconds(30), Instant.now().minusSeconds(60),
                 Instant.now().minusSeconds(120), Instant.now().minusSeconds(60));
         repository.forcePut(stale);
@@ -101,34 +106,33 @@ class OrderIdempotencyExecutorTest {
     private static final class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyRepository {
 
         private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();
-        private final AtomicLong idGenerator = new AtomicLong(1);
 
         @Override
         public boolean createProcessing(OrderIdempotencyRecord record) {
-            String key = keyOf(record.getTenantId(), record.getOrderNo(), record.getPaymentNo(),
-                    record.getEventType());
-            OrderIdempotencyRecord value = new OrderIdempotencyRecord(idGenerator.getAndIncrement(), record.getTenantId(),
-                    record.getOrderNo(), normalizePaymentNo(record.getPaymentNo()), record.getEventType(),
-                    OrderIdempotencyRecord.STATUS_PROCESSING, 1, null, record.getProcessingOwner(),
+            String key = keyOf(record.getTenantIdValue(), record.getOrderNoValue(), record.getEventType());
+            OrderIdempotencyRecord value = new OrderIdempotencyRecord(
+                    OrderIdempotencyRecordKey.of(toTenantId(record.getTenantIdValue()),
+                            toOrderNo(record.getOrderNoValue()), record.getEventType()),
+                    OrderIdempotencyStatus.PROCESSING, 1, null, record.getProcessingOwner(),
                     record.getLeaseUntil(), record.getClaimedAt(), Instant.now(), Instant.now());
             return storage.putIfAbsent(key, value) == null;
         }
 
         @Override
-        public Optional<OrderIdempotencyRecord> findByBusinessKey(Long tenantId, String orderNo, String paymentNo,
-                                                                  String eventType) {
-            return Optional.ofNullable(storage.get(keyOf(tenantId, orderNo, paymentNo, eventType)));
+        public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
+            return Optional.ofNullable(storage.get(keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(),
+                    key.eventType())));
         }
 
         @Override
-        public boolean markSuccess(Long tenantId, String orderNo, String paymentNo, String eventType,
-                                   Instant updatedAt) {
+        public boolean markSuccess(OrderIdempotencyRecordKey key, Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
-            storage.computeIfPresent(keyOf(tenantId, orderNo, paymentNo, eventType), (key, existing) -> {
-                if (!OrderIdempotencyRecord.STATUS_PROCESSING.equals(existing.getStatus())) {
+            storage.computeIfPresent(keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    (mapKey, existing) -> {
+                if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
                     return existing;
                 }
-                existing.setStatus(OrderIdempotencyRecord.STATUS_SUCCESS);
+                existing.setStatus(OrderIdempotencyStatus.SUCCESS);
                 existing.setLastError(null);
                 existing.setProcessingOwner(null);
                 existing.setLeaseUntil(null);
@@ -141,14 +145,14 @@ class OrderIdempotencyExecutorTest {
         }
 
         @Override
-        public boolean markFailed(Long tenantId, String orderNo, String paymentNo, String eventType, String lastError,
-                                  Instant updatedAt) {
+        public boolean markFailed(OrderIdempotencyRecordKey key, String lastError, Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
-            storage.computeIfPresent(keyOf(tenantId, orderNo, paymentNo, eventType), (key, existing) -> {
-                if (!OrderIdempotencyRecord.STATUS_PROCESSING.equals(existing.getStatus())) {
+            storage.computeIfPresent(keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    (mapKey, existing) -> {
+                if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
                     return existing;
                 }
-                existing.setStatus(OrderIdempotencyRecord.STATUS_FAILED);
+                existing.setStatus(OrderIdempotencyStatus.FAILED);
                 existing.setLastError(lastError);
                 existing.setProcessingOwner(null);
                 existing.setLeaseUntil(null);
@@ -161,14 +165,15 @@ class OrderIdempotencyExecutorTest {
         }
 
         @Override
-        public boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
+        public boolean retryFromFailed(OrderIdempotencyRecordKey key,
                                        String processingOwner, Instant leaseUntil, Instant claimedAt, Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
-            storage.computeIfPresent(keyOf(tenantId, orderNo, paymentNo, eventType), (key, existing) -> {
-                if (!OrderIdempotencyRecord.STATUS_FAILED.equals(existing.getStatus())) {
+            storage.computeIfPresent(keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    (mapKey, existing) -> {
+                if (existing.getStatus() != OrderIdempotencyStatus.FAILED) {
                     return existing;
                 }
-                existing.setStatus(OrderIdempotencyRecord.STATUS_PROCESSING);
+                existing.setStatus(OrderIdempotencyStatus.PROCESSING);
                 existing.setAttemptCount(existing.getAttemptCount() + 1);
                 existing.setLastError(null);
                 existing.setProcessingOwner(processingOwner);
@@ -182,12 +187,13 @@ class OrderIdempotencyExecutorTest {
         }
 
         @Override
-        public boolean claimExpiredProcessing(Long tenantId, String orderNo, String paymentNo, String eventType,
+        public boolean claimExpiredProcessing(OrderIdempotencyRecordKey key,
                                               String processingOwner, Instant leaseUntil, Instant claimedAt,
                                               Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
-            storage.computeIfPresent(keyOf(tenantId, orderNo, paymentNo, eventType), (key, existing) -> {
-                if (!OrderIdempotencyRecord.STATUS_PROCESSING.equals(existing.getStatus())) {
+            storage.computeIfPresent(keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    (mapKey, existing) -> {
+                if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
                     return existing;
                 }
                 Instant existingLease = existing.getLeaseUntil();
@@ -208,14 +214,14 @@ class OrderIdempotencyExecutorTest {
         public int recoverExpiredProcessing(Instant now, String recoverMessage) {
             AtomicInteger recovered = new AtomicInteger(0);
             storage.forEach((key, existing) -> {
-                if (!OrderIdempotencyRecord.STATUS_PROCESSING.equals(existing.getStatus())) {
+                if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
                     return;
                 }
                 Instant leaseUntil = existing.getLeaseUntil();
                 if (leaseUntil != null && leaseUntil.isAfter(now)) {
                     return;
                 }
-                existing.setStatus(OrderIdempotencyRecord.STATUS_FAILED);
+                existing.setStatus(OrderIdempotencyStatus.FAILED);
                 existing.setLastError(recoverMessage);
                 existing.setProcessingOwner(null);
                 existing.setLeaseUntil(null);
@@ -227,16 +233,20 @@ class OrderIdempotencyExecutorTest {
         }
 
         void forcePut(OrderIdempotencyRecord record) {
-            storage.put(keyOf(record.getTenantId(), record.getOrderNo(), record.getPaymentNo(), record.getEventType()),
+            storage.put(keyOf(record.getTenantIdValue(), record.getOrderNoValue(), record.getEventType()),
                     record);
         }
 
-        private String keyOf(Long tenantId, String orderNo, String paymentNo, String eventType) {
-            return tenantId + ":" + orderNo + ":" + normalizePaymentNo(paymentNo) + ":" + eventType;
+        private String keyOf(Long tenantId, String orderNo, String eventType) {
+            return tenantId + ":" + orderNo + ":" + eventType;
         }
 
-        private String normalizePaymentNo(String paymentNo) {
-            return paymentNo == null ? "" : paymentNo;
+        private TenantId toTenantId(Long tenantId) {
+            return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+        }
+
+        private OrderNo toOrderNo(String orderNo) {
+            return orderNo == null ? null : OrderNo.of(orderNo);
         }
     }
 }

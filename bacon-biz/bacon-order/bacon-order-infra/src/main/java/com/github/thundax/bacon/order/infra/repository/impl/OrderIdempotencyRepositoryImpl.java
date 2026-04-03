@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import com.github.thundax.bacon.order.infra.persistence.repository.impl.OrderIdempotencyRepositorySupport;
 import java.time.Instant;
@@ -24,41 +25,37 @@ public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepositor
     }
 
     @Override
-    public boolean claimExpiredProcessing(Long tenantId, String orderNo, String paymentNo, String eventType,
+    public boolean claimExpiredProcessing(OrderIdempotencyRecordKey key,
                                           String processingOwner, Instant leaseUntil, Instant claimedAt,
                                           Instant updatedAt) {
-        return support.claimExpiredProcessing(tenantId, orderNo, paymentNo, eventType, processingOwner, leaseUntil,
+        return support.claimExpiredProcessing(key, processingOwner, leaseUntil,
                 claimedAt, updatedAt);
     }
 
     @Override
-    public Optional<OrderIdempotencyRecord> findByBusinessKey(Long tenantId, String orderNo,
-                                                              String paymentNo, String eventType) {
-        return support.findByBusinessKey(tenantId, orderNo, paymentNo, eventType);
+    public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
+        return support.findByBusinessKey(key);
     }
 
     @Override
-    public boolean markSuccess(Long tenantId, String orderNo, String paymentNo, String eventType,
-                               Instant updatedAt) {
-        return support.markSuccess(tenantId, orderNo, paymentNo, eventType, updatedAt);
+    public boolean markSuccess(OrderIdempotencyRecordKey key, Instant updatedAt) {
+        return support.markSuccess(key, updatedAt);
     }
 
     @Override
-    public boolean markFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
-                              String lastError, Instant updatedAt) {
-        return support.markFailed(tenantId, orderNo, paymentNo, eventType, lastError, updatedAt);
+    public boolean markFailed(OrderIdempotencyRecordKey key, String lastError, Instant updatedAt) {
+        return support.markFailed(key, lastError, updatedAt);
     }
 
     @Override
-    public boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
-                                   Instant updatedAt) {
-        return support.retryFromFailed(tenantId, orderNo, paymentNo, eventType, updatedAt);
+    public boolean retryFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
+        return support.retryFromFailed(key, updatedAt);
     }
 
     @Override
-    public boolean retryFromFailed(Long tenantId, String orderNo, String paymentNo, String eventType,
+    public boolean retryFromFailed(OrderIdempotencyRecordKey key,
                                    String processingOwner, Instant leaseUntil, Instant claimedAt, Instant updatedAt) {
-        return support.retryFromFailed(tenantId, orderNo, paymentNo, eventType, processingOwner, leaseUntil,
+        return support.retryFromFailed(key, processingOwner, leaseUntil,
                 claimedAt, updatedAt);
     }
 

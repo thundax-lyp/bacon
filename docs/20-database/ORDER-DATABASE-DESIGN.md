@@ -30,7 +30,8 @@
 - 字符集固定使用 `utf8mb4`
 - 排序规则使用数据库实例可用的 `utf8mb4` 排序规则（推荐 `utf8mb4_unicode_ci`）
 - 时间字段统一使用 `datetime(3)`
-- 主键字段统一使用 `bigint`
+- 主键字段默认使用 `bigint`
+- `bacon_order_order.id` 显式使用 `varchar(64)`，直接承载文本型 `OrderId`
 - 数量字段统一使用 `int`
 - 金额字段统一使用 `decimal(18,2)`
 - 枚举字段统一使用 `varchar`
@@ -104,11 +105,11 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 雪花主键 |
+| `id` | `varchar(64)` | N | 雪花主键，由应用侧发号写入 |
 | `event_id` | `varchar(64)` | N | 事件业务标识 |
-| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键，全局唯一 |
-| `user_id` | `bigint` | N | 下单用户主键 |
+| `user_id` | `varchar(64)` | N | 下单用户标识 |
 | `order_status` | `varchar(32)` | N | 订单状态，取值见 `order_status` |
 | `pay_status` | `varchar(16)` | N | 支付状态，取值见 `pay_status` |
 | `inventory_status` | `varchar(16)` | N | 库存状态，取值见 `inventory_status` |
@@ -145,13 +146,14 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键，仅 DO 内部使用 |
-| `tenant_id` | `bigint` | N | 租户业务键 |
-| `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
-| `sku_id` | `bigint` | N | SKU 主键 |
+| `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键 |
+| `order_id` | `varchar(64)` | N | 订单主键，关联 `bacon_order_order.id` |
+| `sku_id` | `varchar(64)` | N | SKU 主键文本值 |
 | `sku_name` | `varchar(128)` | N | SKU 名称快照 |
 | `image_url` | `varchar(512)` | Y | 商品图片地址快照 |
 | `quantity` | `int` | N | 下单数量 |
+| `currency_code` | `varchar(16)` | N | 明细金额币种编码 |
 | `sale_price` | `decimal(18,2)` | N | 销售价 |
 | `line_amount` | `decimal(18,2)` | N | 行金额 |
 
@@ -174,7 +176,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
-| `tenant_id` | `bigint` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `payment_no` | `varchar(64)` | N | 支付单号，全局唯一 |
 | `channel_code` | `varchar(32)` | N | 渠道编码 |
@@ -204,7 +206,7 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键，仅 DO 内部使用 |
+| `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `reservation_no` | `varchar(64)` | N | 预占单号，全局唯一 |

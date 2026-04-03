@@ -15,20 +15,22 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_order_item")
 public class OrderItemDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
     @TableField("tenant_id")
     private Long tenantId;
     @TableField("order_id")
-    private Long orderId;
+    private String orderId;
     @TableField("sku_id")
-    private Long skuId;
+    private String skuId;
     @TableField("sku_name")
     private String skuName;
     @TableField("image_url")
     private String imageUrl;
     @TableField("quantity")
     private Integer quantity;
+    @TableField("currency_code")
+    private String currencyCode;
     @TableField("sale_price")
     private BigDecimal salePrice;
     @TableField("line_amount")

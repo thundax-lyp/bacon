@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_order_inventory_snapshot")
 public class OrderInventorySnapshotDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
     @TableField("tenant_id")
     private Long tenantId;

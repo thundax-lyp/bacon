@@ -49,7 +49,10 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 public class OrderRepositorySupport {
 
+    private static final String ORDER_ID_BIZ_TAG = "order-id";
     private static final String AUDIT_LOG_ID_BIZ_TAG = "order_audit_log_id";
+    private static final String INVENTORY_SNAPSHOT_ID_BIZ_TAG = "order_inventory_snapshot_id";
+    private static final String ORDER_ITEM_ID_BIZ_TAG = "order_item_id";
 
     private final OrderMapper orderMapper;
     private final OrderItemMapper orderItemMapper;
@@ -77,6 +80,7 @@ public class OrderRepositorySupport {
         OrderDO dataObject = toDataObject(order);
         dataObject.setUpdatedAt(Instant.now());
         if (dataObject.getId() == null) {
+            dataObject.setId(String.valueOf(idGenerator.nextId(ORDER_ID_BIZ_TAG)));
             orderMapper.insert(dataObject);
             order.setId(toDomainOrderId(dataObject.getId()));
         } else {
@@ -87,12 +91,12 @@ public class OrderRepositorySupport {
     }
 
     public Optional<Order> findOrderById(Long id) {
-        return Optional.ofNullable(orderMapper.selectById(id)).map(this::toDomainWithSnapshots);
+        return Optional.ofNullable(orderMapper.selectById(String.valueOf(id))).map(this::toDomainWithSnapshots);
     }
 
     public Optional<Order> findOrderByOrderNo(Long tenantId, String orderNo) {
         return Optional.ofNullable(orderMapper.selectOne(Wrappers.<OrderDO>lambdaQuery()
-                .eq(OrderDO::getTenantId, tenantId)
+                .eq(OrderDO::getTenantId, toDatabaseOrderTenantId(tenantId))
                 .eq(OrderDO::getOrderNo, orderNo)))
                 .map(this::toDomainWithSnapshots);
     }
@@ -101,13 +105,15 @@ public class OrderRepositorySupport {
         // 订单项采用“先删后插”的整包替换策略，保持应用层传入的 items 列表就是该订单的权威快照。
         orderItemMapper.delete(Wrappers.<OrderItemDO>lambdaQuery()
                 .eq(OrderItemDO::getTenantId, tenantId)
-                .eq(OrderItemDO::getOrderId, orderId));
+                .eq(OrderItemDO::getOrderId, String.valueOf(orderId)));
         if (items == null || items.isEmpty()) {
             return;
         }
         for (OrderItem item : items) {
-            orderItemMapper.insert(new OrderItemDO(null, item.getTenantIdValue(), item.getOrderIdValue(), item.getSkuIdValue(),
-                    item.getSkuName(), item.getImageUrl(), item.getQuantity(), item.getSalePrice().value(),
+            orderItemMapper.insert(new OrderItemDO(idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG), item.getTenantIdValue(),
+                    String.valueOf(item.getOrderIdValue()), String.valueOf(item.getSkuIdValue()),
+                    item.getSkuName(), item.getImageUrl(), item.getQuantity(), item.getSalePrice().currencyCode().value(),
+                    item.getSalePrice().value(),
                     item.getLineAmount().value()));
         }
     }
@@ -115,7 +121,7 @@ public class OrderRepositorySupport {
     public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
         return orderItemMapper.selectList(Wrappers.<OrderItemDO>lambdaQuery()
                         .eq(OrderItemDO::getTenantId, tenantId)
-                        .eq(OrderItemDO::getOrderId, orderId)
+                        .eq(OrderItemDO::getOrderId, String.valueOf(orderId))
                         .orderByAsc(OrderItemDO::getId))
                 .stream()
                 .map(dataObject -> toDomain(dataObject, currencyCode))
@@ -155,6 +161,7 @@ public class OrderRepositorySupport {
         dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
         // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
         if (existing == null) {
+            dataObject.setId(idGenerator.nextId(INVENTORY_SNAPSHOT_ID_BIZ_TAG));
             orderInventorySnapshotMapper.insert(dataObject);
             return;
         }
@@ -209,6 +216,7 @@ public class OrderRepositorySupport {
                 .toList();
         List<Long> orderIds = pageOrders.stream()
                 .map(OrderDO::getId)
+                .map(this::toLongOrderId)
                 .toList();
         // 分页查询先批量拉主单，再一次性批量拉支付/库存快照，避免逐单 N+1 查询。
         Map<Long, OrderPaymentSnapshotDO> paymentSnapshotMap = orderPaymentSnapshotMapper.selectList(
@@ -224,7 +232,7 @@ public class OrderRepositorySupport {
                 .collect(Collectors.toMap(OrderInventorySnapshotDO::getOrderNo, Function.identity(),
                         (left, right) -> left));
         List<Order> records = pageOrders.stream()
-                .map(orderData -> toDomain(orderData, paymentSnapshotMap.get(orderData.getId()),
+                .map(orderData -> toDomain(orderData, paymentSnapshotMap.get(toLongOrderId(orderData.getId())),
                         inventorySnapshotMap.get(orderData.getOrderNo())))
                 .toList();
         return records;
@@ -242,8 +250,8 @@ public class OrderRepositorySupport {
             Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
             String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
         return Wrappers.<OrderDO>lambdaQuery()
-                .eq(tenantId != null, OrderDO::getTenantId, tenantId)
-                .eq(userId != null, OrderDO::getUserId, userId)
+                .eq(tenantId != null, OrderDO::getTenantId, toDatabaseOrderTenantId(tenantId))
+                .eq(userId != null, OrderDO::getUserId, toDatabaseOrderUserId(userId))
                 .like(orderNo != null && !orderNo.isBlank(), OrderDO::getOrderNo, orderNo)
                 .eq(orderStatus != null && !orderStatus.isBlank(), OrderDO::getOrderStatus, orderStatus)
                 .eq(payStatus != null && !payStatus.isBlank(), OrderDO::getPayStatus, payStatus)
@@ -253,8 +261,8 @@ public class OrderRepositorySupport {
     }
 
     private OrderDO toDataObject(Order order) {
-        return new OrderDO(toDatabaseOrderId(order.getId()), toDatabaseTenantId(order.getTenantId()), toDatabaseOrderNo(order.getOrderNo()),
-                toDatabaseUserId(order.getUserId()),
+        return new OrderDO(toDatabaseOrderId(order.getId()), toDatabaseOrderTenantId(order.getTenantId()), toDatabaseOrderNo(order.getOrderNo()),
+                toDatabaseOrderUserId(order.getUserId()),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getCurrencyCode(),
                 order.getTotalAmount().value(), order.getPayableAmount().value(), order.getRemark(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), Instant.now(), order.getExpiredAt(), order.getPaidAt(),
@@ -265,11 +273,11 @@ public class OrderRepositorySupport {
         // 详情查询需要把主表和两张快照表重新拼成完整领域对象，保证应用层看到的是统一视图。
         OrderPaymentSnapshotDO paymentSnapshot = orderPaymentSnapshotMapper.selectOne(
                 Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
-                        .eq(OrderPaymentSnapshotDO::getTenantId, dataObject.getTenantId())
-                        .eq(OrderPaymentSnapshotDO::getOrderId, dataObject.getId()));
+                        .eq(OrderPaymentSnapshotDO::getTenantId, toLongTenantId(dataObject.getTenantId()))
+                        .eq(OrderPaymentSnapshotDO::getOrderId, toLongOrderId(dataObject.getId())));
         OrderInventorySnapshotDO inventorySnapshot = orderInventorySnapshotMapper.selectOne(
                 Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                        .eq(OrderInventorySnapshotDO::getTenantId, dataObject.getTenantId())
+                        .eq(OrderInventorySnapshotDO::getTenantId, toLongTenantId(dataObject.getTenantId()))
                         .eq(OrderInventorySnapshotDO::getOrderNo, dataObject.getOrderNo()));
         return toDomain(dataObject, paymentSnapshot, inventorySnapshot);
     }
@@ -278,8 +286,9 @@ public class OrderRepositorySupport {
                            OrderInventorySnapshotDO inventorySnapshot) {
         // rehydrate 时优先用快照表补回 paymentNo/reservationNo 等派生字段，
         // 因为这些字段在 strict 持久化模型里并不全部固化在订单主表。
-        return Order.rehydrate(toDomainOrderId(dataObject.getId()), toDomainTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
-                toDomainUserId(dataObject.getUserId()), toDomainOrderStatus(dataObject.getOrderStatus()),
+        return Order.rehydrate(toDomainOrderId(dataObject.getId()), toDomainOrderTenantId(dataObject.getTenantId()),
+                toDomainOrderNo(dataObject.getOrderNo()), toDomainOrderUserId(dataObject.getUserId()),
+                toDomainOrderStatus(dataObject.getOrderStatus()),
                 toDomainPayStatus(dataObject.getPayStatus()), toDomainInventoryStatus(dataObject.getInventoryStatus()),
                 toDomainPaymentNo(paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo()),
                 toDomainReservationNo(inventorySnapshot == null ? null : inventorySnapshot.getReservationNo()),
@@ -305,8 +314,12 @@ public class OrderRepositorySupport {
         return Money.of(value, CurrencyCode.fromValue(currencyCode));
     }
 
-    private Long toDatabaseOrderId(OrderId orderId) {
-        return orderId == null ? null : Long.valueOf(orderId.value());
+    private String toDatabaseOrderId(OrderId orderId) {
+        return orderId == null ? null : orderId.value();
+    }
+
+    private OrderId toDomainOrderId(String orderId) {
+        return orderId == null ? null : OrderId.of(orderId);
     }
 
     private OrderId toDomainOrderId(Long orderId) {
@@ -349,6 +362,38 @@ public class OrderRepositorySupport {
         return userId == null ? null : UserId.of(String.valueOf(userId));
     }
 
+    private String toDatabaseOrderTenantId(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    private String toDatabaseOrderTenantId(Long tenantId) {
+        return tenantId == null ? null : String.valueOf(tenantId);
+    }
+
+    private TenantId toDomainOrderTenantId(String tenantId) {
+        return tenantId == null ? null : TenantId.of(tenantId);
+    }
+
+    private Long toLongTenantId(String tenantId) {
+        return tenantId == null ? null : Long.valueOf(tenantId);
+    }
+
+    private String toDatabaseOrderUserId(UserId userId) {
+        return userId == null ? null : userId.value();
+    }
+
+    private String toDatabaseOrderUserId(Long userId) {
+        return userId == null ? null : String.valueOf(userId);
+    }
+
+    private UserId toDomainOrderUserId(String userId) {
+        return userId == null ? null : UserId.of(userId);
+    }
+
+    private Long toLongOrderId(String orderId) {
+        return orderId == null ? null : Long.valueOf(orderId);
+    }
+
     private OrderStatus toDomainOrderStatus(String orderStatus) {
         return orderStatus == null ? null : OrderStatus.fromValue(orderStatus);
     }
@@ -362,7 +407,10 @@ public class OrderRepositorySupport {
     }
 
     private OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
-        CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(currencyCode);
+        String resolvedCurrencyCodeValue = dataObject.getCurrencyCode() == null || dataObject.getCurrencyCode().isBlank()
+                ? currencyCode
+                : dataObject.getCurrencyCode();
+        CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(resolvedCurrencyCodeValue);
         return new OrderItem(toDomainTenantId(dataObject.getTenantId()), toDomainOrderId(dataObject.getOrderId()),
                 toDomainSkuId(dataObject.getSkuId()), dataObject.getSkuName(), dataObject.getImageUrl(),
                 dataObject.getQuantity(), Money.of(dataObject.getSalePrice(), resolvedCurrencyCode),
@@ -371,6 +419,10 @@ public class OrderRepositorySupport {
 
     private SkuId toDomainSkuId(Long skuId) {
         return skuId == null ? null : SkuId.of(skuId);
+    }
+
+    private SkuId toDomainSkuId(String skuId) {
+        return skuId == null ? null : SkuId.of(Long.valueOf(skuId));
     }
 
     private OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {

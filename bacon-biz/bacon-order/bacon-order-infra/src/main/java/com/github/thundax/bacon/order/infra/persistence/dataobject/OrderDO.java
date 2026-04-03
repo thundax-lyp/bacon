@@ -16,14 +16,14 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_order_order")
 public class OrderDO {
 
-    @TableId(type = IdType.AUTO)
-    private Long id;
+    @TableId(type = IdType.INPUT)
+    private String id;
     @TableField("tenant_id")
-    private Long tenantId;
+    private String tenantId;
     @TableField("order_no")
     private String orderNo;
     @TableField("user_id")
-    private Long userId;
+    private String userId;
     @TableField("order_status")
     private String orderStatus;
     @TableField("pay_status")

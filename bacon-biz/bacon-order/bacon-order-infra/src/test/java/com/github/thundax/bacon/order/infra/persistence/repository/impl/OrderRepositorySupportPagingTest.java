@@ -84,7 +84,7 @@ class OrderRepositorySupportPagingTest {
     }
 
     private OrderDO buildOrder(Long id, String orderNo, Instant createdAt) {
-        return new OrderDO(id, 1001L, orderNo, 2001L,
+        return new OrderDO(String.valueOf(id), "1001", orderNo, "2001",
                 "CREATED", "UNPAID", "UNRESERVED", "CNY",
                 BigDecimal.TEN, BigDecimal.TEN, "remark", null,
                 null, createdAt, createdAt, createdAt.plusSeconds(1800), null, null);

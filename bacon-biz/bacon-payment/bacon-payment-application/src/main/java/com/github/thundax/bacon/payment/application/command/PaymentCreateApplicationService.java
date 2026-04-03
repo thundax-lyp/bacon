@@ -9,7 +9,6 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import com.github.thundax.bacon.payment.domain.service.PaymentNoGenerator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -29,7 +28,6 @@ public class PaymentCreateApplicationService {
         this.paymentNoGenerator = paymentNoGenerator;
     }
 
-    @Transactional
     public PaymentCreateResultDTO createPayment(Long tenantId, String orderNo, Long userId, BigDecimal amount,
                                                 String channelCode, String subject, Instant expiredAt) {
         validateCreateRequest(amount, channelCode, expiredAt);

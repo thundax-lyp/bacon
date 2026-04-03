@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.domain.model.entity;
+package com.github.thundax.bacon.order.domain.model.enums;
 
 /**
  * 订单主状态。

@@ -3,6 +3,9 @@ package com.github.thundax.bacon.order.domain.model.entity;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -11,19 +14,6 @@ import lombok.Getter;
  */
 @Getter
 public class Order {
-
-    public static final String PAY_STATUS_UNPAID = "UNPAID";
-    public static final String PAY_STATUS_PAYING = "PAYING";
-    public static final String PAY_STATUS_PAID = "PAID";
-    public static final String PAY_STATUS_FAILED = "FAILED";
-    public static final String PAY_STATUS_CLOSED = "CLOSED";
-
-    public static final String INVENTORY_STATUS_UNRESERVED = "UNRESERVED";
-    public static final String INVENTORY_STATUS_RESERVING = "RESERVING";
-    public static final String INVENTORY_STATUS_RESERVED = "RESERVED";
-    public static final String INVENTORY_STATUS_RELEASED = "RELEASED";
-    public static final String INVENTORY_STATUS_DEDUCTED = "DEDUCTED";
-    public static final String INVENTORY_STATUS_FAILED = "FAILED";
 
     /** 订单主键。 */
     private OrderId id;
@@ -36,9 +26,9 @@ public class Order {
     /** 订单状态。 */
     private OrderStatus orderStatus;
     /** 支付状态。 */
-    private String payStatus;
+    private PayStatus payStatus;
     /** 库存状态。 */
-    private String inventoryStatus;
+    private InventoryStatus inventoryStatus;
     /** 支付单号。 */
     private String paymentNo;
     /** 库存预占单号。 */
@@ -84,13 +74,13 @@ public class Order {
 
     public Order(OrderId id, Long tenantId, String orderNo, UserId userId, Money totalAmount,
                  Money payableAmount, String remark, Instant expiredAt) {
-        this(id, tenantId, orderNo, userId, OrderStatus.CREATED, PAY_STATUS_UNPAID, INVENTORY_STATUS_UNRESERVED,
+        this(id, tenantId, orderNo, userId, OrderStatus.CREATED, PayStatus.UNPAID, InventoryStatus.UNRESERVED,
                 null, null, totalAmount, payableAmount, remark, null, null, Instant.now(),
                 expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
-    private Order(OrderId id, Long tenantId, String orderNo, UserId userId, OrderStatus orderStatus, String payStatus,
-                  String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
+    private Order(OrderId id, Long tenantId, String orderNo, UserId userId, OrderStatus orderStatus, PayStatus payStatus,
+                  InventoryStatus inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
                   Money payableAmount, String remark, String cancelReason,
                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
                   String paymentChannelCode, Money paidAmount, String paymentChannelStatus,
@@ -129,8 +119,8 @@ public class Order {
         this.inventoryDeductedAt = inventoryDeductedAt;
     }
 
-    public static Order rehydrate(OrderId id, Long tenantId, String orderNo, UserId userId, OrderStatus orderStatus, String payStatus,
-                                  String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
+    public static Order rehydrate(OrderId id, Long tenantId, String orderNo, UserId userId, OrderStatus orderStatus, PayStatus payStatus,
+                                  InventoryStatus inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
                                   Money payableAmount, String remark, String cancelReason,
                                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,
                                   Instant closedAt, String paymentChannelCode, Money paidAmount,
@@ -157,6 +147,22 @@ public class Order {
         return orderStatus;
     }
 
+    public String getPayStatus() {
+        return payStatus == null ? null : payStatus.value();
+    }
+
+    public PayStatus getPayStatusEnum() {
+        return payStatus;
+    }
+
+    public String getInventoryStatus() {
+        return inventoryStatus == null ? null : inventoryStatus.value();
+    }
+
+    public InventoryStatus getInventoryStatusEnum() {
+        return inventoryStatus;
+    }
+
     public void setId(OrderId id) {
         this.id = id;
     }
@@ -165,7 +171,7 @@ public class Order {
         // 只有新建订单才能进入预占库存阶段，避免取消/关闭后的订单再次触发库存链路。
         ensureOrderStatus(OrderStatus.CREATED);
         this.orderStatus = OrderStatus.RESERVING_STOCK;
-        this.inventoryStatus = INVENTORY_STATUS_RESERVING;
+        this.inventoryStatus = InventoryStatus.RESERVING;
     }
 
     public void markInventoryReserved(String reservationNo, Long warehouseId) {
@@ -173,7 +179,7 @@ public class Order {
         ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.reservationNo = reservationNo;
         this.warehouseId = warehouseId;
-        this.inventoryStatus = INVENTORY_STATUS_RESERVED;
+        this.inventoryStatus = InventoryStatus.RESERVED;
     }
 
     public void markInventoryReleased(String reservationNo, Long warehouseId, String releaseReason, Instant releasedAt) {
@@ -182,7 +188,7 @@ public class Order {
         this.warehouseId = warehouseId;
         this.inventoryReleaseReason = releaseReason;
         this.inventoryReleasedAt = releasedAt;
-        this.inventoryStatus = INVENTORY_STATUS_RELEASED;
+        this.inventoryStatus = InventoryStatus.RELEASED;
     }
 
     public void markInventoryDeducted(String reservationNo, Long warehouseId, Instant deductedAt) {
@@ -190,7 +196,7 @@ public class Order {
         this.reservationNo = reservationNo;
         this.warehouseId = warehouseId;
         this.inventoryDeductedAt = deductedAt;
-        this.inventoryStatus = INVENTORY_STATUS_DEDUCTED;
+        this.inventoryStatus = InventoryStatus.DEDUCTED;
     }
 
     public void markInventoryFailed(String reservationNo, Long warehouseId, String failureReason) {
@@ -198,14 +204,14 @@ public class Order {
         this.reservationNo = reservationNo;
         this.warehouseId = warehouseId;
         this.inventoryFailureReason = failureReason;
-        this.inventoryStatus = INVENTORY_STATUS_FAILED;
+        this.inventoryStatus = InventoryStatus.FAILED;
     }
 
     public void markPendingPayment(String paymentNo, String channelCode) {
         // 订单只有完成库存预占后才能进入待支付，避免出现未锁库存就暴露支付入口。
         ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.orderStatus = OrderStatus.PENDING_PAYMENT;
-        this.payStatus = PAY_STATUS_PAYING;
+        this.payStatus = PayStatus.PAYING;
         this.paymentNo = paymentNo;
         this.paymentChannelCode = channelCode;
     }
@@ -215,7 +221,7 @@ public class Order {
         ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
         ensureMoneyCurrency(totalAmount, paidAmount);
         this.orderStatus = OrderStatus.PAID;
-        this.payStatus = PAY_STATUS_PAID;
+        this.payStatus = PayStatus.PAID;
         this.paymentNo = paymentNo;
         this.paymentChannelCode = channelCode;
         this.paidAmount = paidAmount;
@@ -226,7 +232,7 @@ public class Order {
         // 支付失败会把主单直接收口为 CLOSED；后续库存释放只是派生补偿，不再改变主单终态。
         ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
         this.orderStatus = OrderStatus.CLOSED;
-        this.payStatus = PAY_STATUS_FAILED;
+        this.payStatus = PayStatus.FAILED;
         this.paymentNo = paymentNo;
         this.paymentFailureReason = reason;
         this.paymentChannelStatus = channelStatus;
@@ -255,7 +261,7 @@ public class Order {
         // 超时关闭允许覆盖“未开始预占”和“已生成支付单但未支付”两种场景，统一收口为 CLOSED/CLOSED。
         ensureOrderStatus(OrderStatus.CREATED, OrderStatus.PENDING_PAYMENT);
         this.orderStatus = OrderStatus.CLOSED;
-        this.payStatus = PAY_STATUS_CLOSED;
+        this.payStatus = PayStatus.CLOSED;
         this.closeReason = reason;
         this.closedAt = Instant.now();
     }
@@ -264,7 +270,7 @@ public class Order {
         // 用户取消比超时更宽松，允许在库存预占中止损；库存释放由调用方根据当前派生状态决定是否执行。
         ensureOrderStatus(OrderStatus.CREATED, OrderStatus.PENDING_PAYMENT, OrderStatus.RESERVING_STOCK);
         this.orderStatus = OrderStatus.CANCELLED;
-        this.payStatus = PAY_STATUS_CLOSED;
+        this.payStatus = PayStatus.CLOSED;
         this.cancelReason = reason;
         this.closedAt = Instant.now();
     }

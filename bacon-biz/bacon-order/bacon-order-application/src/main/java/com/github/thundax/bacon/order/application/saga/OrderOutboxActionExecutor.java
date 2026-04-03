@@ -7,7 +7,9 @@ import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersis
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
-import com.github.thundax.bacon.order.domain.model.entity.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
@@ -78,7 +80,7 @@ public class OrderOutboxActionExecutor {
         InventoryReservationResultDTO reserveResult = inventoryCommandFacade.reserveStock(order.getTenantId(),
                 order.getOrderNo(), reserveItems);
         // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
-        if (!Order.INVENTORY_STATUS_RESERVED.equals(reserveResult.getInventoryStatus())) {
+        if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
             String reason = resolveFailureReason(reserveResult.getFailureReason(), "inventory reserve failed");
             order.markInventoryFailed(reserveResult.getReservationNo(), reserveResult.getWarehouseId(), reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
@@ -112,7 +114,7 @@ public class OrderOutboxActionExecutor {
                 order.getExpiredAt());
         // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
         if (paymentResult.getPaymentNo() == null || paymentResult.getPaymentNo().isBlank()
-                || !Order.PAY_STATUS_PAYING.equals(paymentResult.getPaymentStatus())) {
+                || !PayStatus.PAYING.value().equals(paymentResult.getPaymentStatus())) {
             order.closeByPaymentCreateFailed(CLOSE_REASON_PAYMENT_CREATE_FAILED);
             orderRepository.save(order);
             orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_CREATE_PAYMENT_FAILED",
@@ -147,7 +149,7 @@ public class OrderOutboxActionExecutor {
         InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(order.getTenantId(),
                 order.getOrderNo(), reason);
         // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
-        if (Order.INVENTORY_STATUS_RELEASED.equals(releaseResult.getInventoryStatus())) {
+        if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(releaseResult.getReservationNo(), releaseResult.getWarehouseId(),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
         } else {

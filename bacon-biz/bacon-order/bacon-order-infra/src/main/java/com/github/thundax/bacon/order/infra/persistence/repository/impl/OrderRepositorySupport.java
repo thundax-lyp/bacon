@@ -10,7 +10,9 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
-import com.github.thundax.bacon.order.domain.model.entity.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageQuery;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderPageResult;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderAuditLogDO;
@@ -251,8 +253,8 @@ public class OrderRepositorySupport {
         // rehydrate 时优先用快照表补回 paymentNo/reservationNo 等派生字段，
         // 因为这些字段在 strict 持久化模型里并不全部固化在订单主表。
         return Order.rehydrate(toDomainOrderId(dataObject.getId()), dataObject.getTenantId(), dataObject.getOrderNo(),
-                toDomainUserId(dataObject.getUserId()), toDomainOrderStatus(dataObject.getOrderStatus()), dataObject.getPayStatus(),
-                dataObject.getInventoryStatus(),
+                toDomainUserId(dataObject.getUserId()), toDomainOrderStatus(dataObject.getOrderStatus()),
+                toDomainPayStatus(dataObject.getPayStatus()), toDomainInventoryStatus(dataObject.getInventoryStatus()),
                 paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo(),
                 inventorySnapshot == null ? null : inventorySnapshot.getReservationNo(),
                 toMoney(dataObject.getTotalAmount(), dataObject.getCurrencyCode()),
@@ -295,6 +297,14 @@ public class OrderRepositorySupport {
 
     private OrderStatus toDomainOrderStatus(String orderStatus) {
         return orderStatus == null ? null : OrderStatus.fromValue(orderStatus);
+    }
+
+    private PayStatus toDomainPayStatus(String payStatus) {
+        return payStatus == null ? null : PayStatus.fromValue(payStatus);
+    }
+
+    private InventoryStatus toDomainInventoryStatus(String inventoryStatus) {
+        return inventoryStatus == null ? null : InventoryStatus.fromValue(inventoryStatus);
     }
 
     private OrderItem toDomain(OrderItemDO dataObject) {

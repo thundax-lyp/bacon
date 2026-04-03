@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.application.support;
 
 import com.github.thundax.bacon.storage.application.config.StorageMultipartCleanupProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
+import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
@@ -19,10 +20,10 @@ import java.util.List;
 @Service
 public class MultipartUploadCleanupService {
 
-    private static final List<String> EXPIRED_UPLOAD_STATUSES = List.of(
-            MultipartUploadSession.STATUS_INITIATED,
-            MultipartUploadSession.STATUS_UPLOADING,
-            MultipartUploadSession.STATUS_ABORTED
+    private static final List<UploadStatus> EXPIRED_UPLOAD_STATUSES = List.of(
+            UploadStatus.INITIATED,
+            UploadStatus.UPLOADING,
+            UploadStatus.ABORTED
     );
 
     private final MultipartUploadSessionRepository multipartUploadSessionRepository;
@@ -49,7 +50,7 @@ public class MultipartUploadCleanupService {
                 EXPIRED_UPLOAD_STATUSES, expireBefore, properties.getBatchSize());
         int cleanedCount = 0;
         for (MultipartUploadSession session : expiredSessions) {
-            String uploadStatus = session.getUploadStatus();
+            String uploadStatus = session.getUploadStatus().value();
             try {
                 cleanupSingleSession(session);
                 Metrics.counter("bacon.storage.multipart.cleanup.success.total",

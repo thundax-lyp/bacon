@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -12,17 +14,12 @@ import java.util.Objects;
 @Getter
 public class MultipartUploadSession {
 
-    public static final String STATUS_INITIATED = "INITIATED";
-    public static final String STATUS_UPLOADING = "UPLOADING";
-    public static final String STATUS_COMPLETED = "COMPLETED";
-    public static final String STATUS_ABORTED = "ABORTED";
-
     /** 主键。 */
     private Long id;
     /** 分段上传会话业务键。 */
     private String uploadId;
     /** 所属租户业务键。 */
-    private String tenantId;
+    private TenantId tenantId;
     /** 引用方类型。 */
     private String ownerType;
     /** 引用方业务主键。 */
@@ -44,7 +41,7 @@ public class MultipartUploadSession {
     /** 已上传分段数。 */
     private Integer uploadedPartCount;
     /** 分段上传状态。 */
-    private String uploadStatus;
+    private UploadStatus uploadStatus;
     /** 创建时间。 */
     private Instant createdAt;
     /** 更新时间。 */
@@ -54,10 +51,10 @@ public class MultipartUploadSession {
     /** 取消时间。 */
     private Instant abortedAt;
 
-    public MultipartUploadSession(Long id, String uploadId, String tenantId, String ownerType, String ownerId,
+    public MultipartUploadSession(Long id, String uploadId, TenantId tenantId, String ownerType, String ownerId,
                                   String category, String originalFilename, String contentType, String objectKey,
                                   String providerUploadId, Long totalSize, Long partSize, Integer uploadedPartCount,
-                                  String uploadStatus, Instant createdAt, Instant updatedAt, Instant completedAt,
+                                  UploadStatus uploadStatus, Instant createdAt, Instant updatedAt, Instant completedAt,
                                   Instant abortedAt) {
         this.id = id;
         this.uploadId = uploadId;
@@ -79,7 +76,7 @@ public class MultipartUploadSession {
         this.abortedAt = abortedAt;
     }
 
-    public static MultipartUploadSession initiate(String uploadId, String tenantId, String ownerType, String ownerId,
+    public static MultipartUploadSession initiate(String uploadId, TenantId tenantId, String ownerType, String ownerId,
                                                   String category, String originalFilename, String contentType,
                                                   String objectKey, String providerUploadId, Long totalSize,
                                                   Long partSize) {
@@ -91,29 +88,29 @@ public class MultipartUploadSession {
         requirePositive(partSize, "partSize");
         Instant now = Instant.now();
         return new MultipartUploadSession(null, uploadId, tenantId, ownerType, ownerId, category, originalFilename,
-                contentType, objectKey, providerUploadId, totalSize, partSize, 0, STATUS_INITIATED, now, now,
+                contentType, objectKey, providerUploadId, totalSize, partSize, 0, UploadStatus.INITIATED, now, now,
                 null, null);
     }
 
     public boolean isCompleted() {
-        return STATUS_COMPLETED.equals(this.uploadStatus);
+        return UploadStatus.COMPLETED == this.uploadStatus;
     }
 
     public boolean isAborted() {
-        return STATUS_ABORTED.equals(this.uploadStatus);
+        return UploadStatus.ABORTED == this.uploadStatus;
     }
 
     public void recordUploadedPart() {
         ensureAcceptingUpload();
         this.uploadedPartCount = Objects.requireNonNullElse(this.uploadedPartCount, 0) + 1;
-        this.uploadStatus = STATUS_UPLOADING;
+        this.uploadStatus = UploadStatus.UPLOADING;
         this.updatedAt = Instant.now();
     }
 
     public void markCompleted() {
         ensureAcceptingUpload();
         Instant now = Instant.now();
-        this.uploadStatus = STATUS_COMPLETED;
+        this.uploadStatus = UploadStatus.COMPLETED;
         this.updatedAt = now;
         this.completedAt = now;
     }
@@ -123,12 +120,12 @@ public class MultipartUploadSession {
             throw new IllegalStateException("Completed upload session cannot be aborted");
         }
         Instant now = Instant.now();
-        this.uploadStatus = STATUS_ABORTED;
+        this.uploadStatus = UploadStatus.ABORTED;
         this.updatedAt = now;
         this.abortedAt = now;
     }
 
-    public void assertOwnership(String tenantId, String ownerType, String ownerId) {
+    public void assertOwnership(TenantId tenantId, String ownerType, String ownerId) {
         if (!Objects.equals(this.tenantId, tenantId)) {
             throw new IllegalArgumentException("Multipart upload session tenantId mismatch");
         }

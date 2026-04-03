@@ -2,6 +2,8 @@ package com.github.thundax.bacon.storage.infra.persistence.dataobject;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,7 +26,7 @@ public class MultipartUploadSessionDO {
     private String uploadId;
     /** 所属租户业务键。 */
     @TableField("tenant_id")
-    private String tenantId;
+    private TenantId tenantId;
     /** 引用方类型。 */
     @TableField("owner_type")
     private String ownerType;
@@ -57,7 +59,7 @@ public class MultipartUploadSessionDO {
     private Integer uploadedPartCount;
     /** 分段上传状态。 */
     @TableField("upload_status")
-    private String uploadStatus;
+    private UploadStatus uploadStatus;
     /** 创建时间。 */
     @TableField("created_at")
     private Instant createdAt;

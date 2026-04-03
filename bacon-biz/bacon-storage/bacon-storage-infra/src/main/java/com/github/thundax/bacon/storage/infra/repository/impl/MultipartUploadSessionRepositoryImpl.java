@@ -3,6 +3,7 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
+import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.MultipartUploadSessionDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.MultipartUploadSessionMapper;
@@ -45,7 +46,7 @@ public class MultipartUploadSessionRepositoryImpl implements MultipartUploadSess
     }
 
     @Override
-    public List<MultipartUploadSession> listExpiredSessions(List<String> uploadStatuses, Instant expireBefore, int limit) {
+    public List<MultipartUploadSession> listExpiredSessions(List<UploadStatus> uploadStatuses, Instant expireBefore, int limit) {
         return multipartUploadSessionMapper.selectList(Wrappers.<MultipartUploadSessionDO>lambdaQuery()
                         .in(MultipartUploadSessionDO::getUploadStatus, uploadStatuses)
                         .lt(MultipartUploadSessionDO::getUpdatedAt, expireBefore)

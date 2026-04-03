@@ -1,7 +1,9 @@
 package com.github.thundax.bacon.storage.application.support;
 
 import com.github.thundax.bacon.storage.application.config.StorageMultipartCleanupProperties;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
+import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
@@ -61,9 +63,9 @@ class MultipartUploadCleanupServiceTest {
 
     @Test
     void shouldAbortAndCleanupExpiredMultipartSessions() {
-        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-expired", "tenant-a",
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-expired", TenantId.of("tenant-a"),
                 "GENERIC_ATTACHMENT", "owner-1", "attachment", "a.png", "image/png", "attachment/key.png",
-                "provider-1", 2048L, 1024L, 1, MultipartUploadSession.STATUS_UPLOADING,
+                "provider-1", 2048L, 1024L, 1, UploadStatus.UPLOADING,
                 Instant.now().minusSeconds(7200), Instant.now().minusSeconds(7200), null, null);
         when(multipartUploadSessionRepository.listExpiredSessions(any(), any(), eq(100)))
                 .thenReturn(List.of(session));
@@ -75,23 +77,23 @@ class MultipartUploadCleanupServiceTest {
         assertEquals(1, cleanedCount);
         ArgumentCaptor<MultipartUploadSession> sessionCaptor = ArgumentCaptor.forClass(MultipartUploadSession.class);
         verify(multipartUploadSessionRepository).save(sessionCaptor.capture());
-        assertEquals(MultipartUploadSession.STATUS_ABORTED, sessionCaptor.getValue().getUploadStatus());
+        assertEquals(UploadStatus.ABORTED, sessionCaptor.getValue().getUploadStatus());
         verify(storedObjectStorageRepository).abortMultipartUpload(session);
         verify(multipartUploadPartRepository).deleteByUploadId("upload-expired");
         assertEquals(1.0d, meterRegistry.get("bacon.storage.multipart.cleanup.success.total")
-                .tag("uploadStatus", MultipartUploadSession.STATUS_UPLOADING).counter().count());
+                .tag("uploadStatus", UploadStatus.UPLOADING.value()).counter().count());
     }
 
     @Test
     void shouldCleanupAlreadyAbortedSessionsWithoutSavingAgain() {
-        MultipartUploadSession session = new MultipartUploadSession(2L, "upload-aborted", "tenant-a",
+        MultipartUploadSession session = new MultipartUploadSession(2L, "upload-aborted", TenantId.of("tenant-a"),
                 "GENERIC_ATTACHMENT", "owner-2", "attachment", "b.png", "image/png", "attachment/key-b.png",
-                "provider-2", 2048L, 1024L, 1, MultipartUploadSession.STATUS_ABORTED,
+                "provider-2", 2048L, 1024L, 1, UploadStatus.ABORTED,
                 Instant.now().minusSeconds(7200), Instant.now().minusSeconds(7200), null, Instant.now().minusSeconds(7100));
         when(multipartUploadSessionRepository.listExpiredSessions(any(), any(), eq(100)))
                 .thenAnswer(invocation -> {
                     List<String> statuses = invocation.getArgument(0);
-                    assertTrue(statuses.contains(MultipartUploadSession.STATUS_ABORTED));
+                    assertTrue(statuses.contains(UploadStatus.ABORTED));
                     return List.of(session);
                 });
 
@@ -102,14 +104,14 @@ class MultipartUploadCleanupServiceTest {
         verify(multipartUploadPartRepository).deleteByUploadId("upload-aborted");
         verify(multipartUploadSessionRepository, never()).save(any(MultipartUploadSession.class));
         assertEquals(1.0d, meterRegistry.get("bacon.storage.multipart.cleanup.success.total")
-                .tag("uploadStatus", MultipartUploadSession.STATUS_ABORTED).counter().count());
+                .tag("uploadStatus", UploadStatus.ABORTED.value()).counter().count());
     }
 
     @Test
     void shouldRecordCleanupFailureMetricWhenAbortFails() {
-        MultipartUploadSession session = new MultipartUploadSession(3L, "upload-failed", "tenant-a",
+        MultipartUploadSession session = new MultipartUploadSession(3L, "upload-failed", TenantId.of("tenant-a"),
                 "GENERIC_ATTACHMENT", "owner-3", "attachment", "c.png", "image/png", "attachment/key-c.png",
-                "provider-3", 2048L, 1024L, 1, MultipartUploadSession.STATUS_UPLOADING,
+                "provider-3", 2048L, 1024L, 1, UploadStatus.UPLOADING,
                 Instant.now().minusSeconds(7200), Instant.now().minusSeconds(7200), null, null);
         when(multipartUploadSessionRepository.listExpiredSessions(any(), any(), eq(100)))
                 .thenReturn(List.of(session));
@@ -120,7 +122,7 @@ class MultipartUploadCleanupServiceTest {
 
         assertEquals(0, cleanedCount);
         assertEquals(1.0d, meterRegistry.get("bacon.storage.multipart.cleanup.fail.total")
-                .tag("uploadStatus", MultipartUploadSession.STATUS_UPLOADING).counter().count());
+                .tag("uploadStatus", UploadStatus.UPLOADING.value()).counter().count());
     }
 
     @Test

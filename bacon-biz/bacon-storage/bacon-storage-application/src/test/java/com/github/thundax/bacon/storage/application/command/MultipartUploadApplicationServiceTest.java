@@ -14,6 +14,7 @@ import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
+import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
@@ -98,9 +99,9 @@ class MultipartUploadApplicationServiceTest {
 
     @Test
     void shouldRejectMultipartPartUploadWhenOwnershipMismatch() {
-        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-1", "tenant-a", "GENERIC_ATTACHMENT",
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-1", TenantId.of("tenant-a"), "GENERIC_ATTACHMENT",
                 "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",
-                1024L, 512L, 0, MultipartUploadSession.STATUS_INITIATED, Instant.now(), Instant.now(), null, null);
+                1024L, 512L, 0, UploadStatus.INITIATED, Instant.now(), Instant.now(), null, null);
         when(multipartUploadSessionRepository.findByUploadId("upload-1")).thenReturn(Optional.of(session));
 
         assertThrows(IllegalArgumentException.class,
@@ -111,9 +112,9 @@ class MultipartUploadApplicationServiceTest {
 
     @Test
     void shouldRejectMultipartPartUploadWhenPartSizeExceedsConfiguredLimit() {
-        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-limit", "tenant-a", "GENERIC_ATTACHMENT",
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-limit", TenantId.of("tenant-a"), "GENERIC_ATTACHMENT",
                 "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",
-                1024L, 512L, 0, MultipartUploadSession.STATUS_INITIATED, Instant.now(), Instant.now(), null, null);
+                1024L, 512L, 0, UploadStatus.INITIATED, Instant.now(), Instant.now(), null, null);
         when(multipartUploadSessionRepository.findByUploadId("upload-limit")).thenReturn(Optional.of(session));
         doThrow(new IllegalArgumentException("Multipart part size exceeds configured limit"))
                 .when(storageUploadLimitValidator).validateMultipartPartUpload(session, 1024L);
@@ -126,9 +127,9 @@ class MultipartUploadApplicationServiceTest {
 
     @Test
     void shouldNotIncrementUploadedPartCountWhenReuploadingSamePartNumber() {
-        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-retry", "tenant-a", "GENERIC_ATTACHMENT",
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-retry", TenantId.of("tenant-a"), "GENERIC_ATTACHMENT",
                 "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",
-                1024L, 512L, 1, MultipartUploadSession.STATUS_UPLOADING, Instant.now(), Instant.now(), null, null);
+                1024L, 512L, 1, UploadStatus.UPLOADING, Instant.now(), Instant.now(), null, null);
         MultipartUploadPart existingPart = new MultipartUploadPart(10L, "upload-retry", 1, "etag-old", 512L, Instant.now());
         when(multipartUploadSessionRepository.findByUploadId("upload-retry")).thenReturn(Optional.of(session));
         when(multipartUploadPartRepository.findByUploadIdAndPartNumber("upload-retry", 1))
@@ -151,9 +152,9 @@ class MultipartUploadApplicationServiceTest {
 
     @Test
     void shouldRejectCompleteWhenMultipartIntegrityMismatch() {
-        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-2", "tenant-a", "GENERIC_ATTACHMENT",
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-2", TenantId.of("tenant-a"), "GENERIC_ATTACHMENT",
                 "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",
-                1024L, 512L, 2, MultipartUploadSession.STATUS_UPLOADING, Instant.now(), Instant.now(), null, null);
+                1024L, 512L, 2, UploadStatus.UPLOADING, Instant.now(), Instant.now(), null, null);
         when(multipartUploadSessionRepository.findByUploadId("upload-2")).thenReturn(Optional.of(session));
         when(multipartUploadPartRepository.listByUploadId("upload-2")).thenReturn(List.of(
                 MultipartUploadPart.create("upload-2", 1, "etag-1", 512L)));
@@ -166,9 +167,9 @@ class MultipartUploadApplicationServiceTest {
 
     @Test
     void shouldAbortMultipartUploadWithOwnershipValidation() {
-        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-3", "tenant-a", "GENERIC_ATTACHMENT",
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-3", TenantId.of("tenant-a"), "GENERIC_ATTACHMENT",
                 "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",
-                1024L, 512L, 1, MultipartUploadSession.STATUS_UPLOADING, Instant.now(), Instant.now(), null, null);
+                1024L, 512L, 1, UploadStatus.UPLOADING, Instant.now(), Instant.now(), null, null);
         when(multipartUploadSessionRepository.findByUploadId("upload-3")).thenReturn(Optional.of(session));
         when(multipartUploadSessionRepository.save(any(MultipartUploadSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -182,9 +183,9 @@ class MultipartUploadApplicationServiceTest {
 
     @Test
     void shouldCompleteMultipartUploadWhenOwnershipAndIntegrityPass() {
-        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-4", "tenant-a", "GENERIC_ATTACHMENT",
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-4", TenantId.of("tenant-a"), "GENERIC_ATTACHMENT",
                 "owner-1", "attachment", "a.png", "image/png", "attachment/key.png", "provider-1",
-                1024L, 512L, 2, MultipartUploadSession.STATUS_UPLOADING, Instant.now(), Instant.now(), null, null);
+                1024L, 512L, 2, UploadStatus.UPLOADING, Instant.now(), Instant.now(), null, null);
         when(multipartUploadSessionRepository.findByUploadId("upload-4")).thenReturn(Optional.of(session));
         when(multipartUploadPartRepository.listByUploadId("upload-4")).thenReturn(List.of(
                 MultipartUploadPart.create("upload-4", 1, "etag-1", 512L),

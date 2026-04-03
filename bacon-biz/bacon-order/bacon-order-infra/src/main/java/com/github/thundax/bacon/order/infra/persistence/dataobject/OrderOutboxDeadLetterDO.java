@@ -15,12 +15,14 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_order_dead_letter")
 public class OrderOutboxDeadLetterDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
     @TableField("outbox_id")
     private Long outboxId;
+    @TableField("event_id")
+    private String eventId;
     @TableField("tenant_id")
-    private Long tenantId;
+    private String tenantId;
     @TableField("order_no")
     private String orderNo;
     @TableField("event_type")

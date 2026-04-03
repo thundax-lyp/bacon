@@ -3,6 +3,7 @@ package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventId;
@@ -143,7 +144,7 @@ public class InMemoryOrderOutboxSupport {
     public synchronized void saveDeadLetter(OrderOutboxDeadLetter deadLetter) {
         Instant now = Instant.now();
         if (deadLetter.getReplayStatus() == null) {
-            deadLetter.setReplayStatus(OrderOutboxDeadLetter.REPLAY_STATUS_PENDING);
+            deadLetter.setReplayStatus(OrderOutboxReplayStatus.PENDING);
         }
         if (deadLetter.getReplayCount() == null) {
             deadLetter.setReplayCount(0);
@@ -177,8 +178,10 @@ public class InMemoryOrderOutboxSupport {
     }
 
     private OrderOutboxDeadLetter copy(OrderOutboxDeadLetter source) {
-        return new OrderOutboxDeadLetter(source.getOutboxId(), source.getTenantId(),
-                source.getOrderNo(), source.getEventType(), source.getBusinessKey(), source.getPayload(),
+        return new OrderOutboxDeadLetter(source.getOutboxId(), source.getEventId(),
+                source.getTenantId() == null ? null : TenantId.of(source.getTenantId().value()),
+                source.getOrderNo() == null ? null : OrderNo.of(source.getOrderNo().value()),
+                source.getEventType(), source.getBusinessKey(), source.getPayload(),
                 source.getRetryCount(), source.getErrorMessage(), source.getDeadReason(), source.getDeadAt(),
                 source.getReplayStatus(), source.getReplayCount(), source.getLastReplayAt(),
                 source.getLastReplayMessage(), source.getCreatedAt(), source.getUpdatedAt());

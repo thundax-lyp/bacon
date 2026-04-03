@@ -2,6 +2,7 @@ package com.github.thundax.bacon.order.application.saga;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxDeadLetterRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import java.time.Instant;
@@ -81,10 +82,10 @@ public class OrderOutboxRetrier {
         if (nextRetryCount > maxRetries) {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (orderOutboxRepository.markDeadClaimed(event.getId(), owner, nextRetryCount, deadReason, message, now)) {
-                orderOutboxDeadLetterRepository.saveDeadLetter(new OrderOutboxDeadLetter(event.getId(),
-                        event.getTenantIdValue(), event.getOrderNoValue(), event.getEventTypeValue(), event.getBusinessKey(),
+                orderOutboxDeadLetterRepository.saveDeadLetter(new OrderOutboxDeadLetter(event.getId(), event.getEventId(),
+                        event.getTenantId(), event.getOrderNo(), event.getEventType(), event.getBusinessKey(),
                         event.getPayload(), nextRetryCount, message, deadReason, now,
-                        OrderOutboxDeadLetter.REPLAY_STATUS_PENDING, 0, null, null, now, now));
+                        OrderOutboxReplayStatus.PENDING, 0, null, null, now, now));
                 log.error("ALERT order outbox retry exhausted, outboxId={}, eventType={}, orderNo={}",
                         event.getId(), event.getEventTypeValue(), event.getOrderNoValue(), ex);
             }

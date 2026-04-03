@@ -1,5 +1,10 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.EventId;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,18 +18,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrderOutboxDeadLetter {
 
-    public static final String REPLAY_STATUS_PENDING = "PENDING";
-    public static final String REPLAY_STATUS_SUCCESS = "SUCCESS";
-    public static final String REPLAY_STATUS_FAILED = "FAILED";
-
     /** 出站事件主键。 */
     private Long outboxId;
+    /** 出站事件业务标识。 */
+    private EventId eventId;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private TenantId tenantId;
     /** 订单号。 */
-    private String orderNo;
+    private OrderNo orderNo;
     /** 事件类型。 */
-    private String eventType;
+    private OrderOutboxEventType eventType;
     /** 业务幂等键。 */
     private String businessKey;
     /** 事件载荷。 */
@@ -38,7 +41,7 @@ public class OrderOutboxDeadLetter {
     /** 死信时间。 */
     private Instant deadAt;
     /** 回放状态。 */
-    private String replayStatus;
+    private OrderOutboxReplayStatus replayStatus;
     /** 回放次数。 */
     private Integer replayCount;
     /** 最近一次回放时间。 */
@@ -49,4 +52,28 @@ public class OrderOutboxDeadLetter {
     private Instant createdAt;
     /** 最后更新时间。 */
     private Instant updatedAt;
+
+    public String getEventIdValue() {
+        return eventId == null ? null : eventId.value();
+    }
+
+    public Long getTenantIdValue() {
+        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    public String getTenantIdRawValue() {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    public String getOrderNoValue() {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    public String getEventTypeValue() {
+        return eventType == null ? null : eventType.value();
+    }
+
+    public String getReplayStatusValue() {
+        return replayStatus == null ? null : replayStatus.value();
+    }
 }

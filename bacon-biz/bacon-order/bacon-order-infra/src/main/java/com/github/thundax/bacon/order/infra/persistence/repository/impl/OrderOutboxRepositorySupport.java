@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventId;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
@@ -26,6 +27,7 @@ public class OrderOutboxRepositorySupport {
 
     private static final String OUTBOX_ID_BIZ_TAG = "order_outbox_id";
     private static final String OUTBOX_EVENT_ID_BIZ_TAG = "order_outbox_event_id";
+    private static final String DEAD_LETTER_ID_BIZ_TAG = "order_outbox_dead_letter_id";
 
     private final OrderOutboxEventMapper outboxEventMapper;
     private final OrderOutboxDeadLetterMapper deadLetterMapper;
@@ -161,10 +163,13 @@ public class OrderOutboxRepositorySupport {
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
         dataObject.setUpdatedAt(now);
         if (dataObject.getReplayStatus() == null) {
-            dataObject.setReplayStatus(OrderOutboxDeadLetter.REPLAY_STATUS_PENDING);
+            dataObject.setReplayStatus(OrderOutboxReplayStatus.PENDING.value());
         }
         if (dataObject.getReplayCount() == null) {
             dataObject.setReplayCount(0);
+        }
+        if (dataObject.getId() == null) {
+            dataObject.setId(idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG));
         }
         deadLetterMapper.insert(dataObject);
     }
@@ -240,10 +245,11 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {
-        return new OrderOutboxDeadLetterDO(null, deadLetter.getOutboxId(), deadLetter.getTenantId(),
-                deadLetter.getOrderNo(), deadLetter.getEventType(), deadLetter.getBusinessKey(), deadLetter.getPayload(),
+        return new OrderOutboxDeadLetterDO(null, deadLetter.getOutboxId(), deadLetter.getEventIdValue(),
+                deadLetter.getTenantIdRawValue(), deadLetter.getOrderNoValue(), deadLetter.getEventTypeValue(),
+                deadLetter.getBusinessKey(), deadLetter.getPayload(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(), deadLetter.getDeadAt(),
-                deadLetter.getReplayStatus(), deadLetter.getReplayCount(), deadLetter.getLastReplayAt(),
+                deadLetter.getReplayStatusValue(), deadLetter.getReplayCount(), deadLetter.getLastReplayAt(),
                 deadLetter.getLastReplayMessage(), deadLetter.getCreatedAt(), deadLetter.getUpdatedAt());
     }
 }

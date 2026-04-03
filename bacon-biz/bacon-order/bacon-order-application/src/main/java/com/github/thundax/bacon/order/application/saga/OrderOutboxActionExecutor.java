@@ -50,7 +50,7 @@ public class OrderOutboxActionExecutor {
     public void enqueueReserveStock(Long tenantId, String orderNo, String channelCode) {
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode == null ? "MOCK" : channelCode);
-        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, tenantId, orderNo,
+        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, null, tenantId, orderNo,
                 OrderOutboxEvent.EVENT_RESERVE_STOCK,
                 tenantId + ":" + orderNo + ":RESERVE", OrderOutboxPayloadCodec.encode(payload),
                 OrderOutboxEvent.STATUS_NEW, 0, null, null, null, null, null,
@@ -104,7 +104,7 @@ public class OrderOutboxActionExecutor {
         String channelCode = source.getOrDefault("channelCode", "MOCK");
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode);
-        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, order.getTenantIdValue(), order.getOrderNoValue(),
+        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, null, order.getTenantIdValue(), order.getOrderNoValue(),
                 OrderOutboxEvent.EVENT_CREATE_PAYMENT,
                 order.getTenantIdValue() + ":" + order.getOrderNoValue() + ":CREATE_PAYMENT",
                 OrderOutboxPayloadCodec.encode(payload), OrderOutboxEvent.STATUS_NEW, 0, null, null, null,
@@ -128,7 +128,7 @@ public class OrderOutboxActionExecutor {
 
             Map<String, String> releasePayload = new LinkedHashMap<>();
             releasePayload.put("reason", CLOSE_REASON_PAYMENT_CREATE_FAILED);
-            orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, order.getTenantIdValue(), order.getOrderNoValue(),
+            orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(null, null, order.getTenantIdValue(), order.getOrderNoValue(),
                     OrderOutboxEvent.EVENT_RELEASE_STOCK,
                     order.getTenantIdValue() + ":" + order.getOrderNoValue() + ":RELEASE_PAYMENT_CREATE_FAILED",
                     OrderOutboxPayloadCodec.encode(releasePayload), OrderOutboxEvent.STATUS_NEW, 0, null,

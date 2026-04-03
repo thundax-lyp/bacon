@@ -194,6 +194,9 @@ public class OrderRepositorySupport {
         List<String> orderNos = pageOrders.stream()
                 .map(OrderDO::getOrderNo)
                 .toList();
+        List<Long> orderIds = pageOrders.stream()
+                .map(OrderDO::getId)
+                .toList();
         // 分页查询先批量拉主单，再一次性批量拉支付/库存快照，避免逐单 N+1 查询。
         Map<Long, OrderPaymentSnapshotDO> paymentSnapshotMap = orderPaymentSnapshotMapper.selectList(
                         Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
@@ -201,7 +204,7 @@ public class OrderRepositorySupport {
                 .stream()
                 .collect(Collectors.toMap(OrderPaymentSnapshotDO::getOrderId, Function.identity(),
                         (left, right) -> left));
-        Map<Long, OrderInventorySnapshotDO> inventorySnapshotMap = orderInventorySnapshotMapper.selectList(
+        Map<String, OrderInventorySnapshotDO> inventorySnapshotMap = orderInventorySnapshotMapper.selectList(
                         Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
                                 .in(OrderInventorySnapshotDO::getOrderNo, orderNos))
                 .stream()

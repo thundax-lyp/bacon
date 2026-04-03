@@ -61,6 +61,7 @@
 - `order_no`: `varchar(64)`
 - `payment_no`: `varchar(64)`
 - `reservation_no`: `varchar(64)`
+- `event_id`: `varchar(64)`
 - `currency_code`: `varchar(16)`
 - `channel_code`: `varchar(32)`
 - `sku_name`: `varchar(128)`
@@ -101,7 +102,8 @@
 
 | Column | Type | Null | Description |
 |----|----|----|----|
-| `id` | `bigint` | N | 主键 |
+| `id` | `bigint` | N | 雪花主键 |
+| `event_id` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键，全局唯一 |
 | `user_id` | `bigint` | N | 下单用户主键 |
@@ -277,6 +279,7 @@
 索引与约束：
 
 - `pk(id)`
+- `uk_event_id(event_id)`
 - `uk_biz_event(tenant_id, business_key, event_type)`
 - `idx_status_next_retry(status, next_retry_at)`
 - `idx_tenant_order(tenant_id, order_no)`

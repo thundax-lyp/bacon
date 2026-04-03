@@ -2,6 +2,7 @@ package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.valueobject.EventId;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class InMemoryOrderOutboxSupport {
 
     private final AtomicLong outboxIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong outboxEventIdGenerator = new AtomicLong(1000L);
     private final AtomicLong deadLetterIdGenerator = new AtomicLong(1000L);
     private final Map<Long, OrderOutboxEvent> outboxStorage = new ConcurrentHashMap<>();
     private final Map<Long, OrderOutboxDeadLetter> deadLetterStorage = new ConcurrentHashMap<>();
@@ -25,6 +27,9 @@ public class InMemoryOrderOutboxSupport {
         Instant now = Instant.now();
         if (event.getId() == null) {
             event.setId(outboxIdGenerator.getAndIncrement());
+        }
+        if (event.getEventId() == null) {
+            event.setEventId(EventId.of("EVT" + outboxEventIdGenerator.getAndIncrement()));
         }
         if (event.getStatus() == null) {
             event.setStatus(OrderOutboxEvent.STATUS_NEW);
@@ -163,7 +168,7 @@ public class InMemoryOrderOutboxSupport {
     }
 
     private OrderOutboxEvent copy(OrderOutboxEvent source) {
-        return new OrderOutboxEvent(source.getId(), source.getTenantId(), source.getOrderNo(), source.getEventType(),
+        return new OrderOutboxEvent(source.getId(), source.getEventId(), source.getTenantId(), source.getOrderNo(), source.getEventType(),
                 source.getBusinessKey(), source.getPayload(), source.getStatus(), source.getRetryCount(),
                 source.getNextRetryAt(), source.getProcessingOwner(), source.getLeaseUntil(), source.getClaimedAt(),
                 source.getErrorMessage(), source.getDeadReason(), source.getCreatedAt(), source.getUpdatedAt());

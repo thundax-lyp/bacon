@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.order.domain.model.valueobject.EventId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,8 @@ public class OrderOutboxEvent {
 
     /** 出站事件主键。 */
     private Long id;
+    /** 出站事件业务标识。 */
+    private EventId eventId;
     /** 所属租户主键。 */
     private Long tenantId;
     /** 订单号。 */
@@ -54,4 +57,8 @@ public class OrderOutboxEvent {
     private Instant createdAt;
     /** 最后更新时间。 */
     private Instant updatedAt;
+
+    public String getEventIdValue() {
+        return eventId == null ? null : eventId.value();
+    }
 }

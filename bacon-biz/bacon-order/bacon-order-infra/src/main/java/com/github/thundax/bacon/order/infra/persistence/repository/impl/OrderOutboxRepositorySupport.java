@@ -1,8 +1,10 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.valueobject.EventId;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxDeadLetterDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxEventDO;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderOutboxDeadLetterMapper;
@@ -18,13 +20,19 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 public class OrderOutboxRepositorySupport {
 
+    private static final String OUTBOX_ID_BIZ_TAG = "order_outbox_id";
+    private static final String OUTBOX_EVENT_ID_BIZ_TAG = "order_outbox_event_id";
+
     private final OrderOutboxEventMapper outboxEventMapper;
     private final OrderOutboxDeadLetterMapper deadLetterMapper;
+    private final IdGenerator idGenerator;
 
     public OrderOutboxRepositorySupport(OrderOutboxEventMapper outboxEventMapper,
-                                        OrderOutboxDeadLetterMapper deadLetterMapper) {
+                                        OrderOutboxDeadLetterMapper deadLetterMapper,
+                                        IdGenerator idGenerator) {
         this.outboxEventMapper = outboxEventMapper;
         this.deadLetterMapper = deadLetterMapper;
+        this.idGenerator = idGenerator;
     }
 
     public void saveOutboxEvent(OrderOutboxEvent event) {
@@ -38,9 +46,16 @@ public class OrderOutboxRepositorySupport {
         if (dataObject.getRetryCount() == null) {
             dataObject.setRetryCount(0);
         }
+        if (dataObject.getId() == null) {
+            dataObject.setId(idGenerator.nextId(OUTBOX_ID_BIZ_TAG));
+        }
+        if (dataObject.getEventId() == null || dataObject.getEventId().isBlank()) {
+            dataObject.setEventId(generateEventId().value());
+        }
         // outbox 插入即进入可调度状态，后续所有处理权转移都通过 status + processingOwner + leaseUntil 控制。
         outboxEventMapper.insert(dataObject);
         event.setId(dataObject.getId());
+        event.setEventId(EventId.of(dataObject.getEventId()));
     }
 
     public List<OrderOutboxEvent> claimRetryableOutbox(Instant now, int limit, String processingOwner, Instant leaseUntil) {
@@ -158,7 +173,7 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxEventDO toDataObject(OrderOutboxEvent event) {
-        return new OrderOutboxEventDO(event.getId(), event.getTenantId(), event.getOrderNo(),
+        return new OrderOutboxEventDO(event.getId(), toDatabaseEventId(event.getEventId()), event.getTenantId(), event.getOrderNo(),
                 event.getEventType(), event.getBusinessKey(), event.getPayload(), event.getStatus(),
                 event.getRetryCount(), event.getNextRetryAt(), event.getProcessingOwner(), event.getLeaseUntil(),
                 event.getClaimedAt(), event.getErrorMessage(), event.getDeadReason(), event.getCreatedAt(),
@@ -166,11 +181,23 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxEvent toDomain(OrderOutboxEventDO dataObject) {
-        return new OrderOutboxEvent(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
+        return new OrderOutboxEvent(dataObject.getId(), toDomainEventId(dataObject.getEventId()), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getEventType(), dataObject.getBusinessKey(), dataObject.getPayload(), dataObject.getStatus(),
                 dataObject.getRetryCount(), dataObject.getNextRetryAt(), dataObject.getProcessingOwner(),
                 dataObject.getLeaseUntil(), dataObject.getClaimedAt(), dataObject.getErrorMessage(),
                 dataObject.getDeadReason(), dataObject.getCreatedAt(), dataObject.getUpdatedAt());
+    }
+
+    private EventId generateEventId() {
+        return EventId.of("EVT" + idGenerator.nextId(OUTBOX_EVENT_ID_BIZ_TAG));
+    }
+
+    private String toDatabaseEventId(EventId eventId) {
+        return eventId == null ? null : eventId.value();
+    }
+
+    private EventId toDomainEventId(String eventId) {
+        return eventId == null ? null : EventId.of(eventId);
     }
 
     private OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {

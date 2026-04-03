@@ -50,7 +50,8 @@ public class PaymentQueryApplicationService {
         return new PaymentDetailDTO(toTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(),
                 toUserValue(paymentOrder.getUserId()), paymentOrder.getChannelCode().value(),
-                paymentOrder.getPaymentStatus().value(), paymentOrder.getAmount(), paymentOrder.getPaidAmount(),
+                paymentOrder.getPaymentStatus().value(), paymentOrder.getAmount().value(),
+                paymentOrder.getPaidAmount().value(),
                 paymentOrder.getCreatedAt(),
                 paymentOrder.getExpiredAt(), paymentOrder.getPaidAt(), paymentOrder.getSubject(),
                 paymentOrder.getClosedAt(), channelTransactionNo, channelStatus, callbackSummary);

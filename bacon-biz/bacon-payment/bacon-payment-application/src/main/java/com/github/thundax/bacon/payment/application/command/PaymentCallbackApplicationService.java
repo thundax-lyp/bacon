@@ -68,7 +68,7 @@ public class PaymentCallbackApplicationService {
         paymentOperationLogSupport.recordCallback(PaymentAuditLog.ACTION_CALLBACK_PAID, tenantId, paymentNo,
                 beforeStatus, paymentOrder.getPaymentStatus().value(), paidTime);
         orderCommandFacade.markPaid(tenantId, paymentOrder.getOrderNo(), paymentNo, channelCode,
-                paymentOrder.getAmount(), paidTime);
+                paymentOrder.getAmount().value(), paidTime);
     }
 
     public void callbackFailed(String channelCode, Long tenantId, String paymentNo, String channelStatus,

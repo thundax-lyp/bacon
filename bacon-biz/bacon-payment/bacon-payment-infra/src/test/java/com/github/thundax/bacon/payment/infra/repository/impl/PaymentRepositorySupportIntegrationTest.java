@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -101,7 +102,7 @@ class PaymentRepositorySupportIntegrationTest {
     void shouldPersistAndReadBackOrderCallbackAndAuditLog() {
         PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), "PAY-IT-10001", "ORD-IT-10001",
                 UserId.of("2001"),
-                PaymentChannelCode.MOCK, new BigDecimal("88.80"), "integration-payment",
+                PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "integration-payment",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z"));
         paymentOrder.markPaying();
 

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -21,7 +22,7 @@ class InMemoryPaymentRepositorySupportTest {
         InMemoryPaymentRepositorySupport repository = new InMemoryPaymentRepositorySupport();
         PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), "PAY-10001", "ORD-10001",
                 UserId.of("2001"),
-                PaymentChannelCode.MOCK, new BigDecimal("88.80"), "test-payment",
+                PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "test-payment",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z"));
         paymentOrder.markPaying();
 

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -41,7 +42,7 @@ class PaymentRepositorySupportTest {
 
         PaymentOrder persisted = support.saveOrder(new PaymentOrder(null, TenantId.of("1001"), "PAY-10001",
                 "ORD-10001", UserId.of("2001"),
-                PaymentChannelCode.MOCK, new BigDecimal("88.80"), "strict-insert",
+                PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "strict-insert",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z")));
 
         assertNotNull(insertedRef.get());
@@ -61,7 +62,7 @@ class PaymentRepositorySupportTest {
         PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9001"), TenantId.of("1001"),
                 "PAY-10002", "ORD-10002",
                 UserId.of("2002"),
-                PaymentChannelCode.MOCK, new BigDecimal("99.90"), BigDecimal.ZERO, "strict-update",
+                PaymentChannelCode.MOCK, Money.of(new BigDecimal("99.90")), Money.zero(), "strict-update",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentStatus.PAYING, null, null, null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));
@@ -84,7 +85,7 @@ class PaymentRepositorySupportTest {
         PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9002"), TenantId.of("1001"),
                 "PAY-10009", "ORD-10009",
                 UserId.of("2009"),
-                PaymentChannelCode.MOCK, new BigDecimal("66.00"), BigDecimal.ZERO, "strict-conflict",
+                PaymentChannelCode.MOCK, Money.of(new BigDecimal("66.00")), Money.zero(), "strict-conflict",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentStatus.PAYING, null, null, null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));

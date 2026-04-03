@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -138,7 +139,8 @@ public class PaymentRepositorySupport {
         return new PaymentOrderDO(toDatabaseId(paymentOrder.getId()), toDatabaseTenantId(paymentOrder.getTenantId()),
                 paymentOrder.getPaymentNo(),
                 paymentOrder.getOrderNo(), toDatabaseUserId(paymentOrder.getUserId()), paymentOrder.getChannelCode().value(),
-                paymentOrder.getPaymentStatus().value(), paymentOrder.getAmount(), paymentOrder.getPaidAmount(),
+                paymentOrder.getPaymentStatus().value(), paymentOrder.getAmount().value(),
+                paymentOrder.getPaidAmount().value(),
                 paymentOrder.getSubject(), paymentOrder.getCreatedAt(), now, paymentOrder.getExpiredAt(),
                 paymentOrder.getPaidAt(), paymentOrder.getClosedAt());
     }
@@ -149,10 +151,14 @@ public class PaymentRepositorySupport {
                 dataObject.getPaymentNo(),
                 dataObject.getOrderNo(), toDomainUserId(dataObject.getUserId()),
                 PaymentChannelCode.fromValue(dataObject.getChannelCode()),
-                dataObject.getAmount(), dataObject.getPaidAmount(), dataObject.getSubject(), dataObject.getCreatedAt(),
-                dataObject.getExpiredAt(), dataObject.getPaidAt(), dataObject.getClosedAt(),
+                Money.of(dataObject.getAmount()), toMoney(dataObject.getPaidAmount()), dataObject.getSubject(),
+                dataObject.getCreatedAt(), dataObject.getExpiredAt(), dataObject.getPaidAt(), dataObject.getClosedAt(),
                 PaymentStatus.fromValue(dataObject.getPaymentStatus()),
                 null, null, null);
+    }
+
+    private Money toMoney(java.math.BigDecimal value) {
+        return value == null ? Money.zero() : Money.of(value);
     }
 
     private Long toDatabaseId(PaymentOrderId paymentOrderId) {

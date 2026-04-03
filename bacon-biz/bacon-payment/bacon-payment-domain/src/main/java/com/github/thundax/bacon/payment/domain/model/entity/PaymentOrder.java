@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -7,7 +8,6 @@ import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import lombok.Getter;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
@@ -36,7 +36,7 @@ public class PaymentOrder {
     /** 支付渠道编码。 */
     private final PaymentChannelCode channelCode;
     /** 支付金额。 */
-    private final BigDecimal amount;
+    private final Money amount;
     /** 支付标题。 */
     private final String subject;
     /** 过期时间。 */
@@ -46,7 +46,7 @@ public class PaymentOrder {
     /** 支付状态。 */
     private PaymentStatus paymentStatus;
     /** 已支付金额。 */
-    private BigDecimal paidAmount;
+    private Money paidAmount;
     /** 支付完成时间。 */
     private Instant paidAt;
     /** 关闭时间。 */
@@ -60,7 +60,7 @@ public class PaymentOrder {
 
     public PaymentOrder(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo, UserId userId,
                         PaymentChannelCode channelCode,
-                        BigDecimal amount, String subject, Instant expiredAt, Instant createdAt) {
+                        Money amount, String subject, Instant expiredAt, Instant createdAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.paymentNo = paymentNo;
@@ -72,12 +72,12 @@ public class PaymentOrder {
         this.expiredAt = expiredAt;
         this.createdAt = createdAt;
         this.paymentStatus = PaymentStatus.CREATED;
-        this.paidAmount = BigDecimal.ZERO;
+        this.paidAmount = Money.zero();
     }
 
     public static PaymentOrder rehydrate(PaymentOrderId id, TenantId tenantId, String paymentNo, String orderNo,
                                          UserId userId,
-                                         PaymentChannelCode channelCode, BigDecimal amount, BigDecimal paidAmount,
+                                         PaymentChannelCode channelCode, Money amount, Money paidAmount,
                                          String subject,
                                          Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
                                          PaymentStatus paymentStatus, String channelTransactionNo, String channelStatus,
@@ -85,7 +85,7 @@ public class PaymentOrder {
         // 查询和回调处理依赖主单快照，因此重建时必须带回最新终态、渠道交易号和回调摘要。
         PaymentOrder paymentOrder = new PaymentOrder(id, tenantId, paymentNo, orderNo, userId, channelCode,
                 amount, subject, expiredAt, createdAt);
-        paymentOrder.paidAmount = paidAmount == null ? BigDecimal.ZERO : paidAmount;
+        paymentOrder.paidAmount = paidAmount == null ? Money.zero() : paidAmount;
         paymentOrder.paidAt = paidAt;
         paymentOrder.closedAt = closedAt;
         paymentOrder.paymentStatus = paymentStatus;
@@ -104,7 +104,7 @@ public class PaymentOrder {
         this.paymentStatus = PaymentStatus.PAYING;
     }
 
-    public void markPaid(BigDecimal paidAmount, Instant paidTime, String channelTransactionNo, String channelStatus,
+    public void markPaid(Money paidAmount, Instant paidTime, String channelTransactionNo, String channelStatus,
                          String callbackSummary) {
         // 支付成功一旦落主单就不可逆；重复成功回调只应被上层记审计，不应在实体内改写终态。
         if (PaymentStatus.PAID == paymentStatus || PaymentStatus.FAILED == paymentStatus

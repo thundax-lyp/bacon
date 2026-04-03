@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.application.command;
 
+import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
@@ -45,7 +46,7 @@ public class PaymentCreateApplicationService {
             throw new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE, "payment-no-generator");
         }
         PaymentOrder paymentOrder = new PaymentOrder(null, toTenantId(tenantId), paymentNo, orderNo, toUserId(userId),
-                PaymentChannelCode.fromValue(channelCode), amount, subject, expiredAt, Instant.now());
+                PaymentChannelCode.fromValue(channelCode), Money.of(amount), subject, expiredAt, Instant.now());
         // 创建后立即进入 PAYING，表示渠道拉起参数已经准备好，后续只等待回调或显式关闭。
         paymentOrder.markPaying();
         PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);

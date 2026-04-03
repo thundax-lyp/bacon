@@ -7,6 +7,7 @@ import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersis
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import org.springframework.stereotype.Service;
@@ -58,12 +59,14 @@ public class OrderCancelApplicationService {
 
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
+            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
+                    toWarehouseNo(releaseResult.getWarehouseId()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
         // 释放失败只更新库存派生状态，方便后续排障或补偿，不会把已经确定的取消主状态回滚掉。
-        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
+        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
+                toWarehouseNo(releaseResult.getWarehouseId()),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
@@ -73,5 +76,9 @@ public class OrderCancelApplicationService {
 
     private ReservationNo toReservationNo(String reservationNo) {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
+    }
+
+    private WarehouseNo toWarehouseNo(Long warehouseId) {
+        return warehouseId == null ? null : WarehouseNo.of(String.valueOf(warehouseId));
     }
 }

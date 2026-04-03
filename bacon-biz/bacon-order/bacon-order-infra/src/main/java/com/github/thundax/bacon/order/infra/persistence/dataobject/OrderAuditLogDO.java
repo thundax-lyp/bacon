@@ -30,7 +30,7 @@ public class OrderAuditLogDO {
     @TableField("operator_type")
     private String operatorType;
     @TableField("operator_id")
-    private Long operatorId;
+    private String operatorId;
     @TableField("occurred_at")
     private Instant occurredAt;
 }

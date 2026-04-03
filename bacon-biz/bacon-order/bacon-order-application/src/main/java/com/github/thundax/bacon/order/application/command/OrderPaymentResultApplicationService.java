@@ -11,6 +11,7 @@ import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
@@ -61,11 +62,13 @@ public class OrderPaymentResultApplicationService {
         InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(tenantId, orderNo);
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
             String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
-            order.markInventoryFailed(toReservationNo(deductResult.getReservationNo()), deductResult.getWarehouseId(), reason);
+            order.markInventoryFailed(toReservationNo(deductResult.getReservationNo()),
+                    toWarehouseNo(deductResult.getWarehouseId()), reason);
             orderRepository.save(order);
             throw new IllegalStateException(reason);
         }
-        order.markInventoryDeducted(toReservationNo(deductResult.getReservationNo()), deductResult.getWarehouseId(),
+        order.markInventoryDeducted(toReservationNo(deductResult.getReservationNo()),
+                toWarehouseNo(deductResult.getWarehouseId()),
                 deductResult.getDeductedAt());
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
@@ -87,11 +90,13 @@ public class OrderPaymentResultApplicationService {
 
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
+            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
+                    toWarehouseNo(releaseResult.getWarehouseId()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
-        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
+        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
+                toWarehouseNo(releaseResult.getWarehouseId()),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
@@ -105,5 +110,9 @@ public class OrderPaymentResultApplicationService {
 
     private ReservationNo toReservationNo(String reservationNo) {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
+    }
+
+    private WarehouseNo toWarehouseNo(Long warehouseId) {
+        return warehouseId == null ? null : WarehouseNo.of(String.valueOf(warehouseId));
     }
 }

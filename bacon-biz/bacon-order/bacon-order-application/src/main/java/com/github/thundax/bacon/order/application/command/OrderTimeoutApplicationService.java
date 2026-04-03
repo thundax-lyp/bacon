@@ -7,6 +7,7 @@ import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersis
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import org.springframework.stereotype.Service;
@@ -57,12 +58,14 @@ public class OrderTimeoutApplicationService {
 
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
+            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
+                    toWarehouseNo(releaseResult.getWarehouseId()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
         // 库存释放异常只体现在派生状态上，主订单仍保持 CLOSED，等待后续补偿或人工处理。
-        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
+        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
+                toWarehouseNo(releaseResult.getWarehouseId()),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
@@ -72,5 +75,9 @@ public class OrderTimeoutApplicationService {
 
     private ReservationNo toReservationNo(String reservationNo) {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
+    }
+
+    private WarehouseNo toWarehouseNo(Long warehouseId) {
+        return warehouseId == null ? null : WarehouseNo.of(String.valueOf(warehouseId));
     }
 }

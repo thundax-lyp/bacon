@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class OrderDerivedDataPersistenceSupport {
 
     private static final String OPERATOR_TYPE_SYSTEM = "SYSTEM";
-    private static final Long OPERATOR_ID_SYSTEM = 0L;
+    private static final String OPERATOR_ID_SYSTEM = "0";
 
     private final OrderRepository orderRepository;
 
@@ -30,7 +30,7 @@ public class OrderDerivedDataPersistenceSupport {
         }
         if (order.getReservationNoValue() != null && !order.getReservationNoValue().isBlank()) {
             orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(null, order.getTenantIdValue(), toOrderIdValue(order),
-                    order.getReservationNoValue(), order.getInventoryStatus(), order.getWarehouseId(),
+                    order.getReservationNoValue(), order.getInventoryStatus(), order.getWarehouseNo(),
                     order.getInventoryFailureReason(), now));
         }
         orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNoValue(), actionType,

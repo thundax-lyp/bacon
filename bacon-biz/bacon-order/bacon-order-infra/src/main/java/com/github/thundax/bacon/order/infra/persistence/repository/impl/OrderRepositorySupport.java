@@ -18,6 +18,7 @@ import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderAuditLogDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderInventorySnapshotDO;
@@ -274,7 +275,7 @@ public class OrderRepositorySupport {
                 paymentSnapshot == null ? null : paymentSnapshot.getChannelStatus(),
                 paymentSnapshot == null ? null : paymentSnapshot.getFailureReason(),
                 null,
-                inventorySnapshot == null ? null : inventorySnapshot.getWarehouseId(),
+                inventorySnapshot == null ? null : toDomainWarehouseNo(inventorySnapshot.getWarehouseNo()),
                 inventorySnapshot == null ? null : inventorySnapshot.getFailureReason(),
                 null, null, null);
     }
@@ -362,13 +363,14 @@ public class OrderRepositorySupport {
 
     private OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {
         return new OrderInventorySnapshotDO(snapshot.id(), snapshot.tenantId(), snapshot.orderId(),
-                snapshot.reservationNo(), snapshot.inventoryStatus(), snapshot.warehouseId(), snapshot.failureReason(),
+                snapshot.reservationNo(), snapshot.inventoryStatus(), toDatabaseWarehouseNo(snapshot.warehouseNo()),
+                snapshot.failureReason(),
                 snapshot.updatedAt());
     }
 
     private OrderInventorySnapshot toDomain(OrderInventorySnapshotDO dataObject) {
         return new OrderInventorySnapshot(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderId(),
-                dataObject.getReservationNo(), dataObject.getInventoryStatus(), dataObject.getWarehouseId(),
+                dataObject.getReservationNo(), dataObject.getInventoryStatus(), toDomainWarehouseNo(dataObject.getWarehouseNo()),
                 dataObject.getFailureReason(), dataObject.getUpdatedAt());
     }
 
@@ -382,5 +384,13 @@ public class OrderRepositorySupport {
         return new OrderAuditLog(dataObject.getId(), toDomainTenantId(dataObject.getTenantId()), dataObject.getOrderNo(),
                 dataObject.getActionType(), dataObject.getBeforeStatus(), dataObject.getAfterStatus(),
                 dataObject.getOperatorType(), dataObject.getOperatorId(), dataObject.getOccurredAt());
+    }
+
+    private String toDatabaseWarehouseNo(WarehouseNo warehouseNo) {
+        return warehouseNo == null ? null : warehouseNo.value();
+    }
+
+    private WarehouseNo toDomainWarehouseNo(String warehouseNo) {
+        return warehouseNo == null ? null : WarehouseNo.of(warehouseNo);
     }
 }

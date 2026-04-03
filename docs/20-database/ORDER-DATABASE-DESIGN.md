@@ -69,6 +69,8 @@
 - `channel_status`: `varchar(64)`
 - `action_type`: `varchar(64)`
 - `operator_type`: `varchar(32)`
+- `operator_id`: `varchar(64)`
+- `warehouse_no`: `varchar(64)`
 
 ## 6. Table Mapping
 
@@ -201,7 +203,7 @@
 | `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
 | `reservation_no` | `varchar(64)` | N | 预占单号，全局唯一 |
 | `inventory_status` | `varchar(16)` | N | 库存状态，取值见 `inventory_status` |
-| `warehouse_id` | `bigint` | Y | 仓库标识 |
+| `warehouse_no` | `varchar(64)` | Y | 仓库业务编号 |
 | `failure_reason` | `varchar(255)` | Y | 库存失败原因摘要 |
 | `updated_at` | `datetime(3)` | N | 快照更新时间 |
 
@@ -231,7 +233,7 @@
 | `before_status` | `varchar(32)` | Y | 变更前订单状态 |
 | `after_status` | `varchar(32)` | Y | 变更后订单状态 |
 | `operator_type` | `varchar(32)` | Y | 操作人类型 |
-| `operator_id` | `bigint` | Y | 操作人标识 |
+| `operator_id` | `varchar(64)` | Y | 操作人标识 |
 | `occurred_at` | `datetime(3)` | N | 事件发生时间 |
 
 索引与约束：

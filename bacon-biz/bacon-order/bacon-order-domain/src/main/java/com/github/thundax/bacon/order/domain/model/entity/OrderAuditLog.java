@@ -21,8 +21,8 @@ public record OrderAuditLog(
         String afterStatus,
         /** 操作人类型。 */
         String operatorType,
-        /** 操作人主键。 */
-        Long operatorId,
+        /** 操作人标识。 */
+        String operatorId,
         /** 发生时间。 */
         Instant occurredAt
 ) {

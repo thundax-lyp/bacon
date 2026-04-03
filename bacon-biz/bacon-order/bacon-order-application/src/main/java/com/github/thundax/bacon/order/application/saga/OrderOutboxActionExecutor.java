@@ -14,6 +14,7 @@ import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import java.time.Instant;
@@ -84,14 +85,16 @@ public class OrderOutboxActionExecutor {
         // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
         if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
             String reason = resolveFailureReason(reserveResult.getFailureReason(), "inventory reserve failed");
-            order.markInventoryFailed(toReservationNo(reserveResult.getReservationNo()), reserveResult.getWarehouseId(), reason);
+            order.markInventoryFailed(toReservationNo(reserveResult.getReservationNo()),
+                    toWarehouseNo(reserveResult.getWarehouseId()), reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
             orderRepository.save(order);
             orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_RESERVE_FAILED",
                     OrderStatus.RESERVING_STOCK.value());
             return;
         }
-        order.markInventoryReserved(toReservationNo(reserveResult.getReservationNo()), reserveResult.getWarehouseId());
+        order.markInventoryReserved(toReservationNo(reserveResult.getReservationNo()),
+                toWarehouseNo(reserveResult.getWarehouseId()));
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_RESERVE_OK", OrderStatus.RESERVING_STOCK.value());
 
@@ -152,10 +155,12 @@ public class OrderOutboxActionExecutor {
                 order.getOrderNoValue(), reason);
         // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
+            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
+                    toWarehouseNo(releaseResult.getWarehouseId()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
         } else {
-            order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()), releaseResult.getWarehouseId(),
+            order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
+                    toWarehouseNo(releaseResult.getWarehouseId()),
                     resolveFailureReason(releaseResult.getFailureReason(), reason));
         }
         orderRepository.save(order);
@@ -173,5 +178,9 @@ public class OrderOutboxActionExecutor {
 
     private ReservationNo toReservationNo(String reservationNo) {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
+    }
+
+    private WarehouseNo toWarehouseNo(Long warehouseId) {
+        return warehouseId == null ? null : WarehouseNo.of(String.valueOf(warehouseId));
     }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
 import java.time.Instant;
 
 /**
@@ -16,11 +17,15 @@ public record OrderInventorySnapshot(
         String reservationNo,
         /** 库存状态。 */
         String inventoryStatus,
-        /** 仓库主键。 */
-        Long warehouseId,
+        /** 仓库业务编号。 */
+        WarehouseNo warehouseNo,
         /** 失败原因。 */
         String failureReason,
         /** 最后更新时间。 */
         Instant updatedAt
 ) {
+
+    public String warehouseNoValue() {
+        return warehouseNo == null ? null : warehouseNo.value();
+    }
 }

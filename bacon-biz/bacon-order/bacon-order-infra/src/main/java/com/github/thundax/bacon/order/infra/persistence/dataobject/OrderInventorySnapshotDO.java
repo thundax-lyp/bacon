@@ -25,8 +25,8 @@ public class OrderInventorySnapshotDO {
     private String reservationNo;
     @TableField("inventory_status")
     private String inventoryStatus;
-    @TableField("warehouse_id")
-    private Long warehouseId;
+    @TableField("warehouse_no")
+    private String warehouseNo;
     @TableField("failure_reason")
     private String failureReason;
     @TableField("updated_at")

@@ -7,7 +7,7 @@ import org.apache.ibatis.type.MappedTypes;
 
 @MappedTypes(OrderId.class)
 @MappedJdbcTypes({JdbcType.BIGINT, JdbcType.INTEGER, JdbcType.VARCHAR, JdbcType.LONGVARCHAR})
-public class OrderIdTypeHandler extends AbstractLongBaseIdTypeHandler<OrderId> {
+public class OrderIdTypeHandler extends AbstractStringBaseIdTypeHandler<OrderId> {
 
     public OrderIdTypeHandler() {
         super(OrderId::of);

@@ -57,7 +57,7 @@ public class OrderQueryApplicationService {
     }
 
     private OrderSummaryDTO toSummary(Order order) {
-        return new OrderSummaryDTO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
+        return new OrderSummaryDTO(toOrderIdValue(order), order.getTenantId(), order.getOrderNo(), order.getUserId(),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getPaymentNo(),
                 order.getReservationNo(), order.getCurrencyCode(), order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
@@ -73,7 +73,7 @@ public class OrderQueryApplicationService {
                 .map(item -> new OrderItemDTO(item.getSkuId(), item.getSkuName(), item.getQuantity(),
                         item.getSalePrice(), item.getLineAmount()))
                 .toList();
-        return new OrderDetailDTO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
+        return new OrderDetailDTO(toOrderIdValue(order), order.getTenantId(), order.getOrderNo(), order.getUserId(),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(),
                 paymentSnapshot == null ? order.getPaymentNo() : paymentSnapshot.paymentNo(),
                 inventorySnapshot == null ? order.getReservationNo() : inventorySnapshot.reservationNo(),
@@ -105,6 +105,10 @@ public class OrderQueryApplicationService {
 
     private BigDecimal toAmountValue(Money money) {
         return money == null ? null : money.value();
+    }
+
+    private Long toOrderIdValue(Order order) {
+        return order.getId() == null ? null : Long.valueOf(order.getId().value());
     }
 
     private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {

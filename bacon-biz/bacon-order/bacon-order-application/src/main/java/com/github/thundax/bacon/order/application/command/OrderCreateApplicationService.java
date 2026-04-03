@@ -60,7 +60,7 @@ public class OrderCreateApplicationService {
         orderOutboxActionExecutor.enqueueReserveStock(savedOrder.getTenantId(), savedOrder.getOrderNo(),
                 command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, Order.ORDER_STATUS_CREATED);
-        return new OrderSummaryDTO(savedOrder.getId(), savedOrder.getTenantId(), savedOrder.getOrderNo(),
+        return new OrderSummaryDTO(toOrderIdValue(savedOrder), savedOrder.getTenantId(), savedOrder.getOrderNo(),
                 savedOrder.getUserId(), savedOrder.getOrderStatus(), savedOrder.getPayStatus(),
                 savedOrder.getInventoryStatus(), savedOrder.getPaymentNo(), savedOrder.getReservationNo(),
                 savedOrder.getCurrencyCode(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
@@ -79,5 +79,9 @@ public class OrderCreateApplicationService {
         return currencyCode == null || currencyCode.isBlank()
                 ? CurrencyCode.RMB
                 : CurrencyCode.fromValue(currencyCode);
+    }
+
+    private Long toOrderIdValue(Order order) {
+        return order.getId() == null ? null : Long.valueOf(order.getId().value());
     }
 }

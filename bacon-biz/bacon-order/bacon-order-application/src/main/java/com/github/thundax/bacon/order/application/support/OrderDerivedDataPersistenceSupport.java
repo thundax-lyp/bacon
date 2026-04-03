@@ -23,17 +23,21 @@ public class OrderDerivedDataPersistenceSupport {
     public void persist(Order order, String actionType, String beforeStatus) {
         Instant now = Instant.now();
         if (order.getPaymentNo() != null && !order.getPaymentNo().isBlank()) {
-            orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), order.getId(),
+            orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), toOrderIdValue(order),
                     order.getPaymentNo(), order.getPaymentChannelCode(), order.getPayStatus(),
                     order.getPaidAmount() == null ? null : order.getPaidAmount().value(),
                     order.getPaidAt(), order.getPaymentFailureReason(), order.getPaymentChannelStatus(), now));
         }
         if (order.getReservationNo() != null && !order.getReservationNo().isBlank()) {
-            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(null, order.getTenantId(), order.getId(),
+            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(null, order.getTenantId(), toOrderIdValue(order),
                     order.getReservationNo(), order.getInventoryStatus(), order.getWarehouseId(),
                     order.getInventoryFailureReason(), now));
         }
         orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNo(), actionType,
                 beforeStatus, order.getOrderStatus(), OPERATOR_TYPE_SYSTEM, OPERATOR_ID_SYSTEM, now));
+    }
+
+    private Long toOrderIdValue(Order order) {
+        return order.getId() == null ? null : Long.valueOf(order.getId().value());
     }
 }

@@ -70,7 +70,7 @@ public class OrderOutboxActionExecutor {
 
     private void executeReserveStock(OrderOutboxEvent event) {
         Order order = findOrder(event.getTenantId(), event.getOrderNo());
-        List<OrderItem> items = orderRepository.findItemsByOrderId(order.getTenantId(), order.getId());
+        List<OrderItem> items = orderRepository.findItemsByOrderId(order.getTenantId(), toOrderIdValue(order));
         List<InventoryReservationItemDTO> reserveItems = items.stream()
                 .map(item -> new InventoryReservationItemDTO(item.getSkuId(), item.getQuantity()))
                 .toList();
@@ -128,6 +128,10 @@ public class OrderOutboxActionExecutor {
         order.markPendingPayment(paymentResult.getPaymentNo(), paymentResult.getChannelCode());
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, "OUTBOX_CREATE_PAYMENT_OK", Order.ORDER_STATUS_RESERVING_STOCK);
+    }
+
+    private Long toOrderIdValue(Order order) {
+        return order.getId() == null ? null : Long.valueOf(order.getId().value());
     }
 
     private void executeReleaseStock(OrderOutboxEvent event) {

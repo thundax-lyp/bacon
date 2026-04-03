@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
@@ -33,9 +34,9 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     @Override
     public Order save(Order order) {
         if (order.getId() == null) {
-            order.setId(idGenerator.getAndIncrement());
+            order.setId(OrderId.of(String.valueOf(idGenerator.getAndIncrement())));
         }
-        storage.put(order.getId(), order);
+        storage.put(toOrderIdValue(order), order);
         return order;
     }
 
@@ -115,7 +116,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
                 .filter(order -> query.createdAtFrom() == null || !order.getCreatedAt().isBefore(query.createdAtFrom()))
                 .filter(order -> query.createdAtTo() == null || !order.getCreatedAt().isAfter(query.createdAtTo()))
                 .sorted(Comparator.comparing(Order::getCreatedAt).reversed()
-                        .thenComparing(Order::getId, Comparator.reverseOrder()))
+                        .thenComparing(this::toOrderIdValue, Comparator.reverseOrder()))
                 .toList();
         long total = filtered.size();
         int offset = Math.max(query.offset(), 0);
@@ -130,5 +131,9 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     @Override
     public List<Order> findAll() {
         return storage.values().stream().toList();
+    }
+
+    private Long toOrderIdValue(Order order) {
+        return order.getId() == null ? null : Long.valueOf(order.getId().value());
     }
 }

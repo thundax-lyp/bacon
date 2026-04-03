@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.domain.OrderId;
 import java.time.Instant;
 import lombok.Getter;
 
@@ -31,7 +32,7 @@ public class Order {
     public static final String INVENTORY_STATUS_FAILED = "FAILED";
 
     /** 订单主键。 */
-    private Long id;
+    private OrderId id;
     /** 所属租户主键。 */
     private final Long tenantId;
     /** 订单号。 */
@@ -87,14 +88,14 @@ public class Order {
     /** 订单关闭时间。 */
     private Instant closedAt;
 
-    public Order(Long id, Long tenantId, String orderNo, Long userId, Money totalAmount,
+    public Order(OrderId id, Long tenantId, String orderNo, Long userId, Money totalAmount,
                  Money payableAmount, String remark, Instant expiredAt) {
         this(id, tenantId, orderNo, userId, ORDER_STATUS_CREATED, PAY_STATUS_UNPAID, INVENTORY_STATUS_UNRESERVED,
                 null, null, totalAmount, payableAmount, remark, null, null, Instant.now(),
                 expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
-    private Order(Long id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
+    private Order(OrderId id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
                   String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
                   Money payableAmount, String remark, String cancelReason,
                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
@@ -134,7 +135,7 @@ public class Order {
         this.inventoryDeductedAt = inventoryDeductedAt;
     }
 
-    public static Order rehydrate(Long id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
+    public static Order rehydrate(OrderId id, Long tenantId, String orderNo, Long userId, String orderStatus, String payStatus,
                                   String inventoryStatus, String paymentNo, String reservationNo, Money totalAmount,
                                   Money payableAmount, String remark, String cancelReason,
                                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,
@@ -154,7 +155,7 @@ public class Order {
         return totalAmount == null ? null : totalAmount.currencyCode().value();
     }
 
-    public void setId(Long id) {
+    public void setId(OrderId id) {
         this.id = id;
     }
 

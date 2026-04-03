@@ -3,6 +3,7 @@ package com.github.thundax.bacon.order.application.command;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -295,9 +296,9 @@ class OrderCreateApplicationServiceTest {
         @Override
         public Order save(Order order) {
             if (order.getId() == null) {
-                order.setId(idGenerator.getAndIncrement());
+                order.setId(OrderId.of(String.valueOf(idGenerator.getAndIncrement())));
             }
-            storage.put(order.getId(), order);
+            storage.put(toOrderIdValue(order), order);
             return order;
         }
 
@@ -377,7 +378,7 @@ class OrderCreateApplicationServiceTest {
                     .filter(order -> query.createdAtFrom() == null || !order.getCreatedAt().isBefore(query.createdAtFrom()))
                     .filter(order -> query.createdAtTo() == null || !order.getCreatedAt().isAfter(query.createdAtTo()))
                     .sorted(Comparator.comparing(Order::getCreatedAt).reversed()
-                            .thenComparing(Order::getId, Comparator.reverseOrder()))
+                            .thenComparing(this::toOrderIdValue, Comparator.reverseOrder()))
                     .toList();
             long total = filtered.size();
             List<Order> records = filtered.stream()
@@ -390,6 +391,10 @@ class OrderCreateApplicationServiceTest {
         @Override
         public List<Order> findAll() {
             return storage.values().stream().toList();
+        }
+
+        private Long toOrderIdValue(Order order) {
+            return order.getId() == null ? null : Long.valueOf(order.getId().value());
         }
     }
 

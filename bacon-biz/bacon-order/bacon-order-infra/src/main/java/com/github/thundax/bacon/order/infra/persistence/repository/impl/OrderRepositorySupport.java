@@ -3,6 +3,7 @@ package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
@@ -59,7 +60,7 @@ public class OrderRepositorySupport {
         dataObject.setUpdatedAt(Instant.now());
         if (dataObject.getId() == null) {
             orderMapper.insert(dataObject);
-            order.setId(dataObject.getId());
+            order.setId(toDomainOrderId(dataObject.getId()));
         } else {
             // 订单主表只承载主单核心字段；支付和库存侧派生信息不直接塞回主表，而是走快照表分开维护。
             orderMapper.updateById(dataObject);
@@ -222,7 +223,7 @@ public class OrderRepositorySupport {
     }
 
     private OrderDO toDataObject(Order order) {
-        return new OrderDO(order.getId(), order.getTenantId(), order.getOrderNo(), order.getUserId(),
+        return new OrderDO(toDatabaseOrderId(order.getId()), order.getTenantId(), order.getOrderNo(), order.getUserId(),
                 order.getOrderStatus(), order.getPayStatus(), order.getInventoryStatus(), order.getCurrencyCode(),
                 order.getTotalAmount().value(), order.getPayableAmount().value(), order.getRemark(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), Instant.now(), order.getExpiredAt(), order.getPaidAt(),
@@ -246,7 +247,7 @@ public class OrderRepositorySupport {
                            OrderInventorySnapshotDO inventorySnapshot) {
         // rehydrate 时优先用快照表补回 paymentNo/reservationNo 等派生字段，
         // 因为这些字段在 strict 持久化模型里并不全部固化在订单主表。
-        return Order.rehydrate(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
+        return Order.rehydrate(toDomainOrderId(dataObject.getId()), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getUserId(), dataObject.getOrderStatus(), dataObject.getPayStatus(),
                 dataObject.getInventoryStatus(),
                 paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo(),
@@ -271,6 +272,14 @@ public class OrderRepositorySupport {
             return null;
         }
         return Money.of(value, CurrencyCode.fromValue(currencyCode));
+    }
+
+    private Long toDatabaseOrderId(OrderId orderId) {
+        return orderId == null ? null : Long.valueOf(orderId.value());
+    }
+
+    private OrderId toDomainOrderId(Long orderId) {
+        return orderId == null ? null : OrderId.of(String.valueOf(orderId));
     }
 
     private OrderItem toDomain(OrderItemDO dataObject) {

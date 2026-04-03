@@ -9,7 +9,7 @@ class CurrencyCodeTest {
 
     @Test
     void shouldResolveStableCurrencyCodes() {
-        assertEquals(CurrencyCode.CNY, CurrencyCode.fromValue("CNY"));
+        assertEquals(CurrencyCode.RMB, CurrencyCode.fromValue("RMB"));
         assertEquals(CurrencyCode.USD, CurrencyCode.fromValue("USD"));
         assertEquals(CurrencyCode.JPY, CurrencyCode.fromValue("JPY"));
     }

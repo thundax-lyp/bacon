@@ -5,7 +5,7 @@ package com.github.thundax.bacon.common.core.enums;
  */
 public enum CurrencyCode {
 
-    CNY("CNY"),
+    RMB("RMB"),
     USD("USD"),
     JPY("JPY");
 

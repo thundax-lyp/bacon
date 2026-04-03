@@ -83,11 +83,9 @@ public final class NamingAndPlacementRuleSupport {
     public static ArchRule mapperShouldUseMapperNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that().haveSimpleNameEndingWith("Mapper")
-                .should().resideInAnyPackage(
-                        basePackage + ".infra.repository.mapper..",
-                        basePackage + ".infra.persistence.mapper..")
+                .should().resideInAPackage(basePackage + ".infra.persistence.mapper..")
                 .allowEmptyShould(true)
-                .because("Mapper -> infra.repository.mapper, temporarily allows infra.persistence.mapper");
+                .because("Mapper -> infra.persistence.mapper");
     }
 
     public static ArchRule converterShouldUseConverterNameAndPackage(String basePackage) {

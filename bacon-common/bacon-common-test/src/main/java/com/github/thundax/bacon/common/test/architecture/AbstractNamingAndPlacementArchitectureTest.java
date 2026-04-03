@@ -67,7 +67,7 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
-    @DisplayName("Mapper：持久化映射，命名 {业务对象}Mapper，目录 infra/repository/mapper/")
+    @DisplayName("Mapper：持久化映射，命名 {业务对象}Mapper，目录 infra/persistence/mapper/")
     void shouldFollowMapperRule() {
         NamingAndPlacementRuleSupport.mapperShouldUseMapperNameAndPackage(basePackage()).check(classes());
     }

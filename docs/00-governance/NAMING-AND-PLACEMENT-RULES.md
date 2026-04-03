@@ -26,7 +26,7 @@
 - `DomainService`：封装领域规则，命名 `{业务对象}DomainService`，目录 `domain/service/`
 - `Repository`：领域仓储接口，定义领域对象读写能力，命名 `{业务对象}Repository`，目录 `domain/repository/`
 - `RepositoryImpl`：仓储实现，负责落库、查询、组装，命名 `{业务对象}RepositoryImpl`，目录 `infra/repository/impl/`
-- `Mapper`：持久化映射，只负责数据库访问，命名 `{业务对象}Mapper`，目录 `infra/repository/mapper/`
+- `Mapper`：持久化映射，只负责数据库访问，命名 `{业务对象}Mapper`，目录 `infra/persistence/mapper/`
 - `DataObject`：持久化对象，只承载数据库字段，不承载领域行为，命名 `{业务对象}DO`，目录 `infra/persistence/dataobject/`
 - `Converter`：对象转换，只负责对象转换，命名 `{业务对象}Converter`，目录 `infra/repository/converter/`
 - `Facade`：跨域调用契约，只定义能力，不承担 HTTP 入口职责，命名 `{业务对象}{动作}Facade`，目录 `api/facade/`

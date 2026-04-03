@@ -171,7 +171,7 @@ class OrderInterfaceContractTest {
             if ("9999".equals(query.getTenantId())) {
                 throw new IllegalArgumentException("Invalid tenant: " + query.getTenantId());
             }
-            OrderSummaryDTO summary = new OrderSummaryDTO(1L, 1001L, "ORD-1", 2001L,
+            OrderSummaryDTO summary = new OrderSummaryDTO("1", "1001", "ORD-1", "2001",
                     "CREATED", "UNPAID", "UNRESERVED", null, null,
                     "CNY", BigDecimal.TEN, BigDecimal.TEN, null, null,
                     Instant.parse("2026-03-26T10:00:00Z"), Instant.parse("2026-03-26T10:30:00Z"));

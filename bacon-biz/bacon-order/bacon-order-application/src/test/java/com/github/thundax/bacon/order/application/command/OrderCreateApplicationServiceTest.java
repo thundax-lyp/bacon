@@ -60,7 +60,7 @@ class OrderCreateApplicationServiceTest {
                         BigDecimal.valueOf(10)))));
 
         assertEquals("ORD-10001", result.getOrderNo());
-        assertEquals(1001L, result.getTenantId());
+        assertEquals("1001", result.getTenantId());
         assertEquals(new BigDecimal("20.00"), result.getTotalAmount());
         assertEquals("RESERVING_STOCK", result.getOrderStatus());
         assertEquals("UNPAID", result.getPayStatus());

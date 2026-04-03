@@ -16,13 +16,13 @@ import java.time.Instant;
 public class OrderSummaryDTO {
 
     /** 订单主键。 */
-    private Long id;
+    private String id;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private String tenantId;
     /** 订单号。 */
     private String orderNo;
     /** 下单用户主键。 */
-    private Long userId;
+    private String userId;
     /** 订单状态。 */
     private String orderStatus;
     /** 支付状态。 */

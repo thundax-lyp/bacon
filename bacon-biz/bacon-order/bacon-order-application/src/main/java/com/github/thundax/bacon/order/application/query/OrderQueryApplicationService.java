@@ -58,7 +58,8 @@ public class OrderQueryApplicationService {
     }
 
     private OrderSummaryDTO toSummary(Order order) {
-        return new OrderSummaryDTO(toOrderIdValue(order), toLongTenantIdValue(order), order.getOrderNoValue(), toLongUserIdValue(order),
+        return new OrderSummaryDTO(toStringOrderIdValue(order), toStringTenantIdValue(order), order.getOrderNoValue(),
+                toStringUserIdValue(order),
                 order.getOrderStatusValue(), order.getPayStatusValue(), order.getInventoryStatusValue(), order.getPaymentNoValue(),
                 order.getReservationNoValue(), order.getCurrencyCodeValue(), order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
@@ -111,6 +112,10 @@ public class OrderQueryApplicationService {
 
     private Long toOrderIdValue(Order order) {
         return order.getId() == null ? null : Long.valueOf(order.getId().value());
+    }
+
+    private String toStringOrderIdValue(Order order) {
+        return order.getId() == null ? null : order.getId().value();
     }
 
     private Long toLongTenantIdValue(Order order) {

@@ -104,7 +104,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键 |
 | `event_id` | `varchar(64)` | N | 事件业务标识 |
-| `tenant_id` | `bigint` | N | 租户业务键 |
+| `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键，全局唯一 |
 | `user_id` | `bigint` | N | 下单用户主键 |
 | `order_status` | `varchar(32)` | N | 订单状态，取值见 `order_status` |

@@ -207,12 +207,12 @@ public class OrderOutboxRepositorySupport {
         return eventId == null ? null : EventId.of(eventId);
     }
 
-    private Long toDatabaseTenantId(TenantId tenantId) {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+    private String toDatabaseTenantId(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
     }
 
-    private TenantId toDomainTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+    private TenantId toDomainTenantId(String tenantId) {
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 
     private String toDatabaseOrderNo(OrderNo orderNo) {

@@ -10,6 +10,7 @@ public class BaconIdGeneratorProperties {
 
     private String provider = "tinyid";
     private List<String> providers = new ArrayList<>();
+    private boolean fallbackEnabled = true;
     private final TinyId tinyId = new TinyId();
     private final Snowflake snowflake = new Snowflake();
     private final Leaf leaf = new Leaf();
@@ -28,6 +29,14 @@ public class BaconIdGeneratorProperties {
 
     public void setProviders(List<String> providers) {
         this.providers = providers == null ? new ArrayList<>() : new ArrayList<>(providers);
+    }
+
+    public boolean isFallbackEnabled() {
+        return fallbackEnabled;
+    }
+
+    public void setFallbackEnabled(boolean fallbackEnabled) {
+        this.fallbackEnabled = fallbackEnabled;
     }
 
     public TinyId getTinyId() {

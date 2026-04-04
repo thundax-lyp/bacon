@@ -17,9 +17,8 @@ class CompositeIdGeneratorTest {
     void shouldUseFirstGeneratorWhenAvailable() {
         RecordingEventPublisher eventPublisher = new RecordingEventPublisher();
         CompositeIdGenerator generator = new CompositeIdGenerator(List.of(
-                new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> 1001L),
-                new CompositeIdGenerator.NamedIdGenerator("snowflake", bizTag -> 2001L)
-        ), eventPublisher);
+                new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> 1001L)
+        ), bizTag -> 2001L, eventPublisher, true);
 
         assertThat(generator.nextId("order-id")).isEqualTo(1001L);
         assertThat(eventPublisher.events).isEmpty();
@@ -32,9 +31,8 @@ class CompositeIdGeneratorTest {
                 new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> {
                     throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "tinyid down");
                 }),
-                new CompositeIdGenerator.NamedIdGenerator("leaf", bizTag -> 1002L),
-                new CompositeIdGenerator.NamedIdGenerator("snowflake", bizTag -> 2001L)
-        ), eventPublisher);
+                new CompositeIdGenerator.NamedIdGenerator("leaf", bizTag -> 1002L)
+        ), bizTag -> 2001L, eventPublisher, true);
 
         assertThat(generator.nextId("order-id")).isEqualTo(1002L);
         assertThat(eventPublisher.events).hasSize(1);
@@ -52,9 +50,8 @@ class CompositeIdGeneratorTest {
                 }),
                 new CompositeIdGenerator.NamedIdGenerator("leaf", bizTag -> {
                     throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "leaf down");
-                }),
-                new CompositeIdGenerator.NamedIdGenerator("snowflake", bizTag -> 2001L)
-        ), eventPublisher);
+                })
+        ), bizTag -> 2001L, eventPublisher, true);
 
         assertThat(generator.nextId("order-id")).isEqualTo(2001L);
         assertThat(eventPublisher.events).hasSize(2);
@@ -68,34 +65,44 @@ class CompositeIdGeneratorTest {
         CompositeIdGenerator generator = new CompositeIdGenerator(List.of(
                 new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> {
                     throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "tinyid down");
-                }),
-                new CompositeIdGenerator.NamedIdGenerator("snowflake", bizTag -> {
-                    throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "snowflake down");
                 })
-        ), eventPublisher);
+        ), bizTag -> {
+            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "snowflake down");
+        }, eventPublisher, true);
 
         assertThatThrownBy(() -> generator.nextId("order-id"))
                 .isInstanceOf(IdGeneratorException.class)
                 .hasMessage("snowflake down");
+        assertThat(eventPublisher.events).hasSize(2);
+    }
+
+    @Test
+    void shouldAllowNullPrimaryGeneratorsAndFallbackToSnowflake() {
+        RecordingEventPublisher eventPublisher = new RecordingEventPublisher();
+        CompositeIdGenerator generator = new CompositeIdGenerator(null, bizTag -> 3001L, eventPublisher, true);
+
+        assertThat(generator.nextId("order-id")).isEqualTo(3001L);
+        assertThat(eventPublisher.events).hasSize(1);
+        assertThat(eventPublisher.events.get(0).reason()).contains("no primary id generators configured");
+    }
+
+    @Test
+    void shouldAllowEmptyPrimaryGeneratorsAndFallbackToSnowflake() {
+        RecordingEventPublisher eventPublisher = new RecordingEventPublisher();
+        CompositeIdGenerator generator = new CompositeIdGenerator(List.of(), bizTag -> 3001L, eventPublisher, true);
+
+        assertThat(generator.nextId("order-id")).isEqualTo(3001L);
         assertThat(eventPublisher.events).hasSize(1);
     }
 
     @Test
-    void shouldAllowNullGeneratorsAndFailLazily() {
-        CompositeIdGenerator generator = new CompositeIdGenerator(null, new RecordingEventPublisher());
+    void shouldThrowWhenFallbackDisabledAndPrimaryChainEmpty() {
+        CompositeIdGenerator generator = new CompositeIdGenerator(List.of(), bizTag -> 3001L,
+                new RecordingEventPublisher(), false);
 
         assertThatThrownBy(() -> generator.nextId("order-id"))
                 .isInstanceOf(IdGeneratorException.class)
-                .hasMessage("no id generators configured");
-    }
-
-    @Test
-    void shouldAllowEmptyGeneratorsAndFailLazily() {
-        CompositeIdGenerator generator = new CompositeIdGenerator(List.of(), new RecordingEventPublisher());
-
-        assertThatThrownBy(() -> generator.nextId("order-id"))
-                .isInstanceOf(IdGeneratorException.class)
-                .hasMessage("no id generators configured");
+                .hasMessage("no primary id generators configured and fallback disabled");
     }
 
     private static final class RecordingEventPublisher implements ApplicationEventPublisher {

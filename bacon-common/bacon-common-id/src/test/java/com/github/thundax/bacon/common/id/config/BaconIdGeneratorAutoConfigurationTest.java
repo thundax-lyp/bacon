@@ -45,4 +45,15 @@ class BaconIdGeneratorAutoConfigurationTest {
                 .withPropertyValues("bacon.id.generator.provider=snowflake")
                 .run(context -> assertThat(context.getBean(IdGenerator.class)).isInstanceOf(SnowflakeIdGenerator.class));
     }
+
+    @Test
+    void shouldUseCompositeGeneratorWhenFallbackDisabled() {
+        contextRunner
+                .withPropertyValues(
+                        "bacon.id.generator.providers[0]=tinyid",
+                        "bacon.id.generator.fallback-enabled=false",
+                        "bacon.id.generator.tiny-id.server=127.0.0.1:9999",
+                        "bacon.id.generator.tiny-id.token=test-token")
+                .run(context -> assertThat(context.getBean(IdGenerator.class)).isInstanceOf(CompositeIdGenerator.class));
+    }
 }

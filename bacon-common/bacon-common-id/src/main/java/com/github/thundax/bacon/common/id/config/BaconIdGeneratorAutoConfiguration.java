@@ -37,15 +37,19 @@ public class BaconIdGeneratorAutoConfiguration {
                                    ObjectMapper objectMapper,
                                    ApplicationEventPublisher eventPublisher) {
         SnowflakeIdGenerator snowflakeIdGenerator = createSnowflakeIdGenerator(properties);
-        List<CompositeIdGenerator.NamedIdGenerator> generators = resolveGeneratorChain(
+        List<IdProviderType> configuredProviders = resolveConfiguredProviders(properties);
+        if (configuredProviders.size() == 1 && configuredProviders.contains(IdProviderType.SNOWFLAKE)) {
+            return snowflakeIdGenerator;
+        }
+        List<CompositeIdGenerator.NamedIdGenerator> generators = resolvePrimaryGeneratorChain(
                 properties,
                 restClientFactory,
                 objectMapper,
-                snowflakeIdGenerator);
-        if (generators.size() == 1) {
-            return generators.get(0).generator();
-        }
-        return new CompositeIdGenerator(generators, eventPublisher);
+                configuredProviders);
+        return new CompositeIdGenerator(generators,
+                snowflakeIdGenerator,
+                eventPublisher,
+                properties.isFallbackEnabled());
     }
 
     private TinyIdGenerator createTinyIdGenerator(BaconIdGeneratorProperties properties) {
@@ -96,24 +100,26 @@ public class BaconIdGeneratorAutoConfiguration {
                 properties.getSnowflake().getDatacenterId());
     }
 
-    private List<CompositeIdGenerator.NamedIdGenerator> resolveGeneratorChain(BaconIdGeneratorProperties properties,
-                                                                              RestClientFactory restClientFactory,
-                                                                              ObjectMapper objectMapper,
-                                                                              SnowflakeIdGenerator snowflakeIdGenerator) {
-        List<IdProviderType> providerChain = resolveProviderChain(properties);
-        List<CompositeIdGenerator.NamedIdGenerator> generators = new ArrayList<>(providerChain.size());
-        for (IdProviderType providerType : providerChain) {
+    private List<CompositeIdGenerator.NamedIdGenerator> resolvePrimaryGeneratorChain(BaconIdGeneratorProperties properties,
+                                                                                     RestClientFactory restClientFactory,
+                                                                                     ObjectMapper objectMapper,
+                                                                                     List<IdProviderType> configuredProviders) {
+        List<CompositeIdGenerator.NamedIdGenerator> generators = new ArrayList<>(configuredProviders.size());
+        for (IdProviderType providerType : configuredProviders) {
+            if (providerType == IdProviderType.SNOWFLAKE) {
+                continue;
+            }
             generators.add(switch (providerType) {
                 case TINYID -> new CompositeIdGenerator.NamedIdGenerator("tinyid", createTinyIdGenerator(properties));
                 case LEAF -> new CompositeIdGenerator.NamedIdGenerator("leaf",
                         createLeafIdGenerator(properties, restClientFactory, objectMapper));
-                case SNOWFLAKE -> new CompositeIdGenerator.NamedIdGenerator("snowflake", snowflakeIdGenerator);
+                case SNOWFLAKE -> throw new IllegalStateException("snowflake should not be part of primary generator chain");
             });
         }
         return generators;
     }
 
-    private List<IdProviderType> resolveProviderChain(BaconIdGeneratorProperties properties) {
+    private List<IdProviderType> resolveConfiguredProviders(BaconIdGeneratorProperties properties) {
         LinkedHashSet<IdProviderType> providerChain = new LinkedHashSet<>();
         if (properties.getProviders().isEmpty()) {
             providerChain.add(IdProviderType.from(properties.getProvider()));
@@ -122,7 +128,6 @@ public class BaconIdGeneratorAutoConfiguration {
                 providerChain.add(IdProviderType.from(provider));
             }
         }
-        providerChain.add(IdProviderType.SNOWFLAKE);
         return List.copyOf(providerChain);
     }
 

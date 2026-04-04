@@ -197,6 +197,7 @@ public class RoleApplicationService {
         return departmentIds == null ? Set.of() : departmentIds.stream()
                 .map(String::trim)
                 .filter(value -> !value.isBlank())
+                .map(Long::parseLong)
                 .map(DepartmentId::of)
                 .collect(java.util.stream.Collectors.toSet());
     }

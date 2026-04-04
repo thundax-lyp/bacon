@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class DepartmentDTO {
 
     /** 部门主键。 */
-    private String id;
+    private Long id;
     /** 所属租户主键。 */
     private String tenantId;
     /** 部门编码。 */
@@ -21,7 +21,7 @@ public class DepartmentDTO {
     /** 部门名称。 */
     private String name;
     /** 父部门主键，根部门固定为 0。 */
-    private String parentId;
+    private Long parentId;
     /** 部门负责人用户主键。 */
     private String leaderUserId;
     /** 部门状态。 */

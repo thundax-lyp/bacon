@@ -94,7 +94,7 @@ public class PostApplicationService {
     }
 
     private DepartmentId toDepartmentId(String departmentId) {
-        return departmentId == null || departmentId.isBlank() ? null : DepartmentId.of(departmentId.trim());
+        return departmentId == null || departmentId.isBlank() ? null : DepartmentId.of(Long.parseLong(departmentId.trim()));
     }
 
     private void validateRequired(String value, String fieldName) {

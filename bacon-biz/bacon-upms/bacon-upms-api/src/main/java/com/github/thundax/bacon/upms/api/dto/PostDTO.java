@@ -21,7 +21,7 @@ public class PostDTO {
     /** 岗位名称。 */
     private String name;
     /** 所属部门主键。 */
-    private String departmentId;
+    private Long departmentId;
     /** 岗位状态。 */
     private String status;
 }

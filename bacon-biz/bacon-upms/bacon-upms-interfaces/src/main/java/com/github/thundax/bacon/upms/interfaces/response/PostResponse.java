@@ -15,7 +15,7 @@ public record PostResponse(
         /** 岗位名称。 */
         String name,
         /** 所属部门主键。 */
-        String departmentId,
+        Long departmentId,
         /** 岗位状态。 */
         String status) {
 

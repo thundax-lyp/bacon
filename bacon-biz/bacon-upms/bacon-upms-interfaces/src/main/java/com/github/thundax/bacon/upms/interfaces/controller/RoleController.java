@@ -161,7 +161,7 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "配置角色数据权限", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/data-scope")
-    public Set<String> assignDataScope(@PathVariable String roleId, @RequestBody RoleDataScopeAssignRequest request) {
+    public Set<Long> assignDataScope(@PathVariable String roleId, @RequestBody RoleDataScopeAssignRequest request) {
         return roleApplicationService.assignDataScope(
                 tenantRequestResolver.resolveTenantId(request.tenantId()), roleId, request.dataScopeType(),
                 request.departmentIds()).stream().map(DepartmentId::value).collect(java.util.stream.Collectors.toSet());

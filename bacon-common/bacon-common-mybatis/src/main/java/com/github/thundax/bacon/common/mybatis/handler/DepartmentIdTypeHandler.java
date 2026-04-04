@@ -6,8 +6,8 @@ import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
 @MappedTypes(DepartmentId.class)
-@MappedJdbcTypes({JdbcType.VARCHAR, JdbcType.LONGVARCHAR})
-public class DepartmentIdTypeHandler extends AbstractStringBaseIdTypeHandler<DepartmentId> {
+@MappedJdbcTypes({JdbcType.BIGINT, JdbcType.INTEGER, JdbcType.VARCHAR, JdbcType.LONGVARCHAR})
+public class DepartmentIdTypeHandler extends AbstractLongBaseIdTypeHandler<DepartmentId> {
 
     public DepartmentIdTypeHandler() {
         super(DepartmentId::of);

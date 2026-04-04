@@ -34,7 +34,7 @@ public class DefaultIds implements Ids {
 
     @Override
     public DepartmentId departmentId() {
-        return DepartmentId.of("D" + idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG));
+        return DepartmentId.of(idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG));
     }
 
     @Override

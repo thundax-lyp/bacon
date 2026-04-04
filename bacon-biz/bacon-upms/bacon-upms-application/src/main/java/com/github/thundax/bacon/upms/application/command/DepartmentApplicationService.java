@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 public class DepartmentApplicationService {
 
-    private static final DepartmentId ROOT_DEPARTMENT_ID = DepartmentId.of("0");
+    private static final DepartmentId ROOT_DEPARTMENT_ID = DepartmentId.of(0L);
 
     private final DepartmentRepository departmentRepository;
     private final TenantRepository tenantRepository;
@@ -68,7 +68,7 @@ public class DepartmentApplicationService {
         List<Department> departments = departmentRepository.listDepartmentTree(tenantId);
         String tenantIdValue = tenantId.value();
         // 先平铺映射成节点表，再按 parentId 二次挂接，避免 repository 被迫返回固定层级结构。
-        Map<String, DepartmentTreeDTO> treeNodeMap = departments.stream()
+        Map<Long, DepartmentTreeDTO> treeNodeMap = departments.stream()
                 .map(department -> toTreeDto(department, tenantIdValue))
                 .collect(Collectors.toMap(DepartmentTreeDTO::getId, Function.identity()));
 
@@ -176,7 +176,7 @@ public class DepartmentApplicationService {
     }
 
     private DepartmentId normalizeParentId(String parentId) {
-        return parentId == null || parentId.isBlank() ? ROOT_DEPARTMENT_ID : DepartmentId.of(parentId.trim());
+        return parentId == null || parentId.isBlank() ? ROOT_DEPARTMENT_ID : DepartmentId.of(parseDepartmentId(parentId));
     }
 
     private boolean hasParent(DepartmentId parentId) {
@@ -185,7 +185,7 @@ public class DepartmentApplicationService {
 
     private DepartmentId toDepartmentId(String departmentId) {
         validateRequired(departmentId, "departmentId");
-        return DepartmentId.of(departmentId.trim());
+        return DepartmentId.of(parseDepartmentId(departmentId));
     }
 
     private Set<DepartmentId> toDepartmentIds(Set<String> departmentIds) {
@@ -200,6 +200,10 @@ public class DepartmentApplicationService {
 
     private String normalize(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private Long parseDepartmentId(String departmentId) {
+        return Long.parseLong(departmentId.trim());
     }
 
     private TenantId requireExistingTenantId(String tenantId) {

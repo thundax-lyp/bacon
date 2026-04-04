@@ -53,7 +53,7 @@ public class PostController {
                 request.getCode(), request.getName(),
                 request.getDepartmentId() == null || request.getDepartmentId().isBlank()
                         ? null
-                        : DepartmentId.of(request.getDepartmentId().trim()),
+                        : DepartmentId.of(Long.parseLong(request.getDepartmentId().trim())),
                 request.getStatus() == null ? null : request.getStatus().name(),
                 request.getPageNo(), request.getPageSize())));
     }

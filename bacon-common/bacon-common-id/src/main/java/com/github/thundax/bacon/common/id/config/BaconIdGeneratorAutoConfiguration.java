@@ -9,13 +9,18 @@ import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.event.IdFallbackAlertListener;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorErrorCode;
 import com.github.thundax.bacon.common.id.exception.IdGeneratorException;
+import com.github.thundax.bacon.common.id.provider.CompositeIdGenerator;
 import com.github.thundax.bacon.common.id.provider.LeafIdGenerator;
 import com.github.thundax.bacon.common.id.provider.SnowflakeIdGenerator;
 import com.github.thundax.bacon.common.id.provider.TinyIdGenerator;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestClient;
@@ -29,13 +34,18 @@ public class BaconIdGeneratorAutoConfiguration {
     @ConditionalOnMissingBean
     public IdGenerator idGenerator(BaconIdGeneratorProperties properties,
                                    RestClientFactory restClientFactory,
-                                   ObjectMapper objectMapper) {
-        IdProviderType providerType = IdProviderType.from(properties.getProvider());
-        return switch (providerType) {
-            case TINYID -> createTinyIdGenerator(properties);
-            case LEAF -> createLeafIdGenerator(properties, restClientFactory, objectMapper);
-            case SNOWFLAKE -> createSnowflakeIdGenerator(properties);
-        };
+                                   ObjectMapper objectMapper,
+                                   ApplicationEventPublisher eventPublisher) {
+        SnowflakeIdGenerator snowflakeIdGenerator = createSnowflakeIdGenerator(properties);
+        List<CompositeIdGenerator.NamedIdGenerator> generators = resolveGeneratorChain(
+                properties,
+                restClientFactory,
+                objectMapper,
+                snowflakeIdGenerator);
+        if (generators.size() == 1) {
+            return generators.get(0).generator();
+        }
+        return new CompositeIdGenerator(generators, eventPublisher);
     }
 
     private TinyIdGenerator createTinyIdGenerator(BaconIdGeneratorProperties properties) {
@@ -84,6 +94,36 @@ public class BaconIdGeneratorAutoConfiguration {
     private SnowflakeIdGenerator createSnowflakeIdGenerator(BaconIdGeneratorProperties properties) {
         return new SnowflakeIdGenerator(properties.getSnowflake().getWorkerId(),
                 properties.getSnowflake().getDatacenterId());
+    }
+
+    private List<CompositeIdGenerator.NamedIdGenerator> resolveGeneratorChain(BaconIdGeneratorProperties properties,
+                                                                              RestClientFactory restClientFactory,
+                                                                              ObjectMapper objectMapper,
+                                                                              SnowflakeIdGenerator snowflakeIdGenerator) {
+        List<IdProviderType> providerChain = resolveProviderChain(properties);
+        List<CompositeIdGenerator.NamedIdGenerator> generators = new ArrayList<>(providerChain.size());
+        for (IdProviderType providerType : providerChain) {
+            generators.add(switch (providerType) {
+                case TINYID -> new CompositeIdGenerator.NamedIdGenerator("tinyid", createTinyIdGenerator(properties));
+                case LEAF -> new CompositeIdGenerator.NamedIdGenerator("leaf",
+                        createLeafIdGenerator(properties, restClientFactory, objectMapper));
+                case SNOWFLAKE -> new CompositeIdGenerator.NamedIdGenerator("snowflake", snowflakeIdGenerator);
+            });
+        }
+        return generators;
+    }
+
+    private List<IdProviderType> resolveProviderChain(BaconIdGeneratorProperties properties) {
+        LinkedHashSet<IdProviderType> providerChain = new LinkedHashSet<>();
+        if (properties.getProviders().isEmpty()) {
+            providerChain.add(IdProviderType.from(properties.getProvider()));
+        } else {
+            for (String provider : properties.getProviders()) {
+                providerChain.add(IdProviderType.from(provider));
+            }
+        }
+        providerChain.add(IdProviderType.SNOWFLAKE);
+        return List.copyOf(providerChain);
     }
 
     @Bean

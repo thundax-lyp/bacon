@@ -1,12 +1,15 @@
 package com.github.thundax.bacon.common.id.config;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "bacon.id.generator")
 public class BaconIdGeneratorProperties {
 
     private String provider = "tinyid";
+    private List<String> providers = new ArrayList<>();
     private final TinyId tinyId = new TinyId();
     private final Snowflake snowflake = new Snowflake();
     private final Leaf leaf = new Leaf();
@@ -17,6 +20,14 @@ public class BaconIdGeneratorProperties {
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public List<String> getProviders() {
+        return providers;
+    }
+
+    public void setProviders(List<String> providers) {
+        this.providers = providers == null ? new ArrayList<>() : new ArrayList<>(providers);
     }
 
     public TinyId getTinyId() {

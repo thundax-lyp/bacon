@@ -2,17 +2,17 @@ package com.github.thundax.bacon.upms.interfaces.controller;
 
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.PostId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.application.command.PostApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.PostCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostUpdateRequest;
-import com.github.thundax.bacon.upms.interfaces.resolver.TenantRequestResolver;
-import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.response.PostPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.PostResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,21 +35,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostController {
 
     private final PostApplicationService postApplicationService;
-    private final TenantRequestResolver tenantRequestResolver;
 
-    public PostController(PostApplicationService postApplicationService,
-                          TenantRequestResolver tenantRequestResolver) {
+    public PostController(PostApplicationService postApplicationService) {
         this.postApplicationService = postApplicationService;
-        this.tenantRequestResolver = tenantRequestResolver;
     }
 
     @Operation(summary = "分页查询岗位")
     @HasPermission("sys:post:view")
     @SysLog(module = "UPMS", action = "分页查询岗位", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public PostPageResponse pagePosts(@Valid @ModelAttribute PostPageRequest request) {
+    public PostPageResponse pagePosts(@CurrentTenant Long tenantId, @Valid @ModelAttribute PostPageRequest request) {
         return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(
-                tenantRequestResolver.resolveTenantId(request.getTenantId()),
+                TenantId.of(tenantId),
                 request.getCode(), request.getName(),
                 request.getDepartmentId() == null || request.getDepartmentId().isBlank()
                         ? null
@@ -62,28 +59,28 @@ public class PostController {
     @HasPermission("sys:post:view")
     @SysLog(module = "UPMS", action = "查询岗位详情", eventType = LogEventType.QUERY)
     @GetMapping("/{postId}")
-    public PostResponse getPostById(@PathVariable String postId, @ModelAttribute TenantScopedRequest request) {
+    public PostResponse getPostById(@CurrentTenant Long tenantId, @PathVariable String postId) {
         return PostResponse.from(postApplicationService.getPostById(
-                tenantRequestResolver.resolveTenantId(request.getTenantId()), PostId.of(Long.parseLong(postId.trim()))));
+                TenantId.of(tenantId), PostId.of(Long.parseLong(postId.trim()))));
     }
 
     @Operation(summary = "创建岗位")
     @HasPermission("sys:post:create")
     @SysLog(module = "UPMS", action = "创建岗位", eventType = LogEventType.CREATE)
     @PostMapping
-    public PostResponse createPost(@RequestBody PostCreateRequest request) {
+    public PostResponse createPost(@CurrentTenant Long tenantId, @RequestBody PostCreateRequest request) {
         return PostResponse.from(postApplicationService.createPost(
-                tenantRequestResolver.resolveTenantId(request.tenantId()), request.code(), request.name(),
-                request.departmentId()));
+                TenantId.of(tenantId), request.code(), request.name(), request.departmentId()));
     }
 
     @Operation(summary = "修改岗位")
     @HasPermission("sys:post:update")
     @SysLog(module = "UPMS", action = "修改岗位", eventType = LogEventType.UPDATE)
     @PutMapping("/{postId}")
-    public PostResponse updatePost(@PathVariable String postId, @RequestBody PostUpdateRequest request) {
+    public PostResponse updatePost(@CurrentTenant Long tenantId, @PathVariable String postId,
+                                   @RequestBody PostUpdateRequest request) {
         return PostResponse.from(postApplicationService.updatePost(
-                tenantRequestResolver.resolveTenantId(request.tenantId()), PostId.of(Long.parseLong(postId.trim())), request.code(),
+                TenantId.of(tenantId), PostId.of(Long.parseLong(postId.trim())), request.code(),
                 request.name(), request.departmentId(), request.status()));
     }
 
@@ -91,8 +88,7 @@ public class PostController {
     @HasPermission("sys:post:delete")
     @SysLog(module = "UPMS", action = "删除岗位", eventType = LogEventType.DELETE)
     @DeleteMapping("/{postId}")
-    public void deletePost(@PathVariable String postId, @ModelAttribute TenantScopedRequest request) {
-        postApplicationService.deletePost(tenantRequestResolver.resolveTenantId(request.getTenantId()),
-                PostId.of(Long.parseLong(postId.trim())));
+    public void deletePost(@CurrentTenant Long tenantId, @PathVariable String postId) {
+        postApplicationService.deletePost(TenantId.of(tenantId), PostId.of(Long.parseLong(postId.trim())));
     }
 }

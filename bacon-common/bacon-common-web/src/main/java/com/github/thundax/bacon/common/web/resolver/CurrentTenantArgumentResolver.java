@@ -30,7 +30,7 @@ public class CurrentTenantArgumentResolver implements HandlerMethodArgumentResol
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         Long tenantId = currentTenantProvider.currentTenantId();
         if (tenantId == null) {
-            throw new IllegalArgumentException("tenantId is required in security context");
+            throw new IllegalArgumentException("tenantId is required for current request");
         }
         return tenantId;
     }

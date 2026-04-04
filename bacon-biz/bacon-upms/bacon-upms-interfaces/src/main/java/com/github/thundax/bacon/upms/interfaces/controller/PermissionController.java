@@ -1,11 +1,13 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
-import com.github.thundax.bacon.upms.interfaces.dto.TenantScopedRequest;
 import com.github.thundax.bacon.upms.interfaces.response.UserDataScopeResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserMenuTreeResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Set;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,9 +35,8 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/menu-tree")
-    public List<UserMenuTreeResponse> getUserMenuTree(@PathVariable String userId,
-                                                      @ModelAttribute TenantScopedRequest request) {
-        return permissionQueryService.getUserMenuTree(request.getTenantId(), userId).stream()
+    public List<UserMenuTreeResponse> getUserMenuTree(@CurrentTenant Long tenantId, @PathVariable String userId) {
+        return permissionQueryService.getUserMenuTree(TenantId.of(tenantId), UserId.of(userId)).stream()
                 .map(UserMenuTreeResponse::from)
                 .toList();
     }
@@ -45,17 +45,17 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户权限码", eventType = LogEventType.QUERY)
     @GetMapping("/permission-codes")
-    public Set<String> getUserPermissionCodes(@PathVariable String userId,
-                                              @ModelAttribute TenantScopedRequest request) {
-        return permissionQueryService.getUserPermissionCodes(request.getTenantId(), userId);
+    public Set<String> getUserPermissionCodes(@CurrentTenant Long tenantId, @PathVariable String userId) {
+        return permissionQueryService.getUserPermissionCodes(TenantId.of(tenantId), UserId.of(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户数据范围", eventType = LogEventType.QUERY)
     @GetMapping("/data-scope")
-    public UserDataScopeResponse getUserDataScope(@PathVariable String userId,
-                                                  @ModelAttribute TenantScopedRequest request) {
-        return UserDataScopeResponse.from(permissionQueryService.getUserDataScope(request.getTenantId(), userId));
+    public UserDataScopeResponse getUserDataScope(@CurrentTenant Long tenantId, @PathVariable String userId) {
+        return UserDataScopeResponse.from(
+                permissionQueryService.getUserDataScope(TenantId.of(tenantId), UserId.of(userId))
+        );
     }
 }

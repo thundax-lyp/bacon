@@ -315,7 +315,7 @@
 索引与约束：
 
 - `pk(id)`
-- `uk_tenant_code(tenant_id, code)`
+- `uk_tenant_code(code)`
 - `idx_tenant_parent_status(tenant_id, parent_id, status)`
 
 ### 7.6 `bacon_upms_post`

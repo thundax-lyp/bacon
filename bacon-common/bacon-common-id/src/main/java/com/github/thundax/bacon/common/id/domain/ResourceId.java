@@ -1,16 +1,16 @@
 package com.github.thundax.bacon.common.id.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.github.thundax.bacon.common.id.core.BaseStringId;
+import com.github.thundax.bacon.common.id.core.BaseLongId;
 
-public final class ResourceId extends BaseStringId {
+public final class ResourceId extends BaseLongId {
 
-    private ResourceId(String value) {
+    private ResourceId(Long value) {
         super(value);
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static ResourceId of(String value) {
+    public static ResourceId of(Long value) {
         return new ResourceId(value);
     }
 }

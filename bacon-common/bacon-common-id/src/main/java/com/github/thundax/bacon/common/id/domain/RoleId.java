@@ -1,16 +1,16 @@
 package com.github.thundax.bacon.common.id.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.github.thundax.bacon.common.id.core.BaseStringId;
+import com.github.thundax.bacon.common.id.core.BaseLongId;
 
-public final class RoleId extends BaseStringId {
+public final class RoleId extends BaseLongId {
 
-    private RoleId(String value) {
+    private RoleId(Long value) {
         super(value);
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static RoleId of(String value) {
+    public static RoleId of(Long value) {
         return new RoleId(value);
     }
 }

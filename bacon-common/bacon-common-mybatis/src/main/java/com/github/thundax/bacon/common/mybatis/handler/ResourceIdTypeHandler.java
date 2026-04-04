@@ -6,8 +6,8 @@ import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
 @MappedTypes(ResourceId.class)
-@MappedJdbcTypes(JdbcType.VARCHAR)
-public class ResourceIdTypeHandler extends AbstractStringBaseIdTypeHandler<ResourceId> {
+@MappedJdbcTypes({JdbcType.BIGINT, JdbcType.INTEGER, JdbcType.VARCHAR, JdbcType.LONGVARCHAR})
+public class ResourceIdTypeHandler extends AbstractLongBaseIdTypeHandler<ResourceId> {
 
     public ResourceIdTypeHandler() {
         super(ResourceId::of);

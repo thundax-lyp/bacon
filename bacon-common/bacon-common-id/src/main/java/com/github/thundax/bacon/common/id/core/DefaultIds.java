@@ -49,27 +49,27 @@ public class DefaultIds implements Ids {
 
     @Override
     public ResourceId resourceId() {
-        return ResourceId.of("R" + idGenerator.nextId(RESOURCE_ID_BIZ_TAG));
+        return ResourceId.of(idGenerator.nextId(RESOURCE_ID_BIZ_TAG));
     }
 
     @Override
     public UserCredentialId userCredentialId() {
-        return UserCredentialId.of("C" + idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG));
+        return UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG));
     }
 
     @Override
     public UserId userId() {
-        return UserId.of("U" + idGenerator.nextId(USER_ID_BIZ_TAG));
+        return UserId.of(idGenerator.nextId(USER_ID_BIZ_TAG));
     }
 
     @Override
     public UserIdentityId userIdentityId() {
-        return UserIdentityId.of("I" + idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG));
+        return UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG));
     }
 
     @Override
     public RoleId roleId() {
-        return RoleId.of(String.valueOf(idGenerator.nextId(ROLE_ID_BIZ_TAG)));
+        return RoleId.of(idGenerator.nextId(ROLE_ID_BIZ_TAG));
     }
 
     @Override

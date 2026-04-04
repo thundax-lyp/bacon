@@ -6,8 +6,8 @@ import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
 @MappedTypes(UserIdentityId.class)
-@MappedJdbcTypes(JdbcType.VARCHAR)
-public class UserIdentityIdTypeHandler extends AbstractStringBaseIdTypeHandler<UserIdentityId> {
+@MappedJdbcTypes({JdbcType.BIGINT, JdbcType.INTEGER, JdbcType.VARCHAR, JdbcType.LONGVARCHAR})
+public class UserIdentityIdTypeHandler extends AbstractLongBaseIdTypeHandler<UserIdentityId> {
 
     public UserIdentityIdTypeHandler() {
         super(UserIdentityId::of);

@@ -1,16 +1,16 @@
 package com.github.thundax.bacon.common.id.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.github.thundax.bacon.common.id.core.BaseStringId;
+import com.github.thundax.bacon.common.id.core.BaseLongId;
 
-public final class PostId extends BaseStringId {
+public final class PostId extends BaseLongId {
 
-    private PostId(String value) {
+    private PostId(Long value) {
         super(value);
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public static PostId of(String value) {
+    public static PostId of(Long value) {
         return new PostId(value);
     }
 }

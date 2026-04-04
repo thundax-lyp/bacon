@@ -44,7 +44,7 @@ public class DefaultIds implements Ids {
 
     @Override
     public PostId postId() {
-        return PostId.of("P" + idGenerator.nextId(POST_ID_BIZ_TAG));
+        return PostId.of(idGenerator.nextId(POST_ID_BIZ_TAG));
     }
 
     @Override

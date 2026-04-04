@@ -64,7 +64,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public PostResponse getPostById(@PathVariable String postId, @ModelAttribute TenantScopedRequest request) {
         return PostResponse.from(postApplicationService.getPostById(
-                tenantRequestResolver.resolveTenantId(request.getTenantId()), PostId.of(postId.trim())));
+                tenantRequestResolver.resolveTenantId(request.getTenantId()), PostId.of(Long.parseLong(postId.trim()))));
     }
 
     @Operation(summary = "创建岗位")
@@ -83,7 +83,7 @@ public class PostController {
     @PutMapping("/{postId}")
     public PostResponse updatePost(@PathVariable String postId, @RequestBody PostUpdateRequest request) {
         return PostResponse.from(postApplicationService.updatePost(
-                tenantRequestResolver.resolveTenantId(request.tenantId()), PostId.of(postId.trim()), request.code(),
+                tenantRequestResolver.resolveTenantId(request.tenantId()), PostId.of(Long.parseLong(postId.trim())), request.code(),
                 request.name(), request.departmentId(), request.status()));
     }
 
@@ -93,6 +93,6 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public void deletePost(@PathVariable String postId, @ModelAttribute TenantScopedRequest request) {
         postApplicationService.deletePost(tenantRequestResolver.resolveTenantId(request.getTenantId()),
-                PostId.of(postId.trim()));
+                PostId.of(Long.parseLong(postId.trim())));
     }
 }

@@ -8,7 +8,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "bacon.id.generator")
 public class BaconIdGeneratorProperties {
 
-    private String provider = "tinyid";
+    /**
+     * Legacy single-provider config. Kept only for backward compatibility.
+     */
+    private String provider;
+
+    /**
+     * Primary provider chain. When empty, falls back to legacy provider, then default tinyid.
+     */
     private List<String> providers = new ArrayList<>();
     private boolean fallbackEnabled = true;
     private final TinyId tinyId = new TinyId();
@@ -37,6 +44,16 @@ public class BaconIdGeneratorProperties {
 
     public void setFallbackEnabled(boolean fallbackEnabled) {
         this.fallbackEnabled = fallbackEnabled;
+    }
+
+    public List<String> resolvePrimaryProviders() {
+        if (!providers.isEmpty()) {
+            return List.copyOf(providers);
+        }
+        if (provider != null && !provider.isBlank()) {
+            return List.of(provider);
+        }
+        return List.of("tinyid");
     }
 
     public TinyId getTinyId() {

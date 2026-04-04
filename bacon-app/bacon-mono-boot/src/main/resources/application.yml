@@ -95,7 +95,9 @@ bacon:
         lease-seconds: ${BACON_ORDER_OUTBOX_RETRY_LEASE_SECONDS:60}
   id:
     generator:
-      provider: tinyid
+      providers:
+        - tinyid
+      fallback-enabled: true
       tiny-id:
         server: ${BACON_TINYID_SERVER:127.0.0.1:9999}
         token: ${BACON_TINYID_TOKEN:tinyid_token}

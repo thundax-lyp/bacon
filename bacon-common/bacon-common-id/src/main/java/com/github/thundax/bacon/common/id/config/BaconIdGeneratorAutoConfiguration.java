@@ -121,12 +121,8 @@ public class BaconIdGeneratorAutoConfiguration {
 
     private List<IdProviderType> resolveConfiguredProviders(BaconIdGeneratorProperties properties) {
         LinkedHashSet<IdProviderType> providerChain = new LinkedHashSet<>();
-        if (properties.getProviders().isEmpty()) {
-            providerChain.add(IdProviderType.from(properties.getProvider()));
-        } else {
-            for (String provider : properties.getProviders()) {
-                providerChain.add(IdProviderType.from(provider));
-            }
+        for (String provider : properties.resolvePrimaryProviders()) {
+            providerChain.add(IdProviderType.from(provider));
         }
         return List.copyOf(providerChain);
     }

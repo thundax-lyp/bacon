@@ -80,11 +80,11 @@ public class ResourceApplicationService {
     @Transactional
     public void deleteResource(TenantId tenantId, String resourceId) {
         requireResource(tenantId, resourceId);
-        resourceRepository.delete(tenantId, ResourceId.of(resourceId));
+        resourceRepository.delete(tenantId, ResourceId.of(Long.parseLong(resourceId)));
     }
 
     private Resource requireResource(TenantId tenantId, String resourceId) {
-        return resourceRepository.findById(tenantId, ResourceId.of(resourceId))
+        return resourceRepository.findById(tenantId, ResourceId.of(Long.parseLong(resourceId)))
                 .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + resourceId));
     }
 
@@ -93,7 +93,7 @@ public class ResourceApplicationService {
     }
 
     private ResourceDTO toDto(Resource resource, String tenantIdValue) {
-        return new ResourceDTO(resource.getId() == null ? null : resource.getId().value(), tenantIdValue, resource.getCode(),
+        return new ResourceDTO(resource.getId() == null ? null : String.valueOf(resource.getId().value()), tenantIdValue, resource.getCode(),
                 resource.getName(),
                 resource.getResourceType() == null ? null : resource.getResourceType().value(),
                 resource.getHttpMethod(), resource.getUri(),

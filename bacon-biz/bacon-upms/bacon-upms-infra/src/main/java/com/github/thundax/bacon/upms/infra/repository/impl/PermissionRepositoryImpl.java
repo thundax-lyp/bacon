@@ -21,7 +21,7 @@ import org.springframework.stereotype.Repository;
 @Profile("!test")
 public class PermissionRepositoryImpl implements PermissionRepository {
 
-    private static final MenuId ROOT_MENU_ID = MenuId.of("0");
+    private static final MenuId ROOT_MENU_ID = MenuId.of(0L);
 
     private final MenuRepositoryImpl menuRepository;
     private final RoleRepositoryImpl roleRepository;

@@ -15,13 +15,13 @@ import java.util.List;
 public class UserMenuTreeDTO {
 
     /** 菜单主键。 */
-    private String id;
+    private Long id;
     /** 菜单名称。 */
     private String name;
     /** 菜单类型。 */
     private String menuType;
     /** 父菜单主键，根节点固定为 0。 */
-    private String parentId;
+    private Long parentId;
     /** 前端路由路径。 */
     private String routePath;
     /** 前端组件名称。 */

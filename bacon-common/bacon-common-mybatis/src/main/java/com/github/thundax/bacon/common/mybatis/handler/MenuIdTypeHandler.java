@@ -6,8 +6,8 @@ import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
 @MappedTypes(MenuId.class)
-@MappedJdbcTypes(JdbcType.VARCHAR)
-public class MenuIdTypeHandler extends AbstractStringBaseIdTypeHandler<MenuId> {
+@MappedJdbcTypes({JdbcType.BIGINT, JdbcType.INTEGER, JdbcType.VARCHAR, JdbcType.LONGVARCHAR})
+public class MenuIdTypeHandler extends AbstractLongBaseIdTypeHandler<MenuId> {
 
     public MenuIdTypeHandler() {
         super(MenuId::of);

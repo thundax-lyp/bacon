@@ -15,7 +15,7 @@ import java.util.List;
 @Service
 public class MenuApplicationService {
 
-    private static final MenuId ROOT_MENU_ID = MenuId.of("0");
+    private static final MenuId ROOT_MENU_ID = MenuId.of(0L);
 
     private final MenuRepository menuRepository;
     private final PermissionRepository permissionRepository;
@@ -51,7 +51,7 @@ public class MenuApplicationService {
     @Transactional
     public MenuTreeDTO updateMenu(TenantId tenantId, String menuId, String menuType, String name, String parentId, String routePath,
                                   String componentName, String icon, Integer sort, String permissionCode) {
-        MenuId domainMenuId = MenuId.of(menuId);
+        MenuId domainMenuId = MenuId.of(Long.parseLong(menuId));
         MenuId domainParentId = normalizeParentId(parentId);
         Menu currentMenu = menuRepository.findMenuById(tenantId, domainMenuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
@@ -68,7 +68,7 @@ public class MenuApplicationService {
 
     @Transactional
     public void deleteMenu(TenantId tenantId, String menuId) {
-        MenuId domainMenuId = MenuId.of(menuId);
+        MenuId domainMenuId = MenuId.of(Long.parseLong(menuId));
         menuRepository.findMenuById(tenantId, domainMenuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
         if (menuRepository.existsChildMenu(tenantId, domainMenuId)) {
@@ -82,7 +82,7 @@ public class MenuApplicationService {
         if (sort == null) {
             throw new IllegalArgumentException("sort must not be null");
         }
-        return toTreeDto(menuRepository.updateSort(tenantId, MenuId.of(menuId), sort));
+        return toTreeDto(menuRepository.updateSort(tenantId, MenuId.of(Long.parseLong(menuId)), sort));
     }
 
     private UserMenuTreeDTO toDto(Menu menu) {
@@ -117,10 +117,10 @@ public class MenuApplicationService {
         if (parentId == null || parentId.isBlank()) {
             return ROOT_MENU_ID;
         }
-        return MenuId.of(parentId.trim());
+        return MenuId.of(Long.parseLong(parentId.trim()));
     }
 
-    private String idValue(MenuId menuId) {
+    private Long idValue(MenuId menuId) {
         return menuId == null ? null : menuId.value();
     }
 

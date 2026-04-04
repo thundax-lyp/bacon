@@ -39,7 +39,7 @@ public class DefaultIds implements Ids {
 
     @Override
     public MenuId menuId() {
-        return MenuId.of("M" + idGenerator.nextId(MENU_ID_BIZ_TAG));
+        return MenuId.of(idGenerator.nextId(MENU_ID_BIZ_TAG));
     }
 
     @Override

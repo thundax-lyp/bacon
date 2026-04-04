@@ -8,13 +8,13 @@ import java.util.List;
  */
 public record UserMenuTreeResponse(
         /** 菜单主键。 */
-        String id,
+        Long id,
         /** 菜单名称。 */
         String name,
         /** 菜单类型。 */
         String menuType,
         /** 父菜单主键，根节点固定为 0。 */
-        String parentId,
+        Long parentId,
         /** 前端路由路径。 */
         String routePath,
         /** 前端组件名称。 */

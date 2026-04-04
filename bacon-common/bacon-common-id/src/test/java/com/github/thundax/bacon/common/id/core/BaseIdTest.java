@@ -2,6 +2,7 @@ package com.github.thundax.bacon.common.id.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.id.domain.RoleId;
+import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import org.junit.jupiter.api.Test;
@@ -45,5 +46,12 @@ class BaseIdTest {
         assertThatThrownBy(() -> UserId.of(" "))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("id cannot be blank");
+    }
+
+    @Test
+    void shouldRejectNonPositiveLongValue() {
+        assertThatThrownBy(() -> SkuId.of(0L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("id must be positive");
     }
 }

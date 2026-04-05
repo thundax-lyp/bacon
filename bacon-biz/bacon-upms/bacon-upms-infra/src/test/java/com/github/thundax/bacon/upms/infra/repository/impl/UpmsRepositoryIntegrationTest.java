@@ -110,6 +110,7 @@ class UpmsRepositoryIntegrationTest {
                         name varchar(128) NOT NULL,
                         parent_id varchar(64) NULL,
                         leader_user_id varchar(64) NULL,
+                        sort int NOT NULL,
                         status varchar(16) NOT NULL,
                         created_by varchar(64) NULL,
                         created_at timestamp NULL,
@@ -295,8 +296,9 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
         Department rootDepartment = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Headquarters",
-                ROOT_DEPARTMENT_ID, null, "ACTIVE"));
-        Department childDepartment = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations", rootDepartment.getId(), null, "ACTIVE"));
+                ROOT_DEPARTMENT_ID, null, 1, "ACTIVE"));
+        Department childDepartment = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
+                rootDepartment.getId(), null, 2, "ACTIVE"));
         Menu rootMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "System", ROOT_MENU_ID, "/system", "SystemPage", "shield", 1, null, List.of()));
         Menu childMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Users", rootMenu.getId(), "/system/users", "UserPage", "user", 2, "upms:user:view", List.of()));
         Resource resource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:user:edit", "Edit User",
@@ -345,7 +347,7 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
         Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                ROOT_DEPARTMENT_ID, null, "ACTIVE"));
+                ROOT_DEPARTMENT_ID, null, 1, "ACTIVE"));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
         User createdUser = userRepository.save(new User(null, TENANT_ID, "Bob", StoredObjectId.of("O1001"),
@@ -376,7 +378,7 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
         Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                ROOT_DEPARTMENT_ID, null, "ACTIVE"));
+                ROOT_DEPARTMENT_ID, null, 1, "ACTIVE"));
         User createdUser = userRepository.save(new User(null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED),
                 "carol", "13600000001");
 
@@ -397,8 +399,9 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
         Department root = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Root",
-                ROOT_DEPARTMENT_ID, null, "ACTIVE"));
-        Department child = departmentRepository.save(new Department(CHILD_DEPARTMENT_ID, TENANT_ID, "CHILD", "Child", root.getId(), null, "ACTIVE"));
+                ROOT_DEPARTMENT_ID, null, 1, "ACTIVE"));
+        Department child = departmentRepository.save(new Department(CHILD_DEPARTMENT_ID, TENANT_ID, "CHILD", "Child",
+                root.getId(), null, 2, "ACTIVE"));
         Menu oldMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Old", ROOT_MENU_ID, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
         Menu newMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "New", ROOT_MENU_ID, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
         Resource oldResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:old:edit", "Old Edit",

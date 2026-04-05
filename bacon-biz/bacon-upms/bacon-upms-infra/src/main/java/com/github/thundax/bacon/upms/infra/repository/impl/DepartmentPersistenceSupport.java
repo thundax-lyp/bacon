@@ -53,7 +53,7 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
     List<Department> listDepartmentTree(TenantId tenantId) {
         return departmentMapper.selectList(Wrappers.<DepartmentDO>lambdaQuery()
                         .eq(DepartmentDO::getTenantId, tenantId)
-                        .orderByAsc(DepartmentDO::getId))
+                        .orderByAsc(DepartmentDO::getParentId, DepartmentDO::getSort, DepartmentDO::getId))
                 .stream()
                 .map(this::toDomain)
                 .toList();
@@ -75,6 +75,16 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
             departmentMapper.updateById(dataObject);
         }
         return toDomain(dataObject);
+    }
+
+    Department updateDepartmentSort(TenantId tenantId, DepartmentId departmentId, Integer sort) {
+        Department currentDepartment = findDepartmentById(tenantId, departmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
+        return saveDepartment(new Department(currentDepartment.getId(), currentDepartment.getTenantId(),
+                currentDepartment.getCode(), currentDepartment.getName(), currentDepartment.getParentId(),
+                currentDepartment.getLeaderUserId(), sort, currentDepartment.getStatus(),
+                currentDepartment.getCreatedBy(), currentDepartment.getCreatedAt(),
+                currentDepartment.getUpdatedBy(), currentDepartment.getUpdatedAt()));
     }
 
     void deleteDepartment(TenantId tenantId, DepartmentId departmentId) {

@@ -48,6 +48,11 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
+    public Department updateSort(TenantId tenantId, DepartmentId departmentId, Integer sort) {
+        return support.updateDepartmentSort(tenantId, departmentId, sort);
+    }
+
+    @Override
     public void deleteDepartment(TenantId tenantId, DepartmentId departmentId) {
         support.deleteDepartment(tenantId, departmentId);
     }

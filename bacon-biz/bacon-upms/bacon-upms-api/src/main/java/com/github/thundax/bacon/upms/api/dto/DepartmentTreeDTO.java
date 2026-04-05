@@ -25,6 +25,8 @@ public class DepartmentTreeDTO {
     private Long parentId;
     /** 部门负责人用户主键。 */
     private String leaderUserId;
+    /** 排序值。 */
+    private Integer sort;
     /** 部门状态。 */
     private String status;
     /** 子部门列表。 */

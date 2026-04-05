@@ -30,6 +30,8 @@ public class DepartmentDO {
     private DepartmentId parentId;
     @TableField("leader_user_id")
     private UserId leaderUserId;
+    @TableField("sort")
+    private Integer sort;
     @TableField("status")
     private String status;
     @TableField("created_by")

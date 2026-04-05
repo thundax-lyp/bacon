@@ -19,6 +19,8 @@ public record DepartmentTreeResponse(
         String parentId,
         /** 部门负责人用户主键。 */
         String leaderUserId,
+        /** 排序值。 */
+        Integer sort,
         /** 部门状态。 */
         String status,
         /** 子部门列表。 */
@@ -28,7 +30,11 @@ public record DepartmentTreeResponse(
         List<DepartmentTreeResponse> childResponses = dto.getChildren() == null
                 ? List.of()
                 : dto.getChildren().stream().map(DepartmentTreeResponse::from).toList();
-        return new DepartmentTreeResponse(dto.getId(), dto.getTenantId(), dto.getCode(), dto.getName(), dto.getParentId(),
-                dto.getLeaderUserId(), dto.getStatus(), childResponses);
+        return new DepartmentTreeResponse(idValue(dto.getId()), dto.getTenantId(), dto.getCode(), dto.getName(),
+                idValue(dto.getParentId()), dto.getLeaderUserId(), dto.getSort(), dto.getStatus(), childResponses);
+    }
+
+    private static String idValue(Long value) {
+        return value == null ? null : String.valueOf(value);
     }
 }

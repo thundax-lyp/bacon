@@ -671,7 +671,7 @@
 
 - `User`: `id`、`account`、`name`、`phoneMasked`、`departmentId`、`status`、`deleted`
 - `Tenant`: `tenantId`、`code`、`name`、`status`、`expiredAt`
-- `Department`: `id`、`code`、`name`、`parentId`、`leaderUserId`、`status`
+- `Department`: `id`、`code`、`name`、`parentId`、`leaderUserId`、`sort`、`status`
 - `Post`: `id`、`code`、`name`、`sort`、`status`
 - `Role`: `id`、`code`、`name`、`roleType`、`dataScopeType`、`status`、`builtIn`
 - `Menu`: `id`、`name`、`menuType`、`parentId`、`visible`、`status`、`permissionCode`

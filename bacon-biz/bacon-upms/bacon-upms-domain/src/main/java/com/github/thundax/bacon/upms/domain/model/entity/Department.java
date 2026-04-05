@@ -25,6 +25,8 @@ public class Department {
     private DepartmentId parentId;
     /** 部门负责人用户主键。 */
     private UserId leaderUserId;
+    /** 排序值。 */
+    private Integer sort;
     /** 部门状态。 */
     private String status;
     /** 创建人。 */
@@ -37,12 +39,12 @@ public class Department {
     private Instant updatedAt;
 
     public Department(DepartmentId id, TenantId tenantId, String code, String name, DepartmentId parentId,
-                      UserId leaderUserId, String status) {
-        this(id, tenantId, code, name, parentId, leaderUserId, status, null, null, null, null);
+                      UserId leaderUserId, Integer sort, String status) {
+        this(id, tenantId, code, name, parentId, leaderUserId, sort, status, null, null, null, null);
     }
 
     public Department(DepartmentId id, TenantId tenantId, String code, String name, DepartmentId parentId, UserId leaderUserId,
-                      String status, String createdBy, Instant createdAt, String updatedBy,
+                      Integer sort, String status, String createdBy, Instant createdAt, String updatedBy,
                       Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
@@ -50,6 +52,7 @@ public class Department {
         this.name = name;
         this.parentId = parentId;
         this.leaderUserId = leaderUserId;
+        this.sort = sort;
         this.status = status;
         this.createdBy = createdBy;
         this.createdAt = createdAt;

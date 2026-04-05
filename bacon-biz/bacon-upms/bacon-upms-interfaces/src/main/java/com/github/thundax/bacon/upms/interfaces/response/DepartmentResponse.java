@@ -18,11 +18,13 @@ public record DepartmentResponse(
         Long parentId,
         /** 部门负责人用户主键。 */
         String leaderUserId,
+        /** 排序值。 */
+        Integer sort,
         /** 部门状态。 */
         String status) {
 
     public static DepartmentResponse from(DepartmentDTO dto) {
         return new DepartmentResponse(dto.getId(), dto.getTenantId(), dto.getCode(), dto.getName(), dto.getParentId(),
-                dto.getLeaderUserId(), dto.getStatus());
+                dto.getLeaderUserId(), dto.getSort(), dto.getStatus());
     }
 }

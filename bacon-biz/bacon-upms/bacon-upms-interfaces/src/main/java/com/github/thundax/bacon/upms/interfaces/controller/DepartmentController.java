@@ -10,6 +10,7 @@ import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.DepartmentBatchQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.DepartmentCreateRequest;
+import com.github.thundax.bacon.upms.interfaces.dto.DepartmentSortUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.DepartmentUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.response.DepartmentResponse;
 import com.github.thundax.bacon.upms.interfaces.response.DepartmentTreeResponse;
@@ -56,7 +57,7 @@ public class DepartmentController {
     @PostMapping
     public DepartmentResponse createDepartment(@CurrentTenant Long tenantId, @RequestBody DepartmentCreateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.createDepartment(
-                TenantId.of(tenantId), request.code(), request.name(), request.parentId(), request.leaderUserId()));
+                TenantId.of(tenantId), request.code(), request.name(), request.parentId(), request.leaderUserId(), request.sort()));
     }
 
     @Operation(summary = "按部门 ID 查询部门")
@@ -106,7 +107,17 @@ public class DepartmentController {
                                                @RequestBody DepartmentUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartment(
                 TenantId.of(tenantId), departmentId, request.code(), request.name(),
-                request.parentId(), request.leaderUserId()));
+                request.parentId(), request.leaderUserId(), request.sort()));
+    }
+
+    @Operation(summary = "调整部门排序")
+    @HasPermission("sys:department:update")
+    @SysLog(module = "UPMS", action = "调整部门排序", eventType = LogEventType.UPDATE)
+    @PutMapping("/{departmentId}/sort")
+    public DepartmentResponse updateSort(@CurrentTenant Long tenantId, @PathVariable String departmentId,
+                                         @RequestBody DepartmentSortUpdateRequest request) {
+        return DepartmentResponse.from(departmentApplicationService.updateDepartmentSort(
+                TenantId.of(tenantId), departmentId, request.sort()));
     }
 
     @Operation(summary = "删除部门")

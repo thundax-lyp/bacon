@@ -19,6 +19,8 @@ public interface DepartmentRepository {
 
     Department save(Department department);
 
+    Department updateSort(TenantId tenantId, DepartmentId departmentId, Integer sort);
+
     void deleteDepartment(TenantId tenantId, DepartmentId departmentId);
 
     boolean existsChildDepartment(TenantId tenantId, DepartmentId departmentId);

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Comparator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -85,22 +86,24 @@ public class DepartmentApplicationService {
         return departments.stream()
                 .filter(department -> !hasParent(department.getParentId()))
                 .map(department -> treeNodeMap.get(department.getId().value()))
+                .sorted(treeComparator())
                 .toList();
     }
 
     @Transactional
-    public DepartmentDTO createDepartment(TenantId tenantId, String code, String name, String parentId, String leaderUserId) {
+    public DepartmentDTO createDepartment(TenantId tenantId, String code, String name, String parentId, String leaderUserId,
+                                          Integer sort) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         DepartmentId parentDepartmentId = normalizeParentId(parentId);
         validateParent(tenantId, parentDepartmentId);
         return toDto(departmentRepository.save(new Department(ids.departmentId(), tenantId, normalize(code), normalize(name),
-                parentDepartmentId, toUserId(leaderUserId), UpmsStatusEnum.ENABLED.value())));
+                parentDepartmentId, toUserId(leaderUserId), defaultSort(sort), UpmsStatusEnum.ENABLED.value())));
     }
 
     @Transactional
     public DepartmentDTO updateDepartment(TenantId tenantId, String departmentId, String code, String name, String parentId,
-                                          String leaderUserId) {
+                                          String leaderUserId, Integer sort) {
         DepartmentId targetDepartmentId = toDepartmentId(departmentId);
         Department currentDepartment = departmentRepository.findDepartmentById(tenantId, targetDepartmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
@@ -118,11 +121,20 @@ public class DepartmentApplicationService {
                 normalize(name),
                 parentDepartmentId,
                 toUserId(leaderUserId),
+                sort == null ? currentDepartment.getSort() : sort,
                 currentDepartment.getStatus(),
                 currentDepartment.getCreatedBy(),
                 currentDepartment.getCreatedAt(),
                 currentDepartment.getUpdatedBy(),
                 currentDepartment.getUpdatedAt())));
+    }
+
+    @Transactional
+    public DepartmentDTO updateDepartmentSort(TenantId tenantId, String departmentId, Integer sort) {
+        if (sort == null) {
+            throw new IllegalArgumentException("sort must not be null");
+        }
+        return toDto(departmentRepository.updateSort(tenantId, toDepartmentId(departmentId), sort));
     }
 
     @Transactional
@@ -148,7 +160,7 @@ public class DepartmentApplicationService {
                 department.getCode(), department.getName(),
                 department.getParentId() == null ? null : department.getParentId().value(),
                 department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
-                department.getStatus());
+                department.getSort(), department.getStatus());
     }
 
     private DepartmentTreeDTO toTreeDto(Department department) {
@@ -160,7 +172,16 @@ public class DepartmentApplicationService {
                 department.getCode(), department.getName(),
                 department.getParentId() == null ? null : department.getParentId().value(),
                 department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
-                department.getStatus(), new java.util.ArrayList<>());
+                department.getSort(), department.getStatus(), new java.util.ArrayList<>());
+    }
+
+    private Comparator<DepartmentTreeDTO> treeComparator() {
+        return Comparator.comparing(DepartmentTreeDTO::getSort, Comparator.nullsLast(Integer::compareTo))
+                .thenComparing(DepartmentTreeDTO::getId);
+    }
+
+    private Integer defaultSort(Integer sort) {
+        return sort == null ? 0 : sort;
     }
 
     private UserId toUserId(String userId) {

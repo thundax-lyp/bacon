@@ -33,36 +33,36 @@ class BaseIdTypeHandlerTest {
                     return defaultValue(method.getReturnType());
                 });
 
-        handler.setNonNullParameter(preparedStatement, 1, UserId.of("U1001"), null);
+        handler.setNonNullParameter(preparedStatement, 1, UserId.of(1001L), null);
 
-        assertThat(writtenValue.get()).isEqualTo("U1001");
+        assertThat(writtenValue.get()).isEqualTo(1001L);
     }
 
     @Test
     void shouldReadLongIdentifierFromResultSet() throws Exception {
         UserIdTypeHandler handler = new UserIdTypeHandler();
-        ResultSet resultSet = resultSet(Map.of("user_id", "U1001", 1, "U1002"));
-        CallableStatement callableStatement = callableStatement(Map.of(1, "U1003"));
+        ResultSet resultSet = resultSet(Map.of("user_id", 1001L, 1, 1002L));
+        CallableStatement callableStatement = callableStatement(Map.of(1, 1003L));
 
-        assertThat(handler.getNullableResult(resultSet, "user_id")).isEqualTo(UserId.of("U1001"));
-        assertThat(handler.getNullableResult(resultSet, 1)).isEqualTo(UserId.of("U1002"));
-        assertThat(handler.getNullableResult(callableStatement, 1)).isEqualTo(UserId.of("U1003"));
+        assertThat(handler.getNullableResult(resultSet, "user_id")).isEqualTo(UserId.of(1001L));
+        assertThat(handler.getNullableResult(resultSet, 1)).isEqualTo(UserId.of(1002L));
+        assertThat(handler.getNullableResult(callableStatement, 1)).isEqualTo(UserId.of(1003L));
     }
 
     @Test
-    void shouldReadStringIdentifierFromResultSet() throws Exception {
+    void shouldReadTenantIdentifierFromResultSet() throws Exception {
         TenantIdTypeHandler handler = new TenantIdTypeHandler();
-        ResultSet resultSet = resultSet(Map.of("tenant_id", "T001"));
+        ResultSet resultSet = resultSet(Map.of("tenant_id", 1001L));
 
-        assertThat(handler.getNullableResult(resultSet, "tenant_id")).isEqualTo(TenantId.of("T001"));
+        assertThat(handler.getNullableResult(resultSet, "tenant_id")).isEqualTo(TenantId.of(1001L));
     }
 
     @Test
     void shouldReadUserIdentityIdentifierFromResultSet() throws Exception {
         UserIdentityIdTypeHandler handler = new UserIdentityIdTypeHandler();
-        ResultSet resultSet = resultSet(Map.of("identity_id", "I1001"));
+        ResultSet resultSet = resultSet(Map.of("identity_id", 1001L));
 
-        assertThat(handler.getNullableResult(resultSet, "identity_id")).isEqualTo(UserIdentityId.of("I1001"));
+        assertThat(handler.getNullableResult(resultSet, "identity_id")).isEqualTo(UserIdentityId.of(1001L));
     }
 
     @Test
@@ -70,8 +70,8 @@ class BaseIdTypeHandlerTest {
         RoleIdTypeHandler handler = new RoleIdTypeHandler();
         ResultSet resultSet = resultSet(Map.of("role_id", 1001L, 1, "1002"));
 
-        assertThat(handler.getNullableResult(resultSet, "role_id")).isEqualTo(RoleId.of("1001"));
-        assertThat(handler.getNullableResult(resultSet, 1)).isEqualTo(RoleId.of("1002"));
+        assertThat(handler.getNullableResult(resultSet, "role_id")).isEqualTo(RoleId.of(1001L));
+        assertThat(handler.getNullableResult(resultSet, 1)).isEqualTo(RoleId.of(1002L));
     }
 
     private ResultSet resultSet(Map<Object, Object> values) {

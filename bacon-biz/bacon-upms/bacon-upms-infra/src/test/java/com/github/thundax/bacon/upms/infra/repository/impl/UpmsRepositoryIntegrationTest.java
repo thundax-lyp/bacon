@@ -305,7 +305,7 @@ class UpmsRepositoryIntegrationTest {
                 ResourceType.API, "POST", "/users", ResourceStatus.ENABLED));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
-        User user = userRepository.save(new User(null, TENANT_ID, "Alice", StoredObjectId.of("O901"),
+        User user = userRepository.save(new User(null, TENANT_ID, "Alice", StoredObjectId.of(901L),
                 childDepartment.getId(), UserStatus.ENABLED),
                 "alice", "13800000001");
 
@@ -320,7 +320,7 @@ class UpmsRepositoryIntegrationTest {
         User persistedUser = userRepository.findUserByAccount(TENANT_ID, "alice").orElseThrow();
         assertNotNull(persistedUser.getId());
         assertTrue(persistedUser.getId().value().startsWith("U"));
-        assertEquals(StoredObjectId.of("O901"), persistedUser.getAvatarObjectId());
+        assertEquals(StoredObjectId.of(901L), persistedUser.getAvatarObjectId());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice").isPresent());
         assertNotNull(userRepository.findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow().getCredentialValue());
@@ -350,19 +350,19 @@ class UpmsRepositoryIntegrationTest {
                 ROOT_DEPARTMENT_ID, null, 1, "ACTIVE"));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
-        User createdUser = userRepository.save(new User(null, TENANT_ID, "Bob", StoredObjectId.of("O1001"),
+        User createdUser = userRepository.save(new User(null, TENANT_ID, "Bob", StoredObjectId.of(1001L),
                 department.getId(), UserStatus.ENABLED),
                 "bob", "13800000002");
 
         userRepository.assignRoles(TENANT_ID, createdUser.getId(), List.of(role.getId()));
-        User updatedUser = userRepository.save(new User(createdUser.getId(), TENANT_ID, "Bob", StoredObjectId.of("O1002"),
+        User updatedUser = userRepository.save(new User(createdUser.getId(), TENANT_ID, "Bob", StoredObjectId.of(1002L),
                 department.getId(), UserStatus.ENABLED), "bob", "13900000003");
 
         assertFalse(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000002").isPresent());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13900000003").isPresent());
         assertNotNull(userRepository.findUserCredential(TENANT_ID, updatedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow().getCredentialValue());
-        assertEquals(StoredObjectId.of("O1002"),
+        assertEquals(StoredObjectId.of(1002L),
                 userRepository.findUserById(TENANT_ID, updatedUser.getId()).orElseThrow().getAvatarObjectId());
         assertTrue(departmentRepository.existsUserInDepartment(TENANT_ID, department.getId()));
 

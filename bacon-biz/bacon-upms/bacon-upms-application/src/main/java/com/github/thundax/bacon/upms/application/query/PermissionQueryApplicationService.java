@@ -6,9 +6,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
-import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
-import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,14 +17,11 @@ public class PermissionQueryApplicationService {
 
     private final PermissionRepository permissionRepository;
     private final MenuApplicationService menuApplicationService;
-    private final TenantRepository tenantRepository;
 
     public PermissionQueryApplicationService(PermissionRepository permissionRepository,
-                                             MenuApplicationService menuApplicationService,
-                                             TenantRepository tenantRepository) {
+                                             MenuApplicationService menuApplicationService) {
         this.permissionRepository = permissionRepository;
         this.menuApplicationService = menuApplicationService;
-        this.tenantRepository = tenantRepository;
     }
 
     public List<UserMenuTreeDTO> getUserMenuTree(TenantId tenantId, UserId userId) {
@@ -34,16 +29,8 @@ public class PermissionQueryApplicationService {
         return menuApplicationService.toMenuTree(permissionRepository.getUserMenuTree(tenantId, userId));
     }
 
-    public List<UserMenuTreeDTO> getUserMenuTree(String tenantId, String userId) {
-        return getUserMenuTree(requireExistingTenantId(tenantId), UserId.of(userId));
-    }
-
     public Set<String> getUserPermissionCodes(TenantId tenantId, UserId userId) {
         return permissionRepository.getUserPermissionCodes(tenantId, userId);
-    }
-
-    public Set<String> getUserPermissionCodes(String tenantId, String userId) {
-        return getUserPermissionCodes(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
     public UserDataScopeDTO getUserDataScope(TenantId tenantId, UserId userId) {
@@ -55,17 +42,4 @@ public class PermissionQueryApplicationService {
                         .collect(java.util.stream.Collectors.toSet()));
     }
 
-    public UserDataScopeDTO getUserDataScope(String tenantId, String userId) {
-        return getUserDataScope(requireExistingTenantId(tenantId), UserId.of(userId));
-    }
-
-    private TenantId requireExistingTenantId(String tenantId) {
-        if (tenantId == null || tenantId.isBlank()) {
-            throw new IllegalArgumentException("tenantId must not be blank");
-        }
-        String normalizedTenantId = tenantId.trim();
-        return tenantRepository.findTenantByTenantId(TenantId.of(normalizedTenantId))
-                .map(Tenant::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
-    }
 }

@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.provider;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -10,6 +12,7 @@ import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
+import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
@@ -34,15 +37,18 @@ public class UpmsProviderController {
     private final DepartmentApplicationService departmentApplicationService;
     private final RoleApplicationService roleApplicationService;
     private final PermissionQueryApplicationService permissionQueryService;
+    private final TenantApplicationService tenantApplicationService;
 
     public UpmsProviderController(UserApplicationService userApplicationService,
                                   DepartmentApplicationService departmentApplicationService,
                                   RoleApplicationService roleApplicationService,
-                                  PermissionQueryApplicationService permissionQueryService) {
+                                  PermissionQueryApplicationService permissionQueryService,
+                                  TenantApplicationService tenantApplicationService) {
         this.userApplicationService = userApplicationService;
         this.departmentApplicationService = departmentApplicationService;
         this.roleApplicationService = roleApplicationService;
         this.permissionQueryService = permissionQueryService;
+        this.tenantApplicationService = tenantApplicationService;
     }
 
     @Operation(summary = "按用户 ID 查询用户")
@@ -115,18 +121,25 @@ public class UpmsProviderController {
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
     public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") String tenantId, @RequestParam("userId") String userId) {
-        return permissionQueryService.getUserMenuTree(tenantId, userId);
+        return permissionQueryService.getUserMenuTree(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
     public Set<String> getUserPermissionCodes(@RequestParam("tenantId") String tenantId, @RequestParam("userId") String userId) {
-        return permissionQueryService.getUserPermissionCodes(tenantId, userId);
+        return permissionQueryService.getUserPermissionCodes(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @GetMapping("/permissions/data-scope")
     public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") String tenantId, @RequestParam("userId") String userId) {
-        return permissionQueryService.getUserDataScope(tenantId, userId);
+        return permissionQueryService.getUserDataScope(requireExistingTenantId(tenantId), UserId.of(userId));
+    }
+
+    private TenantId requireExistingTenantId(String tenantId) {
+        if (tenantId == null || tenantId.isBlank()) {
+            throw new IllegalArgumentException("tenantId must not be blank");
+        }
+        return tenantApplicationService.getTenantByTenantId(tenantId.trim()).getId();
     }
 }

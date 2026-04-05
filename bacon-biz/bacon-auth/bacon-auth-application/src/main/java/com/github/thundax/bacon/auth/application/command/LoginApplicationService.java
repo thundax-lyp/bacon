@@ -10,8 +10,9 @@ import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
-import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
+import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,14 +54,14 @@ public class LoginApplicationService {
     }
 
     public UserLoginDTO loginByPassword(PasswordLoginCommand command) {
-        String tenantId = normalizeTenantId(command.getTenantId());
+        TenantId tenantId = normalizeTenantId(command.getTenantId());
         // 密码登录按“校验验证码 -> 解密密码 -> 查询凭据 -> 校验状态和口令”的顺序执行，
         // 这样既避免无意义的凭据查询，也保证明文密码只在内存里短暂存在。
         loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
         String plainPassword = loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
         UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(tenantId, "ACCOUNT", command.getAccount());
         validatePasswordLoginCredential(credential, plainPassword);
-        return createLoginSession(tenantId, credential.getUserId(), credential.getIdentityValue(),
+        return createLoginSession(String.valueOf(tenantId.value()), String.valueOf(credential.getUserId()), credential.getIdentityValue(),
                 credential.getIdentityType(), "PASSWORD", credential.isNeedChangePassword());
     }
 
@@ -83,7 +84,7 @@ public class LoginApplicationService {
         if (!"ACTIVE".equals(credential.getIdentityStatus())) {
             throw new BadRequestException("Current account is disabled");
         }
-        if (!UpmsStatusEnum.ENABLED.matches(credential.getStatus())) {
+        if (!EnableStatusEnum.ENABLED.matches(credential.getStatus())) {
             throw new BadRequestException("Current user is not enabled");
         }
         if (!"ACTIVE".equals(credential.getCredentialStatus())) {
@@ -119,10 +120,10 @@ public class LoginApplicationService {
                 userId, tenantId, needChangePassword);
     }
 
-    private String normalizeTenantId(String tenantId) {
+    private TenantId normalizeTenantId(String tenantId) {
         if (tenantId == null || tenantId.isBlank()) {
             throw new BadRequestException("tenantId must not be blank");
         }
-        return tenantId.trim();
+        return TenantId.of(tenantId.trim());
     }
 }

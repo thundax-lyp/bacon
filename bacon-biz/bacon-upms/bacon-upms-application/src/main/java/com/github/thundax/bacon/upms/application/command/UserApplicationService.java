@@ -305,14 +305,15 @@ public class UserApplicationService {
         User currentUser = requireUser(tenantId, UserId.of(userId));
         AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
         StoredObjectDTO storedObject = uploadAvatarObject(tenantId, avatarImage);
-        storedObjectFacade.markObjectReferenced(storedObject.getId(), USER_AVATAR_OWNER_TYPE, userId);
+        StoredObjectId storedObjectId = storedObject.getId();
+        storedObjectFacade.markObjectReferenced(storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, userId);
         StoredObjectId previousAvatarObjectId = currentUser.getAvatarObjectId();
         try {
             User savedUser = userRepository.save(new User(
                     currentUser.getId(),
                     currentUser.getTenantId(),
                     currentUser.getName(),
-                    StoredObjectId.of(storedObject.getId()),
+                    storedObjectId,
                     currentUser.getDepartmentId(),
                     currentUser.getStatus(),
                     currentUser.getCreatedBy(),
@@ -321,13 +322,13 @@ public class UserApplicationService {
                     currentUser.getUpdatedAt()),
                     requireIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.ACCOUNT),
                     resolveIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.PHONE));
-            if (previousAvatarObjectId != null && !previousAvatarObjectId.externalValue().equals(storedObject.getId())) {
+            if (previousAvatarObjectId != null && !previousAvatarObjectId.equals(storedObjectId)) {
                 storedObjectFacade.clearObjectReference(previousAvatarObjectId.externalValue(), USER_AVATAR_OWNER_TYPE,
                         userId);
             }
             return toDto(savedUser, storedObject.getAccessEndpoint(), savedUser.getTenantId().value());
         } catch (RuntimeException ex) {
-            storedObjectFacade.clearObjectReference(storedObject.getId(), USER_AVATAR_OWNER_TYPE, userId);
+            storedObjectFacade.clearObjectReference(storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, userId);
             throw ex;
         }
     }

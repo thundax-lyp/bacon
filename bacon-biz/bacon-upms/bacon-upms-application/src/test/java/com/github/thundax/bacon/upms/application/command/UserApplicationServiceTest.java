@@ -82,14 +82,14 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldUploadAvatarToStorageAndReplaceOldReference() throws Exception {
-        User currentUser = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of("O301"),
+        User currentUser = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of(301L),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
-        User savedUser = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of("O401"),
+        User savedUser = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of(401L),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
-        storedObject.setId("O401");
+        storedObject.setId(StoredObjectId.of(401L));
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
 
         when(userRepository.findUserById(TENANT_ID, UserId.of(101L))).thenReturn(Optional.of(currentUser));
@@ -106,7 +106,7 @@ class UserApplicationServiceTest {
                 org.mockito.ArgumentMatchers.eq("13800000001"));
         verify(storedObjectFacade).markObjectReferenced("O401", "UPMS_USER_AVATAR", "101");
         verify(storedObjectFacade).clearObjectReference("O301", "UPMS_USER_AVATAR", "101");
-        assertThat(userCaptor.getValue().getAvatarObjectId()).isEqualTo(StoredObjectId.of("O401"));
+        assertThat(userCaptor.getValue().getAvatarObjectId()).isEqualTo(StoredObjectId.of(401L));
         assertThat(result.getAvatarObjectId()).isEqualTo(401L);
         assertThat(result.getId()).isEqualTo(101L);
         assertThat(result.getAvatarUrl()).isEqualTo("https://cdn.example.com/avatar/401.png");
@@ -141,7 +141,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
-        User user = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of("O501"),
+        User user = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of(501L),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.pageUsers(TENANT_ID, null, null, null, null, 1, 20)).thenReturn(List.of(user));
@@ -160,7 +160,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldClearAvatarReferenceWhenDeletingUser() {
-        User user = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of("O501"),
+        User user = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of(501L),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         when(userRepository.findUserById(TENANT_ID, UserId.of(101L))).thenReturn(Optional.of(user));
@@ -174,7 +174,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldResolveAvatarAccessUrl() {
-        User user = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of("O501"),
+        User user = new User(UserId.of(101L), TENANT_ID, "Alice", StoredObjectId.of(501L),
                 DEPARTMENT_ID,
                 UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();

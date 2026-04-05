@@ -206,7 +206,7 @@ class MultipartUploadApplicationServiceTest {
         var dto = service.completeMultipartUpload(new CompleteMultipartUploadCommand("upload-4",
                 "GENERIC_ATTACHMENT", "owner-1", "tenant-a"));
 
-        assertEquals("O100", dto.getId());
+        assertEquals(StoredObjectId.of(100L), dto.getId());
         verify(multipartUploadPartRepository).deleteByUploadId("upload-4");
     }
 }

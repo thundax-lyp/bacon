@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.interfaces.provider;
 
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
@@ -53,7 +54,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeUploadProviderPath() throws Exception {
-        StoredObjectDTO dto = new StoredObjectDTO("O1", "LOCAL_FILE", "default", "attachment/a.txt", "a.txt",
+        StoredObjectDTO dto = new StoredObjectDTO(StoredObjectId.of(1L), "LOCAL_FILE", "default", "attachment/a.txt", "a.txt",
                 "text/plain", 3L, "/files/attachment/a.txt", "ACTIVE", "UNREFERENCED",
                 Instant.parse("2026-03-27T10:00:00Z"));
         when(storedObjectFacade.uploadObject(any())).thenReturn(dto);
@@ -67,7 +68,7 @@ class StorageProviderControllerContractTest {
                         .param("tenantId", "tenant-a")
                         .param("category", "attachment"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("O1"))
+                .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -115,7 +116,7 @@ class StorageProviderControllerContractTest {
     @Test
     void shouldExposeMultipartCompletePath() throws Exception {
         when(storedObjectFacade.completeMultipartUpload(any())).thenReturn(new StoredObjectDTO(
-                "O2", "OSS", "bucket", "attachment/a.txt", "a.txt", "text/plain", 1024L,
+                StoredObjectId.of(2L), "OSS", "bucket", "attachment/a.txt", "a.txt", "text/plain", 1024L,
                 "http://test/attachment/a.txt", "ACTIVE", "UNREFERENCED", Instant.parse("2026-03-27T10:00:00Z")));
 
         mockMvc.perform(post("/providers/storage/objects/multipart/{uploadId}/complete", "upload-1")
@@ -124,7 +125,7 @@ class StorageProviderControllerContractTest {
                         .param("ownerId", "owner-1")
                         .param("tenantId", "tenant-a"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("O2"))
+                .andExpect(jsonPath("$.id").value(2))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -149,13 +150,13 @@ class StorageProviderControllerContractTest {
                 .addInterceptors(providerGuardInterceptor())
                 .build();
         when(storedObjectQueryApplicationService.getObjectById("O100")).thenReturn(new StoredObjectDTO(
-                "O100", "LOCAL_FILE", "default", "attachment/a.txt", "a.txt", "text/plain", 3L,
+                StoredObjectId.of(100L), "LOCAL_FILE", "default", "attachment/a.txt", "a.txt", "text/plain", 3L,
                 "/files/attachment/a.txt", "ACTIVE", "UNREFERENCED", Instant.parse("2026-03-27T10:00:00Z")));
 
         mockMvc.perform(get("/providers/storage/objects/{objectId}", "O100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("O100"))
+                .andExpect(jsonPath("$.id").value(100))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -168,7 +169,7 @@ class StorageProviderControllerContractTest {
                 .addInterceptors(providerGuardInterceptor())
                 .build();
         when(storedObjectQueryApplicationService.pageObjects(any())).thenReturn(new StoredObjectPageResultDTO(
-                java.util.List.of(new StoredObjectDTO("O101", "LOCAL_FILE", "default", "attachment/e.txt", "e.txt",
+                java.util.List.of(new StoredObjectDTO(StoredObjectId.of(101L), "LOCAL_FILE", "default", "attachment/e.txt", "e.txt",
                         "text/plain", 5L, "/files/attachment/e.txt", "ACTIVE", "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z"))), 1L, 1, 20));
 
@@ -180,7 +181,7 @@ class StorageProviderControllerContractTest {
                 .param("pageSize", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1))
-                .andExpect(jsonPath("$.records[0].id").value("O101"))
+                .andExpect(jsonPath("$.records[0].id").value(101))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 

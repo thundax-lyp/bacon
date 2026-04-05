@@ -18,7 +18,8 @@ public record StoredObjectResponse(
         Instant createdAt) {
 
     public static StoredObjectResponse from(StoredObjectDTO dto) {
-        return new StoredObjectResponse(dto.getId(), dto.getStorageType(), dto.getBucketName(), dto.getObjectKey(),
+        return new StoredObjectResponse(dto.getId() == null ? null : dto.getId().externalValue(),
+                dto.getStorageType(), dto.getBucketName(), dto.getObjectKey(),
                 dto.getOriginalFilename(), dto.getContentType(), dto.getSize(), dto.getAccessEndpoint(),
                 dto.getObjectStatus(), dto.getReferenceStatus(), dto.getCreatedAt());
     }

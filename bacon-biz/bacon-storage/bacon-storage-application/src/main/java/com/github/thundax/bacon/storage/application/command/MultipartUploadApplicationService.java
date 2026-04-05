@@ -113,7 +113,7 @@ public class MultipartUploadApplicationService {
         multipartUploadPartRepository.deleteByUploadId(command.getUploadId());
         storageAuditApplicationService.record(savedObject.getTenantId(), savedObject.getId(), session.getOwnerType(),
                 command.getOwnerId(), StorageAuditActionType.UPLOAD, null, savedObject.getObjectStatus().value());
-        return new StoredObjectDTO(savedObject.getId() == null ? null : savedObject.getId().externalValue(),
+        return new StoredObjectDTO(savedObject.getId(),
                 savedObject.getStorageType() == null ? null : savedObject.getStorageType().value(), savedObject.getBucketName(),
                 savedObject.getObjectKey(), savedObject.getOriginalFilename(), savedObject.getContentType(),
                 savedObject.getSize(), savedObject.getAccessEndpoint(), savedObject.getObjectStatus().value(),

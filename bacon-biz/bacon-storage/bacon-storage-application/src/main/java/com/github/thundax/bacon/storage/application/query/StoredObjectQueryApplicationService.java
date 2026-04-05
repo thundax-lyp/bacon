@@ -49,7 +49,7 @@ public class StoredObjectQueryApplicationService {
     }
 
     private StoredObjectDTO toDto(StoredObject storedObject) {
-        return new StoredObjectDTO(storedObject.getId() == null ? null : storedObject.getId().externalValue(),
+        return new StoredObjectDTO(storedObject.getId(),
                 storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
                 storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),

@@ -3,6 +3,7 @@ package com.github.thundax.bacon.storage.interfaces.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
@@ -44,7 +45,7 @@ class StorageControllerContractTest {
     @Test
     void shouldWrapPageObjectsForAdminFrontend() throws Exception {
         when(storedObjectQueryApplicationService.pageObjects(any())).thenReturn(new StoredObjectPageResultDTO(
-                List.of(new StoredObjectDTO("O101", "LOCAL_FILE", "default", "attachment/e.txt", "e.txt",
+                List.of(new StoredObjectDTO(StoredObjectId.of(101L), "LOCAL_FILE", "default", "attachment/e.txt", "e.txt",
                         "text/plain", 5L, "/files/attachment/e.txt", "ACTIVE", "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z"))), 1L, 1, 20));
 
@@ -62,7 +63,7 @@ class StorageControllerContractTest {
     @Test
     void shouldWrapGetObjectForAdminFrontend() throws Exception {
         when(storedObjectQueryApplicationService.getObjectById("O100")).thenReturn(new StoredObjectDTO(
-                "O100", "LOCAL_FILE", "default", "attachment/a.txt", "a.txt", "text/plain", 3L,
+                StoredObjectId.of(100L), "LOCAL_FILE", "default", "attachment/a.txt", "a.txt", "text/plain", 3L,
                 "/files/attachment/a.txt", "ACTIVE", "UNREFERENCED", Instant.parse("2026-03-27T10:00:00Z")));
 
         mockMvc.perform(get("/api/storage/objects/{objectId}", "O100"))

@@ -158,7 +158,7 @@ public class Order {
     }
 
     public String getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
+        return tenantId == null ? null : String.valueOf(tenantId.value());
     }
 
     public String getOrderNoValue() {

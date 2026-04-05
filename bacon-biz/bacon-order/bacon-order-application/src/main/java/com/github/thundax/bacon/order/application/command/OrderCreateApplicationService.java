@@ -92,11 +92,11 @@ public class OrderCreateApplicationService {
     }
 
     private Long toOrderIdValue(Order order) {
-        return order.getId() == null ? null : Long.valueOf(order.getId().value());
+        return order.getId() == null ? null : order.getId().value();
     }
 
     private String toStringOrderIdValue(Order order) {
-        return order.getId() == null ? null : order.getId().value();
+        return order.getId() == null ? null : String.valueOf(order.getId().value());
     }
 
     private Long toTenantIdValue(Order order) {

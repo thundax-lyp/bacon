@@ -38,11 +38,11 @@ public record OrderPaymentSnapshot(
 ) {
 
     public Long tenantIdValue() {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+        return tenantId == null ? null : tenantId.value();
     }
 
     public Long orderIdValue() {
-        return orderId == null ? null : Long.valueOf(orderId.value());
+        return orderId == null ? null : orderId.value();
     }
 
     public String paymentNoValue() {

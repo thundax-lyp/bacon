@@ -308,7 +308,7 @@ class OrderCreateApplicationServiceTest {
         @Override
         public Order save(Order order) {
             if (order.getId() == null) {
-                order.setId(OrderId.of(String.valueOf(idGenerator.getAndIncrement())));
+                order.setId(OrderId.of(idGenerator.getAndIncrement()));
             }
             storage.put(toOrderIdValue(order), order);
             return order;
@@ -419,7 +419,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         private Long toOrderIdValue(Order order) {
-            return order.getId() == null ? null : Long.valueOf(order.getId().value());
+            return order.getId() == null ? null : order.getId().value();
         }
 
         private Long toUserIdValue(Order order) {
@@ -485,7 +485,7 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public PaymentCloseResultDTO closePayment(Long tenantId, String paymentNo, String reason) {
-            return new PaymentCloseResultDTO(tenantId, paymentNo, null, "CLOSED", "SUCCESS", reason, null);
+            return new PaymentCloseResultDTO(String.valueOf(tenantId), paymentNo, null, "CLOSED", "SUCCESS", reason, null);
         }
     }
 

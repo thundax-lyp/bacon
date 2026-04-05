@@ -58,11 +58,11 @@ public class OrderOutboxDeadLetter {
     }
 
     public Long getTenantIdValue() {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+        return tenantId == null ? null : tenantId.value();
     }
 
     public String getTenantIdRawValue() {
-        return tenantId == null ? null : tenantId.value();
+        return tenantId == null ? null : String.valueOf(tenantId.value());
     }
 
     public String getOrderNoValue() {

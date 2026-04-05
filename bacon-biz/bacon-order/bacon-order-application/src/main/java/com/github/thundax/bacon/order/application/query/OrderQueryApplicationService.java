@@ -111,11 +111,11 @@ public class OrderQueryApplicationService {
     }
 
     private Long toOrderIdValue(Order order) {
-        return order.getId() == null ? null : Long.valueOf(order.getId().value());
+        return order.getId() == null ? null : order.getId().value();
     }
 
     private String toStringOrderIdValue(Order order) {
-        return order.getId() == null ? null : order.getId().value();
+        return order.getId() == null ? null : String.valueOf(order.getId().value());
     }
 
     private Long toLongTenantIdValue(Order order) {
@@ -131,7 +131,7 @@ public class OrderQueryApplicationService {
     }
 
     private String toStringUserIdValue(Order order) {
-        return order.getUserId() == null ? null : order.getUserId().value();
+        return order.getUserId() == null ? null : String.valueOf(order.getUserId().value());
     }
 
     private Long toLongValue(String value) {

@@ -316,7 +316,7 @@ public class OrderRepositorySupport {
     }
 
     private String toDatabaseOrderId(OrderId orderId) {
-        return orderId == null ? null : orderId.value();
+        return orderId == null ? null : String.valueOf(orderId.value());
     }
 
     private OrderId toDomainOrderId(String orderId) {
@@ -324,7 +324,7 @@ public class OrderRepositorySupport {
     }
 
     private OrderId toDomainOrderId(Long orderId) {
-        return orderId == null ? null : OrderId.of(String.valueOf(orderId));
+        return orderId == null ? null : OrderId.of(orderId);
     }
 
     private Long toDatabaseTenantId(TenantId tenantId) {
@@ -368,7 +368,7 @@ public class OrderRepositorySupport {
     }
 
     private String toDatabaseOrderTenantId(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
+        return tenantId == null ? null : String.valueOf(tenantId.value());
     }
 
     private String toDatabaseOrderTenantId(Long tenantId) {
@@ -384,7 +384,7 @@ public class OrderRepositorySupport {
     }
 
     private String toDatabaseOrderUserId(UserId userId) {
-        return userId == null ? null : userId.value();
+        return userId == null ? null : String.valueOf(userId.value());
     }
 
     private String toDatabaseOrderUserId(Long userId) {
@@ -474,7 +474,7 @@ public class OrderRepositorySupport {
     }
 
     private String toDatabaseAuditTenantId(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
+        return tenantId == null ? null : String.valueOf(tenantId.value());
     }
 
     private String toDatabaseAuditTenantId(Long tenantId) {

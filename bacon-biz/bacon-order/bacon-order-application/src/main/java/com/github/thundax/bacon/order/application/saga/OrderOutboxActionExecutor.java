@@ -148,7 +148,7 @@ public class OrderOutboxActionExecutor {
     }
 
     private Long toOrderIdValue(Order order) {
-        return order.getId() == null ? null : Long.valueOf(order.getId().value());
+        return order.getId() == null ? null : order.getId().value();
     }
 
     private Long toTenantIdValue(Order order) {

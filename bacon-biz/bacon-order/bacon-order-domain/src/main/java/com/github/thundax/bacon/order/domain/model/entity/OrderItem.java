@@ -42,11 +42,11 @@ public class OrderItem {
     }
 
     public Long getTenantIdValue() {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+        return tenantId == null ? null : tenantId.value();
     }
 
     public Long getOrderIdValue() {
-        return orderId == null ? null : Long.valueOf(orderId.value());
+        return orderId == null ? null : orderId.value();
     }
 
     public Long getSkuIdValue() {

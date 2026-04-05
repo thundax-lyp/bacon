@@ -213,7 +213,7 @@ public class OrderOutboxRepositorySupport {
     }
 
     private String toDatabaseTenantId(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
+        return tenantId == null ? null : String.valueOf(tenantId.value());
     }
 
     private TenantId toDomainTenantId(String tenantId) {

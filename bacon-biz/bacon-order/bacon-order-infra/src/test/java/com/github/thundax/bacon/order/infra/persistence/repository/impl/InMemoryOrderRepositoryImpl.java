@@ -34,7 +34,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     @Override
     public Order save(Order order) {
         if (order.getId() == null) {
-            order.setId(OrderId.of(String.valueOf(idGenerator.getAndIncrement())));
+            order.setId(OrderId.of(idGenerator.getAndIncrement()));
         }
         storage.put(toOrderIdValue(order), order);
         return order;
@@ -148,7 +148,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     private Long toOrderIdValue(Order order) {
-        return order.getId() == null ? null : Long.valueOf(order.getId().value());
+        return order.getId() == null ? null : order.getId().value();
     }
 
     private Long toUserIdValue(Order order) {

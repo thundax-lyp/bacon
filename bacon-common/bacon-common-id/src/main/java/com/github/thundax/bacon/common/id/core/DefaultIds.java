@@ -74,7 +74,7 @@ public class DefaultIds implements Ids {
 
     @Override
     public OrderId orderId() {
-        return OrderId.of(String.valueOf(idGenerator.nextId(ORDER_ID_BIZ_TAG)));
+        return OrderId.of(idGenerator.nextId(ORDER_ID_BIZ_TAG));
     }
 
     @Override

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PasswordLoginCommand {
 
-    private String tenantId;
+    private Long tenantId;
     private String account;
     private String password;
     private String rsaKeyId;

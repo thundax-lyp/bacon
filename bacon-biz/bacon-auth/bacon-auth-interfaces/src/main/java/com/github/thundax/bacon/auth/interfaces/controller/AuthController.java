@@ -61,7 +61,7 @@ public class AuthController {
     @PostMapping("/login/password")
     public UserLoginResponse passwordLogin(@Valid @RequestBody PasswordLoginRequest request) {
         return UserLoginResponse.from(loginApplicationService.loginByPassword(new PasswordLoginCommand(
-                request.getTenantId(), request.getAccount(), request.getPassword(), request.getRsaKeyId(),
+                Long.parseLong(request.getTenantId().trim()), request.getAccount(), request.getPassword(), request.getRsaKeyId(),
                 request.getCaptchaKey(), request.getCaptchaCode())));
     }
 

@@ -120,10 +120,10 @@ public class LoginApplicationService {
                 userId, tenantId, needChangePassword);
     }
 
-    private TenantId normalizeTenantId(String tenantId) {
-        if (tenantId == null || tenantId.isBlank()) {
-            throw new BadRequestException("tenantId must not be blank");
+    private TenantId normalizeTenantId(Long tenantId) {
+        if (tenantId == null) {
+            throw new BadRequestException("tenantId must not be null");
         }
-        return TenantId.of(tenantId.trim());
+        return TenantId.of(tenantId);
     }
 }

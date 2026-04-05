@@ -13,8 +13,4 @@ public final class OrderId extends BaseLongId {
     public static OrderId of(Long value) {
         return new OrderId(value);
     }
-
-    public static OrderId of(String value) {
-        return value == null ? null : of(Long.valueOf(value));
-    }
 }

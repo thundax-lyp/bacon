@@ -44,11 +44,11 @@ public class SysLogRecord {
     /** 事件发生时间。 */
     private Instant occurredAt;
     /** 创建人。 */
-    private String createdBy;
+    private Long createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 最后更新人。 */
-    private String updatedBy;
+    private Long updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -63,8 +63,8 @@ public class SysLogRecord {
     public SysLogRecord(Long id, String tenantId, String traceId, String requestId, String module,
                         String action, String eventType, String result, UserId operatorId, String operatorName,
                         String clientIp, String requestUri, String httpMethod, Long costMs,
-                        String errorMessage, Instant occurredAt, String createdBy, Instant createdAt,
-                        String updatedBy, Instant updatedAt) {
+                        String errorMessage, Instant occurredAt, Long createdBy, Instant createdAt,
+                        Long updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.traceId = traceId;

@@ -568,9 +568,9 @@
 | `tenant_id` | `varchar(64)` | N | 租户主键，引用 `bacon_upms_tenant.tenant_id` |
 | `role_id` | `varchar(64)` | N | 角色主键，固定使用 `RoleId` |
 | `data_scope_type` | `varchar(32)` | N | 数据范围类型，取值见 `data_scope_type` |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -714,9 +714,9 @@
 | `cost_ms` | `bigint` | Y | 访问耗时毫秒 |
 | `error_message` | `varchar(1000)` | Y | 失败原因摘要 |
 | `occurred_at` | `datetime(3)` | N | 事件发生时间 |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：

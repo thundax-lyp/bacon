@@ -26,7 +26,7 @@ public class ResourceApplicationService {
     public ResourcePageResultDTO pageResources(ResourcePageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String tenantIdValue = String.valueOf(query.getTenantId().value());
+        Long tenantIdValue = query.getTenantId().value();
         return new ResourcePageResultDTO(
                 resourceRepository.pageResources(query.getTenantId(), query.getCode(), query.getName(),
                         query.getResourceType(), query.getStatus(), pageNo, pageSize).stream()
@@ -89,11 +89,11 @@ public class ResourceApplicationService {
     }
 
     private ResourceDTO toDto(Resource resource) {
-        return toDto(resource, String.valueOf(resource.getTenantId().value()));
+        return toDto(resource, resource.getTenantId().value());
     }
 
-    private ResourceDTO toDto(Resource resource, String tenantIdValue) {
-        return new ResourceDTO(resource.getId() == null ? null : String.valueOf(resource.getId().value()), tenantIdValue, resource.getCode(),
+    private ResourceDTO toDto(Resource resource, Long tenantIdValue) {
+        return new ResourceDTO(resource.getId() == null ? null : resource.getId().value(), tenantIdValue, resource.getCode(),
                 resource.getName(),
                 resource.getResourceType() == null ? null : resource.getResourceType().value(),
                 resource.getHttpMethod(), resource.getUri(),

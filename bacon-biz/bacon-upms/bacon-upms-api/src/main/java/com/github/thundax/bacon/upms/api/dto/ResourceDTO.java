@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 public class ResourceDTO {
 
     /** 资源主键。 */
-    private String id;
+    private Long id;
     /** 所属租户编号。 */
-    private String tenantId;
+    private Long tenantId;
     /** 资源编码。 */
     private String code;
     /** 资源名称。 */

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
@@ -27,34 +26,34 @@ public class DepartmentReadFacadeLocalImpl implements DepartmentReadFacade {
     }
 
     @Override
-    public DepartmentDTO getDepartmentById(String tenantId, String departmentId) {
+    public DepartmentDTO getDepartmentById(Long tenantId, Long departmentId) {
         return departmentApplicationService.getDepartmentById(requireExistingTenantId(tenantId), toDepartmentId(departmentId));
     }
 
     @Override
-    public DepartmentDTO getDepartmentByCode(String tenantId, String departmentCode) {
+    public DepartmentDTO getDepartmentByCode(Long tenantId, String departmentCode) {
         return departmentApplicationService.getDepartmentByCode(requireExistingTenantId(tenantId), departmentCode);
     }
 
     @Override
-    public List<DepartmentDTO> listDepartmentsByIds(String tenantId, Set<String> departmentIds) {
+    public List<DepartmentDTO> listDepartmentsByIds(Long tenantId, Set<Long> departmentIds) {
         Set<DepartmentId> resolvedDepartmentIds = departmentIds == null ? Set.of() : departmentIds.stream()
                 .map(this::toDepartmentId)
-                .collect(Collectors.toSet());
+                .collect(java.util.stream.Collectors.toSet());
         return departmentApplicationService.listDepartmentsByIds(requireExistingTenantId(tenantId), resolvedDepartmentIds);
     }
 
-    private TenantId requireExistingTenantId(String tenantId) {
-        if (tenantId == null || tenantId.isBlank()) {
-            throw new IllegalArgumentException("tenantId must not be blank");
+    private TenantId requireExistingTenantId(Long tenantId) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("tenantId must not be null");
         }
-        return tenantApplicationService.getTenantByTenantId(tenantId.trim()).getId();
+        return tenantApplicationService.getTenantByTenantId(TenantId.of(tenantId)).getId();
     }
 
-    private DepartmentId toDepartmentId(String departmentId) {
-        if (departmentId == null || departmentId.isBlank()) {
-            throw new IllegalArgumentException("departmentId must not be blank");
+    private DepartmentId toDepartmentId(Long departmentId) {
+        if (departmentId == null) {
+            throw new IllegalArgumentException("departmentId must not be null");
         }
-        return DepartmentId.of(Long.parseLong(departmentId.trim()));
+        return DepartmentId.of(departmentId);
     }
 }

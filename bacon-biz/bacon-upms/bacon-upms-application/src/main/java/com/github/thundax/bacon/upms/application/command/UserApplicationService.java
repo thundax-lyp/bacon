@@ -17,7 +17,7 @@ import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageResultDTO;
-import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
+import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -179,7 +179,7 @@ public class UserApplicationService {
     }
 
     @Transactional
-    public UserDTO updateUserStatus(TenantId tenantId, String userId, UpmsStatusEnum status) {
+    public UserDTO updateUserStatus(TenantId tenantId, String userId, EnableStatusEnum status) {
         UserId domainUserId = UserId.of(userId);
         User currentUser = requireUser(tenantId, domainUserId);
         if (status == null) {
@@ -516,7 +516,7 @@ public class UserApplicationService {
         return contentType == null ? "" : contentType.trim().toLowerCase(Locale.ROOT);
     }
 
-    private UserStatus toDomainStatus(UpmsStatusEnum status) {
+    private UserStatus toDomainStatus(EnableStatusEnum status) {
         return UserStatus.valueOf(status.name());
     }
 

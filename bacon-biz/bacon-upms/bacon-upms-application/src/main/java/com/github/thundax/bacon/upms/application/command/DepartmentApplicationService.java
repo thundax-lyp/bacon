@@ -6,7 +6,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
-import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
+import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
@@ -165,8 +165,8 @@ public class DepartmentApplicationService {
         return sort == null ? 0 : sort;
     }
 
-    private UpmsStatusEnum toStatusEnum(DepartmentStatus status) {
-        return status == null ? null : UpmsStatusEnum.valueOf(status.name());
+    private EnableStatusEnum toStatusEnum(DepartmentStatus status) {
+        return status == null ? null : EnableStatusEnum.valueOf(status.name());
     }
 
     private UserId toUserId(String userId) {

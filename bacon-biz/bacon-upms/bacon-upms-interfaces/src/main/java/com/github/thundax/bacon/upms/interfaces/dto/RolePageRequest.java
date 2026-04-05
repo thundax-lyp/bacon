@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
+import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ public class RolePageRequest {
     private String code;
     private String name;
     private UpmsRoleTypeQueryEnum roleType;
-    private UpmsStatusEnum status;
+    private EnableStatusEnum status;
 
     @Min(1)
     private Integer pageNo;

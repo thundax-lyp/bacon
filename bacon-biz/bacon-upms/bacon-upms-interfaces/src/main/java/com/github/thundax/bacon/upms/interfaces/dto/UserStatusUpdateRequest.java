@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
+import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 
-public record UserStatusUpdateRequest(String tenantId, UpmsStatusEnum status) {
+public record UserStatusUpdateRequest(String tenantId, EnableStatusEnum status) {
 }

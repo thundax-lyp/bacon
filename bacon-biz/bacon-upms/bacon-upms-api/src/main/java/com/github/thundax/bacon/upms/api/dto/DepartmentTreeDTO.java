@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.api.dto;
 
-import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
+import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +29,7 @@ public class DepartmentTreeDTO {
     /** 排序值。 */
     private Integer sort;
     /** 部门状态。 */
-    private UpmsStatusEnum status;
+    private EnableStatusEnum status;
     /** 子部门列表。 */
     private List<DepartmentTreeDTO> children;
 }

@@ -99,8 +99,10 @@
 
 ## 6. Common Field Rules
 
-- `created_by`、`updated_by` 的类型统一使用 `bigint`
-- 如审计人或操作人字段明确复用文本型统一 ID，可在业务域数据库设计文档中显式声明使用 `varchar`
+- `created_by`、`updated_by` 的类型统一使用 `varchar(64)`
+- `created_by`、`updated_by` 表达“操作者身份标识”，不强制等同于站内用户主键
+- 面向开放平台、系统任务、外部应用或跨域调用的场景，允许写入如 `user:1001`、`app:demo`、`system:job` 等稳定身份标识
+- 如某业务域确实需要单独保存站内用户主键，应新增语义明确的字段，例如 `operator_user_id`
 - `deleted` 的类型统一使用 `tinyint(1)`
 - 使用领域时间字段的表，不再额外重复声明 `created_at` / `updated_at`
 - 运行态表是否需要 `updated_at`，取决于该表是否存在持续更新语义

@@ -9,10 +9,10 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
-import com.github.thundax.bacon.upms.api.dto.UserPageResultDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
@@ -149,7 +149,7 @@ class UserApplicationServiceTest {
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
 
-        UserPageResultDTO result = service.pageUsers(new UserPageQueryDTO(TENANT_ID, null, null, null, null, 1, 20));
+        PageResultDTO<UserDTO> result = service.pageUsers(new UserPageQueryDTO(TENANT_ID, null, null, null, null, 1, 20));
 
         assertThat(result.getRecords()).hasSize(1);
         assertThat(result.getRecords().get(0).getTenantId()).isEqualTo("1001");

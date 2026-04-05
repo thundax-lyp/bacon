@@ -3,9 +3,9 @@ package com.github.thundax.bacon.upms.application.command;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
-import com.github.thundax.bacon.upms.api.dto.ResourcePageResultDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
@@ -23,11 +23,11 @@ public class ResourceApplicationService {
         this.resourceRepository = resourceRepository;
     }
 
-    public ResourcePageResultDTO pageResources(ResourcePageQueryDTO query) {
+    public PageResultDTO<ResourceDTO> pageResources(ResourcePageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         Long tenantIdValue = query.getTenantId().value();
-        return new ResourcePageResultDTO(
+        return new PageResultDTO<>(
                 resourceRepository.pageResources(query.getTenantId(), query.getCode(), query.getName(),
                         query.getResourceType(), query.getStatus(), pageNo, pageSize).stream()
                         .map(resource -> toDto(resource, tenantIdValue))

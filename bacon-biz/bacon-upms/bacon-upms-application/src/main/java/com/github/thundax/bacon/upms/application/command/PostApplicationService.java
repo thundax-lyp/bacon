@@ -5,9 +5,9 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
-import com.github.thundax.bacon.upms.api.dto.PostPageResultDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
@@ -26,11 +26,11 @@ public class PostApplicationService {
         this.ids = ids;
     }
 
-    public PostPageResultDTO pagePosts(PostPageQueryDTO query) {
+    public PageResultDTO<PostDTO> pagePosts(PostPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         Long tenantIdValue = query.getTenantId().value();
-        return new PostPageResultDTO(
+        return new PageResultDTO<>(
                 postRepository.pagePosts(query.getTenantId(), query.getCode(), query.getName(),
                         query.getDepartmentId(), query.getStatus(), pageNo, pageSize).stream()
                         .map(post -> toDto(post, tenantIdValue))

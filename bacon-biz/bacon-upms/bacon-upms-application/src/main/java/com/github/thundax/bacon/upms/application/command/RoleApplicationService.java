@@ -6,9 +6,9 @@ import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
-import com.github.thundax.bacon.upms.api.dto.RolePageResultDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
@@ -53,11 +53,11 @@ public class RoleApplicationService {
         return getRolesByUserId(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
-    public RolePageResultDTO pageRoles(RolePageQueryDTO query) {
+    public PageResultDTO<RoleDTO> pageRoles(RolePageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         String tenantIdValue = String.valueOf(query.getTenantId().value());
-        return new RolePageResultDTO(roleRepository.pageRoles(query.getTenantId(), query.getCode(), query.getName(),
+        return new PageResultDTO<>(roleRepository.pageRoles(query.getTenantId(), query.getCode(), query.getName(),
                 query.getRoleType(), query.getStatus(), pageNo, pageSize).stream()
                 .map(role -> toDto(role, tenantIdValue))
                 .toList(),

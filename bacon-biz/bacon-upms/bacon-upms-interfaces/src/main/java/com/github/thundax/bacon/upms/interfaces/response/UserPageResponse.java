@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.UserPageResultDTO;
+import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
+import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ public record UserPageResponse(
         /** 每页大小。 */
         int pageSize) {
 
-    public static UserPageResponse from(UserPageResultDTO dto) {
+    public static UserPageResponse from(PageResultDTO<UserDTO> dto) {
         List<UserResponse> recordResponses = dto.getRecords() == null
                 ? List.of()
                 : dto.getRecords().stream().map(UserResponse::from).toList();

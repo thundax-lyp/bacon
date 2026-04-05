@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
-import com.github.thundax.bacon.upms.api.dto.SysLogPageResultDTO;
+import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
+import com.github.thundax.bacon.upms.api.dto.SysLogDTO;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ public record SysLogPageResponse(
         /** 每页大小。 */
         int pageSize) {
 
-    public static SysLogPageResponse from(SysLogPageResultDTO dto) {
+    public static SysLogPageResponse from(PageResultDTO<SysLogDTO> dto) {
         List<SysLogResponse> recordResponses = dto.getRecords() == null
                 ? List.of()
                 : dto.getRecords().stream().map(SysLogResponse::from).toList();

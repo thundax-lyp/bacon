@@ -3,9 +3,9 @@ package com.github.thundax.bacon.upms.application.command;
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
-import com.github.thundax.bacon.upms.api.dto.TenantPageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
@@ -26,12 +26,12 @@ public class TenantApplicationService {
         this.sessionCommandFacade = sessionCommandFacade;
     }
 
-    public TenantPageResultDTO pageTenants(TenantPageQueryDTO query) {
+    public PageResultDTO<TenantDTO> pageTenants(TenantPageQueryDTO query) {
         // 租户分页属于运营后台能力，统一先归一化分页参数，避免不同入口传入 0/负数时结果漂移。
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         TenantId tenantId = toTenantId(query.getTenantId());
-        return new TenantPageResultDTO(tenantRepository.pageTenants(tenantId, query.getName(),
+        return new PageResultDTO<>(tenantRepository.pageTenants(tenantId, query.getName(),
                 query.getStatus(), pageNo, pageSize).stream().map(this::toDto).toList(),
                 tenantRepository.countTenants(tenantId, query.getName(), query.getStatus()),
                 pageNo, pageSize);

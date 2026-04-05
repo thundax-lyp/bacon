@@ -10,13 +10,13 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
-import com.github.thundax.bacon.upms.api.dto.UserPageResultDTO;
 import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
@@ -130,11 +130,11 @@ public class UserApplicationService {
                 tenant.getStatus().value(), tenant.getExpiredAt());
     }
 
-    public UserPageResultDTO pageUsers(UserPageQueryDTO query) {
+    public PageResultDTO<UserDTO> pageUsers(UserPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         String tenantIdValue = String.valueOf(query.getTenantId().value());
-        return new UserPageResultDTO(userRepository.pageUsers(query.getTenantId(), query.getAccount(), query.getName(),
+        return new PageResultDTO<>(userRepository.pageUsers(query.getTenantId(), query.getAccount(), query.getName(),
                 query.getPhone(), query.getStatus(), pageNo, pageSize).stream()
                 .map(user -> toSummaryDto(user, tenantIdValue))
                 .toList(),

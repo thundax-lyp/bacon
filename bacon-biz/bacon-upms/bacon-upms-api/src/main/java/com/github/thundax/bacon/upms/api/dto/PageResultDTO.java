@@ -6,15 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 用户分页结果对象。
+ * 通用分页结果对象。
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserPageResultDTO {
+public class PageResultDTO<T> {
 
     /** 当前页记录。 */
-    private List<UserDTO> records;
+    private List<T> records;
     /** 总记录数。 */
     private long total;
     /** 当前页码。 */

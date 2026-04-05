@@ -13,8 +13,4 @@ public final class TenantId extends BaseLongId {
     public static TenantId of(Long value) {
         return new TenantId(value);
     }
-
-    public static TenantId of(String value) {
-        return new TenantId(Long.parseLong(value));
-    }
 }

@@ -32,11 +32,11 @@ public class Tenant {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Tenant(String tenantId, String name, String tenantCode, TenantStatus status, Instant expiredAt) {
+    public Tenant(Long tenantId, String name, String tenantCode, TenantStatus status, Instant expiredAt) {
         this(TenantId.of(tenantId), name, TenantCode.of(tenantCode), status, expiredAt, null, null, null, null);
     }
 
-    public Tenant(String tenantId, String name, String tenantCode, TenantStatus status, Instant expiredAt,
+    public Tenant(Long tenantId, String name, String tenantCode, TenantStatus status, Instant expiredAt,
                   String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
         this(TenantId.of(tenantId), name, TenantCode.of(tenantCode), status, expiredAt,
                 createdBy, createdAt, updatedBy, updatedAt);

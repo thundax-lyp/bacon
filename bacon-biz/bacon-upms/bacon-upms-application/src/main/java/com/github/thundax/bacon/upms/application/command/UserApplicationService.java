@@ -215,7 +215,7 @@ public class UserApplicationService {
         User currentUser = requireUser(tenantId, domainUserId);
         userRepository.deleteUser(tenantId, domainUserId);
         if (currentUser.getAvatarObjectId() != null) {
-            storedObjectFacade.clearObjectReference(currentUser.getAvatarObjectId().value(), USER_AVATAR_OWNER_TYPE,
+            storedObjectFacade.clearObjectReference(currentUser.getAvatarObjectId().externalValue(), USER_AVATAR_OWNER_TYPE,
                     userId);
         }
         sessionCommandFacade.invalidateUserSessions(tenantId.value(), userId, "USER_DELETED");
@@ -318,8 +318,8 @@ public class UserApplicationService {
                     currentUser.getUpdatedAt()),
                     requireIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.ACCOUNT),
                     resolveIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.PHONE));
-            if (previousAvatarObjectId != null && !previousAvatarObjectId.value().equals(storedObject.getId())) {
-                storedObjectFacade.clearObjectReference(previousAvatarObjectId.value(), USER_AVATAR_OWNER_TYPE,
+            if (previousAvatarObjectId != null && !previousAvatarObjectId.externalValue().equals(storedObject.getId())) {
+                storedObjectFacade.clearObjectReference(previousAvatarObjectId.externalValue(), USER_AVATAR_OWNER_TYPE,
                         userId);
             }
             return toDto(savedUser, storedObject.getAccessEndpoint(), savedUser.getTenantId().value());

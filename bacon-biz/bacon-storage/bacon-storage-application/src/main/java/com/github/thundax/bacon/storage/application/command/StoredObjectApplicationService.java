@@ -110,7 +110,7 @@ public class StoredObjectApplicationService {
     }
 
     private StoredObjectDTO toDto(StoredObject storedObject) {
-        return new StoredObjectDTO(storedObject.getId() == null ? null : storedObject.getId().value(),
+        return new StoredObjectDTO(toExternalObjectId(storedObject.getId()),
                 storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
                 storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
@@ -122,6 +122,10 @@ public class StoredObjectApplicationService {
         if (storedObject.isDeleting() || storedObject.isDeleted()) {
             throw new NotFoundException("Stored object is unavailable: " + objectId);
         }
+    }
+
+    private String toExternalObjectId(StoredObjectId storedObjectId) {
+        return storedObjectId == null ? null : storedObjectId.externalValue();
     }
 
     private StoredObject syncReferenceStatus(StoredObject storedObject, boolean referenced) {

@@ -84,6 +84,6 @@ public class DefaultIds implements Ids {
 
     @Override
     public StoredObjectId storedObjectId() {
-        return StoredObjectId.of("O" + idGenerator.nextId(STORED_OBJECT_ID_BIZ_TAG));
+        return StoredObjectId.of(idGenerator.nextId(STORED_OBJECT_ID_BIZ_TAG));
     }
 }

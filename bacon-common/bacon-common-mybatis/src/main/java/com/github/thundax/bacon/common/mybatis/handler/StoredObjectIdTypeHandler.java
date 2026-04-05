@@ -6,8 +6,8 @@ import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
 @MappedTypes(StoredObjectId.class)
-@MappedJdbcTypes({JdbcType.VARCHAR, JdbcType.LONGVARCHAR})
-public class StoredObjectIdTypeHandler extends AbstractStringBaseIdTypeHandler<StoredObjectId> {
+@MappedJdbcTypes({JdbcType.BIGINT, JdbcType.INTEGER, JdbcType.VARCHAR, JdbcType.LONGVARCHAR})
+public class StoredObjectIdTypeHandler extends AbstractLongBaseIdTypeHandler<StoredObjectId> {
 
     public StoredObjectIdTypeHandler() {
         super(StoredObjectId::of);

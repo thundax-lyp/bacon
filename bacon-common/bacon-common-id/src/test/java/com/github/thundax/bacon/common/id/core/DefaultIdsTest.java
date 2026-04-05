@@ -27,12 +27,12 @@ class DefaultIdsTest {
         SkuId skuId = ids.skuId();
         StoredObjectId storedObjectId = ids.storedObjectId();
 
-        assertThat(userId).isEqualTo(UserId.of("U1001"));
-        assertThat(userIdentityId).isEqualTo(UserIdentityId.of("I1002"));
-        assertThat(roleId).isEqualTo(RoleId.of("1003"));
+        assertThat(userId).isEqualTo(UserId.of(1001L));
+        assertThat(userIdentityId).isEqualTo(UserIdentityId.of(1002L));
+        assertThat(roleId).isEqualTo(RoleId.of(1003L));
         assertThat(orderId).isEqualTo(OrderId.of("1004"));
         assertThat(skuId).isEqualTo(SkuId.of(1005L));
-        assertThat(storedObjectId).isEqualTo(StoredObjectId.of("O1006"));
+        assertThat(storedObjectId).isEqualTo(StoredObjectId.of(1006L));
         assertThat(idGenerator.bizTags).containsExactly("user-id", "user-identity-id", "role-id", "order-id", "sku-id",
                 "stored-object-id");
     }

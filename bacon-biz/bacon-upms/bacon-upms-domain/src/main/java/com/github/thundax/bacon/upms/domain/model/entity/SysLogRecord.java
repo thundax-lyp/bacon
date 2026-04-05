@@ -14,7 +14,7 @@ public class SysLogRecord {
     /** 日志主键。 */
     private Long id;
     /** 租户标识。 */
-    private String tenantId;
+    private Long tenantId;
     /** 链路追踪标识。 */
     private String traceId;
     /** 请求标识。 */
@@ -52,7 +52,7 @@ public class SysLogRecord {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public SysLogRecord(Long id, String tenantId, String traceId, String requestId, String module,
+    public SysLogRecord(Long id, Long tenantId, String traceId, String requestId, String module,
                         String action, String eventType, String result, UserId operatorId, String operatorName,
                         String clientIp, String requestUri, String httpMethod, Long costMs,
                         String errorMessage, Instant occurredAt) {
@@ -60,7 +60,7 @@ public class SysLogRecord {
                 clientIp, requestUri, httpMethod, costMs, errorMessage, occurredAt, null, null, null, null);
     }
 
-    public SysLogRecord(Long id, String tenantId, String traceId, String requestId, String module,
+    public SysLogRecord(Long id, Long tenantId, String traceId, String requestId, String module,
                         String action, String eventType, String result, UserId operatorId, String operatorName,
                         String clientIp, String requestUri, String httpMethod, Long costMs,
                         String errorMessage, Instant occurredAt, String createdBy, Instant createdAt,

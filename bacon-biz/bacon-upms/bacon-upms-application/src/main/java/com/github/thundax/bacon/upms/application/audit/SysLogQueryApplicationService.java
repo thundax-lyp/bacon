@@ -22,11 +22,11 @@ public class SysLogQueryApplicationService {
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         // 日志分页统一先归一化页码参数，避免调用方传入 0/负数时把仓储查询语义拉偏。
         return new PageResultDTO<>(
-                sysLogRepository.pageLogs(query.getTenantId(), query.getModule(), query.getEventType(),
+                sysLogRepository.pageLogs(parseTenantId(query.getTenantId()), query.getModule(), query.getEventType(),
                                 query.getResult(), query.getOperatorName(), pageNo, pageSize).stream()
                         .map(this::toDto)
                         .toList(),
-                sysLogRepository.countLogs(query.getTenantId(), query.getModule(), query.getEventType(),
+                sysLogRepository.countLogs(parseTenantId(query.getTenantId()), query.getModule(), query.getEventType(),
                         query.getResult(), query.getOperatorName()),
                 pageNo,
                 pageSize
@@ -39,11 +39,16 @@ public class SysLogQueryApplicationService {
     }
 
     private SysLogDTO toDto(SysLogRecord record) {
-        return new SysLogDTO(record.getId(), record.getTenantId(), record.getTraceId(), record.getRequestId(),
+        return new SysLogDTO(record.getId(), record.getTenantId() == null ? null : String.valueOf(record.getTenantId()),
+                record.getTraceId(), record.getRequestId(),
                 record.getModule(), record.getAction(), record.getEventType(), record.getResult(),
                 record.getOperatorId() == null ? null : String.valueOf(record.getOperatorId().value()), record.getOperatorName(),
                 record.getClientIp(), record.getRequestUri(),
                 record.getHttpMethod(), record.getCostMs(), record.getErrorMessage(), record.getOccurredAt());
+    }
+
+    private Long parseTenantId(String tenantId) {
+        return tenantId == null || tenantId.isBlank() ? null : Long.valueOf(tenantId.trim());
     }
 
 }

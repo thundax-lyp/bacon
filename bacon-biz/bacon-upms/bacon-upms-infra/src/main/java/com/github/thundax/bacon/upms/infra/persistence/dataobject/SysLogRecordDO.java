@@ -20,7 +20,7 @@ public class SysLogRecordDO {
     @TableId(type = IdType.AUTO)
     private Long id;
     @TableField("tenant_id")
-    private String tenantId;
+    private Long tenantId;
     @TableField("trace_id")
     private String traceId;
     @TableField("request_id")

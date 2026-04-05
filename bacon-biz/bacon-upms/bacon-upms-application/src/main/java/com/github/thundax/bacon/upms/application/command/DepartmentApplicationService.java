@@ -183,8 +183,8 @@ public class DepartmentApplicationService {
         return sort == null ? 0 : sort;
     }
 
-    private DepartmentStatus toStatusEnum(DepartmentStatus status) {
-        return status;
+    private UpmsStatusEnum toStatusEnum(DepartmentStatus status) {
+        return status == null ? null : UpmsStatusEnum.valueOf(status.name());
     }
 
     private UserId toUserId(String userId) {

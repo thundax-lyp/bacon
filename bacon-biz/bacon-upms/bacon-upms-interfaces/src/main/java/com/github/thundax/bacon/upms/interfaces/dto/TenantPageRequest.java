@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
+import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ public class TenantPageRequest {
 
     private String tenantId;
     private String name;
-    private TenantStatusQueryEnum status;
+    private TenantStatusEnum status;
 
     @Min(1)
     private Integer pageNo;

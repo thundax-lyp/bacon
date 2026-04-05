@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -15,7 +16,7 @@ public class ResourcePageRequest {
     private String code;
     private String name;
     private UpmsResourceTypeQueryEnum resourceType;
-    private UpmsStatusQueryEnum status;
+    private UpmsStatusEnum status;
 
     @Min(1)
     private Integer pageNo;

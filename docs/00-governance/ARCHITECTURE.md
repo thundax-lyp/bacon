@@ -267,7 +267,9 @@ bacon-biz/bacon-order
 ### api
 - 面向内部跨域调用契约层，承载业务域之间稳定的调用边界。
 - 负责定义跨业务域调用契约，只放 `facade` 和跨域 `dto`。
+- `api` 中的枚举只用于表达跨域调用契约、稳定的输入输出值集和调用边界，不承载领域内部状态机或领域规则。
 - 只表达稳定的业务能力，不承载 HTTP 语义，也不暴露领域实体。
+- `api` 不得直接依赖某个业务域的 `domain enum`；如某字段需要强类型契约，固定在 `api` 内单独定义契约枚举。
 - 可被其他业务域的 `application` 或 `infra.facade.remote` 依赖。
 
 ### application
@@ -277,11 +279,14 @@ bacon-biz/bacon-order
 - `toDto`、`toResult` 这类应用层结果转换如在多个用例或多个服务之间复用，固定提取到 `application.assembler`；只在单个 `ApplicationService` 内局部使用的简单转换，可保留为私有方法。
 - 对外暴露的方法入参固定优先使用 `TenantId`、`UserId`、`RoleId`、`DepartmentId` 等领域类型，不在 `application` 内重复承接字符串协议参数解析。
 - `application` 只负责用例级参数校验，例如某业务动作要求的必填字段、组合条件、幂等键和前置状态检查，不负责字符串协议字段解析。
+- 当 `api enum` 与 `domain enum` 同时存在时，固定由 `application` 负责显式映射，不得把两层枚举混用。
 - 可以依赖 `domain` 和外部 `api.facade` 抽象，不能直接依赖其他域的 infra 实现。
 
 ### domain
 - 负责核心业务规则、聚合、一致性约束、领域服务、仓储接口定义。
 - 领域不变量、状态流转约束、聚合内部合法性校验固定归 `domain`。
+- 业务私有的状态枚举、类型枚举、原因枚举固定归 `domain`，例如 `OrderStatus`、`DepartmentStatus`、`PaymentMethodType`。
+- `domain` 不得直接依赖 `api enum`；如跨域契约需要同名或同值集枚举，允许在 `api` 中定义独立契约枚举，由 `application` 映射。
 - 不关心 Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术细节。
 - 应尽量保持纯 Java，对框架依赖最小化。
 

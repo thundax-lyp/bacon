@@ -27,24 +27,24 @@ public class PermissionReadFacadeLocalImpl implements PermissionReadFacade {
     }
 
     @Override
-    public List<UserMenuTreeDTO> getUserMenuTree(String tenantId, String userId) {
+    public List<UserMenuTreeDTO> getUserMenuTree(Long tenantId, Long userId) {
         return permissionQueryService.getUserMenuTree(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(String tenantId, String userId) {
+    public Set<String> getUserPermissionCodes(Long tenantId, Long userId) {
         return permissionQueryService.getUserPermissionCodes(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
     @Override
-    public UserDataScopeDTO getUserDataScope(String tenantId, String userId) {
+    public UserDataScopeDTO getUserDataScope(Long tenantId, Long userId) {
         return permissionQueryService.getUserDataScope(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
-    private TenantId requireExistingTenantId(String tenantId) {
-        if (tenantId == null || tenantId.isBlank()) {
-            throw new IllegalArgumentException("tenantId must not be blank");
+    private TenantId requireExistingTenantId(Long tenantId) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("tenantId must not be null");
         }
-        return tenantApplicationService.getTenantByTenantId(tenantId.trim()).getId();
+        return tenantApplicationService.getTenantByTenantId(TenantId.of(tenantId)).getId();
     }
 }

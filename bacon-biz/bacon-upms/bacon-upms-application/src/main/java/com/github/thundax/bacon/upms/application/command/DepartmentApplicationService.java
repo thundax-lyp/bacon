@@ -85,16 +85,15 @@ public class DepartmentApplicationService {
     }
 
     @Transactional
-    public DepartmentDTO updateDepartment(TenantId tenantId, String departmentId, String code, String name, String parentId,
+    public DepartmentDTO updateDepartment(TenantId tenantId, DepartmentId departmentId, String code, String name, String parentId,
                                           String leaderUserId, Integer sort) {
-        DepartmentId targetDepartmentId = toDepartmentId(departmentId);
-        Department currentDepartment = departmentRepository.findDepartmentById(tenantId, targetDepartmentId)
+        Department currentDepartment = departmentRepository.findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
         validateRequired(code, "code");
         validateRequired(name, "name");
         DepartmentId parentDepartmentId = normalizeParentId(parentId);
         validateParent(tenantId, parentDepartmentId);
-        if (targetDepartmentId.equals(parentDepartmentId)) {
+        if (departmentId.equals(parentDepartmentId)) {
             throw new IllegalArgumentException("Department parent cannot be self");
         }
         return toDto(departmentRepository.save(new Department(
@@ -113,25 +112,24 @@ public class DepartmentApplicationService {
     }
 
     @Transactional
-    public DepartmentDTO updateDepartmentSort(TenantId tenantId, String departmentId, Integer sort) {
+    public DepartmentDTO updateDepartmentSort(TenantId tenantId, DepartmentId departmentId, Integer sort) {
         if (sort == null) {
             throw new IllegalArgumentException("sort must not be null");
         }
-        return toDto(departmentRepository.updateSort(tenantId, toDepartmentId(departmentId), sort));
+        return toDto(departmentRepository.updateSort(tenantId, departmentId, sort));
     }
 
     @Transactional
-    public void deleteDepartment(TenantId tenantId, String departmentId) {
-        DepartmentId targetDepartmentId = toDepartmentId(departmentId);
-        departmentRepository.findDepartmentById(tenantId, targetDepartmentId)
+    public void deleteDepartment(TenantId tenantId, DepartmentId departmentId) {
+        departmentRepository.findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
-        if (departmentRepository.existsChildDepartment(tenantId, targetDepartmentId)) {
+        if (departmentRepository.existsChildDepartment(tenantId, departmentId)) {
             throw new IllegalArgumentException("Department has child departments: " + departmentId);
         }
-        if (departmentRepository.existsUserInDepartment(tenantId, targetDepartmentId)) {
+        if (departmentRepository.existsUserInDepartment(tenantId, departmentId)) {
             throw new IllegalArgumentException("Department has assigned users: " + departmentId);
         }
-        departmentRepository.deleteDepartment(tenantId, targetDepartmentId);
+        departmentRepository.deleteDepartment(tenantId, departmentId);
     }
 
     private DepartmentDTO toDto(Department department) {

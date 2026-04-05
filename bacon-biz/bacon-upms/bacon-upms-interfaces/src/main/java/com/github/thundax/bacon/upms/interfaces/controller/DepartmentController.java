@@ -106,7 +106,7 @@ public class DepartmentController {
     public DepartmentResponse updateDepartment(@CurrentTenant Long tenantId, @PathVariable String departmentId,
                                                @RequestBody DepartmentUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartment(
-                TenantId.of(tenantId), departmentId, request.code(), request.name(),
+                TenantId.of(tenantId), DepartmentId.of(Long.parseLong(departmentId.trim())), request.code(), request.name(),
                 request.parentId(), request.leaderUserId(), request.sort()));
     }
 
@@ -117,7 +117,7 @@ public class DepartmentController {
     public DepartmentResponse updateSort(@CurrentTenant Long tenantId, @PathVariable String departmentId,
                                          @RequestBody DepartmentSortUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartmentSort(
-                TenantId.of(tenantId), departmentId, request.sort()));
+                TenantId.of(tenantId), DepartmentId.of(Long.parseLong(departmentId.trim())), request.sort()));
     }
 
     @Operation(summary = "删除部门")
@@ -125,6 +125,6 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "删除部门", eventType = LogEventType.DELETE)
     @DeleteMapping("/{departmentId}")
     public void deleteDepartment(@CurrentTenant Long tenantId, @PathVariable String departmentId) {
-        departmentApplicationService.deleteDepartment(TenantId.of(tenantId), departmentId);
+        departmentApplicationService.deleteDepartment(TenantId.of(tenantId), DepartmentId.of(Long.parseLong(departmentId.trim())));
     }
 }

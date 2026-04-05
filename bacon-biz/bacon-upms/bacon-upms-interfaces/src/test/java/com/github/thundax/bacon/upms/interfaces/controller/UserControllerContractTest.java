@@ -39,8 +39,8 @@ class UserControllerContractTest {
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
         when(userApplicationService.updateAvatar(eq(TENANT_ID), eq("U101"), eq("avatar.png"), eq("image/png"), eq(4L),
                 org.mockito.ArgumentMatchers.any()))
-                .thenReturn(new UserDTO("U101", String.valueOf(TENANT_ID.value()), "alice", "Alice", "O9001", "13800000001",
-                        "11", "https://cdn.example.com/avatar/9001.png", "ENABLED"));
+                .thenReturn(new UserDTO(101L, TENANT_ID.value(), "alice", "Alice", 9001L, "13800000001",
+                        11L, "https://cdn.example.com/avatar/9001.png", "ENABLED"));
 
         MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[]{1, 2, 3, 4});
 
@@ -51,8 +51,8 @@ class UserControllerContractTest {
                             return request;
                         }))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("U101"))
-                .andExpect(jsonPath("$.avatarObjectId").value("O9001"))
+                .andExpect(jsonPath("$.id").value(101))
+                .andExpect(jsonPath("$.avatarObjectId").value(9001))
                 .andExpect(jsonPath("$.avatarUrl").value("https://cdn.example.com/avatar/9001.png"));
     }
 

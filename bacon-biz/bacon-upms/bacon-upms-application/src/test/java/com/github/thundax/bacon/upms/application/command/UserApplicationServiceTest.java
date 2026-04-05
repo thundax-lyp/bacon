@@ -107,8 +107,8 @@ class UserApplicationServiceTest {
         verify(storedObjectFacade).markObjectReferenced("O401", "UPMS_USER_AVATAR", "101");
         verify(storedObjectFacade).clearObjectReference("O301", "UPMS_USER_AVATAR", "101");
         assertThat(userCaptor.getValue().getAvatarObjectId()).isEqualTo(StoredObjectId.of("O401"));
-        assertThat(result.getAvatarObjectId()).isEqualTo("O401");
-        assertThat(result.getId()).isEqualTo("101");
+        assertThat(result.getAvatarObjectId()).isEqualTo(401L);
+        assertThat(result.getId()).isEqualTo(101L);
         assertThat(result.getAvatarUrl()).isEqualTo("https://cdn.example.com/avatar/401.png");
     }
 
@@ -152,8 +152,8 @@ class UserApplicationServiceTest {
         PageResultDTO<UserDTO> result = service.pageUsers(new UserPageQueryDTO(TENANT_ID, null, null, null, null, 1, 20));
 
         assertThat(result.getRecords()).hasSize(1);
-        assertThat(result.getRecords().get(0).getTenantId()).isEqualTo("1001");
-        assertThat(result.getRecords().get(0).getAvatarObjectId()).isEqualTo("O501");
+        assertThat(result.getRecords().get(0).getTenantId()).isEqualTo(1001L);
+        assertThat(result.getRecords().get(0).getAvatarObjectId()).isEqualTo(501L);
         assertThat(result.getRecords().get(0).getAvatarUrl()).isNull();
         verify(storedObjectFacade, never()).getObjectById(any());
     }
@@ -212,9 +212,9 @@ class UserApplicationServiceTest {
 
         UserLoginCredentialDTO credential = service.getUserLoginCredential("1001", "ACCOUNT", "alice");
 
-        assertThat(credential.getTenantId()).isEqualTo("1001");
-        assertThat(credential.getUserId()).isEqualTo("101");
-        assertThat(credential.getCredentialId()).isEqualTo("301");
+        assertThat(credential.getTenantId()).isEqualTo(1001L);
+        assertThat(credential.getUserId()).isEqualTo(101L);
+        assertThat(credential.getCredentialId()).isEqualTo(301L);
         assertThat(credential.getPasswordHash()).isEqualTo("{noop}identity");
         assertThat(credential.isNeedChangePassword()).isTrue();
     }

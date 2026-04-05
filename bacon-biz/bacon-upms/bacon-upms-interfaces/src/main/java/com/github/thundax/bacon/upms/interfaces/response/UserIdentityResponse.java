@@ -7,11 +7,11 @@ import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
  */
 public record UserIdentityResponse(
         /** 身份标识主键。 */
-        String id,
+        Long id,
         /** 所属租户编号。 */
-        String tenantId,
+        Long tenantId,
         /** 关联用户主键。 */
-        String userId,
+        Long userId,
         /** 身份标识类型。 */
         String identityType,
         /** 身份标识值。 */

@@ -13,11 +13,11 @@ import lombok.NoArgsConstructor;
 public class UserIdentityDTO {
 
     /** 身份标识主键。 */
-    private String id;
+    private Long id;
     /** 所属租户编号。 */
-    private String tenantId;
+    private Long tenantId;
     /** 关联用户主键。 */
-    private String userId;
+    private Long userId;
     /** 身份标识类型。 */
     private String identityType;
     /** 身份标识值。 */

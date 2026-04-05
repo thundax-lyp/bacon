@@ -15,9 +15,9 @@ import lombok.NoArgsConstructor;
 public class UserLoginCredentialDTO {
 
     /** 所属租户编号。 */
-    private String tenantId;
+    private Long tenantId;
     /** 用户主键。 */
-    private String userId;
+    private Long userId;
     /** 登录账号。 */
     private String account;
     /** 手机号。 */
@@ -29,7 +29,7 @@ public class UserLoginCredentialDTO {
     /** 身份标识状态。 */
     private String identityStatus;
     /** 凭据主键。 */
-    private String credentialId;
+    private Long credentialId;
     /** 凭据类型。 */
     private String credentialType;
     /** 凭据状态。 */

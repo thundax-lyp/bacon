@@ -88,9 +88,9 @@ public class UserApplicationService {
     public UserIdentityDTO getUserIdentity(TenantId tenantId, String identityType, String identityValue) {
         UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, toIdentityType(identityType), identityValue)
                 .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
-        return new UserIdentityDTO(userIdentity.getId() == null ? null : String.valueOf(userIdentity.getId().value()),
-                String.valueOf(userIdentity.getTenantId().value()),
-                String.valueOf(userIdentity.getUserId().value()),
+        return new UserIdentityDTO(userIdentity.getId() == null ? null : userIdentity.getId().value(),
+                userIdentity.getTenantId().value(),
+                userIdentity.getUserId().value(),
                 userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(),
                 userIdentity.getStatus() == null ? null : userIdentity.getStatus().value());
     }
@@ -108,11 +108,11 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
         String account = resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
         String phone = resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
-        return new UserLoginCredentialDTO(String.valueOf(user.getTenantId().value()), String.valueOf(user.getId().value()),
+        return new UserLoginCredentialDTO(user.getTenantId().value(), user.getId().value(),
                 account, phone,
                 userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(),
                 userIdentity.getStatus() == null ? null : userIdentity.getStatus().value(),
-                passwordCredential.getId() == null ? null : String.valueOf(passwordCredential.getId().value()),
+                passwordCredential.getId() == null ? null : passwordCredential.getId().value(),
                 passwordCredential.getCredentialType().value(), passwordCredential.getStatus().value(),
                 passwordCredential.isNeedChangePassword(), passwordCredential.getExpiresAt(),
                 passwordCredential.getLockedUntil(), false, List.of(), user.getStatus().value(),
@@ -133,7 +133,7 @@ public class UserApplicationService {
     public PageResultDTO<UserDTO> pageUsers(UserPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String tenantIdValue = String.valueOf(query.getTenantId().value());
+        Long tenantIdValue = query.getTenantId().value();
         return new PageResultDTO<>(userRepository.pageUsers(query.getTenantId(), query.getAccount(), query.getName(),
                 query.getPhone(), query.getStatus(), pageNo, pageSize).stream()
                 .map(user -> toSummaryDto(user, tenantIdValue))
@@ -295,7 +295,7 @@ public class UserApplicationService {
     }
 
     public List<UserDTO> exportUsers(UserPageQueryDTO query) {
-        String tenantIdValue = String.valueOf(query.getTenantId().value());
+        Long tenantIdValue = query.getTenantId().value();
         return userRepository.listUsers(query.getTenantId(), query.getAccount(), query.getName(), query.getPhone(),
                 query.getStatus()).stream().map(user -> toSummaryDto(user, tenantIdValue)).toList();
     }
@@ -325,7 +325,7 @@ public class UserApplicationService {
                 storedObjectFacade.clearObjectReference(previousAvatarObjectId.externalValue(), USER_AVATAR_OWNER_TYPE,
                         userId);
             }
-            return toDto(savedUser, storedObject.getAccessEndpoint(), String.valueOf(savedUser.getTenantId().value()));
+            return toDto(savedUser, storedObject.getAccessEndpoint(), savedUser.getTenantId().value());
         } catch (RuntimeException ex) {
             storedObjectFacade.clearObjectReference(storedObject.getId(), USER_AVATAR_OWNER_TYPE, userId);
             throw ex;
@@ -353,17 +353,17 @@ public class UserApplicationService {
     }
 
     private UserDTO toDetailedDto(User user) {
-        return toDto(user, resolveAvatarUrl(user.getAvatarObjectId()), String.valueOf(user.getTenantId().value()));
+        return toDto(user, resolveAvatarUrl(user.getAvatarObjectId()), user.getTenantId().value());
     }
 
-    private UserDTO toSummaryDto(User user, String tenantIdValue) {
+    private UserDTO toSummaryDto(User user, Long tenantIdValue) {
         return toDto(user, null, tenantIdValue);
     }
 
-    private UserDTO toDto(User user, String avatarUrl, String tenantIdValue) {
-        return new UserDTO(String.valueOf(user.getId().value()), tenantIdValue,
+    private UserDTO toDto(User user, String avatarUrl, Long tenantIdValue) {
+        return new UserDTO(user.getId().value(), tenantIdValue,
                 resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT), user.getName(),
-                user.getAvatarObjectId() == null ? null : user.getAvatarObjectId().externalValue(),
+                user.getAvatarObjectId() == null ? null : user.getAvatarObjectId().value(),
                 resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.PHONE),
                 user.getDepartmentId() == null ? null : user.getDepartmentId().value(), avatarUrl, user.getStatus().value());
     }

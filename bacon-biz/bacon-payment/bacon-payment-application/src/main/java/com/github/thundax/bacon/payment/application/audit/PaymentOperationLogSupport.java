@@ -49,6 +49,6 @@ public class PaymentOperationLogSupport {
     }
 
     private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 }

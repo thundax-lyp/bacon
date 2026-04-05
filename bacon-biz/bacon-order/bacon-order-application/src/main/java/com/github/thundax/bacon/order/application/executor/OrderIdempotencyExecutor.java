@@ -102,7 +102,7 @@ public class OrderIdempotencyExecutor {
     }
 
     private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 
     private OrderNo toOrderNo(String orderNo) {

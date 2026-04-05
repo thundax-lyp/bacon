@@ -10,7 +10,7 @@ public record MenuTreeResponse(
         /** 菜单主键。 */
         Long id,
         /** 所属租户编号。 */
-        String tenantId,
+        Long tenantId,
         /** 菜单类型。 */
         String menuType,
         /** 菜单名称。 */

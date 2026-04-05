@@ -92,10 +92,10 @@ public class MenuApplicationService {
     }
 
     private MenuTreeDTO toTreeDto(Menu menu) {
-        return toTreeDto(menu, String.valueOf(menu.getTenantId().value()));
+        return toTreeDto(menu, menu.getTenantId().value());
     }
 
-    private MenuTreeDTO toTreeDto(Menu menu, String tenantIdValue) {
+    private MenuTreeDTO toTreeDto(Menu menu, Long tenantIdValue) {
         return new MenuTreeDTO(idValue(menu.getId()), tenantIdValue, menu.getMenuType(),
                 menu.getName(), idValue(menu.getParentId()),
                 menu.getRoutePath(), menu.getComponentName(), menu.getIcon(), menu.getSort(), menu.getPermissionCode(),

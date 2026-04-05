@@ -16,7 +16,7 @@ public class MenuTreeDTO {
     /** 菜单主键。 */
     private Long id;
     /** 所属租户编号。 */
-    private String tenantId;
+    private Long tenantId;
     /** 菜单类型。 */
     private String menuType;
     /** 菜单名称。 */

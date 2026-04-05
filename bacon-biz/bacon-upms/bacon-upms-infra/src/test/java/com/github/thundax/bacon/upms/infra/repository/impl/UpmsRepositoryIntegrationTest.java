@@ -13,6 +13,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
@@ -68,12 +69,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UpmsRepositoryIntegrationTest {
 
-    private static final TenantId TENANT_ID = TenantId.of("1001");
-    private static final DepartmentId ROOT_DEPARTMENT_ID = DepartmentId.of("0");
-    private static final MenuId ROOT_MENU_ID = MenuId.of("0");
-    private static final DepartmentId HEADQUARTERS_DEPARTMENT_ID = DepartmentId.of("D1001");
-    private static final DepartmentId OPERATIONS_DEPARTMENT_ID = DepartmentId.of("D1002");
-    private static final DepartmentId CHILD_DEPARTMENT_ID = DepartmentId.of("D1003");
+    private static final TenantId TENANT_ID = TenantId.of(1001L);
+    private static final DepartmentId HEADQUARTERS_DEPARTMENT_ID = DepartmentId.of(1001L);
+    private static final DepartmentId OPERATIONS_DEPARTMENT_ID = DepartmentId.of(1002L);
+    private static final DepartmentId CHILD_DEPARTMENT_ID = DepartmentId.of(1003L);
 
     private static final org.springframework.context.annotation.AnnotationConfigApplicationContext CONTEXT =
             new org.springframework.context.annotation.AnnotationConfigApplicationContext(TestConfig.class);
@@ -296,10 +295,10 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
         Department rootDepartment = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Headquarters",
-                ROOT_DEPARTMENT_ID, null, 1, "ACTIVE"));
+                null, null, 1, DepartmentStatus.ENABLED));
         Department childDepartment = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                rootDepartment.getId(), null, 2, "ACTIVE"));
-        Menu rootMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "System", ROOT_MENU_ID, "/system", "SystemPage", "shield", 1, null, List.of()));
+                rootDepartment.getId(), null, 2, DepartmentStatus.ENABLED));
+        Menu rootMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
         Menu childMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Users", rootMenu.getId(), "/system/users", "UserPage", "user", 2, "upms:user:view", List.of()));
         Resource resource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:user:edit", "Edit User",
                 ResourceType.API, "POST", "/users", ResourceStatus.ENABLED));
@@ -319,7 +318,7 @@ class UpmsRepositoryIntegrationTest {
 
         User persistedUser = userRepository.findUserByAccount(TENANT_ID, "alice").orElseThrow();
         assertNotNull(persistedUser.getId());
-        assertTrue(persistedUser.getId().value().startsWith("U"));
+        assertTrue(persistedUser.getId().value() > 0);
         assertEquals(StoredObjectId.of(901L), persistedUser.getAvatarObjectId());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice").isPresent());
         assertNotNull(userRepository.findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD)
@@ -347,7 +346,7 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
         Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                ROOT_DEPARTMENT_ID, null, 1, "ACTIVE"));
+                null, null, 1, DepartmentStatus.ENABLED));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin",
                 RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
         User createdUser = userRepository.save(new User(null, TENANT_ID, "Bob", StoredObjectId.of(1001L),
@@ -372,13 +371,13 @@ class UpmsRepositoryIntegrationTest {
         assertFalse(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "bob").isPresent());
         assertTrue(roleRepository.findRolesByUserId(TENANT_ID, updatedUser.getId()).isEmpty());
         assertFalse(departmentRepository.existsUserInDepartment(TENANT_ID, department.getId()));
-        assertTrue(isUserDeleted(updatedUser.getId().value()));
+        assertTrue(isUserDeleted(String.valueOf(updatedUser.getId().value())));
     }
 
     @Test
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
         Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                ROOT_DEPARTMENT_ID, null, 1, "ACTIVE"));
+                null, null, 1, DepartmentStatus.ENABLED));
         User createdUser = userRepository.save(new User(null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED),
                 "carol", "13600000001");
 
@@ -399,11 +398,11 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
         Department root = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Root",
-                ROOT_DEPARTMENT_ID, null, 1, "ACTIVE"));
+                null, null, 1, DepartmentStatus.ENABLED));
         Department child = departmentRepository.save(new Department(CHILD_DEPARTMENT_ID, TENANT_ID, "CHILD", "Child",
-                root.getId(), null, 2, "ACTIVE"));
-        Menu oldMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Old", ROOT_MENU_ID, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
-        Menu newMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "New", ROOT_MENU_ID, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
+                root.getId(), null, 2, DepartmentStatus.ENABLED));
+        Menu oldMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
+        Menu newMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
         Resource oldResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:old:edit", "Old Edit",
                 ResourceType.API, "POST", "/old", ResourceStatus.ENABLED));
         Resource newResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:new:edit", "New Edit",

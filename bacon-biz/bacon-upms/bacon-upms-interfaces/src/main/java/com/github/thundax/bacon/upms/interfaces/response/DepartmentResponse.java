@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
-import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
+import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 
 /**
  * 部门查询响应对象。
@@ -22,7 +22,7 @@ public record DepartmentResponse(
         /** 排序值。 */
         Integer sort,
         /** 部门状态。 */
-        UpmsStatusEnum status) {
+        DepartmentStatus status) {
 
     public static DepartmentResponse from(DepartmentDTO dto) {
         return new DepartmentResponse(dto.getId(), dto.getTenantId(), dto.getCode(), dto.getName(), dto.getParentId(),

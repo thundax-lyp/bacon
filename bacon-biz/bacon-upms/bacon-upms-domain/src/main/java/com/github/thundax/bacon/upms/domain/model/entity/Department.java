@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -28,7 +29,7 @@ public class Department {
     /** 排序值。 */
     private Integer sort;
     /** 部门状态。 */
-    private String status;
+    private DepartmentStatus status;
     /** 创建人。 */
     private String createdBy;
     /** 创建时间。 */
@@ -39,12 +40,12 @@ public class Department {
     private Instant updatedAt;
 
     public Department(DepartmentId id, TenantId tenantId, String code, String name, DepartmentId parentId,
-                      UserId leaderUserId, Integer sort, String status) {
+                      UserId leaderUserId, Integer sort, DepartmentStatus status) {
         this(id, tenantId, code, name, parentId, leaderUserId, sort, status, null, null, null, null);
     }
 
     public Department(DepartmentId id, TenantId tenantId, String code, String name, DepartmentId parentId, UserId leaderUserId,
-                      Integer sort, String status, String createdBy, Instant createdAt, String updatedBy,
+                      Integer sort, DepartmentStatus status, String createdBy, Instant createdAt, String updatedBy,
                       Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;

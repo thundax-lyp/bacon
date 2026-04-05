@@ -12,6 +12,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
+import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
@@ -136,13 +137,15 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final DepartmentDO toDataObject(Department department) {
         return new DepartmentDO(department.getId(), department.getTenantId(), department.getCode(), department.getName(),
-                department.getParentId(), department.getLeaderUserId(), department.getSort(), department.getStatus(), department.getCreatedBy(),
+                department.getParentId(), department.getLeaderUserId(), department.getSort(),
+                department.getStatus() == null ? null : department.getStatus().value(), department.getCreatedBy(),
                 toLocalDateTime(department.getCreatedAt()), department.getUpdatedBy(), toLocalDateTime(department.getUpdatedAt()));
     }
 
     protected final Department toDomain(DepartmentDO dataObject) {
         return new Department(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
-                dataObject.getParentId(), dataObject.getLeaderUserId(), dataObject.getSort(), dataObject.getStatus(), dataObject.getCreatedBy(),
+                dataObject.getParentId(), dataObject.getLeaderUserId(), dataObject.getSort(), DepartmentStatus.fromValue(dataObject.getStatus()),
+                dataObject.getCreatedBy(),
                 toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 

@@ -9,6 +9,7 @@ import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
@@ -96,7 +97,7 @@ public class DepartmentApplicationService {
         DepartmentId parentDepartmentId = normalizeParentId(parentId);
         validateParent(tenantId, parentDepartmentId);
         return toDto(departmentRepository.save(new Department(ids.departmentId(), tenantId, normalize(code), normalize(name),
-                parentDepartmentId, toUserId(leaderUserId), defaultSort(sort), UpmsStatusEnum.ENABLED.value())));
+                parentDepartmentId, toUserId(leaderUserId), defaultSort(sort), DepartmentStatus.ENABLED)));
     }
 
     @Transactional
@@ -182,8 +183,8 @@ public class DepartmentApplicationService {
         return sort == null ? 0 : sort;
     }
 
-    private UpmsStatusEnum toStatusEnum(String status) {
-        return status == null ? null : UpmsStatusEnum.valueOf(status);
+    private DepartmentStatus toStatusEnum(DepartmentStatus status) {
+        return status;
     }
 
     private UserId toUserId(String userId) {

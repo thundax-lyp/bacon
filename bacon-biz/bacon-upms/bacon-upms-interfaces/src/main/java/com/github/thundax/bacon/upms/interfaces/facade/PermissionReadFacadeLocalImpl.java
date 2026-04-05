@@ -8,6 +8,7 @@ import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
 import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -27,24 +28,21 @@ public class PermissionReadFacadeLocalImpl implements PermissionReadFacade {
     }
 
     @Override
-    public List<UserMenuTreeDTO> getUserMenuTree(Long tenantId, Long userId) {
-        return permissionQueryService.getUserMenuTree(requireExistingTenantId(tenantId), UserId.of(userId));
+    public List<UserMenuTreeDTO> getUserMenuTree(@NonNull TenantId tenantId, @NonNull UserId userId) {
+        return permissionQueryService.getUserMenuTree(resolveExistingTenantId(tenantId), userId);
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(Long tenantId, Long userId) {
-        return permissionQueryService.getUserPermissionCodes(requireExistingTenantId(tenantId), UserId.of(userId));
+    public Set<String> getUserPermissionCodes(@NonNull TenantId tenantId, @NonNull UserId userId) {
+        return permissionQueryService.getUserPermissionCodes(resolveExistingTenantId(tenantId), userId);
     }
 
     @Override
-    public UserDataScopeDTO getUserDataScope(Long tenantId, Long userId) {
-        return permissionQueryService.getUserDataScope(requireExistingTenantId(tenantId), UserId.of(userId));
+    public UserDataScopeDTO getUserDataScope(@NonNull TenantId tenantId, @NonNull UserId userId) {
+        return permissionQueryService.getUserDataScope(resolveExistingTenantId(tenantId), userId);
     }
 
-    private TenantId requireExistingTenantId(Long tenantId) {
-        if (tenantId == null) {
-            throw new IllegalArgumentException("tenantId must not be null");
-        }
-        return tenantApplicationService.getTenantByTenantId(TenantId.of(tenantId)).getId();
+    private TenantId resolveExistingTenantId(TenantId tenantId) {
+        return tenantApplicationService.getTenantByTenantId(tenantId).getId();
     }
 }

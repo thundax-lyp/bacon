@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +19,7 @@ public class UserPasswordFacadeLocalImpl implements UserPasswordFacade {
     }
 
     @Override
-    public void changePassword(Long tenantId, Long userId, String oldPassword, String newPassword) {
-        userApplicationService.changePassword(TenantId.of(tenantId), UserId.of(userId), oldPassword, newPassword);
+    public void changePassword(@NonNull TenantId tenantId, @NonNull UserId userId, String oldPassword, String newPassword) {
+        userApplicationService.changePassword(tenantId, userId, oldPassword, newPassword);
     }
 }

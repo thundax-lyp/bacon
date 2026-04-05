@@ -7,6 +7,7 @@ import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,34 +27,21 @@ public class DepartmentReadFacadeLocalImpl implements DepartmentReadFacade {
     }
 
     @Override
-    public DepartmentDTO getDepartmentById(Long tenantId, Long departmentId) {
-        return departmentApplicationService.getDepartmentById(requireExistingTenantId(tenantId), toDepartmentId(departmentId));
+    public DepartmentDTO getDepartmentById(@NonNull TenantId tenantId, @NonNull DepartmentId departmentId) {
+        return departmentApplicationService.getDepartmentById(resolveExistingTenantId(tenantId), departmentId);
     }
 
     @Override
-    public DepartmentDTO getDepartmentByCode(Long tenantId, String departmentCode) {
-        return departmentApplicationService.getDepartmentByCode(requireExistingTenantId(tenantId), departmentCode);
+    public DepartmentDTO getDepartmentByCode(@NonNull TenantId tenantId, String departmentCode) {
+        return departmentApplicationService.getDepartmentByCode(resolveExistingTenantId(tenantId), departmentCode);
     }
 
     @Override
-    public List<DepartmentDTO> listDepartmentsByIds(Long tenantId, Set<Long> departmentIds) {
-        Set<DepartmentId> resolvedDepartmentIds = departmentIds == null ? Set.of() : departmentIds.stream()
-                .map(this::toDepartmentId)
-                .collect(java.util.stream.Collectors.toSet());
-        return departmentApplicationService.listDepartmentsByIds(requireExistingTenantId(tenantId), resolvedDepartmentIds);
+    public List<DepartmentDTO> listDepartmentsByIds(@NonNull TenantId tenantId, @NonNull Set<DepartmentId> departmentIds) {
+        return departmentApplicationService.listDepartmentsByIds(resolveExistingTenantId(tenantId), Set.copyOf(departmentIds));
     }
 
-    private TenantId requireExistingTenantId(Long tenantId) {
-        if (tenantId == null) {
-            throw new IllegalArgumentException("tenantId must not be null");
-        }
-        return tenantApplicationService.getTenantByTenantId(TenantId.of(tenantId)).getId();
-    }
-
-    private DepartmentId toDepartmentId(Long departmentId) {
-        if (departmentId == null) {
-            throw new IllegalArgumentException("departmentId must not be null");
-        }
-        return DepartmentId.of(departmentId);
+    private TenantId resolveExistingTenantId(TenantId tenantId) {
+        return tenantApplicationService.getTenantByTenantId(tenantId).getId();
     }
 }

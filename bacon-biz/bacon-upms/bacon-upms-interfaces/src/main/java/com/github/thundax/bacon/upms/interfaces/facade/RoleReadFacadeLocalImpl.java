@@ -7,6 +7,7 @@ import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
 import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,12 +23,12 @@ public class RoleReadFacadeLocalImpl implements RoleReadFacade {
     }
 
     @Override
-    public RoleDTO getRoleById(Long tenantId, Long roleId) {
-        return roleApplicationService.getRoleById(TenantId.of(tenantId), RoleId.of(roleId));
+    public RoleDTO getRoleById(@NonNull TenantId tenantId, @NonNull RoleId roleId) {
+        return roleApplicationService.getRoleById(tenantId, roleId);
     }
 
     @Override
-    public List<RoleDTO> getRolesByUserId(Long tenantId, Long userId) {
-        return roleApplicationService.getRolesByUserId(TenantId.of(tenantId), UserId.of(userId));
+    public List<RoleDTO> getRolesByUserId(@NonNull TenantId tenantId, @NonNull UserId userId) {
+        return roleApplicationService.getRolesByUserId(tenantId, userId);
     }
 }

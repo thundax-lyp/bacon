@@ -1,11 +1,15 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
+import com.github.thundax.bacon.common.id.domain.RoleId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -28,19 +32,19 @@ public class RoleReadFacadeRemoteImpl implements RoleReadFacade {
     }
 
     @Override
-    public RoleDTO getRoleById(Long tenantId, Long roleId) {
+    public RoleDTO getRoleById(@NonNull TenantId tenantId, @NonNull RoleId roleId) {
         // 单角色读取保持最小读取模型，不把数据权限等衍生信息混进主数据 DTO。
         return restClient.get()
-                .uri("/providers/upms/roles/{roleId}?tenantId={tenantId}", roleId, tenantId)
+                .uri("/providers/upms/roles/{roleId}?tenantId={tenantId}", roleId.value(), tenantId.value())
                 .retrieve()
                 .body(RoleDTO.class);
     }
 
     @Override
-    public List<RoleDTO> getRolesByUserId(Long tenantId, Long userId) {
+    public List<RoleDTO> getRolesByUserId(@NonNull TenantId tenantId, @NonNull UserId userId) {
         // 用户角色列表直接以 upms 聚合结果为准，调用方不再本地拼接用户-角色关系。
         return restClient.get()
-                .uri("/providers/upms/roles?tenantId={tenantId}&userId={userId}", tenantId, userId)
+                .uri("/providers/upms/roles?tenantId={tenantId}&userId={userId}", tenantId.value(), userId.value())
                 .retrieve()
                 .body(LIST_TYPE);
     }

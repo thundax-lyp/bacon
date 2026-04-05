@@ -1,15 +1,18 @@
 package com.github.thundax.bacon.upms.api.facade;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Set;
 
 public interface DepartmentReadFacade {
 
-    DepartmentDTO getDepartmentById(Long tenantId, Long departmentId);
+    DepartmentDTO getDepartmentById(@NonNull TenantId tenantId, @NonNull DepartmentId departmentId);
 
-    DepartmentDTO getDepartmentByCode(Long tenantId, String departmentCode);
+    DepartmentDTO getDepartmentByCode(@NonNull TenantId tenantId, String departmentCode);
 
-    List<DepartmentDTO> listDepartmentsByIds(Long tenantId, Set<Long> departmentIds);
+    List<DepartmentDTO> listDepartmentsByIds(@NonNull TenantId tenantId, @NonNull Set<DepartmentId> departmentIds);
 }

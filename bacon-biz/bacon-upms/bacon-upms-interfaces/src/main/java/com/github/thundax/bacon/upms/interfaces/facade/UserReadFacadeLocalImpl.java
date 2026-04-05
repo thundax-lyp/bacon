@@ -9,6 +9,7 @@ import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,22 +23,22 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     }
 
     @Override
-    public UserDTO getUserById(Long tenantId, Long userId) {
-        return userApplicationService.getUserById(TenantId.of(tenantId), UserId.of(userId));
+    public UserDTO getUserById(@NonNull TenantId tenantId, @NonNull UserId userId) {
+        return userApplicationService.getUserById(tenantId, userId);
     }
 
     @Override
-    public UserIdentityDTO getUserIdentity(Long tenantId, String identityType, String identityValue) {
-        return userApplicationService.getUserIdentity(TenantId.of(tenantId), identityType, identityValue);
+    public UserIdentityDTO getUserIdentity(@NonNull TenantId tenantId, String identityType, String identityValue) {
+        return userApplicationService.getUserIdentity(tenantId, identityType, identityValue);
     }
 
     @Override
-    public UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue) {
-        return userApplicationService.getUserLoginCredential(TenantId.of(tenantId), identityType, identityValue);
+    public UserLoginCredentialDTO getUserLoginCredential(@NonNull TenantId tenantId, String identityType, String identityValue) {
+        return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
     }
 
     @Override
-    public TenantDTO getTenantByTenantId(Long tenantId) {
-        return userApplicationService.getTenantByTenantId(String.valueOf(tenantId));
+    public TenantDTO getTenantByTenantId(@NonNull TenantId tenantId) {
+        return userApplicationService.getTenantByTenantId(String.valueOf(tenantId.value()));
     }
 }

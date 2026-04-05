@@ -305,6 +305,7 @@
 | `name` | `varchar(128)` | N | 部门名称 |
 | `parent_id` | `varchar(64)` | Y | 上级部门主键，根节点允许为空 |
 | `leader_user_id` | `varchar(64)` | Y | 负责人用户主键，引用 `bacon_upms_user.id` |
+| `sort` | `int` | N | 排序值，越小越靠前 |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
 | `created_by` | `varchar(64)` | Y | 创建人标识 |

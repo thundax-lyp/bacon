@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.facade;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
@@ -20,22 +22,22 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     }
 
     @Override
-    public UserDTO getUserById(String tenantId, String userId) {
-        return userApplicationService.getUserById(tenantId, userId);
+    public UserDTO getUserById(Long tenantId, Long userId) {
+        return userApplicationService.getUserById(TenantId.of(tenantId), UserId.of(userId));
     }
 
     @Override
-    public UserIdentityDTO getUserIdentity(String tenantId, String identityType, String identityValue) {
-        return userApplicationService.getUserIdentity(tenantId, identityType, identityValue);
+    public UserIdentityDTO getUserIdentity(Long tenantId, String identityType, String identityValue) {
+        return userApplicationService.getUserIdentity(TenantId.of(tenantId), identityType, identityValue);
     }
 
     @Override
-    public UserLoginCredentialDTO getUserLoginCredential(String tenantId, String identityType, String identityValue) {
-        return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
+    public UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue) {
+        return userApplicationService.getUserLoginCredential(TenantId.of(tenantId), identityType, identityValue);
     }
 
     @Override
-    public TenantDTO getTenantByTenantId(String tenantId) {
-        return userApplicationService.getTenantByTenantId(tenantId);
+    public TenantDTO getTenantByTenantId(Long tenantId) {
+        return userApplicationService.getTenantByTenantId(String.valueOf(tenantId));
     }
 }

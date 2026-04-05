@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.provider;
 
+import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
@@ -90,20 +91,26 @@ public class UpmsProviderController {
     @Operation(summary = "按部门 ID 查询部门")
     @GetMapping("/departments/{departmentId}")
     public DepartmentDTO getDepartmentById(@RequestParam("tenantId") String tenantId, @PathVariable String departmentId) {
-        return departmentApplicationService.getDepartmentById(tenantId, departmentId);
+        return departmentApplicationService.getDepartmentById(requireExistingTenantId(tenantId), DepartmentId.of(Long.parseLong(departmentId.trim())));
     }
 
     @Operation(summary = "按部门编码查询部门")
     @GetMapping("/departments/code/{departmentCode}")
     public DepartmentDTO getDepartmentByCode(@RequestParam("tenantId") String tenantId, @PathVariable String departmentCode) {
-        return departmentApplicationService.getDepartmentByCode(tenantId, departmentCode);
+        return departmentApplicationService.getDepartmentByCode(requireExistingTenantId(tenantId), departmentCode);
     }
 
     @Operation(summary = "批量查询部门")
     @GetMapping("/departments")
     public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("tenantId") String tenantId,
                                                     @RequestParam("departmentIds") Set<String> departmentIds) {
-        return departmentApplicationService.listDepartmentsByIds(tenantId, departmentIds);
+        Set<DepartmentId> resolvedDepartmentIds = departmentIds == null ? Set.of() : departmentIds.stream()
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .map(Long::parseLong)
+                .map(DepartmentId::of)
+                .collect(java.util.stream.Collectors.toSet());
+        return departmentApplicationService.listDepartmentsByIds(requireExistingTenantId(tenantId), resolvedDepartmentIds);
     }
 
     @Operation(summary = "按角色 ID 查询角色")

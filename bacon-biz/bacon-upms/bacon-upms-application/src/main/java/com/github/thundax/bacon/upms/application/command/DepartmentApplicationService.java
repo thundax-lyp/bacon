@@ -8,10 +8,8 @@ import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
-import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
-import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,12 +26,10 @@ public class DepartmentApplicationService {
     private static final DepartmentId ROOT_DEPARTMENT_ID = DepartmentId.of(0L);
 
     private final DepartmentRepository departmentRepository;
-    private final TenantRepository tenantRepository;
     private final Ids ids;
 
-    public DepartmentApplicationService(DepartmentRepository departmentRepository, TenantRepository tenantRepository, Ids ids) {
+    public DepartmentApplicationService(DepartmentRepository departmentRepository, Ids ids) {
         this.departmentRepository = departmentRepository;
-        this.tenantRepository = tenantRepository;
         this.ids = ids;
     }
 
@@ -42,27 +38,15 @@ public class DepartmentApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId)));
     }
 
-    public DepartmentDTO getDepartmentById(String tenantId, String departmentId) {
-        return getDepartmentById(requireExistingTenantId(tenantId), toDepartmentId(departmentId));
-    }
-
     public DepartmentDTO getDepartmentByCode(TenantId tenantId, String departmentCode) {
         return toDto(departmentRepository.findDepartmentByCode(tenantId, departmentCode)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentCode)));
-    }
-
-    public DepartmentDTO getDepartmentByCode(String tenantId, String departmentCode) {
-        return getDepartmentByCode(requireExistingTenantId(tenantId), departmentCode);
     }
 
     public List<DepartmentDTO> listDepartmentsByIds(TenantId tenantId, Set<DepartmentId> departmentIds) {
         return departmentRepository.listDepartmentsByIds(tenantId, departmentIds).stream()
                 .map(department -> toDto(department, tenantId.value()))
                 .toList();
-    }
-
-    public List<DepartmentDTO> listDepartmentsByIds(String tenantId, Set<String> departmentIds) {
-        return listDepartmentsByIds(requireExistingTenantId(tenantId), toDepartmentIds(departmentIds));
     }
 
     public List<DepartmentTreeDTO> getDepartmentTree(TenantId tenantId) {
@@ -212,10 +196,6 @@ public class DepartmentApplicationService {
         return DepartmentId.of(parseDepartmentId(departmentId));
     }
 
-    private Set<DepartmentId> toDepartmentIds(Set<String> departmentIds) {
-        return departmentIds == null ? Set.of() : departmentIds.stream().map(this::toDepartmentId).collect(Collectors.toSet());
-    }
-
     private void validateRequired(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " must not be blank");
@@ -228,12 +208,5 @@ public class DepartmentApplicationService {
 
     private Long parseDepartmentId(String departmentId) {
         return Long.parseLong(departmentId.trim());
-    }
-
-    private TenantId requireExistingTenantId(String tenantId) {
-        validateRequired(tenantId, "tenantId");
-        return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
-                .map(Tenant::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 }

@@ -55,9 +55,8 @@ public class DepartmentApplicationService {
     }
 
     public List<DepartmentDTO> listDepartmentsByIds(TenantId tenantId, Set<DepartmentId> departmentIds) {
-        String tenantIdValue = String.valueOf(tenantId.value());
         return departmentRepository.listDepartmentsByIds(tenantId, departmentIds).stream()
-                .map(department -> toDto(department, tenantIdValue))
+                .map(department -> toDto(department, tenantId.value()))
                 .toList();
     }
 
@@ -67,10 +66,9 @@ public class DepartmentApplicationService {
 
     public List<DepartmentTreeDTO> getDepartmentTree(TenantId tenantId) {
         List<Department> departments = departmentRepository.listDepartmentTree(tenantId);
-        String tenantIdValue = String.valueOf(tenantId.value());
         // 先平铺映射成节点表，再按 parentId 二次挂接，避免 repository 被迫返回固定层级结构。
         Map<Long, DepartmentTreeDTO> treeNodeMap = departments.stream()
-                .map(department -> toTreeDto(department, tenantIdValue))
+                .map(department -> toTreeDto(department, tenantId.value()))
                 .collect(Collectors.toMap(DepartmentTreeDTO::getId, Function.identity()));
 
         departments.forEach(department -> {
@@ -152,26 +150,26 @@ public class DepartmentApplicationService {
     }
 
     private DepartmentDTO toDto(Department department) {
-        return toDto(department, String.valueOf(department.getTenantId().value()));
+        return toDto(department, department.getTenantId().value());
     }
 
-    private DepartmentDTO toDto(Department department, String tenantIdValue) {
+    private DepartmentDTO toDto(Department department, Long tenantIdValue) {
         return new DepartmentDTO(department.getId().value(), tenantIdValue,
                 department.getCode(), department.getName(),
                 department.getParentId() == null ? null : department.getParentId().value(),
-                department.getLeaderUserId() == null ? null : String.valueOf(department.getLeaderUserId().value()),
+                department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
                 department.getSort(), department.getStatus());
     }
 
     private DepartmentTreeDTO toTreeDto(Department department) {
-        return toTreeDto(department, String.valueOf(department.getTenantId().value()));
+        return toTreeDto(department, department.getTenantId().value());
     }
 
-    private DepartmentTreeDTO toTreeDto(Department department, String tenantIdValue) {
+    private DepartmentTreeDTO toTreeDto(Department department, Long tenantIdValue) {
         return new DepartmentTreeDTO(department.getId().value(), tenantIdValue,
                 department.getCode(), department.getName(),
                 department.getParentId() == null ? null : department.getParentId().value(),
-                department.getLeaderUserId() == null ? null : String.valueOf(department.getLeaderUserId().value()),
+                department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
                 department.getSort(), department.getStatus(), new java.util.ArrayList<>());
     }
 

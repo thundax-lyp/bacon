@@ -16,7 +16,7 @@ public class DepartmentTreeDTO {
     /** 部门主键。 */
     private Long id;
     /** 所属租户主键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 部门编码。 */
     private String code;
     /** 部门名称。 */
@@ -24,7 +24,7 @@ public class DepartmentTreeDTO {
     /** 父部门主键，根部门固定为 0。 */
     private Long parentId;
     /** 部门负责人用户主键。 */
-    private String leaderUserId;
+    private Long leaderUserId;
     /** 排序值。 */
     private Integer sort;
     /** 部门状态。 */

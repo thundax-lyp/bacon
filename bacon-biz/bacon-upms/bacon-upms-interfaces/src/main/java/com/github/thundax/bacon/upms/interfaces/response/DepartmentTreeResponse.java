@@ -10,7 +10,7 @@ public record DepartmentTreeResponse(
         /** 部门主键。 */
         String id,
         /** 所属租户编号。 */
-        String tenantId,
+        Long tenantId,
         /** 部门编码。 */
         String code,
         /** 部门名称。 */
@@ -18,7 +18,7 @@ public record DepartmentTreeResponse(
         /** 父部门主键，根部门固定为 0。 */
         String parentId,
         /** 部门负责人用户主键。 */
-        String leaderUserId,
+        Long leaderUserId,
         /** 排序值。 */
         Integer sort,
         /** 部门状态。 */

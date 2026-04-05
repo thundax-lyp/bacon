@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 @Service
 public class DepartmentApplicationService {
 
-    private static final DepartmentId ROOT_DEPARTMENT_ID = DepartmentId.of(0L);
-
     private final DepartmentRepository departmentRepository;
     private final Ids ids;
 
@@ -182,11 +180,11 @@ public class DepartmentApplicationService {
     }
 
     private DepartmentId normalizeParentId(String parentId) {
-        return parentId == null || parentId.isBlank() ? ROOT_DEPARTMENT_ID : DepartmentId.of(parseDepartmentId(parentId));
+        return parentId == null || parentId.isBlank() ? null : DepartmentId.of(parseDepartmentId(parentId));
     }
 
     private boolean hasParent(DepartmentId parentId) {
-        return parentId != null && !ROOT_DEPARTMENT_ID.equals(parentId);
+        return parentId != null;
     }
 
     private DepartmentId toDepartmentId(String departmentId) {

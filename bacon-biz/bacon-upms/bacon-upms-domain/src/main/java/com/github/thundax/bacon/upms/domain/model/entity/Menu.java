@@ -22,7 +22,7 @@ public class Menu {
     private String menuType;
     /** 菜单名称。 */
     private String name;
-    /** 父菜单主键，根节点固定为 0。 */
+    /** 父菜单主键，根节点为 null。 */
     private MenuId parentId;
     /** 前端路由路径。 */
     private String routePath;

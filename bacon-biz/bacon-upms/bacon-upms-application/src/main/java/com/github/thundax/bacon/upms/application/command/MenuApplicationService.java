@@ -15,8 +15,6 @@ import java.util.List;
 @Service
 public class MenuApplicationService {
 
-    private static final MenuId ROOT_MENU_ID = MenuId.of(0L);
-
     private final MenuRepository menuRepository;
     private final PermissionRepository permissionRepository;
 
@@ -105,8 +103,8 @@ public class MenuApplicationService {
     }
 
     private void validateParent(TenantId tenantId, MenuId parentId) {
-        // 菜单根节点同样用 0/NULL 语义，和部门树保持一致，减少前端和接口的分支判断。
-        if (parentId == null || ROOT_MENU_ID.equals(parentId)) {
+        // 菜单根节点统一用 null parentId 语义，避免和正数型 ID 约束冲突。
+        if (parentId == null) {
             return;
         }
         menuRepository.findMenuById(tenantId, parentId)
@@ -115,7 +113,7 @@ public class MenuApplicationService {
 
     private MenuId normalizeParentId(String parentId) {
         if (parentId == null || parentId.isBlank()) {
-            return ROOT_MENU_ID;
+            return null;
         }
         return MenuId.of(Long.parseLong(parentId.trim()));
     }

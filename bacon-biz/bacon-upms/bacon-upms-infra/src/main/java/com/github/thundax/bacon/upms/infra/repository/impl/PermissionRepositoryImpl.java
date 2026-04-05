@@ -21,8 +21,6 @@ import org.springframework.stereotype.Repository;
 @Profile("!test")
 public class PermissionRepositoryImpl implements PermissionRepository {
 
-    private static final MenuId ROOT_MENU_ID = MenuId.of(0L);
-
     private final MenuRepositoryImpl menuRepository;
     private final RoleRepositoryImpl roleRepository;
     private final UpmsPermissionCacheSupport cacheSupport;
@@ -127,7 +125,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         menuMap.values().stream()
                 .sorted(Comparator.comparing(Menu::getSort).thenComparing(menu -> menu.getId().value()))
                 .forEach(menu -> {
-                    if (menu.getParentId() == null || ROOT_MENU_ID.equals(menu.getParentId()) || !menuMap.containsKey(menu.getParentId())) {
+                    if (menu.getParentId() == null || !menuMap.containsKey(menu.getParentId())) {
                         roots.add(menu);
                     } else {
                         menuMap.get(menu.getParentId()).getChildren().add(menu);

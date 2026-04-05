@@ -84,11 +84,11 @@ public class PostApplicationService {
     }
 
     private PostDTO toDto(Post post) {
-        return toDto(post, String.valueOf(post.getTenantId().value()));
+        return toDto(post, post.getTenantId().value());
     }
 
-    private PostDTO toDto(Post post, String tenantIdValue) {
-        return new PostDTO(post.getId() == null ? null : String.valueOf(post.getId().value()), tenantIdValue, post.getCode(), post.getName(),
+    private PostDTO toDto(Post post, Long tenantIdValue) {
+        return new PostDTO(post.getId() == null ? null : post.getId().value(), tenantIdValue, post.getCode(), post.getName(),
                 post.getDepartmentId() == null ? null : post.getDepartmentId().value(),
                 post.getStatus() == null ? null : post.getStatus().value());
     }

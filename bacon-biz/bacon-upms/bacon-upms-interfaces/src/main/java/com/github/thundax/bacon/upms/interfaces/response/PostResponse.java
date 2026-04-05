@@ -7,9 +7,9 @@ import com.github.thundax.bacon.upms.api.dto.PostDTO;
  */
 public record PostResponse(
         /** 岗位主键。 */
-        String id,
+        Long id,
         /** 所属租户编号。 */
-        String tenantId,
+        Long tenantId,
         /** 岗位编码。 */
         String code,
         /** 岗位名称。 */

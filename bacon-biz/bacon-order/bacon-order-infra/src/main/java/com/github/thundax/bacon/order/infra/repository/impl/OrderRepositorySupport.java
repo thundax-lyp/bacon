@@ -319,10 +319,6 @@ public class OrderRepositorySupport {
         return orderId == null ? null : String.valueOf(orderId.value());
     }
 
-    private OrderId toDomainOrderId(String orderId) {
-        return orderId == null ? null : OrderId.of(orderId);
-    }
-
     private OrderId toDomainOrderId(Long orderId) {
         return orderId == null ? null : OrderId.of(orderId);
     }

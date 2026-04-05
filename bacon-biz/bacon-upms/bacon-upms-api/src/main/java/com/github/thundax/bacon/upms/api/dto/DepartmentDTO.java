@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.api.dto;
 
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,5 +28,5 @@ public class DepartmentDTO {
     /** 排序值。 */
     private Integer sort;
     /** 部门状态。 */
-    private String status;
+    private UpmsStatusEnum status;
 }

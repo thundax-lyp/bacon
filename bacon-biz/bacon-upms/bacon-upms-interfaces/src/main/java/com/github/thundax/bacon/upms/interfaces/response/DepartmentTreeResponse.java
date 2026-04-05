@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
+import com.github.thundax.bacon.upms.api.enums.UpmsStatusEnum;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public record DepartmentTreeResponse(
         /** 排序值。 */
         Integer sort,
         /** 部门状态。 */
-        String status,
+        UpmsStatusEnum status,
         /** 子部门列表。 */
         List<DepartmentTreeResponse> children) {
 

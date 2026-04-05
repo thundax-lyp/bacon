@@ -158,7 +158,7 @@ public class DepartmentApplicationService {
                 department.getCode(), department.getName(),
                 department.getParentId() == null ? null : department.getParentId().value(),
                 department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
-                department.getSort(), department.getStatus());
+                department.getSort(), toStatusEnum(department.getStatus()));
     }
 
     private DepartmentTreeDTO toTreeDto(Department department) {
@@ -170,7 +170,7 @@ public class DepartmentApplicationService {
                 department.getCode(), department.getName(),
                 department.getParentId() == null ? null : department.getParentId().value(),
                 department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
-                department.getSort(), department.getStatus(), new java.util.ArrayList<>());
+                department.getSort(), toStatusEnum(department.getStatus()), new java.util.ArrayList<>());
     }
 
     private Comparator<DepartmentTreeDTO> treeComparator() {
@@ -180,6 +180,10 @@ public class DepartmentApplicationService {
 
     private Integer defaultSort(Integer sort) {
         return sort == null ? 0 : sort;
+    }
+
+    private UpmsStatusEnum toStatusEnum(String status) {
+        return status == null ? null : UpmsStatusEnum.valueOf(status);
     }
 
     private UserId toUserId(String userId) {

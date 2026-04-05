@@ -197,7 +197,7 @@ public class UserController {
         List<UserImportItem> items = request.items() == null ? List.of() : request.items();
         return userApplicationService.importUsers(TenantId.of(tenantId), items.stream()
                         .map(item -> new UserImportCommand(item.account(), item.name(), item.phone(),
-                                item.departmentId()))
+                                item.departmentCode()))
                         .toList())
                 .stream()
                 .map(UserResponse::from)

@@ -24,6 +24,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -59,6 +60,8 @@ class UserApplicationServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
+    private DepartmentRepository departmentRepository;
+    @Mock
     private RoleRepository roleRepository;
     @Mock
     private TenantRepository tenantRepository;
@@ -73,7 +76,7 @@ class UserApplicationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new UserApplicationService(userRepository, roleRepository, tenantRepository, sessionCommandFacade,
+        service = new UserApplicationService(departmentRepository, userRepository, roleRepository, tenantRepository, sessionCommandFacade,
                 passwordEncoder, storedObjectFacade);
     }
 

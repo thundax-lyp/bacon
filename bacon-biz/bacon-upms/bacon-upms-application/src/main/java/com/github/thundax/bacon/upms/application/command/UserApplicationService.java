@@ -26,6 +26,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -56,6 +57,7 @@ public class UserApplicationService {
     private static final int MAX_AVATAR_PIXEL = 1024;
     private static final Set<String> ALLOWED_AVATAR_CONTENT_TYPES = Set.of("image/jpeg", "image/png");
 
+    private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final TenantRepository tenantRepository;
@@ -63,9 +65,10 @@ public class UserApplicationService {
     private final PasswordEncoder passwordEncoder;
     private final StoredObjectFacade storedObjectFacade;
 
-    public UserApplicationService(UserRepository userRepository, RoleRepository roleRepository,
+    public UserApplicationService(DepartmentRepository departmentRepository, UserRepository userRepository, RoleRepository roleRepository,
                                   TenantRepository tenantRepository, SessionCommandFacade sessionCommandFacade,
                                   PasswordEncoder passwordEncoder, StoredObjectFacade storedObjectFacade) {
+        this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.tenantRepository = tenantRepository;
@@ -287,7 +290,7 @@ public class UserApplicationService {
         }
         return commands.stream()
                 .map(command -> createUser(tenantId, command.account(), command.name(), command.phone(),
-                        command.departmentId()))
+                        resolveDepartmentIdByCode(tenantId, command.departmentCode())))
                 .toList();
     }
 
@@ -379,6 +382,15 @@ public class UserApplicationService {
 
     private DepartmentId toDepartmentId(String departmentId) {
         return departmentId == null || departmentId.isBlank() ? null : DepartmentId.of(Long.parseLong(departmentId.trim()));
+    }
+
+    private String resolveDepartmentIdByCode(TenantId tenantId, String departmentCode) {
+        if (departmentCode == null || departmentCode.isBlank()) {
+            return null;
+        }
+        return departmentRepository.findDepartmentByCode(tenantId, departmentCode.trim())
+                .map(department -> String.valueOf(department.getId().value()))
+                .orElseThrow(() -> new IllegalArgumentException("Department not found by code: " + departmentCode));
     }
 
     private RoleDTO toRoleDto(Role role, String tenantIdValue) {

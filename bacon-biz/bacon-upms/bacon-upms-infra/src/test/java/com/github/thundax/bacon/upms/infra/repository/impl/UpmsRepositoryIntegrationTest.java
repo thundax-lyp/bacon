@@ -111,9 +111,9 @@ class UpmsRepositoryIntegrationTest {
                         parent_id varchar(64) NULL,
                         leader_user_id varchar(64) NULL,
                         status varchar(16) NOT NULL,
-                        created_by varchar(64) NULL,
+                        created_by bigint NULL,
                         created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
+                        updated_by bigint NULL,
                         updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
@@ -127,9 +127,9 @@ class UpmsRepositoryIntegrationTest {
                         department_id varchar(64) NULL,
                         status varchar(16) NOT NULL,
                         deleted boolean NOT NULL,
-                        created_by varchar(64) NULL,
+                        created_by bigint NULL,
                         created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
+                        updated_by bigint NULL,
                         updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
@@ -142,9 +142,9 @@ class UpmsRepositoryIntegrationTest {
                         identity_type varchar(32) NOT NULL,
                         identity_value varchar(128) NOT NULL,
                         status varchar(16) NOT NULL,
-                        created_by varchar(64) NULL,
+                        created_by bigint NULL,
                         created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
+                        updated_by bigint NULL,
                         updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
@@ -166,9 +166,9 @@ class UpmsRepositoryIntegrationTest {
                         locked_until timestamp NULL,
                         expires_at timestamp NULL,
                         last_verified_at timestamp NULL,
-                        created_by varchar(64) NULL,
+                        created_by bigint NULL,
                         created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
+                        updated_by bigint NULL,
                         updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
@@ -182,9 +182,9 @@ class UpmsRepositoryIntegrationTest {
                         role_type varchar(32) NOT NULL,
                         data_scope_type varchar(32) NOT NULL,
                         status varchar(16) NOT NULL,
-                        created_by varchar(64) NULL,
+                        created_by bigint NULL,
                         created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
+                        updated_by bigint NULL,
                         updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
@@ -214,9 +214,9 @@ class UpmsRepositoryIntegrationTest {
                         method varchar(16) NULL,
                         path varchar(255) NULL,
                         status varchar(16) NOT NULL,
-                        created_by varchar(64) NULL,
+                        created_by bigint NULL,
                         created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
+                        updated_by bigint NULL,
                         updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
@@ -254,9 +254,9 @@ class UpmsRepositoryIntegrationTest {
                         tenant_id varchar(64) NOT NULL,
                         role_id varchar(64) NOT NULL,
                         data_scope_type varchar(32) NOT NULL,
-                        created_by varchar(64) NULL,
+                        created_by bigint NULL,
                         created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
+                        updated_by bigint NULL,
                         updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )

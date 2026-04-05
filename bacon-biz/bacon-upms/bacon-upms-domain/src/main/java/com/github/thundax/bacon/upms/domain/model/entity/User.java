@@ -28,11 +28,11 @@ public class User {
     /** 用户状态。 */
     private UserStatus status;
     /** 创建人。 */
-    private Long createdBy;
+    private String createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 最后更新人。 */
-    private Long updatedBy;
+    private String updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -46,16 +46,16 @@ public class User {
                 null, null, null, null);
     }
 
-    public User(UserId id, TenantId tenantId, String name, DepartmentId departmentId, UserStatus status, Long createdBy,
+    public User(UserId id, TenantId tenantId, String name, DepartmentId departmentId, UserStatus status, String createdBy,
                 Instant createdAt,
-                Long updatedBy, Instant updatedAt) {
+                String updatedBy, Instant updatedAt) {
         this(id, tenantId, name, null, departmentId, status,
                 createdBy, createdAt, updatedBy, updatedAt);
     }
 
     public User(UserId id, TenantId tenantId, String name, StoredObjectId avatarObjectId, DepartmentId departmentId,
-                UserStatus status, Long createdBy,
-                Instant createdAt, Long updatedBy, Instant updatedAt) {
+                UserStatus status, String createdBy,
+                Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.name = name;

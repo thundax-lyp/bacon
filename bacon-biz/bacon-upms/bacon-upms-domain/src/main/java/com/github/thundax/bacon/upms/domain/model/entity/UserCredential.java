@@ -47,11 +47,11 @@ public class UserCredential {
     /** 最近验证时间。 */
     private Instant lastVerifiedAt;
     /** 创建人。 */
-    private Long createdBy;
+    private String createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 最后更新人。 */
-    private Long updatedBy;
+    private String updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -69,8 +69,8 @@ public class UserCredential {
                           UserCredentialFactorLevel factorLevel, String credentialValue, UserCredentialStatus status,
                           boolean needChangePassword,
                           int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
-                          Instant expiresAt, Instant lastVerifiedAt, Long createdBy,
-                          Instant createdAt, Long updatedBy, Instant updatedAt) {
+                          Instant expiresAt, Instant lastVerifiedAt, String createdBy,
+                          Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.userId = userId;

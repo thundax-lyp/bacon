@@ -30,11 +30,11 @@ public class Resource {
     /** 资源状态。 */
     private ResourceStatus status;
     /** 创建人。 */
-    private Long createdBy;
+    private String createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 最后更新人。 */
-    private Long updatedBy;
+    private String updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -44,7 +44,7 @@ public class Resource {
     }
 
     public Resource(ResourceId id, TenantId tenantId, String code, String name, ResourceType resourceType, String httpMethod,
-                    String uri, ResourceStatus status, Long createdBy, Instant createdAt, Long updatedBy,
+                    String uri, ResourceStatus status, String createdBy, Instant createdAt, String updatedBy,
                     Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;

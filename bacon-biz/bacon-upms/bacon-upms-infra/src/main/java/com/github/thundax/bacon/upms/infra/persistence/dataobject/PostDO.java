@@ -31,11 +31,11 @@ public class PostDO {
     @TableField("status")
     private String status;
     @TableField("created_by")
-    private Long createdBy;
+    private String createdBy;
     @TableField("created_at")
     private LocalDateTime createdAt;
     @TableField("updated_by")
-    private Long updatedBy;
+    private String updatedBy;
     @TableField("updated_at")
     private LocalDateTime updatedAt;
 }

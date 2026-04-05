@@ -26,11 +26,11 @@ public class Post {
     /** 岗位状态。 */
     private PostStatus status;
     /** 创建人。 */
-    private Long createdBy;
+    private String createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 最后更新人。 */
-    private Long updatedBy;
+    private String updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -39,7 +39,7 @@ public class Post {
     }
 
     public Post(PostId id, TenantId tenantId, String code, String name, DepartmentId departmentId, PostStatus status,
-                Long createdBy, Instant createdAt, Long updatedBy, Instant updatedAt) {
+                String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.code = code;

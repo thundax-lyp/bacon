@@ -28,11 +28,11 @@ public class Department {
     /** 部门状态。 */
     private String status;
     /** 创建人。 */
-    private Long createdBy;
+    private String createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 最后更新人。 */
-    private Long updatedBy;
+    private String updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -42,7 +42,7 @@ public class Department {
     }
 
     public Department(DepartmentId id, TenantId tenantId, String code, String name, DepartmentId parentId, UserId leaderUserId,
-                      String status, Long createdBy, Instant createdAt, Long updatedBy,
+                      String status, String createdBy, Instant createdAt, String updatedBy,
                       Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;

@@ -28,11 +28,11 @@ public class UserIdentity {
     /** 身份状态。 */
     private UserIdentityStatus status;
     /** 创建人。 */
-    private String createdBy;
+    private Long createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 最后更新人。 */
-    private String updatedBy;
+    private Long updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -42,8 +42,8 @@ public class UserIdentity {
     }
 
     public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, UserIdentityType identityType,
-                        String identityValue, UserIdentityStatus status, String createdBy, Instant createdAt,
-                        String updatedBy, Instant updatedAt) {
+                        String identityValue, UserIdentityStatus status, Long createdBy, Instant createdAt,
+                        Long updatedBy, Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.userId = userId;

@@ -24,11 +24,11 @@ public class Tenant {
     /** 过期时间。 */
     private Instant expiredAt;
     /** 创建人。 */
-    private String createdBy;
+    private Long createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 最后更新人。 */
-    private String updatedBy;
+    private Long updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -37,7 +37,7 @@ public class Tenant {
     }
 
     public Tenant(String tenantId, String name, String tenantCode, TenantStatus status, Instant expiredAt,
-                  String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
+                  Long createdBy, Instant createdAt, Long updatedBy, Instant updatedAt) {
         this(TenantId.of(tenantId), name, TenantCode.of(tenantCode), status, expiredAt,
                 createdBy, createdAt, updatedBy, updatedAt);
     }
@@ -47,7 +47,7 @@ public class Tenant {
     }
 
     public Tenant(TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt,
-                  String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
+                  Long createdBy, Instant createdAt, Long updatedBy, Instant updatedAt) {
         this.id = id;
         this.name = name;
         this.tenantCode = tenantCode;

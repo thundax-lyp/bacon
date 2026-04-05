@@ -30,11 +30,11 @@ public class Role {
     /** 角色状态。 */
     private RoleStatus status;
     /** 创建人。 */
-    private String createdBy;
+    private Long createdBy;
     /** 创建时间。 */
     private Instant createdAt;
     /** 最后更新人。 */
-    private String updatedBy;
+    private Long updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -44,7 +44,7 @@ public class Role {
     }
 
     public Role(RoleId id, TenantId tenantId, String code, String name, RoleType roleType, RoleDataScopeType dataScopeType,
-                RoleStatus status, String createdBy, Instant createdAt, String updatedBy,
+                RoleStatus status, Long createdBy, Instant createdAt, Long updatedBy,
                 Instant updatedAt) {
         this.id = id;
         this.tenantId = tenantId;

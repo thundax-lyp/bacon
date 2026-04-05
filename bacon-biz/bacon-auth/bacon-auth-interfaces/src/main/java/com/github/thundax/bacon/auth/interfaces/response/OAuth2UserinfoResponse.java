@@ -10,7 +10,7 @@ public record OAuth2UserinfoResponse(
         /** 用户主体标识。 */
         String sub,
         /** 租户标识。 */
-        @JsonProperty("tenant_id") String tenantId,
+        @JsonProperty("tenant_id") Long tenantId,
         /** 用户名称。 */
         String name) {
 

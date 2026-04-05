@@ -78,7 +78,8 @@ public class TokenApplicationService {
         AuthSession authSession = authSessionRepository.findSessionBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
         // 这里返回的是仓储里的当前会话快照，不重新解析 access token，避免出现 token 与服务端会话状态不一致。
-        return new CurrentSessionDTO(authSession.getSessionId(), authSession.getTenantId(), authSession.getUserId(),
+        return new CurrentSessionDTO(authSession.getSessionId(), Long.valueOf(authSession.getTenantId()),
+                Long.valueOf(authSession.getUserId()),
                 authSession.getIdentityType(), authSession.getLoginType(), authSession.getSessionStatus(),
                 authSession.getIssuedAt(), authSession.getLastAccessTime(), authSession.getExpireAt());
     }

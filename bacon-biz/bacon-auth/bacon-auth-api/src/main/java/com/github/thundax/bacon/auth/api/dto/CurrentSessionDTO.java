@@ -17,9 +17,9 @@ public class CurrentSessionDTO {
     /** 会话标识。 */
     private String sessionId;
     /** 所属租户编号。 */
-    private String tenantId;
+    private Long tenantId;
     /** 用户主键。 */
-    private String userId;
+    private Long userId;
     /** 身份标识类型。 */
     private String identityType;
     /** 登录方式类型。 */

@@ -36,7 +36,8 @@ public class PasswordApplicationService {
         CurrentSessionDTO currentSession = sessionApplicationService.currentSession(accessToken);
         userPasswordFacade.changePassword(TenantId.of(currentSession.getTenantId()), UserId.of(currentSession.getUserId()),
                 oldPassword, newPassword);
-        sessionApplicationService.invalidateUserSessions(currentSession.getTenantId(), currentSession.getUserId(),
+        sessionApplicationService.invalidateUserSessions(String.valueOf(currentSession.getTenantId()),
+                String.valueOf(currentSession.getUserId()),
                 "SELF_PASSWORD_CHANGED");
     }
 }

@@ -57,8 +57,8 @@ public class OAuth2AuthorizationApplicationService {
             throw new UnauthorizedException("Login required before OAuth2 authorization");
         }
         var currentSession = sessionApplicationService.currentSession(accessToken);
-        String tenantId = currentSession.getTenantId();
-        String userId = currentSession.getUserId();
+        String tenantId = String.valueOf(currentSession.getTenantId());
+        String userId = String.valueOf(currentSession.getUserId());
 
         // authorize 阶段只落授权请求，不直接发 code；真正的授权决定由后续 approve/reject 明确给出。
         String authorizationRequestId = UUID.randomUUID().toString();
@@ -123,8 +123,8 @@ public class OAuth2AuthorizationApplicationService {
                 .filter(accessToken -> accessToken.getExpireAt().isAfter(Instant.now()))
                 .map(accessToken -> new OAuth2IntrospectionDTO(true, accessToken.getClientId(),
                         String.join(" ", accessToken.getScopes()), String.valueOf(accessToken.getUserId()),
-                        accessToken.getTenantId(), accessToken.getExpireAt().getEpochSecond()))
-                .orElse(new OAuth2IntrospectionDTO(false, clientId, "", "", "", 0L));
+                        Long.valueOf(accessToken.getTenantId()), accessToken.getExpireAt().getEpochSecond()))
+                .orElse(new OAuth2IntrospectionDTO(false, clientId, "", "", null, 0L));
     }
 
     public void revoke(String token, String clientId, String clientSecret) {
@@ -144,7 +144,7 @@ public class OAuth2AuthorizationApplicationService {
                 .filter(current -> "ACTIVE".equals(current.getTokenStatus()))
                 .orElseThrow(() -> new IllegalArgumentException("OAuth access token invalid"));
         String name = token.getScopes().contains("profile") ? "demo-user-" + token.getUserId() : null;
-        return new OAuth2UserinfoDTO(token.getUserId(), token.getTenantId(), name);
+        return new OAuth2UserinfoDTO(token.getUserId(), Long.valueOf(token.getTenantId()), name);
     }
 
     private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, String tenantId, String userId, Set<String> scopes) {

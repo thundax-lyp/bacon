@@ -10,9 +10,9 @@ public record CurrentSessionResponse(
         /** 会话标识。 */
         String sessionId,
         /** 所属租户编号。 */
-        String tenantId,
+        Long tenantId,
         /** 用户主键。 */
-        String userId,
+        Long userId,
         /** 身份标识类型。 */
         String identityType,
         /** 登录方式类型。 */

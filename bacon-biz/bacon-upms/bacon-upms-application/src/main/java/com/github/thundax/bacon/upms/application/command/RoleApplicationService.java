@@ -43,7 +43,7 @@ public class RoleApplicationService {
     }
 
     public List<RoleDTO> getRolesByUserId(TenantId tenantId, UserId userId) {
-        String tenantIdValue = tenantId.value();
+        String tenantIdValue = String.valueOf(tenantId.value());
         return roleRepository.findRolesByUserId(tenantId, userId).stream()
                 .map(role -> toDto(role, tenantIdValue))
                 .toList();
@@ -56,7 +56,7 @@ public class RoleApplicationService {
     public RolePageResultDTO pageRoles(RolePageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String tenantIdValue = query.getTenantId().value();
+        String tenantIdValue = String.valueOf(query.getTenantId().value());
         return new RolePageResultDTO(roleRepository.pageRoles(query.getTenantId(), query.getCode(), query.getName(),
                 query.getRoleType(), query.getStatus(), pageNo, pageSize).stream()
                 .map(role -> toDto(role, tenantIdValue))
@@ -151,7 +151,7 @@ public class RoleApplicationService {
     }
 
     private RoleDTO toDto(Role role) {
-        return toDto(role, role.getTenantId().value());
+        return toDto(role, String.valueOf(role.getTenantId().value()));
     }
 
     private RoleDTO toDto(Role role, String tenantIdValue) {

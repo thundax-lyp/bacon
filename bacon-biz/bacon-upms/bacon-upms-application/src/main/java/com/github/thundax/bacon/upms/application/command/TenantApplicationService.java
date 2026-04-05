@@ -95,7 +95,7 @@ public class TenantApplicationService {
         Tenant tenant = tenantRepository.updateTenantStatus(tenantId, status.value());
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
         if (TenantStatus.DISABLED == tenant.getStatus()) {
-            sessionCommandFacade.invalidateTenantSessions(tenant.getId().value(), "TENANT_DISABLED");
+            sessionCommandFacade.invalidateTenantSessions(String.valueOf(tenant.getId().value()), "TENANT_DISABLED");
         }
         return toDto(tenant);
     }

@@ -38,15 +38,15 @@ class TenantApplicationServiceTest {
 
     @Test
     void shouldCreateTenantWithTenantId() {
-        when(tenantRepository.findTenantByTenantId(TenantId.of("tenant-demo"))).thenReturn(Optional.empty());
+        when(tenantRepository.findTenantByTenantId(TenantId.of("1001"))).thenReturn(Optional.empty());
         when(tenantRepository.findTenantByCode("TENANT_DEMO")).thenReturn(Optional.empty());
         when(tenantRepository.saveTenant(any(Tenant.class)))
-                .thenReturn(new Tenant("tenant-demo", "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z")));
+                .thenReturn(new Tenant("1001", "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z")));
 
-        TenantDTO result = service.createTenant("tenant-demo", "Demo Tenant", "TENANT_DEMO",
+        TenantDTO result = service.createTenant("1001", "Demo Tenant", "TENANT_DEMO",
                 Instant.parse("2099-01-01T00:00:00Z"));
 
-        assertThat(result.getId().value()).isEqualTo("tenant-demo");
+        assertThat(result.getId().value()).isEqualTo(1001L);
         assertThat(result.getName()).isEqualTo("Demo Tenant");
         assertThat(result.getTenantCode()).isEqualTo("TENANT_DEMO");
         assertThat(result.getStatus()).isEqualTo("ACTIVE");
@@ -54,18 +54,18 @@ class TenantApplicationServiceTest {
 
     @Test
     void shouldRejectDuplicateTenantId() {
-        when(tenantRepository.findTenantByTenantId(TenantId.of("tenant-demo")))
-                .thenReturn(Optional.of(new Tenant("tenant-demo", "Demo Tenant", "TENANT_DEMO",
+        when(tenantRepository.findTenantByTenantId(TenantId.of("1001")))
+                .thenReturn(Optional.of(new Tenant("1001", "Demo Tenant", "TENANT_DEMO",
                         TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
 
-        assertThatThrownBy(() -> service.createTenant("tenant-demo", "Other", "OTHER", null))
+        assertThatThrownBy(() -> service.createTenant("1001", "Other", "OTHER", null))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Tenant tenantId already exists: tenant-demo");
+                .hasMessage("Tenant tenantId already exists: 1001");
     }
 
     @Test
     void shouldRejectInvalidTenantCode() {
-        assertThatThrownBy(() -> service.createTenant("tenant-demo", "Demo Tenant", "tenant-demo", null))
+        assertThatThrownBy(() -> service.createTenant("1001", "Demo Tenant", "tenant-demo", null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("tenantCode must match [A-Z0-9_]+");
     }

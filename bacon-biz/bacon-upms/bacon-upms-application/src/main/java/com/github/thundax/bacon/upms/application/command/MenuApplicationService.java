@@ -32,7 +32,7 @@ public class MenuApplicationService {
 
     public List<MenuTreeDTO> getMenuTree(TenantId tenantId) {
         // 菜单树读取直接复用权限仓储结果，避免命令侧和权限侧各维护一套树装配逻辑。
-        String tenantIdValue = tenantId.value();
+        String tenantIdValue = String.valueOf(tenantId.value());
         return permissionRepository.listMenus(tenantId).stream().map(menu -> toTreeDto(menu, tenantIdValue)).toList();
     }
 
@@ -92,7 +92,7 @@ public class MenuApplicationService {
     }
 
     private MenuTreeDTO toTreeDto(Menu menu) {
-        return toTreeDto(menu, menu.getTenantId().value());
+        return toTreeDto(menu, String.valueOf(menu.getTenantId().value()));
     }
 
     private MenuTreeDTO toTreeDto(Menu menu, String tenantIdValue) {

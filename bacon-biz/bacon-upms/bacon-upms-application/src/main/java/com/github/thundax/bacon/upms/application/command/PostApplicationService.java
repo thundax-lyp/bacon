@@ -29,7 +29,7 @@ public class PostApplicationService {
     public PostPageResultDTO pagePosts(PostPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String tenantIdValue = query.getTenantId().value();
+        String tenantIdValue = String.valueOf(query.getTenantId().value());
         return new PostPageResultDTO(
                 postRepository.pagePosts(query.getTenantId(), query.getCode(), query.getName(),
                         query.getDepartmentId(), query.getStatus(), pageNo, pageSize).stream()
@@ -84,7 +84,7 @@ public class PostApplicationService {
     }
 
     private PostDTO toDto(Post post) {
-        return toDto(post, post.getTenantId().value());
+        return toDto(post, String.valueOf(post.getTenantId().value()));
     }
 
     private PostDTO toDto(Post post, String tenantIdValue) {

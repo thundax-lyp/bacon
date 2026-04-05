@@ -88,9 +88,9 @@ public class UserApplicationService {
     public UserIdentityDTO getUserIdentity(TenantId tenantId, String identityType, String identityValue) {
         UserIdentity userIdentity = userRepository.findUserIdentity(tenantId, toIdentityType(identityType), identityValue)
                 .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
-        return new UserIdentityDTO(userIdentity.getId() == null ? null : userIdentity.getId().value(),
-                userIdentity.getTenantId().value(),
-                userIdentity.getUserId().value(),
+        return new UserIdentityDTO(userIdentity.getId() == null ? null : String.valueOf(userIdentity.getId().value()),
+                String.valueOf(userIdentity.getTenantId().value()),
+                String.valueOf(userIdentity.getUserId().value()),
                 userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(),
                 userIdentity.getStatus() == null ? null : userIdentity.getStatus().value());
     }
@@ -108,11 +108,11 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
         String account = resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
         String phone = resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
-        return new UserLoginCredentialDTO(user.getTenantId().value(), user.getId().value(),
+        return new UserLoginCredentialDTO(String.valueOf(user.getTenantId().value()), String.valueOf(user.getId().value()),
                 account, phone,
                 userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(),
                 userIdentity.getStatus() == null ? null : userIdentity.getStatus().value(),
-                passwordCredential.getId() == null ? null : passwordCredential.getId().value(),
+                passwordCredential.getId() == null ? null : String.valueOf(passwordCredential.getId().value()),
                 passwordCredential.getCredentialType().value(), passwordCredential.getStatus().value(),
                 passwordCredential.isNeedChangePassword(), passwordCredential.getExpiresAt(),
                 passwordCredential.getLockedUntil(), false, List.of(), user.getStatus().value(),
@@ -133,7 +133,7 @@ public class UserApplicationService {
     public UserPageResultDTO pageUsers(UserPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String tenantIdValue = query.getTenantId().value();
+        String tenantIdValue = String.valueOf(query.getTenantId().value());
         return new UserPageResultDTO(userRepository.pageUsers(query.getTenantId(), query.getAccount(), query.getName(),
                 query.getPhone(), query.getStatus(), pageNo, pageSize).stream()
                 .map(user -> toSummaryDto(user, tenantIdValue))
@@ -199,7 +199,7 @@ public class UserApplicationService {
                 requireIdentityValue(tenantId, currentUser.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(tenantId, currentUser.getId(), UserIdentityType.PHONE));
         if (UserStatus.DISABLED == savedUser.getStatus()) {
-            sessionCommandFacade.invalidateUserSessions(tenantId.value(), userId, "USER_DISABLED");
+            sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId.value()), userId, "USER_DISABLED");
         }
         return toDetailedDto(savedUser);
     }
@@ -221,7 +221,7 @@ public class UserApplicationService {
             storedObjectFacade.clearObjectReference(currentUser.getAvatarObjectId().externalValue(), USER_AVATAR_OWNER_TYPE,
                     userId);
         }
-        sessionCommandFacade.invalidateUserSessions(tenantId.value(), userId, "USER_DELETED");
+        sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId.value()), userId, "USER_DELETED");
     }
 
     @Transactional
@@ -229,7 +229,7 @@ public class UserApplicationService {
         UserId domainUserId = UserId.of(userId);
         requireUser(tenantId, domainUserId);
         User user = userRepository.updatePassword(tenantId, domainUserId, DEFAULT_PASSWORD, true);
-        sessionCommandFacade.invalidateUserSessions(tenantId.value(), userId, "USER_PASSWORD_INITIALIZED");
+        sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId.value()), userId, "USER_PASSWORD_INITIALIZED");
         return toDetailedDto(user);
     }
 
@@ -239,7 +239,7 @@ public class UserApplicationService {
         requireUser(tenantId, domainUserId);
         validateRequired(newPassword, "newPassword");
         User user = userRepository.updatePassword(tenantId, domainUserId, normalize(newPassword), true);
-        sessionCommandFacade.invalidateUserSessions(tenantId.value(), userId, "USER_PASSWORD_RESET");
+        sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId.value()), userId, "USER_PASSWORD_RESET");
         return toDetailedDto(user);
     }
 
@@ -264,8 +264,8 @@ public class UserApplicationService {
     public List<RoleDTO> assignRoles(TenantId tenantId, String userId, List<String> roleIds) {
         UserId domainUserId = UserId.of(userId);
         requireUser(tenantId, domainUserId);
-        String tenantIdValue = tenantId.value();
-        List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds.stream().map(RoleId::of).toList();
+        String tenantIdValue = String.valueOf(tenantId.value());
+        List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds.stream().map(Long::parseLong).map(RoleId::of).toList();
         return userRepository.assignRoles(tenantId, domainUserId, domainRoleIds).stream()
                 .map(role -> toRoleDto(role, tenantIdValue))
                 .toList();
@@ -273,7 +273,7 @@ public class UserApplicationService {
 
     public List<RoleDTO> getRolesByUserId(TenantId tenantId, UserId userId) {
         requireUser(tenantId, userId);
-        String tenantIdValue = tenantId.value();
+        String tenantIdValue = String.valueOf(tenantId.value());
         return roleRepository.findRolesByUserId(tenantId, userId).stream()
                 .map(role -> toRoleDto(role, tenantIdValue))
                 .toList();
@@ -295,7 +295,7 @@ public class UserApplicationService {
     }
 
     public List<UserDTO> exportUsers(UserPageQueryDTO query) {
-        String tenantIdValue = query.getTenantId().value();
+        String tenantIdValue = String.valueOf(query.getTenantId().value());
         return userRepository.listUsers(query.getTenantId(), query.getAccount(), query.getName(), query.getPhone(),
                 query.getStatus()).stream().map(user -> toSummaryDto(user, tenantIdValue)).toList();
     }
@@ -325,7 +325,7 @@ public class UserApplicationService {
                 storedObjectFacade.clearObjectReference(previousAvatarObjectId.externalValue(), USER_AVATAR_OWNER_TYPE,
                         userId);
             }
-            return toDto(savedUser, storedObject.getAccessEndpoint(), savedUser.getTenantId().value());
+            return toDto(savedUser, storedObject.getAccessEndpoint(), String.valueOf(savedUser.getTenantId().value()));
         } catch (RuntimeException ex) {
             storedObjectFacade.clearObjectReference(storedObject.getId(), USER_AVATAR_OWNER_TYPE, userId);
             throw ex;
@@ -353,7 +353,7 @@ public class UserApplicationService {
     }
 
     private UserDTO toDetailedDto(User user) {
-        return toDto(user, resolveAvatarUrl(user.getAvatarObjectId()), user.getTenantId().value());
+        return toDto(user, resolveAvatarUrl(user.getAvatarObjectId()), String.valueOf(user.getTenantId().value()));
     }
 
     private UserDTO toSummaryDto(User user, String tenantIdValue) {
@@ -361,9 +361,9 @@ public class UserApplicationService {
     }
 
     private UserDTO toDto(User user, String avatarUrl, String tenantIdValue) {
-        return new UserDTO(user.getId().value(), tenantIdValue,
+        return new UserDTO(String.valueOf(user.getId().value()), tenantIdValue,
                 resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT), user.getName(),
-                user.getAvatarObjectId() == null ? null : user.getAvatarObjectId().value(),
+                user.getAvatarObjectId() == null ? null : user.getAvatarObjectId().externalValue(),
                 resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.PHONE),
                 user.getDepartmentId() == null ? null : user.getDepartmentId().value(), avatarUrl, user.getStatus().value());
     }
@@ -394,7 +394,7 @@ public class UserApplicationService {
     }
 
     private RoleDTO toRoleDto(Role role, String tenantIdValue) {
-        return new RoleDTO(role.getId() == null ? null : role.getId().value(), tenantIdValue, role.getCode(), role.getName(),
+        return new RoleDTO(role.getId() == null ? null : String.valueOf(role.getId().value()), tenantIdValue, role.getCode(), role.getName(),
                 role.getRoleType() == null ? null : role.getRoleType().value(),
                 role.getDataScopeType() == null ? null : role.getDataScopeType().value(),
                 role.getStatus() == null ? null : role.getStatus().value());
@@ -452,7 +452,7 @@ public class UserApplicationService {
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(avatarImage.bytes())) {
             return storedObjectFacade.uploadObject(new UploadObjectCommand(
                     USER_AVATAR_OWNER_TYPE,
-                    tenantId.value(),
+                    String.valueOf(tenantId.value()),
                     USER_AVATAR_CATEGORY,
                     avatarImage.originalFilename(),
                     avatarImage.contentType(),
@@ -467,7 +467,7 @@ public class UserApplicationService {
         if (avatarObjectId == null) {
             return null;
         }
-        StoredObjectDTO storedObject = storedObjectFacade.getObjectById(avatarObjectId.value());
+        StoredObjectDTO storedObject = storedObjectFacade.getObjectById(avatarObjectId.externalValue());
         return storedObject == null ? null : storedObject.getAccessEndpoint();
     }
 

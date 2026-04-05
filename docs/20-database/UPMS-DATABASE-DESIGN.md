@@ -174,9 +174,9 @@
 | `name` | `varchar(128)` | N | 租户名称 |
 | `status` | `varchar(16)` | N | 状态，取值固定为 `ACTIVE`、`DISABLED`、`EXPIRED` |
 | `expired_at` | `datetime(3)` | Y | 过期时间 |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -204,9 +204,9 @@
 | `avatar_object_id` | `varchar(64)` | Y | 用户头像对象主键，固定使用 `StoredObjectId`，引用 `Storage` 域 `StoredObject` |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -235,9 +235,9 @@
 | `identity_type` | `varchar(16)` | N | 标识类型，取值见 `identity_type` |
 | `identity_value` | `varchar(255)` | N | 标识值 |
 | `status` | `varchar(16)` | N | 身份状态，固定为 `ACTIVE`、`DISABLED` |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -274,9 +274,9 @@
 | `locked_until` | `datetime(3)` | Y | 锁定截止时间 |
 | `expires_at` | `datetime(3)` | Y | 凭据过期时间 |
 | `last_verified_at` | `datetime(3)` | Y | 最近一次成功校验时间 |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -307,9 +307,9 @@
 | `leader_user_id` | `varchar(64)` | Y | 负责人用户主键，引用 `bacon_upms_user.id` |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -337,9 +337,9 @@
 | `sort` | `int` | N | 排序值，越小越靠前 |
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -369,9 +369,9 @@
 | `status` | `varchar(16)` | N | 状态，取值见 `status` |
 | `built_in` | `tinyint(1)` | N | 是否内置 |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -407,9 +407,9 @@
 | `permission_code` | `varchar(128)` | N | 权限编码，全局唯一 |
 | `built_in` | `tinyint(1)` | N | 是否内置 |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：
@@ -442,9 +442,9 @@
 | `permission_code` | `varchar(128)` | N | 权限编码，全局唯一 |
 | `built_in` | `tinyint(1)` | N | 是否内置 |
 | `deleted` | `tinyint(1)` | N | 逻辑删除标记 |
-| `created_by` | `varchar(64)` | Y | 创建人标识 |
+| `created_by` | `bigint` | Y | 创建人标识 |
 | `created_at` | `datetime(3)` | N | 创建时间 |
-| `updated_by` | `varchar(64)` | Y | 更新人标识 |
+| `updated_by` | `bigint` | Y | 更新人标识 |
 | `updated_at` | `datetime(3)` | N | 更新时间 |
 
 索引与约束：

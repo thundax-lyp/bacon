@@ -68,9 +68,8 @@ public class OrderCreateApplicationService {
         orderOutboxActionExecutor.enqueueReserveStock(toTenantIdValue(savedOrder), savedOrder.getOrderNoValue(),
                 command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
-        return new OrderSummaryDTO(toStringOrderIdValue(savedOrder), String.valueOf(toTenantIdValue(savedOrder)),
-                savedOrder.getOrderNoValue(),
-                toUserIdValue(savedOrder) == null ? null : String.valueOf(toUserIdValue(savedOrder)),
+        return new OrderSummaryDTO(toOrderIdValue(savedOrder), toTenantIdValue(savedOrder),
+                savedOrder.getOrderNoValue(), toUserIdValue(savedOrder),
                 savedOrder.getOrderStatusValue(), savedOrder.getPayStatusValue(),
                 savedOrder.getInventoryStatusValue(), savedOrder.getPaymentNoValue(), savedOrder.getReservationNoValue(),
                 savedOrder.getCurrencyCodeValue(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
@@ -95,12 +94,8 @@ public class OrderCreateApplicationService {
         return order.getId() == null ? null : order.getId().value();
     }
 
-    private String toStringOrderIdValue(Order order) {
-        return order.getId() == null ? null : String.valueOf(order.getId().value());
-    }
-
     private Long toTenantIdValue(Order order) {
-        return order.getTenantIdValue() == null ? null : Long.valueOf(order.getTenantIdValue());
+        return order.getTenantId() == null ? null : order.getTenantId().value();
     }
 
     private OrderId toOrderId(Order order) {

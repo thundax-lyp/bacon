@@ -81,7 +81,7 @@ public class UserApplicationService {
         return toDetailedDto(requireUser(tenantId, userId));
     }
 
-    public UserDTO getUserById(String tenantId, String userId) {
+    public UserDTO getUserById(Long tenantId, String userId) {
         return getUserById(requireExistingTenantId(tenantId), UserId.of(userId));
     }
 
@@ -95,7 +95,7 @@ public class UserApplicationService {
                 userIdentity.getStatus() == null ? null : userIdentity.getStatus().value());
     }
 
-    public UserIdentityDTO getUserIdentity(String tenantId, String identityType, String identityValue) {
+    public UserIdentityDTO getUserIdentity(Long tenantId, String identityType, String identityValue) {
         return getUserIdentity(requireExistingTenantId(tenantId), identityType, identityValue);
     }
 
@@ -109,6 +109,7 @@ public class UserApplicationService {
         String account = resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
         String phone = resolveIdentityValue(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
         return new UserLoginCredentialDTO(user.getTenantId().value(), user.getId().value(),
+                userIdentity.getId() == null ? null : userIdentity.getId().value(),
                 account, phone,
                 userIdentity.getIdentityType().value(), userIdentity.getIdentityValue(),
                 userIdentity.getStatus() == null ? null : userIdentity.getStatus().value(),
@@ -119,11 +120,11 @@ public class UserApplicationService {
                 passwordCredential.getCredentialValue());
     }
 
-    public UserLoginCredentialDTO getUserLoginCredential(String tenantId, String identityType, String identityValue) {
+    public UserLoginCredentialDTO getUserLoginCredential(Long tenantId, String identityType, String identityValue) {
         return getUserLoginCredential(requireExistingTenantId(tenantId), identityType, identityValue);
     }
 
-    public TenantDTO getTenantByTenantId(String tenantId) {
+    public TenantDTO getTenantByTenantId(Long tenantId) {
         Tenant tenant = tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
         return new TenantDTO(tenant.getId(), tenant.getName(), tenant.getTenantCode().value(),
@@ -199,7 +200,7 @@ public class UserApplicationService {
                 requireIdentityValue(tenantId, currentUser.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(tenantId, currentUser.getId(), UserIdentityType.PHONE));
         if (UserStatus.DISABLED == savedUser.getStatus()) {
-            sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId.value()), userId, "USER_DISABLED");
+            sessionCommandFacade.invalidateUserSessions(tenantId.value(), domainUserId.value(), "USER_DISABLED");
         }
         return toDetailedDto(savedUser);
     }
@@ -221,7 +222,7 @@ public class UserApplicationService {
             storedObjectFacade.clearObjectReference(currentUser.getAvatarObjectId().externalValue(), USER_AVATAR_OWNER_TYPE,
                     userId);
         }
-        sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId.value()), userId, "USER_DELETED");
+        sessionCommandFacade.invalidateUserSessions(tenantId.value(), domainUserId.value(), "USER_DELETED");
     }
 
     @Transactional
@@ -229,7 +230,7 @@ public class UserApplicationService {
         UserId domainUserId = UserId.of(userId);
         requireUser(tenantId, domainUserId);
         User user = userRepository.updatePassword(tenantId, domainUserId, DEFAULT_PASSWORD, true);
-        sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId.value()), userId, "USER_PASSWORD_INITIALIZED");
+        sessionCommandFacade.invalidateUserSessions(tenantId.value(), domainUserId.value(), "USER_PASSWORD_INITIALIZED");
         return toDetailedDto(user);
     }
 
@@ -239,7 +240,7 @@ public class UserApplicationService {
         requireUser(tenantId, domainUserId);
         validateRequired(newPassword, "newPassword");
         User user = userRepository.updatePassword(tenantId, domainUserId, normalize(newPassword), true);
-        sessionCommandFacade.invalidateUserSessions(String.valueOf(tenantId.value()), userId, "USER_PASSWORD_RESET");
+        sessionCommandFacade.invalidateUserSessions(tenantId.value(), domainUserId.value(), "USER_PASSWORD_RESET");
         return toDetailedDto(user);
     }
 
@@ -256,7 +257,7 @@ public class UserApplicationService {
         userRepository.updatePassword(tenantId, userId, normalize(newPassword), false);
     }
 
-    public void changePassword(String tenantId, String userId, String oldPassword, String newPassword) {
+    public void changePassword(Long tenantId, String userId, String oldPassword, String newPassword) {
         changePassword(requireExistingTenantId(tenantId), UserId.of(userId), oldPassword, newPassword);
     }
 
@@ -264,18 +265,16 @@ public class UserApplicationService {
     public List<RoleDTO> assignRoles(TenantId tenantId, String userId, List<String> roleIds) {
         UserId domainUserId = UserId.of(userId);
         requireUser(tenantId, domainUserId);
-        String tenantIdValue = String.valueOf(tenantId.value());
         List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds.stream().map(Long::parseLong).map(RoleId::of).toList();
         return userRepository.assignRoles(tenantId, domainUserId, domainRoleIds).stream()
-                .map(role -> toRoleDto(role, tenantIdValue))
+                .map(role -> toRoleDto(role, tenantId.value()))
                 .toList();
     }
 
     public List<RoleDTO> getRolesByUserId(TenantId tenantId, UserId userId) {
         requireUser(tenantId, userId);
-        String tenantIdValue = String.valueOf(tenantId.value());
         return roleRepository.findRolesByUserId(tenantId, userId).stream()
-                .map(role -> toRoleDto(role, tenantIdValue))
+                .map(role -> toRoleDto(role, tenantId.value()))
                 .toList();
     }
 
@@ -338,8 +337,10 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
     }
 
-    private TenantId requireExistingTenantId(String tenantId) {
-        validateRequired(tenantId, "tenantId");
+    private TenantId requireExistingTenantId(Long tenantId) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("tenantId must not be null");
+        }
         return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
@@ -394,8 +395,8 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Department not found by code: " + departmentCode));
     }
 
-    private RoleDTO toRoleDto(Role role, String tenantIdValue) {
-        return new RoleDTO(role.getId() == null ? null : String.valueOf(role.getId().value()), tenantIdValue, role.getCode(), role.getName(),
+    private RoleDTO toRoleDto(Role role, Long tenantId) {
+        return new RoleDTO(role.getId() == null ? null : role.getId().value(), tenantId, role.getCode(), role.getName(),
                 role.getRoleType() == null ? null : role.getRoleType().value(),
                 role.getDataScopeType() == null ? null : role.getDataScopeType().value(),
                 role.getStatus() == null ? null : role.getStatus().value());
@@ -453,7 +454,7 @@ public class UserApplicationService {
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(avatarImage.bytes())) {
             return storedObjectFacade.uploadObject(new UploadObjectCommand(
                     USER_AVATAR_OWNER_TYPE,
-                    String.valueOf(tenantId.value()),
+                    tenantId == null ? null : tenantId.value(),
                     USER_AVATAR_CATEGORY,
                     avatarImage.originalFilename(),
                     avatarImage.contentType(),

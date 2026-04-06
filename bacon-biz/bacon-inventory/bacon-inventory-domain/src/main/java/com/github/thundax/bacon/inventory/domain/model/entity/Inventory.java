@@ -73,6 +73,22 @@ public class Inventory {
                 normalizedStatus, 0L, createdAt);
     }
 
+    public Long getIdValue() {
+        return id == null ? null : id.value();
+    }
+
+    public Long getTenantIdValue() {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    public Long getSkuIdValue() {
+        return skuId == null ? null : skuId.value();
+    }
+
+    public Long getWarehouseIdValue() {
+        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
+    }
+
     public void reserve(int quantity, Instant operatedAt) {
         // 预占只减少可用量，不减少实物在库量；真正扣减要等订单支付成功后单独执行。
         ensureReservable(quantity);

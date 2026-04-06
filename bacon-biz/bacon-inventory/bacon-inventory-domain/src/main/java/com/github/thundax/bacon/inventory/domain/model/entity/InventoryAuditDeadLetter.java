@@ -134,6 +134,30 @@ public class InventoryAuditDeadLetter {
                 null, null);
     }
 
+    public Long getTenantIdValue() {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    public String getOrderNoValue() {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    public String getActionTypeValue() {
+        return actionType == null ? null : actionType.value();
+    }
+
+    public String getOperatorTypeValue() {
+        return operatorType == null ? null : operatorType.value();
+    }
+
+    public Long getOperatorIdValue() {
+        return operatorId == null ? null : Long.valueOf(operatorId);
+    }
+
+    public Long getReplayOperatorIdValue() {
+        return replayOperatorId == null ? null : Long.valueOf(replayOperatorId);
+    }
+
     private static TenantId toTenantId(Long tenantId) {
         return tenantId == null ? null : TenantId.of(tenantId);
     }

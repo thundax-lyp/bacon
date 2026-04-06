@@ -60,7 +60,7 @@ class OrderCreateApplicationServiceTest {
                         BigDecimal.valueOf(10)))));
 
         assertEquals("ORD-10001", result.getOrderNo());
-        assertEquals("1001", result.getTenantId());
+        assertEquals(1001L, result.getTenantId());
         assertEquals(new BigDecimal("20.00"), result.getTotalAmount());
         assertEquals("RESERVING_STOCK", result.getOrderStatus());
         assertEquals("UNPAID", result.getPayStatus());
@@ -99,7 +99,7 @@ class OrderCreateApplicationServiceTest {
         paymentResultService.markPaid(1001L, paid.getOrderNo(), "PAY-1", "MOCK", BigDecimal.valueOf(20),
                 Instant.parse("2026-03-26T10:00:00Z"));
 
-        OrderPageResultDTO page = queryService.pageOrders(new OrderPageQueryDTO("1001", "2001", null, null, "UNPAID",
+        OrderPageResultDTO page = queryService.pageOrders(new OrderPageQueryDTO(1001L, 2001L, null, null, "UNPAID",
                 null, null, null, 1, 10));
 
         assertEquals(1, page.getTotal());
@@ -322,7 +322,7 @@ class OrderCreateApplicationServiceTest {
         @Override
         public Optional<Order> findByOrderNo(Long tenantId, String orderNo) {
             return storage.values().stream()
-                    .filter(order -> String.valueOf(tenantId).equals(order.getTenantIdValue()))
+                    .filter(order -> tenantId.equals(order.getTenantIdValue()))
                     .filter(order -> orderNo.equals(order.getOrderNoValue()))
                     .findFirst();
         }
@@ -335,7 +335,7 @@ class OrderCreateApplicationServiceTest {
         @Override
         public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
             return itemStorage.getOrDefault(orderId, List.of()).stream()
-                    .filter(item -> String.valueOf(tenantId).equals(String.valueOf(item.getTenantIdValue())))
+                    .filter(item -> tenantId.equals(item.getTenantIdValue()))
                     .toList();
         }
 
@@ -399,7 +399,7 @@ class OrderCreateApplicationServiceTest {
         private List<Order> filterOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
                                          String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
             List<Order> filtered = storage.values().stream()
-                    .filter(order -> tenantId == null || String.valueOf(tenantId).equals(order.getTenantIdValue()))
+                    .filter(order -> tenantId == null || tenantId.equals(order.getTenantIdValue()))
                     .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
                     .filter(order -> orderNo == null || order.getOrderNoValue().contains(orderNo))
                     .filter(order -> orderStatus == null || orderStatus.equals(order.getOrderStatusValue()))
@@ -479,13 +479,13 @@ class OrderCreateApplicationServiceTest {
         @Override
         public PaymentCreateResultDTO createPayment(Long tenantId, String orderNo, Long userId, BigDecimal amount,
                                                     String channelCode, String subject, Instant expiredAt) {
-            return new PaymentCreateResultDTO(String.valueOf(tenantId), "PAY-" + orderNo, orderNo, channelCode, "PAYING",
+            return new PaymentCreateResultDTO(tenantId, "PAY-" + orderNo, orderNo, channelCode, "PAYING",
                     "mock://pay/" + orderNo, expiredAt, null);
         }
 
         @Override
         public PaymentCloseResultDTO closePayment(Long tenantId, String paymentNo, String reason) {
-            return new PaymentCloseResultDTO(String.valueOf(tenantId), paymentNo, null, "CLOSED", "SUCCESS", reason, null);
+            return new PaymentCloseResultDTO(tenantId, paymentNo, null, "CLOSED", "SUCCESS", reason, null);
         }
     }
 
@@ -494,7 +494,7 @@ class OrderCreateApplicationServiceTest {
         @Override
         public PaymentCreateResultDTO createPayment(Long tenantId, String orderNo, Long userId, BigDecimal amount,
                                                     String channelCode, String subject, Instant expiredAt) {
-            return new PaymentCreateResultDTO(String.valueOf(tenantId), null, orderNo, channelCode, "FAILED", null, expiredAt,
+            return new PaymentCreateResultDTO(tenantId, null, orderNo, channelCode, "FAILED", null, expiredAt,
                     "payment channel unavailable");
         }
     }

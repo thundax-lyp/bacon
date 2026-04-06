@@ -210,7 +210,7 @@ class UserApplicationServiceTest {
                 .thenReturn(Optional.of(passwordCredential));
         when(userRepository.findUserById(TENANT_ID, UserId.of(101L))).thenReturn(Optional.of(user));
 
-        UserLoginCredentialDTO credential = service.getUserLoginCredential("1001", "ACCOUNT", "alice");
+        UserLoginCredentialDTO credential = service.getUserLoginCredential(1001L, "ACCOUNT", "alice");
 
         assertThat(credential.getTenantId()).isEqualTo(1001L);
         assertThat(credential.getUserId()).isEqualTo(101L);
@@ -236,7 +236,7 @@ class UserApplicationServiceTest {
                 .thenReturn(Optional.of(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO",
                         TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
 
-        service.changePassword("1001", "101", "old-password", "new-password");
+        service.changePassword(1001L, "101", "old-password", "new-password");
 
         verify(userRepository).updatePassword(TENANT_ID, UserId.of(101L), "new-password", false);
     }

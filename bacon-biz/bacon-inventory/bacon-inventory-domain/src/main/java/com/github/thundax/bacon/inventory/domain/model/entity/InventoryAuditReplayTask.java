@@ -82,4 +82,8 @@ public class InventoryAuditReplayTask {
                 operatorId == null ? null : String.valueOf(operatorId), processingOwner, leaseUntil, lastError,
                 createdAt, startedAt, pausedAt, finishedAt, updatedAt);
     }
+
+    public Long getOperatorIdValue() {
+        return operatorId == null ? null : Long.valueOf(operatorId);
+    }
 }

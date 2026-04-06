@@ -75,8 +75,8 @@ class InventoryQueryApplicationServiceTest {
         @Override
         public List<Inventory> findInventories(Long tenantId) {
             return inventories.values().stream()
-                    .filter(inventory -> inventory.getTenantId().value().equals(String.valueOf(tenantId)))
-                    .sorted(java.util.Comparator.comparing(inventory -> inventory.getSkuId().value()))
+                    .filter(inventory -> inventory.getTenantIdValue().equals(tenantId))
+                    .sorted(java.util.Comparator.comparing(Inventory::getSkuIdValue))
                     .toList();
         }
 
@@ -90,7 +90,7 @@ class InventoryQueryApplicationServiceTest {
         @Override
         public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || inventory.getSkuId().value().equals(skuId))
+                    .filter(inventory -> skuId == null || inventory.getSkuIdValue().equals(skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)
@@ -100,7 +100,7 @@ class InventoryQueryApplicationServiceTest {
         @Override
         public long countInventories(Long tenantId, Long skuId, String status) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || inventory.getSkuId().value().equals(skuId))
+                    .filter(inventory -> skuId == null || inventory.getSkuIdValue().equals(skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                     .count();
         }
@@ -109,7 +109,7 @@ class InventoryQueryApplicationServiceTest {
         public Inventory saveInventory(Inventory inventory) {
             Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
             inventory.markPersisted(version);
-            inventories.put(key(inventory.getTenantId().value(), inventory.getSkuId().value()), inventory);
+            inventories.put(key(inventory.getTenantIdValue(), inventory.getSkuIdValue()), inventory);
             return inventory;
         }
 

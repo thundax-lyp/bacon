@@ -37,14 +37,14 @@ class UserControllerContractTest {
 
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
-        when(userApplicationService.updateAvatar(eq(TENANT_ID), eq("U101"), eq("avatar.png"), eq("image/png"), eq(4L),
+        when(userApplicationService.updateAvatar(eq(TENANT_ID), eq("101"), eq("avatar.png"), eq("image/png"), eq(4L),
                 org.mockito.ArgumentMatchers.any()))
                 .thenReturn(new UserDTO(101L, TENANT_ID.value(), "alice", "Alice", 9001L, "13800000001",
                         11L, "https://cdn.example.com/avatar/9001.png", "ENABLED"));
 
         MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[]{1, 2, 3, 4});
 
-        mockMvc.perform(multipart("/upms/users/{userId}/avatar", "U101")
+        mockMvc.perform(multipart("/upms/users/{userId}/avatar", 101L)
                         .file(file)
                         .with(request -> {
                             request.setMethod("PUT");
@@ -58,10 +58,10 @@ class UserControllerContractTest {
 
     @Test
     void shouldRedirectAvatarRequestToStorageAccessUrl() throws Exception {
-        when(userApplicationService.getAvatarAccessUrl(TENANT_ID, "U101"))
+        when(userApplicationService.getAvatarAccessUrl(TENANT_ID, "101"))
                 .thenReturn(Optional.of("https://cdn.example.com/avatar/9001.png"));
 
-        mockMvc.perform(get("/upms/users/{userId}/avatar", "U101"))
+        mockMvc.perform(get("/upms/users/{userId}/avatar", 101L))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", "https://cdn.example.com/avatar/9001.png"));
     }

@@ -112,14 +112,14 @@ public class InventoryQueryApplicationService {
     }
 
     private InventoryStockDTO toStockDto(Inventory inventory) {
-        return new InventoryStockDTO(toLongValue(inventory.getTenantId()), toLongValue(inventory.getSkuId()),
-                toLongValue(inventory.getWarehouseId()),
+        return new InventoryStockDTO(inventory.getTenantIdValue(), inventory.getSkuIdValue(),
+                inventory.getWarehouseIdValue(),
                 inventory.getOnHandQuantity(), inventory.getReservedQuantity(), inventory.getAvailableQuantity(),
                 inventory.getStatus().value(), inventory.getUpdatedAt());
     }
 
     private InventoryLedgerDTO toLedgerDto(InventoryLedger ledger) {
-        return new InventoryLedgerDTO(ledger.getId(), toLongValue(ledger.getTenantId()), ledger.getOrderNo(),
+        return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNo(),
                 ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
@@ -131,10 +131,9 @@ public class InventoryQueryApplicationService {
     }
 
     private InventoryAuditDeadLetterDTO toAuditDeadLetterDto(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDTO(deadLetter.getId(), deadLetter.getOutboxId(),
-                toLongValue(deadLetter.getTenantId()),
-                toStringValue(deadLetter.getOrderNo()), deadLetter.getReservationNo(), toStringValue(deadLetter.getActionType()),
-                toStringValue(deadLetter.getOperatorType()), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
+        return new InventoryAuditDeadLetterDTO(deadLetter.getId(), deadLetter.getOutboxId(), deadLetter.getTenantIdValue(),
+                deadLetter.getOrderNoValue(), deadLetter.getReservationNo(), deadLetter.getActionTypeValue(),
+                deadLetter.getOperatorTypeValue(), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(), deadLetter.getReplayStatus(), deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
@@ -148,31 +147,4 @@ public class InventoryQueryApplicationService {
         return status.trim().toUpperCase(Locale.ROOT);
     }
 
-    private String toStringValue(Long value) {
-        return value == null ? null : String.valueOf(value);
-    }
-
-    private String toStringValue(com.github.thundax.bacon.common.id.domain.TenantId tenantId) {
-        return tenantId == null ? null : String.valueOf(tenantId.value());
-    }
-
-    private String toStringValue(com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo orderNo) {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    private String toStringValue(Enum<?> value) {
-        return value == null ? null : value.name();
-    }
-
-    private Long toLongValue(com.github.thundax.bacon.common.id.domain.TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    private Long toLongValue(com.github.thundax.bacon.common.id.domain.SkuId skuId) {
-        return skuId == null ? null : skuId.value();
-    }
-
-    private Long toLongValue(com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId warehouseId) {
-        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
-    }
 }

@@ -96,7 +96,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
                                                      String operatorType, Long operatorId, Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id);
-            if (deadLetter == null || !String.valueOf(tenantId).equals(deadLetter.getTenantId().value())) {
+            if (deadLetter == null || !tenantId.equals(deadLetter.getTenantIdValue())) {
                 return false;
             }
             if (!InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.equals(deadLetter.getReplayStatus())

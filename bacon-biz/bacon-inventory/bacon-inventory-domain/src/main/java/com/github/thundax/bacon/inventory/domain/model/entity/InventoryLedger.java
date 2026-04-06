@@ -34,4 +34,8 @@ public class InventoryLedger {
     private Integer quantity;
     /** 发生时间。 */
     private Instant occurredAt;
+
+    public Long getTenantIdValue() {
+        return tenantId == null ? null : tenantId.value();
+    }
 }

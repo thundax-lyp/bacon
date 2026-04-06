@@ -76,4 +76,8 @@ public class InventoryAuditOutbox {
                 operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage, status, retryCount,
                 nextRetryAt, processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
     }
+
+    public Long getOperatorIdValue() {
+        return operatorId == null ? null : Long.valueOf(operatorId);
+    }
 }

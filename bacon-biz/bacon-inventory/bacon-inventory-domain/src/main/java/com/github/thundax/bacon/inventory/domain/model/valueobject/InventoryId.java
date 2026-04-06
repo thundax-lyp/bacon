@@ -13,4 +13,8 @@ public final class InventoryId extends BaseLongId {
     public static InventoryId of(Long value) {
         return new InventoryId(value);
     }
+
+    public Long getIdValue() {
+        return value();
+    }
 }

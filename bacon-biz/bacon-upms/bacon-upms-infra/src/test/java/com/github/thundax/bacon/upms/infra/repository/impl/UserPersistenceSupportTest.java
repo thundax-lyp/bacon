@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UserPersistenceSupportTest {
 
-    private static final TenantId TENANT_ID = TenantId.of("1001");
+    private static final TenantId TENANT_ID = TenantId.of(1001L);
 
     @Mock
     private UserMapper userMapper;

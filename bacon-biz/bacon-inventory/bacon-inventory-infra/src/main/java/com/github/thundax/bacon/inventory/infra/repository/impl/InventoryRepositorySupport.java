@@ -578,8 +578,9 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryDO toDataObject(Inventory inventory) {
-        return new InventoryDO(toLongValue(inventory.getId()), toLongValue(inventory.getTenantId()), toLongValue(inventory.getSkuId()),
-                toLongValue(inventory.getWarehouseId()), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
+        return new InventoryDO(inventory.getId() == null ? null : inventory.getId().getIdValue(),
+                inventory.getTenantIdValue(), inventory.getSkuIdValue(),
+                inventory.getWarehouseIdValue(), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
                 inventory.getAvailableQuantity(), inventory.getStatus().value(), inventory.getVersion(), null,
                 inventory.getUpdatedAt(), null,
                 inventory.getUpdatedAt());
@@ -615,7 +616,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryLedgerDO toDataObject(InventoryLedger ledger) {
-        return new InventoryLedgerDO(ledger.getId(), Long.valueOf(ledger.getTenantId().value()), ledger.getOrderNo(),
+        return new InventoryLedgerDO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNo(),
                 ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
@@ -635,7 +636,7 @@ public class InventoryRepositorySupport {
     private InventoryAuditOutboxDO toDataObject(InventoryAuditOutbox outbox) {
         return new InventoryAuditOutboxDO(outbox.getId(), outbox.getTenantId(), outbox.getOrderNo(),
                 outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
-                toLongValue(outbox.getOperatorId()), outbox.getOccurredAt(), outbox.getErrorMessage(),
+                outbox.getOperatorIdValue(), outbox.getOccurredAt(), outbox.getErrorMessage(),
                 outbox.getStatus().value(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(),
                 outbox.getLeaseUntil(), outbox.getClaimedAt(), outbox.getDeadReason(), outbox.getFailedAt(),
                 outbox.getUpdatedAt());
@@ -651,13 +652,13 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxId(), toLongValue(deadLetter.getTenantId()),
-                toStringValue(deadLetter.getOrderNo()), deadLetter.getReservationNo(), deadLetter.getActionType().value(),
-                deadLetter.getOperatorType().value(), toLongValue(deadLetter.getOperatorId()), deadLetter.getOccurredAt(),
+        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxId(), deadLetter.getTenantIdValue(),
+                deadLetter.getOrderNoValue(), deadLetter.getReservationNo(), deadLetter.getActionTypeValue(),
+                deadLetter.getOperatorTypeValue(), deadLetter.getOperatorIdValue(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(), deadLetter.getReplayStatus(), deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
-                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), toLongValue(deadLetter.getReplayOperatorId()));
+                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), deadLetter.getReplayOperatorIdValue());
     }
 
     private InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
@@ -674,7 +675,7 @@ public class InventoryRepositorySupport {
     private InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {
         return new InventoryAuditReplayTaskDO(task.getId(), task.getTenantId(), task.getTaskNo(), task.getStatus().value(),
                 task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
-                task.getReplayKeyPrefix(), task.getOperatorType(), toLongValue(task.getOperatorId()), task.getProcessingOwner(),
+                task.getReplayKeyPrefix(), task.getOperatorType(), task.getOperatorIdValue(), task.getProcessingOwner(),
                 task.getLeaseUntil(), task.getLastError(), task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(),
                 task.getFinishedAt(), task.getUpdatedAt());
     }
@@ -701,27 +702,8 @@ public class InventoryRepositorySupport {
         return value == null ? null : String.valueOf(value);
     }
 
-    private String toStringValue(OrderNo value) {
-        return value == null ? null : value.value();
-    }
-
     private Long toLongValue(String value) {
         return value == null ? null : Long.valueOf(value);
     }
 
-    private Long toLongValue(InventoryId inventoryId) {
-        return inventoryId == null ? null : inventoryId.value();
-    }
-
-    private Long toLongValue(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    private Long toLongValue(SkuId skuId) {
-        return skuId == null ? null : skuId.value();
-    }
-
-    private Long toLongValue(WarehouseId warehouseId) {
-        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
-    }
 }

@@ -109,7 +109,7 @@ public class InventoryAuditReplayTaskApplicationService {
             try {
                 String replayKey = buildReplayKey(task, item);
                 InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(task.getTenantId(),
-                        item.getDeadLetterId(), replayKey, toLongValue(task.getOperatorId()));
+                        item.getDeadLetterId(), replayKey, task.getOperatorIdValue());
                 String itemStatus = InventoryAuditReplayTaskItem.STATUS_FAILED;
                 if (InventoryAuditReplayTaskItem.STATUS_SUCCEEDED.equals(result.getReplayStatus())) {
                     itemStatus = InventoryAuditReplayTaskItem.STATUS_SUCCEEDED;
@@ -189,9 +189,5 @@ public class InventoryAuditReplayTaskApplicationService {
                 task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
                 task.getReplayKeyPrefix(), task.getOperatorId(), task.getLastError(), task.getCreatedAt(),
                 task.getStartedAt(), task.getPausedAt(), task.getFinishedAt(), task.getUpdatedAt());
-    }
-
-    private Long toLongValue(String value) {
-        return value == null ? null : Long.valueOf(value);
     }
 }

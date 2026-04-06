@@ -159,7 +159,7 @@ class OrderInterfaceContractTest {
             if (!Long.valueOf(1001L).equals(tenantId)) {
                 throw new IllegalArgumentException("Order not found: " + orderId);
             }
-            return new OrderDetailDTO(orderId, String.valueOf(tenantId), "ORD-1", "2001",
+            return new OrderDetailDTO(orderId, tenantId, "ORD-1", 2001L,
                     "CREATED", "UNPAID", "UNRESERVED", null, null,
                     "CNY", BigDecimal.TEN, BigDecimal.TEN, null, null,
                     Instant.parse("2026-03-26T10:00:00Z"), Instant.parse("2026-03-26T10:30:00Z"),
@@ -168,10 +168,10 @@ class OrderInterfaceContractTest {
 
         @Override
         public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
-            if ("9999".equals(query.getTenantId())) {
+            if (Long.valueOf(9999L).equals(query.getTenantId())) {
                 throw new IllegalArgumentException("Invalid tenant: " + query.getTenantId());
             }
-            OrderSummaryDTO summary = new OrderSummaryDTO("1", "1001", "ORD-1", "2001",
+            OrderSummaryDTO summary = new OrderSummaryDTO(1L, 1001L, "ORD-1", 2001L,
                     "CREATED", "UNPAID", "UNRESERVED", null, null,
                     "CNY", BigDecimal.TEN, BigDecimal.TEN, null, null,
                     Instant.parse("2026-03-26T10:00:00Z"), Instant.parse("2026-03-26T10:30:00Z"));

@@ -157,12 +157,20 @@ public class Order {
         return orderStatus == null ? null : orderStatus.value();
     }
 
-    public String getTenantIdValue() {
-        return tenantId == null ? null : String.valueOf(tenantId.value());
+    public Long getIdValue() {
+        return id == null ? null : id.value();
+    }
+
+    public Long getTenantIdValue() {
+        return tenantId == null ? null : tenantId.value();
     }
 
     public String getOrderNoValue() {
         return orderNo == null ? null : orderNo.value();
+    }
+
+    public Long getUserIdValue() {
+        return userId == null ? null : Long.valueOf(userId.value());
     }
 
     public String getPayStatusValue() {

@@ -58,18 +58,18 @@ public class OrderCreateApplicationService {
                 Money.of(totalAmount, currencyCode), Money.of(totalAmount, currencyCode), command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
-        orderRepository.saveItems(toTenantIdValue(savedOrder), toOrderIdValue(savedOrder), items.stream()
+        orderRepository.saveItems(savedOrder.getTenantIdValue(), savedOrder.getIdValue(), items.stream()
                 .map(item -> new OrderItem(savedOrder.getTenantId(), toOrderId(savedOrder), toSkuId(item.skuId()),
                         item.skuName(), item.imageUrl(), item.quantity(), Money.of(item.salePrice(), currencyCode),
                         Money.of(calculateLineAmount(item), currencyCode)))
                 .toList());
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);
-        orderOutboxActionExecutor.enqueueReserveStock(toTenantIdValue(savedOrder), savedOrder.getOrderNoValue(),
+        orderOutboxActionExecutor.enqueueReserveStock(savedOrder.getTenantIdValue(), savedOrder.getOrderNoValue(),
                 command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
-        return new OrderSummaryDTO(toOrderIdValue(savedOrder), toTenantIdValue(savedOrder),
-                savedOrder.getOrderNoValue(), toUserIdValue(savedOrder),
+        return new OrderSummaryDTO(savedOrder.getIdValue(), savedOrder.getTenantIdValue(),
+                savedOrder.getOrderNoValue(), savedOrder.getUserIdValue(),
                 savedOrder.getOrderStatusValue(), savedOrder.getPayStatusValue(),
                 savedOrder.getInventoryStatusValue(), savedOrder.getPaymentNoValue(), savedOrder.getReservationNoValue(),
                 savedOrder.getCurrencyCodeValue(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
@@ -90,14 +90,6 @@ public class OrderCreateApplicationService {
                 : CurrencyCode.fromValue(currencyCode);
     }
 
-    private Long toOrderIdValue(Order order) {
-        return order.getId() == null ? null : order.getId().value();
-    }
-
-    private Long toTenantIdValue(Order order) {
-        return order.getTenantId() == null ? null : order.getTenantId().value();
-    }
-
     private OrderId toOrderId(Order order) {
         return order.getId();
     }
@@ -112,9 +104,5 @@ public class OrderCreateApplicationService {
 
     private TenantId toTenantId(Long tenantId) {
         return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
-    private Long toUserIdValue(Order order) {
-        return order.getUserId() == null ? null : Long.valueOf(order.getUserId().value());
     }
 }

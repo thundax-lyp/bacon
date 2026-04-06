@@ -44,7 +44,7 @@ public class SessionApplicationService {
         authAuditApplicationService.record("LOGOUT", "SUCCESS", sessionId);
     }
 
-    public void invalidateUserSessions(String tenantId, String userId, String reason) {
+    public void invalidateUserSessions(Long tenantId, Long userId, String reason) {
         List<AuthSession> sessions = authSessionRepository.findSessionsByTenantIdAndUserId(tenantId, userId);
         sessions.forEach(session -> {
             session.invalidate(reason);
@@ -54,14 +54,14 @@ public class SessionApplicationService {
         authAuditApplicationService.record("INVALIDATE_USER_SESSIONS", "SUCCESS", tenantId + ":" + userId);
     }
 
-    public void invalidateTenantSessions(String tenantId, String reason) {
+    public void invalidateTenantSessions(Long tenantId, String reason) {
         List<AuthSession> sessions = authSessionRepository.findSessionsByTenantId(tenantId);
         sessions.forEach(session -> {
             session.invalidate(reason);
             authSessionRepository.saveSession(session);
             authSessionRepository.invalidateRefreshTokensBySessionId(session.getSessionId());
         });
-        authAuditApplicationService.record("INVALIDATE_TENANT_SESSIONS", "SUCCESS", tenantId);
+        authAuditApplicationService.record("INVALIDATE_TENANT_SESSIONS", "SUCCESS", String.valueOf(tenantId));
     }
 
     public void invalidateSession(String sessionId, String reason) {

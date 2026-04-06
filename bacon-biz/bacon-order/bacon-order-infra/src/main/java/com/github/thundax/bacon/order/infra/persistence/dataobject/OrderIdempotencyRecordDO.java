@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class OrderIdempotencyRecordDO {
 
     @TableField("tenant_id")
-    private String tenantId;
+    private Long tenantId;
     @TableField("order_no")
     private String orderNo;
     @TableField("event_type")

@@ -18,7 +18,7 @@ public class OrderInventorySnapshotDO {
     @TableId(type = IdType.INPUT)
     private Long id;
     @TableField("tenant_id")
-    private String tenantId;
+    private Long tenantId;
     @TableField("order_no")
     private String orderNo;
     @TableField("reservation_no")

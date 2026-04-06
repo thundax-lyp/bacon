@@ -245,11 +245,20 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {
-        return new OrderOutboxDeadLetterDO(null, deadLetter.getOutboxId(), deadLetter.getEventIdValue(),
-                deadLetter.getTenantIdRawValue(), deadLetter.getOrderNoValue(), deadLetter.getEventTypeValue(),
+        return new OrderOutboxDeadLetterDO(null, deadLetter.getOutboxId(), toDatabaseDeadLetterEventId(deadLetter.getEventId()),
+                deadLetter.getTenantIdValue(), deadLetter.getOrderNoValue(), deadLetter.getEventTypeValue(),
                 deadLetter.getBusinessKey(), deadLetter.getPayload(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(), deadLetter.getDeadAt(),
                 deadLetter.getReplayStatusValue(), deadLetter.getReplayCount(), deadLetter.getLastReplayAt(),
                 deadLetter.getLastReplayMessage(), deadLetter.getCreatedAt(), deadLetter.getUpdatedAt());
+    }
+
+    private Long toDatabaseDeadLetterEventId(EventId eventId) {
+        if (eventId == null || eventId.value() == null) {
+            return null;
+        }
+        String value = eventId.value();
+        String normalized = value.startsWith("EVT") ? value.substring(3) : value;
+        return Long.valueOf(normalized);
     }
 }

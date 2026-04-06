@@ -20,9 +20,9 @@ public class OrderOutboxDeadLetterDO {
     @TableField("outbox_id")
     private Long outboxId;
     @TableField("event_id")
-    private String eventId;
+    private Long eventId;
     @TableField("tenant_id")
-    private String tenantId;
+    private Long tenantId;
     @TableField("order_no")
     private String orderNo;
     @TableField("event_type")

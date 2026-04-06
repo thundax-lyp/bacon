@@ -61,10 +61,6 @@ public class OrderOutboxDeadLetter {
         return tenantId == null ? null : tenantId.value();
     }
 
-    public String getTenantIdRawValue() {
-        return tenantId == null ? null : String.valueOf(tenantId.value());
-    }
-
     public String getOrderNoValue() {
         return orderNo == null ? null : orderNo.value();
     }

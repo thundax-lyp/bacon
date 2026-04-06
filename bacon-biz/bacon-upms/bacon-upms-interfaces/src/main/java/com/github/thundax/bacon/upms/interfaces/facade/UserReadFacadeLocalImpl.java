@@ -39,6 +39,6 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
 
     @Override
     public TenantDTO getTenantByTenantId(@NonNull TenantId tenantId) {
-        return userApplicationService.getTenantByTenantId(String.valueOf(tenantId.value()));
+        return userApplicationService.getTenantByTenantId(tenantId.value());
     }
 }

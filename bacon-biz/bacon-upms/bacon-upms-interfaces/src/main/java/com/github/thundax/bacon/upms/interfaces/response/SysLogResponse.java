@@ -10,7 +10,7 @@ public record SysLogResponse(
         /** 日志主键。 */
         Long id,
         /** 租户编号。 */
-        String tenantId,
+        Long tenantId,
         /** 链路追踪标识。 */
         String traceId,
         /** 请求标识。 */

@@ -15,11 +15,11 @@ public class AuthSession {
     /** 会话标识。 */
     private final String sessionId;
     /** 所属租户编号。 */
-    private final String tenantId;
+    private final Long tenantId;
     /** 用户主键。 */
-    private final String userId;
+    private final Long userId;
     /** 身份标识值。 */
-    private final String identityId;
+    private final Long identityId;
     /** 身份标识类型。 */
     private final String identityType;
     /** 登录方式类型。 */
@@ -37,7 +37,7 @@ public class AuthSession {
     /** 失效原因。 */
     private String invalidateReason;
 
-    public AuthSession(Long id, String sessionId, String tenantId, String userId, String identityId, String identityType,
+    public AuthSession(Long id, String sessionId, Long tenantId, Long userId, Long identityId, String identityType,
                        String loginType, Instant issuedAt, Instant expireAt) {
         this.id = id;
         this.sessionId = sessionId;

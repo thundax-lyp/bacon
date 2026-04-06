@@ -84,7 +84,7 @@ public class InventoryAuditReplayTransactionExecutor {
     }
 
     private Long toLongValue(TenantId value) {
-        return value == null ? null : Long.valueOf(value.value());
+        return value == null ? null : value.value();
     }
 
     private String toStringValue(OrderNo value) {

@@ -7,7 +7,7 @@ import java.util.List;
 
 @Schema(description = "创建订单请求")
 public record CreateOrderRequest(
-        @Schema(description = "租户ID", example = "1001") Long tenantId,
+        @Schema(description = "租户编码", example = "TENANT_DEMO") String tenantCode,
         @Schema(description = "用户ID", example = "2001") Long userId,
         @Schema(description = "币种编码", example = "CNY") String currencyCode,
         @Schema(description = "渠道编码", example = "MOCK") String channelCode,
@@ -20,6 +20,7 @@ public record CreateOrderRequest(
         List<com.github.thundax.bacon.order.application.command.CreateOrderItemCommand> itemCommands = items == null
                 ? List.of()
                 : items.stream().map(CreateOrderItemRequest::toCommand).toList();
-        return new CreateOrderCommand(tenantId, userId, currencyCode, channelCode, remark, expiredAt, itemCommands);
+        return new CreateOrderCommand(Long.parseLong(tenantCode.trim()), userId, currencyCode, channelCode, remark, expiredAt,
+                itemCommands);
     }
 }

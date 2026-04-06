@@ -118,7 +118,7 @@ class PaymentRepositorySupportIntegrationTest {
                 null, TenantId.of("1001"), persistedOrder.getPaymentNo(), persistedOrder.getOrderNo(), PaymentChannelCode.MOCK,
                 "TXN-IT-10001", PaymentChannelStatus.SUCCESS, "{\"tradeStatus\":\"SUCCESS\"}",
                 Instant.parse("2026-03-27T10:01:00Z")));
-        paymentRepositorySupport.saveAuditLog(new PaymentAuditLog(null, TenantId.of("1001"), persistedOrder.getPaymentNo(),
+        paymentRepositorySupport.saveAuditLog(new PaymentAuditLog(null, 1001L, persistedOrder.getPaymentNo(),
                 PaymentAuditActionType.CREATE, null, PaymentStatus.PAYING, PaymentAuditOperatorType.SYSTEM, "0",
                 Instant.parse("2026-03-27T10:00:00Z")));
 
@@ -128,7 +128,7 @@ class PaymentRepositorySupportIntegrationTest {
                 .orElseThrow();
 
         assertNotNull(persistedOrder.getId());
-        assertEquals(PaymentOrderId.of("1"), persistedOrder.getId());
+        assertEquals(PaymentOrderId.of(1L), persistedOrder.getId());
         assertNotNull(persistedCallback.getId());
         assertEquals("ORD-IT-10001", reloadedOrder.getOrderNo().value());
         assertEquals("TXN-IT-10001", reloadedCallback.getChannelTransactionNo());

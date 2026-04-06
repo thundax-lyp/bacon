@@ -8,7 +8,7 @@ import java.time.Instant;
  */
 public record TenantResponse(
         /** 租户主键。 */
-        String id,
+        Long id,
         /** 租户名称。 */
         String name,
         /** 稳定业务编码。 */
@@ -19,7 +19,7 @@ public record TenantResponse(
         Instant expiredAt) {
 
     public static TenantResponse from(TenantDTO dto) {
-        String tenantId = dto.getId() == null ? null : String.valueOf(dto.getId().value());
+        Long tenantId = dto.getId() == null ? null : dto.getId().value();
         return new TenantResponse(tenantId, dto.getName(), dto.getTenantCode(), dto.getStatus(), dto.getExpiredAt());
     }
 }

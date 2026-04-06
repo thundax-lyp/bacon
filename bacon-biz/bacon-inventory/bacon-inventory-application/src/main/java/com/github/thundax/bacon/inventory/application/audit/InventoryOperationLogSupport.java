@@ -51,7 +51,7 @@ public class InventoryOperationLogSupport {
     private void recordLedgerBatch(InventoryReservation reservation, List<InventoryReservationItem> items,
                                    String ledgerType, Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, TenantId.of(String.valueOf(reservation.getTenantId())),
+            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, TenantId.of(reservation.getTenantId()),
                     reservation.getOrderNo(), reservation.getReservationNo(), item.getSkuId(),
                     reservation.getWarehouseId(), ledgerType, item.getQuantity(), occurredAt));
         }

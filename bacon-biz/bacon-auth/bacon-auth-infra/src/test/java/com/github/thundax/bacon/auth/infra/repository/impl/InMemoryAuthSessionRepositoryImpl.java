@@ -31,7 +31,7 @@ public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository 
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantIdAndUserId(String tenantId, String userId) {
+    public List<AuthSession> findSessionsByTenantIdAndUserId(Long tenantId, Long userId) {
         return authStore.getSessions().values().stream()
                 .filter(session -> tenantId.equals(session.getTenantId()))
                 .filter(session -> userId.equals(session.getUserId()))
@@ -39,7 +39,7 @@ public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository 
     }
 
     @Override
-    public List<AuthSession> findSessionsByTenantId(String tenantId) {
+    public List<AuthSession> findSessionsByTenantId(Long tenantId) {
         return authStore.getSessions().values().stream()
                 .filter(session -> tenantId.equals(session.getTenantId()))
                 .toList();

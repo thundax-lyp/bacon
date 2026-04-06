@@ -69,14 +69,14 @@ public class OrderController {
                                         @RequestParam(value = "createdAtTo", required = false) Instant createdAtTo,
                                         @RequestParam(value = "pageNo", required = false) Integer pageNo,
                                         @RequestParam(value = "pageSize", required = false) Integer pageSize) {
-        return OrderPageResponse.from(orderQueryService.pageOrders(new OrderPageQueryDTO(String.valueOf(tenantId),
-                userId == null ? null : String.valueOf(userId), orderNo,
+        return OrderPageResponse.from(orderQueryService.pageOrders(new OrderPageQueryDTO(tenantId,
+                userId, orderNo,
                 orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, pageNo, pageSize)));
     }
     @Operation(summary = "取消订单")
     @HasPermission("order:order:cancel")
     @PostMapping("/{orderNo}/cancel")
     public void cancel(@PathVariable String orderNo, @RequestBody CancelOrderRequest request) {
-        orderCancelApplicationService.cancel(request.tenantId(), orderNo, request.reason());
+        orderCancelApplicationService.cancel(Long.parseLong(request.tenantCode().trim()), orderNo, request.reason());
     }
 }

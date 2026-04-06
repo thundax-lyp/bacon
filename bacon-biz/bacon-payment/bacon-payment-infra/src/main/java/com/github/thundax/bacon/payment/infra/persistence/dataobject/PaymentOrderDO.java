@@ -17,15 +17,15 @@ import lombok.NoArgsConstructor;
 public class PaymentOrderDO {
 
     @TableId(type = IdType.INPUT)
-    private String id;
+    private Long id;
     @TableField("tenant_id")
-    private String tenantId;
+    private Long tenantId;
     @TableField("payment_no")
     private String paymentNo;
     @TableField("order_no")
     private String orderNo;
     @TableField("user_id")
-    private String userId;
+    private Long userId;
     @TableField("channel_code")
     private String channelCode;
     @TableField("payment_status")

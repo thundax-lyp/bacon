@@ -20,9 +20,9 @@ public class InventoryAuditReplayTaskItem {
     /** 明细主键。 */
     private Long id;
     /** 回放任务主键。 */
-    private String taskId;
+    private Long taskId;
     /** 所属租户主键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 死信记录主键。 */
     private Long deadLetterId;
     /** 明细状态。 */
@@ -39,18 +39,4 @@ public class InventoryAuditReplayTaskItem {
     private Instant finishedAt;
     /** 最后更新时间。 */
     private Instant updatedAt;
-
-    public InventoryAuditReplayTaskItem(Long id, Long taskId, Long tenantId, Long deadLetterId, String itemStatus,
-                                        String replayStatus, String replayKey, String resultMessage,
-                                        Instant startedAt, Instant finishedAt, Instant updatedAt) {
-        this(id, taskId == null ? null : String.valueOf(taskId), tenantId, deadLetterId, itemStatus, replayStatus,
-                replayKey, resultMessage, startedAt, finishedAt, updatedAt);
-    }
-
-    public InventoryAuditReplayTaskItem(Long id, String taskId, Long tenantId, Long deadLetterId, String itemStatus,
-                                        String replayStatus, String replayKey, String resultMessage,
-                                        Instant startedAt, Instant finishedAt, Instant updatedAt) {
-        this(id, taskId, tenantId == null ? null : String.valueOf(tenantId), deadLetterId, itemStatus, replayStatus,
-                replayKey, resultMessage, startedAt, finishedAt, updatedAt);
-    }
 }

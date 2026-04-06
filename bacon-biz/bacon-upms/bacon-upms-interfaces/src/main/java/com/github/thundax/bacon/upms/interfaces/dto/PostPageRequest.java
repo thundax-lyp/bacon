@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PostPageRequest {
 
-    private String tenantId;
+    private String tenantCode;
     private String code;
     private String name;
     private String departmentId;

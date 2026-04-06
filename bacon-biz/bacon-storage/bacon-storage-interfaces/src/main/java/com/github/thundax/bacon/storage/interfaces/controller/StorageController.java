@@ -41,7 +41,7 @@ public class StorageController {
     @GetMapping
     public StoredObjectPageResponse pageObjects(@Valid @ModelAttribute StoredObjectPageRequest request) {
         return StoredObjectPageResponse.from(storedObjectQueryApplicationService.pageObjects(new StoredObjectPageQueryDTO(
-                request.getTenantId(),
+                request.getTenantCode() == null || request.getTenantCode().isBlank() ? null : Long.parseLong(request.getTenantCode().trim()),
                 request.getStorageType() == null ? null : request.getStorageType().name(),
                 request.getObjectStatus() == null ? null : request.getObjectStatus().name(),
                 request.getReferenceStatus() == null ? null : request.getReferenceStatus().name(),
@@ -59,6 +59,11 @@ public class StorageController {
     @HasPermission("storage:object:delete")
     @DeleteMapping("/{objectId}")
     public void deleteObject(@PathVariable("objectId") @NotBlank String objectId) {
-        storedObjectApplicationService.deleteObject(objectId);
+        storedObjectApplicationService.deleteObject(toObjectId(objectId));
+    }
+
+    private Long toObjectId(String objectId) {
+        String normalized = objectId.startsWith("O") ? objectId.substring(1) : objectId;
+        return Long.valueOf(normalized);
     }
 }

@@ -13,8 +13,6 @@ import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StoredObjectDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.StoredObjectMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -58,7 +56,7 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     @Override
-    public List<StoredObject> pageObjects(String tenantId, String storageType, String objectStatus,
+    public List<StoredObject> pageObjects(Long tenantId, String storageType, String objectStatus,
                                           String referenceStatus, String originalFilename, String objectKey,
                                           int offset, int limit) {
         LambdaQueryWrapper<StoredObjectDO> listWrapper = buildQueryWrapper(tenantId, storageType, objectStatus,
@@ -71,33 +69,33 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     @Override
-    public long countObjects(String tenantId, String storageType, String objectStatus, String referenceStatus,
+    public long countObjects(Long tenantId, String storageType, String objectStatus, String referenceStatus,
                              String originalFilename, String objectKey) {
         LambdaQueryWrapper<StoredObjectDO> countWrapper = buildQueryWrapper(tenantId, storageType, objectStatus,
                 referenceStatus, originalFilename, objectKey);
         return storedObjectMapper.selectCount(countWrapper);
     }
 
-    private LambdaQueryWrapper<StoredObjectDO> buildQueryWrapper(String tenantId, String storageType, String objectStatus,
+    private LambdaQueryWrapper<StoredObjectDO> buildQueryWrapper(Long tenantId, String storageType, String objectStatus,
                                                                  String referenceStatus, String originalFilename,
                                                                  String objectKey) {
         LambdaQueryWrapper<StoredObjectDO> wrapper = Wrappers.lambdaQuery(StoredObjectDO.class);
-        if (StringUtils.hasText(tenantId)) {
-            wrapper.eq(StoredObjectDO::getTenantId, TenantId.of(tenantId.trim()));
+        if (tenantId != null) {
+            wrapper.eq(StoredObjectDO::getTenantId, TenantId.of(tenantId));
         }
-        if (StringUtils.hasText(storageType)) {
+        if (storageType != null && !storageType.isBlank()) {
             wrapper.eq(StoredObjectDO::getStorageType, storageType.trim());
         }
-        if (StringUtils.hasText(objectStatus)) {
+        if (objectStatus != null && !objectStatus.isBlank()) {
             wrapper.eq(StoredObjectDO::getObjectStatus, objectStatus.trim());
         }
-        if (StringUtils.hasText(referenceStatus)) {
+        if (referenceStatus != null && !referenceStatus.isBlank()) {
             wrapper.eq(StoredObjectDO::getReferenceStatus, referenceStatus.trim());
         }
-        if (StringUtils.hasText(originalFilename)) {
+        if (originalFilename != null && !originalFilename.isBlank()) {
             wrapper.like(StoredObjectDO::getOriginalFilename, originalFilename.trim());
         }
-        if (StringUtils.hasText(objectKey)) {
+        if (objectKey != null && !objectKey.isBlank()) {
             wrapper.like(StoredObjectDO::getObjectKey, objectKey.trim());
         }
         return wrapper;

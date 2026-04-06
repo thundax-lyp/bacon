@@ -12,9 +12,9 @@ public interface AuthSessionRepository {
 
     Optional<AuthSession> findSessionBySessionId(String sessionId);
 
-    List<AuthSession> findSessionsByTenantIdAndUserId(String tenantId, String userId);
+    List<AuthSession> findSessionsByTenantIdAndUserId(Long tenantId, Long userId);
 
-    List<AuthSession> findSessionsByTenantId(String tenantId);
+    List<AuthSession> findSessionsByTenantId(Long tenantId);
 
     RefreshTokenSession saveRefreshToken(RefreshTokenSession refreshTokenSession);
 

@@ -38,12 +38,12 @@ class TenantApplicationServiceTest {
 
     @Test
     void shouldCreateTenantWithTenantId() {
-        when(tenantRepository.findTenantByTenantId(TenantId.of("1001"))).thenReturn(Optional.empty());
+        when(tenantRepository.findTenantByTenantId(TenantId.of(1001L))).thenReturn(Optional.empty());
         when(tenantRepository.findTenantByCode("TENANT_DEMO")).thenReturn(Optional.empty());
         when(tenantRepository.saveTenant(any(Tenant.class)))
-                .thenReturn(new Tenant("1001", "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z")));
+                .thenReturn(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z")));
 
-        TenantDTO result = service.createTenant("1001", "Demo Tenant", "TENANT_DEMO",
+        TenantDTO result = service.createTenant(1001L, "Demo Tenant", "TENANT_DEMO",
                 Instant.parse("2099-01-01T00:00:00Z"));
 
         assertThat(result.getId().value()).isEqualTo(1001L);
@@ -54,30 +54,30 @@ class TenantApplicationServiceTest {
 
     @Test
     void shouldRejectDuplicateTenantId() {
-        when(tenantRepository.findTenantByTenantId(TenantId.of("1001")))
-                .thenReturn(Optional.of(new Tenant("1001", "Demo Tenant", "TENANT_DEMO",
+        when(tenantRepository.findTenantByTenantId(TenantId.of(1001L)))
+                .thenReturn(Optional.of(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO",
                         TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
 
-        assertThatThrownBy(() -> service.createTenant("1001", "Other", "OTHER", null))
+        assertThatThrownBy(() -> service.createTenant(1001L, "Other", "OTHER", null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Tenant tenantId already exists: 1001");
     }
 
     @Test
     void shouldRejectInvalidTenantCode() {
-        assertThatThrownBy(() -> service.createTenant("1001", "Demo Tenant", "tenant-demo", null))
+        assertThatThrownBy(() -> service.createTenant(1001L, "Demo Tenant", "tenant-demo", null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("tenantCode must match [A-Z0-9_]+");
     }
 
     @Test
     void shouldInvalidateTenantSessionsWhenTenantDisabled() {
-        when(tenantRepository.updateTenantStatus(TenantId.of("1001"), "DISABLED"))
-                .thenReturn(new Tenant("1001", "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null));
+        when(tenantRepository.updateTenantStatus(TenantId.of(1001L), "DISABLED"))
+                .thenReturn(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null));
 
-        TenantDTO result = service.updateTenantStatus("1001", TenantStatusEnum.DISABLED);
+        TenantDTO result = service.updateTenantStatus(1001L, TenantStatusEnum.DISABLED);
 
         assertThat(result.getStatus()).isEqualTo("DISABLED");
-        verify(sessionCommandFacade).invalidateTenantSessions("1001", "TENANT_DISABLED");
+        verify(sessionCommandFacade).invalidateTenantSessions(1001L, "TENANT_DISABLED");
     }
 }

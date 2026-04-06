@@ -17,7 +17,7 @@ public class InitMultipartUploadCommand {
     /** 引用方业务主键。 */
     private String ownerId;
     /** 所属租户业务键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 对象分类。 */
     private String category;
     /** 原始文件名。 */

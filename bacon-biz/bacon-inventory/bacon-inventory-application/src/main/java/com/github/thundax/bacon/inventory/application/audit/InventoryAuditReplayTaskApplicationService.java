@@ -39,7 +39,7 @@ public class InventoryAuditReplayTaskApplicationService {
                 createDTO.getDeadLetterIds().size(), 0, 0, 0, createDTO.getReplayKeyPrefix(), OPERATOR_TYPE_MANUAL,
                 createDTO.getOperatorId(), null, null, null, now, null, null, null, now);
         InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
-        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getId(), toLongValue(saved.getTenantId()),
+        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getId(), saved.getTenantId(),
                 createDTO.getDeadLetterIds(), now);
         Metrics.counter("bacon.inventory.audit.replay.task.created.total").increment();
         return toDto(saved);
@@ -108,7 +108,7 @@ public class InventoryAuditReplayTaskApplicationService {
             Instant startedAt = Instant.now();
             try {
                 String replayKey = buildReplayKey(task, item);
-                InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(toLongValue(task.getTenantId()),
+                InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(task.getTenantId(),
                         item.getDeadLetterId(), replayKey, toLongValue(task.getOperatorId()));
                 String itemStatus = InventoryAuditReplayTaskItem.STATUS_FAILED;
                 if (InventoryAuditReplayTaskItem.STATUS_SUCCEEDED.equals(result.getReplayStatus())) {
@@ -172,7 +172,7 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     private void ensureTaskTenant(InventoryAuditReplayTask task, Long tenantId) {
-        if (!Objects.equals(task.getTenantId(), toStringValue(tenantId))) {
+        if (!Objects.equals(task.getTenantId(), tenantId)) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN,
                     "replay-task-tenant-mismatch");
         }
@@ -189,10 +189,6 @@ public class InventoryAuditReplayTaskApplicationService {
                 task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
                 task.getReplayKeyPrefix(), task.getOperatorId(), task.getLastError(), task.getCreatedAt(),
                 task.getStartedAt(), task.getPausedAt(), task.getFinishedAt(), task.getUpdatedAt());
-    }
-
-    private String toStringValue(Long value) {
-        return value == null ? null : String.valueOf(value);
     }
 
     private Long toLongValue(String value) {

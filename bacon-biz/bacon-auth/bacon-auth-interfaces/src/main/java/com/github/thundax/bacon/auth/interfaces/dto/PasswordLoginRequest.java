@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 public class PasswordLoginRequest {
 
     @Schema(description = "租户编号", example = "tenant-demo")
-    @NotBlank(message = "tenantId: must not be blank")
-    private String tenantId;
+    @NotBlank(message = "tenantCode: must not be blank")
+    private String tenantCode;
 
     @Schema(description = "登录账号", example = "admin")
     @NotBlank(message = "account: must not be blank")

@@ -22,7 +22,7 @@ public class InventoryAuditOutbox {
     /** 出站事件主键。 */
     private Long id;
     /** 所属租户主键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 订单号。 */
     private String orderNo;
     /** 预占单号。 */
@@ -61,7 +61,7 @@ public class InventoryAuditOutbox {
                                 String status, Integer retryCount, Instant nextRetryAt, String processingOwner,
                                 Instant leaseUntil, Instant claimedAt, String deadReason, Instant failedAt,
                                 Instant updatedAt) {
-        this(id, tenantId == null ? null : String.valueOf(tenantId), orderNo, reservationNo, actionType, operatorType,
+        this(id, tenantId, orderNo, reservationNo, actionType, operatorType,
                 operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage,
                 status == null ? null : InventoryAuditOutboxStatus.fromValue(status), retryCount, nextRetryAt,
                 processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
@@ -72,7 +72,7 @@ public class InventoryAuditOutbox {
                                 InventoryAuditOutboxStatus status, Integer retryCount, Instant nextRetryAt,
                                 String processingOwner, Instant leaseUntil, Instant claimedAt, String deadReason,
                                 Instant failedAt, Instant updatedAt) {
-        this(id, tenantId == null ? null : String.valueOf(tenantId), orderNo, reservationNo, actionType, operatorType,
+        this(id, tenantId, orderNo, reservationNo, actionType, operatorType,
                 operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage, status, retryCount,
                 nextRetryAt, processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
     }

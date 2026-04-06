@@ -81,10 +81,10 @@ public class UserController {
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "修改用户基本信息", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}")
-    public UserResponse updateUser(@CurrentTenant Long tenantId, @PathVariable String userId,
+    public UserResponse updateUser(@CurrentTenant Long tenantId, @PathVariable Long userId,
                                    @RequestBody UserUpdateRequest request) {
         return UserResponse.from(userApplicationService.updateUser(
-                TenantId.of(tenantId), userId, request.account(), request.name(),
+                TenantId.of(tenantId), String.valueOf(userId), request.account(), request.name(),
                 request.phone(), request.departmentId()));
     }
 
@@ -92,16 +92,16 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "查询用户详情", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}")
-    public UserResponse getUserById(@CurrentTenant Long tenantId, @PathVariable String userId) {
-        return UserResponse.from(userApplicationService.getUserById(TenantId.of(tenantId), UserId.of(userId)));
+    public UserResponse getUserById(@CurrentTenant Long tenantId, @PathVariable Long userId) {
+        return UserResponse.from(userApplicationService.getUserById(TenantId.of(tenantId), UserId.of(String.valueOf(userId))));
     }
 
     @Operation(summary = "访问用户头像")
     @SysLog(module = "UPMS", action = "访问用户头像", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}/avatar")
-    public ResponseEntity<Void> getAvatar(@CurrentTenant Long tenantId, @PathVariable("userId") String userId) {
+    public ResponseEntity<Void> getAvatar(@CurrentTenant Long tenantId, @PathVariable("userId") Long userId) {
         java.util.Optional<String> avatarAccessUrl = userApplicationService.getAvatarAccessUrl(
-                TenantId.of(tenantId), userId);
+                TenantId.of(tenantId), String.valueOf(userId));
         if (avatarAccessUrl.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -124,46 +124,46 @@ public class UserController {
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "变更用户状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}/status")
-    public UserResponse updateUserStatus(@CurrentTenant Long tenantId, @PathVariable String userId,
+    public UserResponse updateUserStatus(@CurrentTenant Long tenantId, @PathVariable Long userId,
                                          @RequestBody UserStatusUpdateRequest request) {
         return UserResponse.from(userApplicationService.updateUserStatus(
-                TenantId.of(tenantId), userId, request.status()));
+                TenantId.of(tenantId), String.valueOf(userId), request.status()));
     }
 
     @Operation(summary = "删除用户")
     @HasPermission("sys:user:delete")
     @SysLog(module = "UPMS", action = "删除用户", eventType = LogEventType.DELETE)
     @DeleteMapping("/{userId}")
-    public void deleteUser(@CurrentTenant Long tenantId, @PathVariable String userId) {
-        userApplicationService.deleteUser(TenantId.of(tenantId), userId);
+    public void deleteUser(@CurrentTenant Long tenantId, @PathVariable Long userId) {
+        userApplicationService.deleteUser(TenantId.of(tenantId), String.valueOf(userId));
     }
 
     @Operation(summary = "管理员初始化密码")
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "初始化用户密码", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}/password/init")
-    public UserResponse initPassword(@CurrentTenant Long tenantId, @PathVariable String userId,
+    public UserResponse initPassword(@CurrentTenant Long tenantId, @PathVariable Long userId,
                                      @RequestBody UserPasswordInitRequest request) {
-        return UserResponse.from(userApplicationService.initPassword(TenantId.of(tenantId), userId));
+        return UserResponse.from(userApplicationService.initPassword(TenantId.of(tenantId), String.valueOf(userId)));
     }
 
     @Operation(summary = "管理员重置密码")
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "重置用户密码", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}/password/reset")
-    public UserResponse resetPassword(@CurrentTenant Long tenantId, @PathVariable String userId,
+    public UserResponse resetPassword(@CurrentTenant Long tenantId, @PathVariable Long userId,
                                       @RequestBody UserPasswordResetRequest request) {
         return UserResponse.from(userApplicationService.resetPassword(
-                TenantId.of(tenantId), userId, request.newPassword()));
+                TenantId.of(tenantId), String.valueOf(userId), request.newPassword()));
     }
 
     @Operation(summary = "分配用户角色")
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "分配用户角色", eventType = LogEventType.GRANT)
     @PutMapping("/{userId}/roles")
-    public List<RoleResponse> assignRoles(@CurrentTenant Long tenantId, @PathVariable String userId,
+    public List<RoleResponse> assignRoles(@CurrentTenant Long tenantId, @PathVariable Long userId,
                                           @RequestBody UserRoleAssignRequest request) {
-        return userApplicationService.assignRoles(TenantId.of(tenantId), userId, request.roleIds()).stream()
+        return userApplicationService.assignRoles(TenantId.of(tenantId), String.valueOf(userId), request.roleIds()).stream()
                 .map(RoleResponse::from)
                 .toList();
     }
@@ -172,10 +172,10 @@ public class UserController {
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "上传用户头像", eventType = LogEventType.UPDATE)
     @PutMapping(value = "/{userId}/avatar", consumes = "multipart/form-data")
-    public UserResponse uploadAvatar(@CurrentTenant Long tenantId, @PathVariable("userId") String userId,
+    public UserResponse uploadAvatar(@CurrentTenant Long tenantId, @PathVariable("userId") Long userId,
                                      @RequestParam("file") MultipartFile file) throws IOException {
         return UserResponse.from(userApplicationService.updateAvatar(
-                TenantId.of(tenantId), userId, file.getOriginalFilename(), file.getContentType(),
+                TenantId.of(tenantId), String.valueOf(userId), file.getOriginalFilename(), file.getContentType(),
                 file.getSize(), file.getInputStream()));
     }
 
@@ -183,8 +183,8 @@ public class UserController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询用户角色", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}/roles")
-    public List<RoleResponse> getRolesByUserId(@CurrentTenant Long tenantId, @PathVariable String userId) {
-        return userApplicationService.getRolesByUserId(TenantId.of(tenantId), userId).stream()
+    public List<RoleResponse> getRolesByUserId(@CurrentTenant Long tenantId, @PathVariable Long userId) {
+        return userApplicationService.getRolesByUserId(TenantId.of(tenantId), String.valueOf(userId)).stream()
                 .map(RoleResponse::from)
                 .toList();
     }

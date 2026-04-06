@@ -262,10 +262,6 @@ class InventoryApplicationServiceTest {
             return tenantId + ":" + skuId;
         }
 
-        private static String key(String tenantId, Long skuId) {
-            return tenantId + ":" + skuId;
-        }
-
         private static String reservationKey(Long tenantId, String orderNo) {
             return tenantId + ":" + orderNo;
         }

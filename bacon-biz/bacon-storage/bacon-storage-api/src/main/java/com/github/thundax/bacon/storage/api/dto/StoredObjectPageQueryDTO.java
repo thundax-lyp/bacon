@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class StoredObjectPageQueryDTO {
 
     /** 所属租户业务键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 底层存储类型。 */
     private String storageType;
     /** 对象状态。 */

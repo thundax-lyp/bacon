@@ -84,7 +84,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public Inventory saveInventory(Inventory inventory) {
         if (inventory.getId() == null) {
-            inventory = new Inventory(String.valueOf(inventoryIdGenerator.getAndIncrement()), inventory.getTenantId().value(),
+            inventory = new Inventory(inventoryIdGenerator.getAndIncrement(), inventory.getTenantId().value(),
                     inventory.getSkuId().value(), Long.valueOf(inventory.getWarehouseId().value()), inventory.getOnHandQuantity(),
                     inventory.getReservedQuantity(), inventory.getAvailableQuantity(), inventory.getStatus(),
                     inventory.getVersion(), inventory.getUpdatedAt());
@@ -485,7 +485,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> String.valueOf(tenantId).equals(task.getTenantId()))
+                .filter(task -> tenantId.equals(task.getTenantId()))
                 .filter(task -> InventoryAuditReplayTask.STATUS_PENDING.equals(task.getStatus())
                         || InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
                 .map(task -> {
@@ -500,7 +500,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> String.valueOf(tenantId).equals(task.getTenantId()))
+                .filter(task -> tenantId.equals(task.getTenantId()))
                 .filter(task -> InventoryAuditReplayTask.STATUS_PAUSED.equals(task.getStatus()))
                 .map(task -> {
                     task.setStatus(InventoryAuditReplayTask.STATUS_PENDING);
@@ -511,10 +511,6 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     private static String key(Long tenantId, Long skuId) {
-        return tenantId + ":" + skuId;
-    }
-
-    private static String key(String tenantId, Long skuId) {
         return tenantId + ":" + skuId;
     }
 

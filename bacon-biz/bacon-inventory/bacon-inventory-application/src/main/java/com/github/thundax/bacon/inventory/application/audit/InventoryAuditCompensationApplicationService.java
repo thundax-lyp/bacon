@@ -105,6 +105,6 @@ public class InventoryAuditCompensationApplicationService {
     }
 
     private TenantId toTenantId(Long value) {
-        return value == null ? null : TenantId.of(String.valueOf(value));
+        return value == null ? null : TenantId.of(value);
     }
 }

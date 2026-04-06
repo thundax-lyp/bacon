@@ -18,7 +18,7 @@ public class SysLogConsumeApplicationService {
     public void consume(SysLogDTO sysLogDTO) {
         SysLogRecord sysLogRecord = new SysLogRecord(
                 null,
-                parseTenantId(sysLogDTO.getTenantId()),
+                sysLogDTO.getTenantId(),
                 sysLogDTO.getTraceId(),
                 sysLogDTO.getRequestId(),
                 sysLogDTO.getModule(),
@@ -37,9 +37,5 @@ public class SysLogConsumeApplicationService {
         // 系统日志同时落数据库和文件：数据库用于检索聚合，文件用于本地排障和最低成本保留。
         sysLogRepository.saveToDatabase(sysLogRecord);
         sysLogRepository.saveToFile(sysLogRecord);
-    }
-
-    private Long parseTenantId(String tenantId) {
-        return tenantId == null || tenantId.isBlank() ? null : Long.valueOf(tenantId.trim());
     }
 }

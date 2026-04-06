@@ -10,7 +10,7 @@ public record InventoryAuditReplayTaskResponse(
         /** 回放任务主键。 */
         Long taskId,
         /** 所属租户主键。 */
-        String tenantId,
+        Long tenantId,
         /** 任务编号。 */
         String taskNo,
         /** 任务状态。 */

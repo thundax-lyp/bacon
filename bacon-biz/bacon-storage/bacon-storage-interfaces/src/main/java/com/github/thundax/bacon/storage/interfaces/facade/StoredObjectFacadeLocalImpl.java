@@ -63,16 +63,24 @@ public class StoredObjectFacadeLocalImpl implements StoredObjectFacade {
 
     @Override
     public void markObjectReferenced(String objectId, String ownerType, String ownerId) {
-        storedObjectApplicationService.markObjectReferenced(objectId, ownerType, ownerId);
+        storedObjectApplicationService.markObjectReferenced(toObjectId(objectId), ownerType, ownerId);
     }
 
     @Override
     public void clearObjectReference(String objectId, String ownerType, String ownerId) {
-        storedObjectApplicationService.clearObjectReference(objectId, ownerType, ownerId);
+        storedObjectApplicationService.clearObjectReference(toObjectId(objectId), ownerType, ownerId);
     }
 
     @Override
     public void deleteObject(String objectId) {
-        storedObjectApplicationService.deleteObject(objectId);
+        storedObjectApplicationService.deleteObject(toObjectId(objectId));
+    }
+
+    private Long toObjectId(String objectId) {
+        if (objectId == null || objectId.isBlank()) {
+            return null;
+        }
+        String normalized = objectId.startsWith("O") ? objectId.substring(1) : objectId;
+        return Long.valueOf(normalized);
     }
 }

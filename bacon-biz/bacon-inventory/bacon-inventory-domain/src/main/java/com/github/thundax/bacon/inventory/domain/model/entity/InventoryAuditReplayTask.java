@@ -24,7 +24,7 @@ public class InventoryAuditReplayTask {
     /** 回放任务主键。 */
     private Long id;
     /** 所属租户主键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 任务编号。 */
     private String taskNo;
     /** 任务状态。 */
@@ -65,7 +65,7 @@ public class InventoryAuditReplayTask {
                                     String replayKeyPrefix, String operatorType, Long operatorId,
                                     String processingOwner, Instant leaseUntil, String lastError, Instant createdAt,
                                     Instant startedAt, Instant pausedAt, Instant finishedAt, Instant updatedAt) {
-        this(id, tenantId == null ? null : String.valueOf(tenantId), taskNo,
+        this(id, tenantId, taskNo,
                 status == null ? null : InventoryAuditReplayTaskStatus.fromValue(status), totalCount, processedCount,
                 successCount, failedCount, replayKeyPrefix, operatorType,
                 operatorId == null ? null : String.valueOf(operatorId), processingOwner, leaseUntil, lastError,
@@ -77,7 +77,7 @@ public class InventoryAuditReplayTask {
                                     Integer failedCount, String replayKeyPrefix, String operatorType, Long operatorId,
                                     String processingOwner, Instant leaseUntil, String lastError, Instant createdAt,
                                     Instant startedAt, Instant pausedAt, Instant finishedAt, Instant updatedAt) {
-        this(id, tenantId == null ? null : String.valueOf(tenantId), taskNo, status, totalCount, processedCount,
+        this(id, tenantId, taskNo, status, totalCount, processedCount,
                 successCount, failedCount, replayKeyPrefix, operatorType,
                 operatorId == null ? null : String.valueOf(operatorId), processingOwner, leaseUntil, lastError,
                 createdAt, startedAt, pausedAt, finishedAt, updatedAt);

@@ -23,9 +23,9 @@ public class UserLoginDTO {
     /** 会话标识。 */
     private String sessionId;
     /** 用户主键。 */
-    private String userId;
+    private Long userId;
     /** 所属租户编号。 */
-    private String tenantId;
+    private Long tenantId;
     /** 是否需要修改密码。 */
     private Boolean needChangePassword;
 }

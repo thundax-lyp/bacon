@@ -37,7 +37,7 @@ public class TenantApplicationService {
                 pageNo, pageSize);
     }
 
-    public TenantDTO createTenant(String tenantId, String name, String tenantCode, Instant expiredAt) {
+    public TenantDTO createTenant(Long tenantId, String name, String tenantCode, Instant expiredAt) {
         return createTenant(TenantId.of(tenantId), name, tenantCode, expiredAt);
     }
 
@@ -56,7 +56,7 @@ public class TenantApplicationService {
                 normalizedTenantCode, TenantStatus.ACTIVE, expiredAt)));
     }
 
-    public TenantDTO updateTenant(String tenantId, String name, String tenantCode, Instant expiredAt) {
+    public TenantDTO updateTenant(Long tenantId, String name, String tenantCode, Instant expiredAt) {
         return updateTenant(TenantId.of(tenantId), name, tenantCode, expiredAt);
     }
 
@@ -83,7 +83,7 @@ public class TenantApplicationService {
                 currentTenant.getUpdatedAt())));
     }
 
-    public TenantDTO updateTenantStatus(String tenantId, TenantStatusEnum status) {
+    public TenantDTO updateTenantStatus(Long tenantId, TenantStatusEnum status) {
         return updateTenantStatus(TenantId.of(tenantId), status);
     }
 
@@ -95,12 +95,12 @@ public class TenantApplicationService {
         Tenant tenant = tenantRepository.updateTenantStatus(tenantId, status.value());
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
         if (TenantStatus.DISABLED == tenant.getStatus()) {
-            sessionCommandFacade.invalidateTenantSessions(String.valueOf(tenant.getId().value()), "TENANT_DISABLED");
+            sessionCommandFacade.invalidateTenantSessions(tenant.getId().value(), "TENANT_DISABLED");
         }
         return toDto(tenant);
     }
 
-    public TenantDTO getTenantByTenantId(String tenantId) {
+    public TenantDTO getTenantByTenantId(Long tenantId) {
         return getTenantByTenantId(TenantId.of(tenantId));
     }
 
@@ -128,11 +128,11 @@ public class TenantApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private TenantId toTenantId(String tenantId) {
-        if (tenantId == null || tenantId.isBlank()) {
+    private TenantId toTenantId(Long tenantId) {
+        if (tenantId == null) {
             return null;
         }
-        return TenantId.of(tenantId.trim());
+        return TenantId.of(tenantId);
     }
 
 }

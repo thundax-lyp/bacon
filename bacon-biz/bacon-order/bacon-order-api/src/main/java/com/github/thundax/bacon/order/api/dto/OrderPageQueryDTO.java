@@ -15,9 +15,9 @@ import java.time.Instant;
 public class OrderPageQueryDTO {
 
     /** 所属租户主键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 下单用户主键。 */
-    private String userId;
+    private Long userId;
     /** 订单号。 */
     private String orderNo;
     /** 订单状态。 */

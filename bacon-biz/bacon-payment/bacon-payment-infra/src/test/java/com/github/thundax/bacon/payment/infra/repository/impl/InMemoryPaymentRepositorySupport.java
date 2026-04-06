@@ -41,8 +41,8 @@ public class InMemoryPaymentRepositorySupport {
 
     public PaymentOrder saveOrder(PaymentOrder paymentOrder) {
         PaymentOrder persisted = paymentOrder.getId() == null
-                ? PaymentOrder.rehydrate(PaymentOrderId.of(String.valueOf(paymentOrderIdGenerator.getAndIncrement())),
-                paymentOrder.getTenantId(),
+                ? PaymentOrder.rehydrate(PaymentOrderId.of(paymentOrderIdGenerator.getAndIncrement()),
+                        paymentOrder.getTenantId(),
                 paymentOrder.getPaymentNo(), paymentOrder.getOrderNo(), paymentOrder.getUserId(),
                 paymentOrder.getChannelCode(), paymentOrder.getAmount(), paymentOrder.getPaidAmount(),
                 paymentOrder.getSubject(), paymentOrder.getCreatedAt(), paymentOrder.getExpiredAt(),
@@ -55,11 +55,11 @@ public class InMemoryPaymentRepositorySupport {
     }
 
     public Optional<PaymentOrder> findOrderByPaymentNo(Long tenantId, String paymentNo) {
-        return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(TenantId.of(String.valueOf(tenantId)), paymentNo)));
+        return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(tenantId, paymentNo)));
     }
 
     public Optional<PaymentOrder> findOrderByOrderNo(Long tenantId, String orderNo) {
-        return Optional.ofNullable(paymentsByOrderNo.get(orderKey(TenantId.of(String.valueOf(tenantId)), orderNo)));
+        return Optional.ofNullable(paymentsByOrderNo.get(orderKey(tenantId, orderNo)));
     }
 
     public PaymentCallbackRecord saveCallbackRecord(PaymentCallbackRecord callbackRecord) {
@@ -89,8 +89,7 @@ public class InMemoryPaymentRepositorySupport {
     }
 
     public List<PaymentCallbackRecord> findCallbacksByPaymentNo(Long tenantId, String paymentNo) {
-        return List.copyOf(callbackRecordsByPaymentNo.getOrDefault(paymentKey(TenantId.of(String.valueOf(tenantId)),
-                paymentNo), List.of()));
+        return List.copyOf(callbackRecordsByPaymentNo.getOrDefault(paymentKey(tenantId, paymentNo), List.of()));
     }
 
     public void saveAuditLog(PaymentAuditLog auditLog) {

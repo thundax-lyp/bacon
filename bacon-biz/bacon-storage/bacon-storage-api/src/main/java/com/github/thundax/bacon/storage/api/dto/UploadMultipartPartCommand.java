@@ -15,13 +15,13 @@ import java.io.InputStream;
 public class UploadMultipartPartCommand {
 
     /** 分段上传会话业务键。 */
-    private String uploadId;
+    private Long uploadId;
     /** 引用方类型。 */
     private String ownerType;
     /** 引用方业务主键。 */
     private String ownerId;
     /** 所属租户业务键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 分段序号。 */
     private Integer partNumber;
     /** 分段大小，字节。 */

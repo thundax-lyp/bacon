@@ -5,7 +5,6 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActio
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import java.time.Instant;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,7 +13,6 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class InventoryAuditDeadLetter {
 
     public static final String REPLAY_STATUS_PENDING = "PENDING";
@@ -22,6 +20,8 @@ public class InventoryAuditDeadLetter {
     public static final String REPLAY_STATUS_SUCCEEDED = "SUCCEEDED";
     public static final String REPLAY_STATUS_FAILED = "FAILED";
 
+    /** 死信记录主键。 */
+    private Long id;
     /** 审计出站主键。 */
     private Long outboxId;
     /** 所属租户主键。 */
@@ -66,9 +66,9 @@ public class InventoryAuditDeadLetter {
     public InventoryAuditDeadLetter(Long outboxId, Long tenantId, String orderNo, String reservationNo,
                                     String actionType, String operatorType, Long operatorId, Instant occurredAt,
                                     Integer retryCount, String errorMessage, String deadReason, Instant deadAt) {
-        this(outboxId, toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
+        this(null, outboxId, toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt);
+                deadReason, deadAt, REPLAY_STATUS_PENDING, 0, null, null, null, null, null, null);
     }
 
     public InventoryAuditDeadLetter(Long outboxId, Long tenantId, String orderNo, String reservationNo,
@@ -77,23 +77,65 @@ public class InventoryAuditDeadLetter {
                                     String replayStatus, Integer replayCount, Instant lastReplayAt,
                                     String lastReplayResult, String lastReplayError, String replayKey,
                                     String replayOperatorType, Long replayOperatorId) {
-        this(outboxId, toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
+        this(null, outboxId, toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
                 deadReason, deadAt, replayStatus, replayCount, lastReplayAt, lastReplayResult, lastReplayError,
                 replayKey, replayOperatorType, toStringValue(replayOperatorId));
+    }
+
+    public InventoryAuditDeadLetter(Long id, Long outboxId, Long tenantId, String orderNo, String reservationNo,
+                                    String actionType, String operatorType, Long operatorId, Instant occurredAt,
+                                    Integer retryCount, String errorMessage, String deadReason, Instant deadAt,
+                                    String replayStatus, Integer replayCount, Instant lastReplayAt,
+                                    String lastReplayResult, String lastReplayError, String replayKey,
+                                    String replayOperatorType, Long replayOperatorId) {
+        this(id, outboxId, toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
+                toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
+                deadReason, deadAt, replayStatus, replayCount, lastReplayAt, lastReplayResult, lastReplayError,
+                replayKey, replayOperatorType, toStringValue(replayOperatorId));
+    }
+
+    public InventoryAuditDeadLetter(Long id, Long outboxId, TenantId tenantId, OrderNo orderNo, String reservationNo,
+                                    InventoryAuditActionType actionType, InventoryAuditOperatorType operatorType,
+                                    String operatorId, Instant occurredAt,
+                                    Integer retryCount, String errorMessage, String deadReason, Instant deadAt,
+                                    String replayStatus, Integer replayCount, Instant lastReplayAt,
+                                    String lastReplayResult, String lastReplayError, String replayKey,
+                                    String replayOperatorType, String replayOperatorId) {
+        this.id = id;
+        this.outboxId = outboxId;
+        this.tenantId = tenantId;
+        this.orderNo = orderNo;
+        this.reservationNo = reservationNo;
+        this.actionType = actionType;
+        this.operatorType = operatorType;
+        this.operatorId = operatorId;
+        this.occurredAt = occurredAt;
+        this.retryCount = retryCount;
+        this.errorMessage = errorMessage;
+        this.deadReason = deadReason;
+        this.deadAt = deadAt;
+        this.replayStatus = replayStatus;
+        this.replayCount = replayCount;
+        this.lastReplayAt = lastReplayAt;
+        this.lastReplayResult = lastReplayResult;
+        this.lastReplayError = lastReplayError;
+        this.replayKey = replayKey;
+        this.replayOperatorType = replayOperatorType;
+        this.replayOperatorId = replayOperatorId;
     }
 
     public InventoryAuditDeadLetter(Long outboxId, TenantId tenantId, OrderNo orderNo, String reservationNo,
                                     InventoryAuditActionType actionType, InventoryAuditOperatorType operatorType,
                                     String operatorId, Instant occurredAt,
                                     Integer retryCount, String errorMessage, String deadReason, Instant deadAt) {
-        this(outboxId, tenantId, orderNo, reservationNo, actionType, operatorType, operatorId, occurredAt,
+        this(null, outboxId, tenantId, orderNo, reservationNo, actionType, operatorType, operatorId, occurredAt,
                 retryCount, errorMessage, deadReason, deadAt, REPLAY_STATUS_PENDING, 0, null, null, null, null,
                 null, null);
     }
 
     private static TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 
     private static OrderNo toOrderNo(String orderNo) {

@@ -18,9 +18,9 @@ public class OAuthAccessToken {
     /** 客户端标识。 */
     private final String clientId;
     /** 所属租户编号。 */
-    private final String tenantId;
+    private final Long tenantId;
     /** 用户主键。 */
-    private final String userId;
+    private final Long userId;
     /** 授权范围集合。 */
     private final Set<String> scopes;
     /** 签发时间。 */
@@ -30,7 +30,7 @@ public class OAuthAccessToken {
     /** 令牌状态。 */
     private String tokenStatus;
 
-    public OAuthAccessToken(String tokenId, String tokenHash, String clientId, String tenantId, String userId,
+    public OAuthAccessToken(String tokenId, String tokenHash, String clientId, Long tenantId, Long userId,
                             Set<String> scopes, Instant issuedAt, Instant expireAt) {
         this.tokenId = tokenId;
         this.tokenHash = tokenHash;

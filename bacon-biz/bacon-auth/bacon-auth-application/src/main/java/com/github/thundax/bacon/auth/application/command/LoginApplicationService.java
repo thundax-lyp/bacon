@@ -61,20 +61,20 @@ public class LoginApplicationService {
         String plainPassword = loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
         UserLoginCredentialDTO credential = userReadFacade.getUserLoginCredential(tenantId, "ACCOUNT", command.getAccount());
         validatePasswordLoginCredential(credential, plainPassword);
-        return createLoginSession(String.valueOf(tenantId.value()), String.valueOf(credential.getUserId()), credential.getIdentityValue(),
+        return createLoginSession(tenantId.value(), credential.getUserId(), credential.getIdentityId(),
                 credential.getIdentityType(), "PASSWORD", credential.isNeedChangePassword());
     }
 
     public UserLoginDTO loginBySms(String phone, String smsCaptcha) {
-        return createLoginSession("1001", "U2002", phone, "PHONE", "SMS", null);
+        return createLoginSession(1001L, 2002L, 3002L, "PHONE", "SMS", null);
     }
 
     public UserLoginDTO loginByWecom(String code) {
-        return createLoginSession("1001", "U2003", code, "WECOM", "WECOM", null);
+        return createLoginSession(1001L, 2003L, 3003L, "WECOM", "WECOM", null);
     }
 
     public UserLoginDTO loginByGithub(String code) {
-        return createLoginSession("1001", "U2004", code, "GITHUB", "GITHUB", null);
+        return createLoginSession(1001L, 2004L, 3004L, "GITHUB", "GITHUB", null);
     }
 
     private void validatePasswordLoginCredential(UserLoginCredentialDTO credential, String plainPassword) {
@@ -99,13 +99,13 @@ public class LoginApplicationService {
         }
     }
 
-    private UserLoginDTO createLoginSession(String tenantId, String userId, String identitySeed, String identityType,
+    private UserLoginDTO createLoginSession(Long tenantId, Long userId, Long identityId, String identityType,
                                                  String loginType, Boolean needChangePassword) {
         Instant now = Instant.now();
         String sessionId = UUID.randomUUID().toString();
         // 会话和 refresh token 分开存储：会话承载当前登录上下文，refresh token 只负责后续换新 access token。
         AuthSession authSession = new AuthSession(idGenerator.getAndIncrement(), sessionId, tenantId, userId,
-                identityType + ":" + identitySeed, identityType, loginType, now, now.plus(ACCESS_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS));
+                identityId, identityType, loginType, now, now.plus(ACCESS_TOKEN_TTL_SECONDS, ChronoUnit.SECONDS));
         authSessionRepository.saveSession(authSession);
 
         String accessToken = tokenCodec.issueUserAccessToken(authSession);

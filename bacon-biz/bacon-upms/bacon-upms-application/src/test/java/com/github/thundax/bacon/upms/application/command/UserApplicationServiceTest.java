@@ -169,7 +169,7 @@ class UserApplicationServiceTest {
 
         verify(userRepository).deleteUser(TENANT_ID, UserId.of(101L));
         verify(storedObjectFacade).clearObjectReference("O501", "UPMS_USER_AVATAR", "101");
-        verify(sessionCommandFacade).invalidateUserSessions("1001", "101", "USER_DELETED");
+        verify(sessionCommandFacade).invalidateUserSessions(1001L, 101L, "USER_DELETED");
     }
 
     @Test
@@ -198,7 +198,7 @@ class UserApplicationServiceTest {
                 UserIdentityId.of(201L), UserCredentialType.PASSWORD, UserCredentialFactorLevel.PRIMARY,
                 "{noop}identity", UserCredentialStatus.ACTIVE, true, 0, 5, null, null, null, null);
         when(tenantRepository.findTenantByTenantId(TENANT_ID))
-                .thenReturn(Optional.of(new Tenant("1001", "Demo Tenant", "TENANT_DEMO",
+                .thenReturn(Optional.of(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO",
                         TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
         when(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice"))
                 .thenReturn(Optional.of(accountIdentity));
@@ -214,6 +214,7 @@ class UserApplicationServiceTest {
 
         assertThat(credential.getTenantId()).isEqualTo(1001L);
         assertThat(credential.getUserId()).isEqualTo(101L);
+        assertThat(credential.getIdentityId()).isEqualTo(201L);
         assertThat(credential.getCredentialId()).isEqualTo(301L);
         assertThat(credential.getPasswordHash()).isEqualTo("{noop}identity");
         assertThat(credential.isNeedChangePassword()).isTrue();
@@ -232,7 +233,7 @@ class UserApplicationServiceTest {
                 .thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);
         when(tenantRepository.findTenantByTenantId(TENANT_ID))
-                .thenReturn(Optional.of(new Tenant("1001", "Demo Tenant", "TENANT_DEMO",
+                .thenReturn(Optional.of(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO",
                         TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
 
         service.changePassword("1001", "101", "old-password", "new-password");

@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StoredObjectPageRequest {
 
-    private String tenantId;
+    private String tenantCode;
 
     private StorageTypeEnum storageType;
 

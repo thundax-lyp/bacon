@@ -571,7 +571,7 @@ public class InventoryRepositorySupport {
     }
 
     private Inventory toDomain(InventoryDO dataObject) {
-        return new Inventory(String.valueOf(dataObject.getId()), String.valueOf(dataObject.getTenantId()), dataObject.getSkuId(), dataObject.getWarehouseId(),
+        return new Inventory(dataObject.getId(), dataObject.getTenantId(), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getOnHandQuantity(), dataObject.getReservedQuantity(), dataObject.getAvailableQuantity(),
                 InventoryStatus.fromValue(dataObject.getStatus()), dataObject.getVersion(),
                 dataObject.getUpdatedAt() == null ? dataObject.getCreatedAt() : dataObject.getUpdatedAt());
@@ -609,7 +609,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryLedger toDomain(InventoryLedgerDO dataObject) {
-        return new InventoryLedger(dataObject.getId(), TenantId.of(String.valueOf(dataObject.getTenantId())), dataObject.getOrderNo(),
+        return new InventoryLedger(dataObject.getId(), TenantId.of(dataObject.getTenantId()), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getSkuId(), dataObject.getWarehouseId(),
                 dataObject.getLedgerType(), dataObject.getQuantity(), dataObject.getOccurredAt());
     }
@@ -633,7 +633,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditOutboxDO toDataObject(InventoryAuditOutbox outbox) {
-        return new InventoryAuditOutboxDO(outbox.getId(), toLongValue(outbox.getTenantId()), outbox.getOrderNo(),
+        return new InventoryAuditOutboxDO(outbox.getId(), outbox.getTenantId(), outbox.getOrderNo(),
                 outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
                 toLongValue(outbox.getOperatorId()), outbox.getOccurredAt(), outbox.getErrorMessage(),
                 outbox.getStatus().value(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(),
@@ -642,7 +642,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
-        return new InventoryAuditOutbox(dataObject.getId(), toStringValue(dataObject.getTenantId()), dataObject.getOrderNo(),
+        return new InventoryAuditOutbox(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getActionType(), dataObject.getOperatorType(),
                 toStringValue(dataObject.getOperatorId()), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
                 com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus.fromValue(dataObject.getStatus()), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
@@ -651,7 +651,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDO(null, deadLetter.getOutboxId(), toLongValue(deadLetter.getTenantId()),
+        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxId(), toLongValue(deadLetter.getTenantId()),
                 toStringValue(deadLetter.getOrderNo()), deadLetter.getReservationNo(), deadLetter.getActionType().value(),
                 deadLetter.getOperatorType().value(), toLongValue(deadLetter.getOperatorId()), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
@@ -661,19 +661,18 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
-        return new InventoryAuditDeadLetter(dataObject.getOutboxId(), toTenantId(dataObject.getTenantId()),
-                toOrderNo(dataObject.getOrderNo()), dataObject.getReservationNo(),
-                InventoryAuditActionType.fromValue(dataObject.getActionType()),
-                InventoryAuditOperatorType.fromValue(dataObject.getOperatorType()),
-                toStringValue(dataObject.getOperatorId()), dataObject.getOccurredAt(),
+        return new InventoryAuditDeadLetter(dataObject.getId(), dataObject.getOutboxId(), dataObject.getTenantId(),
+                dataObject.getOrderNo(), dataObject.getReservationNo(),
+                dataObject.getActionType(), dataObject.getOperatorType(),
+                dataObject.getOperatorId(), dataObject.getOccurredAt(),
                 dataObject.getRetryCount(), dataObject.getErrorMessage(), dataObject.getDeadReason(),
                 dataObject.getDeadAt(), dataObject.getReplayStatus(), dataObject.getReplayCount(),
                 dataObject.getLastReplayAt(), dataObject.getLastReplayResult(), dataObject.getLastReplayError(),
-                dataObject.getReplayKey(), dataObject.getReplayOperatorType(), toStringValue(dataObject.getReplayOperatorId()));
+                dataObject.getReplayKey(), dataObject.getReplayOperatorType(), dataObject.getReplayOperatorId());
     }
 
     private InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {
-        return new InventoryAuditReplayTaskDO(task.getId(), toLongValue(task.getTenantId()), task.getTaskNo(), task.getStatus().value(),
+        return new InventoryAuditReplayTaskDO(task.getId(), task.getTenantId(), task.getTaskNo(), task.getStatus().value(),
                 task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
                 task.getReplayKeyPrefix(), task.getOperatorType(), toLongValue(task.getOperatorId()), task.getProcessingOwner(),
                 task.getLeaseUntil(), task.getLastError(), task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(),
@@ -681,7 +680,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditReplayTask toDomain(InventoryAuditReplayTaskDO dataObject) {
-        return new InventoryAuditReplayTask(dataObject.getId(), toStringValue(dataObject.getTenantId()), dataObject.getTaskNo(),
+        return new InventoryAuditReplayTask(dataObject.getId(), dataObject.getTenantId(), dataObject.getTaskNo(),
                 com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus.fromValue(dataObject.getStatus()), dataObject.getTotalCount(), dataObject.getProcessedCount(),
                 dataObject.getSuccessCount(), dataObject.getFailedCount(), dataObject.getReplayKeyPrefix(),
                 dataObject.getOperatorType(), toStringValue(dataObject.getOperatorId()), dataObject.getProcessingOwner(),
@@ -691,8 +690,8 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditReplayTaskItem toDomain(InventoryAuditReplayTaskItemDO dataObject) {
-        return new InventoryAuditReplayTaskItem(dataObject.getId(), toStringValue(dataObject.getTaskId()),
-                toStringValue(dataObject.getTenantId()),
+        return new InventoryAuditReplayTaskItem(dataObject.getId(), dataObject.getTaskId(),
+                dataObject.getTenantId(),
                 dataObject.getDeadLetterId(), dataObject.getItemStatus(), dataObject.getReplayStatus(),
                 dataObject.getReplayKey(), dataObject.getResultMessage(), dataObject.getStartedAt(),
                 dataObject.getFinishedAt(), dataObject.getUpdatedAt());
@@ -706,24 +705,16 @@ public class InventoryRepositorySupport {
         return value == null ? null : value.value();
     }
 
-    private TenantId toTenantId(Long value) {
-        return value == null ? null : TenantId.of(String.valueOf(value));
-    }
-
-    private OrderNo toOrderNo(String value) {
-        return value == null ? null : OrderNo.of(value);
-    }
-
     private Long toLongValue(String value) {
         return value == null ? null : Long.valueOf(value);
     }
 
     private Long toLongValue(InventoryId inventoryId) {
-        return inventoryId == null ? null : Long.valueOf(inventoryId.value());
+        return inventoryId == null ? null : inventoryId.value();
     }
 
     private Long toLongValue(TenantId tenantId) {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+        return tenantId == null ? null : tenantId.value();
     }
 
     private Long toLongValue(SkuId skuId) {

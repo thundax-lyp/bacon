@@ -62,7 +62,7 @@ public class StoredObjectApplicationService {
     }
 
     @Transactional
-    public void markObjectReferenced(String objectId, String ownerType, String ownerId) {
+    public void markObjectReferenced(Long objectId, String ownerType, String ownerId) {
         StoredObjectId storedObjectId = StoredObjectId.of(objectId);
         StoredObject storedObject = storedObjectRepository.findById(storedObjectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
@@ -79,7 +79,7 @@ public class StoredObjectApplicationService {
     }
 
     @Transactional
-    public void clearObjectReference(String objectId, String ownerType, String ownerId) {
+    public void clearObjectReference(Long objectId, String ownerType, String ownerId) {
         StoredObjectId storedObjectId = StoredObjectId.of(objectId);
         StoredObject storedObject = storedObjectRepository.findById(storedObjectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
@@ -93,7 +93,7 @@ public class StoredObjectApplicationService {
                 StorageAuditActionType.REFERENCE_CLEAR, beforeStatus, savedObject.getReferenceStatus().value());
     }
 
-    public void deleteObject(String objectId) {
+    public void deleteObject(Long objectId) {
         StoredObjectId storedObjectId = StoredObjectId.of(objectId);
         StoredObject storedObject = storedObjectDeletionTransactionService.markDeleting(storedObjectId);
         if (storedObject.isDeleted()) {
@@ -118,7 +118,7 @@ public class StoredObjectApplicationService {
                 storedObject.getReferenceStatus().value(), storedObject.getCreatedAt());
     }
 
-    private void ensureAvailable(StoredObject storedObject, String objectId) {
+    private void ensureAvailable(StoredObject storedObject, Long objectId) {
         if (storedObject.isDeleting() || storedObject.isDeleted()) {
             throw new NotFoundException("Stored object is unavailable: " + objectId);
         }
@@ -136,7 +136,7 @@ public class StoredObjectApplicationService {
         return storedObject;
     }
 
-    private TenantId toTenantId(String tenantId) {
-        return tenantId == null || tenantId.isBlank() ? null : TenantId.of(tenantId);
+    private TenantId toTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 }

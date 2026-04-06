@@ -47,9 +47,9 @@ public class PaymentQueryApplicationService {
         String callbackSummary = paymentOrder.getCallbackSummary() != null
                 ? paymentOrder.getCallbackSummary()
                 : latestRecord != null ? latestRecord.summarize() : null;
-        return new PaymentDetailDTO(toStringTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo().value(),
+        return new PaymentDetailDTO(toLongTenantValue(paymentOrder.getTenantId()), paymentOrder.getPaymentNo().value(),
                 paymentOrder.getOrderNo().value(),
-                toStringUserValue(paymentOrder.getUserId()), paymentOrder.getChannelCode().value(),
+                toLongUserValue(paymentOrder.getUserId()), paymentOrder.getChannelCode().value(),
                 paymentOrder.getPaymentStatus().value(), paymentOrder.getAmount().value(),
                 paymentOrder.getPaidAmount().value(),
                 paymentOrder.getCreatedAt(),
@@ -61,11 +61,7 @@ public class PaymentQueryApplicationService {
         return tenantId == null ? null : Long.valueOf(tenantId.value());
     }
 
-    private String toStringTenantValue(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    private String toStringUserValue(UserId userId) {
-        return userId == null ? null : userId.value();
+    private Long toLongUserValue(UserId userId) {
+        return userId == null ? null : Long.valueOf(userId.value());
     }
 }

@@ -41,7 +41,8 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "分页查询租户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public TenantPageResponse pageTenants(@Valid @ModelAttribute TenantPageRequest request) {
-        return TenantPageResponse.from(tenantApplicationService.pageTenants(new TenantPageQueryDTO(request.getTenantId(),
+        return TenantPageResponse.from(tenantApplicationService.pageTenants(new TenantPageQueryDTO(
+                request.getTenantCode() == null || request.getTenantCode().isBlank() ? null : Long.valueOf(request.getTenantCode().trim()),
                 request.getName(), request.getStatus() == null ? null : request.getStatus().name(),
                 request.getPageNo(), request.getPageSize())));
     }
@@ -59,7 +60,7 @@ public class TenantController {
     @HasPermission("sys:tenant:update")
     @SysLog(module = "UPMS", action = "修改租户", eventType = LogEventType.UPDATE)
     @PutMapping("/{tenantId}")
-    public TenantResponse updateTenant(@PathVariable String tenantId, @RequestBody TenantUpdateRequest request) {
+    public TenantResponse updateTenant(@PathVariable Long tenantId, @RequestBody TenantUpdateRequest request) {
         return TenantResponse.from(tenantApplicationService.updateTenant(
                 tenantId, request.name(), request.tenantCode(), request.expiredAt()));
     }
@@ -68,7 +69,7 @@ public class TenantController {
     @HasPermission("sys:tenant:view")
     @SysLog(module = "UPMS", action = "查询租户详情", eventType = LogEventType.QUERY)
     @GetMapping("/{tenantId}")
-    public TenantResponse getTenantByTenantId(@PathVariable String tenantId) {
+    public TenantResponse getTenantByTenantId(@PathVariable Long tenantId) {
         return TenantResponse.from(tenantApplicationService.getTenantByTenantId(tenantId));
     }
 
@@ -76,7 +77,7 @@ public class TenantController {
     @HasPermission("sys:tenant:update")
     @SysLog(module = "UPMS", action = "变更租户状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{tenantId}/status")
-    public TenantResponse updateTenantStatus(@PathVariable String tenantId, @RequestBody TenantStatusUpdateRequest request) {
+    public TenantResponse updateTenantStatus(@PathVariable Long tenantId, @RequestBody TenantStatusUpdateRequest request) {
         return TenantResponse.from(tenantApplicationService.updateTenantStatus(tenantId, request.status()));
     }
 }

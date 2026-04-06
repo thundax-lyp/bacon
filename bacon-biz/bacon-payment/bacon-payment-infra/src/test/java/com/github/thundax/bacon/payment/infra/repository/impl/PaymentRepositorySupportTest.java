@@ -54,7 +54,7 @@ class PaymentRepositorySupportTest {
 
         assertNotNull(insertedRef.get());
         assertEquals("PAY-10001", insertedRef.get().getPaymentNo());
-        assertEquals(PaymentOrderId.of("8001"), persisted.getId());
+        assertEquals(PaymentOrderId.of(8001L), persisted.getId());
         assertEquals("ORD-10001", persisted.getOrderNo().value());
     }
 
@@ -67,7 +67,7 @@ class PaymentRepositorySupportTest {
                 createAuditLogMapper(null, null),
                 createIdGenerator()
         );
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9001"), TenantId.of("1001"),
+        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of(9001L), TenantId.of("1001"),
                 PaymentNo.of("PAY-10002"), OrderNo.of("ORD-10002"),
                 UserId.of("2002"),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("99.90")), Money.zero(), "strict-update",
@@ -91,7 +91,7 @@ class PaymentRepositorySupportTest {
                 createAuditLogMapper(null, null),
                 createIdGenerator()
         );
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of("9002"), TenantId.of("1001"),
+        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of(9002L), TenantId.of("1001"),
                 PaymentNo.of("PAY-10009"), OrderNo.of("ORD-10009"),
                 UserId.of("2009"),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("66.00")), Money.zero(), "strict-conflict",
@@ -106,17 +106,17 @@ class PaymentRepositorySupportTest {
 
     @Test
     void shouldMapStrictReadModelsFromMappers() {
-        PaymentOrderDO orderDataObject = new PaymentOrderDO("9101", "1001", "PAY-10003", "ORD-10003", "2003",
+        PaymentOrderDO orderDataObject = new PaymentOrderDO(9101L, 1001L, "PAY-10003", "ORD-10003", 2003L,
                 "MOCK", PaymentStatus.PAID.value(), new BigDecimal("128.00"), new BigDecimal("128.00"),
                 "strict-read", Instant.parse("2026-03-27T10:10:00Z"), Instant.parse("2026-03-27T10:11:00Z"),
                 Instant.parse("2026-03-27T10:40:00Z"), Instant.parse("2026-03-27T10:11:30Z"), null);
-        PaymentCallbackRecordDO callbackDataObject = new PaymentCallbackRecordDO(9201L, "1001", "PAY-10003", "ORD-10003",
+        PaymentCallbackRecordDO callbackDataObject = new PaymentCallbackRecordDO(9201L, 1001L, "PAY-10003", "ORD-10003",
                 "MOCK", "TXN-10003", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}",
                 Instant.parse("2026-03-27T10:11:20Z"));
-        PaymentAuditLogDO createLog = new PaymentAuditLogDO(9301L, "1001", "PAY-10003", PaymentAuditActionType.CREATE.value(),
+        PaymentAuditLogDO createLog = new PaymentAuditLogDO(9301L, 1001L, "PAY-10003", PaymentAuditActionType.CREATE.value(),
                 null, PaymentStatus.PAYING.value(), PaymentAuditOperatorType.SYSTEM.value(), "0",
                 Instant.parse("2026-03-27T10:10:00Z"));
-        PaymentAuditLogDO paidLog = new PaymentAuditLogDO(9302L, "1001", "PAY-10003", PaymentAuditActionType.CALLBACK_PAID.value(),
+        PaymentAuditLogDO paidLog = new PaymentAuditLogDO(9302L, 1001L, "PAY-10003", PaymentAuditActionType.CALLBACK_PAID.value(),
                 PaymentStatus.PAYING.value(), PaymentStatus.PAID.value(), PaymentAuditOperatorType.CHANNEL.value(), "0",
                 Instant.parse("2026-03-27T10:11:30Z"));
 

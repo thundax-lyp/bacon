@@ -31,7 +31,7 @@ public class SysLogDTO {
     /** 操作人名称。 */
     private final String operatorName;
     /** 租户标识。 */
-    private final String tenantId;
+    private final Long tenantId;
     /** 客户端 IP。 */
     private final String clientIp;
     /** 请求 URI。 */

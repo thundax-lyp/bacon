@@ -145,8 +145,5 @@ class InventoryQueryApplicationServiceTest {
             return tenantId + ":" + skuId;
         }
 
-        private static String key(String tenantId, Long skuId) {
-            return tenantId + ":" + skuId;
-        }
     }
 }

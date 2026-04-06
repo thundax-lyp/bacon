@@ -8,11 +8,11 @@ import java.time.Instant;
  */
 public record InventoryAuditDeadLetterResponse(
         /** 死信记录主键。 */
-        String id,
+        Long id,
         /** 审计出站主键。 */
-        String outboxId,
+        Long outboxId,
         /** 所属租户主键。 */
-        String tenantId,
+        Long tenantId,
         /** 订单号。 */
         String orderNo,
         /** 预占单号。 */

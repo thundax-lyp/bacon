@@ -35,7 +35,8 @@ public class SysLogController {
     @SysLog(module = "UPMS", action = "分页查询系统日志", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public SysLogPageResponse pageLogs(@Valid @ModelAttribute SysLogPageRequest request) {
-        return SysLogPageResponse.from(sysLogQueryService.pageLogs(new SysLogQueryDTO(request.getTenantId(),
+        return SysLogPageResponse.from(sysLogQueryService.pageLogs(new SysLogQueryDTO(
+                request.getTenantCode() == null || request.getTenantCode().isBlank() ? null : Long.valueOf(request.getTenantCode().trim()),
                 request.getModule(), request.getEventType() == null ? null : request.getEventType().name(),
                 request.getResult(), request.getOperatorName(),
                 request.getPageNo(), request.getPageSize())));

@@ -18,6 +18,8 @@ public class UserLoginCredentialDTO {
     private Long tenantId;
     /** 用户主键。 */
     private Long userId;
+    /** 身份标识主键。 */
+    private Long identityId;
     /** 登录账号。 */
     private String account;
     /** 手机号。 */

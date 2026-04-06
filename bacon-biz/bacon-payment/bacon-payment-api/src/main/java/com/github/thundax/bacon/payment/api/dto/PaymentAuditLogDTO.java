@@ -7,7 +7,7 @@ import java.time.Instant;
  */
 public record PaymentAuditLogDTO(
         /** 所属租户主键。 */
-        String tenantId,
+        Long tenantId,
         /** 支付单号。 */
         String paymentNo,
         /** 操作类型。 */

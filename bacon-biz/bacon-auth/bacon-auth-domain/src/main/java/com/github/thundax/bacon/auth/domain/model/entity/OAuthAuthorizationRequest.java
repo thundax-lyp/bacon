@@ -26,9 +26,9 @@ public class OAuthAuthorizationRequest {
     /** PKCE code challenge method。 */
     private final String codeChallengeMethod;
     /** 所属租户编号。 */
-    private final String tenantId;
+    private final Long tenantId;
     /** 用户主键。 */
-    private final String userId;
+    private final Long userId;
     /** 过期时间。 */
     private final Instant expireAt;
     /** 是否已使用。 */
@@ -36,7 +36,7 @@ public class OAuthAuthorizationRequest {
 
     public OAuthAuthorizationRequest(String authorizationRequestId, String clientId, String redirectUri,
                                      Set<String> scopes, String state, String codeChallenge,
-                                     String codeChallengeMethod, String tenantId, String userId, Instant expireAt) {
+                                     String codeChallengeMethod, Long tenantId, Long userId, Instant expireAt) {
         this.authorizationRequestId = authorizationRequestId;
         this.clientId = clientId;
         this.redirectUri = redirectUri;

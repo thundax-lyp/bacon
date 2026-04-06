@@ -43,23 +43,14 @@ public class Inventory {
 
     public Inventory(Long id, Long tenantId, Long skuId, Long warehouseId, Integer onHandQuantity,
                      Integer reservedQuantity, Integer availableQuantity, String status, Long version, Instant updatedAt) {
-        this(id == null ? null : InventoryId.of(String.valueOf(id)),
-                tenantId == null ? null : TenantId.of(String.valueOf(tenantId)),
+        this(id == null ? null : InventoryId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
                 skuId == null ? null : SkuId.of(skuId),
                 warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)),
                 onHandQuantity, reservedQuantity, availableQuantity, normalizeStatus(status), version, updatedAt);
     }
 
     public Inventory(Long id, Long tenantId, Long skuId, Long warehouseId, Integer onHandQuantity,
-                     Integer reservedQuantity, Integer availableQuantity, InventoryStatus status, Long version, Instant updatedAt) {
-        this(id == null ? null : InventoryId.of(String.valueOf(id)),
-                tenantId == null ? null : TenantId.of(String.valueOf(tenantId)),
-                skuId == null ? null : SkuId.of(skuId),
-                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)),
-                onHandQuantity, reservedQuantity, availableQuantity, status, version, updatedAt);
-    }
-
-    public Inventory(String id, String tenantId, Long skuId, Long warehouseId, Integer onHandQuantity,
                      Integer reservedQuantity, Integer availableQuantity, InventoryStatus status, Long version, Instant updatedAt) {
         this(id == null ? null : InventoryId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
@@ -69,10 +60,6 @@ public class Inventory {
     }
 
     public static Inventory create(Long id, Long tenantId, Long skuId, Integer onHandQuantity, String status, Instant createdAt) {
-        return create(id == null ? null : String.valueOf(id), String.valueOf(tenantId), skuId, onHandQuantity, status, createdAt);
-    }
-
-    public static Inventory create(String id, String tenantId, Long skuId, Integer onHandQuantity, String status, Instant createdAt) {
         if (tenantId == null || skuId == null) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
         }
@@ -81,7 +68,8 @@ public class Inventory {
         }
         InventoryStatus normalizedStatus = normalizeStatus(status);
         // 新建库存时把 reserved/available 一次性归位，后续所有数量变化都只通过领域方法推进。
-        return new Inventory(id, tenantId, skuId, Long.valueOf(DEFAULT_WAREHOUSE_ID.value()), onHandQuantity, 0, onHandQuantity,
+        return new Inventory(id, tenantId, skuId, Long.valueOf(DEFAULT_WAREHOUSE_ID.value()),
+                onHandQuantity, 0, onHandQuantity,
                 normalizedStatus, 0L, createdAt);
     }
 

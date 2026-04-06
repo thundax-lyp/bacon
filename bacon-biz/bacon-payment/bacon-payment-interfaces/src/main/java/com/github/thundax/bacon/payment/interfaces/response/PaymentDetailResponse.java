@@ -8,13 +8,13 @@ import java.time.Instant;
  */
 public record PaymentDetailResponse(
         /** 所属租户主键。 */
-        String tenantId,
+        Long tenantId,
         /** 支付单号。 */
         String paymentNo,
         /** 关联订单号。 */
         String orderNo,
         /** 支付用户主键。 */
-        String userId,
+        Long userId,
         /** 支付渠道编码。 */
         String channelCode,
         /** 支付状态。 */

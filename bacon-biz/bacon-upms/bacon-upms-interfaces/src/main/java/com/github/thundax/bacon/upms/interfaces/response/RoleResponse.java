@@ -7,9 +7,9 @@ import com.github.thundax.bacon.upms.api.dto.RoleDTO;
  */
 public record RoleResponse(
         /** 角色主键。 */
-        String id,
+        Long id,
         /** 所属租户编号。 */
-        String tenantId,
+        Long tenantId,
         /** 角色编码。 */
         String code,
         /** 角色名称。 */

@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class PaymentCloseResultDTO {
 
     /** 所属租户主键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 支付单号。 */
     private String paymentNo;
     /** 关联订单号。 */

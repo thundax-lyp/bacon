@@ -18,7 +18,7 @@ public class PaymentAuditLogDO {
     @TableId(type = IdType.INPUT)
     private Long id;
     @TableField("tenant_id")
-    private String tenantId;
+    private Long tenantId;
     @TableField("payment_no")
     private String paymentNo;
     @TableField("action_type")

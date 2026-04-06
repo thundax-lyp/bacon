@@ -34,7 +34,7 @@ class InMemoryPaymentRepositorySupportTest {
 
         PaymentOrder persisted = repository.saveOrder(paymentOrder);
 
-        assertEquals(PaymentOrderId.of("1000"), persisted.getId());
+        assertEquals(PaymentOrderId.of(1000L), persisted.getId());
         assertEquals("PAY-10001", repository.findOrderByPaymentNo(1001L, "PAY-10001").orElseThrow().getPaymentNo().value());
         assertEquals("ORD-10001", repository.findOrderByOrderNo(1001L, "ORD-10001").orElseThrow().getOrderNo().value());
     }
@@ -52,9 +52,9 @@ class InMemoryPaymentRepositorySupportTest {
                 OrderNo.of("ORD-10002"), PaymentChannelCode.MOCK, "TXN-2", PaymentChannelStatus.SUCCESS,
                 "{\"tradeStatus\":\"SUCCESS\"}", second));
 
-        repository.saveAuditLog(new PaymentAuditLog(null, TenantId.of("1001"), PaymentNo.of("PAY-10002"),
+        repository.saveAuditLog(new PaymentAuditLog(null, 1001L, PaymentNo.of("PAY-10002"),
                 PaymentAuditActionType.CREATE, null, PaymentStatus.PAYING, PaymentAuditOperatorType.SYSTEM, "0", first));
-        repository.saveAuditLog(new PaymentAuditLog(null, TenantId.of("1001"), PaymentNo.of("PAY-10002"),
+        repository.saveAuditLog(new PaymentAuditLog(null, 1001L, PaymentNo.of("PAY-10002"),
                 PaymentAuditActionType.CALLBACK_PAID, PaymentStatus.PAYING, PaymentStatus.PAID,
                 PaymentAuditOperatorType.CHANNEL, "0", second));
 

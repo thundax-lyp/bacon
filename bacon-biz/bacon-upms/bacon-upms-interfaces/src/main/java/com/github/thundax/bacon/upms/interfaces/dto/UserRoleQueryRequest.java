@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserRoleQueryRequest {
 
-    private String tenantId;
+    private String tenantCode;
     private String userId;
 }

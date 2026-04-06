@@ -1,4 +1,4 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-public record DepartmentSortUpdateRequest(String tenantId, Integer sort) {
+public record DepartmentSortUpdateRequest(String tenantCode, Integer sort) {
 }

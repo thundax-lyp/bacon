@@ -25,7 +25,7 @@ public class StoredObjectQueryApplicationService {
     }
 
     public StoredObjectDTO getObjectById(String objectId) {
-        StoredObjectId storedObjectId = StoredObjectId.of(objectId);
+        StoredObjectId storedObjectId = StoredObjectId.of(toObjectId(objectId));
         StoredObject storedObject = storedObjectRepository.findById(storedObjectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         if (storedObject.isDeleting() || storedObject.isDeleted()) {
@@ -55,5 +55,10 @@ public class StoredObjectQueryApplicationService {
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
                 storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus().value(),
                 storedObject.getReferenceStatus().value(), storedObject.getCreatedAt());
+    }
+
+    private Long toObjectId(String objectId) {
+        String normalized = objectId.startsWith("O") ? objectId.substring(1) : objectId;
+        return Long.valueOf(normalized);
     }
 }

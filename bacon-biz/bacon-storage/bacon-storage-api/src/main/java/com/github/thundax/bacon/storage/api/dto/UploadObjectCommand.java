@@ -17,7 +17,7 @@ public class UploadObjectCommand {
     /** 引用方类型。 */
     private String ownerType;
     /** 所属租户业务键。 */
-    private String tenantId;
+    private Long tenantId;
     /** 对象分类。 */
     private String category;
     /** 原始文件名。 */

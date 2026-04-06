@@ -57,7 +57,7 @@ public class SysLogAspect {
 
         String traceId = readRequestValue(request, LogFieldNames.TRACE_ID, "X-Trace-Id");
         String requestId = readRequestValue(request, LogFieldNames.REQUEST_ID, "X-Request-Id");
-        String tenantId = readTenantId(request);
+        Long tenantId = readTenantId(request);
         String operatorId = readRequestValue(request, LogFieldNames.USER_ID, "X-User-Id");
         String operatorName = request == null ? null : request.getRemoteUser();
         String clientIp = request == null ? null : request.getRemoteAddr();
@@ -93,15 +93,16 @@ public class SysLogAspect {
         return AnnotationUtils.findAnnotation(joinPoint.getTarget().getClass(), SysLog.class);
     }
 
-    private String readTenantId(HttpServletRequest request) {
+    private Long readTenantId(HttpServletRequest request) {
         if (request == null) {
             return null;
         }
-        String tenantId = request.getParameter("tenantId");
-        if (tenantId != null && !tenantId.isBlank()) {
-            return tenantId;
+        String tenantIdString = request.getParameter("tenantId");
+        if (tenantIdString != null && !tenantIdString.isBlank()) {
+            return Long.valueOf(tenantIdString.trim());
         }
-        return request.getHeader("X-Tenant-Id");
+        String headerTenantId = request.getHeader("X-Tenant-Id");
+        return headerTenantId == null || headerTenantId.isBlank() ? null : Long.valueOf(headerTenantId.trim());
     }
 
     private String readRequestValue(HttpServletRequest request, String parameterName, String headerName) {

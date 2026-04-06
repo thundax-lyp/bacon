@@ -57,7 +57,7 @@ class OrderIdempotencyExecutorTest {
         AtomicInteger executedTimes = new AtomicInteger(0);
 
         OrderIdempotencyRecord stale = new OrderIdempotencyRecord(
-                OrderIdempotencyRecordKey.of(TenantId.of("1001"), OrderNo.of("ORD-3"),
+                OrderIdempotencyRecordKey.of(TenantId.of(1001L), OrderNo.of("ORD-3"),
                         OrderIdempotencyExecutor.EVENT_MARK_PAID),
                 OrderIdempotencyStatus.PROCESSING, 1, null,
                 "stale-owner", Instant.now().minusSeconds(30), Instant.now().minusSeconds(60),

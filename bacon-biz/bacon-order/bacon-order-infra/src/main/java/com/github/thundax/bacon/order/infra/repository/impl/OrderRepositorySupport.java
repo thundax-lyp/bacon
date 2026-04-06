@@ -328,7 +328,7 @@ public class OrderRepositorySupport {
     }
 
     private TenantId toDomainTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(String.valueOf(tenantId));
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 
     private String toDatabaseOrderNo(OrderNo orderNo) {
@@ -478,7 +478,7 @@ public class OrderRepositorySupport {
     }
 
     private TenantId toDomainAuditTenantId(String tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
+        return tenantId == null ? null : TenantId.of(Long.valueOf(tenantId));
     }
 
     private String toDatabaseOrderAuditActionType(OrderAuditActionType actionType) {

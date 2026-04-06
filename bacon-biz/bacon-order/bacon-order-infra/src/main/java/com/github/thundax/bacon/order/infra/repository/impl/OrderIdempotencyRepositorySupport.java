@@ -168,7 +168,7 @@ public class OrderIdempotencyRepositorySupport {
     }
 
     private TenantId toDomainTenantId(String tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
+        return tenantId == null ? null : TenantId.of(Long.valueOf(tenantId));
     }
 
     private String toDatabaseOrderNo(OrderNo orderNo) {

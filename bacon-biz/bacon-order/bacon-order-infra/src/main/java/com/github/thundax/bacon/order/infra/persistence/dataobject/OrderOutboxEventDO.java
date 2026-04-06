@@ -20,7 +20,7 @@ public class OrderOutboxEventDO {
     @TableField("event_id")
     private String eventId;
     @TableField("tenant_id")
-    private String tenantId;
+    private Long tenantId;
     @TableField("order_no")
     private String orderNo;
     @TableField("event_type")

@@ -212,11 +212,11 @@ public class OrderOutboxRepositorySupport {
         return eventId == null ? null : EventId.of(eventId);
     }
 
-    private String toDatabaseTenantId(TenantId tenantId) {
-        return tenantId == null ? null : String.valueOf(tenantId.value());
+    private Long toDatabaseTenantId(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
     }
 
-    private TenantId toDomainTenantId(String tenantId) {
+    private TenantId toDomainTenantId(Long tenantId) {
         return tenantId == null ? null : TenantId.of(tenantId);
     }
 

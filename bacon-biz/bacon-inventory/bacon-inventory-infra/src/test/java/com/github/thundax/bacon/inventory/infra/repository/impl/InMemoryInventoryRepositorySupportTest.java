@@ -4,6 +4,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDead
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
@@ -41,10 +42,11 @@ class InMemoryInventoryRepositorySupportTest {
         repository.markAuditOutboxDead(outboxId, 6, "MAX_RETRIES_EXCEEDED", now.plusSeconds(600));
         assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(601), 10).isEmpty());
 
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(outboxId.value(), EventCode.of(retryable.get(0).getEventCodeValue()),
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, outboxId.value(), EventCode.of(retryable.get(0).getEventCodeValue()),
                 TenantId.of(1001L), OrderNo.of("ORDER-1"), ReservationNo.of("RSV-1"),
                 InventoryAuditActionType.RESERVE, InventoryAuditOperatorType.SYSTEM, "0",
-                now, 6, "RETRY_FAIL", "MAX_RETRIES_EXCEEDED", now.plusSeconds(600)));
+                now, 6, "RETRY_FAIL", "MAX_RETRIES_EXCEEDED", now.plusSeconds(600), InventoryAuditReplayStatus.PENDING,
+                0, null, null, null, null, null, null));
 
         repository.deleteAuditOutbox(outboxId);
         assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(1000), 10).isEmpty());

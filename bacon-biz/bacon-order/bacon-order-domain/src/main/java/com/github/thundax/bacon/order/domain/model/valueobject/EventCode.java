@@ -3,16 +3,16 @@ package com.github.thundax.bacon.order.domain.model.valueobject;
 /**
  * 出站事件业务标识。
  */
-public record EventId(String value) {
+public record EventCode(String value) {
 
-    public EventId {
+    public EventCode {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("eventId must not be blank");
+            throw new IllegalArgumentException("eventCode must not be blank");
         }
     }
 
-    public static EventId of(String value) {
-        return new EventId(value);
+    public static EventCode of(String value) {
+        return new EventCode(value);
     }
 
     @Override

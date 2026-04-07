@@ -64,7 +64,7 @@
 - `order_no`: `varchar(64)`
 - `payment_no`: `varchar(64)`
 - `reservation_no`: `varchar(64)`
-- `event_id`: `varchar(64)`
+- `event_code`: `varchar(64)`
 - `currency_code`: `varchar(16)`
 - `channel_code`: `varchar(32)`
 - `sku_name`: `varchar(128)`
@@ -106,7 +106,6 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `varchar(64)` | N | 雪花主键，由应用侧发号写入 |
-| `event_id` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键，全局唯一 |
 | `user_id` | `varchar(64)` | N | 下单用户标识 |
@@ -263,7 +262,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
-| `event_id` | `varchar(64)` | N | 事件业务标识 |
+| `event_code` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `event_type` | `varchar(64)` | N | 事件类型 |
@@ -283,7 +282,7 @@
 索引与约束：
 
 - `pk(id)`
-- `uk_event_id(event_id)`
+- `uk_event_code(event_code)`
 - `uk_biz_event(tenant_id, business_key, event_type)`
 - `idx_status_next_retry(status, next_retry_at)`
 - `idx_tenant_order(tenant_id, order_no)`
@@ -303,7 +302,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
 | `outbox_id` | `bigint` | N | outbox 主键 |
-| `event_id` | `varchar(64)` | N | 事件业务标识 |
+| `event_code` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `event_type` | `varchar(64)` | N | 事件类型 |

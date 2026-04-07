@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class InMemoryOrderOutboxSupportTest {
 
     @Test
-    void saveOutboxEventShouldGenerateTechnicalIdAndBusinessEventId() {
+    void saveOutboxEventShouldGenerateTechnicalIdAndBusinessEventCode() {
         InMemoryOrderOutboxSupport support = new InMemoryOrderOutboxSupport();
         OrderOutboxEvent event = new OrderOutboxEvent(null, null, TenantId.of(1001L), OrderNo.of("ORD-1"),
                 OrderOutboxEventType.RESERVE_STOCK, "1001:ORD-1:RESERVE", "{\"channelCode\":\"MOCK\"}",
@@ -26,10 +26,10 @@ class InMemoryOrderOutboxSupportTest {
                 Instant.now().plusSeconds(60));
 
         assertNotNull(event.getId());
-        assertNotNull(event.getEventId());
-        assertTrue(event.getEventIdValue().startsWith("EVT"));
+        assertNotNull(event.getEventCode());
+        assertTrue(event.getEventCodeValue().startsWith("EVT"));
         assertEquals(1, claimed.size());
         assertEquals(event.getId(), claimed.get(0).getId());
-        assertEquals(event.getEventIdValue(), claimed.get(0).getEventIdValue());
+        assertEquals(event.getEventCodeValue(), claimed.get(0).getEventCodeValue());
     }
 }

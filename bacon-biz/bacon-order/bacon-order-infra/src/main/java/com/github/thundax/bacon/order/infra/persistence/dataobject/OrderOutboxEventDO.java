@@ -17,8 +17,8 @@ public class OrderOutboxEventDO {
 
     @TableId(type = IdType.INPUT)
     private Long id;
-    @TableField("event_id")
-    private String eventId;
+    @TableField("event_code")
+    private String eventCode;
     @TableField("tenant_id")
     private Long tenantId;
     @TableField("order_no")

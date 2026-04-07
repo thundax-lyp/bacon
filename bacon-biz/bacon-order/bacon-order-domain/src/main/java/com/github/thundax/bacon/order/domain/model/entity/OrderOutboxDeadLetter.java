@@ -3,8 +3,9 @@ package com.github.thundax.bacon.order.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
-import com.github.thundax.bacon.order.domain.model.valueobject.EventId;
+import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,9 +20,9 @@ import lombok.NoArgsConstructor;
 public class OrderOutboxDeadLetter {
 
     /** 出站事件主键。 */
-    private Long outboxId;
+    private OutboxId outboxId;
     /** 出站事件业务标识。 */
-    private EventId eventId;
+    private EventCode eventCode;
     /** 所属租户主键。 */
     private TenantId tenantId;
     /** 订单号。 */
@@ -53,8 +54,12 @@ public class OrderOutboxDeadLetter {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public String getEventIdValue() {
-        return eventId == null ? null : eventId.value();
+    public String getEventCodeValue() {
+        return eventCode == null ? null : eventCode.value();
+    }
+
+    public Long getOutboxIdValue() {
+        return outboxId == null ? null : outboxId.value();
     }
 
     public Long getTenantIdValue() {

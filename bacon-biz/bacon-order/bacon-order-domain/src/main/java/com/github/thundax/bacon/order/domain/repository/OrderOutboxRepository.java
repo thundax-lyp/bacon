@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.domain.repository;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import java.time.Instant;
 import java.util.List;
 
@@ -18,17 +19,17 @@ public interface OrderOutboxRepository {
         return 0;
     }
 
-    default boolean markRetryingClaimed(Long outboxId, String processingOwner, int retryCount,
+    default boolean markRetryingClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                         Instant nextRetryAt, String errorMessage, Instant updatedAt) {
         return false;
     }
 
-    default boolean markDeadClaimed(Long outboxId, String processingOwner, int retryCount,
+    default boolean markDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                     String deadReason, String errorMessage, Instant updatedAt) {
         return false;
     }
 
-    default boolean deleteClaimed(Long outboxId, String processingOwner) {
+    default boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
         return false;
     }
 }

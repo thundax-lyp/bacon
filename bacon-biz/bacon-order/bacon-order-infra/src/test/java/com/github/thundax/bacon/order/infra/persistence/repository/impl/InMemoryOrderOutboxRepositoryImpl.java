@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
+import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import java.time.Instant;
 import java.util.List;
@@ -36,19 +37,19 @@ public class InMemoryOrderOutboxRepositoryImpl implements OrderOutboxRepository 
     }
 
     @Override
-    public boolean markRetryingClaimed(Long outboxId, String processingOwner, int retryCount, Instant nextRetryAt,
+    public boolean markRetryingClaimed(OutboxId outboxId, String processingOwner, int retryCount, Instant nextRetryAt,
                                        String errorMessage, Instant updatedAt) {
         return support.markRetryingClaimed(outboxId, processingOwner, retryCount, nextRetryAt, errorMessage, updatedAt);
     }
 
     @Override
-    public boolean markDeadClaimed(Long outboxId, String processingOwner, int retryCount, String deadReason,
+    public boolean markDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount, String deadReason,
                                    String errorMessage, Instant updatedAt) {
         return support.markDeadClaimed(outboxId, processingOwner, retryCount, deadReason, errorMessage, updatedAt);
     }
 
     @Override
-    public boolean deleteClaimed(Long outboxId, String processingOwner) {
+    public boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
         return support.deleteClaimed(outboxId, processingOwner);
     }
 }

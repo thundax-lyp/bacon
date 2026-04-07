@@ -103,7 +103,7 @@ public class InventoryQueryApplicationService {
 
     InventoryReservationDTO toReservationDto(InventoryReservation reservation) {
         return new InventoryReservationDTO(reservation.getTenantId(), reservation.getOrderNo(), reservation.getReservationNo(),
-                reservation.getReservationStatus(), reservation.getWarehouseId(),
+                reservation.getReservationStatus(), reservation.getWarehouseIdValue(),
                 reservation.getItems().stream()
                         .map(item -> new InventoryReservationItemDTO(item.getSkuId(), item.getQuantity()))
                         .toList(),
@@ -120,7 +120,7 @@ public class InventoryQueryApplicationService {
 
     private InventoryLedgerDTO toLedgerDto(InventoryLedger ledger) {
         return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNo(),
-                ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
+                ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseIdValue(), ledger.getLedgerType(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
 

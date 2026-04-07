@@ -13,7 +13,7 @@ public final class InventoryReservationResultAssembler {
     public static InventoryReservationResultDTO fromReservation(InventoryReservation reservation) {
         return new InventoryReservationResultDTO(reservation.getTenantId(), reservation.getOrderNo(),
                 reservation.getReservationNo(), reservation.getReservationStatus(),
-                toInventoryStatus(reservation.getReservationStatus()), reservation.getWarehouseId(),
+                toInventoryStatus(reservation.getReservationStatus()), reservation.getWarehouseIdValue(),
                 reservation.getFailureReason(), reservation.getReleaseReason(), reservation.getReleasedAt(),
                 reservation.getDeductedAt());
     }

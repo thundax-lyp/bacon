@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,7 +28,7 @@ public class InventoryLedger {
     /** 商品 SKU 主键。 */
     private Long skuId;
     /** 仓库主键。 */
-    private Long warehouseId;
+    private WarehouseId warehouseId;
     /** 流水类型。 */
     private String ledgerType;
     /** 变更数量。 */
@@ -35,7 +36,18 @@ public class InventoryLedger {
     /** 发生时间。 */
     private Instant occurredAt;
 
+    public InventoryLedger(Long id, TenantId tenantId, String orderNo, String reservationNo, Long skuId,
+                           Long warehouseId, String ledgerType, Integer quantity, Instant occurredAt) {
+        this(id, tenantId, orderNo, reservationNo, skuId,
+                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)),
+                ledgerType, quantity, occurredAt);
+    }
+
     public Long getTenantIdValue() {
         return tenantId == null ? null : tenantId.value();
+    }
+
+    public Long getWarehouseIdValue() {
+        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
     }
 }

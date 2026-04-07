@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -37,7 +38,7 @@ public class InventoryReservation {
     /** 订单号。 */
     private final String orderNo;
     /** 仓库主键。 */
-    private final Long warehouseId;
+    private final WarehouseId warehouseId;
     /** 创建时间。 */
     private final Instant createdAt;
     /** 预占明细列表。 */
@@ -55,6 +56,12 @@ public class InventoryReservation {
 
     public InventoryReservation(Long id, Long tenantId, String reservationNo, String orderNo, Long warehouseId,
                                 Instant createdAt, List<InventoryReservationItem> items) {
+        this(id, tenantId, reservationNo, orderNo,
+                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)), createdAt, items);
+    }
+
+    public InventoryReservation(Long id, Long tenantId, String reservationNo, String orderNo, WarehouseId warehouseId,
+                                Instant createdAt, List<InventoryReservationItem> items) {
         this.id = id;
         this.tenantId = tenantId;
         this.reservationNo = reservationNo;
@@ -69,6 +76,15 @@ public class InventoryReservation {
                                                  Long warehouseId, Instant createdAt, List<InventoryReservationItem> items,
                                                  String reservationStatus, String failureReason, String releaseReason,
                                                  Instant releasedAt, Instant deductedAt) {
+        return rehydrate(id, tenantId, reservationNo, orderNo,
+                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)), createdAt, items,
+                reservationStatus, failureReason, releaseReason, releasedAt, deductedAt);
+    }
+
+    public static InventoryReservation rehydrate(Long id, Long tenantId, String reservationNo, String orderNo,
+                                                 WarehouseId warehouseId, Instant createdAt, List<InventoryReservationItem> items,
+                                                 String reservationStatus, String failureReason, String releaseReason,
+                                                 Instant releasedAt, Instant deductedAt) {
         // 预占单回写时必须带回终态与原因字段，应用层会基于这些字段判断是否还能继续补偿或回放。
         InventoryReservation reservation = new InventoryReservation(id, tenantId, reservationNo, orderNo, warehouseId,
                 createdAt, items);
@@ -78,6 +94,10 @@ public class InventoryReservation {
         reservation.releasedAt = releasedAt;
         reservation.deductedAt = deductedAt;
         return reservation;
+    }
+
+    public Long getWarehouseIdValue() {
+        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
     }
 
     public void reserve() {

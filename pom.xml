@@ -148,6 +148,7 @@
                         <jdkToolchain>
                             <version>${java.version}</version>
                         </jdkToolchain>
+                        <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -221,6 +222,7 @@
                     <jdkToolchain>
                         <version>${java.version}</version>
                     </jdkToolchain>
+                    <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
                 </configuration>
             </plugin>
             <plugin>

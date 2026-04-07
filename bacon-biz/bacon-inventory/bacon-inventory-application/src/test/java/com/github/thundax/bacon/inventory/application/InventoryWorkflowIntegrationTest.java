@@ -167,7 +167,7 @@ class InventoryWorkflowIntegrationTest {
         private OptimisticInventoryRepository(boolean failAuditPersist) {
             this.failAuditPersist = failAuditPersist;
             inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L,
-                    100, 0, 100, InventoryStatus.ENABLED.value(), 0L,
+                    100, 0, 100, InventoryStatus.ENABLED, 0L,
                     Instant.parse("2026-03-26T09:59:00Z")));
         }
 

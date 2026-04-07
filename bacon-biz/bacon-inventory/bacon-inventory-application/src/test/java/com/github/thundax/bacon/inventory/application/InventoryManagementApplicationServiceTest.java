@@ -54,7 +54,7 @@ class InventoryManagementApplicationServiceTest {
 
         private TestInventoryRepository() {
             inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100,
-                    InventoryStatus.ENABLED.value(), 0L, Instant.now()));
+                    InventoryStatus.ENABLED, 0L, Instant.now()));
         }
 
         @Override

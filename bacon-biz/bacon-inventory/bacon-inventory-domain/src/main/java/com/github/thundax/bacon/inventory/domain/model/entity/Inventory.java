@@ -42,15 +42,6 @@ public class Inventory {
     private Instant updatedAt;
 
     public Inventory(Long id, Long tenantId, Long skuId, Long warehouseId, Integer onHandQuantity,
-                     Integer reservedQuantity, Integer availableQuantity, String status, Long version, Instant updatedAt) {
-        this(id == null ? null : InventoryId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                skuId == null ? null : SkuId.of(skuId),
-                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)),
-                onHandQuantity, reservedQuantity, availableQuantity, normalizeStatus(status), version, updatedAt);
-    }
-
-    public Inventory(Long id, Long tenantId, Long skuId, Long warehouseId, Integer onHandQuantity,
                      Integer reservedQuantity, Integer availableQuantity, InventoryStatus status, Long version, Instant updatedAt) {
         this(id == null ? null : InventoryId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),

@@ -9,6 +9,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +18,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class InventoryAuditDeadLetter {
 
     /** 死信记录主键。 */
@@ -64,35 +66,34 @@ public class InventoryAuditDeadLetter {
     /** 回放操作人主键。 */
     private String replayOperatorId;
 
-    public InventoryAuditDeadLetter(Long id, Long outboxId, EventCode eventCode, TenantId tenantId, OrderNo orderNo,
-                                    ReservationNo reservationNo, InventoryAuditActionType actionType,
-                                    InventoryAuditOperatorType operatorType, String operatorId, Instant occurredAt,
-                                    Integer retryCount, String errorMessage, String deadReason, Instant deadAt,
-                                    InventoryAuditReplayStatus replayStatus, Integer replayCount, Instant lastReplayAt,
+    public InventoryAuditDeadLetter(Long id, Long outboxId, String eventCode, Long tenantId, String orderNo,
+                                    String reservationNo, String actionType, String operatorType, Long operatorId,
+                                    Instant occurredAt, Integer retryCount, String errorMessage, String deadReason,
+                                    Instant deadAt, String replayStatus, Integer replayCount, Instant lastReplayAt,
                                     String lastReplayResult, String lastReplayError, String replayKey,
                                     String replayOperatorType, String replayOperatorId) {
-        this.id = id;
-        this.outboxId = toOutboxId(outboxId);
-        this.eventCode = eventCode;
-        this.tenantId = tenantId;
-        this.orderNo = orderNo;
-        this.reservationNo = reservationNo;
-        this.actionType = actionType;
-        this.operatorType = operatorType;
-        this.operatorId = operatorId;
-        this.occurredAt = occurredAt;
-        this.retryCount = retryCount;
-        this.errorMessage = errorMessage;
-        this.deadReason = deadReason;
-        this.deadAt = deadAt;
-        this.replayStatus = replayStatus;
-        this.replayCount = replayCount;
-        this.lastReplayAt = lastReplayAt;
-        this.lastReplayResult = lastReplayResult;
-        this.lastReplayError = lastReplayError;
-        this.replayKey = replayKey;
-        this.replayOperatorType = replayOperatorType;
-        this.replayOperatorId = replayOperatorId;
+        this(id,
+                outboxId == null ? null : OutboxId.of(outboxId),
+                eventCode == null ? null : EventCode.of(eventCode),
+                tenantId == null ? null : TenantId.of(tenantId),
+                orderNo == null ? null : OrderNo.of(orderNo),
+                reservationNo == null ? null : ReservationNo.of(reservationNo),
+                actionType == null ? null : InventoryAuditActionType.fromValue(actionType),
+                operatorType == null ? null : InventoryAuditOperatorType.fromValue(operatorType),
+                operatorId == null ? null : String.valueOf(operatorId),
+                occurredAt,
+                retryCount,
+                errorMessage,
+                deadReason,
+                deadAt,
+                replayStatus == null ? null : InventoryAuditReplayStatus.fromValue(replayStatus),
+                replayCount,
+                lastReplayAt,
+                lastReplayResult,
+                lastReplayError,
+                replayKey,
+                replayOperatorType,
+                replayOperatorId);
     }
 
     public Long getOutboxIdValue() {
@@ -135,7 +136,4 @@ public class InventoryAuditDeadLetter {
         return replayOperatorId == null ? null : Long.valueOf(replayOperatorId);
     }
 
-    private static OutboxId toOutboxId(Long value) {
-        return value == null ? null : OutboxId.of(value);
-    }
 }

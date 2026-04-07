@@ -36,11 +36,11 @@ class InventoryAuditReplayTaskApplicationServiceTest {
     @Test
     void shouldCreateAndProcessReplayTask() {
         TestLogRepository repository = new TestLogRepository();
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, 101L, EventCode.of("EVT20260326000000-000101"),
-                TenantId.of(3001L), OrderNo.of("ORDER-1"), ReservationNo.of("RSV-1"),
-                InventoryAuditActionType.RESERVE, InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, 101L, "EVT20260326000000-000101",
+                3001L, "ORDER-1", "RSV-1", InventoryAuditActionType.RESERVE.value(),
+                InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM,
                 Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
-                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING,
+                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING.value(),
                 0, null, null, null, null, null, null));
 
         InventoryAuditReplayTaskApplicationService taskService = new InventoryAuditReplayTaskApplicationService(repository);

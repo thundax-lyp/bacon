@@ -109,12 +109,10 @@ public class InventoryAuditOutboxRetrier {
                 return;
             }
             inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, item.getIdValue(),
-                    item.getEventCode(), TenantId.of(item.getTenantId()), OrderNo.of(item.getOrderNo()),
-                    item.getReservationNo() == null ? null : ReservationNo.of(item.getReservationNo()),
-                    InventoryAuditActionType.fromValue(item.getActionType()),
-                    InventoryAuditOperatorType.fromValue(item.getOperatorType()), String.valueOf(item.getOperatorIdValue()), item.getOccurredAt(),
+                    item.getEventCodeValue(), item.getTenantId(), item.getOrderNo(), item.getReservationNo(),
+                    item.getActionType(), item.getOperatorType(), item.getOperatorIdValue(), item.getOccurredAt(),
                     nextRetryCount, errorMessage, deadReason, now,
-                    InventoryAuditReplayStatus.PENDING, 0, null, null, null, null, null, null));
+                    InventoryAuditReplayStatus.PENDING.value(), 0, null, null, null, null, null, null));
             Metrics.counter("bacon.inventory.audit.retry.dead.total", "actionType", item.getActionType()).increment();
             log.error("ALERT inventory audit retry exhausted, outboxId={}, orderNo={}, reservationNo={}, actionType={}",
                     item.getIdValue(), item.getOrderNo(), item.getReservationNo(), item.getActionType(), ex);

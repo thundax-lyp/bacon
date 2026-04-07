@@ -37,7 +37,7 @@ public class OrderIdempotencyRecord {
     private Instant updatedAt;
 
     public Long getTenantIdValue() {
-        return key == null ? null : Long.valueOf(key.tenantId().value());
+        return key == null ? null : key.tenantId().value();
     }
 
     public String getOrderNoValue() {

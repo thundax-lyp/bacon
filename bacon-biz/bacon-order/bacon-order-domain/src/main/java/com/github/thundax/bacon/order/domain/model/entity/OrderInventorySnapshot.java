@@ -28,7 +28,7 @@ public record OrderInventorySnapshot(
 ) {
 
     public Long tenantIdValue() {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+        return tenantId == null ? null : tenantId.value();
     }
 
     public String orderNoValue() {

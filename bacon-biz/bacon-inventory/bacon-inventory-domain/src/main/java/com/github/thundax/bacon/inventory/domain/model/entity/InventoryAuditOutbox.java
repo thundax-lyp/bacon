@@ -65,11 +65,9 @@ public class InventoryAuditOutbox {
                                 String status, Integer retryCount, Instant nextRetryAt, String processingOwner,
                                 Instant leaseUntil, Instant claimedAt, String deadReason, Instant failedAt,
                                 Instant updatedAt) {
-        this(toOutboxId(id), null, toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo),
-                toActionType(actionType), toOperatorType(operatorType),
-                operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage,
-                status == null ? null : InventoryAuditOutboxStatus.fromValue(status), retryCount, nextRetryAt,
-                processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
+        this(id, null, tenantId, orderNo, reservationNo, actionType, operatorType, operatorId, occurredAt,
+                errorMessage, status, retryCount, nextRetryAt, processingOwner, leaseUntil, claimedAt,
+                deadReason, failedAt, updatedAt);
     }
 
     public InventoryAuditOutbox(Long id, String eventCode, Long tenantId, String orderNo, String reservationNo,
@@ -82,28 +80,6 @@ public class InventoryAuditOutbox {
                 operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage,
                 status == null ? null : InventoryAuditOutboxStatus.fromValue(status), retryCount, nextRetryAt,
                 processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
-    }
-
-    public InventoryAuditOutbox(Long id, Long tenantId, String orderNo, String reservationNo, String actionType,
-                                String operatorType, Long operatorId, Instant occurredAt, String errorMessage,
-                                InventoryAuditOutboxStatus status, Integer retryCount, Instant nextRetryAt,
-                                String processingOwner, Instant leaseUntil, Instant claimedAt, String deadReason,
-                                Instant failedAt, Instant updatedAt) {
-        this(toOutboxId(id), null, toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo),
-                toActionType(actionType), toOperatorType(operatorType),
-                operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage, status, retryCount,
-                nextRetryAt, processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
-    }
-
-    public InventoryAuditOutbox(Long id, String eventCode, Long tenantId, String orderNo, String reservationNo,
-                                String actionType, String operatorType, Long operatorId, Instant occurredAt,
-                                String errorMessage, InventoryAuditOutboxStatus status, Integer retryCount,
-                                Instant nextRetryAt, String processingOwner, Instant leaseUntil, Instant claimedAt,
-                                String deadReason, Instant failedAt, Instant updatedAt) {
-        this(toOutboxId(id), toEventCode(eventCode), toTenantId(tenantId), toOrderNo(orderNo),
-                toReservationNo(reservationNo), toActionType(actionType), toOperatorType(operatorType),
-                operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage, status, retryCount,
-                nextRetryAt, processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
     }
 
     public Long getIdValue() {

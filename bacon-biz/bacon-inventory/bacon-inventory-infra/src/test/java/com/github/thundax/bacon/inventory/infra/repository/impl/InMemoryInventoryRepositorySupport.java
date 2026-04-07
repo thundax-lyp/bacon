@@ -162,7 +162,7 @@ public class InMemoryInventoryRepositorySupport {
             outbox = new InventoryAuditOutbox(auditOutboxIdGenerator.getAndIncrement(), eventCode, outbox.getTenantIdValue(),
                     outbox.getOrderNoValue(), outbox.getReservationNoValue(), outbox.getActionTypeValue(),
                     outbox.getOperatorTypeValue(),
-                    outbox.getOperatorIdValue(), outbox.getOccurredAt(), outbox.getErrorMessage(), outbox.getStatus(),
+                    outbox.getOperatorIdValue(), outbox.getOccurredAt(), outbox.getErrorMessage(), outbox.getStatusValue(),
                     outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(), outbox.getLeaseUntil(),
                     outbox.getClaimedAt(), outbox.getDeadReason(), outbox.getFailedAt(), outbox.getUpdatedAt());
         } else if (outbox.getEventCode() == null) {

@@ -27,7 +27,7 @@ class InMemoryInventoryRepositorySupportTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
 
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-1", "RSV-1",
-                "RESERVE", "SYSTEM", 0L, now, "DB_TIMEOUT", InventoryAuditOutboxStatus.NEW,
+                "RESERVE", "SYSTEM", 0L, now, "DB_TIMEOUT", InventoryAuditOutboxStatus.NEW.value(),
                 0, now, null, null, null, null, now, now));
 
         List<InventoryAuditOutbox> retryable = repository.findRetryableAuditOutbox(now.plusSeconds(1), 10);
@@ -57,7 +57,7 @@ class InMemoryInventoryRepositorySupportTest {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-2", "RSV-2",
-                "RESERVE", "SYSTEM", 0L, now, "INIT", InventoryAuditOutboxStatus.NEW,
+                "RESERVE", "SYSTEM", 0L, now, "INIT", InventoryAuditOutboxStatus.NEW.value(),
                 0, now, null, null, null, null, now, now));
 
         List<InventoryAuditOutbox> firstClaim = repository.claimRetryableAuditOutbox(now, 10, "owner-a",
@@ -77,7 +77,7 @@ class InMemoryInventoryRepositorySupportTest {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-3", "RSV-3",
-                "RESERVE", "SYSTEM", 0L, now, "INIT", InventoryAuditOutboxStatus.NEW,
+                "RESERVE", "SYSTEM", 0L, now, "INIT", InventoryAuditOutboxStatus.NEW.value(),
                 0, now, null, null, null, null, now, now));
 
         List<InventoryAuditOutbox> claimed = repository.claimRetryableAuditOutbox(now, 1, "owner-a",

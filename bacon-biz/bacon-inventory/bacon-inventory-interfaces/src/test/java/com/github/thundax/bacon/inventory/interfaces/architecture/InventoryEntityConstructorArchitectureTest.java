@@ -12,7 +12,8 @@ class InventoryEntityConstructorArchitectureTest {
         NamingAndPlacementRuleSupport.entityShouldUseSingleExplicitBoundaryConstructor(
                 "com.github.thundax.bacon.inventory.domain.model.entity.Inventory",
                 "com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter",
-                "com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog")
+                "com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog",
+                "com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox")
                 .check(NamingAndPlacementRuleSupport.importDomainClasses("com.github.thundax.bacon.inventory"));
     }
 }

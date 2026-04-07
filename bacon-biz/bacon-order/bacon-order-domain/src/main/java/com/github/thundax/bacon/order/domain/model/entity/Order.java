@@ -170,7 +170,7 @@ public class Order {
     }
 
     public Long getUserIdValue() {
-        return userId == null ? null : Long.valueOf(userId.value());
+        return userId == null ? null : userId.value();
     }
 
     public String getPayStatusValue() {

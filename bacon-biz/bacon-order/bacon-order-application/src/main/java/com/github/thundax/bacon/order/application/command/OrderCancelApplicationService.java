@@ -62,13 +62,13 @@ public class OrderCancelApplicationService {
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseNo(releaseResult.getWarehouseId()),
+                    toWarehouseNo(releaseResult.getWarehouseNo()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
         // 释放失败只更新库存派生状态，方便后续排障或补偿，不会把已经确定的取消主状态回滚掉。
         order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
-                toWarehouseNo(releaseResult.getWarehouseId()),
+                toWarehouseNo(releaseResult.getWarehouseNo()),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
@@ -80,7 +80,7 @@ public class OrderCancelApplicationService {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 
-    private WarehouseNo toWarehouseNo(Long warehouseId) {
-        return warehouseId == null ? null : WarehouseNo.of(String.valueOf(warehouseId));
+    private WarehouseNo toWarehouseNo(String warehouseNo) {
+        return warehouseNo == null ? null : WarehouseNo.of(warehouseNo);
     }
 }

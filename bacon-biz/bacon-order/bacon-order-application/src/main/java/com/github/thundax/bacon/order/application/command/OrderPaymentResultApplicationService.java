@@ -65,12 +65,12 @@ public class OrderPaymentResultApplicationService {
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
             String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
             order.markInventoryFailed(toReservationNo(deductResult.getReservationNo()),
-                    toWarehouseNo(deductResult.getWarehouseId()), reason);
+                    toWarehouseNo(deductResult.getWarehouseNo()), reason);
             orderRepository.save(order);
             throw new IllegalStateException(reason);
         }
         order.markInventoryDeducted(toReservationNo(deductResult.getReservationNo()),
-                toWarehouseNo(deductResult.getWarehouseId()),
+                toWarehouseNo(deductResult.getWarehouseNo()),
                 deductResult.getDeductedAt());
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
@@ -93,12 +93,12 @@ public class OrderPaymentResultApplicationService {
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseNo(releaseResult.getWarehouseId()),
+                    toWarehouseNo(releaseResult.getWarehouseNo()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
         order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
-                toWarehouseNo(releaseResult.getWarehouseId()),
+                toWarehouseNo(releaseResult.getWarehouseNo()),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
@@ -114,7 +114,7 @@ public class OrderPaymentResultApplicationService {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 
-    private WarehouseNo toWarehouseNo(Long warehouseId) {
-        return warehouseId == null ? null : WarehouseNo.of(String.valueOf(warehouseId));
+    private WarehouseNo toWarehouseNo(String warehouseNo) {
+        return warehouseNo == null ? null : WarehouseNo.of(warehouseNo);
     }
 }

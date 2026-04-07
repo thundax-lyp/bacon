@@ -61,13 +61,13 @@ public class OrderTimeoutApplicationService {
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseNo(releaseResult.getWarehouseId()),
+                    toWarehouseNo(releaseResult.getWarehouseNo()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
         // 库存释放异常只体现在派生状态上，主订单仍保持 CLOSED，等待后续补偿或人工处理。
         order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
-                toWarehouseNo(releaseResult.getWarehouseId()),
+                toWarehouseNo(releaseResult.getWarehouseNo()),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
@@ -79,7 +79,7 @@ public class OrderTimeoutApplicationService {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 
-    private WarehouseNo toWarehouseNo(Long warehouseId) {
-        return warehouseId == null ? null : WarehouseNo.of(String.valueOf(warehouseId));
+    private WarehouseNo toWarehouseNo(String warehouseNo) {
+        return warehouseNo == null ? null : WarehouseNo.of(warehouseNo);
     }
 }

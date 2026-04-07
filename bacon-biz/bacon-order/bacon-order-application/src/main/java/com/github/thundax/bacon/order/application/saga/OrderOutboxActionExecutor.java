@@ -92,7 +92,7 @@ public class OrderOutboxActionExecutor {
         if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
             String reason = resolveFailureReason(reserveResult.getFailureReason(), "inventory reserve failed");
             order.markInventoryFailed(toReservationNo(reserveResult.getReservationNo()),
-                    toWarehouseNo(reserveResult.getWarehouseId()), reason);
+                    toWarehouseNo(reserveResult.getWarehouseNo()), reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
             orderRepository.save(order);
             orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RESERVE_FAILED,
@@ -100,7 +100,7 @@ public class OrderOutboxActionExecutor {
             return;
         }
         order.markInventoryReserved(toReservationNo(reserveResult.getReservationNo()),
-                toWarehouseNo(reserveResult.getWarehouseId()));
+                toWarehouseNo(reserveResult.getWarehouseNo()));
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RESERVE_OK,
                 OrderStatus.RESERVING_STOCK);
@@ -155,11 +155,11 @@ public class OrderOutboxActionExecutor {
         // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseNo(releaseResult.getWarehouseId()),
+                    toWarehouseNo(releaseResult.getWarehouseNo()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
         } else {
             order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseNo(releaseResult.getWarehouseId()),
+                    toWarehouseNo(releaseResult.getWarehouseNo()),
                     resolveFailureReason(releaseResult.getFailureReason(), reason));
         }
         orderRepository.save(order);
@@ -179,8 +179,8 @@ public class OrderOutboxActionExecutor {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 
-    private WarehouseNo toWarehouseNo(Long warehouseId) {
-        return warehouseId == null ? null : WarehouseNo.of(String.valueOf(warehouseId));
+    private WarehouseNo toWarehouseNo(String warehouseNo) {
+        return warehouseNo == null ? null : WarehouseNo.of(warehouseNo);
     }
 
     private TenantId toTenantId(Long tenantId) {

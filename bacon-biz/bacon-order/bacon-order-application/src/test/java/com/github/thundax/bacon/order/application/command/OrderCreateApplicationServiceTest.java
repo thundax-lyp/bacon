@@ -437,19 +437,19 @@ class OrderCreateApplicationServiceTest {
         public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo,
                                                           List<InventoryReservationItemDTO> items) {
             return new InventoryReservationResultDTO(tenantId, orderNo, "RSV-" + orderNo, "RESERVED", "RESERVED",
-                    1L, null, null, null, null);
+                    "DEFAULT", null, null, null, null);
         }
 
         @Override
         public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
             return new InventoryReservationResultDTO(tenantId, orderNo, "RSV-" + orderNo, "RELEASED", "RELEASED",
-                    1L, null, reason, Instant.now(), null);
+                    "DEFAULT", null, reason, Instant.now(), null);
         }
 
         @Override
         public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
             return new InventoryReservationResultDTO(tenantId, orderNo, "RSV-" + orderNo, "DEDUCTED", "DEDUCTED",
-                    1L, null, null, null, Instant.now());
+                    "DEFAULT", null, null, null, Instant.now());
         }
     }
 
@@ -470,7 +470,7 @@ class OrderCreateApplicationServiceTest {
         public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo,
                                                           List<InventoryReservationItemDTO> items) {
             return new InventoryReservationResultDTO(tenantId, orderNo, "RSV-" + orderNo, "FAILED", "FAILED",
-                    1L, "stock not enough", null, null, null);
+                    "DEFAULT", "stock not enough", null, null, null);
         }
     }
 

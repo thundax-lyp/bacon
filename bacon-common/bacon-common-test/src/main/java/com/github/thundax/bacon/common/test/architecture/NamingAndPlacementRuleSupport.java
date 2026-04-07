@@ -1,12 +1,32 @@
 package com.github.thundax.bacon.common.test.architecture;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaConstructor;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import java.lang.reflect.Field;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class NamingAndPlacementRuleSupport {
+
+    private static final Set<String> BOUNDARY_CONSTRUCTOR_TYPES = Set.of(
+            String.class.getName(),
+            Long.class.getName(),
+            Integer.class.getName(),
+            Instant.class.getName()
+    );
 
     private NamingAndPlacementRuleSupport() {
     }
@@ -131,5 +151,59 @@ public final class NamingAndPlacementRuleSupport {
                 .should().resideInAPackage(basePackage + ".infra.facade.remote..")
                 .allowEmptyShould(true)
                 .because("FacadeRemoteImpl -> infra.facade.remote");
+    }
+
+    public static ArchRule entityShouldUseSingleExplicitBoundaryConstructor(String... fullyQualifiedClassNames) {
+        Set<String> classNames = Set.of(fullyQualifiedClassNames);
+        return ArchRuleDefinition.classes()
+                .that(new DescribedPredicate<>("match configured entity classes") {
+                    @Override
+                    public boolean test(JavaClass input) {
+                        return classNames.contains(input.getFullName());
+                    }
+                })
+                .should(new ArchCondition<>("use a single explicit boundary constructor delegating via this(...)") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        List<JavaConstructor> publicConstructors = item.getConstructors().stream()
+                                .filter(constructor -> constructor.getModifiers().contains(JavaModifier.PUBLIC))
+                                .toList();
+                        List<String> allFieldTypes = nonStaticFieldTypeNames(item);
+                        List<JavaConstructor> explicitConstructors = publicConstructors.stream()
+                                .filter(constructor -> !constructor.getRawParameterTypes().isEmpty())
+                                .filter(constructor -> !sameSignature(constructor, allFieldTypes))
+                                .toList();
+                        boolean singleExplicitConstructor = explicitConstructors.size() == 1;
+                        boolean boundaryTypesOnly = singleExplicitConstructor
+                                && explicitConstructors.get(0).getRawParameterTypes().stream()
+                                .allMatch(parameter -> BOUNDARY_CONSTRUCTOR_TYPES.contains(parameter.getFullName()));
+                        boolean delegatesToOwnConstructor = singleExplicitConstructor
+                                && explicitConstructors.get(0).getCallsOfSelf().stream()
+                                .anyMatch(call -> call.getTargetOwner().equals(item));
+                        boolean satisfied = singleExplicitConstructor && boundaryTypesOnly && delegatesToOwnConstructor;
+                        String detail = "explicitConstructors=" + explicitConstructors.size()
+                                + ", boundaryTypesOnly=" + boundaryTypesOnly
+                                + ", delegatesToOwnConstructor=" + delegatesToOwnConstructor;
+                        events.add(new SimpleConditionEvent(item, satisfied, item.getFullName() + " " + detail));
+                    }
+                })
+                .allowEmptyShould(false)
+                .because("domain.model.entity should expose one boundary constructor and delegate to all-args constructor");
+    }
+
+    private static boolean sameSignature(JavaConstructor constructor, List<String> fieldTypeNames) {
+        List<String> parameterTypeNames = constructor.getRawParameterTypes().stream()
+                .map(JavaClass::getFullName)
+                .toList();
+        return parameterTypeNames.equals(fieldTypeNames);
+    }
+
+    private static List<String> nonStaticFieldTypeNames(JavaClass javaClass) {
+        Field[] declaredFields = javaClass.reflect().getDeclaredFields();
+        return Arrays.stream(declaredFields)
+                .filter(field -> !java.lang.reflect.Modifier.isStatic(field.getModifiers()))
+                .map(Field::getType)
+                .map(Class::getName)
+                .collect(Collectors.toList());
     }
 }

@@ -682,14 +682,20 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
-        return new InventoryAuditDeadLetter(dataObject.getId(), dataObject.getOutboxId(), dataObject.getEventCode(), dataObject.getTenantId(),
-                dataObject.getOrderNo(), dataObject.getReservationNo(),
-                dataObject.getActionType(), dataObject.getOperatorType(),
-                dataObject.getOperatorId(), dataObject.getOccurredAt(),
-                dataObject.getRetryCount(), dataObject.getErrorMessage(), dataObject.getDeadReason(),
-                dataObject.getDeadAt(), dataObject.getReplayStatus(), dataObject.getReplayCount(),
-                dataObject.getLastReplayAt(), dataObject.getLastReplayResult(), dataObject.getLastReplayError(),
-                dataObject.getReplayKey(), dataObject.getReplayOperatorType(), dataObject.getReplayOperatorId());
+        return new InventoryAuditDeadLetter(dataObject.getId(), dataObject.getOutboxId(),
+                dataObject.getEventCode() == null ? null : EventCode.of(dataObject.getEventCode()),
+                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
+                dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),
+                dataObject.getReservationNo() == null ? null : com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo.of(dataObject.getReservationNo()),
+                dataObject.getActionType() == null ? null : InventoryAuditActionType.fromValue(dataObject.getActionType()),
+                dataObject.getOperatorType() == null ? null : InventoryAuditOperatorType.fromValue(dataObject.getOperatorType()),
+                dataObject.getOperatorId() == null ? null : String.valueOf(dataObject.getOperatorId()),
+                dataObject.getOccurredAt(), dataObject.getRetryCount(), dataObject.getErrorMessage(), dataObject.getDeadReason(),
+                dataObject.getDeadAt(),
+                dataObject.getReplayStatus() == null ? null : com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus.fromValue(dataObject.getReplayStatus()),
+                dataObject.getReplayCount(), dataObject.getLastReplayAt(), dataObject.getLastReplayResult(), dataObject.getLastReplayError(),
+                dataObject.getReplayKey(), dataObject.getReplayOperatorType(),
+                dataObject.getReplayOperatorId() == null ? null : String.valueOf(dataObject.getReplayOperatorId()));
     }
 
     private InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {

@@ -64,18 +64,6 @@ public class InventoryAuditDeadLetter {
     /** 回放操作人主键。 */
     private String replayOperatorId;
 
-    public InventoryAuditDeadLetter(Long id, Long outboxId, String eventCode, Long tenantId, String orderNo,
-                                    String reservationNo, String actionType, String operatorType, Long operatorId,
-                                    Instant occurredAt, Integer retryCount, String errorMessage, String deadReason,
-                                    Instant deadAt, String replayStatus, Integer replayCount, Instant lastReplayAt,
-                                    String lastReplayResult, String lastReplayError, String replayKey,
-                                    String replayOperatorType, Long replayOperatorId) {
-        this(id, outboxId, toEventCode(eventCode), toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo), toActionType(actionType),
-                toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, toReplayStatus(replayStatus), replayCount, lastReplayAt, lastReplayResult, lastReplayError,
-                replayKey, replayOperatorType, toStringValue(replayOperatorId));
-    }
-
     public InventoryAuditDeadLetter(Long id, Long outboxId, EventCode eventCode, TenantId tenantId, OrderNo orderNo,
                                     ReservationNo reservationNo, InventoryAuditActionType actionType,
                                     InventoryAuditOperatorType operatorType, String operatorId, Instant occurredAt,
@@ -147,39 +135,7 @@ public class InventoryAuditDeadLetter {
         return replayOperatorId == null ? null : Long.valueOf(replayOperatorId);
     }
 
-    private static TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
-    private static OrderNo toOrderNo(String orderNo) {
-        return orderNo == null ? null : OrderNo.of(orderNo);
-    }
-
-    private static ReservationNo toReservationNo(String reservationNo) {
-        return reservationNo == null ? null : ReservationNo.of(reservationNo);
-    }
-
-    private static InventoryAuditActionType toActionType(String actionType) {
-        return actionType == null ? null : InventoryAuditActionType.fromValue(actionType);
-    }
-
-    private static InventoryAuditOperatorType toOperatorType(String operatorType) {
-        return operatorType == null ? null : InventoryAuditOperatorType.fromValue(operatorType);
-    }
-
-    private static String toStringValue(Long value) {
-        return value == null ? null : String.valueOf(value);
-    }
-
     private static OutboxId toOutboxId(Long value) {
         return value == null ? null : OutboxId.of(value);
-    }
-
-    private static EventCode toEventCode(String value) {
-        return value == null ? null : EventCode.of(value);
-    }
-
-    private static InventoryAuditReplayStatus toReplayStatus(String value) {
-        return value == null ? null : InventoryAuditReplayStatus.fromValue(value);
     }
 }

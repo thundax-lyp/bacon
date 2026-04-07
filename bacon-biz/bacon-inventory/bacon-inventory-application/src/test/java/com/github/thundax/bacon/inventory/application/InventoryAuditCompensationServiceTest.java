@@ -7,7 +7,13 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -27,9 +33,10 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldReplayDeadLetterSuccessfully() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1001L, "EVT20260326000000-001001", 3001L, "ORDER-1", "RSV-1",
-                InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
-                InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 3, "FAIL",
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1001L, EventCode.of("EVT20260326000000-001001"),
+                TenantId.of(3001L), OrderNo.of("ORDER-1"), ReservationNo.of("RSV-1"),
+                InventoryAuditActionType.RESERVE, InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                Instant.parse("2026-03-26T00:00:00Z"), 3, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z")));
 
         InventoryAuditReplayResultDTO result = service.replayDeadLetter(3001L, 1001L, "MANUAL-REPLAY-1001", 9001L);
@@ -47,16 +54,16 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldBatchReplayAndKeepRunningItemsUnchanged() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1002L, "EVT20260326000000-001002", 3001L, "ORDER-2", "RSV-2",
-                InventoryAuditLog.ACTION_RELEASE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
-                InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL",
-                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditReplayStatus.PENDING.value(), 0, null, null, null, null, null, null));
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1003L, "EVT20260326000000-001003", 3001L, "ORDER-3", "RSV-3",
-                InventoryAuditLog.ACTION_DEDUCT, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
-                InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL",
-                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditReplayStatus.RUNNING.value(), 0, null, null, null, null, null, null));
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, 1002L, EventCode.of("EVT20260326000000-001002"),
+                TenantId.of(3001L), OrderNo.of("ORDER-2"), ReservationNo.of("RSV-2"),
+                InventoryAuditActionType.RELEASE, InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL", "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
+                InventoryAuditReplayStatus.PENDING, 0, null, null, null, null, null, null));
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, 1003L, EventCode.of("EVT20260326000000-001003"),
+                TenantId.of(3001L), OrderNo.of("ORDER-3"), ReservationNo.of("RSV-3"),
+                InventoryAuditActionType.DEDUCT, InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL", "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
+                InventoryAuditReplayStatus.RUNNING, 0, null, null, null, null, null, null));
 
         List<InventoryAuditReplayResultDTO> results = service.replayDeadLettersBatch(3001L, List.of(1002L, 1003L),
                 "BATCH-1", 9002L);
@@ -70,9 +77,10 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldCompensateWhenReplayTransactionFails() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository, new FailingOnceTransactionExecutor());
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1004L, "EVT20260326000000-001004", 3001L, "ORDER-4", "RSV-4",
-                InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
-                InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1004L, EventCode.of("EVT20260326000000-001004"),
+                TenantId.of(3001L), OrderNo.of("ORDER-4"), ReservationNo.of("RSV-4"),
+                InventoryAuditActionType.RESERVE, InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z")));
 
         InventoryAuditReplayResultDTO result = service.replayDeadLetter(3001L, 1004L, "MANUAL-REPLAY-1004", 9001L);

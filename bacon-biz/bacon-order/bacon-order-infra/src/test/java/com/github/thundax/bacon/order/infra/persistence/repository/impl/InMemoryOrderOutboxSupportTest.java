@@ -27,7 +27,7 @@ class InMemoryOrderOutboxSupportTest {
 
         assertNotNull(event.getId());
         assertNotNull(event.getEventCode());
-        assertTrue(event.getEventCodeValue().startsWith("EVT"));
+        assertTrue(event.getEventCodeValue().matches("^EVT\\d{14}-\\d{6}$"));
         assertEquals(1, claimed.size());
         assertEquals(event.getId(), claimed.get(0).getId());
         assertEquals(event.getEventCodeValue(), claimed.get(0).getEventCodeValue());

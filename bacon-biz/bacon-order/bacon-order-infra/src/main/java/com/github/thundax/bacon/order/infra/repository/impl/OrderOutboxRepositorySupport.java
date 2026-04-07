@@ -16,6 +16,8 @@ import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxEv
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderOutboxDeadLetterMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderOutboxEventMapper;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -29,6 +31,7 @@ public class OrderOutboxRepositorySupport {
     private static final String OUTBOX_ID_BIZ_TAG = "order_outbox_id";
     private static final String OUTBOX_EVENT_CODE_BIZ_TAG = "order_outbox_event_code";
     private static final String DEAD_LETTER_ID_BIZ_TAG = "order_outbox_dead_letter_id";
+    private static final DateTimeFormatter EVENT_CODE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final OrderOutboxEventMapper outboxEventMapper;
     private final OrderOutboxDeadLetterMapper deadLetterMapper;
@@ -203,7 +206,10 @@ public class OrderOutboxRepositorySupport {
     }
 
     private EventCode generateEventCode() {
-        return EventCode.of("EVT" + idGenerator.nextId(OUTBOX_EVENT_CODE_BIZ_TAG));
+        long id = idGenerator.nextId(OUTBOX_EVENT_CODE_BIZ_TAG);
+        String timestamp = LocalDateTime.now().format(EVENT_CODE_TIMESTAMP_FORMATTER);
+        String suffix = String.format("%06d", Math.floorMod(id, 1_000_000L));
+        return EventCode.of("EVT" + timestamp + "-" + suffix);
     }
 
     private String toDatabaseEventCode(EventCode eventCode) {

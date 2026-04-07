@@ -9,6 +9,8 @@ import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Component;
 @Profile("test")
 public class InMemoryOrderOutboxSupport {
 
+    private static final DateTimeFormatter EVENT_CODE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
     private final AtomicLong outboxIdGenerator = new AtomicLong(1000L);
     private final AtomicLong outboxEventCodeGenerator = new AtomicLong(1000L);
     private final AtomicLong deadLetterIdGenerator = new AtomicLong(1000L);
@@ -34,7 +38,7 @@ public class InMemoryOrderOutboxSupport {
             event.setId(OutboxId.of(outboxIdGenerator.getAndIncrement()));
         }
         if (event.getEventCode() == null) {
-            event.setEventCode(EventCode.of("EVT" + outboxEventCodeGenerator.getAndIncrement()));
+            event.setEventCode(generateEventCode());
         }
         if (event.getStatus() == null) {
             event.setStatus(OrderOutboxStatus.NEW);
@@ -167,6 +171,13 @@ public class InMemoryOrderOutboxSupport {
             return null;
         }
         return message.length() <= 512 ? message : message.substring(0, 512);
+    }
+
+    private EventCode generateEventCode() {
+        long id = outboxEventCodeGenerator.getAndIncrement();
+        String timestamp = LocalDateTime.now().format(EVENT_CODE_TIMESTAMP_FORMATTER);
+        String suffix = String.format("%06d", Math.floorMod(id, 1_000_000L));
+        return EventCode.of("EVT" + timestamp + "-" + suffix);
     }
 
     private OrderOutboxEvent copy(OrderOutboxEvent source) {

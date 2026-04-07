@@ -64,32 +64,12 @@ public class InventoryAuditDeadLetter {
     /** 回放操作人主键。 */
     private String replayOperatorId;
 
-    public InventoryAuditDeadLetter(Long outboxId, Long tenantId, String orderNo, String reservationNo,
-                                    String actionType, String operatorType, Long operatorId, Instant occurredAt,
-                                    Integer retryCount, String errorMessage, String deadReason, Instant deadAt) {
-        this(null, outboxId, (EventCode) null, toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo), toActionType(actionType),
-                toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, InventoryAuditReplayStatus.PENDING, 0, null, null, null, null, null, null);
-    }
-
     public InventoryAuditDeadLetter(Long outboxId, String eventCode, Long tenantId, String orderNo, String reservationNo,
                                     String actionType, String operatorType, Long operatorId, Instant occurredAt,
                                     Integer retryCount, String errorMessage, String deadReason, Instant deadAt) {
         this(null, outboxId, toEventCode(eventCode), toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo), toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
                 deadReason, deadAt, InventoryAuditReplayStatus.PENDING, 0, null, null, null, null, null, null);
-    }
-
-    public InventoryAuditDeadLetter(Long outboxId, Long tenantId, String orderNo, String reservationNo,
-                                    String actionType, String operatorType, Long operatorId, Instant occurredAt,
-                                    Integer retryCount, String errorMessage, String deadReason, Instant deadAt,
-                                    String replayStatus, Integer replayCount, Instant lastReplayAt,
-                                    String lastReplayResult, String lastReplayError, String replayKey,
-                                    String replayOperatorType, Long replayOperatorId) {
-        this(null, outboxId, (EventCode) null, toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo), toActionType(actionType),
-                toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, toReplayStatus(replayStatus), replayCount, lastReplayAt, lastReplayResult, lastReplayError,
-                replayKey, replayOperatorType, toStringValue(replayOperatorId));
     }
 
     public InventoryAuditDeadLetter(Long outboxId, String eventCode, Long tenantId, String orderNo, String reservationNo,
@@ -99,18 +79,6 @@ public class InventoryAuditDeadLetter {
                                     String lastReplayResult, String lastReplayError, String replayKey,
                                     String replayOperatorType, Long replayOperatorId) {
         this(null, outboxId, toEventCode(eventCode), toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo), toActionType(actionType),
-                toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, toReplayStatus(replayStatus), replayCount, lastReplayAt, lastReplayResult, lastReplayError,
-                replayKey, replayOperatorType, toStringValue(replayOperatorId));
-    }
-
-    public InventoryAuditDeadLetter(Long id, Long outboxId, Long tenantId, String orderNo, String reservationNo,
-                                    String actionType, String operatorType, Long operatorId, Instant occurredAt,
-                                    Integer retryCount, String errorMessage, String deadReason, Instant deadAt,
-                                    String replayStatus, Integer replayCount, Instant lastReplayAt,
-                                    String lastReplayResult, String lastReplayError, String replayKey,
-                                    String replayOperatorType, Long replayOperatorId) {
-        this(id, outboxId, (EventCode) null, toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo), toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
                 deadReason, deadAt, toReplayStatus(replayStatus), replayCount, lastReplayAt, lastReplayResult, lastReplayError,
                 replayKey, replayOperatorType, toStringValue(replayOperatorId));
@@ -157,15 +125,6 @@ public class InventoryAuditDeadLetter {
         this.replayKey = replayKey;
         this.replayOperatorType = replayOperatorType;
         this.replayOperatorId = replayOperatorId;
-    }
-
-    public InventoryAuditDeadLetter(Long outboxId, TenantId tenantId, OrderNo orderNo, String reservationNo,
-                                    InventoryAuditActionType actionType, InventoryAuditOperatorType operatorType,
-                                    String operatorId, Instant occurredAt,
-                                    Integer retryCount, String errorMessage, String deadReason, Instant deadAt) {
-        this(null, outboxId, (EventCode) null, tenantId, orderNo, toReservationNo(reservationNo), actionType, operatorType, operatorId, occurredAt,
-                retryCount, errorMessage, deadReason, deadAt, InventoryAuditReplayStatus.PENDING, 0, null, null, null, null,
-                null, null);
     }
 
     public InventoryAuditDeadLetter(Long outboxId, EventCode eventCode, TenantId tenantId, OrderNo orderNo,

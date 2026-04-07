@@ -143,7 +143,8 @@ public class InMemoryInventoryRepositorySupport {
                     auditLog.getOrderNo(), auditLog.getReservationNo(), auditLog.getActionType(),
                     auditLog.getOperatorType(), auditLog.getOperatorId(), auditLog.getOccurredAt());
         }
-        auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantId(), auditLog.getOrderNo()), key -> new ArrayList<>())
+        auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantIdValue(), auditLog.getOrderNoValue()),
+                        key -> new ArrayList<>())
                 .add(auditLog);
     }
 

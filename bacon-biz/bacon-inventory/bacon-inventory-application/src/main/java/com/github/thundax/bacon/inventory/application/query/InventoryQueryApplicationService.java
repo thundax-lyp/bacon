@@ -125,8 +125,8 @@ public class InventoryQueryApplicationService {
     }
 
     private InventoryAuditLogDTO toAuditLogDto(InventoryAuditLog auditLog) {
-        return new InventoryAuditLogDTO(auditLog.getId(), auditLog.getTenantId(), auditLog.getOrderNo(),
-                auditLog.getReservationNo(), auditLog.getActionType(), auditLog.getOperatorType(),
+        return new InventoryAuditLogDTO(auditLog.getId(), auditLog.getTenantIdValue(), auditLog.getOrderNoValue(),
+                auditLog.getReservationNoValue(), auditLog.getActionTypeValue(), auditLog.getOperatorTypeValue(),
                 auditLog.getOperatorId(), auditLog.getOccurredAt());
     }
 

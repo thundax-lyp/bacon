@@ -648,8 +648,8 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditLogDO toDataObject(InventoryAuditLog auditLog) {
-        return new InventoryAuditLogDO(auditLog.getId(), auditLog.getTenantId(), auditLog.getOrderNo(),
-                auditLog.getReservationNo(), auditLog.getActionType(), auditLog.getOperatorType(),
+        return new InventoryAuditLogDO(auditLog.getId(), auditLog.getTenantIdValue(), auditLog.getOrderNoValue(),
+                auditLog.getReservationNoValue(), auditLog.getActionTypeValue(), auditLog.getOperatorTypeValue(),
                 auditLog.getOperatorId(), auditLog.getOccurredAt());
     }
 

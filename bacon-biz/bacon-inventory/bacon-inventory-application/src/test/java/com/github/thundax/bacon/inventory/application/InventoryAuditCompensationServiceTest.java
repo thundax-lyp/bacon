@@ -46,7 +46,7 @@ class InventoryAuditCompensationApplicationServiceTest {
         assertEquals("MANUAL-REPLAY-1001", result.getReplayKey());
         assertEquals(2, repository.auditLogs.size());
         assertEquals(InventoryAuditLog.ACTION_AUDIT_REPLAY_SUCCEEDED,
-                repository.auditLogs.get(1).getActionType());
+                repository.auditLogs.get(1).getActionTypeValue());
         assertEquals(InventoryAuditReplayStatus.SUCCEEDED,
                 repository.deadLetters.get(1001L).getReplayStatus());
     }
@@ -92,7 +92,7 @@ class InventoryAuditCompensationApplicationServiceTest {
         assertEquals(InventoryAuditReplayStatus.FAILED, repository.deadLetters.get(1004L).getReplayStatus());
         assertEquals("MANUAL", repository.deadLetters.get(1004L).getReplayOperatorType());
         assertEquals(InventoryAuditLog.ACTION_AUDIT_REPLAY_FAILED,
-                repository.auditLogs.get(repository.auditLogs.size() - 1).getActionType());
+                repository.auditLogs.get(repository.auditLogs.size() - 1).getActionTypeValue());
     }
 
     private InventoryAuditCompensationApplicationService createService(TestLogRepository repository) {

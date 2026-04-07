@@ -257,7 +257,7 @@ class InventoryWorkflowIntegrationTest {
             if (failAuditPersist) {
                 throw new RuntimeException("force-fail-audit");
             }
-            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantId(), auditLog.getOrderNo()),
+            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantIdValue(), auditLog.getOrderNoValue()),
                     ignored -> new ArrayList<>()).add(auditLog);
         }
 

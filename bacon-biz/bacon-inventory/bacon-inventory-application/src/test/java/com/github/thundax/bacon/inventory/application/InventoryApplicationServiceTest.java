@@ -249,7 +249,7 @@ class InventoryApplicationServiceTest {
 
         @Override
         public void saveAuditLog(InventoryAuditLog auditLog) {
-            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantId(), auditLog.getOrderNo()),
+            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantIdValue(), auditLog.getOrderNoValue()),
                     ignored -> new java.util.ArrayList<>()).add(auditLog);
         }
 

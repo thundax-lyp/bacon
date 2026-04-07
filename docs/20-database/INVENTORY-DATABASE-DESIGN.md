@@ -62,6 +62,7 @@
 
 - `reservation_no`: `varchar(64)`
 - `order_no`: `varchar(64)`
+- `event_code`: `varchar(64)`
 - `failure_reason`: `varchar(255)`
 - `release_reason`: `varchar(255)`
 - `action_type`: `varchar(64)`
@@ -215,6 +216,7 @@
 | Column | Type | Null | Description |
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
+| `event_code` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | Y | 订单号 |
 | `reservation_no` | `varchar(64)` | Y | 预占单号 |
@@ -265,6 +267,7 @@
 索引与约束：
 
 - `pk(id)`
+- `uk_event_code(event_code)`
 - `idx_status_failed(status, failed_at)`
 - `idx_tenant_order(tenant_id, order_no)`
 - `idx_status_next_retry(status, next_retry_at)`
@@ -286,6 +289,7 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 主键 |
 | `outbox_id` | `bigint` | N | outbox 主键 |
+| `event_code` | `varchar(64)` | N | 事件业务标识 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `order_no` | `varchar(64)` | Y | 订单号 |
 | `reservation_no` | `varchar(64)` | Y | 预占单号 |

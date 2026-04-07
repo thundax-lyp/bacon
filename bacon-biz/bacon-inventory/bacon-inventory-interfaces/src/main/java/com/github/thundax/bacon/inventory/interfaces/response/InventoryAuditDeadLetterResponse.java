@@ -11,6 +11,8 @@ public record InventoryAuditDeadLetterResponse(
         Long id,
         /** 审计出站主键。 */
         Long outboxId,
+        /** 出站事件业务标识。 */
+        String eventCode,
         /** 所属租户主键。 */
         Long tenantId,
         /** 订单号。 */
@@ -51,7 +53,7 @@ public record InventoryAuditDeadLetterResponse(
         String replayOperatorId) {
 
     public static InventoryAuditDeadLetterResponse from(InventoryAuditDeadLetterDTO dto) {
-        return new InventoryAuditDeadLetterResponse(dto.getId(), dto.getOutboxId(), dto.getTenantId(),
+        return new InventoryAuditDeadLetterResponse(dto.getId(), dto.getOutboxId(), dto.getEventCode(), dto.getTenantId(),
                 dto.getOrderNo(), dto.getReservationNo(), dto.getActionType(), dto.getOperatorType(),
                 dto.getOperatorId(), dto.getOccurredAt(), dto.getRetryCount(), dto.getErrorMessage(),
                 dto.getDeadReason(), dto.getDeadAt(), dto.getReplayStatus(), dto.getReplayCount(),

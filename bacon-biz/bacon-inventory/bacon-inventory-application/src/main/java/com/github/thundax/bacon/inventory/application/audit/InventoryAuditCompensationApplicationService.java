@@ -94,7 +94,7 @@ public class InventoryAuditCompensationApplicationService {
             return replayKey;
         }
         int replayCount = deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount();
-        return "DLQ-" + deadLetter.getOutboxId() + "-R" + (replayCount + 1);
+        return "DLQ-" + deadLetter.getOutboxIdValue() + "-R" + (replayCount + 1);
     }
 
     private String truncateError(String message) {

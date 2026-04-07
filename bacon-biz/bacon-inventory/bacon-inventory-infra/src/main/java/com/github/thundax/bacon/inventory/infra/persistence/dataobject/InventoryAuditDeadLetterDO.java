@@ -19,6 +19,8 @@ public class InventoryAuditDeadLetterDO {
     private Long id;
     @TableField("outbox_id")
     private Long outboxId;
+    @TableField("event_code")
+    private String eventCode;
     @TableField("tenant_id")
     private Long tenantId;
     @TableField("order_no")

@@ -221,6 +221,8 @@ Inventory 是 Bacon 的统一库存业务域。
 - `InventoryReservationItem` 至少包含 `id`、`tenantId`、`reservationNo`、`skuId`、`quantity`
 - `InventoryLedger` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`skuId`、`warehouseId`、`ledgerType`、`quantity`、`occurredAt`
 - `InventoryAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`
+- `InventoryAuditOutbox` 至少包含 `id`、`eventCode`、`tenantId`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`、`errorMessage`、`status`、`retryCount`、`failedAt`、`updatedAt`
+- `InventoryAuditDeadLetter` 至少包含 `id`、`outboxId`、`eventCode`、`tenantId`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`、`retryCount`、`errorMessage`、`deadReason`、`deadAt`
 
 固定约束：
 
@@ -251,6 +253,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - `InventoryReservationItem` 必须保证 `(tenantId, reservationNo, skuId)` 唯一
 - `InventoryLedger.id` 全局唯一
 - `InventoryLedger` 必须建立 `(tenantId, orderNo, ledgerType)` 索引
+- `InventoryAuditOutbox.eventCode` 必须全局唯一
 - `Inventory` 必须建立 `(tenantId, skuId)` 索引
 - `Inventory` 必须具备版本控制字段，用于并发写入冲突检测
 
@@ -345,6 +348,8 @@ Inventory 是 Bacon 的统一库存业务域。
 - 审计日志写入失败不得破坏库存主业务提交结果，优先采用提交后异步/延后记录
 - 审计日志写入失败必须记录失败指标并触发告警日志（`ALERT` 前缀）
 - 审计日志写入失败必须落库到审计 outbox，后续由补偿任务重试
+- `InventoryAuditOutbox.eventCode` 使用 `EventCode`，固定格式为 `EVTyyyyMMddHHmmss-xxxxxx`
+- `InventoryAuditOutbox.id`、`InventoryAuditDeadLetter.outboxId` 使用 `OutboxId`
 - 审计 outbox 重试采用退避策略；达到最大重试次数后必须进入死信
 - 多实例场景下，审计 outbox 重试必须先抢占再处理，禁止“先查后处理”的无锁并发消费
 - outbox 抢占后必须记录 `processingOwner` 与 `leaseUntil`，并通过 owner + 状态 CAS 更新提交重试结果

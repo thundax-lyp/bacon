@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,7 +22,9 @@ public class InventoryAuditOutbox {
     public static final InventoryAuditOutboxStatus STATUS_DEAD = InventoryAuditOutboxStatus.DEAD;
 
     /** 出站事件主键。 */
-    private Long id;
+    private OutboxId id;
+    /** 出站事件业务标识。 */
+    private EventCode eventCode;
     /** 所属租户主键。 */
     private Long tenantId;
     /** 订单号。 */
@@ -61,7 +65,18 @@ public class InventoryAuditOutbox {
                                 String status, Integer retryCount, Instant nextRetryAt, String processingOwner,
                                 Instant leaseUntil, Instant claimedAt, String deadReason, Instant failedAt,
                                 Instant updatedAt) {
-        this(id, tenantId, orderNo, reservationNo, actionType, operatorType,
+        this(toOutboxId(id), null, tenantId, orderNo, reservationNo, actionType, operatorType,
+                operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage,
+                status == null ? null : InventoryAuditOutboxStatus.fromValue(status), retryCount, nextRetryAt,
+                processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
+    }
+
+    public InventoryAuditOutbox(Long id, String eventCode, Long tenantId, String orderNo, String reservationNo,
+                                String actionType, String operatorType, Long operatorId, Instant occurredAt,
+                                String errorMessage, String status, Integer retryCount, Instant nextRetryAt,
+                                String processingOwner, Instant leaseUntil, Instant claimedAt, String deadReason,
+                                Instant failedAt, Instant updatedAt) {
+        this(toOutboxId(id), toEventCode(eventCode), tenantId, orderNo, reservationNo, actionType, operatorType,
                 operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage,
                 status == null ? null : InventoryAuditOutboxStatus.fromValue(status), retryCount, nextRetryAt,
                 processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
@@ -72,12 +87,38 @@ public class InventoryAuditOutbox {
                                 InventoryAuditOutboxStatus status, Integer retryCount, Instant nextRetryAt,
                                 String processingOwner, Instant leaseUntil, Instant claimedAt, String deadReason,
                                 Instant failedAt, Instant updatedAt) {
-        this(id, tenantId, orderNo, reservationNo, actionType, operatorType,
+        this(toOutboxId(id), null, tenantId, orderNo, reservationNo, actionType, operatorType,
                 operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage, status, retryCount,
                 nextRetryAt, processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
     }
 
+    public InventoryAuditOutbox(Long id, String eventCode, Long tenantId, String orderNo, String reservationNo,
+                                String actionType, String operatorType, Long operatorId, Instant occurredAt,
+                                String errorMessage, InventoryAuditOutboxStatus status, Integer retryCount,
+                                Instant nextRetryAt, String processingOwner, Instant leaseUntil, Instant claimedAt,
+                                String deadReason, Instant failedAt, Instant updatedAt) {
+        this(toOutboxId(id), toEventCode(eventCode), tenantId, orderNo, reservationNo, actionType, operatorType,
+                operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage, status, retryCount,
+                nextRetryAt, processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
+    }
+
+    public Long getIdValue() {
+        return id == null ? null : id.value();
+    }
+
+    public String getEventCodeValue() {
+        return eventCode == null ? null : eventCode.value();
+    }
+
     public Long getOperatorIdValue() {
         return operatorId == null ? null : Long.valueOf(operatorId);
+    }
+
+    private static OutboxId toOutboxId(Long value) {
+        return value == null ? null : OutboxId.of(value);
+    }
+
+    private static EventCode toEventCode(String value) {
+        return value == null ? null : EventCode.of(value);
     }
 }

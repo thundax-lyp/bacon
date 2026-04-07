@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.domain.repository;
 
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import java.time.Instant;
 import java.util.List;
 
@@ -22,27 +23,27 @@ public interface InventoryAuditOutboxRepository {
         return 0;
     }
 
-    default void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
+    default void updateAuditOutboxForRetry(OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
                                            Instant updatedAt) {
     }
 
-    default boolean updateAuditOutboxForRetryClaimed(Long outboxId, String processingOwner, int retryCount,
+    default boolean updateAuditOutboxForRetryClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                                      Instant nextRetryAt, String errorMessage, Instant updatedAt) {
         return false;
     }
 
-    default void markAuditOutboxDead(Long outboxId, int retryCount, String deadReason, Instant updatedAt) {
+    default void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
     }
 
-    default boolean markAuditOutboxDeadClaimed(Long outboxId, String processingOwner, int retryCount,
+    default boolean markAuditOutboxDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                                String deadReason, Instant updatedAt) {
         return false;
     }
 
-    default void deleteAuditOutbox(Long outboxId) {
+    default void deleteAuditOutbox(OutboxId outboxId) {
     }
 
-    default boolean deleteAuditOutboxClaimed(Long outboxId, String processingOwner) {
+    default boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
         return false;
     }
 }

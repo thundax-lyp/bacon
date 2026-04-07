@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_log` (
 
 CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_outbox` (
     `id` bigint NOT NULL AUTO_INCREMENT,
+    `event_code` varchar(64) NOT NULL,
     `tenant_id` bigint NOT NULL,
     `order_no` varchar(64) DEFAULT NULL,
     `reservation_no` varchar(64) DEFAULT NULL,
@@ -96,6 +97,7 @@ CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_outbox` (
     `failed_at` datetime(3) NOT NULL,
     `updated_at` datetime(3) NOT NULL,
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_event_code` (`event_code`),
     KEY `idx_status_failed` (`status`, `failed_at`),
     KEY `idx_tenant_order` (`tenant_id`, `order_no`),
     KEY `idx_status_next_retry` (`status`, `next_retry_at`),
@@ -106,6 +108,7 @@ CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_outbox` (
 CREATE TABLE IF NOT EXISTS `bacon_inventory_audit_dead_letter` (
     `id` bigint NOT NULL AUTO_INCREMENT,
     `outbox_id` bigint NOT NULL,
+    `event_code` varchar(64) NOT NULL,
     `tenant_id` bigint NOT NULL,
     `order_no` varchar(64) DEFAULT NULL,
     `reservation_no` varchar(64) DEFAULT NULL,

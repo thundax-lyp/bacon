@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -15,8 +16,10 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
@@ -38,10 +41,12 @@ import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryLedg
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryReservationItemMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryReservationMapper;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -50,6 +55,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Profile("!test")
 public class InventoryRepositorySupport {
+
+    private static final String AUDIT_OUTBOX_EVENT_CODE_BIZ_TAG = "inventory_audit_outbox_event_code";
+    private static final DateTimeFormatter EVENT_CODE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final InventoryMapper inventoryMapper;
     private final InventoryReservationMapper reservationMapper;
@@ -60,6 +68,7 @@ public class InventoryRepositorySupport {
     private final InventoryAuditDeadLetterMapper auditDeadLetterMapper;
     private final InventoryAuditReplayTaskMapper auditReplayTaskMapper;
     private final InventoryAuditReplayTaskItemMapper auditReplayTaskItemMapper;
+    private final IdGenerator idGenerator;
 
     public InventoryRepositorySupport(InventoryMapper inventoryMapper,
                                       InventoryReservationMapper reservationMapper,
@@ -69,7 +78,8 @@ public class InventoryRepositorySupport {
                                       InventoryAuditOutboxMapper auditOutboxMapper,
                                       InventoryAuditDeadLetterMapper auditDeadLetterMapper,
                                       InventoryAuditReplayTaskMapper auditReplayTaskMapper,
-                                      InventoryAuditReplayTaskItemMapper auditReplayTaskItemMapper) {
+                                      InventoryAuditReplayTaskItemMapper auditReplayTaskItemMapper,
+                                      IdGenerator idGenerator) {
         this.inventoryMapper = inventoryMapper;
         this.reservationMapper = reservationMapper;
         this.reservationItemMapper = reservationItemMapper;
@@ -79,6 +89,7 @@ public class InventoryRepositorySupport {
         this.auditDeadLetterMapper = auditDeadLetterMapper;
         this.auditReplayTaskMapper = auditReplayTaskMapper;
         this.auditReplayTaskItemMapper = auditReplayTaskItemMapper;
+        this.idGenerator = idGenerator;
         log.info("Using MyBatis-Plus inventory repository");
     }
 
@@ -198,7 +209,13 @@ public class InventoryRepositorySupport {
     }
 
     public void saveAuditOutbox(InventoryAuditOutbox outbox) {
-        auditOutboxMapper.insert(toDataObject(outbox));
+        InventoryAuditOutboxDO dataObject = toDataObject(outbox);
+        if (dataObject.getEventCode() == null || dataObject.getEventCode().isBlank()) {
+            dataObject.setEventCode(generateEventCode().value());
+        }
+        auditOutboxMapper.insert(dataObject);
+        outbox.setId(toDomainOutboxId(dataObject.getId()));
+        outbox.setEventCode(toDomainEventCode(dataObject.getEventCode()));
     }
 
     public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
@@ -268,10 +285,10 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditOutboxDO::getUpdatedAt, now));
     }
 
-    public void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
+    public void updateAuditOutboxForRetry(OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
                                           Instant updatedAt) {
         auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
-                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
                 .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_RETRYING)
                 .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
                 .set(InventoryAuditOutboxDO::getNextRetryAt, nextRetryAt)
@@ -279,10 +296,10 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt));
     }
 
-    public boolean updateAuditOutboxForRetryClaimed(Long outboxId, String processingOwner, int retryCount,
+    public boolean updateAuditOutboxForRetryClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                                     Instant nextRetryAt, String errorMessage, Instant updatedAt) {
         return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
-                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
                 .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
                 .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)
                 .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_RETRYING)
@@ -295,19 +312,19 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt)) > 0;
     }
 
-    public void markAuditOutboxDead(Long outboxId, int retryCount, String deadReason, Instant updatedAt) {
+    public void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
         auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
-                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
                 .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_DEAD)
                 .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
                 .set(InventoryAuditOutboxDO::getDeadReason, deadReason)
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt));
     }
 
-    public boolean markAuditOutboxDeadClaimed(Long outboxId, String processingOwner, int retryCount,
+    public boolean markAuditOutboxDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                               String deadReason, Instant updatedAt) {
         return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
-                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
                 .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
                 .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)
                 .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_DEAD)
@@ -319,13 +336,13 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt)) > 0;
     }
 
-    public void deleteAuditOutbox(Long outboxId) {
-        auditOutboxMapper.deleteById(outboxId);
+    public void deleteAuditOutbox(OutboxId outboxId) {
+        auditOutboxMapper.deleteById(toDatabaseOutboxId(outboxId));
     }
 
-    public boolean deleteAuditOutboxClaimed(Long outboxId, String processingOwner) {
+    public boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
         return auditOutboxMapper.delete(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
-                .eq(InventoryAuditOutboxDO::getId, outboxId)
+                .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
                 .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
                 .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)) > 0;
     }
@@ -634,7 +651,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditOutboxDO toDataObject(InventoryAuditOutbox outbox) {
-        return new InventoryAuditOutboxDO(outbox.getId(), outbox.getTenantId(), outbox.getOrderNo(),
+        return new InventoryAuditOutboxDO(outbox.getIdValue(), outbox.getEventCodeValue(), outbox.getTenantId(), outbox.getOrderNo(),
                 outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
                 outbox.getOperatorIdValue(), outbox.getOccurredAt(), outbox.getErrorMessage(),
                 outbox.getStatus().value(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(),
@@ -643,16 +660,16 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
-        return new InventoryAuditOutbox(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
+        return new InventoryAuditOutbox(dataObject.getId(), dataObject.getEventCode(), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getActionType(), dataObject.getOperatorType(),
-                toStringValue(dataObject.getOperatorId()), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
+                dataObject.getOperatorId(), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
                 com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus.fromValue(dataObject.getStatus()), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
                 dataObject.getProcessingOwner(), dataObject.getLeaseUntil(), dataObject.getClaimedAt(),
                 dataObject.getDeadReason(), dataObject.getFailedAt(), dataObject.getUpdatedAt());
     }
 
     private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxId(), deadLetter.getTenantIdValue(),
+        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxIdValue(), deadLetter.getEventCodeValue(), deadLetter.getTenantIdValue(),
                 deadLetter.getOrderNoValue(), deadLetter.getReservationNo(), deadLetter.getActionTypeValue(),
                 deadLetter.getOperatorTypeValue(), deadLetter.getOperatorIdValue(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
@@ -662,7 +679,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
-        return new InventoryAuditDeadLetter(dataObject.getId(), dataObject.getOutboxId(), dataObject.getTenantId(),
+        return new InventoryAuditDeadLetter(dataObject.getId(), dataObject.getOutboxId(), dataObject.getEventCode(), dataObject.getTenantId(),
                 dataObject.getOrderNo(), dataObject.getReservationNo(),
                 dataObject.getActionType(), dataObject.getOperatorType(),
                 dataObject.getOperatorId(), dataObject.getOccurredAt(),
@@ -700,6 +717,25 @@ public class InventoryRepositorySupport {
 
     private String toStringValue(Long value) {
         return value == null ? null : String.valueOf(value);
+    }
+
+    private EventCode generateEventCode() {
+        long id = idGenerator.nextId(AUDIT_OUTBOX_EVENT_CODE_BIZ_TAG);
+        String timestamp = LocalDateTime.now().format(EVENT_CODE_TIMESTAMP_FORMATTER);
+        String suffix = String.format("%06d", Math.floorMod(id, 1_000_000L));
+        return EventCode.of("EVT" + timestamp + "-" + suffix);
+    }
+
+    private Long toDatabaseOutboxId(OutboxId outboxId) {
+        return outboxId == null ? null : outboxId.value();
+    }
+
+    private OutboxId toDomainOutboxId(Long outboxId) {
+        return outboxId == null ? null : OutboxId.of(outboxId);
+    }
+
+    private EventCode toDomainEventCode(String eventCode) {
+        return eventCode == null ? null : EventCode.of(eventCode);
     }
 
     private Long toLongValue(String value) {

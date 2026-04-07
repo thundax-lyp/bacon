@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ class InMemoryInventoryRepositorySupportTest {
 
         List<InventoryAuditOutbox> retryable = repository.findRetryableAuditOutbox(now.plusSeconds(1), 10);
         assertEquals(1, retryable.size());
-        Long outboxId = retryable.get(0).getId();
+        OutboxId outboxId = retryable.get(0).getId();
 
         Instant nextRetryAt = now.plusSeconds(300);
         repository.updateAuditOutboxForRetry(outboxId, 1, nextRetryAt, "RETRY_FAIL", now.plusSeconds(5));
@@ -34,7 +35,8 @@ class InMemoryInventoryRepositorySupportTest {
         repository.markAuditOutboxDead(outboxId, 6, "MAX_RETRIES_EXCEEDED", now.plusSeconds(600));
         assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(601), 10).isEmpty());
 
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(outboxId, 1001L, "ORDER-1", "RSV-1",
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(outboxId.value(), retryable.get(0).getEventCodeValue(),
+                1001L, "ORDER-1", "RSV-1",
                 "RESERVE", "SYSTEM", 0L, now, 6, "RETRY_FAIL", "MAX_RETRIES_EXCEEDED", now.plusSeconds(600)));
 
         repository.deleteAuditOutbox(outboxId);
@@ -71,7 +73,7 @@ class InMemoryInventoryRepositorySupportTest {
 
         List<InventoryAuditOutbox> claimed = repository.claimRetryableAuditOutbox(now, 1, "owner-a",
                 now.plusSeconds(30));
-        Long outboxId = claimed.get(0).getId();
+        OutboxId outboxId = claimed.get(0).getId();
         boolean wrongOwnerUpdated = repository.updateAuditOutboxForRetryClaimed(outboxId, "owner-b",
                 1, now.plusSeconds(60), "ERR", now.plusSeconds(5));
         boolean rightOwnerUpdated = repository.updateAuditOutboxForRetryClaimed(outboxId, "owner-a",

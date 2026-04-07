@@ -17,6 +17,8 @@ public class InventoryAuditDeadLetterDTO {
     private Long id;
     /** 审计出站主键。 */
     private Long outboxId;
+    /** 出站事件业务标识。 */
+    private String eventCode;
     /** 所属租户主键。 */
     private Long tenantId;
     /** 订单号。 */

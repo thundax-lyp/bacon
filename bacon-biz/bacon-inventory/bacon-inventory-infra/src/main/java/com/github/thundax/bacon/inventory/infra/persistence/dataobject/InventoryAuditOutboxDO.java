@@ -17,6 +17,8 @@ public class InventoryAuditOutboxDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+    @TableField("event_code")
+    private String eventCode;
     @TableField("tenant_id")
     private Long tenantId;
     @TableField("order_no")

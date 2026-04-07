@@ -84,7 +84,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
 
         @Override
         public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-            deadLetters.put(deadLetter.getOutboxId(), deadLetter);
+            deadLetters.put(deadLetter.getOutboxIdValue(), deadLetter);
         }
 
         @Override

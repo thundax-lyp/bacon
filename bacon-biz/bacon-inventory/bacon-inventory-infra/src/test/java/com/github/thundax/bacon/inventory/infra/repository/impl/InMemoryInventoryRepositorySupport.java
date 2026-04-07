@@ -9,12 +9,16 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,12 +31,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Profile("test")
 public class InMemoryInventoryRepositorySupport {
 
+    private static final DateTimeFormatter EVENT_CODE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
     private final AtomicLong inventoryIdGenerator = new AtomicLong(1000L);
     private final AtomicLong reservationIdGenerator = new AtomicLong(1000L);
     private final AtomicLong itemIdGenerator = new AtomicLong(1000L);
     private final AtomicLong ledgerIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditLogIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditOutboxIdGenerator = new AtomicLong(1000L);
+    private final AtomicLong auditOutboxEventCodeGenerator = new AtomicLong(1000L);
     private final AtomicLong auditReplayTaskIdGenerator = new AtomicLong(1000L);
     private final AtomicLong auditReplayTaskItemIdGenerator = new AtomicLong(1000L);
     private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
@@ -144,12 +151,18 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public void saveAuditOutbox(InventoryAuditOutbox outbox) {
+        String eventCode = outbox.getEventCodeValue();
+        if (eventCode == null) {
+            eventCode = generateEventCode().value();
+        }
         if (outbox.getId() == null) {
-            outbox = new InventoryAuditOutbox(auditOutboxIdGenerator.getAndIncrement(), outbox.getTenantId(),
+            outbox = new InventoryAuditOutbox(auditOutboxIdGenerator.getAndIncrement(), eventCode, outbox.getTenantId(),
                     outbox.getOrderNo(), outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
-                    outbox.getOperatorId(), outbox.getOccurredAt(), outbox.getErrorMessage(), outbox.getStatus(),
+                    outbox.getOperatorIdValue(), outbox.getOccurredAt(), outbox.getErrorMessage(), outbox.getStatus(),
                     outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(), outbox.getLeaseUntil(),
                     outbox.getClaimedAt(), outbox.getDeadReason(), outbox.getFailedAt(), outbox.getUpdatedAt());
+        } else if (outbox.getEventCode() == null) {
+            outbox.setEventCode(EventCode.of(eventCode));
         }
         auditOutbox.computeIfAbsent(reservationKey(outbox.getTenantId(), outbox.getOrderNo()), key -> new ArrayList<>())
                 .add(outbox);
@@ -161,7 +174,8 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item -> InventoryAuditOutbox.STATUS_NEW.equals(item.getStatus())
                         || InventoryAuditOutbox.STATUS_RETRYING.equals(item.getStatus()))
                 .filter(item -> item.getNextRetryAt() == null || !item.getNextRetryAt().isAfter(now))
-                .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt).thenComparing(InventoryAuditOutbox::getId))
+                .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt)
+                        .thenComparing(InventoryAuditOutbox::getIdValue))
                 .limit(limit)
                 .toList();
     }
@@ -203,7 +217,7 @@ public class InMemoryInventoryRepositorySupport {
         return released;
     }
 
-    public void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
+    public void updateAuditOutboxForRetry(OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
                                           Instant updatedAt) {
         findAuditOutboxById(outboxId).ifPresent(item -> {
             item.setStatus(InventoryAuditOutbox.STATUS_RETRYING);
@@ -214,7 +228,7 @@ public class InMemoryInventoryRepositorySupport {
         });
     }
 
-    public boolean updateAuditOutboxForRetryClaimed(Long outboxId, String processingOwner, int retryCount,
+    public boolean updateAuditOutboxForRetryClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                                     Instant nextRetryAt, String errorMessage, Instant updatedAt) {
         return findAuditOutboxById(outboxId)
                 .filter(item -> InventoryAuditOutbox.STATUS_PROCESSING.equals(item.getStatus()))
@@ -233,7 +247,7 @@ public class InMemoryInventoryRepositorySupport {
                 .orElse(false);
     }
 
-    public void markAuditOutboxDead(Long outboxId, int retryCount, String deadReason, Instant updatedAt) {
+    public void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
         findAuditOutboxById(outboxId).ifPresent(item -> {
             item.setStatus(InventoryAuditOutbox.STATUS_DEAD);
             item.setRetryCount(retryCount);
@@ -242,7 +256,7 @@ public class InMemoryInventoryRepositorySupport {
         });
     }
 
-    public boolean markAuditOutboxDeadClaimed(Long outboxId, String processingOwner, int retryCount,
+    public boolean markAuditOutboxDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                               String deadReason, Instant updatedAt) {
         return findAuditOutboxById(outboxId)
                 .filter(item -> InventoryAuditOutbox.STATUS_PROCESSING.equals(item.getStatus()))
@@ -260,11 +274,11 @@ public class InMemoryInventoryRepositorySupport {
                 .orElse(false);
     }
 
-    public void deleteAuditOutbox(Long outboxId) {
+    public void deleteAuditOutbox(OutboxId outboxId) {
         auditOutbox.values().forEach(list -> list.removeIf(item -> item.getId().equals(outboxId)));
     }
 
-    public boolean deleteAuditOutboxClaimed(Long outboxId, String processingOwner) {
+    public boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
         for (List<InventoryAuditOutbox> list : auditOutbox.values()) {
             java.util.Iterator<InventoryAuditOutbox> iterator = list.iterator();
             while (iterator.hasNext()) {
@@ -298,7 +312,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
                         || replayStatus.equals(item.getReplayStatus()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditDeadLetter::getDeadAt).reversed()
-                        .thenComparing(InventoryAuditDeadLetter::getOutboxId, java.util.Comparator.reverseOrder()))
+                        .thenComparing(InventoryAuditDeadLetter::getOutboxIdValue, java.util.Comparator.reverseOrder()))
                 .skip((long) (pageNo - 1) * pageSize)
                 .limit(pageSize)
                 .toList();
@@ -317,7 +331,7 @@ public class InMemoryInventoryRepositorySupport {
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(Long id) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> item.getOutboxId().equals(id))
+                .filter(item -> java.util.Objects.equals(item.getOutboxIdValue(), id))
                 .findFirst();
     }
 
@@ -522,14 +536,14 @@ public class InMemoryInventoryRepositorySupport {
         return tenantId + ":" + orderNo;
     }
 
-    private Optional<InventoryAuditOutbox> findAuditOutboxById(Long outboxId) {
+    private Optional<InventoryAuditOutbox> findAuditOutboxById(OutboxId outboxId) {
         return auditOutbox.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> item.getId().equals(outboxId))
                 .findFirst();
     }
 
-    private boolean tryClaim(Long outboxId, Instant now, String processingOwner, Instant leaseUntil) {
+    private boolean tryClaim(OutboxId outboxId, Instant now, String processingOwner, Instant leaseUntil) {
         return findAuditOutboxById(outboxId)
                 .filter(item -> InventoryAuditOutbox.STATUS_NEW.equals(item.getStatus())
                         || InventoryAuditOutbox.STATUS_RETRYING.equals(item.getStatus()))
@@ -543,5 +557,12 @@ public class InMemoryInventoryRepositorySupport {
                     return true;
                 })
                 .orElse(false);
+    }
+
+    private EventCode generateEventCode() {
+        long id = auditOutboxEventCodeGenerator.getAndIncrement();
+        String timestamp = LocalDateTime.now().format(EVENT_CODE_TIMESTAMP_FORMATTER);
+        String suffix = String.format("%06d", Math.floorMod(id, 1_000_000L));
+        return EventCode.of("EVT" + timestamp + "-" + suffix);
     }
 }

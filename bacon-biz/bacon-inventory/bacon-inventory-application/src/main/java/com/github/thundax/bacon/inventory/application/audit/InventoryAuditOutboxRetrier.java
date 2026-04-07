@@ -81,7 +81,7 @@ public class InventoryAuditOutboxRetrier {
             if (!inventoryAuditOutboxRepository.deleteAuditOutboxClaimed(item.getId(), owner)) {
                 Metrics.counter("bacon.inventory.audit.retry.cas_conflict.total", "actionType", item.getActionType()).increment();
                 log.warn("Inventory audit retry skip delete due to owner mismatch, outboxId={}, owner={}",
-                        item.getId(), owner);
+                        item.getIdValue(), owner);
                 return;
             }
             Metrics.counter("bacon.inventory.audit.retry.success.total", "actionType", item.getActionType()).increment();
@@ -99,17 +99,18 @@ public class InventoryAuditOutboxRetrier {
             if (!inventoryAuditOutboxRepository.markAuditOutboxDeadClaimed(item.getId(), owner, nextRetryCount, deadReason, now)) {
                 Metrics.counter("bacon.inventory.audit.retry.cas_conflict.total", "actionType", item.getActionType()).increment();
                 log.warn("Inventory audit retry skip dead mark due to owner mismatch, outboxId={}, owner={}",
-                        item.getId(), owner);
+                        item.getIdValue(), owner);
                 return;
             }
-            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(item.getId(),
+            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(item.getIdValue(),
+                    item.getEventCodeValue(),
                     item.getTenantId(), item.getOrderNo(), item.getReservationNo(), item.getActionType(),
                     item.getOperatorType(), item.getOperatorIdValue(), item.getOccurredAt(),
                     nextRetryCount, errorMessage, deadReason, now,
                     InventoryAuditDeadLetter.REPLAY_STATUS_PENDING, 0, null, null, null, null, null, null));
             Metrics.counter("bacon.inventory.audit.retry.dead.total", "actionType", item.getActionType()).increment();
             log.error("ALERT inventory audit retry exhausted, outboxId={}, orderNo={}, reservationNo={}, actionType={}",
-                    item.getId(), item.getOrderNo(), item.getReservationNo(), item.getActionType(), ex);
+                    item.getIdValue(), item.getOrderNo(), item.getReservationNo(), item.getActionType(), ex);
             return;
         }
         // 未到上限时采用指数退避，避免下游持久化异常时用固定频率持续放大故障。
@@ -118,12 +119,12 @@ public class InventoryAuditOutboxRetrier {
                 nextRetryAt, errorMessage, now)) {
             Metrics.counter("bacon.inventory.audit.retry.cas_conflict.total", "actionType", item.getActionType()).increment();
             log.warn("Inventory audit retry skip retry-mark due to owner mismatch, outboxId={}, owner={}",
-                    item.getId(), owner);
+                    item.getIdValue(), owner);
             return;
         }
         Metrics.counter("bacon.inventory.audit.retry.fail.total", "actionType", item.getActionType()).increment();
         log.warn("Inventory audit retry failed, outboxId={}, orderNo={}, reservationNo={}, actionType={}, retryCount={}",
-                item.getId(), item.getOrderNo(), item.getReservationNo(), item.getActionType(), nextRetryCount, ex);
+                item.getIdValue(), item.getOrderNo(), item.getReservationNo(), item.getActionType(), nextRetryCount, ex);
     }
 
     private long nextDelaySeconds(int retryCount) {

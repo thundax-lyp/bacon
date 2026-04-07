@@ -15,6 +15,8 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -22,6 +24,8 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryReservation
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -147,13 +151,16 @@ class InventoryWorkflowIntegrationTest {
             InventoryReservationRepository, InventoryAuditRecordRepository, InventoryAuditOutboxRepository,
             InventoryAuditDeadLetterRepository {
 
+        private static final DateTimeFormatter EVENT_CODE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
         private final Map<String, InventoryReservation> reservations = new ConcurrentHashMap<>();
         private final Map<String, List<InventoryLedger>> ledgers = new ConcurrentHashMap<>();
         private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
-        private final Map<Long, InventoryAuditOutbox> outboxMap = new ConcurrentHashMap<>();
-        private final Map<Long, InventoryAuditDeadLetter> deadLetterMap = new ConcurrentHashMap<>();
+        private final Map<OutboxId, InventoryAuditOutbox> outboxMap = new ConcurrentHashMap<>();
+        private final Map<OutboxId, InventoryAuditDeadLetter> deadLetterMap = new ConcurrentHashMap<>();
         private final AtomicLong outboxIdGenerator = new AtomicLong(1000L);
+        private final AtomicLong outboxEventCodeGenerator = new AtomicLong(1000L);
         private final AtomicLong deadLetterIdGenerator = new AtomicLong(2000L);
         private final boolean failAuditPersist;
 
@@ -262,7 +269,10 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public void saveAuditOutbox(InventoryAuditOutbox outbox) {
             if (outbox.getId() == null) {
-                outbox.setId(outboxIdGenerator.incrementAndGet());
+                outbox.setId(OutboxId.of(outboxIdGenerator.incrementAndGet()));
+            }
+            if (outbox.getEventCode() == null) {
+                outbox.setEventCode(generateEventCode());
             }
             outboxMap.put(outbox.getId(), outbox);
         }
@@ -273,7 +283,8 @@ class InventoryWorkflowIntegrationTest {
                     .filter(item -> InventoryAuditOutbox.STATUS_NEW.equals(item.getStatus())
                             || InventoryAuditOutbox.STATUS_RETRYING.equals(item.getStatus()))
                     .filter(item -> item.getNextRetryAt() == null || !item.getNextRetryAt().isAfter(now))
-                    .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt).thenComparing(InventoryAuditOutbox::getId))
+                    .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt)
+                            .thenComparing(InventoryAuditOutbox::getIdValue))
                     .limit(limit)
                     .toList();
         }
@@ -318,7 +329,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void updateAuditOutboxForRetry(Long outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
+        public void updateAuditOutboxForRetry(OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
                                               Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox != null) {
@@ -331,7 +342,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public boolean updateAuditOutboxForRetryClaimed(Long outboxId, String processingOwner, int retryCount,
+        public boolean updateAuditOutboxForRetryClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                                         Instant nextRetryAt, String errorMessage, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox == null || !InventoryAuditOutbox.STATUS_PROCESSING.equals(outbox.getStatus())
@@ -350,7 +361,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void markAuditOutboxDead(Long outboxId, int retryCount, String deadReason, Instant updatedAt) {
+        public void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox != null) {
                 outbox.setStatus(InventoryAuditOutbox.STATUS_DEAD);
@@ -361,7 +372,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public boolean markAuditOutboxDeadClaimed(Long outboxId, String processingOwner, int retryCount,
+        public boolean markAuditOutboxDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                                   String deadReason, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox == null || !InventoryAuditOutbox.STATUS_PROCESSING.equals(outbox.getStatus())
@@ -379,12 +390,12 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void deleteAuditOutbox(Long outboxId) {
+        public void deleteAuditOutbox(OutboxId outboxId) {
             outboxMap.remove(outboxId);
         }
 
         @Override
-        public boolean deleteAuditOutboxClaimed(Long outboxId, String processingOwner) {
+        public boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox == null || !InventoryAuditOutbox.STATUS_PROCESSING.equals(outbox.getStatus())
                     || !processingOwner.equals(outbox.getProcessingOwner())) {
@@ -396,10 +407,12 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-            if (deadLetter.getOutboxId() == null) {
-                deadLetter.setOutboxId(deadLetterIdGenerator.incrementAndGet());
+            OutboxId outboxId = deadLetter.getOutboxId();
+            if (outboxId == null) {
+                outboxId = OutboxId.of(deadLetterIdGenerator.incrementAndGet());
+                deadLetter.setOutboxId(outboxId);
             }
-            deadLetterMap.put(deadLetter.getOutboxId(), deadLetter);
+            deadLetterMap.put(outboxId, deadLetter);
         }
 
         private int deadLetterCount() {
@@ -420,7 +433,7 @@ class InventoryWorkflowIntegrationTest {
             return tenantId + ":" + orderNo;
         }
 
-        private boolean tryClaim(Long outboxId, Instant now, String processingOwner, Instant leaseUntil) {
+        private boolean tryClaim(OutboxId outboxId, Instant now, String processingOwner, Instant leaseUntil) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox == null) {
                 return false;
@@ -438,6 +451,13 @@ class InventoryWorkflowIntegrationTest {
             outbox.setClaimedAt(now);
             outbox.setUpdatedAt(now);
             return true;
+        }
+
+        private EventCode generateEventCode() {
+            long id = outboxEventCodeGenerator.incrementAndGet();
+            String timestamp = LocalDateTime.now().format(EVENT_CODE_TIMESTAMP_FORMATTER);
+            String suffix = String.format("%06d", Math.floorMod(id, 1_000_000L));
+            return EventCode.of("EVT" + timestamp + "-" + suffix);
         }
     }
 

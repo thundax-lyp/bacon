@@ -144,7 +144,7 @@ class PaymentProviderControllerContractTest {
             if (Long.valueOf(9999L).equals(tenantId)) {
                 throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
             }
-            return new PaymentDetailDTO(String.valueOf(tenantId), paymentNo, "ORD-10001", "2001", "MOCK", "PAID",
+            return new PaymentDetailDTO(tenantId, paymentNo, "ORD-10001", 2001L, "MOCK", "PAID",
                     new BigDecimal("88.80"), new BigDecimal("88.80"), Instant.parse("2026-03-27T10:00:00Z"),
                     Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:01:00Z"),
                     "provider-payment", null, "TXN-10001", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
@@ -159,7 +159,7 @@ class PaymentProviderControllerContractTest {
 
         @Override
         public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
-            return List.of(new PaymentAuditLogDTO(String.valueOf(tenantId), paymentNo, "CREATE", null, "PAYING",
+            return List.of(new PaymentAuditLogDTO(tenantId, paymentNo, "CREATE", null, "PAYING",
                     "SYSTEM", "0", Instant.parse("2026-03-27T10:00:00Z")));
         }
     }

@@ -26,8 +26,8 @@ class InMemoryPaymentRepositorySupportTest {
     @Test
     void shouldPersistPaymentOrderAndSupportOrderScopedIdempotentLookup() {
         InMemoryPaymentRepositorySupport repository = new InMemoryPaymentRepositorySupport();
-        PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), PaymentNo.of("PAY-10001"), OrderNo.of("ORD-10001"),
-                UserId.of("2001"),
+        PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of(1001L), PaymentNo.of("PAY-10001"), OrderNo.of("ORD-10001"),
+                UserId.of(2001L),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "test-payment",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z"));
         paymentOrder.markPaying();
@@ -45,16 +45,16 @@ class InMemoryPaymentRepositorySupportTest {
         Instant first = Instant.parse("2026-03-27T10:01:00Z");
         Instant second = Instant.parse("2026-03-27T10:02:00Z");
 
-        repository.saveCallbackRecord(new PaymentCallbackRecord(null, TenantId.of("1001"), PaymentNo.of("PAY-10002"),
+        repository.saveCallbackRecord(new PaymentCallbackRecord(null, TenantId.of(1001L), PaymentNo.of("PAY-10002"),
                 OrderNo.of("ORD-10002"), PaymentChannelCode.MOCK, "TXN-1", PaymentChannelStatus.PAYING,
                 "{\"tradeStatus\":\"PROCESSING\"}", first));
-        repository.saveCallbackRecord(new PaymentCallbackRecord(null, TenantId.of("1001"), PaymentNo.of("PAY-10002"),
+        repository.saveCallbackRecord(new PaymentCallbackRecord(null, TenantId.of(1001L), PaymentNo.of("PAY-10002"),
                 OrderNo.of("ORD-10002"), PaymentChannelCode.MOCK, "TXN-2", PaymentChannelStatus.SUCCESS,
                 "{\"tradeStatus\":\"SUCCESS\"}", second));
 
-        repository.saveAuditLog(new PaymentAuditLog(null, 1001L, PaymentNo.of("PAY-10002"),
+        repository.saveAuditLog(new PaymentAuditLog(null, TenantId.of(1001L), PaymentNo.of("PAY-10002"),
                 PaymentAuditActionType.CREATE, null, PaymentStatus.PAYING, PaymentAuditOperatorType.SYSTEM, "0", first));
-        repository.saveAuditLog(new PaymentAuditLog(null, 1001L, PaymentNo.of("PAY-10002"),
+        repository.saveAuditLog(new PaymentAuditLog(null, TenantId.of(1001L), PaymentNo.of("PAY-10002"),
                 PaymentAuditActionType.CALLBACK_PAID, PaymentStatus.PAYING, PaymentStatus.PAID,
                 PaymentAuditOperatorType.CHANNEL, "0", second));
 
@@ -72,7 +72,7 @@ class InMemoryPaymentRepositorySupportTest {
     @Test
     void shouldFindCallbackByChannelTransactionNo() {
         InMemoryPaymentRepositorySupport repository = new InMemoryPaymentRepositorySupport();
-        repository.saveCallbackRecord(new PaymentCallbackRecord(null, TenantId.of("1001"), PaymentNo.of("PAY-10003"),
+        repository.saveCallbackRecord(new PaymentCallbackRecord(null, TenantId.of(1001L), PaymentNo.of("PAY-10003"),
                 OrderNo.of("ORD-10003"), PaymentChannelCode.MOCK, "TXN-30001", PaymentChannelStatus.SUCCESS,
                 "{\"tradeStatus\":\"SUCCESS\"}",
                 Instant.parse("2026-03-27T10:03:00Z")));

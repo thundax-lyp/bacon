@@ -107,18 +107,18 @@ class PaymentRepositorySupportIntegrationTest {
 
     @Test
     void shouldPersistAndReadBackOrderCallbackAndAuditLog() {
-        PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of("1001"), PaymentNo.of("PAY-IT-10001"), OrderNo.of("ORD-IT-10001"),
-                UserId.of("2001"),
+        PaymentOrder paymentOrder = new PaymentOrder(null, TenantId.of(1001L), PaymentNo.of("PAY-IT-10001"), OrderNo.of("ORD-IT-10001"),
+                UserId.of(2001L),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "integration-payment",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z"));
         paymentOrder.markPaying();
 
         PaymentOrder persistedOrder = paymentRepositorySupport.saveOrder(paymentOrder);
         PaymentCallbackRecord persistedCallback = paymentRepositorySupport.saveCallbackRecord(new PaymentCallbackRecord(
-                null, TenantId.of("1001"), persistedOrder.getPaymentNo(), persistedOrder.getOrderNo(), PaymentChannelCode.MOCK,
+                null, TenantId.of(1001L), persistedOrder.getPaymentNo(), persistedOrder.getOrderNo(), PaymentChannelCode.MOCK,
                 "TXN-IT-10001", PaymentChannelStatus.SUCCESS, "{\"tradeStatus\":\"SUCCESS\"}",
                 Instant.parse("2026-03-27T10:01:00Z")));
-        paymentRepositorySupport.saveAuditLog(new PaymentAuditLog(null, 1001L, persistedOrder.getPaymentNo(),
+        paymentRepositorySupport.saveAuditLog(new PaymentAuditLog(null, TenantId.of(1001L), persistedOrder.getPaymentNo(),
                 PaymentAuditActionType.CREATE, null, PaymentStatus.PAYING, PaymentAuditOperatorType.SYSTEM, "0",
                 Instant.parse("2026-03-27T10:00:00Z")));
 

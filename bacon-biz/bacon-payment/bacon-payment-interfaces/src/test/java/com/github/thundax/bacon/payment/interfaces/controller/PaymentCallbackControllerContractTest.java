@@ -20,7 +20,7 @@ class PaymentCallbackControllerContractTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "tenantId": "1001",
+                                  "tenantCode": "1001",
                                   "paymentNo": "PAY-10001",
                                   "success": true,
                                   "channelStatus": "SUCCESS",
@@ -38,7 +38,7 @@ class PaymentCallbackControllerContractTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "tenantId": "1001",
+                                  "tenantCode": "1001",
                                   "paymentNo": "PAY-10001",
                                   "success": false,
                                   "channelStatus": "FAILED",
@@ -56,7 +56,7 @@ class PaymentCallbackControllerContractTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "tenantId": "1001",
+                                  "tenantCode": "1001",
                                   "paymentNo": "PAY-10001",
                                   "success": true,
                                   "channelTransactionNo": "TXN-10001",

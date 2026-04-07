@@ -47,8 +47,8 @@ class PaymentRepositorySupportTest {
                 createIdGenerator()
         );
 
-        PaymentOrder persisted = support.saveOrder(new PaymentOrder(null, TenantId.of("1001"), PaymentNo.of("PAY-10001"),
-                OrderNo.of("ORD-10001"), UserId.of("2001"),
+        PaymentOrder persisted = support.saveOrder(new PaymentOrder(null, TenantId.of(1001L), PaymentNo.of("PAY-10001"),
+                OrderNo.of("ORD-10001"), UserId.of(2001L),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "strict-insert",
                 Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z")));
 
@@ -67,9 +67,9 @@ class PaymentRepositorySupportTest {
                 createAuditLogMapper(null, null),
                 createIdGenerator()
         );
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of(9001L), TenantId.of("1001"),
+        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of(9001L), TenantId.of(1001L),
                 PaymentNo.of("PAY-10002"), OrderNo.of("ORD-10002"),
-                UserId.of("2002"),
+                UserId.of(2002L),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("99.90")), Money.zero(), "strict-update",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentStatus.PAYING, null, null, null);
@@ -78,7 +78,7 @@ class PaymentRepositorySupportTest {
         PaymentOrder persisted = support.saveOrder(paymentOrder);
 
         assertNotNull(updatedRef.get());
-        assertEquals("9001", updatedRef.get().getId());
+        assertEquals(9001L, updatedRef.get().getId());
         assertEquals(PaymentStatus.CLOSED.value(), updatedRef.get().getPaymentStatus());
         assertEquals(PaymentStatus.CLOSED.value(), persisted.getPaymentStatus().value());
     }
@@ -91,9 +91,9 @@ class PaymentRepositorySupportTest {
                 createAuditLogMapper(null, null),
                 createIdGenerator()
         );
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of(9002L), TenantId.of("1001"),
+        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of(9002L), TenantId.of(1001L),
                 PaymentNo.of("PAY-10009"), OrderNo.of("ORD-10009"),
-                UserId.of("2009"),
+                UserId.of(2009L),
                 PaymentChannelCode.MOCK, Money.of(new BigDecimal("66.00")), Money.zero(), "strict-conflict",
                 Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
                 null, null, PaymentStatus.PAYING, null, null, null);
@@ -154,7 +154,7 @@ class PaymentRepositorySupportTest {
                 new Class[]{PaymentOrderMapper.class}, (proxy, method, args) -> {
                     if ("insert".equals(method.getName())) {
                         PaymentOrderDO dataObject = (PaymentOrderDO) args[0];
-                        dataObject.setId("8001");
+                        dataObject.setId(8001L);
                         insertedRef.set(dataObject);
                         return 1;
                     }

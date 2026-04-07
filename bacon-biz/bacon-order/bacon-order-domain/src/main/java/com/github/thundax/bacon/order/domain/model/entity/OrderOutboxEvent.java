@@ -57,7 +57,7 @@ public class OrderOutboxEvent {
     }
 
     public Long getTenantIdValue() {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+        return tenantId == null ? null : tenantId.value();
     }
 
     public String getOrderNoValue() {

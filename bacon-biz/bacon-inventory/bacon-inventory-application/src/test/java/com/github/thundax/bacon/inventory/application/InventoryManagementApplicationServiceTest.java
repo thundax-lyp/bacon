@@ -2,6 +2,8 @@ package com.github.thundax.bacon.inventory.application;
 
 import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -19,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class InventoryManagementApplicationServiceTest {
 
@@ -45,6 +48,28 @@ class InventoryManagementApplicationServiceTest {
 
         assertEquals(InventoryStatus.DISABLED.value(), result.getStatus());
         assertEquals(InventoryStatus.DISABLED.value(), repository.findInventory(1001L, 101L).orElseThrow().getStatus().value());
+    }
+
+    @Test
+    void createInventoryShouldRejectInvalidOnHandQuantityInApplication() {
+        TestInventoryRepository repository = new TestInventoryRepository();
+        InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
+
+        InventoryDomainException exception = assertThrows(InventoryDomainException.class,
+                () -> service.createInventory(1001L, 103L, -1, InventoryStatus.ENABLED.value()));
+
+        assertEquals(InventoryErrorCode.INVALID_ON_HAND_QUANTITY.code(), exception.getCode());
+    }
+
+    @Test
+    void updateInventoryStatusShouldRejectInvalidStatusInApplication() {
+        TestInventoryRepository repository = new TestInventoryRepository();
+        InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
+
+        InventoryDomainException exception = assertThrows(InventoryDomainException.class,
+                () -> service.updateInventoryStatus(1001L, 101L, "UNKNOWN"));
+
+        assertEquals(InventoryErrorCode.INVALID_INVENTORY_STATUS.code(), exception.getCode());
     }
 
     private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,

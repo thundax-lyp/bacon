@@ -2,8 +2,6 @@ package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
-import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
@@ -48,20 +46,6 @@ public class Inventory {
                 skuId == null ? null : SkuId.of(skuId),
                 warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
                 onHandQuantity, reservedQuantity, availableQuantity, status, version, updatedAt);
-    }
-
-    public static Inventory create(Long id, Long tenantId, Long skuId, Integer onHandQuantity, String status, Instant createdAt) {
-        if (tenantId == null || skuId == null) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
-        }
-        if (onHandQuantity == null || onHandQuantity < 0) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_ON_HAND_QUANTITY, String.valueOf(skuId));
-        }
-        InventoryStatus normalizedStatus = normalizeStatus(status);
-        // 新建库存时把 reserved/available 一次性归位，后续所有数量变化都只通过领域方法推进。
-        return new Inventory(id, tenantId, skuId, DEFAULT_WAREHOUSE_NO.value(),
-                onHandQuantity, 0, onHandQuantity,
-                normalizedStatus, 0L, createdAt);
     }
 
     public Long getIdValue() {
@@ -120,9 +104,9 @@ public class Inventory {
         refreshAvailableQuantity(operatedAt);
     }
 
-    public void updateStatus(String targetStatus, Instant operatedAt) {
+    public void updateStatus(InventoryStatus targetStatus, Instant operatedAt) {
         // 启停库存是运维级操作，不改数量，只更新状态和时间戳。
-        this.status = normalizeStatus(targetStatus);
+        this.status = targetStatus;
         this.updatedAt = operatedAt;
     }
 
@@ -149,11 +133,4 @@ public class Inventory {
         updatedAt = operatedAt;
     }
 
-    private static InventoryStatus normalizeStatus(String status) {
-        try {
-            return InventoryStatus.fromValue(status);
-        } catch (IllegalArgumentException ex) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_STATUS, String.valueOf(status));
-        }
-    }
 }

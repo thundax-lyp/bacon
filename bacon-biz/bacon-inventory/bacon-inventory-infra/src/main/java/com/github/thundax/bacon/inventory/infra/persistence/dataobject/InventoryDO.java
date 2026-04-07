@@ -22,8 +22,8 @@ public class InventoryDO {
     private Long tenantId;
     @TableField("sku_id")
     private Long skuId;
-    @TableField("warehouse_id")
-    private Long warehouseId;
+    @TableField("warehouse_no")
+    private String warehouseNo;
     @TableField("on_hand_quantity")
     private Integer onHandQuantity;
     @TableField("reserved_quantity")

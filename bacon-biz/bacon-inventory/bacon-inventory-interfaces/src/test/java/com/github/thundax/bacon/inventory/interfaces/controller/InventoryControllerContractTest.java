@@ -88,7 +88,7 @@ class InventoryControllerContractTest {
     private static final class StubInventoryRepository implements InventoryStockRepository,
             InventoryReservationRepository, InventoryLogRepository {
 
-        private final Inventory stock = new Inventory(1L, 1001L, 101L, 1L, 100,
+        private final Inventory stock = new Inventory(1L, 1001L, 101L, "DEFAULT", 100,
                 10, 90, InventoryStatus.ENABLED, 1L, Instant.parse("2026-03-26T10:00:00Z"));
 
         @Override

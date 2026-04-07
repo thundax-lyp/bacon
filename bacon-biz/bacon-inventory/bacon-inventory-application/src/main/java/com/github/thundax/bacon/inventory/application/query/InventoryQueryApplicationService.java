@@ -103,7 +103,7 @@ public class InventoryQueryApplicationService {
 
     InventoryReservationDTO toReservationDto(InventoryReservation reservation) {
         return new InventoryReservationDTO(reservation.getTenantId(), reservation.getOrderNo(), reservation.getReservationNo(),
-                reservation.getReservationStatus(), reservation.getWarehouseIdValue(),
+                reservation.getReservationStatus(), reservation.getWarehouseNoValue(),
                 reservation.getItems().stream()
                         .map(item -> new InventoryReservationItemDTO(item.getSkuId(), item.getQuantity()))
                         .toList(),
@@ -113,14 +113,14 @@ public class InventoryQueryApplicationService {
 
     private InventoryStockDTO toStockDto(Inventory inventory) {
         return new InventoryStockDTO(inventory.getTenantIdValue(), inventory.getSkuIdValue(),
-                inventory.getWarehouseIdValue(),
+                inventory.getWarehouseNoValue(),
                 inventory.getOnHandQuantity(), inventory.getReservedQuantity(), inventory.getAvailableQuantity(),
                 inventory.getStatus().value(), inventory.getUpdatedAt());
     }
 
     private InventoryLedgerDTO toLedgerDto(InventoryLedger ledger) {
         return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNo(),
-                ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseIdValue(), ledger.getLedgerType(),
+                ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseNoValue(), ledger.getLedgerType(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
 

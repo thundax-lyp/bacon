@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,8 +27,8 @@ public class InventoryLedger {
     private String reservationNo;
     /** 商品 SKU 主键。 */
     private Long skuId;
-    /** 仓库主键。 */
-    private WarehouseId warehouseId;
+    /** 仓库业务编号。 */
+    private WarehouseNo warehouseNo;
     /** 流水类型。 */
     private String ledgerType;
     /** 变更数量。 */
@@ -37,9 +37,9 @@ public class InventoryLedger {
     private Instant occurredAt;
 
     public InventoryLedger(Long id, TenantId tenantId, String orderNo, String reservationNo, Long skuId,
-                           Long warehouseId, String ledgerType, Integer quantity, Instant occurredAt) {
+                           String warehouseNo, String ledgerType, Integer quantity, Instant occurredAt) {
         this(id, tenantId, orderNo, reservationNo, skuId,
-                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)),
+                warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
                 ledgerType, quantity, occurredAt);
     }
 
@@ -47,7 +47,7 @@ public class InventoryLedger {
         return tenantId == null ? null : tenantId.value();
     }
 
-    public Long getWarehouseIdValue() {
-        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
+    public String getWarehouseNoValue() {
+        return warehouseNo == null ? null : warehouseNo.value();
     }
 }

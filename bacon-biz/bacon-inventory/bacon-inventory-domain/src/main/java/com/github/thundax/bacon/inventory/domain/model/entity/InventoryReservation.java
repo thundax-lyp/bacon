@@ -2,7 +2,7 @@ package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -37,8 +37,8 @@ public class InventoryReservation {
     private final String reservationNo;
     /** 订单号。 */
     private final String orderNo;
-    /** 仓库主键。 */
-    private final WarehouseId warehouseId;
+    /** 仓库业务编号。 */
+    private final WarehouseNo warehouseNo;
     /** 创建时间。 */
     private final Instant createdAt;
     /** 预占明细列表。 */
@@ -54,39 +54,39 @@ public class InventoryReservation {
     /** 扣减时间。 */
     private Instant deductedAt;
 
-    public InventoryReservation(Long id, Long tenantId, String reservationNo, String orderNo, Long warehouseId,
+    public InventoryReservation(Long id, Long tenantId, String reservationNo, String orderNo, String warehouseNo,
                                 Instant createdAt, List<InventoryReservationItem> items) {
         this(id, tenantId, reservationNo, orderNo,
-                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)), createdAt, items);
+                warehouseNo == null ? null : WarehouseNo.of(warehouseNo), createdAt, items);
     }
 
-    public InventoryReservation(Long id, Long tenantId, String reservationNo, String orderNo, WarehouseId warehouseId,
+    public InventoryReservation(Long id, Long tenantId, String reservationNo, String orderNo, WarehouseNo warehouseNo,
                                 Instant createdAt, List<InventoryReservationItem> items) {
         this.id = id;
         this.tenantId = tenantId;
         this.reservationNo = reservationNo;
         this.orderNo = orderNo;
-        this.warehouseId = warehouseId;
+        this.warehouseNo = warehouseNo;
         this.createdAt = createdAt;
         this.items = items;
         this.reservationStatus = STATUS_CREATED;
     }
 
     public static InventoryReservation rehydrate(Long id, Long tenantId, String reservationNo, String orderNo,
-                                                 Long warehouseId, Instant createdAt, List<InventoryReservationItem> items,
+                                                 String warehouseNo, Instant createdAt, List<InventoryReservationItem> items,
                                                  String reservationStatus, String failureReason, String releaseReason,
                                                  Instant releasedAt, Instant deductedAt) {
         return rehydrate(id, tenantId, reservationNo, orderNo,
-                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)), createdAt, items,
+                warehouseNo == null ? null : WarehouseNo.of(warehouseNo), createdAt, items,
                 reservationStatus, failureReason, releaseReason, releasedAt, deductedAt);
     }
 
     public static InventoryReservation rehydrate(Long id, Long tenantId, String reservationNo, String orderNo,
-                                                 WarehouseId warehouseId, Instant createdAt, List<InventoryReservationItem> items,
+                                                 WarehouseNo warehouseNo, Instant createdAt, List<InventoryReservationItem> items,
                                                  String reservationStatus, String failureReason, String releaseReason,
                                                  Instant releasedAt, Instant deductedAt) {
         // 预占单回写时必须带回终态与原因字段，应用层会基于这些字段判断是否还能继续补偿或回放。
-        InventoryReservation reservation = new InventoryReservation(id, tenantId, reservationNo, orderNo, warehouseId,
+        InventoryReservation reservation = new InventoryReservation(id, tenantId, reservationNo, orderNo, warehouseNo,
                 createdAt, items);
         reservation.reservationStatus = reservationStatus;
         reservation.failureReason = failureReason;
@@ -96,8 +96,8 @@ public class InventoryReservation {
         return reservation;
     }
 
-    public Long getWarehouseIdValue() {
-        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
+    public String getWarehouseNoValue() {
+        return warehouseNo == null ? null : warehouseNo.value();
     }
 
     public void reserve() {

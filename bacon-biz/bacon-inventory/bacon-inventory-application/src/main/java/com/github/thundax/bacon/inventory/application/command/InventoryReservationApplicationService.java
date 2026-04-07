@@ -83,7 +83,7 @@ public class InventoryReservationApplicationService {
                         item.getSkuId(), item.getQuantity()))
                 .toList();
         InventoryReservation reservation = new InventoryReservation(null, tenantId, reservationNo,
-                orderNo, 1L, Instant.now(), reservationItems);
+                orderNo, Inventory.DEFAULT_WAREHOUSE_NO.value(), Instant.now(), reservationItems);
 
         ReservationValidationResult validationResult = validateReservation(tenantId, normalizedItems);
         String failureReason = validationResult.failureReason();

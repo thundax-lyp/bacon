@@ -16,8 +16,8 @@ public record InventoryReservationResponse(
         String reservationNo,
         /** 预占状态。 */
         String reservationStatus,
-        /** 仓库主键。 */
-        Long warehouseId,
+        /** 仓库业务编号。 */
+        String warehouseNo,
         /** 预占明细列表。 */
         List<InventoryReservationItemResponse> items,
         /** 失败原因。 */
@@ -33,7 +33,7 @@ public record InventoryReservationResponse(
 
     public static InventoryReservationResponse from(InventoryReservationDTO dto) {
         return new InventoryReservationResponse(dto.getTenantId(), dto.getOrderNo(), dto.getReservationNo(),
-                dto.getReservationStatus(), dto.getWarehouseId(), dto.getItems().stream()
+                dto.getReservationStatus(), dto.getWarehouseNo(), dto.getItems().stream()
                 .map(InventoryReservationItemResponse::from)
                 .toList(), dto.getFailureReason(), dto.getReleaseReason(), dto.getCreatedAt(), dto.getReleasedAt(),
                 dto.getDeductedAt());

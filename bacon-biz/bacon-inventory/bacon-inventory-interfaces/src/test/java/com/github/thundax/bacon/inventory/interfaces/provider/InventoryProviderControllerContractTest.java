@@ -122,7 +122,7 @@ class InventoryProviderControllerContractTest {
             if (Long.valueOf(9999L).equals(tenantId)) {
                 throw new IllegalArgumentException("Invalid tenant: " + tenantId);
             }
-            return List.of(new InventoryStockDTO(tenantId, 101L, 1L,
+            return List.of(new InventoryStockDTO(tenantId, 101L, "DEFAULT",
                     100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
         }
     }

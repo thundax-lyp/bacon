@@ -100,7 +100,7 @@
 | `id` | `bigint` | N | 主键 |
 | `tenant_id` | `bigint` | N | 租户业务键 |
 | `sku_id` | `bigint` | N | SKU 主键 |
-| `warehouse_id` | `bigint` | N | 仓库标识，固定为默认仓 |
+| `warehouse_no` | `varchar(64)` | N | 仓库业务编号，固定为默认仓 |
 | `on_hand_quantity` | `int` | N | 现存量 |
 | `reserved_quantity` | `int` | N | 预占量 |
 | `available_quantity` | `int` | N | 可售量 |
@@ -135,7 +135,7 @@
 | `reservation_no` | `varchar(64)` | N | 预占单号，同租户唯一 |
 | `order_no` | `varchar(64)` | N | 订单号，同租户唯一 |
 | `reservation_status` | `varchar(32)` | N | 预占状态，取值见 `reservation_status` |
-| `warehouse_id` | `bigint` | N | 仓库标识 |
+| `warehouse_no` | `varchar(64)` | N | 仓库业务编号 |
 | `failure_reason` | `varchar(255)` | Y | 失败原因 |
 | `release_reason` | `varchar(255)` | Y | 释放原因，取值见 `release_reason` |
 | `created_at` | `datetime(3)` | N | 创建时间 |
@@ -191,7 +191,7 @@
 | `order_no` | `varchar(64)` | N | 订单号 |
 | `reservation_no` | `varchar(64)` | N | 预占单号 |
 | `sku_id` | `bigint` | N | SKU 主键 |
-| `warehouse_id` | `bigint` | N | 仓库标识 |
+| `warehouse_no` | `varchar(64)` | N | 仓库业务编号 |
 | `ledger_type` | `varchar(16)` | N | 流水类型，取值见 `ledger_type` |
 | `quantity` | `int` | N | 变更数量 |
 | `occurred_at` | `datetime(3)` | N | 发生时间 |
@@ -396,7 +396,7 @@
 - `bacon_inventory_reservation_item.reservation_no` 关联 `bacon_inventory_reservation.reservation_no`
 - `bacon_inventory_ledger.reservation_no` 关联 `bacon_inventory_reservation.reservation_no`
 - 当前设计不强制数据库外键
-- 固定 `(tenant_id, sku_id)` 唯一，`warehouse_id` 固定为单仓默认仓标识
+- 固定 `(tenant_id, sku_id)` 唯一，`warehouse_no` 固定为单仓默认仓编号
 
 ## 9. Persistence Rules
 

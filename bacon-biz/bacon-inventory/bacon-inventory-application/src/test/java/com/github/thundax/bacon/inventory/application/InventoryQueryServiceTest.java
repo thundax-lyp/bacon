@@ -57,13 +57,13 @@ class InventoryQueryApplicationServiceTest {
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 
         private TestInventoryRepository() {
-            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100,
+            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, "DEFAULT", 100, 0, 100,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, 1L, 80, 0, 80,
+            inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, "DEFAULT", 80, 0, 80,
                     InventoryStatus.DISABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 103L), new Inventory(3L, 1001L, 103L, 1L, 60, 0, 60,
+            inventories.put(key(1001L, 103L), new Inventory(3L, 1001L, 103L, "DEFAULT", 60, 0, 60,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 104L), new Inventory(4L, 1001L, 104L, 1L, 40, 0, 40,
+            inventories.put(key(1001L, 104L), new Inventory(4L, 1001L, 104L, "DEFAULT", 40, 0, 40,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
         }
 

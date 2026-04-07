@@ -166,7 +166,7 @@ class InventoryWorkflowIntegrationTest {
 
         private OptimisticInventoryRepository(boolean failAuditPersist) {
             this.failAuditPersist = failAuditPersist;
-            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L,
+            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, "DEFAULT",
                     100, 0, 100, InventoryStatus.ENABLED, 0L,
                     Instant.parse("2026-03-26T09:59:00Z")));
         }
@@ -420,7 +420,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         private Inventory copy(Inventory source) {
-            return new Inventory(source.getId(), source.getTenantId(), source.getSkuId(), source.getWarehouseId(),
+            return new Inventory(source.getId().value(), source.getTenantId().value(), source.getSkuId().value(), source.getWarehouseNo().value(),
                     source.getOnHandQuantity(), source.getReservedQuantity(), source.getAvailableQuantity(),
                     source.getStatus(), source.getVersion(), source.getUpdatedAt());
         }

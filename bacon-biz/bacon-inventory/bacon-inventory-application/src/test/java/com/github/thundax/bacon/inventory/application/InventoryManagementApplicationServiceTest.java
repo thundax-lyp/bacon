@@ -53,7 +53,7 @@ class InventoryManagementApplicationServiceTest {
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 
         private TestInventoryRepository() {
-            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, 1L, 100, 0, 100,
+            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, "DEFAULT", 100, 0, 100,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
         }
 

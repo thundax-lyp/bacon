@@ -25,8 +25,8 @@ public class InventoryReservationDO {
     private String orderNo;
     @TableField("reservation_status")
     private String reservationStatus;
-    @TableField("warehouse_id")
-    private Long warehouseId;
+    @TableField("warehouse_no")
+    private String warehouseNo;
     @TableField("failure_reason")
     private String failureReason;
     @TableField("release_reason")

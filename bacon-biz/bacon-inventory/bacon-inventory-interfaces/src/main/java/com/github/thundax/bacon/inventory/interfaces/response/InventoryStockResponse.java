@@ -11,8 +11,8 @@ public record InventoryStockResponse(
         Long tenantId,
         /** 商品 SKU 主键。 */
         Long skuId,
-        /** 仓库主键。 */
-        Long warehouseId,
+        /** 仓库业务编号。 */
+        String warehouseNo,
         /** 在库数量。 */
         Integer onHandQuantity,
         /** 预占数量。 */
@@ -25,7 +25,7 @@ public record InventoryStockResponse(
         Instant updatedAt) {
 
     public static InventoryStockResponse from(InventoryStockDTO dto) {
-        return new InventoryStockResponse(dto.getTenantId(), dto.getSkuId(), dto.getWarehouseId(),
+        return new InventoryStockResponse(dto.getTenantId(), dto.getSkuId(), dto.getWarehouseNo(),
                 dto.getOnHandQuantity(), dto.getReservedQuantity(), dto.getAvailableQuantity(), dto.getStatus(),
                 dto.getUpdatedAt());
     }

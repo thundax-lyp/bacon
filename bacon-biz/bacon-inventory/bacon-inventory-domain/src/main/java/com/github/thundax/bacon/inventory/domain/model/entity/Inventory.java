@@ -6,7 +6,7 @@ import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainExcept
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +18,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Inventory {
 
-    public static final WarehouseId DEFAULT_WAREHOUSE_ID = WarehouseId.of("1");
+    public static final WarehouseNo DEFAULT_WAREHOUSE_NO = WarehouseNo.of("DEFAULT");
 
     /** 库存主键。 */
     private InventoryId id;
@@ -26,8 +26,8 @@ public class Inventory {
     private TenantId tenantId;
     /** 商品 SKU 主键。 */
     private SkuId skuId;
-    /** 仓库主键。 */
-    private WarehouseId warehouseId;
+    /** 仓库业务编号。 */
+    private WarehouseNo warehouseNo;
     /** 在库数量。 */
     private Integer onHandQuantity;
     /** 预占数量。 */
@@ -41,12 +41,12 @@ public class Inventory {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Inventory(Long id, Long tenantId, Long skuId, Long warehouseId, Integer onHandQuantity,
+    public Inventory(Long id, Long tenantId, Long skuId, String warehouseNo, Integer onHandQuantity,
                      Integer reservedQuantity, Integer availableQuantity, InventoryStatus status, Long version, Instant updatedAt) {
         this(id == null ? null : InventoryId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
                 skuId == null ? null : SkuId.of(skuId),
-                warehouseId == null ? null : WarehouseId.of(String.valueOf(warehouseId)),
+                warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
                 onHandQuantity, reservedQuantity, availableQuantity, status, version, updatedAt);
     }
 
@@ -59,7 +59,7 @@ public class Inventory {
         }
         InventoryStatus normalizedStatus = normalizeStatus(status);
         // 新建库存时把 reserved/available 一次性归位，后续所有数量变化都只通过领域方法推进。
-        return new Inventory(id, tenantId, skuId, Long.valueOf(DEFAULT_WAREHOUSE_ID.value()),
+        return new Inventory(id, tenantId, skuId, DEFAULT_WAREHOUSE_NO.value(),
                 onHandQuantity, 0, onHandQuantity,
                 normalizedStatus, 0L, createdAt);
     }
@@ -76,8 +76,8 @@ public class Inventory {
         return skuId == null ? null : skuId.value();
     }
 
-    public Long getWarehouseIdValue() {
-        return warehouseId == null ? null : Long.valueOf(warehouseId.value());
+    public String getWarehouseNoValue() {
+        return warehouseNo == null ? null : warehouseNo.value();
     }
 
     public void reserve(int quantity, Instant operatedAt) {

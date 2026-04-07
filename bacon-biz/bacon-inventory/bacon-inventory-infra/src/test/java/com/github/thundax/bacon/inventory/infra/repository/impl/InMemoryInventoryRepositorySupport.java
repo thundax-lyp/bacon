@@ -93,7 +93,7 @@ public class InMemoryInventoryRepositorySupport {
     public Inventory saveInventory(Inventory inventory) {
         if (inventory.getId() == null) {
             inventory = new Inventory(inventoryIdGenerator.getAndIncrement(), inventory.getTenantId().value(),
-                    inventory.getSkuId().value(), Long.valueOf(inventory.getWarehouseId().value()), inventory.getOnHandQuantity(),
+                    inventory.getSkuId().value(), inventory.getWarehouseNo().value(), inventory.getOnHandQuantity(),
                     inventory.getReservedQuantity(), inventory.getAvailableQuantity(), inventory.getStatus(),
                     inventory.getVersion(), inventory.getUpdatedAt());
         }
@@ -106,7 +106,7 @@ public class InMemoryInventoryRepositorySupport {
     public InventoryReservation saveReservation(InventoryReservation reservation) {
         if (reservation.getId() == null) {
             reservation = InventoryReservation.rehydrate(reservationIdGenerator.getAndIncrement(), reservation.getTenantId(),
-                    reservation.getReservationNo(), reservation.getOrderNo(), reservation.getWarehouseId(),
+                    reservation.getReservationNo(), reservation.getOrderNo(), reservation.getWarehouseNo().value(),
                     reservation.getCreatedAt(), reservation.getItems().stream()
                             .map(item -> new InventoryReservationItem(
                                     item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
@@ -126,7 +126,7 @@ public class InMemoryInventoryRepositorySupport {
     public void saveLedger(InventoryLedger ledger) {
         if (ledger.getId() == null) {
             ledger = new InventoryLedger(ledgerIdGenerator.getAndIncrement(), ledger.getTenantId(), ledger.getOrderNo(),
-                    ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseId(), ledger.getLedgerType(),
+                    ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseNo().value(), ledger.getLedgerType(),
                     ledger.getQuantity(), ledger.getOccurredAt());
         }
         ledgers.computeIfAbsent(reservationKey(ledger.getTenantId().value(), ledger.getOrderNo()), key -> new ArrayList<>())

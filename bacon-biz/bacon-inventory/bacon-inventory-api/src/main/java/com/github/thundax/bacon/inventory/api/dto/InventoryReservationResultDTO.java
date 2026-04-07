@@ -24,8 +24,8 @@ public class InventoryReservationResultDTO {
     private String reservationStatus;
     /** 库存状态。 */
     private String inventoryStatus;
-    /** 仓库主键。 */
-    private Long warehouseId;
+    /** 仓库业务编号。 */
+    private String warehouseNo;
     /** 失败原因。 */
     private String failureReason;
     /** 释放原因。 */

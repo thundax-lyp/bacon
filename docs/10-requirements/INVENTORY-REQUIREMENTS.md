@@ -89,7 +89,7 @@ Inventory 是 Bacon 的统一库存业务域。
 
 - `tenantId`
 - `skuId`
-- `warehouseId`
+- `warehouseNo`
 - `onHandQuantity`
 - `reservedQuantity`
 - `availableQuantity`
@@ -102,7 +102,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - `orderNo`
 - `reservationNo`
 - `reservationStatus`
-- `warehouseId`
+- `warehouseNo`
 - `items`
 - `failureReason`
 - `releaseReason`
@@ -128,7 +128,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - `reservationNo`
 - `reservationStatus`
 - `inventoryStatus`
-- `warehouseId`
+- `warehouseNo`
 - `failureReason`
 - `releaseReason`
 - `releasedAt`
@@ -216,10 +216,10 @@ Inventory 是 Bacon 的统一库存业务域。
 
 ## 5.3 Fixed Fields
 
-- `Inventory` 至少包含 `id`、`tenantId`、`skuId`、`warehouseId`、`onHandQuantity`、`reservedQuantity`、`availableQuantity`、`status`、`updatedAt`
-- `InventoryReservation` 至少包含 `id`、`tenantId`、`reservationNo`、`orderNo`、`reservationStatus`、`warehouseId`、`failureReason`、`releaseReason`、`createdAt`、`releasedAt`、`deductedAt`
+- `Inventory` 至少包含 `id`、`tenantId`、`skuId`、`warehouseNo`、`onHandQuantity`、`reservedQuantity`、`availableQuantity`、`status`、`updatedAt`
+- `InventoryReservation` 至少包含 `id`、`tenantId`、`reservationNo`、`orderNo`、`reservationStatus`、`warehouseNo`、`failureReason`、`releaseReason`、`createdAt`、`releasedAt`、`deductedAt`
 - `InventoryReservationItem` 至少包含 `id`、`tenantId`、`reservationNo`、`skuId`、`quantity`
-- `InventoryLedger` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`skuId`、`warehouseId`、`ledgerType`、`quantity`、`occurredAt`
+- `InventoryLedger` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`skuId`、`warehouseNo`、`ledgerType`、`quantity`、`occurredAt`
 - `InventoryAuditLog` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`
 - `InventoryAuditOutbox` 至少包含 `id`、`eventCode`、`tenantId`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`、`errorMessage`、`status`、`retryCount`、`failedAt`、`updatedAt`
 - `InventoryAuditDeadLetter` 至少包含 `id`、`outboxId`、`eventCode`、`tenantId`、`orderNo`、`reservationNo`、`actionType`、`operatorType`、`operatorId`、`occurredAt`、`retryCount`、`errorMessage`、`deadReason`、`deadAt`
@@ -262,7 +262,7 @@ Inventory 是 Bacon 的统一库存业务域。
 ### 6.1 Quantity Rule
 
 - 固定单仓模型，同一 `tenantId + skuId` 只允许一条 `Inventory` 记录
-- `warehouseId` 必须使用系统固定默认仓标识
+- `warehouseNo` 必须使用系统固定默认仓编号
 - `onHandQuantity` 不得小于 `0`
 - `reservedQuantity` 不得小于 `0`
 - `availableQuantity` 不得小于 `0`

@@ -33,7 +33,7 @@ class InventoryAuditCompensationApplicationServiceTest {
 
         InventoryAuditReplayResultDTO result = service.replayDeadLetter(3001L, 1001L, "MANUAL-REPLAY-1001", 9001L);
 
-        assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED, result.getReplayStatus());
+        assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED.value(), result.getReplayStatus());
         assertEquals("MANUAL-REPLAY-1001", result.getReplayKey());
         assertEquals(2, repository.auditLogs.size());
         assertEquals(InventoryAuditLog.ACTION_AUDIT_REPLAY_SUCCEEDED,
@@ -50,18 +50,18 @@ class InventoryAuditCompensationApplicationServiceTest {
                 InventoryAuditLog.ACTION_RELEASE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditDeadLetter.REPLAY_STATUS_PENDING, 0, null, null, null, null, null, null));
+                InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.value(), 0, null, null, null, null, null, null));
         repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(1003L, 3001L, "ORDER-3", "RSV-3",
                 InventoryAuditLog.ACTION_DEDUCT, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL",
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditDeadLetter.REPLAY_STATUS_RUNNING, 0, null, null, null, null, null, null));
+                InventoryAuditDeadLetter.REPLAY_STATUS_RUNNING.value(), 0, null, null, null, null, null, null));
 
         List<InventoryAuditReplayResultDTO> results = service.replayDeadLettersBatch(3001L, List.of(1002L, 1003L),
                 "BATCH-1", 9002L);
 
         assertEquals(2, results.size());
-        assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED, results.get(0).getReplayStatus());
+        assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED.value(), results.get(0).getReplayStatus());
         assertTrue(results.get(1).getMessage().contains("not-claimable"));
     }
 
@@ -76,7 +76,7 @@ class InventoryAuditCompensationApplicationServiceTest {
 
         InventoryAuditReplayResultDTO result = service.replayDeadLetter(3001L, 1004L, "MANUAL-REPLAY-1004", 9001L);
 
-        assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_FAILED, result.getReplayStatus());
+        assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.value(), result.getReplayStatus());
         assertTrue(result.getMessage().startsWith("tx-failed:"));
         assertEquals(InventoryAuditDeadLetter.REPLAY_STATUS_FAILED, repository.deadLetters.get(1004L).getReplayStatus());
         assertEquals("MANUAL", repository.deadLetters.get(1004L).getReplayOperatorType());

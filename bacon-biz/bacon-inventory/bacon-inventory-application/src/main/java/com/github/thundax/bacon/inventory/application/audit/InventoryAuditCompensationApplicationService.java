@@ -38,7 +38,7 @@ public class InventoryAuditCompensationApplicationService {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "dead-letter-tenant-mismatch");
         }
         if (InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED.equals(deadLetter.getReplayStatus())) {
-            return new InventoryAuditReplayResultDTO(deadLetterId, deadLetter.getReplayStatus(), deadLetter.getReplayKey(),
+            return new InventoryAuditReplayResultDTO(deadLetterId, deadLetter.getReplayStatusValue(), deadLetter.getReplayKey(),
                     "already-replayed");
         }
         String resolvedReplayKey = resolveReplayKey(deadLetter, replayKey);
@@ -47,7 +47,7 @@ public class InventoryAuditCompensationApplicationService {
         boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(deadLetterId, tenantId, resolvedReplayKey,
                 REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt);
         if (!claimed) {
-            return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED,
+            return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.value(),
                     resolvedReplayKey, "dead-letter-not-claimable");
         }
         try {
@@ -68,7 +68,7 @@ public class InventoryAuditCompensationApplicationService {
                 log.error("ALERT inventory audit replay tx compensate failed, deadLetterId={}, replayKey={}",
                         deadLetterId, resolvedReplayKey, compensateException);
             }
-            return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED,
+            return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.value(),
                     resolvedReplayKey, "tx-failed:" + truncatedError);
         }
     }

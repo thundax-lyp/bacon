@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
@@ -17,10 +18,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class InventoryAuditDeadLetter {
 
-    public static final String REPLAY_STATUS_PENDING = "PENDING";
-    public static final String REPLAY_STATUS_RUNNING = "RUNNING";
-    public static final String REPLAY_STATUS_SUCCEEDED = "SUCCEEDED";
-    public static final String REPLAY_STATUS_FAILED = "FAILED";
+    public static final InventoryAuditReplayStatus REPLAY_STATUS_PENDING = InventoryAuditReplayStatus.PENDING;
+    public static final InventoryAuditReplayStatus REPLAY_STATUS_RUNNING = InventoryAuditReplayStatus.RUNNING;
+    public static final InventoryAuditReplayStatus REPLAY_STATUS_SUCCEEDED = InventoryAuditReplayStatus.SUCCEEDED;
+    public static final InventoryAuditReplayStatus REPLAY_STATUS_FAILED = InventoryAuditReplayStatus.FAILED;
 
     /** 死信记录主键。 */
     private Long id;
@@ -51,7 +52,7 @@ public class InventoryAuditDeadLetter {
     /** 死信时间。 */
     private Instant deadAt;
     /** 回放状态。 */
-    private String replayStatus;
+    private InventoryAuditReplayStatus replayStatus;
     /** 回放次数。 */
     private Integer replayCount;
     /** 最近一次回放时间。 */
@@ -91,7 +92,7 @@ public class InventoryAuditDeadLetter {
                                     String replayOperatorType, Long replayOperatorId) {
         this(null, outboxId, (EventCode) null, toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, replayStatus, replayCount, lastReplayAt, lastReplayResult, lastReplayError,
+                deadReason, deadAt, toReplayStatus(replayStatus), replayCount, lastReplayAt, lastReplayResult, lastReplayError,
                 replayKey, replayOperatorType, toStringValue(replayOperatorId));
     }
 
@@ -103,7 +104,7 @@ public class InventoryAuditDeadLetter {
                                     String replayOperatorType, Long replayOperatorId) {
         this(null, outboxId, toEventCode(eventCode), toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, replayStatus, replayCount, lastReplayAt, lastReplayResult, lastReplayError,
+                deadReason, deadAt, toReplayStatus(replayStatus), replayCount, lastReplayAt, lastReplayResult, lastReplayError,
                 replayKey, replayOperatorType, toStringValue(replayOperatorId));
     }
 
@@ -115,7 +116,7 @@ public class InventoryAuditDeadLetter {
                                     String replayOperatorType, Long replayOperatorId) {
         this(id, outboxId, (EventCode) null, toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, replayStatus, replayCount, lastReplayAt, lastReplayResult, lastReplayError,
+                deadReason, deadAt, toReplayStatus(replayStatus), replayCount, lastReplayAt, lastReplayResult, lastReplayError,
                 replayKey, replayOperatorType, toStringValue(replayOperatorId));
     }
 
@@ -127,7 +128,7 @@ public class InventoryAuditDeadLetter {
                                     String replayOperatorType, Long replayOperatorId) {
         this(id, outboxId, toEventCode(eventCode), toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, replayStatus, replayCount, lastReplayAt, lastReplayResult, lastReplayError,
+                deadReason, deadAt, toReplayStatus(replayStatus), replayCount, lastReplayAt, lastReplayResult, lastReplayError,
                 replayKey, replayOperatorType, toStringValue(replayOperatorId));
     }
 
@@ -135,7 +136,7 @@ public class InventoryAuditDeadLetter {
                                     String reservationNo, InventoryAuditActionType actionType,
                                     InventoryAuditOperatorType operatorType, String operatorId, Instant occurredAt,
                                     Integer retryCount, String errorMessage, String deadReason, Instant deadAt,
-                                    String replayStatus, Integer replayCount, Instant lastReplayAt,
+                                    InventoryAuditReplayStatus replayStatus, Integer replayCount, Instant lastReplayAt,
                                     String lastReplayResult, String lastReplayError, String replayKey,
                                     String replayOperatorType, String replayOperatorId) {
         this.id = id;
@@ -188,6 +189,10 @@ public class InventoryAuditDeadLetter {
         return eventCode == null ? null : eventCode.value();
     }
 
+    public String getReplayStatusValue() {
+        return replayStatus == null ? null : replayStatus.value();
+    }
+
     public Long getTenantIdValue() {
         return tenantId == null ? null : tenantId.value();
     }
@@ -238,5 +243,9 @@ public class InventoryAuditDeadLetter {
 
     private static EventCode toEventCode(String value) {
         return value == null ? null : EventCode.of(value);
+    }
+
+    private static InventoryAuditReplayStatus toReplayStatus(String value) {
+        return value == null ? null : InventoryAuditReplayStatus.fromValue(value);
     }
 }

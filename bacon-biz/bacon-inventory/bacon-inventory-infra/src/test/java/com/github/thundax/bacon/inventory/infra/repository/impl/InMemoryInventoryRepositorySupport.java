@@ -310,7 +310,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
                 .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo().value()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
-                        || replayStatus.equals(item.getReplayStatus()))
+                        || replayStatus.equals(item.getReplayStatusValue()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditDeadLetter::getDeadAt).reversed()
                         .thenComparing(InventoryAuditDeadLetter::getOutboxIdValue, java.util.Comparator.reverseOrder()))
                 .skip((long) (pageNo - 1) * pageSize)
@@ -324,7 +324,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
                 .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo().value()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
-                        || replayStatus.equals(item.getReplayStatus()))
+                        || replayStatus.equals(item.getReplayStatusValue()))
                 .count();
     }
 

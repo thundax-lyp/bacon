@@ -50,8 +50,8 @@ class StorageAuditOutboxRepositoryImplTest {
         assertThat(result).hasSize(1);
         StorageAuditOutbox mapped = result.get(0);
         assertThat(mapped.getId()).isEqualTo(101L);
-        assertThat(mapped.getTenantId()).isEqualTo(TenantId.of("tenant-a"));
-        assertThat(mapped.getObjectId()).isEqualTo(StoredObjectId.of("O9001"));
+        assertThat(mapped.getTenantId()).isEqualTo(TenantId.of(1L));
+        assertThat(mapped.getObjectId()).isEqualTo(StoredObjectId.of(9001L));
         assertThat(mapped.getActionType()).isEqualTo(StorageAuditActionType.UPLOAD);
         assertThat(mapped.getStatus()).isEqualTo(StorageAuditOutboxStatus.NEW);
         assertThat(mapped.getNextRetryAt()).isEqualTo(retryBefore.minusSeconds(60));
@@ -122,8 +122,8 @@ class StorageAuditOutboxRepositoryImplTest {
     private StorageAuditOutboxDO buildOutboxDO(Long id, String status, Instant nextRetryAt) {
         StorageAuditOutboxDO dataObject = new StorageAuditOutboxDO();
         dataObject.setId(id);
-        dataObject.setTenantId(TenantId.of("tenant-a"));
-        dataObject.setObjectId(StoredObjectId.of("O9001"));
+        dataObject.setTenantId(TenantId.of(1L));
+        dataObject.setObjectId(StoredObjectId.of(9001L));
         dataObject.setOwnerType("USER");
         dataObject.setOwnerId("U-1");
         dataObject.setActionType("UPLOAD");

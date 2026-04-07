@@ -65,7 +65,7 @@ class StorageProviderControllerContractTest {
                         .file(file)
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
-                        .param("tenantId", "tenant-a")
+                        .param("tenantId", "1")
                         .param("category", "attachment"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -75,40 +75,40 @@ class StorageProviderControllerContractTest {
     @Test
     void shouldExposeMultipartInitPath() throws Exception {
         when(storedObjectFacade.initMultipartUpload(any())).thenReturn(new MultipartUploadSessionDTO(
-                "upload-1", "GENERIC_ATTACHMENT", "owner-1", "tenant-a", "attachment", "a.txt",
+                1L, "GENERIC_ATTACHMENT", "owner-1", 1L, "attachment", "a.txt",
                 "text/plain", 1024L, 8L * 1024 * 1024, 0, UploadStatusEnum.INITIATED));
 
         mockMvc.perform(post("/providers/storage/objects/multipart/init")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
-                        .param("tenantId", "tenant-a")
+                        .param("tenantId", "1")
                         .param("category", "attachment")
                         .param("originalFilename", "a.txt")
                         .param("contentType", "text/plain")
                         .param("totalSize", "1024")
                         .param("partSize", String.valueOf(8L * 1024 * 1024)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.uploadId").value("upload-1"))
+                .andExpect(jsonPath("$.uploadId").value(1))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
     @Test
     void shouldExposeMultipartPartUploadPath() throws Exception {
         when(storedObjectFacade.uploadMultipartPart(any()))
-                .thenReturn(new MultipartUploadPartDTO("upload-1", 1, "etag-1"));
+                .thenReturn(new MultipartUploadPartDTO("1", 1, "etag-1"));
         MockMultipartFile file = new MockMultipartFile("file", "part-1.bin",
                 "application/octet-stream", new byte[]{1, 2, 3});
 
-        mockMvc.perform(multipart("/providers/storage/objects/multipart/{uploadId}/parts", "upload-1")
+        mockMvc.perform(multipart("/providers/storage/objects/multipart/{uploadId}/parts", "1")
                         .file(file)
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
-                        .param("tenantId", "tenant-a")
+                        .param("tenantId", "1")
                         .param("partNumber", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.uploadId").value("upload-1"))
+                .andExpect(jsonPath("$.uploadId").value("1"))
                 .andExpect(jsonPath("$.partNumber").value(1))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
@@ -119,11 +119,11 @@ class StorageProviderControllerContractTest {
                 StoredObjectId.of(2L), "OSS", "bucket", "attachment/a.txt", "a.txt", "text/plain", 1024L,
                 "http://test/attachment/a.txt", "ACTIVE", "UNREFERENCED", Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(post("/providers/storage/objects/multipart/{uploadId}/complete", "upload-1")
+        mockMvc.perform(post("/providers/storage/objects/multipart/{uploadId}/complete", "1")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
-                        .param("tenantId", "tenant-a"))
+                        .param("tenantId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(2))
                 .andExpect(jsonPath("$.code").doesNotExist());
@@ -133,11 +133,11 @@ class StorageProviderControllerContractTest {
     void shouldExposeMultipartAbortPath() throws Exception {
         doNothing().when(storedObjectFacade).abortMultipartUpload(any());
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/multipart/{uploadId}", "upload-1")
+        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/multipart/{uploadId}", "1")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
-                        .param("tenantId", "tenant-a"))
+                        .param("tenantId", "1"))
                 .andExpect(status().isOk());
     }
 
@@ -175,7 +175,7 @@ class StorageProviderControllerContractTest {
 
         mockMvc.perform(get("/providers/storage/objects")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
-                        .param("tenantId", "tenant-a")
+                        .param("tenantId", "1")
                         .param("storageType", "LOCAL_FILE")
                         .param("pageNo", "1")
                 .param("pageSize", "20"))

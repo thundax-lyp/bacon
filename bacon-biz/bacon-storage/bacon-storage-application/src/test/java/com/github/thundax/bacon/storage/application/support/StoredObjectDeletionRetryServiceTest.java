@@ -68,7 +68,7 @@ class StoredObjectDeletionRetryServiceTest {
 
         assertEquals(1, completed);
         verify(storedObjectStorageRepository).delete(storedObject);
-        verify(storedObjectDeletionTransactionService).markDeleted(StoredObjectId.of("O100"));
+        verify(storedObjectDeletionTransactionService).markDeleted(StoredObjectId.of(100L));
         assertEquals(1.0d, meterRegistry.get("bacon.storage.deletion.retry.success.total").counter().count());
     }
 
@@ -82,7 +82,7 @@ class StoredObjectDeletionRetryServiceTest {
         int completed = service.retryDeletingObjects();
 
         assertEquals(0, completed);
-        verify(storedObjectDeletionTransactionService, never()).markDeleted(StoredObjectId.of("O101"));
+        verify(storedObjectDeletionTransactionService, never()).markDeleted(StoredObjectId.of(101L));
         assertEquals(1.0d, meterRegistry.get("bacon.storage.deletion.retry.fail.total").counter().count());
     }
 
@@ -97,10 +97,10 @@ class StoredObjectDeletionRetryServiceTest {
     }
 
     private StoredObject deletingObject(String id, String objectKey) {
-        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default", objectKey,
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of(1L), StorageType.LOCAL_FILE, "default", objectKey,
                 "test.bin", "application/octet-stream", 1024L, "/files/test.bin", null);
         storedObject.markDeleting();
-        return new StoredObject(StoredObjectId.of(id), storedObject.getTenantId(), storedObject.getStorageType(), storedObject.getBucketName(),
+        return new StoredObject(StoredObjectId.of(Long.valueOf(id.substring(1))), storedObject.getTenantId(), storedObject.getStorageType(), storedObject.getBucketName(),
                 storedObject.getObjectKey(), storedObject.getOriginalFilename(), storedObject.getContentType(),
                 storedObject.getSize(), storedObject.getAccessEndpoint(), storedObject.getObjectStatus(),
                 storedObject.getReferenceStatus(), storedObject.getCreatedBy(), storedObject.getCreatedAt(),

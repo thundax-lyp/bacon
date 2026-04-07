@@ -50,7 +50,7 @@ class StorageControllerContractTest {
                         Instant.parse("2026-03-27T10:00:00Z"))), 1L, 1, 20));
 
         mockMvc.perform(get("/api/storage/objects")
-                        .param("tenantId", "tenant-a")
+                        .param("tenantId", "1")
                         .param("storageType", "LOCAL_FILE")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
@@ -74,7 +74,7 @@ class StorageControllerContractTest {
 
     @Test
     void shouldWrapDeleteForAdminFrontend() throws Exception {
-        doNothing().when(storedObjectApplicationService).deleteObject("O100");
+        doNothing().when(storedObjectApplicationService).deleteObject(100L);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/storage/objects/{objectId}", "O100"))
                 .andExpect(status().isOk())

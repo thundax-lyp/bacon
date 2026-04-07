@@ -45,7 +45,7 @@ class StorageAuditApplicationServiceTest {
 
     @Test
     void shouldIncrementSuccessMetricWhenAuditLogSaved() {
-        service.record(TenantId.of("tenant-a"), StoredObjectId.of("O100"), "GENERIC_ATTACHMENT", "owner-1",
+        service.record(TenantId.of(1L), StoredObjectId.of(100L), "GENERIC_ATTACHMENT", "owner-1",
                 StorageAuditActionType.UPLOAD, null, "ACTIVE");
 
         verify(storageAuditLogRepository).save(any());
@@ -59,7 +59,7 @@ class StorageAuditApplicationServiceTest {
     void shouldPersistOutboxWhenAuditLogSaveFails() {
         doThrow(new IllegalStateException("force-fail-audit")).when(storageAuditLogRepository).save(any());
 
-        service.record(TenantId.of("tenant-a"), StoredObjectId.of("O100"), "GENERIC_ATTACHMENT", "owner-1",
+        service.record(TenantId.of(1L), StoredObjectId.of(100L), "GENERIC_ATTACHMENT", "owner-1",
                 StorageAuditActionType.UPLOAD, null, "ACTIVE");
 
         verify(storageAuditOutboxRepository).save(any());
@@ -78,7 +78,7 @@ class StorageAuditApplicationServiceTest {
         doThrow(new IllegalStateException("force-fail-audit")).when(storageAuditLogRepository).save(any());
         doThrow(new IllegalStateException("force-fail-outbox")).when(storageAuditOutboxRepository).save(any());
 
-        service.record(TenantId.of("tenant-a"), StoredObjectId.of("O100"), "GENERIC_ATTACHMENT", "owner-1",
+        service.record(TenantId.of(1L), StoredObjectId.of(100L), "GENERIC_ATTACHMENT", "owner-1",
                 StorageAuditActionType.UPLOAD, null, "ACTIVE");
 
         assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.outbox.persist.fail.total")

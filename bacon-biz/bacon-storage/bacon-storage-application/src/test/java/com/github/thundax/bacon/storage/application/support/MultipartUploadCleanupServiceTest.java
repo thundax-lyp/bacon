@@ -63,7 +63,7 @@ class MultipartUploadCleanupServiceTest {
 
     @Test
     void shouldAbortAndCleanupExpiredMultipartSessions() {
-        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-expired", TenantId.of("tenant-a"),
+        MultipartUploadSession session = new MultipartUploadSession(1L, "upload-expired", TenantId.of(1L),
                 "GENERIC_ATTACHMENT", "owner-1", "attachment", "a.png", "image/png", "attachment/key.png",
                 "provider-1", 2048L, 1024L, 1, UploadStatus.UPLOADING,
                 Instant.now().minusSeconds(7200), Instant.now().minusSeconds(7200), null, null);
@@ -86,7 +86,7 @@ class MultipartUploadCleanupServiceTest {
 
     @Test
     void shouldCleanupAlreadyAbortedSessionsWithoutSavingAgain() {
-        MultipartUploadSession session = new MultipartUploadSession(2L, "upload-aborted", TenantId.of("tenant-a"),
+        MultipartUploadSession session = new MultipartUploadSession(2L, "upload-aborted", TenantId.of(1L),
                 "GENERIC_ATTACHMENT", "owner-2", "attachment", "b.png", "image/png", "attachment/key-b.png",
                 "provider-2", 2048L, 1024L, 1, UploadStatus.ABORTED,
                 Instant.now().minusSeconds(7200), Instant.now().minusSeconds(7200), null, Instant.now().minusSeconds(7100));
@@ -109,7 +109,7 @@ class MultipartUploadCleanupServiceTest {
 
     @Test
     void shouldRecordCleanupFailureMetricWhenAbortFails() {
-        MultipartUploadSession session = new MultipartUploadSession(3L, "upload-failed", TenantId.of("tenant-a"),
+        MultipartUploadSession session = new MultipartUploadSession(3L, "upload-failed", TenantId.of(1L),
                 "GENERIC_ATTACHMENT", "owner-3", "attachment", "c.png", "image/png", "attachment/key-c.png",
                 "provider-3", 2048L, 1024L, 1, UploadStatus.UPLOADING,
                 Instant.now().minusSeconds(7200), Instant.now().minusSeconds(7200), null, null);

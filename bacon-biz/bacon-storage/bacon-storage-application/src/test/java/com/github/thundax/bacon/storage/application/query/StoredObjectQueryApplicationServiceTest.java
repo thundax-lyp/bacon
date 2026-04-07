@@ -37,26 +37,26 @@ class StoredObjectQueryApplicationServiceTest {
 
     @Test
     void shouldRejectQueryForDeletedObject() {
-        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of(1L), StorageType.LOCAL_FILE, "default",
                 "attachment/object-d.bin", "d.bin", "application/octet-stream", 1024L, "/files/d.bin", null);
         storedObject.markDeleting();
         storedObject.markDeleted();
-        when(storedObjectRepository.findById(StoredObjectId.of("O103"))).thenReturn(Optional.of(storedObject));
+        when(storedObjectRepository.findById(StoredObjectId.of(103L))).thenReturn(Optional.of(storedObject));
 
         assertThrows(NotFoundException.class, () -> service.getObjectById("O103"));
     }
 
     @Test
     void shouldPageObjectsForAdminManagement() {
-        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of(1L), StorageType.LOCAL_FILE, "default",
                 "attachment/object-e.bin", "e.bin", "application/octet-stream", 2048L, "/files/e.bin", null);
-        when(storedObjectRepository.countObjects(eq("tenant-a"), eq("LOCAL_FILE"), eq("ACTIVE"), eq("UNREFERENCED"),
+        when(storedObjectRepository.countObjects(eq(1L), eq("LOCAL_FILE"), eq("ACTIVE"), eq("UNREFERENCED"),
                 eq("e.bin"), eq("attachment"))).thenReturn(1L);
-        when(storedObjectRepository.pageObjects(eq("tenant-a"), eq("LOCAL_FILE"), eq("ACTIVE"), eq("UNREFERENCED"),
+        when(storedObjectRepository.pageObjects(eq(1L), eq("LOCAL_FILE"), eq("ACTIVE"), eq("UNREFERENCED"),
                 eq("e.bin"), eq("attachment"), eq(0), eq(200))).thenReturn(List.of(storedObject));
 
         StoredObjectPageResultDTO result = service.pageObjects(new StoredObjectPageQueryDTO(
-                "tenant-a", "LOCAL_FILE", "ACTIVE", "UNREFERENCED", "e.bin", "attachment", 0, 500));
+                1L, "LOCAL_FILE", "ACTIVE", "UNREFERENCED", "e.bin", "attachment", 0, 500));
 
         assertEquals(1L, result.getTotal());
         assertEquals(1, result.getPageNo());

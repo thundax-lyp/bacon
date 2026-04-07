@@ -14,7 +14,7 @@ class StoredObjectTest {
 
     @Test
     void shouldBuildUploadedObjectWithDefaultStatuses() {
-        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE,
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of(1L), StorageType.LOCAL_FILE,
                 "default", "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", "u-1001");
 
         assertEquals(StoredObjectStatus.ACTIVE, storedObject.getObjectStatus());
@@ -25,7 +25,7 @@ class StoredObjectTest {
 
     @Test
     void shouldSwitchReferenceAndDeleteStatus() {
-        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of(1L), StorageType.LOCAL_FILE, "default",
                 "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", null);
 
         storedObject.markReferenced();
@@ -43,7 +43,7 @@ class StoredObjectTest {
 
     @Test
     void shouldRejectReferenceMutationWhenObjectIsDeleting() {
-        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of("tenant-a"), StorageType.LOCAL_FILE, "default",
+        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of(1L), StorageType.LOCAL_FILE, "default",
                 "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", null);
 
         storedObject.markDeleting();

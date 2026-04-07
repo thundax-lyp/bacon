@@ -14,7 +14,7 @@ class MultipartUploadSessionTest {
 
     @Test
     void shouldTrackUploadStateTransitions() {
-        MultipartUploadSession session = MultipartUploadSession.initiate("upload-1", TenantId.of("tenant-a"),
+        MultipartUploadSession session = MultipartUploadSession.initiate("upload-1", TenantId.of(1L),
                 "GENERIC_ATTACHMENT", "owner-1", "attachment", "attachment.png", "image/png",
                 "attachment/object-1.png", "provider-upload-1", 10_240L, 5_120L);
 
@@ -38,7 +38,7 @@ class MultipartUploadSessionTest {
         assertThrows(IllegalArgumentException.class, () -> MultipartUploadPart.create("u-1", 1,
                 "", 1024L));
 
-        MultipartUploadSession session = MultipartUploadSession.initiate("upload-2", TenantId.of("tenant-a"),
+        MultipartUploadSession session = MultipartUploadSession.initiate("upload-2", TenantId.of(1L),
                 "GENERIC_ATTACHMENT", "owner-2", "attachment", "attachment.png", "image/png",
                 "attachment/object-2.png", null, 10_240L, 5_120L);
         session.markAborted();
@@ -48,15 +48,15 @@ class MultipartUploadSessionTest {
 
     @Test
     void shouldValidateOwnershipAndMultipartIntegrity() {
-        MultipartUploadSession session = MultipartUploadSession.initiate("upload-3", TenantId.of("tenant-a"),
+        MultipartUploadSession session = MultipartUploadSession.initiate("upload-3", TenantId.of(1L),
                 "GENERIC_ATTACHMENT", "owner-3", "attachment", "attachment.png", "image/png",
                 "attachment/object-3.png", "provider-upload-3", 10_240L, 5_120L);
         session.recordUploadedPart();
         session.recordUploadedPart();
 
-        session.assertOwnership(TenantId.of("tenant-a"), "GENERIC_ATTACHMENT", "owner-3");
+        session.assertOwnership(TenantId.of(1L), "GENERIC_ATTACHMENT", "owner-3");
         assertThrows(IllegalArgumentException.class,
-                () -> session.assertOwnership(TenantId.of("tenant-b"), "GENERIC_ATTACHMENT", "owner-3"));
+                () -> session.assertOwnership(TenantId.of(2L), "GENERIC_ATTACHMENT", "owner-3"));
 
         List<MultipartUploadPart> validParts = List.of(
                 MultipartUploadPart.create("upload-3", 1, "etag-1", 5_120L),

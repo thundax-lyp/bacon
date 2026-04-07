@@ -127,7 +127,7 @@ class StorageAuditOutboxRetryServiceTest {
 
     private StorageAuditOutbox outbox(Long id, int retryCount) {
         Instant now = Instant.parse("2026-03-27T12:00:00Z");
-        return new StorageAuditOutbox(id, TenantId.of("tenant-a"), StoredObjectId.of("O100"), "GENERIC_ATTACHMENT",
+        return new StorageAuditOutbox(id, TenantId.of(1L), StoredObjectId.of(100L), "GENERIC_ATTACHMENT",
                 "owner-1", StorageAuditActionType.UPLOAD, null, "ACTIVE", "SYSTEM", 0L, now, "force-fail-audit",
                 StorageAuditOutboxStatus.NEW, retryCount, now, now);
     }

@@ -8,6 +8,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import io.micrometer.core.instrument.Metrics;
@@ -95,7 +96,7 @@ public class InventoryOperationLogSupport {
             inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(null, reservation.getTenantId(),
                     reservation.getOrderNo(), reservation.getReservationNo(), actionType.value(),
                     InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt,
-                    truncateErrorMessage(ex.getMessage()), InventoryAuditOutbox.STATUS_NEW, 0, Instant.now(),
+                    truncateErrorMessage(ex.getMessage()), InventoryAuditOutboxStatus.NEW, 0, Instant.now(),
                     null, null, null, null, Instant.now(), Instant.now()));
             Metrics.counter("bacon.inventory.audit.outbox.persist.success.total", "actionType", actionType.value())
                     .increment();

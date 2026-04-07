@@ -15,6 +15,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
@@ -221,8 +222,8 @@ public class InventoryRepositorySupport {
 
     public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
         return auditOutboxMapper.selectList(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
-                        .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_NEW,
-                                InventoryAuditOutbox.STATUS_RETRYING)
+                        .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.NEW.value(),
+                                InventoryAuditOutboxStatus.RETRYING.value())
                         .and(wrapper -> wrapper.isNull(InventoryAuditOutboxDO::getNextRetryAt)
                                 .or()
                                 .le(InventoryAuditOutboxDO::getNextRetryAt, now))
@@ -236,8 +237,8 @@ public class InventoryRepositorySupport {
     public List<InventoryAuditOutbox> claimRetryableAuditOutbox(Instant now, int limit,
                                                                  String processingOwner, Instant leaseUntil) {
         List<InventoryAuditOutboxDO> candidates = auditOutboxMapper.selectList(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
-                        .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_NEW,
-                                InventoryAuditOutbox.STATUS_RETRYING)
+                        .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.NEW.value(),
+                                InventoryAuditOutboxStatus.RETRYING.value())
                         .and(wrapper -> wrapper.isNull(InventoryAuditOutboxDO::getNextRetryAt)
                                 .or()
                                 .le(InventoryAuditOutboxDO::getNextRetryAt, now))
@@ -255,11 +256,12 @@ public class InventoryRepositorySupport {
             }
             int updated = auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
                     .eq(InventoryAuditOutboxDO::getId, candidate.getId())
-                    .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_NEW, InventoryAuditOutbox.STATUS_RETRYING)
+                    .in(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.NEW.value(),
+                            InventoryAuditOutboxStatus.RETRYING.value())
                     .and(wrapper -> wrapper.isNull(InventoryAuditOutboxDO::getNextRetryAt)
                             .or()
                             .le(InventoryAuditOutboxDO::getNextRetryAt, now))
-                    .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                    .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.PROCESSING.value())
                     .set(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)
                     .set(InventoryAuditOutboxDO::getLeaseUntil, leaseUntil)
                     .set(InventoryAuditOutboxDO::getClaimedAt, now)
@@ -277,9 +279,9 @@ public class InventoryRepositorySupport {
 
     public int releaseExpiredAuditOutboxLease(Instant now) {
         return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
-                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.PROCESSING.value())
                 .le(InventoryAuditOutboxDO::getLeaseUntil, now)
-                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_RETRYING)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.RETRYING.value())
                 .set(InventoryAuditOutboxDO::getProcessingOwner, null)
                 .set(InventoryAuditOutboxDO::getLeaseUntil, null)
                 .set(InventoryAuditOutboxDO::getClaimedAt, null)
@@ -290,7 +292,7 @@ public class InventoryRepositorySupport {
                                           Instant updatedAt) {
         auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
                 .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
-                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_RETRYING)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.RETRYING.value())
                 .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
                 .set(InventoryAuditOutboxDO::getNextRetryAt, nextRetryAt)
                 .set(InventoryAuditOutboxDO::getErrorMessage, errorMessage)
@@ -301,9 +303,9 @@ public class InventoryRepositorySupport {
                                                     Instant nextRetryAt, String errorMessage, Instant updatedAt) {
         return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
                 .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
-                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.PROCESSING.value())
                 .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)
-                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_RETRYING)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.RETRYING.value())
                 .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
                 .set(InventoryAuditOutboxDO::getNextRetryAt, nextRetryAt)
                 .set(InventoryAuditOutboxDO::getErrorMessage, errorMessage)
@@ -316,7 +318,7 @@ public class InventoryRepositorySupport {
     public void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
         auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
                 .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
-                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_DEAD)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.DEAD.value())
                 .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
                 .set(InventoryAuditOutboxDO::getDeadReason, deadReason)
                 .set(InventoryAuditOutboxDO::getUpdatedAt, updatedAt));
@@ -326,9 +328,9 @@ public class InventoryRepositorySupport {
                                               String deadReason, Instant updatedAt) {
         return auditOutboxMapper.update(null, Wrappers.<InventoryAuditOutboxDO>lambdaUpdate()
                 .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
-                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.PROCESSING.value())
                 .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)
-                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_DEAD)
+                .set(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.DEAD.value())
                 .set(InventoryAuditOutboxDO::getRetryCount, retryCount)
                 .set(InventoryAuditOutboxDO::getDeadReason, deadReason)
                 .set(InventoryAuditOutboxDO::getProcessingOwner, null)
@@ -344,7 +346,7 @@ public class InventoryRepositorySupport {
     public boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
         return auditOutboxMapper.delete(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
                 .eq(InventoryAuditOutboxDO::getId, toDatabaseOutboxId(outboxId))
-                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutbox.STATUS_PROCESSING)
+                .eq(InventoryAuditOutboxDO::getStatus, InventoryAuditOutboxStatus.PROCESSING.value())
                 .eq(InventoryAuditOutboxDO::getProcessingOwner, processingOwner)) > 0;
     }
 
@@ -654,10 +656,11 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditOutboxDO toDataObject(InventoryAuditOutbox outbox) {
-        return new InventoryAuditOutboxDO(outbox.getIdValue(), outbox.getEventCodeValue(), outbox.getTenantId(), outbox.getOrderNo(),
-                outbox.getReservationNo(), outbox.getActionType(), outbox.getOperatorType(),
+        return new InventoryAuditOutboxDO(outbox.getIdValue(), outbox.getEventCodeValue(), outbox.getTenantIdValue(),
+                outbox.getOrderNoValue(), outbox.getReservationNoValue(), outbox.getActionTypeValue(),
+                outbox.getOperatorTypeValue(),
                 outbox.getOperatorIdValue(), outbox.getOccurredAt(), outbox.getErrorMessage(),
-                outbox.getStatus().value(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(),
+                outbox.getStatusValue(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(),
                 outbox.getLeaseUntil(), outbox.getClaimedAt(), outbox.getDeadReason(), outbox.getFailedAt(),
                 outbox.getUpdatedAt());
     }

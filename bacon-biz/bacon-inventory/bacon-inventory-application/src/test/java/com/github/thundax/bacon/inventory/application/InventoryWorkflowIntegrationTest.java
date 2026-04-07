@@ -13,6 +13,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
@@ -108,7 +109,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-DEAD", "RSV-DEAD",
                 InventoryAuditActionType.RESERVE.value(), InventoryAuditOperatorType.SYSTEM.value(),
-                InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutbox.STATUS_NEW,
+                InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutboxStatus.NEW,
                 1, Instant.EPOCH, null, null, null, null, now, now));
 
         retryService.retryAuditOutbox();
@@ -131,7 +132,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-OK", "RSV-OK",
                 InventoryAuditActionType.RESERVE.value(), InventoryAuditOperatorType.SYSTEM.value(),
-                InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutbox.STATUS_NEW,
+                InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutboxStatus.NEW,
                 0, Instant.EPOCH, null, null, null, null, now, now));
 
         retryService.retryAuditOutbox();
@@ -282,8 +283,8 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
             return outboxMap.values().stream()
-                    .filter(item -> InventoryAuditOutbox.STATUS_NEW.equals(item.getStatus())
-                            || InventoryAuditOutbox.STATUS_RETRYING.equals(item.getStatus()))
+                    .filter(item -> InventoryAuditOutboxStatus.NEW.equals(item.getStatus())
+                            || InventoryAuditOutboxStatus.RETRYING.equals(item.getStatus()))
                     .filter(item -> item.getNextRetryAt() == null || !item.getNextRetryAt().isAfter(now))
                     .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt)
                             .thenComparing(InventoryAuditOutbox::getIdValue))
@@ -314,13 +315,13 @@ class InventoryWorkflowIntegrationTest {
         public int releaseExpiredAuditOutboxLease(Instant now) {
             int released = 0;
             for (InventoryAuditOutbox item : outboxMap.values()) {
-                if (!InventoryAuditOutbox.STATUS_PROCESSING.equals(item.getStatus())) {
+                if (!InventoryAuditOutboxStatus.PROCESSING.equals(item.getStatus())) {
                     continue;
                 }
                 if (item.getLeaseUntil() == null || item.getLeaseUntil().isAfter(now)) {
                     continue;
                 }
-                item.setStatus(InventoryAuditOutbox.STATUS_RETRYING);
+                item.setStatus(InventoryAuditOutboxStatus.RETRYING);
                 item.setProcessingOwner(null);
                 item.setLeaseUntil(null);
                 item.setClaimedAt(null);
@@ -335,7 +336,7 @@ class InventoryWorkflowIntegrationTest {
                                               Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox != null) {
-                outbox.setStatus(InventoryAuditOutbox.STATUS_RETRYING);
+                outbox.setStatus(InventoryAuditOutboxStatus.RETRYING);
                 outbox.setRetryCount(retryCount);
                 outbox.setNextRetryAt(nextRetryAt);
                 outbox.setErrorMessage(errorMessage);
@@ -347,11 +348,11 @@ class InventoryWorkflowIntegrationTest {
         public boolean updateAuditOutboxForRetryClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                                         Instant nextRetryAt, String errorMessage, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
-            if (outbox == null || !InventoryAuditOutbox.STATUS_PROCESSING.equals(outbox.getStatus())
+            if (outbox == null || !InventoryAuditOutboxStatus.PROCESSING.equals(outbox.getStatus())
                     || !processingOwner.equals(outbox.getProcessingOwner())) {
                 return false;
             }
-            outbox.setStatus(InventoryAuditOutbox.STATUS_RETRYING);
+            outbox.setStatus(InventoryAuditOutboxStatus.RETRYING);
             outbox.setRetryCount(retryCount);
             outbox.setNextRetryAt(nextRetryAt);
             outbox.setErrorMessage(errorMessage);
@@ -366,7 +367,7 @@ class InventoryWorkflowIntegrationTest {
         public void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox != null) {
-                outbox.setStatus(InventoryAuditOutbox.STATUS_DEAD);
+                outbox.setStatus(InventoryAuditOutboxStatus.DEAD);
                 outbox.setRetryCount(retryCount);
                 outbox.setDeadReason(deadReason);
                 outbox.setUpdatedAt(updatedAt);
@@ -377,11 +378,11 @@ class InventoryWorkflowIntegrationTest {
         public boolean markAuditOutboxDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount,
                                                   String deadReason, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
-            if (outbox == null || !InventoryAuditOutbox.STATUS_PROCESSING.equals(outbox.getStatus())
+            if (outbox == null || !InventoryAuditOutboxStatus.PROCESSING.equals(outbox.getStatus())
                     || !processingOwner.equals(outbox.getProcessingOwner())) {
                 return false;
             }
-            outbox.setStatus(InventoryAuditOutbox.STATUS_DEAD);
+            outbox.setStatus(InventoryAuditOutboxStatus.DEAD);
             outbox.setRetryCount(retryCount);
             outbox.setDeadReason(deadReason);
             outbox.setProcessingOwner(null);
@@ -399,7 +400,7 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
-            if (outbox == null || !InventoryAuditOutbox.STATUS_PROCESSING.equals(outbox.getStatus())
+            if (outbox == null || !InventoryAuditOutboxStatus.PROCESSING.equals(outbox.getStatus())
                     || !processingOwner.equals(outbox.getProcessingOwner())) {
                 return false;
             }
@@ -440,14 +441,14 @@ class InventoryWorkflowIntegrationTest {
             if (outbox == null) {
                 return false;
             }
-            if (!InventoryAuditOutbox.STATUS_NEW.equals(outbox.getStatus())
-                    && !InventoryAuditOutbox.STATUS_RETRYING.equals(outbox.getStatus())) {
+            if (!InventoryAuditOutboxStatus.NEW.equals(outbox.getStatus())
+                    && !InventoryAuditOutboxStatus.RETRYING.equals(outbox.getStatus())) {
                 return false;
             }
             if (outbox.getNextRetryAt() != null && outbox.getNextRetryAt().isAfter(now)) {
                 return false;
             }
-            outbox.setStatus(InventoryAuditOutbox.STATUS_PROCESSING);
+            outbox.setStatus(InventoryAuditOutboxStatus.PROCESSING);
             outbox.setProcessingOwner(processingOwner);
             outbox.setLeaseUntil(leaseUntil);
             outbox.setClaimedAt(now);

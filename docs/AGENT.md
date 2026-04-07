@@ -25,6 +25,10 @@
 - 上线准备、运行手册、发布清单：读取 [`40-readiness/`](./40-readiness)
 - 专项方案或规划：读取 [`30-designs/`](./30-designs)
 
+明确排除：
+
+- [`STORY.md`](./STORY.md) 是消遣文档，不是工程规则，不是实现依据，不作为 AI 输入默认加载
+
 ## 2. Directory Map
 
 - `00-governance/`: architecture, global rules, shared constraints
@@ -58,3 +62,4 @@
 - Cross-domain workflow: load only the involved domains
 - Class creation, renaming, placement, or layering tasks: load naming and placement rules on demand
 - If a design or readiness doc is referenced by the active requirement, load it on demand
+- Never load `STORY.md` unless the user explicitly asks for that file itself

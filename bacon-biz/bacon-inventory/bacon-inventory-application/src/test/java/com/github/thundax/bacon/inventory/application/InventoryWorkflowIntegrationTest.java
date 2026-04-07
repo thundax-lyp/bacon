@@ -109,7 +109,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-DEAD", "RSV-DEAD",
                 InventoryAuditActionType.RESERVE.value(), InventoryAuditOperatorType.SYSTEM.value(),
-                InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutboxStatus.NEW.value(),
+                InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutboxStatus.NEW,
                 1, Instant.EPOCH, null, null, null, null, now, now));
 
         retryService.retryAuditOutbox();
@@ -132,7 +132,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-OK", "RSV-OK",
                 InventoryAuditActionType.RESERVE.value(), InventoryAuditOperatorType.SYSTEM.value(),
-                InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutboxStatus.NEW.value(),
+                InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutboxStatus.NEW,
                 0, Instant.EPOCH, null, null, null, null, now, now));
 
         retryService.retryAuditOutbox();

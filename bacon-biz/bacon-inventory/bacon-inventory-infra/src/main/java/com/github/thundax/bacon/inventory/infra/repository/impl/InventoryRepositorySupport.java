@@ -669,7 +669,7 @@ public class InventoryRepositorySupport {
         return new InventoryAuditOutbox(dataObject.getId(), dataObject.getEventCode(), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getActionType(), dataObject.getOperatorType(),
                 dataObject.getOperatorId(), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
-                dataObject.getStatus(), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
+                com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus.fromValue(dataObject.getStatus()), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
                 dataObject.getProcessingOwner(), dataObject.getLeaseUntil(), dataObject.getClaimedAt(),
                 dataObject.getDeadReason(), dataObject.getFailedAt(), dataObject.getUpdatedAt());
     }

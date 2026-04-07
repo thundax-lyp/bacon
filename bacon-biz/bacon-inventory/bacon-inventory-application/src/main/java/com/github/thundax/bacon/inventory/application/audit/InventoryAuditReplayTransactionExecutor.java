@@ -4,6 +4,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -57,7 +58,7 @@ public class InventoryAuditReplayTransactionExecutor {
             inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantIdValue(), deadLetter.getOrderNoValue(),
                     deadLetter.getReservationNo(), InventoryAuditLog.ACTION_AUDIT_REPLAY_SUCCEEDED,
                     operatorType, operatorId, replayAt));
-            return new InventoryAuditReplayResultDTO(deadLetter.getOutboxIdValue(), InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED.value(),
+            return new InventoryAuditReplayResultDTO(deadLetter.getOutboxIdValue(), InventoryAuditReplayStatus.SUCCEEDED.value(),
                     replayKey, "ok");
         } catch (RuntimeException ex) {
             // 主事务内部已知失败也会就地写回 FAILED，保证调用方拿到失败结果时仓储状态已经一致。
@@ -66,7 +67,7 @@ public class InventoryAuditReplayTransactionExecutor {
             inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantIdValue(), deadLetter.getOrderNoValue(),
                     deadLetter.getReservationNo(), InventoryAuditLog.ACTION_AUDIT_REPLAY_FAILED,
                     operatorType, operatorId, replayAt));
-            return new InventoryAuditReplayResultDTO(deadLetter.getOutboxIdValue(), InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.value(),
+            return new InventoryAuditReplayResultDTO(deadLetter.getOutboxIdValue(), InventoryAuditReplayStatus.FAILED.value(),
                     replayKey, "failed:" + truncateError(ex.getMessage()));
         }
     }

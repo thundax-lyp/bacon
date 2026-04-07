@@ -18,11 +18,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class InventoryAuditDeadLetter {
 
-    public static final InventoryAuditReplayStatus REPLAY_STATUS_PENDING = InventoryAuditReplayStatus.PENDING;
-    public static final InventoryAuditReplayStatus REPLAY_STATUS_RUNNING = InventoryAuditReplayStatus.RUNNING;
-    public static final InventoryAuditReplayStatus REPLAY_STATUS_SUCCEEDED = InventoryAuditReplayStatus.SUCCEEDED;
-    public static final InventoryAuditReplayStatus REPLAY_STATUS_FAILED = InventoryAuditReplayStatus.FAILED;
-
     /** 死信记录主键。 */
     private Long id;
     /** 审计出站主键。 */
@@ -73,7 +68,7 @@ public class InventoryAuditDeadLetter {
                                     Integer retryCount, String errorMessage, String deadReason, Instant deadAt) {
         this(null, outboxId, (EventCode) null, toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, REPLAY_STATUS_PENDING, 0, null, null, null, null, null, null);
+                deadReason, deadAt, InventoryAuditReplayStatus.PENDING, 0, null, null, null, null, null, null);
     }
 
     public InventoryAuditDeadLetter(Long outboxId, String eventCode, Long tenantId, String orderNo, String reservationNo,
@@ -81,7 +76,7 @@ public class InventoryAuditDeadLetter {
                                     Integer retryCount, String errorMessage, String deadReason, Instant deadAt) {
         this(null, outboxId, toEventCode(eventCode), toTenantId(tenantId), toOrderNo(orderNo), reservationNo, toActionType(actionType),
                 toOperatorType(operatorType), toStringValue(operatorId), occurredAt, retryCount, errorMessage,
-                deadReason, deadAt, REPLAY_STATUS_PENDING, 0, null, null, null, null, null, null);
+                deadReason, deadAt, InventoryAuditReplayStatus.PENDING, 0, null, null, null, null, null, null);
     }
 
     public InventoryAuditDeadLetter(Long outboxId, Long tenantId, String orderNo, String reservationNo,
@@ -168,7 +163,7 @@ public class InventoryAuditDeadLetter {
                                     String operatorId, Instant occurredAt,
                                     Integer retryCount, String errorMessage, String deadReason, Instant deadAt) {
         this(null, outboxId, (EventCode) null, tenantId, orderNo, reservationNo, actionType, operatorType, operatorId, occurredAt,
-                retryCount, errorMessage, deadReason, deadAt, REPLAY_STATUS_PENDING, 0, null, null, null, null,
+                retryCount, errorMessage, deadReason, deadAt, InventoryAuditReplayStatus.PENDING, 0, null, null, null, null,
                 null, null);
     }
 
@@ -177,7 +172,7 @@ public class InventoryAuditDeadLetter {
                                     InventoryAuditOperatorType operatorType, String operatorId, Instant occurredAt,
                                     Integer retryCount, String errorMessage, String deadReason, Instant deadAt) {
         this(null, outboxId, eventCode, tenantId, orderNo, reservationNo, actionType, operatorType, operatorId,
-                occurredAt, retryCount, errorMessage, deadReason, deadAt, REPLAY_STATUS_PENDING, 0, null, null,
+                occurredAt, retryCount, errorMessage, deadReason, deadAt, InventoryAuditReplayStatus.PENDING, 0, null, null,
                 null, null, null, null);
     }
 

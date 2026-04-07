@@ -10,6 +10,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -99,11 +100,11 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             if (deadLetter == null || !tenantId.equals(deadLetter.getTenantIdValue())) {
                 return false;
             }
-            if (!InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.equals(deadLetter.getReplayStatus())
-                    && !InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.equals(deadLetter.getReplayStatus())) {
+            if (!InventoryAuditReplayStatus.PENDING.equals(deadLetter.getReplayStatus())
+                    && !InventoryAuditReplayStatus.FAILED.equals(deadLetter.getReplayStatus())) {
                 return false;
             }
-            deadLetter.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_RUNNING);
+            deadLetter.setReplayStatus(InventoryAuditReplayStatus.RUNNING);
             deadLetter.setReplayKey(replayKey);
             deadLetter.setReplayOperatorType(operatorType);
             deadLetter.setReplayOperatorId(String.valueOf(operatorId));
@@ -117,7 +118,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         public void markAuditDeadLetterReplaySuccess(Long id, String replayKey, String operatorType, Long operatorId,
                                                      Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id);
-            deadLetter.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED);
+            deadLetter.setReplayStatus(InventoryAuditReplayStatus.SUCCEEDED);
             deadLetter.setReplayCount((deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount()) + 1);
             deadLetter.setReplayKey(replayKey);
             deadLetter.setReplayOperatorType(operatorType);
@@ -131,7 +132,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         public void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
                                                     String replayError, Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id);
-            deadLetter.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_FAILED);
+            deadLetter.setReplayStatus(InventoryAuditReplayStatus.FAILED);
             deadLetter.setReplayCount((deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount()) + 1);
             deadLetter.setReplayKey(replayKey);
             deadLetter.setReplayOperatorType(operatorType);

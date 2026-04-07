@@ -9,6 +9,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import lombok.extern.slf4j.Slf4j;
@@ -339,10 +340,10 @@ public class InMemoryInventoryRepositorySupport {
                                                  String operatorType, Long operatorId, Instant replayAt) {
         return findAuditDeadLetterById(id)
                 .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
-                .filter(item -> InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.equals(item.getReplayStatus())
-                        || InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.equals(item.getReplayStatus()))
+                .filter(item -> InventoryAuditReplayStatus.PENDING.equals(item.getReplayStatus())
+                        || InventoryAuditReplayStatus.FAILED.equals(item.getReplayStatus()))
                 .map(item -> {
-                    item.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_RUNNING);
+                    item.setReplayStatus(InventoryAuditReplayStatus.RUNNING);
                     item.setReplayKey(replayKey);
                     item.setReplayOperatorType(operatorType);
                     item.setReplayOperatorId(String.valueOf(operatorId));
@@ -357,7 +358,7 @@ public class InMemoryInventoryRepositorySupport {
     public void markAuditDeadLetterReplaySuccess(Long id, String replayKey, String operatorType, Long operatorId,
                                                  Instant replayAt) {
         findAuditDeadLetterById(id).ifPresent(item -> {
-            item.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED);
+            item.setReplayStatus(InventoryAuditReplayStatus.SUCCEEDED);
             item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
             item.setReplayKey(replayKey);
             item.setReplayOperatorType(operatorType);
@@ -371,7 +372,7 @@ public class InMemoryInventoryRepositorySupport {
     public void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
                                                 String replayError, Instant replayAt) {
         findAuditDeadLetterById(id).ifPresent(item -> {
-            item.setReplayStatus(InventoryAuditDeadLetter.REPLAY_STATUS_FAILED);
+            item.setReplayStatus(InventoryAuditReplayStatus.FAILED);
             item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
             item.setReplayKey(replayKey);
             item.setReplayOperatorType(operatorType);

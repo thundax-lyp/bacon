@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.application.audit;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
@@ -37,7 +38,7 @@ public class InventoryAuditCompensationApplicationService {
         if (!Objects.equals(toTenantId(tenantId), deadLetter.getTenantId())) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "dead-letter-tenant-mismatch");
         }
-        if (InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED.equals(deadLetter.getReplayStatus())) {
+        if (InventoryAuditReplayStatus.SUCCEEDED.equals(deadLetter.getReplayStatus())) {
             return new InventoryAuditReplayResultDTO(deadLetterId, deadLetter.getReplayStatusValue(), deadLetter.getReplayKey(),
                     "already-replayed");
         }
@@ -47,7 +48,7 @@ public class InventoryAuditCompensationApplicationService {
         boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(deadLetterId, tenantId, resolvedReplayKey,
                 REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt);
         if (!claimed) {
-            return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.value(),
+            return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditReplayStatus.FAILED.value(),
                     resolvedReplayKey, "dead-letter-not-claimable");
         }
         try {
@@ -68,7 +69,7 @@ public class InventoryAuditCompensationApplicationService {
                 log.error("ALERT inventory audit replay tx compensate failed, deadLetterId={}, replayKey={}",
                         deadLetterId, resolvedReplayKey, compensateException);
             }
-            return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.value(),
+            return new InventoryAuditReplayResultDTO(deadLetterId, InventoryAuditReplayStatus.FAILED.value(),
                     resolvedReplayKey, "tx-failed:" + truncatedError);
         }
     }

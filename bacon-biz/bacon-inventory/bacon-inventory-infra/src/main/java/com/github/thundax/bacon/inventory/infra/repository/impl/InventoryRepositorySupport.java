@@ -15,6 +15,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
@@ -395,9 +396,9 @@ public class InventoryRepositorySupport {
         return auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
                 .eq(InventoryAuditDeadLetterDO::getOutboxId, id)
                 .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId)
-                .in(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditDeadLetter.REPLAY_STATUS_PENDING.value(),
-                        InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.value())
-                .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditDeadLetter.REPLAY_STATUS_RUNNING.value())
+                .in(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.PENDING.value(),
+                        InventoryAuditReplayStatus.FAILED.value())
+                .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.RUNNING.value())
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType)
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId)
@@ -410,7 +411,7 @@ public class InventoryRepositorySupport {
                                                  Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
                 .eq(InventoryAuditDeadLetterDO::getOutboxId, id)
-                .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditDeadLetter.REPLAY_STATUS_SUCCEEDED.value())
+                .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.SUCCEEDED.value())
                 .setSql("replay_count = ifnull(replay_count, 0) + 1")
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType)
@@ -424,7 +425,7 @@ public class InventoryRepositorySupport {
                                                 String replayError, Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
                 .eq(InventoryAuditDeadLetterDO::getOutboxId, id)
-                .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditDeadLetter.REPLAY_STATUS_FAILED.value())
+                .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.FAILED.value())
                 .setSql("replay_count = ifnull(replay_count, 0) + 1")
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType)

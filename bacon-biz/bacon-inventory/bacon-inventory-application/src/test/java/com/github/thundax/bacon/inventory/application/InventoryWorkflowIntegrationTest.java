@@ -12,6 +12,8 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutb
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
@@ -105,7 +107,7 @@ class InventoryWorkflowIntegrationTest {
 
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-DEAD", "RSV-DEAD",
-                InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
+                InventoryAuditActionType.RESERVE.value(), InventoryAuditOperatorType.SYSTEM.value(),
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutbox.STATUS_NEW,
                 1, Instant.EPOCH, null, null, null, null, now, now));
 
@@ -128,7 +130,7 @@ class InventoryWorkflowIntegrationTest {
 
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-OK", "RSV-OK",
-                InventoryAuditLog.ACTION_RESERVE, InventoryAuditLog.OPERATOR_TYPE_SYSTEM,
+                InventoryAuditActionType.RESERVE.value(), InventoryAuditOperatorType.SYSTEM.value(),
                 InventoryAuditLog.OPERATOR_ID_SYSTEM, now, "INIT", InventoryAuditOutbox.STATUS_NEW,
                 0, Instant.EPOCH, null, null, null, null, now, now));
 

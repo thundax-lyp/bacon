@@ -6,6 +6,8 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutb
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import io.micrometer.core.instrument.Metrics;
@@ -31,21 +33,21 @@ public class InventoryOperationLogSupport {
 
     public void recordReserveSuccess(InventoryReservation reservation, Instant occurredAt) {
         recordLedgerBatch(reservation, reservation.getItems(), InventoryLedger.TYPE_RESERVE, occurredAt);
-        recordAuditAfterCommit(reservation, InventoryAuditLog.ACTION_RESERVE, occurredAt);
+        recordAuditAfterCommit(reservation, InventoryAuditActionType.RESERVE, occurredAt);
     }
 
     public void recordReserveFailed(InventoryReservation reservation, Instant occurredAt) {
-        recordAuditAfterCommit(reservation, InventoryAuditLog.ACTION_RESERVE_FAILED, occurredAt);
+        recordAuditAfterCommit(reservation, InventoryAuditActionType.RESERVE_FAILED, occurredAt);
     }
 
     public void recordReleaseSuccess(InventoryReservation reservation, Instant occurredAt) {
         recordLedgerBatch(reservation, reservation.getItems(), InventoryLedger.TYPE_RELEASE, occurredAt);
-        recordAuditAfterCommit(reservation, InventoryAuditLog.ACTION_RELEASE, occurredAt);
+        recordAuditAfterCommit(reservation, InventoryAuditActionType.RELEASE, occurredAt);
     }
 
     public void recordDeductSuccess(InventoryReservation reservation, Instant occurredAt) {
         recordLedgerBatch(reservation, reservation.getItems(), InventoryLedger.TYPE_DEDUCT, occurredAt);
-        recordAuditAfterCommit(reservation, InventoryAuditLog.ACTION_DEDUCT, occurredAt);
+        recordAuditAfterCommit(reservation, InventoryAuditActionType.DEDUCT, occurredAt);
     }
 
     private void recordLedgerBatch(InventoryReservation reservation, List<InventoryReservationItem> items,
@@ -57,7 +59,8 @@ public class InventoryOperationLogSupport {
         }
     }
 
-    private void recordAuditAfterCommit(InventoryReservation reservation, String actionType, Instant occurredAt) {
+    private void recordAuditAfterCommit(InventoryReservation reservation, InventoryAuditActionType actionType,
+                                        Instant occurredAt) {
         Runnable task = () -> saveAuditSafely(reservation, actionType, occurredAt);
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             task.run();
@@ -71,33 +74,36 @@ public class InventoryOperationLogSupport {
         });
     }
 
-    private void saveAuditSafely(InventoryReservation reservation, String actionType, Instant occurredAt) {
+    private void saveAuditSafely(InventoryReservation reservation, InventoryAuditActionType actionType,
+                                 Instant occurredAt) {
         try {
             inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
-                    reservation.getOrderNo(), reservation.getReservationNo(), actionType,
-                    InventoryAuditLog.OPERATOR_TYPE_SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
-            Metrics.counter("bacon.inventory.audit.write.success.total", "actionType", actionType).increment();
+                    reservation.getOrderNo(), reservation.getReservationNo(), actionType.value(),
+                    InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
+            Metrics.counter("bacon.inventory.audit.write.success.total", "actionType", actionType.value()).increment();
         } catch (RuntimeException ex) {
-            Metrics.counter("bacon.inventory.audit.write.fail.total", "actionType", actionType).increment();
+            Metrics.counter("bacon.inventory.audit.write.fail.total", "actionType", actionType.value()).increment();
             saveAuditOutboxSafely(reservation, actionType, occurredAt, ex);
             log.error("ALERT inventory audit write failed, orderNo={}, reservationNo={}, actionType={}",
-                    reservation.getOrderNo(), reservation.getReservationNo(), actionType, ex);
+                    reservation.getOrderNo(), reservation.getReservationNo(), actionType.value(), ex);
         }
     }
 
-    private void saveAuditOutboxSafely(InventoryReservation reservation, String actionType, Instant occurredAt,
-                                       RuntimeException ex) {
+    private void saveAuditOutboxSafely(InventoryReservation reservation, InventoryAuditActionType actionType,
+                                       Instant occurredAt, RuntimeException ex) {
         try {
             inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(null, reservation.getTenantId(),
-                    reservation.getOrderNo(), reservation.getReservationNo(), actionType,
-                    InventoryAuditLog.OPERATOR_TYPE_SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt,
+                    reservation.getOrderNo(), reservation.getReservationNo(), actionType.value(),
+                    InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt,
                     truncateErrorMessage(ex.getMessage()), InventoryAuditOutbox.STATUS_NEW, 0, Instant.now(),
                     null, null, null, null, Instant.now(), Instant.now()));
-            Metrics.counter("bacon.inventory.audit.outbox.persist.success.total", "actionType", actionType).increment();
+            Metrics.counter("bacon.inventory.audit.outbox.persist.success.total", "actionType", actionType.value())
+                    .increment();
         } catch (RuntimeException outboxEx) {
-            Metrics.counter("bacon.inventory.audit.outbox.persist.fail.total", "actionType", actionType).increment();
+            Metrics.counter("bacon.inventory.audit.outbox.persist.fail.total", "actionType", actionType.value())
+                    .increment();
             log.error("ALERT inventory audit outbox persist failed, orderNo={}, reservationNo={}, actionType={}",
-                    reservation.getOrderNo(), reservation.getReservationNo(), actionType, outboxEx);
+                    reservation.getOrderNo(), reservation.getReservationNo(), actionType.value(), outboxEx);
         }
     }
 

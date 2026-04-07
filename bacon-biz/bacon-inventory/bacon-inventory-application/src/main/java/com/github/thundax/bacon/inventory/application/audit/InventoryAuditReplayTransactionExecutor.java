@@ -4,8 +4,8 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import java.time.Instant;
@@ -40,7 +40,7 @@ public class InventoryAuditReplayTransactionExecutor {
             inventoryAuditDeadLetterRepository.markAuditDeadLetterReplayFailed(deadLetter.getOutboxIdValue(), replayKey, operatorType, operatorId,
                     error, replayAt);
             inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantIdValue(), deadLetter.getOrderNoValue(),
-                    deadLetter.getReservationNoValue(), InventoryAuditLog.ACTION_AUDIT_REPLAY_FAILED,
+                    deadLetter.getReservationNoValue(), InventoryAuditActionType.AUDIT_REPLAY_FAILED.value(),
                     operatorType, operatorId, replayAt));
             return null;
         });
@@ -56,7 +56,7 @@ public class InventoryAuditReplayTransactionExecutor {
             inventoryAuditDeadLetterRepository.markAuditDeadLetterReplaySuccess(deadLetter.getOutboxIdValue(), replayKey, operatorType,
                     operatorId, replayAt);
             inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantIdValue(), deadLetter.getOrderNoValue(),
-                    deadLetter.getReservationNoValue(), InventoryAuditLog.ACTION_AUDIT_REPLAY_SUCCEEDED,
+                    deadLetter.getReservationNoValue(), InventoryAuditActionType.AUDIT_REPLAY_SUCCEEDED.value(),
                     operatorType, operatorId, replayAt));
             return new InventoryAuditReplayResultDTO(deadLetter.getOutboxIdValue(), InventoryAuditReplayStatus.SUCCEEDED.value(),
                     replayKey, "ok");
@@ -65,7 +65,7 @@ public class InventoryAuditReplayTransactionExecutor {
             inventoryAuditDeadLetterRepository.markAuditDeadLetterReplayFailed(deadLetter.getOutboxIdValue(), replayKey, operatorType, operatorId,
                     truncateError(ex.getMessage()), replayAt);
             inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, deadLetter.getTenantIdValue(), deadLetter.getOrderNoValue(),
-                    deadLetter.getReservationNoValue(), InventoryAuditLog.ACTION_AUDIT_REPLAY_FAILED,
+                    deadLetter.getReservationNoValue(), InventoryAuditActionType.AUDIT_REPLAY_FAILED.value(),
                     operatorType, operatorId, replayAt));
             return new InventoryAuditReplayResultDTO(deadLetter.getOutboxIdValue(), InventoryAuditReplayStatus.FAILED.value(),
                     replayKey, "failed:" + truncateError(ex.getMessage()));

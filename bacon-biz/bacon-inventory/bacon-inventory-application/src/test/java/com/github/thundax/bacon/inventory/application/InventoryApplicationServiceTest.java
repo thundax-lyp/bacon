@@ -13,6 +13,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
@@ -85,7 +86,7 @@ class InventoryApplicationServiceTest {
         assertNotNull(result.getFailureReason());
         assertEquals(0, stock.getReservedQuantity());
         assertEquals(100, stock.getAvailableQuantity());
-        assertEquals(InventoryAuditLog.ACTION_RESERVE_FAILED,
+        assertEquals(InventoryAuditActionType.RESERVE_FAILED.value(),
                 queryService.listAuditLogsByOrderNo(1001L, "ORDER-2").get(0).getActionType());
     }
 
@@ -111,7 +112,7 @@ class InventoryApplicationServiceTest {
         assertEquals(0, stock.getReservedQuantity());
         assertEquals(100, stock.getAvailableQuantity());
         assertEquals(2, queryService.listLedgersByOrderNo(1001L, "ORDER-3").size());
-        assertEquals(InventoryAuditLog.ACTION_RELEASE,
+        assertEquals(InventoryAuditActionType.RELEASE.value(),
                 queryService.listAuditLogsByOrderNo(1001L, "ORDER-3").get(1).getActionType());
     }
 

@@ -16,14 +16,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class InventoryAuditLog {
 
-    public static final String ACTION_RESERVE = InventoryAuditActionType.RESERVE.name();
-    public static final String ACTION_RESERVE_FAILED = InventoryAuditActionType.RESERVE_FAILED.name();
-    public static final String ACTION_RELEASE = InventoryAuditActionType.RELEASE.name();
-    public static final String ACTION_DEDUCT = InventoryAuditActionType.DEDUCT.name();
-    public static final String ACTION_AUDIT_REPLAY_SUCCEEDED = InventoryAuditActionType.AUDIT_REPLAY_SUCCEEDED.name();
-    public static final String ACTION_AUDIT_REPLAY_FAILED = InventoryAuditActionType.AUDIT_REPLAY_FAILED.name();
-
-    public static final String OPERATOR_TYPE_SYSTEM = InventoryAuditOperatorType.SYSTEM.name();
     public static final Long OPERATOR_ID_SYSTEM = 0L;
 
     /** 审计日志主键。 */

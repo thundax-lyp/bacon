@@ -3,9 +3,12 @@ package com.github.thundax.bacon.common.test.architecture;
 import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.EnumFieldFixture;
 import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.InvalidSimpleEnumFixture;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.EvaluationResult;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +82,19 @@ class NamingAndPlacementRuleSupportTest {
                 .evaluate(new ClassFileImporter().importPackages(NamingAndPlacementRuleSupportTest.class.getPackageName()));
 
         assertThat(result.hasViolation()).isFalse();
+    }
+
+    @Test
+    void resolveSourceFilePathShouldFallbackToWorkspaceLookupWhenClassSourceIsUnavailable() {
+        JavaClass targetClass = new ClassFileImporter().importClasses(ValidAnnotatedEntityFixture.class)
+                .get(ValidAnnotatedEntityFixture.class);
+
+        Optional<Path> sourceFile = NamingAndPlacementRuleSupport.resolveSourceFilePath(Optional.empty(), targetClass);
+
+        assertThat(sourceFile).isPresent();
+        assertThat(sourceFile.orElseThrow())
+                .endsWith(Path.of("src", "test", "java", "com", "github", "thundax", "bacon",
+                        "common", "test", "architecture", "NamingAndPlacementRuleSupportTest.java"));
     }
 
     @Test

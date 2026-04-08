@@ -352,11 +352,7 @@ public final class NamingAndPlacementRuleSupport {
 
     private static boolean hasAllArgsConstructorInSource(JavaClass item) {
         try {
-            Optional<Source> source = item.getSource();
-            if (source.isEmpty()) {
-                return false;
-            }
-            Optional<Path> sourceFile = toSourceFilePath(source.get().getUri(), item);
+            Optional<Path> sourceFile = resolveSourceFilePath(item.getSource(), item);
             if (sourceFile.isEmpty() || !Files.exists(sourceFile.get())) {
                 return false;
             }
@@ -372,6 +368,16 @@ public final class NamingAndPlacementRuleSupport {
         } catch (Exception ignored) {
             return false;
         }
+    }
+
+    static Optional<Path> resolveSourceFilePath(Optional<Source> source, JavaClass item) {
+        if (source.isPresent()) {
+            Optional<Path> sourceFile = toSourceFilePath(source.get().getUri(), item);
+            if (sourceFile.isPresent() && Files.exists(sourceFile.get())) {
+                return sourceFile;
+            }
+        }
+        return findWorkspaceSourceFile(item);
     }
 
     private static Optional<Path> toSourceFilePath(URI classFileUri, JavaClass item) {
@@ -400,6 +406,44 @@ public final class NamingAndPlacementRuleSupport {
         String sourceFileName = item.getSourceCodeLocation().getSourceFileName();
         String relativeSourcePath = packagePath.isEmpty() ? sourceFileName : packagePath + "/" + sourceFileName;
         return Optional.of(Path.of(sourceRoot + relativeSourcePath));
+    }
+
+    private static Optional<Path> findWorkspaceSourceFile(JavaClass item) {
+        try {
+            String packagePath = item.getPackageName().replace('.', '/');
+            String sourceFileName = item.getSourceCodeLocation().getSourceFileName();
+            Path mainRelativePath = Path.of("src", "main", "java").resolve(packagePath).resolve(sourceFileName);
+            Path testRelativePath = Path.of("src", "test", "java").resolve(packagePath).resolve(sourceFileName);
+            Path searchRoot = Path.of("").toAbsolutePath().normalize();
+            for (Path candidateRoot = searchRoot; candidateRoot != null; candidateRoot = candidateRoot.getParent()) {
+                Optional<Path> mainSource = findWorkspaceFile(candidateRoot, mainRelativePath);
+                if (mainSource.isPresent()) {
+                    return mainSource;
+                }
+                Optional<Path> testSource = findWorkspaceFile(candidateRoot, testRelativePath);
+                if (testSource.isPresent()) {
+                    return testSource;
+                }
+            }
+            return Optional.empty();
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
+    private static Optional<Path> findWorkspaceFile(Path workspaceRoot, Path relativePath) {
+        Path directPath = workspaceRoot.resolve(relativePath);
+        if (Files.exists(directPath)) {
+            return Optional.of(directPath);
+        }
+        try (java.util.stream.Stream<Path> paths = Files.find(
+                workspaceRoot,
+                20,
+                (path, attributes) -> attributes.isRegularFile() && path.endsWith(relativePath))) {
+            return paths.findFirst();
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
     }
 
     private static boolean isAllowedSimpleEnumMethod(JavaMethod method) {

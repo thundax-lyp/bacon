@@ -6,6 +6,7 @@ import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.infra.config.StorageRemoteClientProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -172,6 +173,10 @@ class StoredObjectFacadeRemoteContractTest {
         ObjectProvider<RestClient.Builder> provider = Mockito.mock(ObjectProvider.class);
         when(provider.getIfAvailable(Mockito.any())).thenReturn(restClientBuilder);
         RestClientFactory factory = new RestClientFactory(provider);
-        return new StoredObjectFacadeRemoteImpl(factory, BASE_URL, PROVIDER_TOKEN);
+        StorageRemoteClientProperties properties = new StorageRemoteClientProperties();
+        properties.setConnectTimeout(null);
+        properties.setReadTimeout(null);
+        properties.setProviderToken(PROVIDER_TOKEN);
+        return new StoredObjectFacadeRemoteImpl(factory, properties, BASE_URL);
     }
 }

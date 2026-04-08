@@ -32,37 +32,12 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     public StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
                                         StorageRemoteClientProperties properties,
                                         @Value("${bacon.remote.storage-base-url:http://127.0.0.1:8086/api}") String baseUrl) {
-        this(restClientFactory, baseUrl, properties.getConnectTimeout(), properties.getReadTimeout(),
-                properties.getProviderToken());
-    }
-
-    StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
-                                 String baseUrl) {
-        this(restClientFactory, baseUrl, null, null, null);
-    }
-
-    StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
-                                 String baseUrl,
-                                 String providerToken) {
-        this(restClientFactory, baseUrl, null, null, providerToken);
-    }
-
-    StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
-                                 String baseUrl,
-                                 java.time.Duration connectTimeout,
-                                 java.time.Duration readTimeout) {
-        this(restClientFactory, baseUrl, connectTimeout, readTimeout, null);
-    }
-
-    StoredObjectFacadeRemoteImpl(RestClientFactory restClientFactory,
-                                 String baseUrl,
-                                 java.time.Duration connectTimeout,
-                                 java.time.Duration readTimeout,
-                                 String providerToken) {
+        java.time.Duration connectTimeout = properties.getConnectTimeout();
+        java.time.Duration readTimeout = properties.getReadTimeout();
         this.restClient = connectTimeout == null || readTimeout == null
                 ? restClientFactory.create(baseUrl)
                 : restClientFactory.create(baseUrl, connectTimeout, readTimeout);
-        this.providerToken = providerToken;
+        this.providerToken = properties.getProviderToken();
     }
 
     @Override

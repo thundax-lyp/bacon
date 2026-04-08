@@ -26,9 +26,26 @@ class InMemoryInventoryRepositorySupportTest {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
 
-        repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-1", "RSV-1",
-                "RESERVE", "SYSTEM", 0L, now, "DB_TIMEOUT", InventoryAuditOutboxStatus.NEW,
-                0, now, null, null, null, null, now, now));
+        repository.saveAuditOutbox(new InventoryAuditOutbox(
+                null,
+                null,
+                1001L,
+                "ORDER-1",
+                "RSV-1",
+                InventoryAuditActionType.RESERVE,
+                InventoryAuditOperatorType.SYSTEM,
+                0L,
+                now,
+                "DB_TIMEOUT",
+                InventoryAuditOutboxStatus.NEW,
+                0,
+                now,
+                null,
+                null,
+                null,
+                null,
+                now,
+                now));
 
         List<InventoryAuditOutbox> retryable = repository.findRetryableAuditOutbox(now.plusSeconds(1), 10);
         assertEquals(1, retryable.size());
@@ -56,9 +73,26 @@ class InMemoryInventoryRepositorySupportTest {
     void shouldClaimOutboxOnceAndRecycleExpiredLease() {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-2", "RSV-2",
-                "RESERVE", "SYSTEM", 0L, now, "INIT", InventoryAuditOutboxStatus.NEW,
-                0, now, null, null, null, null, now, now));
+        repository.saveAuditOutbox(new InventoryAuditOutbox(
+                null,
+                null,
+                1001L,
+                "ORDER-2",
+                "RSV-2",
+                InventoryAuditActionType.RESERVE,
+                InventoryAuditOperatorType.SYSTEM,
+                0L,
+                now,
+                "INIT",
+                InventoryAuditOutboxStatus.NEW,
+                0,
+                now,
+                null,
+                null,
+                null,
+                null,
+                now,
+                now));
 
         List<InventoryAuditOutbox> firstClaim = repository.claimRetryableAuditOutbox(now, 10, "owner-a",
                 now.plusSeconds(30));
@@ -76,9 +110,26 @@ class InMemoryInventoryRepositorySupportTest {
     void shouldRequireOwnerMatchWhenUpdatingClaimedOutbox() {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        repository.saveAuditOutbox(new InventoryAuditOutbox(null, 1001L, "ORDER-3", "RSV-3",
-                "RESERVE", "SYSTEM", 0L, now, "INIT", InventoryAuditOutboxStatus.NEW,
-                0, now, null, null, null, null, now, now));
+        repository.saveAuditOutbox(new InventoryAuditOutbox(
+                null,
+                null,
+                1001L,
+                "ORDER-3",
+                "RSV-3",
+                InventoryAuditActionType.RESERVE,
+                InventoryAuditOperatorType.SYSTEM,
+                0L,
+                now,
+                "INIT",
+                InventoryAuditOutboxStatus.NEW,
+                0,
+                now,
+                null,
+                null,
+                null,
+                null,
+                now,
+                now));
 
         List<InventoryAuditOutbox> claimed = repository.claimRetryableAuditOutbox(now, 1, "owner-a",
                 now.plusSeconds(30));

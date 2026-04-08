@@ -93,11 +93,26 @@ public class InventoryOperationLogSupport {
     private void saveAuditOutboxSafely(InventoryReservation reservation, InventoryAuditActionType actionType,
                                        Instant occurredAt, RuntimeException ex) {
         try {
-            inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(null, reservation.getTenantId(),
-                    reservation.getOrderNo(), reservation.getReservationNo(), actionType.value(),
-                    InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt,
-                    truncateErrorMessage(ex.getMessage()), InventoryAuditOutboxStatus.NEW, 0, Instant.now(),
-                    null, null, null, null, Instant.now(), Instant.now()));
+            inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(
+                    null,
+                    null,
+                    reservation.getTenantId(),
+                    reservation.getOrderNo(),
+                    reservation.getReservationNo(),
+                    actionType,
+                    InventoryAuditOperatorType.SYSTEM,
+                    InventoryAuditLog.OPERATOR_ID_SYSTEM,
+                    occurredAt,
+                    truncateErrorMessage(ex.getMessage()),
+                    InventoryAuditOutboxStatus.NEW,
+                    0,
+                    Instant.now(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    Instant.now(),
+                    Instant.now()));
             Metrics.counter("bacon.inventory.audit.outbox.persist.success.total", "actionType", actionType.value())
                     .increment();
         } catch (RuntimeException outboxEx) {

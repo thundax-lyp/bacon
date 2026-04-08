@@ -60,48 +60,17 @@ public class InventoryAuditOutbox {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public InventoryAuditOutbox(Long id, Long tenantId, String orderNo, String reservationNo, String actionType,
-                                String operatorType, Long operatorId, Instant occurredAt, String errorMessage,
-                                String status, Integer retryCount, Instant nextRetryAt, String processingOwner,
-                                Instant leaseUntil, Instant claimedAt, String deadReason, Instant failedAt,
-                                Instant updatedAt) {
-        this(toOutboxId(id), null, toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo),
-                toActionType(actionType), toOperatorType(operatorType),
-                operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage,
-                status == null ? null : InventoryAuditOutboxStatus.fromValue(status), retryCount, nextRetryAt,
-                processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
-    }
-
     public InventoryAuditOutbox(Long id, String eventCode, Long tenantId, String orderNo, String reservationNo,
-                                String actionType, String operatorType, Long operatorId, Instant occurredAt,
-                                String errorMessage, String status, Integer retryCount, Instant nextRetryAt,
-                                String processingOwner, Instant leaseUntil, Instant claimedAt, String deadReason,
-                                Instant failedAt, Instant updatedAt) {
-        this(toOutboxId(id), toEventCode(eventCode), toTenantId(tenantId), toOrderNo(orderNo),
-                toReservationNo(reservationNo), toActionType(actionType), toOperatorType(operatorType),
-                operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage,
-                status == null ? null : InventoryAuditOutboxStatus.fromValue(status), retryCount, nextRetryAt,
-                processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
-    }
-
-    public InventoryAuditOutbox(Long id, Long tenantId, String orderNo, String reservationNo, String actionType,
-                                String operatorType, Long operatorId, Instant occurredAt, String errorMessage,
+                                InventoryAuditActionType actionType, InventoryAuditOperatorType operatorType,
+                                Long operatorId, Instant occurredAt, String errorMessage,
                                 InventoryAuditOutboxStatus status, Integer retryCount, Instant nextRetryAt,
                                 String processingOwner, Instant leaseUntil, Instant claimedAt, String deadReason,
                                 Instant failedAt, Instant updatedAt) {
-        this(toOutboxId(id), null, toTenantId(tenantId), toOrderNo(orderNo), toReservationNo(reservationNo),
-                toActionType(actionType), toOperatorType(operatorType),
-                operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage, status, retryCount,
-                nextRetryAt, processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
-    }
-
-    public InventoryAuditOutbox(Long id, String eventCode, Long tenantId, String orderNo, String reservationNo,
-                                String actionType, String operatorType, Long operatorId, Instant occurredAt,
-                                String errorMessage, InventoryAuditOutboxStatus status, Integer retryCount,
-                                Instant nextRetryAt, String processingOwner, Instant leaseUntil, Instant claimedAt,
-                                String deadReason, Instant failedAt, Instant updatedAt) {
-        this(toOutboxId(id), toEventCode(eventCode), toTenantId(tenantId), toOrderNo(orderNo),
-                toReservationNo(reservationNo), toActionType(actionType), toOperatorType(operatorType),
+        this(id == null ? null : OutboxId.of(id),
+                eventCode == null ? null : EventCode.of(eventCode),
+                tenantId == null ? null : TenantId.of(tenantId),
+                orderNo == null ? null : OrderNo.of(orderNo),
+                reservationNo == null ? null : ReservationNo.of(reservationNo), actionType, operatorType,
                 operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage, status, retryCount,
                 nextRetryAt, processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
     }
@@ -142,31 +111,4 @@ public class InventoryAuditOutbox {
         return operatorId == null ? null : Long.valueOf(operatorId);
     }
 
-    private static OutboxId toOutboxId(Long value) {
-        return value == null ? null : OutboxId.of(value);
-    }
-
-    private static EventCode toEventCode(String value) {
-        return value == null ? null : EventCode.of(value);
-    }
-
-    private static TenantId toTenantId(Long value) {
-        return value == null ? null : TenantId.of(value);
-    }
-
-    private static OrderNo toOrderNo(String value) {
-        return value == null ? null : OrderNo.of(value);
-    }
-
-    private static ReservationNo toReservationNo(String value) {
-        return value == null ? null : ReservationNo.of(value);
-    }
-
-    private static InventoryAuditActionType toActionType(String value) {
-        return value == null ? null : InventoryAuditActionType.fromValue(value);
-    }
-
-    private static InventoryAuditOperatorType toOperatorType(String value) {
-        return value == null ? null : InventoryAuditOperatorType.fromValue(value);
-    }
 }

@@ -9,6 +9,8 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
@@ -159,12 +161,26 @@ public class InMemoryInventoryRepositorySupport {
             eventCode = generateEventCode().value();
         }
         if (outbox.getId() == null) {
-            outbox = new InventoryAuditOutbox(auditOutboxIdGenerator.getAndIncrement(), eventCode, outbox.getTenantIdValue(),
-                    outbox.getOrderNoValue(), outbox.getReservationNoValue(), outbox.getActionTypeValue(),
-                    outbox.getOperatorTypeValue(),
-                    outbox.getOperatorIdValue(), outbox.getOccurredAt(), outbox.getErrorMessage(), outbox.getStatus(),
-                    outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(), outbox.getLeaseUntil(),
-                    outbox.getClaimedAt(), outbox.getDeadReason(), outbox.getFailedAt(), outbox.getUpdatedAt());
+            outbox = new InventoryAuditOutbox(
+                    auditOutboxIdGenerator.getAndIncrement(),
+                    eventCode,
+                    outbox.getTenantIdValue(),
+                    outbox.getOrderNoValue(),
+                    outbox.getReservationNoValue(),
+                    outbox.getActionType(),
+                    outbox.getOperatorType(),
+                    outbox.getOperatorIdValue(),
+                    outbox.getOccurredAt(),
+                    outbox.getErrorMessage(),
+                    outbox.getStatus(),
+                    outbox.getRetryCount(),
+                    outbox.getNextRetryAt(),
+                    outbox.getProcessingOwner(),
+                    outbox.getLeaseUntil(),
+                    outbox.getClaimedAt(),
+                    outbox.getDeadReason(),
+                    outbox.getFailedAt(),
+                    outbox.getUpdatedAt());
         } else if (outbox.getEventCode() == null) {
             outbox.setEventCode(EventCode.of(eventCode));
         }

@@ -666,12 +666,26 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
-        return new InventoryAuditOutbox(dataObject.getId(), dataObject.getEventCode(), dataObject.getTenantId(), dataObject.getOrderNo(),
-                dataObject.getReservationNo(), dataObject.getActionType(), dataObject.getOperatorType(),
-                dataObject.getOperatorId(), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
-                com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus.fromValue(dataObject.getStatus()), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
-                dataObject.getProcessingOwner(), dataObject.getLeaseUntil(), dataObject.getClaimedAt(),
-                dataObject.getDeadReason(), dataObject.getFailedAt(), dataObject.getUpdatedAt());
+        return new InventoryAuditOutbox(
+                dataObject.getId(),
+                dataObject.getEventCode(),
+                dataObject.getTenantId(),
+                dataObject.getOrderNo(),
+                dataObject.getReservationNo(),
+                InventoryAuditActionType.fromValue(dataObject.getActionType()),
+                InventoryAuditOperatorType.fromValue(dataObject.getOperatorType()),
+                dataObject.getOperatorId(),
+                dataObject.getOccurredAt(),
+                dataObject.getErrorMessage(),
+                InventoryAuditOutboxStatus.fromValue(dataObject.getStatus()),
+                dataObject.getRetryCount(),
+                dataObject.getNextRetryAt(),
+                dataObject.getProcessingOwner(),
+                dataObject.getLeaseUntil(),
+                dataObject.getClaimedAt(),
+                dataObject.getDeadReason(),
+                dataObject.getFailedAt(),
+                dataObject.getUpdatedAt());
     }
 
     private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {

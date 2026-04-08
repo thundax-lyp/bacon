@@ -37,12 +37,12 @@ public class TenantApplicationService {
                 pageNo, pageSize);
     }
 
+    @Transactional
     public TenantDTO createTenant(Long tenantId, String name, String tenantCode, Instant expiredAt) {
-        return createTenant(TenantId.of(tenantId), name, tenantCode, expiredAt);
+        return createTenantInternal(TenantId.of(tenantId), name, tenantCode, expiredAt);
     }
 
-    @Transactional
-    public TenantDTO createTenant(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
+    private TenantDTO createTenantInternal(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
         validateRequired(name, "name");
         validateRequired(tenantCode, "tenantCode");
         TenantCode normalizedTenantCode = TenantCode.of(tenantCode);
@@ -56,12 +56,12 @@ public class TenantApplicationService {
                 normalizedTenantCode, TenantStatus.ACTIVE, expiredAt)));
     }
 
+    @Transactional
     public TenantDTO updateTenant(Long tenantId, String name, String tenantCode, Instant expiredAt) {
-        return updateTenant(TenantId.of(tenantId), name, tenantCode, expiredAt);
+        return updateTenantInternal(TenantId.of(tenantId), name, tenantCode, expiredAt);
     }
 
-    @Transactional
-    public TenantDTO updateTenant(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
+    private TenantDTO updateTenantInternal(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
         Tenant currentTenant = requireTenant(tenantId);
         validateRequired(name, "name");
         validateRequired(tenantCode, "tenantCode");
@@ -83,12 +83,12 @@ public class TenantApplicationService {
                 currentTenant.getUpdatedAt())));
     }
 
+    @Transactional
     public TenantDTO updateTenantStatus(Long tenantId, TenantStatusEnum status) {
-        return updateTenantStatus(TenantId.of(tenantId), status);
+        return updateTenantStatusInternal(TenantId.of(tenantId), status);
     }
 
-    @Transactional
-    public TenantDTO updateTenantStatus(TenantId tenantId, TenantStatusEnum status) {
+    private TenantDTO updateTenantStatusInternal(TenantId tenantId, TenantStatusEnum status) {
         if (status == null) {
             throw new IllegalArgumentException("status must not be null");
         }

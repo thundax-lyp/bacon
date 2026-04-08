@@ -5,7 +5,6 @@ import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OrderId;
-import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
@@ -261,8 +260,10 @@ public class OrderRepositorySupport {
     }
 
     private OrderDO toDataObject(Order order) {
-        return new OrderDO(toDatabaseOrderId(order.getId()), toDatabaseOrderTenantId(order.getTenantId()), toDatabaseOrderNo(order.getOrderNo()),
-                toDatabaseOrderUserId(order.getUserId()),
+        return new OrderDO(order.getId() == null ? null : order.getId().value(),
+                order.getTenantId() == null ? null : order.getTenantId().value(),
+                toDatabaseOrderNo(order.getOrderNo()),
+                order.getUserId() == null ? null : order.getUserId().value(),
                 order.getOrderStatusValue(), order.getPayStatusValue(), order.getInventoryStatusValue(), order.getCurrencyCodeValue(),
                 order.getTotalAmount().value(), order.getPayableAmount().value(), order.getRemark(), order.getCancelReason(),
                 order.getCloseReason(), order.getCreatedAt(), Instant.now(), order.getExpiredAt(), order.getPaidAt(),
@@ -292,7 +293,7 @@ public class OrderRepositorySupport {
                 toDomainPayStatus(dataObject.getPayStatus()), toDomainInventoryStatus(dataObject.getInventoryStatus()),
                 toDomainPaymentNo(paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo()),
                 toDomainReservationNo(inventorySnapshot == null ? null : inventorySnapshot.getReservationNo()),
-                toDomainCurrencyCode(dataObject.getCurrencyCode()),
+                dataObject.getCurrencyCode() == null ? null : CurrencyCode.fromValue(dataObject.getCurrencyCode()),
                 toMoney(dataObject.getTotalAmount(), dataObject.getCurrencyCode()),
                 toMoney(dataObject.getPayableAmount(), dataObject.getCurrencyCode()),
                 dataObject.getRemark(), dataObject.getCancelReason(),
@@ -315,20 +316,8 @@ public class OrderRepositorySupport {
         return Money.of(value, CurrencyCode.fromValue(currencyCode));
     }
 
-    private Long toDatabaseOrderId(OrderId orderId) {
-        return orderId == null ? null : orderId.value();
-    }
-
     private OrderId toDomainOrderId(Long orderId) {
         return orderId == null ? null : OrderId.of(orderId);
-    }
-
-    private Long toDatabaseTenantId(TenantId tenantId) {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
-    }
-
-    private TenantId toDomainTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
     }
 
     private String toDatabaseOrderNo(OrderNo orderNo) {
@@ -351,36 +340,8 @@ public class OrderRepositorySupport {
         return paymentChannelCode == null ? null : PaymentChannel.from(paymentChannelCode);
     }
 
-    private CurrencyCode toDomainCurrencyCode(String currencyCode) {
-        return currencyCode == null ? null : CurrencyCode.fromValue(currencyCode);
-    }
-
-    private Long toDatabaseUserId(UserId userId) {
-        return userId == null ? null : Long.valueOf(userId.value());
-    }
-
-    private UserId toDomainUserId(Long userId) {
-        return userId == null ? null : UserId.of(String.valueOf(userId));
-    }
-
-    private Long toDatabaseOrderTenantId(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    private Long toDatabaseOrderTenantId(Long tenantId) {
-        return tenantId;
-    }
-
     private TenantId toDomainOrderTenantId(Long tenantId) {
         return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
-    private Long toDatabaseOrderUserId(UserId userId) {
-        return userId == null ? null : Long.valueOf(userId.value());
-    }
-
-    private Long toDatabaseOrderUserId(Long userId) {
-        return userId;
     }
 
     private UserId toDomainOrderUserId(Long userId) {
@@ -409,14 +370,6 @@ public class OrderRepositorySupport {
                 dataObject.getLineAmount() == null ? null : dataObject.getLineAmount().toPlainString());
     }
 
-    private SkuId toDomainSkuId(Long skuId) {
-        return skuId == null ? null : SkuId.of(skuId);
-    }
-
-    private SkuId toDomainSkuId(String skuId) {
-        return skuId == null ? null : SkuId.of(Long.valueOf(skuId));
-    }
-
     private OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {
         return new OrderPaymentSnapshotDO(snapshot.id(), snapshot.tenantIdValue(), snapshot.orderIdValue(),
                 snapshot.paymentNoValue(), snapshot.channelCodeValue(), snapshot.payStatusValue(), snapshot.paidAmountValue(),
@@ -428,16 +381,14 @@ public class OrderRepositorySupport {
                 toDomainOrderId(dataObject.getOrderId()), toDomainPaymentNo(dataObject.getPaymentNo()),
                 toDomainPaymentChannel(dataObject.getChannelCode()), toDomainPayStatus(dataObject.getPayStatus()),
                 toMoney(dataObject.getPaidAmount(), currencyCode), dataObject.getPaidTime(), dataObject.getFailureReason(),
-                toDomainPaymentChannelStatus(dataObject.getChannelStatus()), dataObject.getUpdatedAt());
-    }
-
-    private PaymentChannelStatus toDomainPaymentChannelStatus(String channelStatus) {
-        return channelStatus == null ? null : PaymentChannelStatus.from(channelStatus);
+                dataObject.getChannelStatus() == null ? null : PaymentChannelStatus.from(dataObject.getChannelStatus()),
+                dataObject.getUpdatedAt());
     }
 
     private OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {
         return new OrderInventorySnapshotDO(null, snapshot.tenantIdValue(), snapshot.orderNoValue(),
-                snapshot.reservationNoValue(), snapshot.inventoryStatusValue(), toDatabaseWarehouseNo(snapshot.warehouseNo()),
+                snapshot.reservationNoValue(), snapshot.inventoryStatusValue(),
+                snapshot.warehouseNo() == null ? null : snapshot.warehouseNo().value(),
                 snapshot.failureReason(),
                 snapshot.updatedAt());
     }
@@ -454,53 +405,32 @@ public class OrderRepositorySupport {
     }
 
     private OrderAuditLogDO toDataObject(OrderAuditLog auditLog) {
-        return new OrderAuditLogDO(auditLog.id(), toDatabaseAuditTenantId(auditLog.tenantId()), toDatabaseOrderNo(auditLog.orderNo()),
-                toDatabaseOrderAuditActionType(auditLog.actionType()), toDatabaseOrderStatus(auditLog.beforeStatus()),
-                toDatabaseOrderStatus(auditLog.afterStatus()), toDatabaseOperatorType(auditLog.operatorType()),
+        return new OrderAuditLogDO(auditLog.id(), auditLog.tenantId() == null ? null : auditLog.tenantId().value(),
+                toDatabaseOrderNo(auditLog.orderNo()),
+                auditLog.actionType() == null ? null : auditLog.actionType().value(),
+                toDatabaseOrderStatus(auditLog.beforeStatus()),
+                toDatabaseOrderStatus(auditLog.afterStatus()),
+                auditLog.operatorType() == null ? null : auditLog.operatorType().value(),
                 auditLog.operatorId(), auditLog.occurredAt());
     }
 
     private OrderAuditLog toDomain(OrderAuditLogDO dataObject) {
-        return new OrderAuditLog(dataObject.getId(), toDomainAuditTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
-                toDomainOrderAuditActionType(dataObject.getActionType()), toDomainOrderStatus(dataObject.getBeforeStatus()),
-                toDomainOrderStatus(dataObject.getAfterStatus()), toDomainOperatorType(dataObject.getOperatorType()),
+        return new OrderAuditLog(dataObject.getId(),
+                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
+                toDomainOrderNo(dataObject.getOrderNo()),
+                dataObject.getActionType() == null ? null : OrderAuditActionType.from(dataObject.getActionType()),
+                toDomainOrderStatus(dataObject.getBeforeStatus()),
+                toDomainOrderStatus(dataObject.getAfterStatus()),
+                dataObject.getOperatorType() == null ? null : OperatorType.from(dataObject.getOperatorType()),
                 dataObject.getOperatorId(), dataObject.getOccurredAt());
-    }
-
-    private Long toDatabaseAuditTenantId(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
     }
 
     private Long toDatabaseAuditTenantId(Long tenantId) {
         return tenantId;
     }
 
-    private TenantId toDomainAuditTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
-    private String toDatabaseOrderAuditActionType(OrderAuditActionType actionType) {
-        return actionType == null ? null : actionType.value();
-    }
-
-    private OrderAuditActionType toDomainOrderAuditActionType(String actionType) {
-        return actionType == null ? null : OrderAuditActionType.from(actionType);
-    }
-
     private String toDatabaseOrderStatus(OrderStatus orderStatus) {
         return orderStatus == null ? null : orderStatus.value();
-    }
-
-    private String toDatabaseOperatorType(OperatorType operatorType) {
-        return operatorType == null ? null : operatorType.value();
-    }
-
-    private OperatorType toDomainOperatorType(String operatorType) {
-        return operatorType == null ? null : OperatorType.from(operatorType);
-    }
-
-    private String toDatabaseWarehouseNo(WarehouseNo warehouseNo) {
-        return warehouseNo == null ? null : warehouseNo.value();
     }
 
     private WarehouseNo toDomainWarehouseNo(String warehouseNo) {

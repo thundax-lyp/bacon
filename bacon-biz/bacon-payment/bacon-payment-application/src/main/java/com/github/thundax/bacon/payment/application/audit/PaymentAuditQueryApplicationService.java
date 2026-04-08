@@ -26,7 +26,7 @@ public class PaymentAuditQueryApplicationService {
     }
 
     private Long toLongTenantValue(TenantId tenantId) {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
+        return tenantId == null ? null : tenantId.value();
     }
 
     private String toStatusValue(com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus status) {

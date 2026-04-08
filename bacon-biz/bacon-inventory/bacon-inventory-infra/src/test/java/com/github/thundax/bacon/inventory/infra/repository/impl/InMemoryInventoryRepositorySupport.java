@@ -374,7 +374,8 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public boolean claimAuditDeadLetterForReplay(DeadLetterId id, TenantId tenantId, String replayKey,
-                                                 String operatorType, OperatorId operatorId, Instant replayAt) {
+                                                 InventoryAuditOperatorType operatorType, OperatorId operatorId,
+                                                 Instant replayAt) {
         return findAuditDeadLetterById(id)
                 .filter(item -> tenantId.equals(item.getTenantId()))
                 .filter(item -> InventoryAuditReplayStatus.PENDING.equals(item.getReplayStatus())
@@ -382,7 +383,7 @@ public class InMemoryInventoryRepositorySupport {
                 .map(item -> {
                     item.setReplayStatus(InventoryAuditReplayStatus.RUNNING);
                     item.setReplayKey(replayKey);
-                    item.setReplayOperatorType(operatorType);
+                    item.setReplayOperatorType(operatorType == null ? null : operatorType.value());
                     item.setReplayOperatorId(operatorId == null ? null : operatorId.value());
                     item.setLastReplayAt(replayAt);
                     item.setLastReplayResult("RUNNING");
@@ -392,13 +393,14 @@ public class InMemoryInventoryRepositorySupport {
                 .orElse(false);
     }
 
-    public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
+    public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey,
+                                                 InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                  Instant replayAt) {
         findAuditDeadLetterById(id).ifPresent(item -> {
             item.setReplayStatus(InventoryAuditReplayStatus.SUCCEEDED);
             item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
             item.setReplayKey(replayKey);
-            item.setReplayOperatorType(operatorType);
+            item.setReplayOperatorType(operatorType == null ? null : operatorType.value());
             item.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             item.setLastReplayAt(replayAt);
             item.setLastReplayResult("SUCCEEDED");
@@ -406,13 +408,14 @@ public class InMemoryInventoryRepositorySupport {
         });
     }
 
-    public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
+    public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey,
+                                                InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                 String replayError, Instant replayAt) {
         findAuditDeadLetterById(id).ifPresent(item -> {
             item.setReplayStatus(InventoryAuditReplayStatus.FAILED);
             item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
             item.setReplayKey(replayKey);
-            item.setReplayOperatorType(operatorType);
+            item.setReplayOperatorType(operatorType == null ? null : operatorType.value());
             item.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             item.setLastReplayAt(replayAt);
             item.setLastReplayResult("FAILED");

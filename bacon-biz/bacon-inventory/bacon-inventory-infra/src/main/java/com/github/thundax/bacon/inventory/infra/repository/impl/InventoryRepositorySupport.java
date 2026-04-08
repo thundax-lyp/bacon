@@ -400,7 +400,8 @@ public class InventoryRepositorySupport {
     }
 
     public boolean claimAuditDeadLetterForReplay(DeadLetterId id, TenantId tenantId, String replayKey,
-                                                 String operatorType, OperatorId operatorId, Instant replayAt) {
+                                                 InventoryAuditOperatorType operatorType, OperatorId operatorId,
+                                                 Instant replayAt) {
         return auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
                 .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
                 .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value())
@@ -408,35 +409,37 @@ public class InventoryRepositorySupport {
                         InventoryAuditReplayStatus.FAILED.value())
                 .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.RUNNING.value())
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
-                .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType)
+                .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType == null ? null : operatorType.value())
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId == null ? null : Long.valueOf(operatorId.value()))
                 .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
                 .set(InventoryAuditDeadLetterDO::getLastReplayResult, "RUNNING")
                 .set(InventoryAuditDeadLetterDO::getLastReplayError, null)) > 0;
     }
 
-    public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
+    public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey,
+                                                 InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                  Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
                 .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
                 .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.SUCCEEDED.value())
                 .setSql("replay_count = ifnull(replay_count, 0) + 1")
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
-                .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType)
+                .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType == null ? null : operatorType.value())
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId == null ? null : Long.valueOf(operatorId.value()))
                 .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
                 .set(InventoryAuditDeadLetterDO::getLastReplayResult, "SUCCEEDED")
                 .set(InventoryAuditDeadLetterDO::getLastReplayError, null));
     }
 
-    public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
+    public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey,
+                                                InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                 String replayError, Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
                 .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
                 .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.FAILED.value())
                 .setSql("replay_count = ifnull(replay_count, 0) + 1")
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
-                .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType)
+                .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType == null ? null : operatorType.value())
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId == null ? null : Long.valueOf(operatorId.value()))
                 .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
                 .set(InventoryAuditDeadLetterDO::getLastReplayResult, "FAILED")

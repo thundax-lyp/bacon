@@ -49,14 +49,14 @@ public class InventoryAuditCompensationApplicationService {
         Instant replayAt = Instant.now();
         // 回放前先认领死信，确保同一条死信在人工操作和后台任务并发时只会有一个执行者真正进入事务。
         boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(deadLetterId, tenantId,
-                resolvedReplayKey, REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt);
+                resolvedReplayKey, REPLAY_OPERATOR_TYPE, operatorId, replayAt);
         if (!claimed) {
             return new InventoryAuditReplayResultDTO(deadLetterId.value(), InventoryAuditReplayStatus.FAILED.value(),
                     resolvedReplayKey, "dead-letter-not-claimable");
         }
         try {
             return inventoryAuditReplayTransactionService.replayClaimedDeadLetter(deadLetter, resolvedReplayKey,
-                    REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt);
+                    REPLAY_OPERATOR_TYPE, operatorId, replayAt);
         } catch (RuntimeException txException) {
             String truncatedError = truncateError(txException.getMessage());
             Metrics.counter("bacon.inventory.audit.replay.tx.fail.total").increment();
@@ -65,7 +65,7 @@ public class InventoryAuditCompensationApplicationService {
             try {
                 // 事务层抛异常后，再走单独的补偿事务把死信状态和失败审计补全，避免原事务整体回滚后没有追踪痕迹。
                 inventoryAuditReplayTransactionService.compensateReplayTxFailure(deadLetter, resolvedReplayKey,
-                        REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt, truncatedError);
+                        REPLAY_OPERATOR_TYPE, operatorId, replayAt, truncatedError);
                 Metrics.counter("bacon.inventory.audit.replay.tx.compensate.success.total").increment();
             } catch (RuntimeException compensateException) {
                 Metrics.counter("bacon.inventory.audit.replay.tx.compensate.fail.total").increment();

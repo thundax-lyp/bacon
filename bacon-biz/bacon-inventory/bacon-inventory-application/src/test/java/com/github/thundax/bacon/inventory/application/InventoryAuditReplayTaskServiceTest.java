@@ -108,7 +108,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
 
         @Override
         public boolean claimAuditDeadLetterForReplay(DeadLetterId id, TenantId tenantId, String replayKey,
-                                                     String operatorType, OperatorId operatorId, Instant replayAt) {
+                                                     InventoryAuditOperatorType operatorType, OperatorId operatorId,
+                                                     Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             if (deadLetter == null || !tenantId.equals(deadLetter.getTenantId())) {
                 return false;
@@ -119,7 +120,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             }
             deadLetter.setReplayStatus(InventoryAuditReplayStatus.RUNNING);
             deadLetter.setReplayKey(replayKey);
-            deadLetter.setReplayOperatorType(operatorType);
+            deadLetter.setReplayOperatorType(operatorType == null ? null : operatorType.value());
             deadLetter.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             deadLetter.setLastReplayAt(replayAt);
             deadLetter.setLastReplayResult("RUNNING");
@@ -128,13 +129,14 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
+        public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey,
+                                                     InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                      Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             deadLetter.setReplayStatus(InventoryAuditReplayStatus.SUCCEEDED);
             deadLetter.setReplayCount((deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount()) + 1);
             deadLetter.setReplayKey(replayKey);
-            deadLetter.setReplayOperatorType(operatorType);
+            deadLetter.setReplayOperatorType(operatorType == null ? null : operatorType.value());
             deadLetter.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             deadLetter.setLastReplayAt(replayAt);
             deadLetter.setLastReplayResult("SUCCEEDED");
@@ -142,13 +144,14 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
+        public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey,
+                                                    InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                     String replayError, Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             deadLetter.setReplayStatus(InventoryAuditReplayStatus.FAILED);
             deadLetter.setReplayCount((deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount()) + 1);
             deadLetter.setReplayKey(replayKey);
-            deadLetter.setReplayOperatorType(operatorType);
+            deadLetter.setReplayOperatorType(operatorType == null ? null : operatorType.value());
             deadLetter.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             deadLetter.setLastReplayAt(replayAt);
             deadLetter.setLastReplayResult("FAILED");

@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.domain.repository;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
@@ -30,15 +31,18 @@ public interface InventoryAuditDeadLetterRepository {
     }
 
     default boolean claimAuditDeadLetterForReplay(DeadLetterId id, TenantId tenantId, String replayKey,
-                                                  String operatorType, OperatorId operatorId, Instant replayAt) {
+                                                  InventoryAuditOperatorType operatorType, OperatorId operatorId,
+                                                  Instant replayAt) {
         return false;
     }
 
-    default void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
+    default void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey,
+                                                  InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                   Instant replayAt) {
     }
 
-    default void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
+    default void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey,
+                                                 InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                  String replayError, Instant replayAt) {
     }
 }

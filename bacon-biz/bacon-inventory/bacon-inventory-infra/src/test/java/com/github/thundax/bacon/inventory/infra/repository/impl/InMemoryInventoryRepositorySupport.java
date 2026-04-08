@@ -85,7 +85,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
         return findInventories(tenantId).stream()
-                .filter(inventory -> skuId == null || skuId.equals(inventory.getSkuIdValue()))
+                .filter(inventory -> skuId == null || (inventory.getSkuId() != null && skuId.equals(inventory.getSkuId().value())))
                 .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                 .skip((long) (pageNo - 1) * pageSize)
                 .limit(pageSize)
@@ -94,7 +94,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public long countInventories(Long tenantId, Long skuId, String status) {
         return findInventories(tenantId).stream()
-                .filter(inventory -> skuId == null || skuId.equals(inventory.getSkuIdValue()))
+                .filter(inventory -> skuId == null || (inventory.getSkuId() != null && skuId.equals(inventory.getSkuId().value())))
                 .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                 .count();
     }
@@ -102,13 +102,15 @@ public class InMemoryInventoryRepositorySupport {
     public Inventory saveInventory(Inventory inventory) {
         if (inventory.getId() == null) {
             inventory = new Inventory(inventoryIdGenerator.getAndIncrement(), inventory.getTenantId().value(),
-                    inventory.getSkuIdValue(), inventory.getWarehouseNo().value(), inventory.getOnHandQuantity(),
+                    inventory.getSkuId() == null ? null : inventory.getSkuId().value(), inventory.getWarehouseNo().value(),
+                    inventory.getOnHandQuantity(),
                     inventory.getReservedQuantity(), inventory.getAvailableQuantity(), inventory.getStatus(),
                     inventory.getVersion(), inventory.getUpdatedAt());
         }
         Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
         inventory.markPersisted(version);
-        inventories.put(key(inventory.getTenantId().value(), inventory.getSkuIdValue()), inventory);
+        inventories.put(key(inventory.getTenantId().value(),
+                inventory.getSkuId() == null ? null : inventory.getSkuId().value()), inventory);
         return inventory;
     }
 
@@ -121,7 +123,8 @@ public class InMemoryInventoryRepositorySupport {
                             .map(item -> new InventoryReservationItem(
                                     item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
                                     item.getTenantId() == null ? null : item.getTenantId().value(),
-                                    item.getReservationNoValue(), item.getSkuIdValue(), item.getQuantity()))
+                                    item.getReservationNoValue(),
+                                    item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
                             .toList(),
                     reservation.getReservationStatusValue(), reservation.getFailureReason(), reservation.getReleaseReasonValue(),
                     reservation.getReleasedAt(), reservation.getDeductedAt());
@@ -139,7 +142,8 @@ public class InMemoryInventoryRepositorySupport {
         if (ledger.getId() == null) {
             ledger = new InventoryLedger(ledgerIdGenerator.getAndIncrement(),
                     ledger.getTenantId() == null ? null : ledger.getTenantId().value(),
-                    ledger.getOrderNoValue(), ledger.getReservationNoValue(), ledger.getSkuIdValue(),
+                    ledger.getOrderNoValue(), ledger.getReservationNoValue(),
+                    ledger.getSkuId() == null ? null : ledger.getSkuId().value(),
                     ledger.getWarehouseNoValue(), ledger.getLedgerType(), 
                     ledger.getQuantity(), ledger.getOccurredAt());
         }

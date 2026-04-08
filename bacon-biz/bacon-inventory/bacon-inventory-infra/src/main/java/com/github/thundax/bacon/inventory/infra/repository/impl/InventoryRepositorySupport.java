@@ -605,7 +605,8 @@ public class InventoryRepositorySupport {
 
     private InventoryDO toDataObject(Inventory inventory) {
         return new InventoryDO(inventory.getId() == null ? null : inventory.getId().getIdValue(),
-                inventory.getTenantId() == null ? null : inventory.getTenantId().value(), inventory.getSkuIdValue(),
+                inventory.getTenantId() == null ? null : inventory.getTenantId().value(),
+                inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
                 inventory.getWarehouseNoValue(), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
                 inventory.getAvailableQuantity(), inventory.getStatus().value(), inventory.getVersion(), null,
                 inventory.getUpdatedAt(), null,
@@ -633,7 +634,8 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryReservationItemDO toDataObject(InventoryReservationItem item, Long tenantId, String reservationNo) {
-        return new InventoryReservationItemDO(item.getId(), tenantId, reservationNo, item.getSkuIdValue(), item.getQuantity());
+        return new InventoryReservationItemDO(item.getId(), tenantId, reservationNo,
+                item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity());
     }
 
     private InventoryLedger toDomain(InventoryLedgerDO dataObject) {
@@ -646,7 +648,8 @@ public class InventoryRepositorySupport {
 
     private InventoryLedgerDO toDataObject(InventoryLedger ledger) {
         return new InventoryLedgerDO(ledger.getId(), ledger.getTenantId() == null ? null : ledger.getTenantId().value(), ledger.getOrderNoValue(),
-                ledger.getReservationNoValue(), ledger.getSkuIdValue(), ledger.getWarehouseNoValue(),
+                ledger.getReservationNoValue(), ledger.getSkuId() == null ? null : ledger.getSkuId().value(),
+                ledger.getWarehouseNoValue(),
                 ledger.getLedgerTypeValue(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }

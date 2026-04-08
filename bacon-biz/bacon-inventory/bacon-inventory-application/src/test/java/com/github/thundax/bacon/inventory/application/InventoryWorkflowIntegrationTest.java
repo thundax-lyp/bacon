@@ -232,7 +232,7 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
-                    .filter(item -> skuId == null || skuId.equals(item.getSkuIdValue()))
+                    .filter(item -> skuId == null || (item.getSkuId() != null && skuId.equals(item.getSkuId().value())))
                     .filter(item -> status == null || status.equals(item.getStatus().value()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)
@@ -246,17 +246,20 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public synchronized Inventory saveInventory(Inventory inventory) {
-            Inventory current = inventories.get(key(inventory.getTenantId().value(), inventory.getSkuIdValue()));
+            Inventory current = inventories.get(key(inventory.getTenantId().value(),
+                    inventory.getSkuId() == null ? null : inventory.getSkuId().value()));
             if (current == null) {
-                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(inventory.getSkuIdValue()));
+                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                        String.valueOf(inventory.getSkuId() == null ? null : inventory.getSkuId().value()));
             }
             if (!current.getVersion().equals(inventory.getVersion())) {
                 throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED,
-                        String.valueOf(inventory.getSkuIdValue()));
+                        String.valueOf(inventory.getSkuId() == null ? null : inventory.getSkuId().value()));
             }
             Inventory persisted = copy(inventory);
             persisted.markPersisted(current.getVersion() + 1);
-            inventories.put(key(persisted.getTenantId().value(), persisted.getSkuIdValue()), persisted);
+            inventories.put(key(persisted.getTenantId().value(),
+                    persisted.getSkuId() == null ? null : persisted.getSkuId().value()), persisted);
             return copy(persisted);
         }
 
@@ -459,7 +462,8 @@ class InventoryWorkflowIntegrationTest {
         }
 
         private Inventory copy(Inventory source) {
-            return new Inventory(source.getId().value(), source.getTenantId().value(), source.getSkuIdValue(), source.getWarehouseNo().value(),
+            return new Inventory(source.getId().value(), source.getTenantId().value(),
+                    source.getSkuId() == null ? null : source.getSkuId().value(), source.getWarehouseNo().value(),
                     source.getOnHandQuantity(), source.getReservedQuantity(), source.getAvailableQuantity(),
                     source.getStatus(), source.getVersion(), source.getUpdatedAt());
         }

@@ -59,7 +59,7 @@ public class OrderQueryApplicationService {
 
     private OrderSummaryDTO toSummary(Order order) {
         return new OrderSummaryDTO(order.getIdValue(), order.getTenantIdValue(), order.getOrderNoValue(),
-                order.getUserIdValue(),
+                order.getUserId() == null ? null : order.getUserId().value(),
                 order.getOrderStatusValue(), order.getPayStatusValue(), order.getInventoryStatusValue(), order.getPaymentNoValue(),
                 order.getReservationNoValue(), order.getCurrencyCodeValue(), order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
@@ -73,10 +73,12 @@ public class OrderQueryApplicationService {
                 order.getOrderNoValue()).orElse(null);
         List<OrderItemDTO> itemDtos = orderRepository.findItemsByOrderId(order.getTenantIdValue(), order.getIdValue(),
                         order.getCurrencyCodeValue()).stream()
-                .map(item -> new OrderItemDTO(item.getSkuIdValue(), item.getSkuName(), item.getImageUrl(), item.getQuantity(),
+                .map(item -> new OrderItemDTO(item.getSkuId() == null ? null : item.getSkuId().value(),
+                        item.getSkuName(), item.getImageUrl(), item.getQuantity(),
                         item.getSalePrice().value(), item.getLineAmount().value()))
                 .toList();
-        return new OrderDetailDTO(order.getIdValue(), order.getTenantIdValue(), order.getOrderNoValue(), order.getUserIdValue(),
+        return new OrderDetailDTO(order.getIdValue(), order.getTenantIdValue(), order.getOrderNoValue(),
+                order.getUserId() == null ? null : order.getUserId().value(),
                 order.getOrderStatusValue(), order.getPayStatusValue(), order.getInventoryStatusValue(),
                 paymentSnapshot == null ? order.getPaymentNoValue() : paymentSnapshot.paymentNoValue(),
                 inventorySnapshot == null ? order.getReservationNoValue() : inventorySnapshot.reservationNoValue(),

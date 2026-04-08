@@ -109,7 +109,8 @@ public class InventoryQueryApplicationService {
         return new InventoryReservationDTO(reservation.getTenantId() == null ? null : reservation.getTenantId().value(), reservation.getOrderNoValue(),
                 reservation.getReservationNoValue(), reservation.getReservationStatusValue(), reservation.getWarehouseNoValue(),
                 reservation.getItems().stream()
-                        .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
+                        .map(item -> new InventoryReservationItemDTO(item.getSkuId() == null ? null : item.getSkuId().value(),
+                                item.getQuantity()))
                         .toList(),
                 reservation.getFailureReason(), reservation.getReleaseReasonValue(), reservation.getCreatedAt(),
                 reservation.getReleasedAt(), reservation.getDeductedAt());
@@ -117,7 +118,8 @@ public class InventoryQueryApplicationService {
 
     private InventoryLedgerDTO toLedgerDto(InventoryLedger ledger) {
         return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantId() == null ? null : ledger.getTenantId().value(), ledger.getOrderNoValue(),
-                ledger.getReservationNoValue(), ledger.getSkuIdValue(), ledger.getWarehouseNoValue(),
+                ledger.getReservationNoValue(), ledger.getSkuId() == null ? null : ledger.getSkuId().value(),
+                ledger.getWarehouseNoValue(),
                 ledger.getLedgerTypeValue(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }

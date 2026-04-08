@@ -154,7 +154,9 @@ public class InventoryReservationApplicationService {
                 .filter(java.util.Objects::nonNull)
                 .collect(java.util.stream.Collectors.toSet());
         Map<Long, Inventory> inventoryBySku = inventoryStockRepository.findInventories(tenantId, skuIds).stream()
-                .collect(java.util.stream.Collectors.toMap(Inventory::getSkuIdValue, inventory -> inventory));
+                .collect(java.util.stream.Collectors.toMap(
+                        inventory -> inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
+                        inventory -> inventory));
         for (InventoryReservationItemDTO item : items) {
             if (item.getSkuId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
                 return ReservationValidationResult.failed(InventoryErrorCode.INVALID_QUANTITY.code());
@@ -191,19 +193,21 @@ public class InventoryReservationApplicationService {
                                   InventoryReservationItem item,
                                   Instant operatedAt,
                                   Map<Long, Inventory> inventoryBySku) {
-        Inventory inventory = inventoryBySku.get(item.getSkuIdValue());
+        Long skuId = item.getSkuId() == null ? null : item.getSkuId().value();
+        Inventory inventory = inventoryBySku.get(skuId);
         if (inventory == null) {
-            inventory = loadInventory(tenantId, item.getSkuIdValue());
-            inventoryBySku.put(item.getSkuIdValue(), inventory);
+            inventory = loadInventory(tenantId, skuId);
+            inventoryBySku.put(skuId, inventory);
         }
         inventory.reserve(item.getQuantity(), operatedAt);
         Inventory persistedInventory = inventoryStockRepository.saveInventory(inventory);
-        inventoryBySku.put(item.getSkuIdValue(), persistedInventory);
+        inventoryBySku.put(skuId, persistedInventory);
     }
 
     private InventoryReservationResultDTO completeCreatedReservation(InventoryReservation reservation) {
         List<InventoryReservationItemDTO> items = reservation.getItems().stream()
-                .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
+                .map(item -> new InventoryReservationItemDTO(item.getSkuId() == null ? null : item.getSkuId().value(),
+                        item.getQuantity()))
                 .toList();
         ReservationValidationResult validationResult = validateReservation(reservation.getTenantId() == null ? null : reservation.getTenantId().value(), items);
         String failureReason = validationResult.failureReason();

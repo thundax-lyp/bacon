@@ -36,7 +36,4 @@ public class InventoryReservationItem {
         return reservationNo == null ? null : reservationNo.value();
     }
 
-    public Long getSkuIdValue() {
-        return skuId == null ? null : skuId.value();
-    }
 }

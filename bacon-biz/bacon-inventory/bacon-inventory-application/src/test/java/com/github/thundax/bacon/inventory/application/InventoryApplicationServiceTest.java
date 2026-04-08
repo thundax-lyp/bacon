@@ -204,7 +204,7 @@ class InventoryApplicationServiceTest {
         @Override
         public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || skuId.equals(inventory.getSkuIdValue()))
+                    .filter(inventory -> skuId == null || (inventory.getSkuId() != null && skuId.equals(inventory.getSkuId().value())))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)
@@ -214,7 +214,7 @@ class InventoryApplicationServiceTest {
         @Override
         public long countInventories(Long tenantId, Long skuId, String status) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || skuId.equals(inventory.getSkuIdValue()))
+                    .filter(inventory -> skuId == null || (inventory.getSkuId() != null && skuId.equals(inventory.getSkuId().value())))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                     .count();
         }
@@ -223,7 +223,8 @@ class InventoryApplicationServiceTest {
         public Inventory saveInventory(Inventory inventory) {
             Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
             inventory.markPersisted(version);
-            inventories.put(key(inventory.getTenantId().value(), inventory.getSkuIdValue()), inventory);
+            inventories.put(key(inventory.getTenantId().value(),
+                    inventory.getSkuId() == null ? null : inventory.getSkuId().value()), inventory);
             return inventory;
         }
 

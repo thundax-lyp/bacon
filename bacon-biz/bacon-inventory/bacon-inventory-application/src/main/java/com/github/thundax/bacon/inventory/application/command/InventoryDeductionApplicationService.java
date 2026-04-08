@@ -61,7 +61,7 @@ public class InventoryDeductionApplicationService {
 
         Instant deductedAt = Instant.now();
         reservation.getItems().forEach(item -> {
-            deductStockOnce(tenantId, item.getSkuIdValue(), item.getQuantity(), deductedAt);
+            deductStockOnce(tenantId, item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity(), deductedAt);
         });
         reservation.deduct(deductedAt);
         inventoryReservationRepository.saveReservation(reservation);

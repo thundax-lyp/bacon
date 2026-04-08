@@ -55,7 +55,8 @@ public class InventoryOperationLogSupport {
                                    InventoryLedgerType ledgerType, Instant occurredAt) {
         for (InventoryReservationItem item : items) {
             inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
-                    reservation.getOrderNoValue(), reservation.getReservationNoValue(), item.getSkuIdValue(),
+                    reservation.getOrderNoValue(), reservation.getReservationNoValue(),
+                    item.getSkuId() == null ? null : item.getSkuId().value(),
                     reservation.getWarehouseNoValue(), ledgerType, item.getQuantity(), occurredAt));
         }
     }

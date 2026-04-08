@@ -34,7 +34,7 @@ public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository 
     public List<AuthSession> findSessionsByTenantIdAndUserId(Long tenantId, Long userId) {
         return authStore.getSessions().values().stream()
                 .filter(session -> tenantId.equals(session.getTenantIdValue()))
-                .filter(session -> userId.equals(session.getUserIdValue()))
+                .filter(session -> session.getUserId() != null && userId.equals(session.getUserId().value()))
                 .toList();
     }
 

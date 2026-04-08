@@ -195,10 +195,6 @@ public class Order {
         return orderNo == null ? null : orderNo.value();
     }
 
-    public Long getUserIdValue() {
-        return userId == null ? null : userId.value();
-    }
-
     public String getPayStatusValue() {
         return payStatus == null ? null : payStatus.value();
     }

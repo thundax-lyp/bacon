@@ -111,7 +111,7 @@ public class OrderRepositorySupport {
         }
         for (OrderItem item : items) {
             orderItemMapper.insert(new OrderItemDO(idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG), item.getTenantIdValue(),
-                    String.valueOf(item.getOrderIdValue()), String.valueOf(item.getSkuIdValue()),
+                    String.valueOf(item.getOrderIdValue()), String.valueOf(item.getSkuId() == null ? null : item.getSkuId().value()),
                     item.getSkuName(), item.getImageUrl(), item.getQuantity(), item.getSalePrice().value(),
                     item.getLineAmount().value()));
         }

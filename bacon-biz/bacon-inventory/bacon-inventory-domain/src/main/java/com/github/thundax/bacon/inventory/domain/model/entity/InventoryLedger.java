@@ -55,10 +55,6 @@ public class InventoryLedger {
         return reservationNo == null ? null : reservationNo.value();
     }
 
-    public Long getSkuIdValue() {
-        return skuId == null ? null : skuId.value();
-    }
-
     public String getWarehouseNoValue() {
         return warehouseNo == null ? null : warehouseNo.value();
     }

@@ -69,7 +69,7 @@ public class OrderCreateApplicationService {
                 command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
         return new OrderSummaryDTO(savedOrder.getIdValue(), savedOrder.getTenantIdValue(),
-                savedOrder.getOrderNoValue(), savedOrder.getUserIdValue(),
+                savedOrder.getOrderNoValue(), savedOrder.getUserId() == null ? null : savedOrder.getUserId().value(),
                 savedOrder.getOrderStatusValue(), savedOrder.getPayStatusValue(),
                 savedOrder.getInventoryStatusValue(), savedOrder.getPaymentNoValue(), savedOrder.getReservationNoValue(),
                 savedOrder.getCurrencyCodeValue(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),

@@ -53,7 +53,4 @@ public class OrderItem {
         return orderId == null ? null : orderId.value();
     }
 
-    public Long getSkuIdValue() {
-        return skuId == null ? null : skuId.value();
-    }
 }

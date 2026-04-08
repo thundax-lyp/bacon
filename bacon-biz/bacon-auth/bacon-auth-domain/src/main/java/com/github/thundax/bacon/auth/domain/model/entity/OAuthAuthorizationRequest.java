@@ -64,10 +64,6 @@ public class OAuthAuthorizationRequest {
         return tenantId == null ? null : tenantId.value();
     }
 
-    public Long getUserIdValue() {
-        return userId == null ? null : userId.value();
-    }
-
     public void markUsed() {
         // 授权请求只能消费一次；上层在换取 code 后立即标记，避免重放同一批准结果。
         this.used = true;

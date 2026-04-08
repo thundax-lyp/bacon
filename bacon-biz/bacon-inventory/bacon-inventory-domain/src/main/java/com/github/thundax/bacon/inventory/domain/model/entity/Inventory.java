@@ -54,10 +54,6 @@ public class Inventory {
         return id == null ? null : id.value();
     }
 
-    public Long getSkuIdValue() {
-        return skuId == null ? null : skuId.value();
-    }
-
     public String getWarehouseNoValue() {
         return warehouseNo == null ? null : warehouseNo.value();
     }

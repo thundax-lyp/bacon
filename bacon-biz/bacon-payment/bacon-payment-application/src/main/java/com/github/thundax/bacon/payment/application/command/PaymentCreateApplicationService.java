@@ -2,7 +2,7 @@ package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
@@ -49,7 +49,8 @@ public class PaymentCreateApplicationService {
             throw new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE, "payment-no-generator");
         }
         PaymentNo paymentNo = PaymentNo.of(nextPaymentNo);
-        PaymentOrder paymentOrder = new PaymentOrder(null, toTenantId(tenantId), paymentNo, OrderNo.of(orderNo), toUserId(userId),
+        PaymentOrder paymentOrder = new PaymentOrder(null, TenantIdMapper.toDomain(tenantId), paymentNo, OrderNo.of(orderNo),
+                UserIdMapper.toDomain(userId),
                 PaymentChannelCode.fromValue(channelCode), Money.of(amount), subject, expiredAt, Instant.now());
         // 创建后立即进入 PAYING，表示渠道拉起参数已经准备好，后续只等待回调或显式关闭。
         paymentOrder.markPaying();
@@ -86,15 +87,7 @@ public class PaymentCreateApplicationService {
                 failureReason);
     }
 
-    private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
     private Long toTenantValue(TenantId tenantId) {
         return tenantId == null ? null : Long.valueOf(tenantId.value());
-    }
-
-    private UserId toUserId(Long userId) {
-        return UserIdMapper.toDomain(userId);
     }
 }

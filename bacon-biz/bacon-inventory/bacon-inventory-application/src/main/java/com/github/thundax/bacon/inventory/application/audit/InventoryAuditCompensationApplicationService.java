@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -36,7 +35,7 @@ public class InventoryAuditCompensationApplicationService {
         InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository.findAuditDeadLetterById(deadLetterId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
                         "dead-letter-not-found:" + deadLetterId));
-        if (!Objects.equals(toTenantId(tenantId), deadLetter.getTenantId())) {
+        if (!Objects.equals(TenantIdMapper.toDomain(tenantId), deadLetter.getTenantId())) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "dead-letter-tenant-mismatch");
         }
         if (InventoryAuditReplayStatus.SUCCEEDED.equals(deadLetter.getReplayStatus())) {
@@ -104,9 +103,5 @@ public class InventoryAuditCompensationApplicationService {
             return "UNKNOWN";
         }
         return message.length() <= 512 ? message : message.substring(0, 512);
-    }
-
-    private TenantId toTenantId(Long value) {
-        return TenantIdMapper.toDomain(value);
     }
 }

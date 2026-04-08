@@ -604,10 +604,11 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryDO toDataObject(Inventory inventory) {
-        return new InventoryDO(inventory.getId() == null ? null : inventory.getId().getIdValue(),
+        return new InventoryDO(inventory.getId() == null ? null : inventory.getId().value(),
                 inventory.getTenantId() == null ? null : inventory.getTenantId().value(),
                 inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
-                inventory.getWarehouseNoValue(), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
+                inventory.getWarehouseNo() == null ? null : inventory.getWarehouseNo().value(),
+                inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
                 inventory.getAvailableQuantity(), inventory.getStatus().value(), inventory.getVersion(), null,
                 inventory.getUpdatedAt(), null,
                 inventory.getUpdatedAt());

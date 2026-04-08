@@ -13,6 +13,10 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
 
     protected abstract String basePackage();
 
+    protected String[] simpleEnumClassNamePatterns() {
+        return new String[] {basePackage() + ".domain.model.enums.*"};
+    }
+
     @BeforeAll
     void loadClasses() {
         this.classes = NamingAndPlacementRuleSupport.importDomainClasses(basePackage());
@@ -107,6 +111,13 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     @DisplayName("FacadeRemoteImpl：微服务模式门面实现，命名 {业务对象}{动作}FacadeRemoteImpl，目录 infra/facade/remote/")
     void shouldFollowFacadeRemoteImplRule() {
         NamingAndPlacementRuleSupport.facadeRemoteImplShouldUseFacadeRemoteImplNameAndPackage(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    @DisplayName("domain.model.enums：简单枚举统一成 value() -> name()、from() 走 Arrays.stream(values()) + equalsIgnoreCase + orElseThrow(...)")
+    void shouldFollowSimpleEnumConventionRule() {
+        NamingAndPlacementRuleSupport.simpleEnumShouldUseNameAndFromConvention(simpleEnumClassNamePatterns())
                 .check(classes());
     }
 }

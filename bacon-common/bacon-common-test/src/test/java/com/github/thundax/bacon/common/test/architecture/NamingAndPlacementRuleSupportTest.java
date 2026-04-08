@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.common.test.architecture;
 
+import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.EnumFieldFixture;
+import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.InvalidSimpleEnumFixture;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.EvaluationResult;
 import java.time.Instant;
@@ -57,8 +59,35 @@ class NamingAndPlacementRuleSupportTest {
                 .anyMatch(detail -> detail.contains(MultipleExplicitConstructorsEntityFixture.class.getName()));
     }
 
+    @Test
+    void simpleEnumConventionShouldRejectFromValueMethod() {
+        EvaluationResult result = evaluateSimpleEnum(InvalidSimpleEnumFixture.class);
+
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(singleViolationDetail(result))
+                .contains(InvalidSimpleEnumFixture.class.getName() + " violation")
+                .contains("simple enum must not declare fromValue(String); use from(String)")
+                .contains("missing static method from(String)")
+                .contains("Fix: declare value() { return name(); } and static from(String value) using Arrays.stream(values())");
+    }
+
+    @Test
+    void simpleEnumConventionShouldIgnoreEnumsWithInstanceFields() {
+        EvaluationResult result = NamingAndPlacementRuleSupport
+                .simpleEnumShouldUseNameAndFromConvention(EnumFieldFixture.class.getName())
+                .evaluate(new ClassFileImporter().importPackages(EnumFieldFixture.class.getPackageName()));
+
+        assertThat(result.hasViolation()).isFalse();
+    }
+
     private static EvaluationResult evaluate(Class<?> targetClass) {
         return NamingAndPlacementRuleSupport.entityShouldUseSingleExplicitBoundaryConstructor(targetClass.getName())
+                .evaluate(new ClassFileImporter().importPackages(targetClass.getPackageName()));
+    }
+
+    private static EvaluationResult evaluateSimpleEnum(Class<?> targetClass) {
+        return NamingAndPlacementRuleSupport
+                .simpleEnumShouldUseNameAndFromConvention(targetClass.getName())
                 .evaluate(new ClassFileImporter().importPackages(targetClass.getPackageName()));
     }
 

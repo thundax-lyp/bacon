@@ -5,6 +5,8 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -156,6 +158,100 @@ public final class NamingAndPlacementRuleSupport {
                 .because("FacadeRemoteImpl -> infra.facade.remote");
     }
 
+    public static ArchRule simpleEnumShouldUseNameAndFromConvention(String... fullyQualifiedClassNames) {
+        Set<String> classNamePatterns = Set.of(fullyQualifiedClassNames);
+        return ArchRuleDefinition.classes()
+                .that(new DescribedPredicate<>("match configured simple enum classes") {
+                    @Override
+                    public boolean test(JavaClass input) {
+                        return classNamePatterns.stream()
+                                .anyMatch(pattern -> matchesClassNamePattern(pattern, input.getFullName()));
+                    }
+                })
+                .and().areEnums()
+                .and(new DescribedPredicate<>("are simple enums without instance fields") {
+                    @Override
+                    public boolean test(JavaClass input) {
+                        return input.getFields().stream()
+                                .filter(field -> !field.getModifiers().contains(JavaModifier.STATIC))
+                                .toList()
+                                .isEmpty();
+                    }
+                })
+                .should(new ArchCondition<>("use value() -> name() and from(String) -> values/equalsIgnoreCase/orElseThrow") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        List<String> violations = new ArrayList<>();
+                        Optional<JavaMethod> valueMethod = item.tryGetMethod("value");
+                        Optional<JavaMethod> fromMethod = item.tryGetMethod("from", String.class);
+                        Optional<JavaMethod> fromValueMethod = item.tryGetMethod("fromValue", String.class);
+
+                        if (valueMethod.isEmpty()) {
+                            violations.add("missing method value()");
+                        } else {
+                            JavaMethod method = valueMethod.get();
+                            if (method.getModifiers().contains(JavaModifier.STATIC)) {
+                                violations.add("value() must be an instance method");
+                            }
+                            if (!String.class.getName().equals(method.getRawReturnType().getFullName())) {
+                                violations.add("value() must return String");
+                            }
+                            if (!callsMethod(method, Enum.class.getName(), "name")) {
+                                violations.add("value() must delegate to name()");
+                            }
+                        }
+
+                        if (fromValueMethod.isPresent()) {
+                            violations.add("simple enum must not declare fromValue(String); use from(String)");
+                        }
+
+                        if (fromMethod.isEmpty()) {
+                            violations.add("missing static method from(String)");
+                        } else {
+                            JavaMethod method = fromMethod.get();
+                            if (!method.getModifiers().contains(JavaModifier.STATIC)) {
+                                violations.add("from(String) must be static");
+                            }
+                            if (!method.getRawReturnType().equals(item)) {
+                                violations.add("from(String) must return " + item.getSimpleName());
+                            }
+                            if (!callsMethod(method, item.getFullName(), "values")) {
+                                violations.add("from(String) must call values()");
+                            }
+                            if (!callsMethod(method, String.class.getName(), "equalsIgnoreCase")) {
+                                violations.add("from(String) must call String.equalsIgnoreCase(..)");
+                            }
+                            if (!callsMethod(method, Optional.class.getName(), "orElseThrow")) {
+                                violations.add("from(String) must call Optional.orElseThrow(..)");
+                            }
+                        }
+
+                        List<String> extraMethods = item.getMethods().stream()
+                                .filter(method -> !method.getModifiers().contains(JavaModifier.SYNTHETIC))
+                                .filter(method -> !method.getModifiers().contains(JavaModifier.BRIDGE))
+                                .filter(method -> !isAllowedSimpleEnumMethod(method))
+                                .map(NamingAndPlacementRuleSupport::formatMethod)
+                                .sorted()
+                                .toList();
+                        if (!extraMethods.isEmpty()) {
+                            violations.add("simple enum must only declare value() and static from(String); found extra methods "
+                                    + extraMethods);
+                        }
+
+                        boolean satisfied = violations.isEmpty();
+                        String detail = satisfied
+                                ? item.getFullName() + " simple enum convention check passed"
+                                : item.getFullName() + " violation: " + String.join("; ", violations)
+                                + ". Fix: declare value() { return name(); } and static from(String value) using "
+                                + "Arrays.stream(values()).filter(item -> item.name().equalsIgnoreCase(value))"
+                                + ".findFirst().orElseThrow(...)";
+                        events.add(new SimpleConditionEvent(item, satisfied, detail));
+                    }
+                })
+                .allowEmptyShould(true)
+                .because("configured simple enums must expose value() -> name() and from(String)");
+    }
+
     public static ArchRule entityShouldUseSingleExplicitBoundaryConstructor(String... fullyQualifiedClassNames) {
         Set<String> classNamePatterns = Set.of(fullyQualifiedClassNames);
         return ArchRuleDefinition.classes()
@@ -222,6 +318,34 @@ public final class NamingAndPlacementRuleSupport {
             }
         }
         return fullName.matches(regex.toString());
+    }
+
+    private static boolean callsMethod(JavaMethod method, String ownerFullName, String methodName) {
+        return method.getMethodCallsFromSelf().stream()
+                .map(JavaMethodCall::getTarget)
+                .anyMatch(target -> ownerFullName.equals(target.getOwner().getFullName())
+                        && methodName.equals(target.getName()));
+    }
+
+    private static boolean isAllowedSimpleEnumMethod(JavaMethod method) {
+        List<String> parameterTypes = method.getRawParameterTypes().stream()
+                .map(JavaClass::getFullName)
+                .toList();
+        if ("value".equals(method.getName())) {
+            return parameterTypes.isEmpty() && !method.getModifiers().contains(JavaModifier.STATIC);
+        }
+        if ("from".equals(method.getName())) {
+            return parameterTypes.equals(List.of(String.class.getName()))
+                    && method.getModifiers().contains(JavaModifier.STATIC);
+        }
+        return false;
+    }
+
+    private static String formatMethod(JavaMethod method) {
+        String methodName = method.getName() + "(" + method.getRawParameterTypes().stream()
+                .map(JavaClass::getSimpleName)
+                .collect(Collectors.joining(", ")) + ")";
+        return method.getModifiers().contains(JavaModifier.STATIC) ? "static " + methodName : methodName;
     }
 
     static boolean isBoundaryConstructorType(JavaClass parameterType) {

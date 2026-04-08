@@ -15,6 +15,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
@@ -56,7 +57,7 @@ class InventoryApplicationServiceTest {
                 List.of(new InventoryReservationItemDTO(101L, 10)));
         InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
 
-        assertEquals(InventoryReservation.STATUS_RESERVED, first.getReservationStatus());
+        assertEquals(InventoryReservationStatus.RESERVED.value(), first.getReservationStatus());
         assertEquals("RESERVED", first.getInventoryStatus());
         assertEquals(first.getReservationNo(), second.getReservationNo());
         assertEquals(10, stock.getReservedQuantity());
@@ -82,7 +83,7 @@ class InventoryApplicationServiceTest {
                 List.of(new InventoryReservationItemDTO(101L, 1000)));
         InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
 
-        assertEquals(InventoryReservation.STATUS_FAILED, result.getReservationStatus());
+        assertEquals(InventoryReservationStatus.FAILED.value(), result.getReservationStatus());
         assertEquals("FAILED", result.getInventoryStatus());
         assertNotNull(result.getFailureReason());
         assertEquals(0, stock.getReservedQuantity());
@@ -108,8 +109,8 @@ class InventoryApplicationServiceTest {
         InventoryReservationResultDTO secondRelease = service.releaseReservedStock(1001L, "ORDER-3", "USER_CANCELLED");
         InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
 
-        assertEquals(InventoryReservation.STATUS_RELEASED, firstRelease.getReservationStatus());
-        assertEquals(InventoryReservation.STATUS_RELEASED, secondRelease.getReservationStatus());
+        assertEquals(InventoryReservationStatus.RELEASED.value(), firstRelease.getReservationStatus());
+        assertEquals(InventoryReservationStatus.RELEASED.value(), secondRelease.getReservationStatus());
         assertEquals(0, stock.getReservedQuantity());
         assertEquals(100, stock.getAvailableQuantity());
         assertEquals(2, queryService.listLedgersByOrderNo(1001L, "ORDER-3").size());
@@ -134,8 +135,8 @@ class InventoryApplicationServiceTest {
         InventoryReservationResultDTO secondDeduct = service.deductReservedStock(1001L, "ORDER-4");
         InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
 
-        assertEquals(InventoryReservation.STATUS_DEDUCTED, firstDeduct.getReservationStatus());
-        assertEquals(InventoryReservation.STATUS_DEDUCTED, secondDeduct.getReservationStatus());
+        assertEquals(InventoryReservationStatus.DEDUCTED.value(), firstDeduct.getReservationStatus());
+        assertEquals(InventoryReservationStatus.DEDUCTED.value(), secondDeduct.getReservationStatus());
         assertEquals(0, stock.getReservedQuantity());
         assertEquals(93, stock.getOnHandQuantity());
         assertEquals(93, stock.getAvailableQuantity());

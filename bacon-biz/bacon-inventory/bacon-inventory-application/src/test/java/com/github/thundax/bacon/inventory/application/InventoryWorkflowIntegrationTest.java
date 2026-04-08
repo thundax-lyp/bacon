@@ -15,6 +15,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
@@ -80,8 +81,8 @@ class InventoryWorkflowIntegrationTest {
             InventoryReservationResultDTO firstResult = first.get(5, TimeUnit.SECONDS);
             InventoryReservationResultDTO secondResult = second.get(5, TimeUnit.SECONDS);
 
-            assertEquals(InventoryReservation.STATUS_RESERVED, firstResult.getReservationStatus());
-            assertEquals(InventoryReservation.STATUS_RESERVED, secondResult.getReservationStatus());
+            assertEquals(InventoryReservationStatus.RESERVED.value(), firstResult.getReservationStatus());
+            assertEquals(InventoryReservationStatus.RESERVED.value(), secondResult.getReservationStatus());
 
             Inventory inventory = repository.findInventory(1001L, 101L).orElseThrow();
             assertEquals(80, inventory.getReservedQuantity());

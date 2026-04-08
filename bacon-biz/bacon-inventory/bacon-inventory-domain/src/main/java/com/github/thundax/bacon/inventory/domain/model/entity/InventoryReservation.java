@@ -19,12 +19,6 @@ import java.util.Set;
 @Getter
 public class InventoryReservation {
 
-    public static final String STATUS_CREATED = InventoryReservationStatus.CREATED.value();
-    public static final String STATUS_RESERVED = InventoryReservationStatus.RESERVED.value();
-    public static final String STATUS_RELEASED = InventoryReservationStatus.RELEASED.value();
-    public static final String STATUS_DEDUCTED = InventoryReservationStatus.DEDUCTED.value();
-    public static final String STATUS_FAILED = InventoryReservationStatus.FAILED.value();
-
     private static final Set<String> RELEASE_REASONS = Set.of(
             "USER_CANCELLED",
             "SYSTEM_CANCELLED",

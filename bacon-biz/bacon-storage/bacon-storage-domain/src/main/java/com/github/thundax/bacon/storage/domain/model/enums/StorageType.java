@@ -11,7 +11,7 @@ public enum StorageType {
         return name();
     }
 
-    public static StorageType fromValue(String value) {
+    public static StorageType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

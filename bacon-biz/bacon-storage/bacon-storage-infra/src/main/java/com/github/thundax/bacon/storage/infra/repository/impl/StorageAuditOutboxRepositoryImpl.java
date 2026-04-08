@@ -110,10 +110,10 @@ public class StorageAuditOutboxRepositoryImpl implements StorageAuditOutboxRepos
 
     private StorageAuditOutbox toDomain(StorageAuditOutboxDO dataObject) {
         return new StorageAuditOutbox(dataObject.getId(), dataObject.getTenantId(), dataObject.getObjectId(),
-                dataObject.getOwnerType(), dataObject.getOwnerId(), StorageAuditActionType.fromValue(dataObject.getActionType()),
+                dataObject.getOwnerType(), dataObject.getOwnerId(), StorageAuditActionType.from(dataObject.getActionType()),
                 dataObject.getBeforeStatus(), dataObject.getAfterStatus(), dataObject.getOperatorType(),
                 dataObject.getOperatorId(), dataObject.getOccurredAt(), dataObject.getErrorMessage(),
-                StorageAuditOutboxStatus.fromValue(dataObject.getStatus()), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
+                StorageAuditOutboxStatus.from(dataObject.getStatus()), dataObject.getRetryCount(), dataObject.getNextRetryAt(),
                 dataObject.getUpdatedAt());
     }
 

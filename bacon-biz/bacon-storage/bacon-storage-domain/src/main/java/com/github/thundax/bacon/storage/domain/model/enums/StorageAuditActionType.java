@@ -16,7 +16,7 @@ public enum StorageAuditActionType {
         return name();
     }
 
-    public static StorageAuditActionType fromValue(String value) {
+    public static StorageAuditActionType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

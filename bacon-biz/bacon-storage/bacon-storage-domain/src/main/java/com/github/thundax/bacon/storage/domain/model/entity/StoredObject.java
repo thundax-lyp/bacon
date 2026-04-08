@@ -5,14 +5,15 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 存储对象领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class StoredObject {
 
     /** 主键。 */
@@ -46,25 +47,14 @@ public class StoredObject {
     /** 更新时间。 */
     private Instant updatedAt;
 
-    public StoredObject(StoredObjectId id, TenantId tenantId, StorageType storageType, String bucketName, String objectKey,
+    public StoredObject(Long id, Long tenantId, StorageType storageType, String bucketName, String objectKey,
                         String originalFilename, String contentType, Long size, String accessEndpoint,
                         StoredObjectStatus objectStatus, StoredObjectReferenceStatus referenceStatus,
                         String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.storageType = storageType;
-        this.bucketName = bucketName;
-        this.objectKey = objectKey;
-        this.originalFilename = originalFilename;
-        this.contentType = contentType;
-        this.size = size;
-        this.accessEndpoint = accessEndpoint;
-        this.objectStatus = objectStatus;
-        this.referenceStatus = referenceStatus;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
+        this(id == null ? null : StoredObjectId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                storageType, bucketName, objectKey, originalFilename, contentType, size, accessEndpoint,
+                objectStatus, referenceStatus, createdBy, createdAt, updatedBy, updatedAt);
     }
 
     public static StoredObject newUploadedObject(TenantId tenantId, StorageType storageType, String bucketName, String objectKey,

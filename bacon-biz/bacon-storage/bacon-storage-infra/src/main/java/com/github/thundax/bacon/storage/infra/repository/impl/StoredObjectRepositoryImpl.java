@@ -113,11 +113,11 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     private StoredObject toDomain(StoredObjectDO dataObject) {
-        return new StoredObject(dataObject.getId(), dataObject.getTenantId(), StorageType.fromValue(dataObject.getStorageType()),
+        return new StoredObject(dataObject.getId(), dataObject.getTenantId(), StorageType.from(dataObject.getStorageType()),
                 dataObject.getBucketName(), dataObject.getObjectKey(), dataObject.getOriginalFilename(),
                 dataObject.getContentType(), dataObject.getSize(), dataObject.getAccessEndpoint(),
-                StoredObjectStatus.fromValue(dataObject.getObjectStatus()),
-                StoredObjectReferenceStatus.fromValue(dataObject.getReferenceStatus()), dataObject.getCreatedBy(),
+                StoredObjectStatus.from(dataObject.getObjectStatus()),
+                StoredObjectReferenceStatus.from(dataObject.getReferenceStatus()), dataObject.getCreatedBy(),
                 dataObject.getCreatedAt(), dataObject.getUpdatedBy(), dataObject.getUpdatedAt());
     }
 }

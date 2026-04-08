@@ -12,7 +12,7 @@ public enum StoredObjectStatus {
         return name();
     }
 
-    public static StoredObjectStatus fromValue(String value) {
+    public static StoredObjectStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

@@ -11,7 +11,7 @@ public enum StoredObjectReferenceStatus {
         return name();
     }
 
-    public static StoredObjectReferenceStatus fromValue(String value) {
+    public static StoredObjectReferenceStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

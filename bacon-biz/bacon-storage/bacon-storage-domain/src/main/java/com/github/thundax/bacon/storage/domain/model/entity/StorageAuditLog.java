@@ -3,14 +3,15 @@ package com.github.thundax.bacon.storage.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 存储审计日志实体。
  */
 @Getter
+@AllArgsConstructor
 public class StorageAuditLog {
 
     public static final String OPERATOR_TYPE_SYSTEM = "SYSTEM";
@@ -39,21 +40,13 @@ public class StorageAuditLog {
     /** 审计发生时间。 */
     private Instant occurredAt;
 
-    public StorageAuditLog(Long id, TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId,
-                           StorageAuditActionType actionType,
-                           String beforeStatus, String afterStatus, String operatorType, Long operatorId,
-                           Instant occurredAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.objectId = objectId;
-        this.ownerType = ownerType;
-        this.ownerId = ownerId;
-        this.actionType = actionType;
-        this.beforeStatus = beforeStatus;
-        this.afterStatus = afterStatus;
-        this.operatorType = operatorType;
-        this.operatorId = operatorId;
-        this.occurredAt = occurredAt;
+    public StorageAuditLog(Long id, Long tenantId, Long objectId, String ownerType, String ownerId,
+                           StorageAuditActionType actionType, String beforeStatus, String afterStatus,
+                           String operatorType, Long operatorId, Instant occurredAt) {
+        this(id,
+                tenantId == null ? null : TenantId.of(tenantId),
+                objectId == null ? null : StoredObjectId.of(objectId),
+                ownerType, ownerId, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
     }
 
     public static StorageAuditLog systemAction(TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId,

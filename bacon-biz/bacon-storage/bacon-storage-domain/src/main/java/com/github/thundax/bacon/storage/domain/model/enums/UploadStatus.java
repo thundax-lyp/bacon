@@ -13,7 +13,7 @@ public enum UploadStatus {
         return name();
     }
 
-    public static UploadStatus fromValue(String value) {
+    public static UploadStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

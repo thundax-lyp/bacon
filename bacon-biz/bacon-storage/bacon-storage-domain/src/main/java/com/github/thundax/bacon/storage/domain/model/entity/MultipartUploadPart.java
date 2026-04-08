@@ -1,13 +1,14 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 分段上传分段实体。
  */
 @Getter
+@AllArgsConstructor
 public class MultipartUploadPart {
 
     /** 主键。 */
@@ -23,13 +24,8 @@ public class MultipartUploadPart {
     /** 创建时间。 */
     private Instant createdAt;
 
-    public MultipartUploadPart(Long id, String uploadId, Integer partNumber, String etag, Long size, Instant createdAt) {
-        this.id = id;
-        this.uploadId = uploadId;
-        this.partNumber = partNumber;
-        this.etag = etag;
-        this.size = size;
-        this.createdAt = createdAt;
+    public MultipartUploadPart(Long id, String uploadId, Integer partNumber, String etag, Long size) {
+        this(id, uploadId, partNumber, etag, size, Instant.now());
     }
 
     public static MultipartUploadPart create(String uploadId, Integer partNumber, String etag, Long size) {
@@ -45,6 +41,6 @@ public class MultipartUploadPart {
         if (size == null || size <= 0L) {
             throw new IllegalArgumentException("size must be positive");
         }
-        return new MultipartUploadPart(null, uploadId, partNumber, etag, size, Instant.now());
+        return new MultipartUploadPart(null, uploadId, partNumber, etag, size);
     }
 }

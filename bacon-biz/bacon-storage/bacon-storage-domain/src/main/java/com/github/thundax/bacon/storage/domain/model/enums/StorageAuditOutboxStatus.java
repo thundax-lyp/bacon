@@ -16,7 +16,7 @@ public enum StorageAuditOutboxStatus {
         return name();
     }
 
-    public static StorageAuditOutboxStatus fromValue(String value) {
+    public static StorageAuditOutboxStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

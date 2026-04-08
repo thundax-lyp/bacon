@@ -2,16 +2,17 @@ package com.github.thundax.bacon.storage.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
-import lombok.Getter;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 分段上传会话实体。
  */
 @Getter
+@AllArgsConstructor
 public class MultipartUploadSession {
 
     /** 主键。 */
@@ -51,29 +52,14 @@ public class MultipartUploadSession {
     /** 取消时间。 */
     private Instant abortedAt;
 
-    public MultipartUploadSession(Long id, String uploadId, TenantId tenantId, String ownerType, String ownerId,
+    public MultipartUploadSession(Long id, String uploadId, Long tenantId, String ownerType, String ownerId,
                                   String category, String originalFilename, String contentType, String objectKey,
                                   String providerUploadId, Long totalSize, Long partSize, Integer uploadedPartCount,
                                   UploadStatus uploadStatus, Instant createdAt, Instant updatedAt, Instant completedAt,
                                   Instant abortedAt) {
-        this.id = id;
-        this.uploadId = uploadId;
-        this.tenantId = tenantId;
-        this.ownerType = ownerType;
-        this.ownerId = ownerId;
-        this.category = category;
-        this.originalFilename = originalFilename;
-        this.contentType = contentType;
-        this.objectKey = objectKey;
-        this.providerUploadId = providerUploadId;
-        this.totalSize = totalSize;
-        this.partSize = partSize;
-        this.uploadedPartCount = uploadedPartCount;
-        this.uploadStatus = uploadStatus;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.completedAt = completedAt;
-        this.abortedAt = abortedAt;
+        this(id, uploadId, tenantId == null ? null : TenantId.of(tenantId), ownerType, ownerId, category,
+                originalFilename, contentType, objectKey, providerUploadId, totalSize, partSize, uploadedPartCount,
+                uploadStatus, createdAt, updatedAt, completedAt, abortedAt);
     }
 
     public static MultipartUploadSession initiate(String uploadId, TenantId tenantId, String ownerType, String ownerId,

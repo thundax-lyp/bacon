@@ -37,6 +37,7 @@ import com.github.thundax.bacon.inventory.infra.persistence.dataobject.Inventory
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryLedgerDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationItemDO;
+import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryPersistenceAssembler;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditLogMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditDeadLetterMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditOutboxMapper;

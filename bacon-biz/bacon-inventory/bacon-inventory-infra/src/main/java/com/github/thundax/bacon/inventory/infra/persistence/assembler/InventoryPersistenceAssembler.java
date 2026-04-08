@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.infra.repository.impl;
+package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;

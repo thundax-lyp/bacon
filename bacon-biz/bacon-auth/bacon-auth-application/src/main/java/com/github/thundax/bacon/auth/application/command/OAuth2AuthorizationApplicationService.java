@@ -112,7 +112,7 @@ public class OAuth2AuthorizationApplicationService {
             oAuthAuthorizationRepository.saveOAuthRefreshToken(currentRefreshToken);
             Optional<OAuthAccessToken> accessToken = oAuthAuthorizationRepository.findAccessTokenByHash(currentRefreshToken.getAccessTokenId());
             Set<String> scopes = accessToken.map(OAuthAccessToken::getScopes).orElseGet(LinkedHashSet::new);
-            return issueOAuthTokens(client, currentRefreshToken.getTenantId(), currentRefreshToken.getUserId(), scopes);
+            return issueOAuthTokens(client, currentRefreshToken.getTenantIdValue(), currentRefreshToken.getUserIdValue(), scopes);
         }
         throw new IllegalArgumentException("Grant type unsupported");
     }

@@ -169,8 +169,8 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
 
         private static RefreshTokenSnapshot fromDomain(OAuthRefreshToken refreshToken) {
             return new RefreshTokenSnapshot(refreshToken.getTokenId(), refreshToken.getTokenHash(),
-                    refreshToken.getAccessTokenId(), refreshToken.getClientId(), refreshToken.getTenantId(),
-                    refreshToken.getUserId(), refreshToken.getIssuedAt(), refreshToken.getExpireAt(),
+                    refreshToken.getAccessTokenId(), refreshToken.getClientIdValue(), refreshToken.getTenantIdValue(),
+                    refreshToken.getUserIdValue(), refreshToken.getIssuedAt(), refreshToken.getExpireAt(),
                     refreshToken.getTokenStatus());
         }
 

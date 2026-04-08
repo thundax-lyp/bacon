@@ -131,7 +131,7 @@ public class InventoryQueryApplicationService {
     }
 
     private InventoryAuditDeadLetterDTO toAuditDeadLetterDto(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDTO(deadLetter.getId(), deadLetter.getOutboxIdValue(), deadLetter.getEventCodeValue(), deadLetter.getTenantIdValue(),
+        return new InventoryAuditDeadLetterDTO(deadLetter.getIdValue(), deadLetter.getOutboxIdValue(), deadLetter.getEventCodeValue(), deadLetter.getTenantIdValue(),
                 deadLetter.getOrderNoValue(), deadLetter.getReservationNoValue(), deadLetter.getActionTypeValue(),
                 deadLetter.getOperatorTypeValue(), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),

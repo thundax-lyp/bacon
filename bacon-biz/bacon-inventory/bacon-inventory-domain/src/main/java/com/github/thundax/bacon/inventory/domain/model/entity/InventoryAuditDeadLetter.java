@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
@@ -22,7 +23,7 @@ import lombok.NoArgsConstructor;
 public class InventoryAuditDeadLetter {
 
     /** 死信记录主键。 */
-    private Long id;
+    private DeadLetterId id;
     /** 审计出站主键。 */
     private OutboxId outboxId;
     /** 出站事件业务标识。 */
@@ -72,7 +73,7 @@ public class InventoryAuditDeadLetter {
                                     Instant deadAt, String replayStatus, Integer replayCount, Instant lastReplayAt,
                                     String lastReplayResult, String lastReplayError, String replayKey,
                                     String replayOperatorType, String replayOperatorId) {
-        this(id,
+        this(id == null ? null : DeadLetterId.of(id),
                 outboxId == null ? null : OutboxId.of(outboxId),
                 eventCode == null ? null : EventCode.of(eventCode),
                 tenantId == null ? null : TenantId.of(tenantId),
@@ -94,6 +95,10 @@ public class InventoryAuditDeadLetter {
                 replayKey,
                 replayOperatorType,
                 replayOperatorId);
+    }
+
+    public Long getIdValue() {
+        return id == null ? null : id.value();
     }
 
     public Long getOutboxIdValue() {

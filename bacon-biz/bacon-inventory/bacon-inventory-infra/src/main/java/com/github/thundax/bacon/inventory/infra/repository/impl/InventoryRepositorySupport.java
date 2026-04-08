@@ -690,7 +690,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDO(deadLetter.getId(), deadLetter.getOutboxIdValue(), deadLetter.getEventCodeValue(), deadLetter.getTenantIdValue(),
+        return new InventoryAuditDeadLetterDO(deadLetter.getIdValue(), deadLetter.getOutboxIdValue(), deadLetter.getEventCodeValue(), deadLetter.getTenantIdValue(),
                 deadLetter.getOrderNoValue(), deadLetter.getReservationNoValue(), deadLetter.getActionTypeValue(),
                 deadLetter.getOperatorTypeValue(), deadLetter.getOperatorIdValue(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),

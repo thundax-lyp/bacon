@@ -7,6 +7,7 @@ import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -15,6 +16,10 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import java.lang.reflect.Field;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -263,9 +268,16 @@ public final class NamingAndPlacementRuleSupport {
                                 .anyMatch(pattern -> matchesClassNamePattern(pattern, input.getFullName()));
                     }
                 })
+                .and(new DescribedPredicate<>("are not records") {
+                    @Override
+                    public boolean test(JavaClass input) {
+                        return !input.isRecord();
+                    }
+                })
                 .should(new ArchCondition<>("have a valid explicit boundary constructor") {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
+                        boolean hasAllArgsConstructorAnnotation = hasAllArgsConstructorAnnotation(item);
                         List<JavaConstructor> publicConstructors = item.getConstructors().stream()
                                 .filter(constructor -> constructor.getModifiers().contains(JavaModifier.PUBLIC))
                                 .toList();
@@ -285,13 +297,20 @@ public final class NamingAndPlacementRuleSupport {
                         boolean boundaryTypesOnly = singleExplicitConstructor
                                 && invalidBoundaryTypes.isEmpty();
                         boolean delegatesToOwnConstructor = singleExplicitConstructor
-                                && explicitConstructor.getCallsOfSelf().stream()
-                                .anyMatch(call -> call.getTargetOwner().equals(item));
-                        boolean satisfied = singleExplicitConstructor && boundaryTypesOnly && delegatesToOwnConstructor;
+                                && explicitConstructor.getConstructorCallsFromSelf().stream()
+                                .anyMatch(call -> call.getTargetOwner().getFullName().equals(item.getFullName()));
+                        boolean satisfied = hasAllArgsConstructorAnnotation
+                                && singleExplicitConstructor
+                                && boundaryTypesOnly
+                                && delegatesToOwnConstructor;
                         String detail = satisfied
                                 ? item.getFullName() + " entity boundary constructor check passed"
                                 : buildBoundaryConstructorFailureMessage(
-                                        item, explicitConstructors, invalidBoundaryTypes, delegatesToOwnConstructor);
+                                        item,
+                                        hasAllArgsConstructorAnnotation,
+                                        explicitConstructors,
+                                        invalidBoundaryTypes,
+                                        delegatesToOwnConstructor);
                         events.add(new SimpleConditionEvent(item, satisfied, detail));
                     }
                 })
@@ -325,6 +344,62 @@ public final class NamingAndPlacementRuleSupport {
         return method.getMethodCallsFromSelf().stream()
                 .map(JavaMethodCall::getTarget)
                 .anyMatch(target -> methodName.equals(target.getName()));
+    }
+
+    private static boolean hasAllArgsConstructorAnnotation(JavaClass item) {
+        return item.isAnnotatedWith("lombok.AllArgsConstructor") || hasAllArgsConstructorInSource(item);
+    }
+
+    private static boolean hasAllArgsConstructorInSource(JavaClass item) {
+        try {
+            Optional<Source> source = item.getSource();
+            if (source.isEmpty()) {
+                return false;
+            }
+            Optional<Path> sourceFile = toSourceFilePath(source.get().getUri(), item);
+            if (sourceFile.isEmpty() || !Files.exists(sourceFile.get())) {
+                return false;
+            }
+            String content = Files.readString(sourceFile.get(), StandardCharsets.UTF_8);
+            String classDeclaration = "class " + item.getSimpleName();
+            int classIndex = content.indexOf(classDeclaration);
+            if (classIndex < 0) {
+                return false;
+            }
+            int fromIndex = Math.max(0, classIndex - 300);
+            String prefix = content.substring(fromIndex, classIndex);
+            return prefix.contains("@AllArgsConstructor") || prefix.contains("@lombok.AllArgsConstructor");
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static Optional<Path> toSourceFilePath(URI classFileUri, JavaClass item) {
+        if (!"file".equalsIgnoreCase(classFileUri.getScheme())) {
+            return Optional.empty();
+        }
+        Path classFilePath = Path.of(classFileUri);
+        String packagePath = item.getPackageName().replace('.', '/');
+        String relativeClassPath = packagePath.isEmpty()
+                ? item.getSimpleName() + ".class"
+                : packagePath + "/" + item.getSimpleName() + ".class";
+        String classFilePathText = classFilePath.toString().replace('\\', '/');
+        int classPathIndex = classFilePathText.lastIndexOf(relativeClassPath);
+        if (classPathIndex < 0) {
+            return Optional.empty();
+        }
+        String root = classFilePathText.substring(0, classPathIndex);
+        String sourceRoot;
+        if (root.endsWith("target/classes/")) {
+            sourceRoot = root.substring(0, root.length() - "target/classes/".length()) + "src/main/java/";
+        } else if (root.endsWith("target/test-classes/")) {
+            sourceRoot = root.substring(0, root.length() - "target/test-classes/".length()) + "src/test/java/";
+        } else {
+            return Optional.empty();
+        }
+        String sourceFileName = item.getSourceCodeLocation().getSourceFileName();
+        String relativeSourcePath = packagePath.isEmpty() ? sourceFileName : packagePath + "/" + sourceFileName;
+        return Optional.of(Path.of(sourceRoot + relativeSourcePath));
     }
 
     private static boolean isAllowedSimpleEnumMethod(JavaMethod method) {
@@ -368,10 +443,14 @@ public final class NamingAndPlacementRuleSupport {
 
     private static String buildBoundaryConstructorFailureMessage(
             JavaClass item,
+            boolean hasAllArgsConstructorAnnotation,
             List<JavaConstructor> explicitConstructors,
             List<String> invalidBoundaryTypes,
             boolean delegatesToOwnConstructor) {
         List<String> reasons = new ArrayList<>();
+        if (!hasAllArgsConstructorAnnotation) {
+            reasons.add("Class must be annotated with @AllArgsConstructor");
+        }
         if (explicitConstructors.size() != 1) {
             reasons.add("Found " + explicitConstructors.size() + " explicit constructors"
                     + formatConstructors(explicitConstructors) + "; expected exactly 1 explicit boundary constructor");

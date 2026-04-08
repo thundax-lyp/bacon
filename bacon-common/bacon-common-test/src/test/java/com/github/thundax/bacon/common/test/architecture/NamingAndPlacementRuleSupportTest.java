@@ -6,6 +6,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.EvaluationResult;
 import java.time.Instant;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +58,27 @@ class NamingAndPlacementRuleSupportTest {
         assertThat(result.getFailureReport().getDetails())
                 .anyMatch(detail -> detail.contains(InvalidBoundaryTypeEntityFixture.class.getName()))
                 .anyMatch(detail -> detail.contains(MultipleExplicitConstructorsEntityFixture.class.getName()));
+    }
+
+    @Test
+    void entityBoundaryConstructorRuleShouldRequireAllArgsConstructorAnnotation() {
+        EvaluationResult result = evaluate(MissingAllArgsConstructorEntityFixture.class);
+
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(singleViolationDetail(result))
+                .contains(MissingAllArgsConstructorEntityFixture.class.getName() + " violation")
+                .contains("Class must be annotated with @AllArgsConstructor");
+    }
+
+    @Test
+    void entityBoundaryConstructorRuleShouldSkipRecordClasses() {
+        EvaluationResult result = NamingAndPlacementRuleSupport
+                .entityShouldUseSingleExplicitBoundaryConstructor(
+                        RecordEntityFixture.class.getName(),
+                        ValidAnnotatedEntityFixture.class.getName())
+                .evaluate(new ClassFileImporter().importPackages(NamingAndPlacementRuleSupportTest.class.getPackageName()));
+
+        assertThat(result.hasViolation()).isFalse();
     }
 
     @Test
@@ -134,6 +156,38 @@ final class MultipleExplicitConstructorsEntityFixture {
     public MultipleExplicitConstructorsEntityFixture(String id, BoundaryStatusFixture status, Instant createdAt) {
         this(SampleIdFixture.of(Long.valueOf(id)), status, createdAt);
     }
+}
+
+final class MissingAllArgsConstructorEntityFixture {
+
+    private SampleIdFixture id;
+    private BoundaryStatusFixture status;
+    private Instant createdAt;
+
+    private MissingAllArgsConstructorEntityFixture(SampleIdFixture id, BoundaryStatusFixture status, Instant createdAt) {
+        this.id = id;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
+
+    public MissingAllArgsConstructorEntityFixture(Long id, BoundaryStatusFixture status, Instant createdAt) {
+        this(SampleIdFixture.of(id), status, createdAt);
+    }
+}
+
+@AllArgsConstructor
+final class ValidAnnotatedEntityFixture {
+
+    private SampleIdFixture id;
+    private BoundaryStatusFixture status;
+    private Instant createdAt;
+
+    public ValidAnnotatedEntityFixture(Long id, BoundaryStatusFixture status, Instant createdAt) {
+        this(SampleIdFixture.of(id), status, createdAt);
+    }
+}
+
+record RecordEntityFixture(Long id, String code, Instant createdAt) {
 }
 
 final class SampleIdFixture {

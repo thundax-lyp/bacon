@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
@@ -69,7 +70,8 @@ public class InventoryAuditCompensationController {
                                                         @PathVariable @NotNull @Positive Long deadLetterId,
                                                         @Valid @RequestBody InventoryAuditReplayRequest request) {
         return InventoryAuditReplayResultResponse.from(inventoryAuditCompensationService.replayDeadLetter(
-                TenantId.of(tenantId), DeadLetterIdMapper.toDomain(deadLetterId), request.replayKey(), request.operatorId()));
+                TenantId.of(tenantId), DeadLetterIdMapper.toDomain(deadLetterId), request.replayKey(),
+                OperatorIdMapper.toDomain(request.operatorId() == null ? null : String.valueOf(request.operatorId()))));
     }
 
     @Operation(summary = "批量重放库存审计死信")

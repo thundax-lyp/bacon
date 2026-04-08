@@ -14,6 +14,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import java.time.Instant;
@@ -42,7 +43,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                 0, null, null, null, null, null, null));
 
         InventoryAuditReplayResultDTO result = service.replayDeadLetter(TenantId.of(3001L), DeadLetterId.of(1001L),
-                "MANUAL-REPLAY-1001", 9001L);
+                "MANUAL-REPLAY-1001", OperatorId.of("9001"));
 
         assertEquals(InventoryAuditReplayStatus.SUCCEEDED.value(), result.getReplayStatus());
         assertEquals("MANUAL-REPLAY-1001", result.getReplayKey());
@@ -88,7 +89,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                 0, null, null, null, null, null, null));
 
         InventoryAuditReplayResultDTO result = service.replayDeadLetter(TenantId.of(3001L), DeadLetterId.of(1004L),
-                "MANUAL-REPLAY-1004", 9001L);
+                "MANUAL-REPLAY-1004", OperatorId.of("9001"));
 
         assertEquals(InventoryAuditReplayStatus.FAILED.value(), result.getReplayStatus());
         assertTrue(result.getMessage().startsWith("tx-failed:"));

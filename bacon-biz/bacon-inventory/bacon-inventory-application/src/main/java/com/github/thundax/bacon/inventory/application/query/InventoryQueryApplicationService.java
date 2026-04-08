@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.query;
 
+import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageQueryDTO;
@@ -48,13 +49,15 @@ public class InventoryQueryApplicationService {
     }
 
     public InventoryStockDTO getAvailableStock(Long tenantId, Long skuId) {
-        return toStockDto(inventoryStockRepository.findInventory(tenantId, skuId)
+        return InventoryStockAssembler.fromInventory(inventoryStockRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId))));
     }
 
     public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
-        return inventoryStockRepository.findInventories(tenantId, skuIds).stream().map(this::toStockDto).toList();
+        return inventoryStockRepository.findInventories(tenantId, skuIds).stream()
+                .map(InventoryStockAssembler::fromInventory)
+                .toList();
     }
 
     public InventoryPageResultDTO pageInventories(InventoryPageQueryDTO query) {
@@ -63,7 +66,7 @@ public class InventoryQueryApplicationService {
         String normalizedStatus = normalizeStatus(query.getStatus());
         List<InventoryStockDTO> records = inventoryStockRepository
                 .pageInventories(query.getTenantId(), query.getSkuId(), normalizedStatus, pageNo, pageSize).stream()
-                .map(this::toStockDto)
+                .map(InventoryStockAssembler::fromInventory)
                 .toList();
         long total = inventoryStockRepository.countInventories(query.getTenantId(), query.getSkuId(), normalizedStatus);
         return new InventoryPageResultDTO(records, total, pageNo, pageSize);
@@ -109,13 +112,6 @@ public class InventoryQueryApplicationService {
                         .toList(),
                 reservation.getFailureReason(), reservation.getReleaseReason(), reservation.getCreatedAt(),
                 reservation.getReleasedAt(), reservation.getDeductedAt());
-    }
-
-    private InventoryStockDTO toStockDto(Inventory inventory) {
-        return new InventoryStockDTO(inventory.getTenantIdValue(), inventory.getSkuIdValue(),
-                inventory.getWarehouseNoValue(),
-                inventory.getOnHandQuantity(), inventory.getReservedQuantity(), inventory.getAvailableQuantity(),
-                inventory.getStatus().value(), inventory.getUpdatedAt());
     }
 
     private InventoryLedgerDTO toLedgerDto(InventoryLedger ledger) {

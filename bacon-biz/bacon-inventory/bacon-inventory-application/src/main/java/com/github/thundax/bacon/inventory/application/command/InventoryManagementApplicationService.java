@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
@@ -32,7 +33,7 @@ public class InventoryManagementApplicationService {
         Inventory inventory = new Inventory(null, tenantId, skuId, Inventory.DEFAULT_WAREHOUSE_NO.value(),
                 onHandQuantity, 0, onHandQuantity, normalizedStatus, 0L, now);
         try {
-            return toStockDto(inventoryRepository.saveInventory(inventory));
+            return InventoryStockAssembler.fromInventory(inventoryRepository.saveInventory(inventory));
         } catch (DuplicateKeyException ex) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId), ex);
         }
@@ -44,7 +45,7 @@ public class InventoryManagementApplicationService {
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
         inventory.updateStatus(normalizeStatus(status), Instant.now());
-        return toStockDto(inventoryRepository.saveInventory(inventory));
+        return InventoryStockAssembler.fromInventory(inventoryRepository.saveInventory(inventory));
     }
 
     private void validateInventoryKey(Long tenantId, Long skuId) {
@@ -65,12 +66,5 @@ public class InventoryManagementApplicationService {
         } catch (IllegalArgumentException ex) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_STATUS, String.valueOf(status));
         }
-    }
-
-    private InventoryStockDTO toStockDto(Inventory inventory) {
-        return new InventoryStockDTO(Long.valueOf(inventory.getTenantId().value()), inventory.getSkuId().value(),
-                inventory.getWarehouseNoValue(),
-                inventory.getOnHandQuantity(), inventory.getReservedQuantity(), inventory.getAvailableQuantity(),
-                inventory.getStatus().value(), inventory.getUpdatedAt());
     }
 }

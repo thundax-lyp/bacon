@@ -60,7 +60,7 @@ class InventoryApplicationServiceTest {
                 List.of(new InventoryReservationItemDTO(101L, 10)));
         InventoryReservationResultDTO second = service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-1"),
                 List.of(new InventoryReservationItemDTO(101L, 10)));
-        InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
+        InventoryStockDTO stock = queryService.getAvailableStock(TenantId.of(1001L), SkuId.of(101L));
 
         assertEquals(InventoryReservationStatus.RESERVED.value(), first.getReservationStatus());
         assertEquals("RESERVED", first.getInventoryStatus());
@@ -86,7 +86,7 @@ class InventoryApplicationServiceTest {
 
         InventoryReservationResultDTO result = service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-2"),
                 List.of(new InventoryReservationItemDTO(101L, 1000)));
-        InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
+        InventoryStockDTO stock = queryService.getAvailableStock(TenantId.of(1001L), SkuId.of(101L));
 
         assertEquals(InventoryReservationStatus.FAILED.value(), result.getReservationStatus());
         assertEquals("FAILED", result.getInventoryStatus());
@@ -112,7 +112,7 @@ class InventoryApplicationServiceTest {
         service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-3"), List.of(new InventoryReservationItemDTO(101L, 5)));
         InventoryReservationResultDTO firstRelease = service.releaseReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-3"), "USER_CANCELLED");
         InventoryReservationResultDTO secondRelease = service.releaseReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-3"), "USER_CANCELLED");
-        InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
+        InventoryStockDTO stock = queryService.getAvailableStock(TenantId.of(1001L), SkuId.of(101L));
 
         assertEquals(InventoryReservationStatus.RELEASED.value(), firstRelease.getReservationStatus());
         assertEquals(InventoryReservationStatus.RELEASED.value(), secondRelease.getReservationStatus());
@@ -138,7 +138,7 @@ class InventoryApplicationServiceTest {
         service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-4"), List.of(new InventoryReservationItemDTO(101L, 7)));
         InventoryReservationResultDTO firstDeduct = service.deductReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-4"));
         InventoryReservationResultDTO secondDeduct = service.deductReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-4"));
-        InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
+        InventoryStockDTO stock = queryService.getAvailableStock(TenantId.of(1001L), SkuId.of(101L));
 
         assertEquals(InventoryReservationStatus.DEDUCTED.value(), firstDeduct.getReservationStatus());
         assertEquals(InventoryReservationStatus.DEDUCTED.value(), secondDeduct.getReservationStatus());

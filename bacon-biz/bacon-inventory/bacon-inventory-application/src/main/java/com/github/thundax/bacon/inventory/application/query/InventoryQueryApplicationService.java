@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.query;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
@@ -53,16 +54,14 @@ public class InventoryQueryApplicationService {
         this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
     }
 
-    public InventoryStockDTO getAvailableStock(Long tenantId, Long skuId) {
-        return InventoryStockAssembler.fromInventory(inventoryStockRepository.findInventory(TenantIdMapper.toDomain(tenantId),
-                        SkuIdMapper.toDomain(skuId))
+    public InventoryStockDTO getAvailableStock(TenantId tenantId, SkuId skuId) {
+        return InventoryStockAssembler.fromInventory(inventoryStockRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                        String.valueOf(skuId))));
+                        String.valueOf(skuId == null ? null : skuId.value()))));
     }
 
-    public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
-        return inventoryStockRepository.findInventories(TenantIdMapper.toDomain(tenantId),
-                        skuIds == null ? Set.of() : skuIds.stream().map(SkuIdMapper::toDomain).collect(java.util.stream.Collectors.toSet()))
+    public List<InventoryStockDTO> batchGetAvailableStock(TenantId tenantId, Set<SkuId> skuIds) {
+        return inventoryStockRepository.findInventories(tenantId, skuIds == null ? Set.of() : skuIds)
                 .stream()
                 .map(InventoryStockAssembler::fromInventory)
                 .toList();

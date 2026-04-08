@@ -35,7 +35,7 @@ class InventoryManagementApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
-        InventoryStockDTO result = service.createInventory(1001L, 103L, 30, InventoryStatus.ENABLED.value());
+        InventoryStockDTO result = service.createInventory(TenantId.of(1001L), SkuId.of(103L), 30, InventoryStatus.ENABLED.value());
 
         assertEquals(103L, result.getSkuId());
         assertEquals(30, result.getOnHandQuantity());
@@ -49,7 +49,7 @@ class InventoryManagementApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
-        InventoryStockDTO result = service.updateInventoryStatus(1001L, 101L, InventoryStatus.DISABLED.value());
+        InventoryStockDTO result = service.updateInventoryStatus(TenantId.of(1001L), SkuId.of(101L), InventoryStatus.DISABLED.value());
 
         assertEquals(InventoryStatus.DISABLED.value(), result.getStatus());
         assertEquals(InventoryStatus.DISABLED.value(),
@@ -62,7 +62,7 @@ class InventoryManagementApplicationServiceTest {
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
         InventoryDomainException exception = assertThrows(InventoryDomainException.class,
-                () -> service.createInventory(1001L, 103L, -1, InventoryStatus.ENABLED.value()));
+                () -> service.createInventory(TenantId.of(1001L), SkuId.of(103L), -1, InventoryStatus.ENABLED.value()));
 
         assertEquals(InventoryErrorCode.INVALID_ON_HAND_QUANTITY.code(), exception.getCode());
     }
@@ -73,7 +73,7 @@ class InventoryManagementApplicationServiceTest {
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
         InventoryDomainException exception = assertThrows(InventoryDomainException.class,
-                () -> service.updateInventoryStatus(1001L, 101L, "UNKNOWN"));
+                () -> service.updateInventoryStatus(TenantId.of(1001L), SkuId.of(101L), "UNKNOWN"));
 
         assertEquals(InventoryErrorCode.INVALID_INVENTORY_STATUS.code(), exception.getCode());
     }

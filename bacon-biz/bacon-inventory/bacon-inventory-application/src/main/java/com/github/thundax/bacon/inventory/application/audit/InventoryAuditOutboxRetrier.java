@@ -76,7 +76,7 @@ public class InventoryAuditOutboxRetrier {
     private void retryOne(InventoryAuditOutbox item, Instant now, String owner) {
         try {
             // outbox 重试的目标很单一：把原始审计事件补写回正式审计表，成功后立即删除 outbox。
-            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, item.getTenantIdValue(),
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, item.getTenantId() == null ? null : item.getTenantId().value(),
                     item.getOrderNoValue(), item.getReservationNoValue(), item.getActionTypeValue(),
                     item.getOperatorTypeValue(),
                     item.getOperatorIdValue(), item.getOccurredAt()));
@@ -108,7 +108,7 @@ public class InventoryAuditOutboxRetrier {
                 return;
             }
             inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, item.getIdValue(),
-                    item.getEventCodeValue(), item.getTenantIdValue(), item.getOrderNoValue(), item.getReservationNoValue(),
+                    item.getEventCodeValue(), item.getTenantId() == null ? null : item.getTenantId().value(), item.getOrderNoValue(), item.getReservationNoValue(),
                     item.getActionTypeValue(), item.getOperatorTypeValue(), item.getOperatorIdValue(), item.getOccurredAt(),
                     nextRetryCount, errorMessage, deadReason, now,
                     InventoryAuditReplayStatus.PENDING.value(), 0, null, null, null, null, null, null));

@@ -83,10 +83,6 @@ public class InventoryAuditOutbox {
         return eventCode == null ? null : eventCode.value();
     }
 
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
     public String getOrderNoValue() {
         return orderNo == null ? null : orderNo.value();
     }

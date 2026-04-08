@@ -106,7 +106,7 @@ public class InventoryQueryApplicationService {
     }
 
     InventoryReservationDTO toReservationDto(InventoryReservation reservation) {
-        return new InventoryReservationDTO(reservation.getTenantIdValue(), reservation.getOrderNoValue(),
+        return new InventoryReservationDTO(reservation.getTenantId() == null ? null : reservation.getTenantId().value(), reservation.getOrderNoValue(),
                 reservation.getReservationNoValue(), reservation.getReservationStatusValue(), reservation.getWarehouseNoValue(),
                 reservation.getItems().stream()
                         .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
@@ -116,21 +116,21 @@ public class InventoryQueryApplicationService {
     }
 
     private InventoryLedgerDTO toLedgerDto(InventoryLedger ledger) {
-        return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNoValue(),
+        return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantId() == null ? null : ledger.getTenantId().value(), ledger.getOrderNoValue(),
                 ledger.getReservationNoValue(), ledger.getSkuIdValue(), ledger.getWarehouseNoValue(),
                 ledger.getLedgerTypeValue(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
 
     private InventoryAuditLogDTO toAuditLogDto(InventoryAuditLog auditLog) {
-        return new InventoryAuditLogDTO(auditLog.getId(), auditLog.getTenantIdValue(), auditLog.getOrderNoValue(),
+        return new InventoryAuditLogDTO(auditLog.getId(), auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(), auditLog.getOrderNoValue(),
                 auditLog.getReservationNoValue(), auditLog.getActionTypeValue(), auditLog.getOperatorTypeValue(),
                 auditLog.getOperatorId(), auditLog.getOccurredAt());
     }
 
     private InventoryAuditDeadLetterDTO toAuditDeadLetterDto(InventoryAuditDeadLetter deadLetter) {
         return new InventoryAuditDeadLetterDTO(deadLetter.getIdValue(), deadLetter.getOutboxIdValue(),
-                deadLetter.getEventCodeValue(), deadLetter.getTenantIdValue(),
+                deadLetter.getEventCodeValue(), deadLetter.getTenantId() == null ? null : deadLetter.getTenantId().value(),
                 deadLetter.getOrderNoValue(), deadLetter.getReservationNoValue(), deadLetter.getActionTypeValue(),
                 deadLetter.getOperatorTypeValue(), deadLetter.getOperatorId(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),

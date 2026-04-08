@@ -47,10 +47,6 @@ public class InventoryLedger {
                 ledgerType, quantity, occurredAt);
     }
 
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
     public String getOrderNoValue() {
         return orderNo == null ? null : orderNo.value();
     }

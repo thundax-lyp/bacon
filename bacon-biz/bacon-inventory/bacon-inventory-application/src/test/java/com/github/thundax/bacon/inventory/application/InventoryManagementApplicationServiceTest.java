@@ -90,7 +90,7 @@ class InventoryManagementApplicationServiceTest {
         @Override
         public List<Inventory> findInventories(Long tenantId) {
             return inventories.values().stream()
-                    .filter(inventory -> tenantId.equals(inventory.getTenantIdValue()))
+                    .filter(inventory -> inventory.getTenantId() != null && tenantId.equals(inventory.getTenantId().value()))
                     .toList();
         }
 

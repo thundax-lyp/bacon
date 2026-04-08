@@ -215,7 +215,7 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public List<Inventory> findInventories(Long tenantId) {
             return inventories.values().stream()
-                    .filter(item -> tenantId.equals(item.getTenantIdValue()))
+                    .filter(item -> item.getTenantId() != null && tenantId.equals(item.getTenantId().value()))
                     .map(this::copy)
                     .toList();
         }
@@ -262,7 +262,8 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public InventoryReservation saveReservation(InventoryReservation reservation) {
-            String key = reservationKey(reservation.getTenantIdValue(), reservation.getOrderNoValue());
+            String key = reservationKey(reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                    reservation.getOrderNoValue());
             InventoryReservation existing = reservations.get(key);
             if (existing != null && !existing.getReservationNo().equals(reservation.getReservationNo())) {
                 throw new DuplicateKeyException("duplicate orderNo");
@@ -278,7 +279,8 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public void saveLedger(InventoryLedger ledger) {
-            ledgers.computeIfAbsent(reservationKey(ledger.getTenantIdValue(), ledger.getOrderNoValue()),
+            ledgers.computeIfAbsent(reservationKey(ledger.getTenantId() == null ? null : ledger.getTenantId().value(),
+                            ledger.getOrderNoValue()),
                             ignored -> new ArrayList<>())
                     .add(ledger);
         }
@@ -293,7 +295,8 @@ class InventoryWorkflowIntegrationTest {
             if (failAuditPersist) {
                 throw new RuntimeException("force-fail-audit");
             }
-            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantIdValue(), auditLog.getOrderNoValue()),
+            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(),
+                    auditLog.getOrderNoValue()),
                     ignored -> new ArrayList<>()).add(auditLog);
         }
 

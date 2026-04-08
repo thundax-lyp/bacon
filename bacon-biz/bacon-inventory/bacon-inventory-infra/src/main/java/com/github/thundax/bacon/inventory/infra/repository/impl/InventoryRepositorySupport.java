@@ -156,13 +156,16 @@ public class InventoryRepositorySupport {
         if (reservationDataObject.getId() == null) {
             reservationMapper.insert(reservationDataObject);
             List<InventoryReservationItemDO> itemDataObjects = reservation.getItems().stream()
-                    .map(item -> toDataObject(item, reservation.getTenantIdValue(), reservation.getReservationNoValue()))
+                    .map(item -> toDataObject(item,
+                            reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                            reservation.getReservationNoValue()))
                     .toList();
             itemDataObjects.forEach(reservationItemMapper::insert);
         } else {
             reservationMapper.updateById(reservationDataObject);
         }
-        return findReservation(reservation.getTenantIdValue(), reservation.getOrderNoValue()).orElseThrow();
+        return findReservation(reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                reservation.getOrderNoValue()).orElseThrow();
     }
 
     public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
@@ -602,7 +605,7 @@ public class InventoryRepositorySupport {
 
     private InventoryDO toDataObject(Inventory inventory) {
         return new InventoryDO(inventory.getId() == null ? null : inventory.getId().getIdValue(),
-                inventory.getTenantIdValue(), inventory.getSkuIdValue(),
+                inventory.getTenantId() == null ? null : inventory.getTenantId().value(), inventory.getSkuIdValue(),
                 inventory.getWarehouseNoValue(), inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
                 inventory.getAvailableQuantity(), inventory.getStatus().value(), inventory.getVersion(), null,
                 inventory.getUpdatedAt(), null,
@@ -623,7 +626,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryReservationDO toDataObject(InventoryReservation reservation) {
-        return new InventoryReservationDO(reservation.getId(), reservation.getTenantIdValue(),
+        return new InventoryReservationDO(reservation.getId(), reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
                 reservation.getReservationNoValue(), reservation.getOrderNoValue(), reservation.getReservationStatusValue(),
                 reservation.getWarehouseNoValue(), reservation.getFailureReason(), reservation.getReleaseReasonValue(),
                 reservation.getCreatedAt(), reservation.getReleasedAt(), reservation.getDeductedAt());
@@ -642,7 +645,7 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryLedgerDO toDataObject(InventoryLedger ledger) {
-        return new InventoryLedgerDO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNoValue(),
+        return new InventoryLedgerDO(ledger.getId(), ledger.getTenantId() == null ? null : ledger.getTenantId().value(), ledger.getOrderNoValue(),
                 ledger.getReservationNoValue(), ledger.getSkuIdValue(), ledger.getWarehouseNoValue(),
                 ledger.getLedgerTypeValue(),
                 ledger.getQuantity(), ledger.getOccurredAt());
@@ -655,13 +658,13 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditLogDO toDataObject(InventoryAuditLog auditLog) {
-        return new InventoryAuditLogDO(auditLog.getId(), auditLog.getTenantIdValue(), auditLog.getOrderNoValue(),
+        return new InventoryAuditLogDO(auditLog.getId(), auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(), auditLog.getOrderNoValue(),
                 auditLog.getReservationNoValue(), auditLog.getActionTypeValue(), auditLog.getOperatorTypeValue(),
                 auditLog.getOperatorId(), auditLog.getOccurredAt());
     }
 
     private InventoryAuditOutboxDO toDataObject(InventoryAuditOutbox outbox) {
-        return new InventoryAuditOutboxDO(outbox.getIdValue(), outbox.getEventCodeValue(), outbox.getTenantIdValue(),
+        return new InventoryAuditOutboxDO(outbox.getIdValue(), outbox.getEventCodeValue(), outbox.getTenantId() == null ? null : outbox.getTenantId().value(),
                 outbox.getOrderNoValue(), outbox.getReservationNoValue(), outbox.getActionTypeValue(),
                 outbox.getOperatorTypeValue(),
                 outbox.getOperatorIdValue(), outbox.getOccurredAt(), outbox.getErrorMessage(),
@@ -695,7 +698,7 @@ public class InventoryRepositorySupport {
 
     private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
         return new InventoryAuditDeadLetterDO(deadLetter.getIdValue(), deadLetter.getOutboxIdValue(),
-                deadLetter.getEventCodeValue(), deadLetter.getTenantIdValue(),
+                deadLetter.getEventCodeValue(), deadLetter.getTenantId() == null ? null : deadLetter.getTenantId().value(),
                 deadLetter.getOrderNoValue(), deadLetter.getReservationNoValue(), deadLetter.getActionTypeValue(),
                 deadLetter.getOperatorTypeValue(), deadLetter.getOperatorIdValue(), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
@@ -716,7 +719,8 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {
-        return new InventoryAuditReplayTaskDO(task.getIdValue(), task.getTenantIdValue(), task.getTaskNoValue(), task.getStatus().value(),
+        return new InventoryAuditReplayTaskDO(task.getIdValue(), task.getTenantId() == null ? null : task.getTenantId().value(),
+                task.getTaskNoValue(), task.getStatus().value(),
                 task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
                 task.getReplayKeyPrefix(), task.getOperatorType(), task.getOperatorIdValue(), task.getProcessingOwner(),
                 task.getLeaseUntil(), task.getLastError(), task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(),

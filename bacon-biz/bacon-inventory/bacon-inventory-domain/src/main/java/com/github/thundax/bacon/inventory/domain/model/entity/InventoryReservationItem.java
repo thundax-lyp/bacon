@@ -32,10 +32,6 @@ public class InventoryReservationItem {
                 quantity);
     }
 
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
     public String getReservationNoValue() {
         return reservationNo == null ? null : reservationNo.value();
     }

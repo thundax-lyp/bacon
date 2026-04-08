@@ -71,7 +71,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<Inventory> findInventories(Long tenantId) {
         return inventories.values().stream()
-                .filter(inventory -> tenantId.equals(inventory.getTenantIdValue()))
+                .filter(inventory -> inventory.getTenantId() != null && tenantId.equals(inventory.getTenantId().value()))
                 .sorted(java.util.Comparator.comparing(Inventory::getSkuIdValue))
                 .toList();
     }
@@ -114,17 +114,20 @@ public class InMemoryInventoryRepositorySupport {
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
         if (reservation.getId() == null) {
-            reservation = InventoryReservation.rehydrate(reservationIdGenerator.getAndIncrement(), reservation.getTenantIdValue(),
+            reservation = InventoryReservation.rehydrate(reservationIdGenerator.getAndIncrement(),
+                    reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
                     reservation.getReservationNoValue(), reservation.getOrderNoValue(), reservation.getWarehouseNoValue(),
                     reservation.getCreatedAt(), reservation.getItems().stream()
                             .map(item -> new InventoryReservationItem(
                                     item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
-                                    item.getTenantIdValue(), item.getReservationNoValue(), item.getSkuIdValue(), item.getQuantity()))
+                                    item.getTenantId() == null ? null : item.getTenantId().value(),
+                                    item.getReservationNoValue(), item.getSkuIdValue(), item.getQuantity()))
                             .toList(),
                     reservation.getReservationStatusValue(), reservation.getFailureReason(), reservation.getReleaseReasonValue(),
                     reservation.getReleasedAt(), reservation.getDeductedAt());
         }
-        reservations.put(reservationKey(reservation.getTenantIdValue(), reservation.getOrderNoValue()), reservation);
+        reservations.put(reservationKey(reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                reservation.getOrderNoValue()), reservation);
         return reservation;
     }
 
@@ -134,12 +137,14 @@ public class InMemoryInventoryRepositorySupport {
 
     public void saveLedger(InventoryLedger ledger) {
         if (ledger.getId() == null) {
-            ledger = new InventoryLedger(ledgerIdGenerator.getAndIncrement(), ledger.getTenantIdValue(),
+            ledger = new InventoryLedger(ledgerIdGenerator.getAndIncrement(),
+                    ledger.getTenantId() == null ? null : ledger.getTenantId().value(),
                     ledger.getOrderNoValue(), ledger.getReservationNoValue(), ledger.getSkuIdValue(),
                     ledger.getWarehouseNoValue(), ledger.getLedgerType(), 
                     ledger.getQuantity(), ledger.getOccurredAt());
         }
-        ledgers.computeIfAbsent(reservationKey(ledger.getTenantIdValue(), ledger.getOrderNoValue()), key -> new ArrayList<>())
+        ledgers.computeIfAbsent(reservationKey(ledger.getTenantId() == null ? null : ledger.getTenantId().value(),
+                ledger.getOrderNoValue()), key -> new ArrayList<>())
                 .add(ledger);
     }
 
@@ -153,7 +158,8 @@ public class InMemoryInventoryRepositorySupport {
                     auditLog.getOrderNo(), auditLog.getReservationNo(), auditLog.getActionType(),
                     auditLog.getOperatorType(), auditLog.getOperatorId(), auditLog.getOccurredAt());
         }
-        auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantIdValue(), auditLog.getOrderNoValue()),
+        auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(),
+                        auditLog.getOrderNoValue()),
                         key -> new ArrayList<>())
                 .add(auditLog);
     }
@@ -171,7 +177,7 @@ public class InMemoryInventoryRepositorySupport {
             outbox = new InventoryAuditOutbox(
                     auditOutboxIdGenerator.getAndIncrement(),
                     eventCode,
-                    outbox.getTenantIdValue(),
+                    outbox.getTenantId() == null ? null : outbox.getTenantId().value(),
                     outbox.getOrderNoValue(),
                     outbox.getReservationNoValue(),
                     outbox.getActionType(),
@@ -191,7 +197,8 @@ public class InMemoryInventoryRepositorySupport {
         } else if (outbox.getEventCode() == null) {
             outbox.setEventCode(EventCode.of(eventCode));
         }
-        auditOutbox.computeIfAbsent(reservationKey(outbox.getTenantIdValue(), outbox.getOrderNoValue()),
+        auditOutbox.computeIfAbsent(reservationKey(outbox.getTenantId() == null ? null : outbox.getTenantId().value(),
+                        outbox.getOrderNoValue()),
                         key -> new ArrayList<>())
                 .add(outbox);
     }
@@ -412,7 +419,8 @@ public class InMemoryInventoryRepositorySupport {
 
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         if (task.getId() == null) {
-            task = new InventoryAuditReplayTask(auditReplayTaskIdGenerator.getAndIncrement(), task.getTenantIdValue(),
+            task = new InventoryAuditReplayTask(auditReplayTaskIdGenerator.getAndIncrement(),
+                    task.getTenantId() == null ? null : task.getTenantId().value(),
                     task.getTaskNoValue(), task.getStatus(), task.getTotalCount(), task.getProcessedCount(),
                     task.getSuccessCount(), task.getFailedCount(), task.getReplayKeyPrefix(), task.getOperatorType(),
                     task.getOperatorIdValue(), task.getProcessingOwner(), task.getLeaseUntil(), task.getLastError(),
@@ -528,7 +536,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> tenantId.equals(task.getTenantIdValue()))
+                .filter(task -> task.getTenantId() != null && tenantId.equals(task.getTenantId().value()))
                 .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
                         || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .map(task -> {
@@ -543,7 +551,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> tenantId.equals(task.getTenantIdValue()))
+                .filter(task -> task.getTenantId() != null && tenantId.equals(task.getTenantId().value()))
                 .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))
                 .map(task -> {
                     task.setStatus(InventoryAuditReplayTaskStatus.PENDING);

@@ -75,7 +75,7 @@ class InventoryQueryApplicationServiceTest {
         @Override
         public List<Inventory> findInventories(Long tenantId) {
             return inventories.values().stream()
-                    .filter(inventory -> inventory.getTenantIdValue().equals(tenantId))
+                    .filter(inventory -> inventory.getTenantId() != null && inventory.getTenantId().value().equals(tenantId))
                     .sorted(java.util.Comparator.comparing(Inventory::getSkuIdValue))
                     .toList();
         }
@@ -109,7 +109,8 @@ class InventoryQueryApplicationServiceTest {
         public Inventory saveInventory(Inventory inventory) {
             Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
             inventory.markPersisted(version);
-            inventories.put(key(inventory.getTenantIdValue(), inventory.getSkuIdValue()), inventory);
+            inventories.put(key(inventory.getTenantId() == null ? null : inventory.getTenantId().value(),
+                    inventory.getSkuIdValue()), inventory);
             return inventory;
         }
 

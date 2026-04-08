@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -35,7 +35,7 @@ public class InventoryAuditCompensationApplicationService {
 
     public InventoryAuditReplayResultDTO replayDeadLetter(TenantId tenantId, DeadLetterId deadLetterId, String replayKey,
                                                           OperatorId operatorId) {
-        InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository.findAuditDeadLetterById(deadLetterId.value())
+        InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository.findAuditDeadLetterById(deadLetterId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
                         "dead-letter-not-found:" + deadLetterId));
         if (!Objects.equals(tenantId, deadLetter.getTenantId())) {
@@ -45,19 +45,18 @@ public class InventoryAuditCompensationApplicationService {
             return new InventoryAuditReplayResultDTO(deadLetterId.value(), deadLetter.getReplayStatusValue(), deadLetter.getReplayKey(),
                     "already-replayed");
         }
-        Long operatorIdValue = operatorId == null ? null : Long.valueOf(operatorId.value());
         String resolvedReplayKey = resolveReplayKey(deadLetter, replayKey);
         Instant replayAt = Instant.now();
         // 回放前先认领死信，确保同一条死信在人工操作和后台任务并发时只会有一个执行者真正进入事务。
-        boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(deadLetterId.value(), tenantId.value(),
-                resolvedReplayKey, REPLAY_OPERATOR_TYPE.value(), operatorIdValue, replayAt);
+        boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(deadLetterId, tenantId,
+                resolvedReplayKey, REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt);
         if (!claimed) {
             return new InventoryAuditReplayResultDTO(deadLetterId.value(), InventoryAuditReplayStatus.FAILED.value(),
                     resolvedReplayKey, "dead-letter-not-claimable");
         }
         try {
             return inventoryAuditReplayTransactionService.replayClaimedDeadLetter(deadLetter, resolvedReplayKey,
-                    REPLAY_OPERATOR_TYPE.value(), operatorIdValue, replayAt);
+                    REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt);
         } catch (RuntimeException txException) {
             String truncatedError = truncateError(txException.getMessage());
             Metrics.counter("bacon.inventory.audit.replay.tx.fail.total").increment();
@@ -66,7 +65,7 @@ public class InventoryAuditCompensationApplicationService {
             try {
                 // 事务层抛异常后，再走单独的补偿事务把死信状态和失败审计补全，避免原事务整体回滚后没有追踪痕迹。
                 inventoryAuditReplayTransactionService.compensateReplayTxFailure(deadLetter, resolvedReplayKey,
-                        REPLAY_OPERATOR_TYPE.value(), operatorIdValue, replayAt, truncatedError);
+                        REPLAY_OPERATOR_TYPE.value(), operatorId, replayAt, truncatedError);
                 Metrics.counter("bacon.inventory.audit.replay.tx.compensate.success.total").increment();
             } catch (RuntimeException compensateException) {
                 Metrics.counter("bacon.inventory.audit.replay.tx.compensate.fail.total").increment();

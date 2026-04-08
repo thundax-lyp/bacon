@@ -188,7 +188,7 @@ class InventoryApplicationServiceTest {
         @Override
         public List<Inventory> findInventories(Long tenantId) {
             return inventories.values().stream()
-                    .filter(inventory -> tenantId.equals(inventory.getTenantIdValue()))
+                    .filter(inventory -> inventory.getTenantId() != null && tenantId.equals(inventory.getTenantId().value()))
                     .toList();
         }
 
@@ -229,7 +229,8 @@ class InventoryApplicationServiceTest {
 
         @Override
         public InventoryReservation saveReservation(InventoryReservation reservation) {
-            reservations.put(reservationKey(reservation.getTenantIdValue(), reservation.getOrderNoValue()), reservation);
+            reservations.put(reservationKey(reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                    reservation.getOrderNoValue()), reservation);
             return reservation;
         }
 
@@ -240,7 +241,8 @@ class InventoryApplicationServiceTest {
 
         @Override
         public void saveLedger(InventoryLedger ledger) {
-            ledgers.computeIfAbsent(reservationKey(ledger.getTenantIdValue(), ledger.getOrderNoValue()),
+            ledgers.computeIfAbsent(reservationKey(ledger.getTenantId() == null ? null : ledger.getTenantId().value(),
+                            ledger.getOrderNoValue()),
                             ignored -> new java.util.ArrayList<>())
                     .add(ledger);
         }
@@ -252,7 +254,8 @@ class InventoryApplicationServiceTest {
 
         @Override
         public void saveAuditLog(InventoryAuditLog auditLog) {
-            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantIdValue(), auditLog.getOrderNoValue()),
+            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(),
+                    auditLog.getOrderNoValue()),
                     ignored -> new java.util.ArrayList<>()).add(auditLog);
         }
 

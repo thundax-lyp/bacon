@@ -49,7 +49,8 @@ public class InventoryAuditReplayTaskApplicationService {
                 createDTO.getOperatorId() == null ? null : String.valueOf(createDTO.getOperatorId()),
                 null, null, null, now, null, null, null, now);
         InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
-        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getIdValue(), saved.getTenantIdValue(),
+        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getIdValue(),
+                saved.getTenantId() == null ? null : saved.getTenantId().value(),
                 createDTO.getDeadLetterIds(), now);
         Metrics.counter("bacon.inventory.audit.replay.task.created.total").increment();
         return toDto(saved);
@@ -185,7 +186,7 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     private void ensureTaskTenant(InventoryAuditReplayTask task, Long tenantId) {
-        if (!Objects.equals(task.getTenantIdValue(), tenantId)) {
+        if (!Objects.equals(task.getTenantId() == null ? null : task.getTenantId().value(), tenantId)) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN,
                     "replay-task-tenant-mismatch");
         }
@@ -198,7 +199,8 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     private InventoryAuditReplayTaskDTO toDto(InventoryAuditReplayTask task) {
-        return new InventoryAuditReplayTaskDTO(task.getIdValue(), task.getTenantIdValue(), task.getTaskNoValue(), task.getStatus().value(),
+        return new InventoryAuditReplayTaskDTO(task.getIdValue(), task.getTenantId() == null ? null : task.getTenantId().value(),
+                task.getTaskNoValue(), task.getStatus().value(),
                 task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
                 task.getReplayKeyPrefix(), task.getOperatorId(), task.getLastError(), task.getCreatedAt(),
                 task.getStartedAt(), task.getPausedAt(), task.getFinishedAt(), task.getUpdatedAt());

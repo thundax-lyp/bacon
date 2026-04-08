@@ -57,10 +57,6 @@ public class InventoryAuditReplayTaskItem {
         return taskId == null ? null : taskId.value();
     }
 
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
     public Long getDeadLetterIdValue() {
         return deadLetterId == null ? null : deadLetterId.value();
     }

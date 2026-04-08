@@ -177,7 +177,8 @@ public class InventoryReservationApplicationService {
         try {
             return inventoryReservationRepository.saveReservation(reservation);
         } catch (DuplicateKeyException ex) {
-            return inventoryReservationRepository.findReservation(reservation.getTenantIdValue(), reservation.getOrderNoValue())
+            return inventoryReservationRepository.findReservation(reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                    reservation.getOrderNoValue())
                     .orElseThrow(() -> ex);
         }
     }
@@ -204,7 +205,7 @@ public class InventoryReservationApplicationService {
         List<InventoryReservationItemDTO> items = reservation.getItems().stream()
                 .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
                 .toList();
-        ReservationValidationResult validationResult = validateReservation(reservation.getTenantIdValue(), items);
+        ReservationValidationResult validationResult = validateReservation(reservation.getTenantId() == null ? null : reservation.getTenantId().value(), items);
         String failureReason = validationResult.failureReason();
         if (failureReason != null) {
             reservation.fail(failureReason);
@@ -215,7 +216,7 @@ public class InventoryReservationApplicationService {
         Instant operatedAt = Instant.now();
         Map<Long, Inventory> inventoryBySku = new HashMap<>(validationResult.inventoryBySku());
         for (InventoryReservationItem item : reservation.getItems()) {
-            reserveStockOnce(reservation.getTenantIdValue(), item, operatedAt, inventoryBySku);
+            reserveStockOnce(reservation.getTenantId() == null ? null : reservation.getTenantId().value(), item, operatedAt, inventoryBySku);
         }
         reservation.reserve();
         InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);

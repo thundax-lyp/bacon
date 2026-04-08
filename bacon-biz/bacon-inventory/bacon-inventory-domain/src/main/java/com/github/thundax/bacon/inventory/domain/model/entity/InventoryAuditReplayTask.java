@@ -73,10 +73,6 @@ public class InventoryAuditReplayTask {
         return id == null ? null : id.value();
     }
 
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
     public String getTaskNoValue() {
         return taskNo == null ? null : taskNo.value();
     }

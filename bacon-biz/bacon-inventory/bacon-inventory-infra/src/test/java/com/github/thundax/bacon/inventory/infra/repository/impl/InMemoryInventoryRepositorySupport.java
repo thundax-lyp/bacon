@@ -110,17 +110,17 @@ public class InMemoryInventoryRepositorySupport {
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
         if (reservation.getId() == null) {
-            reservation = InventoryReservation.rehydrate(reservationIdGenerator.getAndIncrement(), reservation.getTenantId(),
-                    reservation.getReservationNo(), reservation.getOrderNo(), reservation.getWarehouseNo().value(),
+            reservation = InventoryReservation.rehydrate(reservationIdGenerator.getAndIncrement(), reservation.getTenantIdValue(),
+                    reservation.getReservationNoValue(), reservation.getOrderNoValue(), reservation.getWarehouseNoValue(),
                     reservation.getCreatedAt(), reservation.getItems().stream()
                             .map(item -> new InventoryReservationItem(
                                     item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
-                                    item.getTenantId(), item.getReservationNo(), item.getSkuId(), item.getQuantity()))
+                                    item.getTenantIdValue(), item.getReservationNoValue(), item.getSkuIdValue(), item.getQuantity()))
                             .toList(),
-                    reservation.getReservationStatus(), reservation.getFailureReason(), reservation.getReleaseReason(),
+                    reservation.getReservationStatusValue(), reservation.getFailureReason(), reservation.getReleaseReason(),
                     reservation.getReleasedAt(), reservation.getDeductedAt());
         }
-        reservations.put(reservationKey(reservation.getTenantId(), reservation.getOrderNo()), reservation);
+        reservations.put(reservationKey(reservation.getTenantIdValue(), reservation.getOrderNoValue()), reservation);
         return reservation;
     }
 

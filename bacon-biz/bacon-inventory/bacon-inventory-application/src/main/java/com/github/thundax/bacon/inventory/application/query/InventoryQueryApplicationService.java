@@ -102,10 +102,10 @@ public class InventoryQueryApplicationService {
     }
 
     InventoryReservationDTO toReservationDto(InventoryReservation reservation) {
-        return new InventoryReservationDTO(reservation.getTenantId(), reservation.getOrderNo(), reservation.getReservationNo(),
-                reservation.getReservationStatus(), reservation.getWarehouseNoValue(),
+        return new InventoryReservationDTO(reservation.getTenantIdValue(), reservation.getOrderNoValue(),
+                reservation.getReservationNoValue(), reservation.getReservationStatusValue(), reservation.getWarehouseNoValue(),
                 reservation.getItems().stream()
-                        .map(item -> new InventoryReservationItemDTO(item.getSkuId(), item.getQuantity()))
+                        .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
                         .toList(),
                 reservation.getFailureReason(), reservation.getReleaseReason(), reservation.getCreatedAt(),
                 reservation.getReleasedAt(), reservation.getDeductedAt());

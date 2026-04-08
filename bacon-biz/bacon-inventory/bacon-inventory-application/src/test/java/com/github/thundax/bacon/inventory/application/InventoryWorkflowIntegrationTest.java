@@ -261,7 +261,7 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public InventoryReservation saveReservation(InventoryReservation reservation) {
-            String key = reservationKey(reservation.getTenantId(), reservation.getOrderNo());
+            String key = reservationKey(reservation.getTenantIdValue(), reservation.getOrderNoValue());
             InventoryReservation existing = reservations.get(key);
             if (existing != null && !existing.getReservationNo().equals(reservation.getReservationNo())) {
                 throw new DuplicateKeyException("duplicate orderNo");

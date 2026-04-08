@@ -4,6 +4,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 
 public final class InventoryReservationResultAssembler {
 
@@ -11,26 +12,27 @@ public final class InventoryReservationResultAssembler {
     }
 
     public static InventoryReservationResultDTO fromReservation(InventoryReservation reservation) {
-        return new InventoryReservationResultDTO(reservation.getTenantId(), reservation.getOrderNo(),
-                reservation.getReservationNo(), reservation.getReservationStatus(),
+        return new InventoryReservationResultDTO(reservation.getTenantIdValue(), reservation.getOrderNoValue(),
+                reservation.getReservationNoValue(), reservation.getReservationStatusValue(),
                 toInventoryStatus(reservation.getReservationStatus()), reservation.getWarehouseNoValue(),
                 reservation.getFailureReason(), reservation.getReleaseReason(), reservation.getReleasedAt(),
                 reservation.getDeductedAt());
     }
 
     public static InventoryReservationResultDTO failed(Long tenantId, String orderNo, String failureReason) {
-        return new InventoryReservationResultDTO(tenantId, orderNo, null, InventoryReservation.STATUS_FAILED,
-                toInventoryStatus(InventoryReservation.STATUS_FAILED), null, failureReason, null, null, null);
+        return new InventoryReservationResultDTO(tenantId, orderNo, null, InventoryReservationStatus.FAILED.value(),
+                toInventoryStatus(InventoryReservationStatus.FAILED), null, failureReason, null, null, null);
     }
 
-    public static String toInventoryStatus(String reservationStatus) {
+    public static String toInventoryStatus(InventoryReservationStatus reservationStatus) {
         return switch (reservationStatus) {
-            case InventoryReservation.STATUS_CREATED -> "RESERVING";
-            case InventoryReservation.STATUS_RESERVED -> "RESERVED";
-            case InventoryReservation.STATUS_RELEASED -> "RELEASED";
-            case InventoryReservation.STATUS_DEDUCTED -> "DEDUCTED";
-            case InventoryReservation.STATUS_FAILED -> "FAILED";
-            default -> throw new InventoryDomainException(InventoryErrorCode.UNKNOWN_RESERVATION_STATUS, reservationStatus);
+            case CREATED -> "RESERVING";
+            case RESERVED -> "RESERVED";
+            case RELEASED -> "RELEASED";
+            case DEDUCTED -> "DEDUCTED";
+            case FAILED -> "FAILED";
+            default -> throw new InventoryDomainException(InventoryErrorCode.UNKNOWN_RESERVATION_STATUS,
+                    reservationStatus.value());
         };
     }
 }

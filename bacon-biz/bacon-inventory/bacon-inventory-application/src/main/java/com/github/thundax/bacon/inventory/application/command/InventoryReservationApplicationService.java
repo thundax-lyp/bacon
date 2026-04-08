@@ -9,6 +9,7 @@ import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetr
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
@@ -66,7 +67,7 @@ public class InventoryReservationApplicationService {
     private InventoryReservationResultDTO reserveStockOnce(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
         InventoryReservation existingReservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (existingReservation != null) {
-            if (InventoryReservation.STATUS_CREATED.equals(existingReservation.getReservationStatus())) {
+            if (InventoryReservationStatus.CREATED.equals(existingReservation.getReservationStatus())) {
                 return completeCreatedReservation(existingReservation);
             }
             return InventoryReservationResultAssembler.fromReservation(existingReservation);
@@ -101,8 +102,8 @@ public class InventoryReservationApplicationService {
 
         Instant operatedAt = Instant.now();
         reservation = saveReservationWithIdempotentFallback(reservation);
-        if (!reservation.getReservationNo().equals(reservationNo)) {
-            if (InventoryReservation.STATUS_CREATED.equals(reservation.getReservationStatus())) {
+        if (!reservationNo.equals(reservation.getReservationNoValue())) {
+            if (InventoryReservationStatus.CREATED.equals(reservation.getReservationStatus())) {
                 return completeCreatedReservation(reservation);
             }
             return InventoryReservationResultAssembler.fromReservation(reservation);
@@ -162,7 +163,7 @@ public class InventoryReservationApplicationService {
         try {
             return inventoryReservationRepository.saveReservation(reservation);
         } catch (DuplicateKeyException ex) {
-            return inventoryReservationRepository.findReservation(reservation.getTenantId(), reservation.getOrderNo())
+            return inventoryReservationRepository.findReservation(reservation.getTenantIdValue(), reservation.getOrderNoValue())
                     .orElseThrow(() -> ex);
         }
     }
@@ -175,21 +176,21 @@ public class InventoryReservationApplicationService {
                                   InventoryReservationItem item,
                                   Instant operatedAt,
                                   Map<Long, Inventory> inventoryBySku) {
-        Inventory inventory = inventoryBySku.get(item.getSkuId());
+        Inventory inventory = inventoryBySku.get(item.getSkuIdValue());
         if (inventory == null) {
-            inventory = loadInventory(tenantId, item.getSkuId());
-            inventoryBySku.put(item.getSkuId(), inventory);
+            inventory = loadInventory(tenantId, item.getSkuIdValue());
+            inventoryBySku.put(item.getSkuIdValue(), inventory);
         }
         inventory.reserve(item.getQuantity(), operatedAt);
         Inventory persistedInventory = inventoryStockRepository.saveInventory(inventory);
-        inventoryBySku.put(item.getSkuId(), persistedInventory);
+        inventoryBySku.put(item.getSkuIdValue(), persistedInventory);
     }
 
     private InventoryReservationResultDTO completeCreatedReservation(InventoryReservation reservation) {
         List<InventoryReservationItemDTO> items = reservation.getItems().stream()
-                .map(item -> new InventoryReservationItemDTO(item.getSkuId(), item.getQuantity()))
+                .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
                 .toList();
-        ReservationValidationResult validationResult = validateReservation(reservation.getTenantId(), items);
+        ReservationValidationResult validationResult = validateReservation(reservation.getTenantIdValue(), items);
         String failureReason = validationResult.failureReason();
         if (failureReason != null) {
             reservation.fail(failureReason);
@@ -200,7 +201,7 @@ public class InventoryReservationApplicationService {
         Instant operatedAt = Instant.now();
         Map<Long, Inventory> inventoryBySku = new HashMap<>(validationResult.inventoryBySku());
         for (InventoryReservationItem item : reservation.getItems()) {
-            reserveStockOnce(reservation.getTenantId(), item, operatedAt, inventoryBySku);
+            reserveStockOnce(reservation.getTenantIdValue(), item, operatedAt, inventoryBySku);
         }
         reservation.reserve();
         InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);

@@ -61,7 +61,7 @@ public class InventoryReleaseApplicationService {
 
         Instant releasedAt = Instant.now();
         reservation.getItems().forEach(item -> {
-            releaseStockOnce(tenantId, item.getSkuId(), item.getQuantity(), releasedAt);
+            releaseStockOnce(tenantId, item.getSkuIdValue(), item.getQuantity(), releasedAt);
         });
         reservation.release(reason, releasedAt);
         inventoryReservationRepository.saveReservation(reservation);

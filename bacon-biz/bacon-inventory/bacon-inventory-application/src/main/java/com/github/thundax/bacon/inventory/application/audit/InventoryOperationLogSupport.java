@@ -54,8 +54,8 @@ public class InventoryOperationLogSupport {
     private void recordLedgerBatch(InventoryReservation reservation, List<InventoryReservationItem> items,
                                    InventoryLedgerType ledgerType, Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(),
-                    reservation.getOrderNo(), reservation.getReservationNo(), item.getSkuId(),
+            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantIdValue(),
+                    reservation.getOrderNoValue(), reservation.getReservationNoValue(), item.getSkuIdValue(),
                     reservation.getWarehouseNoValue(), ledgerType, item.getQuantity(), occurredAt));
         }
     }
@@ -78,15 +78,15 @@ public class InventoryOperationLogSupport {
     private void saveAuditSafely(InventoryReservation reservation, InventoryAuditActionType actionType,
                                  Instant occurredAt) {
         try {
-            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
-                    reservation.getOrderNo(), reservation.getReservationNo(), actionType.value(),
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantIdValue(),
+                    reservation.getOrderNoValue(), reservation.getReservationNoValue(), actionType.value(),
                     InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
             Metrics.counter("bacon.inventory.audit.write.success.total", "actionType", actionType.value()).increment();
         } catch (RuntimeException ex) {
             Metrics.counter("bacon.inventory.audit.write.fail.total", "actionType", actionType.value()).increment();
             saveAuditOutboxSafely(reservation, actionType, occurredAt, ex);
             log.error("ALERT inventory audit write failed, orderNo={}, reservationNo={}, actionType={}",
-                    reservation.getOrderNo(), reservation.getReservationNo(), actionType.value(), ex);
+                    reservation.getOrderNoValue(), reservation.getReservationNoValue(), actionType.value(), ex);
         }
     }
 
@@ -96,9 +96,9 @@ public class InventoryOperationLogSupport {
             inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(
                     null,
                     null,
-                    reservation.getTenantId(),
-                    reservation.getOrderNo(),
-                    reservation.getReservationNo(),
+                    reservation.getTenantIdValue(),
+                    reservation.getOrderNoValue(),
+                    reservation.getReservationNoValue(),
                     actionType,
                     InventoryAuditOperatorType.SYSTEM,
                     InventoryAuditLog.OPERATOR_ID_SYSTEM,
@@ -119,7 +119,7 @@ public class InventoryOperationLogSupport {
             Metrics.counter("bacon.inventory.audit.outbox.persist.fail.total", "actionType", actionType.value())
                     .increment();
             log.error("ALERT inventory audit outbox persist failed, orderNo={}, reservationNo={}, actionType={}",
-                    reservation.getOrderNo(), reservation.getReservationNo(), actionType.value(), outboxEx);
+                    reservation.getOrderNoValue(), reservation.getReservationNoValue(), actionType.value(), outboxEx);
         }
     }
 

@@ -157,13 +157,13 @@ public class InventoryRepositorySupport {
         if (reservationDataObject.getId() == null) {
             reservationMapper.insert(reservationDataObject);
             List<InventoryReservationItemDO> itemDataObjects = reservation.getItems().stream()
-                    .map(item -> toDataObject(item, reservation.getTenantId(), reservation.getReservationNo()))
+                    .map(item -> toDataObject(item, reservation.getTenantIdValue(), reservation.getReservationNoValue()))
                     .toList();
             itemDataObjects.forEach(reservationItemMapper::insert);
         } else {
             reservationMapper.updateById(reservationDataObject);
         }
-        return findReservation(reservation.getTenantId(), reservation.getOrderNo()).orElseThrow();
+        return findReservation(reservation.getTenantIdValue(), reservation.getOrderNoValue()).orElseThrow();
     }
 
     public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
@@ -624,14 +624,14 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryReservationDO toDataObject(InventoryReservation reservation) {
-        return new InventoryReservationDO(reservation.getId(), reservation.getTenantId(),
-                reservation.getReservationNo(), reservation.getOrderNo(), reservation.getReservationStatus(),
+        return new InventoryReservationDO(reservation.getId(), reservation.getTenantIdValue(),
+                reservation.getReservationNoValue(), reservation.getOrderNoValue(), reservation.getReservationStatusValue(),
                 reservation.getWarehouseNoValue(), reservation.getFailureReason(), reservation.getReleaseReason(),
                 reservation.getCreatedAt(), reservation.getReleasedAt(), reservation.getDeductedAt());
     }
 
     private InventoryReservationItemDO toDataObject(InventoryReservationItem item, Long tenantId, String reservationNo) {
-        return new InventoryReservationItemDO(item.getId(), tenantId, reservationNo, item.getSkuId(), item.getQuantity());
+        return new InventoryReservationItemDO(item.getId(), tenantId, reservationNo, item.getSkuIdValue(), item.getQuantity());
     }
 
     private InventoryLedger toDomain(InventoryLedgerDO dataObject) {

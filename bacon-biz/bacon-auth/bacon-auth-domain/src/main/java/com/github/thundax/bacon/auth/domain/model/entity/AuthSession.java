@@ -1,13 +1,14 @@
 package com.github.thundax.bacon.auth.domain.model.entity;
 
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 认证会话领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class AuthSession {
 
     /** 会话主键。 */
@@ -39,17 +40,8 @@ public class AuthSession {
 
     public AuthSession(Long id, String sessionId, Long tenantId, Long userId, Long identityId, String identityType,
                        String loginType, Instant issuedAt, Instant expireAt) {
-        this.id = id;
-        this.sessionId = sessionId;
-        this.tenantId = tenantId;
-        this.userId = userId;
-        this.identityId = identityId;
-        this.identityType = identityType;
-        this.loginType = loginType;
-        this.issuedAt = issuedAt;
-        this.expireAt = expireAt;
-        this.sessionStatus = "ACTIVE";
-        this.lastAccessTime = issuedAt;
+        this(id, sessionId, tenantId, userId, identityId, identityType, loginType, issuedAt, expireAt,
+                "ACTIVE", issuedAt, null, null);
     }
 
     public void touch(Instant accessTime) {

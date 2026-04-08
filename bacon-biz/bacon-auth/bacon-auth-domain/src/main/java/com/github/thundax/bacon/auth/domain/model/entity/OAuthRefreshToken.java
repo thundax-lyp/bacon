@@ -1,13 +1,14 @@
 package com.github.thundax.bacon.auth.domain.model.entity;
 
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * OAuth2 刷新令牌领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class OAuthRefreshToken {
 
     /** 令牌主键。 */
@@ -31,15 +32,7 @@ public class OAuthRefreshToken {
 
     public OAuthRefreshToken(String tokenId, String tokenHash, String accessTokenId, String clientId, Long tenantId,
                              Long userId, Instant issuedAt, Instant expireAt) {
-        this.tokenId = tokenId;
-        this.tokenHash = tokenHash;
-        this.accessTokenId = accessTokenId;
-        this.clientId = clientId;
-        this.tenantId = tenantId;
-        this.userId = userId;
-        this.issuedAt = issuedAt;
-        this.expireAt = expireAt;
-        this.tokenStatus = "ACTIVE";
+        this(tokenId, tokenHash, accessTokenId, clientId, tenantId, userId, issuedAt, expireAt, "ACTIVE");
     }
 
     public void markUsed() {

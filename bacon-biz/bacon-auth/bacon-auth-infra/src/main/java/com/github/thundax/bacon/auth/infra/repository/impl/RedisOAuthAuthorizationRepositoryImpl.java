@@ -114,7 +114,8 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
 
         private OAuthAuthorizationRequest toDomain() {
             OAuthAuthorizationRequest request = new OAuthAuthorizationRequest(authorizationRequestId, clientId, redirectUri,
-                    scopes, state, codeChallenge, codeChallengeMethod, tenantId, userId, expireAt);
+                    scopes == null ? null : scopes.stream().toList(), state, codeChallenge, codeChallengeMethod,
+                    tenantId, userId, expireAt);
             if (used) {
                 request.markUsed();
             }
@@ -143,8 +144,8 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         }
 
         private OAuthAccessToken toDomain() {
-            OAuthAccessToken accessToken = new OAuthAccessToken(tokenId, tokenHash, clientId, tenantId, userId, scopes,
-                    issuedAt, expireAt);
+            OAuthAccessToken accessToken = new OAuthAccessToken(tokenId, tokenHash, clientId, tenantId, userId,
+                    scopes == null ? null : scopes.stream().toList(), issuedAt, expireAt);
             if ("REVOKED".equals(tokenStatus)) {
                 accessToken.revoke();
             }

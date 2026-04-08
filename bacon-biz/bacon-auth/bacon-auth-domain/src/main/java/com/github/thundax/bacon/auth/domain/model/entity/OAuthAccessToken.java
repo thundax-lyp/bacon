@@ -1,14 +1,17 @@
 package com.github.thundax.bacon.auth.domain.model.entity;
 
-import lombok.Getter;
-
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * OAuth2 访问令牌领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class OAuthAccessToken {
 
     /** 令牌主键。 */
@@ -31,16 +34,12 @@ public class OAuthAccessToken {
     private String tokenStatus;
 
     public OAuthAccessToken(String tokenId, String tokenHash, String clientId, Long tenantId, Long userId,
-                            Set<String> scopes, Instant issuedAt, Instant expireAt) {
-        this.tokenId = tokenId;
-        this.tokenHash = tokenHash;
-        this.clientId = clientId;
-        this.tenantId = tenantId;
-        this.userId = userId;
-        this.scopes = scopes;
-        this.issuedAt = issuedAt;
-        this.expireAt = expireAt;
-        this.tokenStatus = "ACTIVE";
+                            List<String> scopes, Instant issuedAt, Instant expireAt) {
+        this(tokenId, tokenHash, clientId, tenantId, userId, toLinkedHashSet(scopes), issuedAt, expireAt, "ACTIVE");
+    }
+
+    private static Set<String> toLinkedHashSet(List<String> values) {
+        return values == null ? new LinkedHashSet<>() : new LinkedHashSet<>(values);
     }
 
     public void revoke() {

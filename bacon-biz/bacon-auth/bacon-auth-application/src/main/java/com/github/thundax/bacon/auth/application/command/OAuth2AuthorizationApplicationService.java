@@ -12,6 +12,7 @@ import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationReposit
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
 import com.github.thundax.bacon.common.core.exception.UnauthorizedException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Optional;
@@ -63,7 +64,7 @@ public class OAuth2AuthorizationApplicationService {
         // authorize 阶段只落授权请求，不直接发 code；真正的授权决定由后续 approve/reject 明确给出。
         String authorizationRequestId = UUID.randomUUID().toString();
         oAuthAuthorizationRepository.saveAuthorizationRequest(new OAuthAuthorizationRequest(
-                authorizationRequestId, clientId, redirectUri, scopes, state, codeChallenge, codeChallengeMethod,
+                authorizationRequestId, clientId, redirectUri, new ArrayList<>(scopes), state, codeChallenge, codeChallengeMethod,
                 tenantId, userId, Instant.now().plusSeconds(300)));
         return new AuthorizationView(authorizationRequestId, client.getClientId(), client.getClientName(), scope, state);
     }
@@ -153,7 +154,7 @@ public class OAuth2AuthorizationApplicationService {
         String accessTokenId = tokenCodec.sha256(accessTokenValue);
         // access token 和 refresh token 在仓储层都使用哈希作为主识别键，避免明文 token 被直接持久化。
         OAuthAccessToken accessToken = new OAuthAccessToken(accessTokenId, accessTokenId, client.getClientId(),
-                tenantId, userId, scopes, now, now.plusSeconds(client.getAccessTokenTtlSeconds()));
+                tenantId, userId, new ArrayList<>(scopes), now, now.plusSeconds(client.getAccessTokenTtlSeconds()));
         oAuthAuthorizationRepository.saveAccessToken(accessToken);
 
         String refreshTokenValue = tokenCodec.randomToken();

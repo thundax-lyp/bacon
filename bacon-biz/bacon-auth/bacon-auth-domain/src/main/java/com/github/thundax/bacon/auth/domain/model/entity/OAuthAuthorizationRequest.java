@@ -1,14 +1,17 @@
 package com.github.thundax.bacon.auth.domain.model.entity;
 
-import lombok.Getter;
-
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * OAuth2 授权请求领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class OAuthAuthorizationRequest {
 
     /** 授权请求标识。 */
@@ -35,18 +38,14 @@ public class OAuthAuthorizationRequest {
     private boolean used;
 
     public OAuthAuthorizationRequest(String authorizationRequestId, String clientId, String redirectUri,
-                                     Set<String> scopes, String state, String codeChallenge,
+                                     List<String> scopes, String state, String codeChallenge,
                                      String codeChallengeMethod, Long tenantId, Long userId, Instant expireAt) {
-        this.authorizationRequestId = authorizationRequestId;
-        this.clientId = clientId;
-        this.redirectUri = redirectUri;
-        this.scopes = scopes;
-        this.state = state;
-        this.codeChallenge = codeChallenge;
-        this.codeChallengeMethod = codeChallengeMethod;
-        this.tenantId = tenantId;
-        this.userId = userId;
-        this.expireAt = expireAt;
+        this(authorizationRequestId, clientId, redirectUri, toLinkedHashSet(scopes), state, codeChallenge,
+                codeChallengeMethod, tenantId, userId, expireAt, false);
+    }
+
+    private static Set<String> toLinkedHashSet(List<String> values) {
+        return values == null ? new LinkedHashSet<>() : new LinkedHashSet<>(values);
     }
 
     public void markUsed() {

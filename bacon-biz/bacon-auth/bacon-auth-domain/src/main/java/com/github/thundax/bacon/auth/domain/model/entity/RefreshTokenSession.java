@@ -1,13 +1,14 @@
 package com.github.thundax.bacon.auth.domain.model.entity;
 
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 刷新令牌会话领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class RefreshTokenSession {
 
     /** 会话标识。 */
@@ -24,11 +25,7 @@ public class RefreshTokenSession {
     private Instant usedAt;
 
     public RefreshTokenSession(String sessionId, String refreshTokenHash, Instant issuedAt, Instant expireAt) {
-        this.sessionId = sessionId;
-        this.refreshTokenHash = refreshTokenHash;
-        this.issuedAt = issuedAt;
-        this.expireAt = expireAt;
-        this.tokenStatus = "ACTIVE";
+        this(sessionId, refreshTokenHash, issuedAt, expireAt, "ACTIVE", null);
     }
 
     public void markUsed(Instant useTime) {

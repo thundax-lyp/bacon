@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,4 +45,18 @@ public class OAuthClient {
     private Instant createdAt;
     /** 最后更新时间。 */
     private Instant updatedAt;
+
+    public OAuthClient(Long id, String clientId, String clientSecret, String clientName, String clientType,
+                       List<String> grantTypes, List<String> scopes, List<String> redirectUris,
+                       Long accessTokenTtlSeconds, Long refreshTokenTtlSeconds, Integer enabled,
+                       String contact, String remark, Instant createdAt, Instant updatedAt) {
+        this(id, clientId, clientSecret, clientName, clientType, toLinkedHashSet(grantTypes), toLinkedHashSet(scopes),
+                toLinkedHashSet(redirectUris), accessTokenTtlSeconds == null ? 0L : accessTokenTtlSeconds,
+                refreshTokenTtlSeconds == null ? 0L : refreshTokenTtlSeconds, enabled != null && enabled == 1, contact, remark,
+                createdAt, updatedAt);
+    }
+
+    private static Set<String> toLinkedHashSet(List<String> values) {
+        return values == null ? new LinkedHashSet<>() : new LinkedHashSet<>(values);
+    }
 }

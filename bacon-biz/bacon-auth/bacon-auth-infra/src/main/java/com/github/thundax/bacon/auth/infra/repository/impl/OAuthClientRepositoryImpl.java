@@ -38,10 +38,10 @@ public class OAuthClientRepositoryImpl implements OAuthClientRepository {
 
     private OAuthClient toDomain(OAuthClientDO dataObject) {
         return new OAuthClient(dataObject.getId(), dataObject.getClientId(), dataObject.getClientSecretHash(),
-                dataObject.getClientName(), dataObject.getClientType(), readStringSet(dataObject.getGrantTypes()),
-                readStringSet(dataObject.getScopes()), readStringSet(dataObject.getRedirectUris()),
+                dataObject.getClientName(), dataObject.getClientType(), readStringSet(dataObject.getGrantTypes()).stream().toList(),
+                readStringSet(dataObject.getScopes()).stream().toList(), readStringSet(dataObject.getRedirectUris()).stream().toList(),
                 dataObject.getAccessTokenTtlSeconds(), dataObject.getRefreshTokenTtlSeconds(),
-                Boolean.TRUE.equals(dataObject.getEnabled()), dataObject.getContact(), dataObject.getRemark(),
+                Boolean.TRUE.equals(dataObject.getEnabled()) ? 1 : 0, dataObject.getContact(), dataObject.getRemark(),
                 defaultInstant(dataObject.getCreatedAt()), defaultInstant(dataObject.getUpdatedAt()));
     }
 

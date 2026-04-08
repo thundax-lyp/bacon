@@ -4,8 +4,8 @@ import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -23,8 +23,8 @@ class OAuth2AuthorizationApplicationServiceTest {
         when(authorizationRepository.findOAuthRefreshTokenByHash("hash-refresh")).thenReturn(Optional.empty());
         OAuth2AuthorizationApplicationService service = new OAuth2AuthorizationApplicationService(
                 oauthClientRepository(new OAuthClient(1L, "demo-client", passwordEncoder.encode("demo-secret"),
-                        "Demo OAuth Client", "CONFIDENTIAL", Set.of("refresh_token"), Set.of("openid"), Set.of(),
-                        1800L, 2592000L, true, null, null, Instant.now(), Instant.now())),
+                        "Demo OAuth Client", "CONFIDENTIAL", List.of("refresh_token"), List.of("openid"), List.of(),
+                        1800L, 2592000L, 1, null, null, Instant.now(), Instant.now())),
                 authorizationRepository,
                 mock(SessionApplicationService.class),
                 tokenCodec("hash-refresh"),
@@ -40,8 +40,8 @@ class OAuth2AuthorizationApplicationServiceTest {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         OAuth2AuthorizationApplicationService service = new OAuth2AuthorizationApplicationService(
                 oauthClientRepository(new OAuthClient(1L, "demo-client", passwordEncoder.encode("demo-secret"),
-                        "Demo OAuth Client", "CONFIDENTIAL", Set.of("refresh_token"), Set.of("openid"), Set.of(),
-                        1800L, 2592000L, true, null, null, Instant.now(), Instant.now())),
+                        "Demo OAuth Client", "CONFIDENTIAL", List.of("refresh_token"), List.of("openid"), List.of(),
+                        1800L, 2592000L, 1, null, null, Instant.now(), Instant.now())),
                 mock(OAuthAuthorizationRepository.class),
                 mock(SessionApplicationService.class),
                 mock(com.github.thundax.bacon.auth.application.support.TokenCodec.class),

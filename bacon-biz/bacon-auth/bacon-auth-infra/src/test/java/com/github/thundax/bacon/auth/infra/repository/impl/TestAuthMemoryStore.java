@@ -7,8 +7,8 @@ import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -28,11 +28,11 @@ public class TestAuthMemoryStore {
     public TestAuthMemoryStore() {
         Instant now = Instant.now();
         OAuthClient demoClient = new OAuthClient(1L, "demo-client", "demo-secret", "Demo OAuth Client",
-                "CONFIDENTIAL", Set.of("authorization_code", "refresh_token"), Set.of("openid", "profile"),
-                Set.of(
+                "CONFIDENTIAL", List.of("authorization_code", "refresh_token"), List.of("openid", "profile"),
+                List.of(
                         "http://127.0.0.1:3000/callback",
                         "http://127.0.0.1:8080/api/swagger-ui/oauth2-redirect.html"
-                ), 1800L, 2592000L, true,
+                ), 1800L, 2592000L, 1,
                 "dev@bacon.local", "demo", now, now);
         clients.put(demoClient.getClientId(), demoClient);
     }

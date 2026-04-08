@@ -89,42 +89,41 @@ public class Order {
 
     public Order(Long id, Long tenantId, String orderNo, Long userId, CurrencyCode currencyCode, String totalAmount,
                  String payableAmount, String remark, Instant expiredAt) {
-        Money resolvedTotalAmount = toMoney(totalAmount, currencyCode);
-        Money resolvedPayableAmount = toMoney(payableAmount, currencyCode);
-        MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, null);
-        Instant resolvedCreatedAt = Instant.now();
-        Instant resolvedExpiredAt = resolveExpiredAt(resolvedCreatedAt, expiredAt);
+        this(id, tenantId, orderNo, userId, currencyCode, totalAmount, payableAmount, remark, expiredAt,
+                buildBoundaryInit(currencyCode, totalAmount, payableAmount, expiredAt));
+    }
 
-        this.id = id == null ? null : OrderId.of(id);
-        this.tenantId = tenantId == null ? null : TenantId.of(tenantId);
-        this.orderNo = orderNo == null ? null : OrderNo.of(orderNo);
-        this.userId = userId == null ? null : UserId.of(String.valueOf(userId));
-        this.orderStatus = OrderStatus.CREATED;
-        this.payStatus = PayStatus.UNPAID;
-        this.inventoryStatus = InventoryStatus.UNRESERVED;
-        this.paymentNo = null;
-        this.reservationNo = null;
-        this.currencyCode = currencyCode;
-        MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, null);
-        this.totalAmount = resolvedTotalAmount;
-        this.payableAmount = resolvedPayableAmount;
-        this.remark = remark;
-        this.paymentChannelCode = null;
-        this.paidAmount = null;
-        this.paymentChannelStatus = null;
-        this.paymentFailureReason = null;
-        this.paymentFailedAt = null;
-        this.warehouseNo = null;
-        this.inventoryFailureReason = null;
-        this.inventoryReleaseReason = null;
-        this.cancelReason = null;
-        this.closeReason = null;
-        this.createdAt = resolvedCreatedAt;
-        this.expiredAt = resolvedExpiredAt;
-        this.paidAt = null;
-        this.inventoryReleasedAt = null;
-        this.inventoryDeductedAt = null;
-        this.closedAt = null;
+    private Order(Long id, Long tenantId, String orderNo, Long userId, CurrencyCode currencyCode, String totalAmount,
+                  String payableAmount, String remark, Instant expiredAt, BoundaryInit init) {
+        this(id == null ? null : OrderId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                orderNo == null ? null : OrderNo.of(orderNo),
+                userId == null ? null : UserId.of(String.valueOf(userId)),
+                OrderStatus.CREATED,
+                PayStatus.UNPAID,
+                InventoryStatus.UNRESERVED,
+                null,
+                null,
+                currencyCode,
+                init.totalAmount(),
+                init.payableAmount(),
+                remark,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                init.createdAt(),
+                init.expiredAt(),
+                null,
+                null,
+                null,
+                null);
     }
 
     public static Order rehydrate(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, OrderStatus orderStatus,
@@ -155,12 +154,25 @@ public class Order {
         return expiredAt == null ? createdAt.plusSeconds(1800) : expiredAt;
     }
 
+    private static BoundaryInit buildBoundaryInit(CurrencyCode currencyCode, String totalAmount, String payableAmount,
+                                                  Instant expiredAt) {
+        Money resolvedTotalAmount = toMoney(totalAmount, currencyCode);
+        Money resolvedPayableAmount = toMoney(payableAmount, currencyCode);
+        MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, null);
+        MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, null);
+        Instant createdAt = Instant.now();
+        return new BoundaryInit(resolvedTotalAmount, resolvedPayableAmount, createdAt, resolveExpiredAt(createdAt, expiredAt));
+    }
+
     private static Money toMoney(String amount, CurrencyCode currencyCode) {
         return amount == null ? null : Money.of(new BigDecimal(amount), currencyCode);
     }
 
     private static Money toMoney(Money amount, CurrencyCode currencyCode) {
         return amount == null ? null : Money.of(amount.value(), currencyCode);
+    }
+
+    private record BoundaryInit(Money totalAmount, Money payableAmount, Instant createdAt, Instant expiredAt) {
     }
 
     public String getCurrencyCodeValue() {

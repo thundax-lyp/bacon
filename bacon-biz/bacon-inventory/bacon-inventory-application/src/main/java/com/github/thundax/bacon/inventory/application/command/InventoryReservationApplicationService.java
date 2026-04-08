@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -195,7 +196,7 @@ public class InventoryReservationApplicationService {
         Long skuId = item.getSkuId() == null ? null : item.getSkuId().value();
         Inventory inventory = inventoryBySku.get(skuId);
         if (inventory == null) {
-            inventory = loadInventory(tenantId, skuId);
+            inventory = loadInventory(tenantId, item.getSkuId());
             inventoryBySku.put(skuId, inventory);
         }
         inventory.reserve(item.getQuantity(), operatedAt);
@@ -227,10 +228,10 @@ public class InventoryReservationApplicationService {
         return InventoryReservationResultAssembler.fromReservation(persisted);
     }
 
-    private Inventory loadInventory(TenantId tenantId, Long skuId) {
-        return inventoryStockRepository.findInventory(tenantId, SkuIdMapper.toDomain(skuId))
+    private Inventory loadInventory(TenantId tenantId, SkuId skuId) {
+        return inventoryStockRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                        String.valueOf(skuId)));
+                        String.valueOf(skuId == null ? null : skuId.value())));
     }
 
     private record ReservationValidationResult(String failureReason, Map<Long, Inventory> inventoryBySku) {

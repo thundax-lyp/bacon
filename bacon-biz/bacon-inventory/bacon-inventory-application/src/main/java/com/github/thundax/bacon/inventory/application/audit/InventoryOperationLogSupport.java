@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -9,6 +8,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import io.micrometer.core.instrument.Metrics;
@@ -33,7 +33,7 @@ public class InventoryOperationLogSupport {
     }
 
     public void recordReserveSuccess(InventoryReservation reservation, Instant occurredAt) {
-        recordLedgerBatch(reservation, reservation.getItems(), InventoryLedger.TYPE_RESERVE, occurredAt);
+        recordLedgerBatch(reservation, reservation.getItems(), InventoryLedgerType.RESERVE, occurredAt);
         recordAuditAfterCommit(reservation, InventoryAuditActionType.RESERVE, occurredAt);
     }
 
@@ -42,21 +42,21 @@ public class InventoryOperationLogSupport {
     }
 
     public void recordReleaseSuccess(InventoryReservation reservation, Instant occurredAt) {
-        recordLedgerBatch(reservation, reservation.getItems(), InventoryLedger.TYPE_RELEASE, occurredAt);
+        recordLedgerBatch(reservation, reservation.getItems(), InventoryLedgerType.RELEASE, occurredAt);
         recordAuditAfterCommit(reservation, InventoryAuditActionType.RELEASE, occurredAt);
     }
 
     public void recordDeductSuccess(InventoryReservation reservation, Instant occurredAt) {
-        recordLedgerBatch(reservation, reservation.getItems(), InventoryLedger.TYPE_DEDUCT, occurredAt);
+        recordLedgerBatch(reservation, reservation.getItems(), InventoryLedgerType.DEDUCT, occurredAt);
         recordAuditAfterCommit(reservation, InventoryAuditActionType.DEDUCT, occurredAt);
     }
 
     private void recordLedgerBatch(InventoryReservation reservation, List<InventoryReservationItem> items,
-                                   String ledgerType, Instant occurredAt) {
+                                   InventoryLedgerType ledgerType, Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, TenantId.of(reservation.getTenantId()),
+            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(),
                     reservation.getOrderNo(), reservation.getReservationNo(), item.getSkuId(),
-                    reservation.getWarehouseNo(), ledgerType, item.getQuantity(), occurredAt));
+                    reservation.getWarehouseNoValue(), ledgerType, item.getQuantity(), occurredAt));
         }
     }
 

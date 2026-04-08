@@ -119,8 +119,9 @@ public class InventoryQueryApplicationService {
     }
 
     private InventoryLedgerDTO toLedgerDto(InventoryLedger ledger) {
-        return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNo(),
-                ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseNoValue(), ledger.getLedgerType(),
+        return new InventoryLedgerDTO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNoValue(),
+                ledger.getReservationNoValue(), ledger.getSkuIdValue(), ledger.getWarehouseNoValue(),
+                ledger.getLedgerTypeValue(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
 

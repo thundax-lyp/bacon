@@ -277,7 +277,7 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public void saveLedger(InventoryLedger ledger) {
-            ledgers.computeIfAbsent(reservationKey(Long.valueOf(ledger.getTenantId().value()), ledger.getOrderNo()),
+            ledgers.computeIfAbsent(reservationKey(ledger.getTenantIdValue(), ledger.getOrderNoValue()),
                             ignored -> new ArrayList<>())
                     .add(ledger);
         }

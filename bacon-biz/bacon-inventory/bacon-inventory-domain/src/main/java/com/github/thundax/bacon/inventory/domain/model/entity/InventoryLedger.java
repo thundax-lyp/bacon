@@ -1,6 +1,10 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -13,32 +17,32 @@ import lombok.Getter;
 @AllArgsConstructor
 public class InventoryLedger {
 
-    public static final String TYPE_RESERVE = "RESERVE";
-    public static final String TYPE_RELEASE = "RELEASE";
-    public static final String TYPE_DEDUCT = "DEDUCT";
-
     /** 流水主键。 */
     private Long id;
     /** 所属租户主键。 */
     private TenantId tenantId;
     /** 订单号。 */
-    private String orderNo;
+    private OrderNo orderNo;
     /** 预占单号。 */
-    private String reservationNo;
+    private ReservationNo reservationNo;
     /** 商品 SKU 主键。 */
-    private Long skuId;
+    private SkuId skuId;
     /** 仓库业务编号。 */
     private WarehouseNo warehouseNo;
     /** 流水类型。 */
-    private String ledgerType;
+    private InventoryLedgerType ledgerType;
     /** 变更数量。 */
     private Integer quantity;
     /** 发生时间。 */
     private Instant occurredAt;
 
-    public InventoryLedger(Long id, TenantId tenantId, String orderNo, String reservationNo, Long skuId,
-                           String warehouseNo, String ledgerType, Integer quantity, Instant occurredAt) {
-        this(id, tenantId, orderNo, reservationNo, skuId,
+    public InventoryLedger(Long id, Long tenantId, String orderNo, String reservationNo, Long skuId,
+                           String warehouseNo, InventoryLedgerType ledgerType, Integer quantity, Instant occurredAt) {
+        this(id,
+                tenantId == null ? null : TenantId.of(tenantId),
+                orderNo == null ? null : OrderNo.of(orderNo),
+                reservationNo == null ? null : ReservationNo.of(reservationNo),
+                skuId == null ? null : SkuId.of(skuId),
                 warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
                 ledgerType, quantity, occurredAt);
     }
@@ -47,7 +51,23 @@ public class InventoryLedger {
         return tenantId == null ? null : tenantId.value();
     }
 
+    public String getOrderNoValue() {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    public String getReservationNoValue() {
+        return reservationNo == null ? null : reservationNo.value();
+    }
+
+    public Long getSkuIdValue() {
+        return skuId == null ? null : skuId.value();
+    }
+
     public String getWarehouseNoValue() {
         return warehouseNo == null ? null : warehouseNo.value();
+    }
+
+    public String getLedgerTypeValue() {
+        return ledgerType == null ? null : ledgerType.value();
     }
 }

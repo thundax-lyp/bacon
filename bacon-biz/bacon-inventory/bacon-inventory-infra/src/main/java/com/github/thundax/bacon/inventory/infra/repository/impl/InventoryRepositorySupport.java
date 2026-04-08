@@ -19,6 +19,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutbo
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
@@ -634,15 +635,17 @@ public class InventoryRepositorySupport {
     }
 
     private InventoryLedger toDomain(InventoryLedgerDO dataObject) {
-        return new InventoryLedger(dataObject.getId(), TenantId.of(dataObject.getTenantId()), dataObject.getOrderNo(),
+        return new InventoryLedger(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getSkuId(),
                 dataObject.getWarehouseNo(),
-                dataObject.getLedgerType(), dataObject.getQuantity(), dataObject.getOccurredAt());
+                InventoryLedgerType.fromValue(dataObject.getLedgerType()), dataObject.getQuantity(),
+                dataObject.getOccurredAt());
     }
 
     private InventoryLedgerDO toDataObject(InventoryLedger ledger) {
-        return new InventoryLedgerDO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNo(),
-                ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseNoValue(), ledger.getLedgerType(),
+        return new InventoryLedgerDO(ledger.getId(), ledger.getTenantIdValue(), ledger.getOrderNoValue(),
+                ledger.getReservationNoValue(), ledger.getSkuIdValue(), ledger.getWarehouseNoValue(),
+                ledger.getLedgerTypeValue(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }
 

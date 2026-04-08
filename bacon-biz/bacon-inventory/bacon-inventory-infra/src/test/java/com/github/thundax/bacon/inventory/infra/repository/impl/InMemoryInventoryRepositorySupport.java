@@ -130,11 +130,12 @@ public class InMemoryInventoryRepositorySupport {
 
     public void saveLedger(InventoryLedger ledger) {
         if (ledger.getId() == null) {
-            ledger = new InventoryLedger(ledgerIdGenerator.getAndIncrement(), ledger.getTenantId(), ledger.getOrderNo(),
-                    ledger.getReservationNo(), ledger.getSkuId(), ledger.getWarehouseNo().value(), ledger.getLedgerType(),
+            ledger = new InventoryLedger(ledgerIdGenerator.getAndIncrement(), ledger.getTenantIdValue(),
+                    ledger.getOrderNoValue(), ledger.getReservationNoValue(), ledger.getSkuIdValue(),
+                    ledger.getWarehouseNoValue(), ledger.getLedgerType(), 
                     ledger.getQuantity(), ledger.getOccurredAt());
         }
-        ledgers.computeIfAbsent(reservationKey(ledger.getTenantId().value(), ledger.getOrderNo()), key -> new ArrayList<>())
+        ledgers.computeIfAbsent(reservationKey(ledger.getTenantIdValue(), ledger.getOrderNoValue()), key -> new ArrayList<>())
                 .add(ledger);
     }
 

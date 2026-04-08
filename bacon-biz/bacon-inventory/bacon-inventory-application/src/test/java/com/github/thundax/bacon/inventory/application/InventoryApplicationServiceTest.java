@@ -14,6 +14,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
@@ -61,7 +62,7 @@ class InventoryApplicationServiceTest {
         assertEquals(10, stock.getReservedQuantity());
         assertEquals(90, stock.getAvailableQuantity());
         assertEquals(1, queryService.listLedgersByOrderNo(1001L, "ORDER-1").size());
-        assertEquals(InventoryLedger.TYPE_RESERVE,
+        assertEquals(InventoryLedgerType.RESERVE.value(),
                 queryService.listLedgersByOrderNo(1001L, "ORDER-1").get(0).getLedgerType());
     }
 
@@ -139,7 +140,7 @@ class InventoryApplicationServiceTest {
         assertEquals(93, stock.getOnHandQuantity());
         assertEquals(93, stock.getAvailableQuantity());
         assertEquals(2, queryService.listLedgersByOrderNo(1001L, "ORDER-4").size());
-        assertEquals(InventoryLedger.TYPE_DEDUCT,
+        assertEquals(InventoryLedgerType.DEDUCT.value(),
                 queryService.listLedgersByOrderNo(1001L, "ORDER-4").get(1).getLedgerType());
     }
 
@@ -238,7 +239,7 @@ class InventoryApplicationServiceTest {
 
         @Override
         public void saveLedger(InventoryLedger ledger) {
-            ledgers.computeIfAbsent(reservationKey(Long.valueOf(ledger.getTenantId().value()), ledger.getOrderNo()),
+            ledgers.computeIfAbsent(reservationKey(ledger.getTenantIdValue(), ledger.getOrderNoValue()),
                             ignored -> new java.util.ArrayList<>())
                     .add(ledger);
         }

@@ -67,8 +67,8 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<Inventory> findInventories(Long tenantId) {
         return inventories.values().stream()
-                .filter(inventory -> inventory.getTenantId().value().equals(String.valueOf(tenantId)))
-                .sorted(java.util.Comparator.comparing(inventory -> inventory.getSkuId().value()))
+                .filter(inventory -> tenantId.equals(inventory.getTenantIdValue()))
+                .sorted(java.util.Comparator.comparing(Inventory::getSkuIdValue))
                 .toList();
     }
 
@@ -81,7 +81,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
         return findInventories(tenantId).stream()
-                .filter(inventory -> skuId == null || inventory.getSkuId().value().equals(skuId))
+                .filter(inventory -> skuId == null || skuId.equals(inventory.getSkuIdValue()))
                 .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                 .skip((long) (pageNo - 1) * pageSize)
                 .limit(pageSize)
@@ -90,7 +90,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public long countInventories(Long tenantId, Long skuId, String status) {
         return findInventories(tenantId).stream()
-                .filter(inventory -> skuId == null || inventory.getSkuId().value().equals(skuId))
+                .filter(inventory -> skuId == null || skuId.equals(inventory.getSkuIdValue()))
                 .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                 .count();
     }
@@ -331,8 +331,8 @@ public class InMemoryInventoryRepositorySupport {
                                                                 String replayStatus, int pageNo, int pageSize) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
-                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo().value()))
+                .filter(item -> tenantId.equals(item.getTenantIdValue()))
+                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNoValue()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
                         || replayStatus.equals(item.getReplayStatusValue()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditDeadLetter::getDeadAt).reversed()
@@ -345,8 +345,8 @@ public class InMemoryInventoryRepositorySupport {
     public long countAuditDeadLetters(Long tenantId, String orderNo, String replayStatus) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
-                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNo().value()))
+                .filter(item -> tenantId.equals(item.getTenantIdValue()))
+                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNoValue()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
                         || replayStatus.equals(item.getReplayStatusValue()))
                 .count();
@@ -362,7 +362,7 @@ public class InMemoryInventoryRepositorySupport {
     public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
                                                  String operatorType, Long operatorId, Instant replayAt) {
         return findAuditDeadLetterById(id)
-                .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
+                .filter(item -> tenantId.equals(item.getTenantIdValue()))
                 .filter(item -> InventoryAuditReplayStatus.PENDING.equals(item.getReplayStatus())
                         || InventoryAuditReplayStatus.FAILED.equals(item.getReplayStatus()))
                 .map(item -> {

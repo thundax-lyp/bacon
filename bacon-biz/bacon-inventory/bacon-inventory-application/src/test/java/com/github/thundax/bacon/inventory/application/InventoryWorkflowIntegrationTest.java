@@ -214,7 +214,7 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public List<Inventory> findInventories(Long tenantId) {
             return inventories.values().stream()
-                    .filter(item -> item.getTenantId().value().equals(String.valueOf(tenantId)))
+                    .filter(item -> tenantId.equals(item.getTenantIdValue()))
                     .map(this::copy)
                     .toList();
         }
@@ -231,7 +231,7 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
-                    .filter(item -> skuId == null || item.getSkuId().value().equals(skuId))
+                    .filter(item -> skuId == null || skuId.equals(item.getSkuIdValue()))
                     .filter(item -> status == null || status.equals(item.getStatus().value()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)

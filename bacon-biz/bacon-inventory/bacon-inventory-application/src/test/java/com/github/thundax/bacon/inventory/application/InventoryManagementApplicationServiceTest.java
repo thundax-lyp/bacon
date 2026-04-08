@@ -90,7 +90,7 @@ class InventoryManagementApplicationServiceTest {
         @Override
         public List<Inventory> findInventories(Long tenantId) {
             return inventories.values().stream()
-                    .filter(inventory -> inventory.getTenantId().value().equals(String.valueOf(tenantId)))
+                    .filter(inventory -> tenantId.equals(inventory.getTenantIdValue()))
                     .toList();
         }
 
@@ -104,7 +104,7 @@ class InventoryManagementApplicationServiceTest {
         @Override
         public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || inventory.getSkuId().value().equals(skuId))
+                    .filter(inventory -> skuId == null || skuId.equals(inventory.getSkuIdValue()))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)
@@ -114,7 +114,7 @@ class InventoryManagementApplicationServiceTest {
         @Override
         public long countInventories(Long tenantId, Long skuId, String status) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || inventory.getSkuId().value().equals(skuId))
+                    .filter(inventory -> skuId == null || skuId.equals(inventory.getSkuIdValue()))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                     .count();
         }

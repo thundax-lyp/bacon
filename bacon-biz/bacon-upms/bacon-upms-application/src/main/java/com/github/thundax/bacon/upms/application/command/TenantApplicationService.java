@@ -39,35 +39,29 @@ public class TenantApplicationService {
 
     @Transactional
     public TenantDTO createTenant(Long tenantId, String name, String tenantCode, Instant expiredAt) {
-        return createTenantInternal(TenantId.of(tenantId), name, tenantCode, expiredAt);
-    }
-
-    private TenantDTO createTenantInternal(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
         validateRequired(name, "name");
         validateRequired(tenantCode, "tenantCode");
+        TenantId normalizedTenantId = TenantId.of(tenantId);
         TenantCode normalizedTenantCode = TenantCode.of(tenantCode);
-        tenantRepository.findTenantByTenantId(tenantId).ifPresent(tenant -> {
-            throw new IllegalArgumentException("Tenant tenantId already exists: " + tenantId.value());
+        tenantRepository.findTenantByTenantId(normalizedTenantId).ifPresent(tenant -> {
+            throw new IllegalArgumentException("Tenant tenantId already exists: " + normalizedTenantId.value());
         });
         tenantRepository.findTenantByCode(normalizedTenantCode.value()).ifPresent(tenant -> {
             throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
         });
-        return toDto(tenantRepository.saveTenant(new Tenant(tenantId, normalize(name),
+        return toDto(tenantRepository.saveTenant(new Tenant(normalizedTenantId, normalize(name),
                 normalizedTenantCode, TenantStatus.ACTIVE, expiredAt)));
     }
 
     @Transactional
     public TenantDTO updateTenant(Long tenantId, String name, String tenantCode, Instant expiredAt) {
-        return updateTenantInternal(TenantId.of(tenantId), name, tenantCode, expiredAt);
-    }
-
-    private TenantDTO updateTenantInternal(TenantId tenantId, String name, String tenantCode, Instant expiredAt) {
-        Tenant currentTenant = requireTenant(tenantId);
         validateRequired(name, "name");
         validateRequired(tenantCode, "tenantCode");
+        TenantId normalizedTenantId = TenantId.of(tenantId);
+        Tenant currentTenant = requireTenant(normalizedTenantId);
         TenantCode normalizedTenantCode = TenantCode.of(tenantCode);
         tenantRepository.findTenantByCode(normalizedTenantCode.value())
-                .filter(tenant -> !tenant.getId().equals(tenantId))
+                .filter(tenant -> !tenant.getId().equals(normalizedTenantId))
                 .ifPresent(tenant -> {
                     throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
                 });
@@ -85,14 +79,11 @@ public class TenantApplicationService {
 
     @Transactional
     public TenantDTO updateTenantStatus(Long tenantId, TenantStatusEnum status) {
-        return updateTenantStatusInternal(TenantId.of(tenantId), status);
-    }
-
-    private TenantDTO updateTenantStatusInternal(TenantId tenantId, TenantStatusEnum status) {
         if (status == null) {
             throw new IllegalArgumentException("status must not be null");
         }
-        Tenant tenant = tenantRepository.updateTenantStatus(tenantId, status.value());
+        TenantId normalizedTenantId = TenantId.of(tenantId);
+        Tenant tenant = tenantRepository.updateTenantStatus(normalizedTenantId, status.value());
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
         if (TenantStatus.DISABLED == tenant.getStatus()) {
             sessionCommandFacade.invalidateTenantSessions(tenant.getId().value(), "TENANT_DISABLED");
@@ -101,11 +92,7 @@ public class TenantApplicationService {
     }
 
     public TenantDTO getTenantByTenantId(Long tenantId) {
-        return getTenantByTenantId(TenantId.of(tenantId));
-    }
-
-    public TenantDTO getTenantByTenantId(TenantId tenantId) {
-        return toDto(requireTenant(tenantId));
+        return toDto(requireTenant(TenantId.of(tenantId)));
     }
 
     private Tenant requireTenant(TenantId tenantId) {

@@ -4,6 +4,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreate
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
+import com.github.thundax.bacon.inventory.application.mapper.DeadLetterIdMapper;
 import com.github.thundax.bacon.inventory.application.mapper.TaskNoMapper;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
@@ -116,8 +117,8 @@ public class InventoryAuditReplayTaskApplicationService {
             Instant startedAt = Instant.now();
             try {
                 String replayKey = buildReplayKey(task, item);
-                InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(task.getTenantIdValue(),
-                        item.getDeadLetterIdValue(), replayKey, task.getOperatorIdValue());
+                InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(task.getTenantId(),
+                        DeadLetterIdMapper.toDomain(item.getDeadLetterIdValue()), replayKey, task.getOperatorIdValue());
                 InventoryAuditReplayStatus replayStatus = InventoryAuditReplayStatus.from(result.getReplayStatus());
                 InventoryAuditReplayTaskItemStatus itemStatus = InventoryAuditReplayTaskItemStatus.FAILED;
                 if (InventoryAuditReplayStatus.SUCCEEDED.equals(replayStatus)) {

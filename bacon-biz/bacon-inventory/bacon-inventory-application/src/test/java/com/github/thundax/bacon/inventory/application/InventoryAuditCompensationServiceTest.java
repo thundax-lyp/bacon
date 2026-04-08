@@ -10,6 +10,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
@@ -40,7 +41,8 @@ class InventoryAuditCompensationApplicationServiceTest {
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING.value(),
                 0, null, null, null, null, null, null));
 
-        InventoryAuditReplayResultDTO result = service.replayDeadLetter(3001L, 1001L, "MANUAL-REPLAY-1001", 9001L);
+        InventoryAuditReplayResultDTO result = service.replayDeadLetter(TenantId.of(3001L), DeadLetterId.of(1001L),
+                "MANUAL-REPLAY-1001", 9001L);
 
         assertEquals(InventoryAuditReplayStatus.SUCCEEDED.value(), result.getReplayStatus());
         assertEquals("MANUAL-REPLAY-1001", result.getReplayKey());
@@ -66,8 +68,8 @@ class InventoryAuditCompensationApplicationServiceTest {
                 Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL", "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
                 InventoryAuditReplayStatus.RUNNING.value(), 0, null, null, null, null, null, null));
 
-        List<InventoryAuditReplayResultDTO> results = service.replayDeadLettersBatch(3001L, List.of(1002L, 1003L),
-                "BATCH-1", 9002L);
+        List<InventoryAuditReplayResultDTO> results = service.replayDeadLettersBatch(TenantId.of(3001L),
+                List.of(DeadLetterId.of(1002L), DeadLetterId.of(1003L)), "BATCH-1", 9002L);
 
         assertEquals(2, results.size());
         assertEquals(InventoryAuditReplayStatus.SUCCEEDED.value(), results.get(0).getReplayStatus());
@@ -85,7 +87,8 @@ class InventoryAuditCompensationApplicationServiceTest {
                 "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING.value(),
                 0, null, null, null, null, null, null));
 
-        InventoryAuditReplayResultDTO result = service.replayDeadLetter(3001L, 1004L, "MANUAL-REPLAY-1004", 9001L);
+        InventoryAuditReplayResultDTO result = service.replayDeadLetter(TenantId.of(3001L), DeadLetterId.of(1004L),
+                "MANUAL-REPLAY-1004", 9001L);
 
         assertEquals(InventoryAuditReplayStatus.FAILED.value(), result.getReplayStatus());
         assertTrue(result.getMessage().startsWith("tx-failed:"));

@@ -592,7 +592,7 @@ public class InventoryRepositorySupport {
     private Inventory toDomain(InventoryDO dataObject) {
         return new Inventory(dataObject.getId(), dataObject.getTenantId(), dataObject.getSkuId(), dataObject.getWarehouseNo(),
                 dataObject.getOnHandQuantity(), dataObject.getReservedQuantity(), dataObject.getAvailableQuantity(),
-                InventoryStatus.fromValue(dataObject.getStatus()), dataObject.getVersion(),
+                InventoryStatus.from(dataObject.getStatus()), dataObject.getVersion(),
                 dataObject.getUpdatedAt() == null ? dataObject.getCreatedAt() : dataObject.getUpdatedAt());
     }
 
@@ -633,7 +633,7 @@ public class InventoryRepositorySupport {
         return new InventoryLedger(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
                 dataObject.getReservationNo(), dataObject.getSkuId(),
                 dataObject.getWarehouseNo(),
-                InventoryLedgerType.fromValue(dataObject.getLedgerType()), dataObject.getQuantity(),
+                InventoryLedgerType.from(dataObject.getLedgerType()), dataObject.getQuantity(),
                 dataObject.getOccurredAt());
     }
 
@@ -673,12 +673,12 @@ public class InventoryRepositorySupport {
                 dataObject.getTenantId(),
                 dataObject.getOrderNo(),
                 dataObject.getReservationNo(),
-                InventoryAuditActionType.fromValue(dataObject.getActionType()),
-                InventoryAuditOperatorType.fromValue(dataObject.getOperatorType()),
+                InventoryAuditActionType.from(dataObject.getActionType()),
+                InventoryAuditOperatorType.from(dataObject.getOperatorType()),
                 dataObject.getOperatorId(),
                 dataObject.getOccurredAt(),
                 dataObject.getErrorMessage(),
-                InventoryAuditOutboxStatus.fromValue(dataObject.getStatus()),
+                InventoryAuditOutboxStatus.from(dataObject.getStatus()),
                 dataObject.getRetryCount(),
                 dataObject.getNextRetryAt(),
                 dataObject.getProcessingOwner(),
@@ -721,7 +721,7 @@ public class InventoryRepositorySupport {
 
     private InventoryAuditReplayTask toDomain(InventoryAuditReplayTaskDO dataObject) {
         return new InventoryAuditReplayTask(dataObject.getId(), dataObject.getTenantId(), dataObject.getTaskNo(),
-                InventoryAuditReplayTaskStatus.fromValue(dataObject.getStatus()), dataObject.getTotalCount(), dataObject.getProcessedCount(),
+                InventoryAuditReplayTaskStatus.from(dataObject.getStatus()), dataObject.getTotalCount(), dataObject.getProcessedCount(),
                 dataObject.getSuccessCount(), dataObject.getFailedCount(), dataObject.getReplayKeyPrefix(),
                 dataObject.getOperatorType(), dataObject.getOperatorId(), dataObject.getProcessingOwner(),
                 dataObject.getLeaseUntil(), dataObject.getLastError(), dataObject.getCreatedAt(),

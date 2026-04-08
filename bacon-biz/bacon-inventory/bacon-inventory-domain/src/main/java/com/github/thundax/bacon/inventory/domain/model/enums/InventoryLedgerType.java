@@ -12,7 +12,7 @@ public enum InventoryLedgerType {
         return name();
     }
 
-    public static InventoryLedgerType fromValue(String value) {
+    public static InventoryLedgerType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

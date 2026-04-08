@@ -62,7 +62,7 @@ public class InventoryManagementApplicationService {
 
     private InventoryStatus normalizeStatus(String status) {
         try {
-            return InventoryStatus.fromValue(status);
+            return InventoryStatus.from(status);
         } catch (IllegalArgumentException ex) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_STATUS, String.valueOf(status));
         }

@@ -41,8 +41,8 @@ public class InventoryAuditLog {
                 tenantId == null ? null : TenantId.of(tenantId),
                 orderNo == null ? null : OrderNo.of(orderNo),
                 reservationNo == null ? null : ReservationNo.of(reservationNo),
-                actionType == null ? null : InventoryAuditActionType.fromValue(actionType),
-                operatorType == null ? null : InventoryAuditOperatorType.fromValue(operatorType),
+                actionType == null ? null : InventoryAuditActionType.from(actionType),
+                operatorType == null ? null : InventoryAuditOperatorType.from(operatorType),
                 operatorId,
                 occurredAt);
     }

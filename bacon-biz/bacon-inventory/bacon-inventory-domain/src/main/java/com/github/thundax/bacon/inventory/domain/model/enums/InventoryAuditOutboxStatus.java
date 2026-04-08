@@ -12,7 +12,7 @@ public enum InventoryAuditOutboxStatus {
         return name();
     }
 
-    public static InventoryAuditOutboxStatus fromValue(String value) {
+    public static InventoryAuditOutboxStatus from(String value) {
         return Arrays.stream(values())
                 .filter(status -> status.name().equalsIgnoreCase(value))
                 .findFirst()

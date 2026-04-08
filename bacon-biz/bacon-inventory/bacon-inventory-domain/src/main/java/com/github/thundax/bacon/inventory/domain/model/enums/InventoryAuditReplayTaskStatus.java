@@ -14,7 +14,7 @@ public enum InventoryAuditReplayTaskStatus {
         return name();
     }
 
-    public static InventoryAuditReplayTaskStatus fromValue(String value) {
+    public static InventoryAuditReplayTaskStatus from(String value) {
         return Arrays.stream(values())
                 .filter(status -> status.name().equalsIgnoreCase(value))
                 .findFirst()

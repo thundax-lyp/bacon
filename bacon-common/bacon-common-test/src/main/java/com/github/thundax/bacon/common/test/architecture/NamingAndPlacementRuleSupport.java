@@ -196,7 +196,7 @@ public final class NamingAndPlacementRuleSupport {
                             if (!String.class.getName().equals(method.getRawReturnType().getFullName())) {
                                 violations.add("value() must return String");
                             }
-                            if (!callsMethod(method, Enum.class.getName(), "name")) {
+                            if (!callsMethod(method, "name")) {
                                 violations.add("value() must delegate to name()");
                             }
                         }
@@ -215,13 +215,13 @@ public final class NamingAndPlacementRuleSupport {
                             if (!method.getRawReturnType().equals(item)) {
                                 violations.add("from(String) must return " + item.getSimpleName());
                             }
-                            if (!callsMethod(method, item.getFullName(), "values")) {
+                            if (!callsMethod(method, "values")) {
                                 violations.add("from(String) must call values()");
                             }
-                            if (!callsMethod(method, String.class.getName(), "equalsIgnoreCase")) {
+                            if (!callsMethod(method, "equalsIgnoreCase")) {
                                 violations.add("from(String) must call String.equalsIgnoreCase(..)");
                             }
-                            if (!callsMethod(method, Optional.class.getName(), "orElseThrow")) {
+                            if (!callsMethod(method, "orElseThrow")) {
                                 violations.add("from(String) must call Optional.orElseThrow(..)");
                             }
                         }
@@ -229,6 +229,7 @@ public final class NamingAndPlacementRuleSupport {
                         List<String> extraMethods = item.getMethods().stream()
                                 .filter(method -> !method.getModifiers().contains(JavaModifier.SYNTHETIC))
                                 .filter(method -> !method.getModifiers().contains(JavaModifier.BRIDGE))
+                                .filter(method -> !isCompilerGeneratedEnumMethod(method))
                                 .filter(method -> !isAllowedSimpleEnumMethod(method))
                                 .map(NamingAndPlacementRuleSupport::formatMethod)
                                 .sorted()
@@ -320,11 +321,10 @@ public final class NamingAndPlacementRuleSupport {
         return fullName.matches(regex.toString());
     }
 
-    private static boolean callsMethod(JavaMethod method, String ownerFullName, String methodName) {
+    private static boolean callsMethod(JavaMethod method, String methodName) {
         return method.getMethodCallsFromSelf().stream()
                 .map(JavaMethodCall::getTarget)
-                .anyMatch(target -> ownerFullName.equals(target.getOwner().getFullName())
-                        && methodName.equals(target.getName()));
+                .anyMatch(target -> methodName.equals(target.getName()));
     }
 
     private static boolean isAllowedSimpleEnumMethod(JavaMethod method) {
@@ -335,6 +335,20 @@ public final class NamingAndPlacementRuleSupport {
             return parameterTypes.isEmpty() && !method.getModifiers().contains(JavaModifier.STATIC);
         }
         if ("from".equals(method.getName())) {
+            return parameterTypes.equals(List.of(String.class.getName()))
+                    && method.getModifiers().contains(JavaModifier.STATIC);
+        }
+        return false;
+    }
+
+    private static boolean isCompilerGeneratedEnumMethod(JavaMethod method) {
+        List<String> parameterTypes = method.getRawParameterTypes().stream()
+                .map(JavaClass::getFullName)
+                .toList();
+        if ("values".equals(method.getName())) {
+            return parameterTypes.isEmpty() && method.getModifiers().contains(JavaModifier.STATIC);
+        }
+        if ("valueOf".equals(method.getName())) {
             return parameterTypes.equals(List.of(String.class.getName()))
                     && method.getModifiers().contains(JavaModifier.STATIC);
         }

@@ -513,7 +513,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .filter(task -> processingOwner.equals(task.getProcessingOwner()))
                 .ifPresent(task -> {
-                    task.setStatus(InventoryAuditReplayTaskStatus.fromValue(status));
+                    task.setStatus(InventoryAuditReplayTaskStatus.from(status));
                     task.setLastError(lastError);
                     task.setProcessingOwner(null);
                     task.setLeaseUntil(null);

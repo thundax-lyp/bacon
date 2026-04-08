@@ -112,7 +112,7 @@ public class InventoryAuditReplayTaskApplicationService {
                 String replayKey = buildReplayKey(task, item);
                 InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(task.getTenantIdValue(),
                         item.getDeadLetterIdValue(), replayKey, task.getOperatorIdValue());
-                InventoryAuditReplayStatus replayStatus = InventoryAuditReplayStatus.fromValue(result.getReplayStatus());
+                InventoryAuditReplayStatus replayStatus = InventoryAuditReplayStatus.from(result.getReplayStatus());
                 InventoryAuditReplayTaskItemStatus itemStatus = InventoryAuditReplayTaskItemStatus.FAILED;
                 if (InventoryAuditReplayStatus.SUCCEEDED.equals(replayStatus)) {
                     itemStatus = InventoryAuditReplayTaskItemStatus.SUCCEEDED;

@@ -255,7 +255,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {
                 return;
             }
-            task.setStatus(InventoryAuditReplayTaskStatus.fromValue(status));
+            task.setStatus(InventoryAuditReplayTaskStatus.from(status));
             task.setLastError(lastError);
             task.setProcessingOwner(null);
             task.setLeaseUntil(null);

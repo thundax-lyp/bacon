@@ -14,7 +14,7 @@ public enum InventoryAuditActionType {
         return name();
     }
 
-    public static InventoryAuditActionType fromValue(String value) {
+    public static InventoryAuditActionType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

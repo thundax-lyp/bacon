@@ -10,7 +10,7 @@ public enum InventoryAuditOperatorType {
         return name();
     }
 
-    public static InventoryAuditOperatorType fromValue(String value) {
+    public static InventoryAuditOperatorType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

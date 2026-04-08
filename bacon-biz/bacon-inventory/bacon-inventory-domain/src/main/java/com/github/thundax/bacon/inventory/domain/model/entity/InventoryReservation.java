@@ -79,7 +79,7 @@ public class InventoryReservation {
                 orderNo == null ? null : OrderNo.of(orderNo),
                 warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
                 createdAt, items,
-                reservationStatus == null ? null : InventoryReservationStatus.fromValue(reservationStatus),
+                reservationStatus == null ? null : InventoryReservationStatus.from(reservationStatus),
                 failureReason, releaseReason, releasedAt, deductedAt);
     }
 

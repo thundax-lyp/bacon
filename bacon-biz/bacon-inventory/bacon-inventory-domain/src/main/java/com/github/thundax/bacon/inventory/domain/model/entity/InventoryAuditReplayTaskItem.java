@@ -48,8 +48,8 @@ public class InventoryAuditReplayTaskItem {
                 taskId == null ? null : TaskId.of(taskId),
                 tenantId == null ? null : TenantId.of(tenantId),
                 deadLetterId == null ? null : DeadLetterId.of(deadLetterId),
-                itemStatus == null ? null : InventoryAuditReplayTaskItemStatus.fromValue(itemStatus),
-                replayStatus == null ? null : InventoryAuditReplayStatus.fromValue(replayStatus),
+                itemStatus == null ? null : InventoryAuditReplayTaskItemStatus.from(itemStatus),
+                replayStatus == null ? null : InventoryAuditReplayStatus.from(replayStatus),
                 replayKey, resultMessage, startedAt, finishedAt, updatedAt);
     }
 

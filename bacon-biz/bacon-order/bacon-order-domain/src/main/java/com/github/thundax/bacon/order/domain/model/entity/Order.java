@@ -98,7 +98,7 @@ public class Order {
         this(id == null ? null : OrderId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
                 orderNo == null ? null : OrderNo.of(orderNo),
-                userId == null ? null : UserId.of(String.valueOf(userId)),
+                userId == null ? null : UserId.of(userId),
                 OrderStatus.CREATED,
                 PayStatus.UNPAID,
                 InventoryStatus.UNRESERVED,

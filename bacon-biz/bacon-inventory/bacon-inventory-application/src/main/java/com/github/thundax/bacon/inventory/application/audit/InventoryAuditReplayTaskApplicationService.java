@@ -3,11 +3,14 @@ package com.github.thundax.bacon.inventory.application.audit;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
+import com.github.thundax.bacon.inventory.application.mapper.TaskNoMapper;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
@@ -35,11 +38,14 @@ public class InventoryAuditReplayTaskApplicationService {
                     "replay-task-empty-dead-letter-ids");
         }
         Instant now = Instant.now();
+        TaskNo taskNo = TaskNoMapper.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
         // 回放任务只负责“组织一批死信逐条回放”，真正的单条回放语义仍复用 compensation service。
-        InventoryAuditReplayTask task = new InventoryAuditReplayTask(null, createDTO.getTenantId(),
-                "RPT-" + UUID.randomUUID().toString().replace("-", ""), InventoryAuditReplayTaskStatus.PENDING,
+        InventoryAuditReplayTask task = new InventoryAuditReplayTask(null,
+                TenantIdMapper.toDomain(createDTO.getTenantId()),
+                taskNo, InventoryAuditReplayTaskStatus.PENDING,
                 createDTO.getDeadLetterIds().size(), 0, 0, 0, createDTO.getReplayKeyPrefix(), OPERATOR_TYPE_MANUAL,
-                createDTO.getOperatorId(), null, null, null, now, null, null, null, now);
+                createDTO.getOperatorId() == null ? null : String.valueOf(createDTO.getOperatorId()),
+                null, null, null, now, null, null, null, now);
         InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
         inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getIdValue(), saved.getTenantIdValue(),
                 createDTO.getDeadLetterIds(), now);

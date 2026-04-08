@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.MenuId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
@@ -49,7 +50,7 @@ public class RoleApplicationService {
     }
 
     public List<RoleDTO> getRolesByUserId(Long tenantId, Long userId) {
-        return getRolesByUserId(requireExistingTenantId(tenantId), UserId.of(String.valueOf(userId)));
+        return getRolesByUserId(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     public PageResultDTO<RoleDTO> pageRoles(RolePageQueryDTO query) {

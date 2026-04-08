@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
@@ -99,7 +100,7 @@ public class OrderCreateApplicationService {
     }
 
     private UserId toUserId(Long userId) {
-        return userId == null ? null : UserId.of(String.valueOf(userId));
+        return UserIdMapper.toDomain(userId);
     }
 
     private TenantId toTenantId(Long tenantId) {

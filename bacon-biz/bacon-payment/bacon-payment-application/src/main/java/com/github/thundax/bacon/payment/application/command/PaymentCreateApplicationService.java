@@ -3,6 +3,7 @@ package com.github.thundax.bacon.payment.application.command;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
@@ -94,6 +95,6 @@ public class PaymentCreateApplicationService {
     }
 
     private UserId toUserId(Long userId) {
-        return userId == null ? null : UserId.of(String.valueOf(userId));
+        return UserIdMapper.toDomain(userId);
     }
 }

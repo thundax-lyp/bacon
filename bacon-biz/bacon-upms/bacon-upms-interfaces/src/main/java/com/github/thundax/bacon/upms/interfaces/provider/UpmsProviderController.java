@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.interfaces.provider;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -55,7 +56,7 @@ public class UpmsProviderController {
     @Operation(summary = "按用户 ID 查询用户")
     @GetMapping("/users/{userId}")
     public UserDTO getUserById(@RequestParam("tenantId") Long tenantId, @PathVariable Long userId) {
-        return userApplicationService.getUserById(tenantId, String.valueOf(userId));
+        return userApplicationService.getUserById(tenantId, userId);
     }
 
     @Operation(summary = "按身份标识查询用户身份")
@@ -79,7 +80,7 @@ public class UpmsProviderController {
     public void changePassword(@RequestParam("tenantId") Long tenantId,
                                @PathVariable Long userId,
                                @RequestBody UserPasswordChangeDTO request) {
-        userApplicationService.changePassword(tenantId, String.valueOf(userId), request.getOldPassword(), request.getNewPassword());
+        userApplicationService.changePassword(tenantId, userId, request.getOldPassword(), request.getNewPassword());
     }
 
     @Operation(summary = "按租户编号查询租户")
@@ -129,20 +130,20 @@ public class UpmsProviderController {
 
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
-    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") String userId) {
-        return permissionQueryService.getUserMenuTree(requireExistingTenantId(tenantId), UserId.of(userId));
+    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
+        return permissionQueryService.getUserMenuTree(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
-    public Set<String> getUserPermissionCodes(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") String userId) {
-        return permissionQueryService.getUserPermissionCodes(requireExistingTenantId(tenantId), UserId.of(userId));
+    public Set<String> getUserPermissionCodes(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
+        return permissionQueryService.getUserPermissionCodes(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @GetMapping("/permissions/data-scope")
-    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") String userId) {
-        return permissionQueryService.getUserDataScope(requireExistingTenantId(tenantId), UserId.of(userId));
+    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
+        return permissionQueryService.getUserDataScope(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     private TenantId requireExistingTenantId(Long tenantId) {

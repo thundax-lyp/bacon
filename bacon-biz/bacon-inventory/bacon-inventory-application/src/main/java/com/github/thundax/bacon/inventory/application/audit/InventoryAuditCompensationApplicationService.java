@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -106,6 +107,6 @@ public class InventoryAuditCompensationApplicationService {
     }
 
     private TenantId toTenantId(Long value) {
-        return value == null ? null : TenantId.of(value);
+        return TenantIdMapper.toDomain(value);
     }
 }

@@ -2,14 +2,22 @@ package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
+import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
+import com.github.thundax.bacon.inventory.application.mapper.ReservationNoMapper;
+import com.github.thundax.bacon.inventory.application.mapper.WarehouseNoMapper;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
@@ -78,13 +86,19 @@ public class InventoryReservationApplicationService {
     private InventoryReservationResultDTO createReservation(Long tenantId, String orderNo,
                                                             List<InventoryReservationItemDTO> items) {
         String reservationNo = inventoryReservationNoGenerator.nextReservationNo();
+        ReservationNo reservationNoValue = ReservationNoMapper.toDomain(reservationNo);
+        OrderNo orderNoValue = OrderNoMapper.toDomain(orderNo);
+        WarehouseNo warehouseNoValue = WarehouseNoMapper.toDomain(Inventory.DEFAULT_WAREHOUSE_NO.value());
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
         List<InventoryReservationItem> reservationItems = normalizedItems.stream()
-                .map(item -> new InventoryReservationItem(null, tenantId, reservationNo,
-                        item.getSkuId(), item.getQuantity()))
+                .map(item -> new InventoryReservationItem(null, TenantIdMapper.toDomain(tenantId),
+                        reservationNoValue, SkuIdMapper.toDomain(item.getSkuId()),
+                        item.getQuantity()))
                 .toList();
-        InventoryReservation reservation = new InventoryReservation(null, tenantId, reservationNo,
-                orderNo, Inventory.DEFAULT_WAREHOUSE_NO.value(), Instant.now(), reservationItems);
+        InventoryReservation reservation = new InventoryReservation(null,
+                TenantIdMapper.toDomain(tenantId),
+                reservationNoValue, orderNoValue, warehouseNoValue, Instant.now(), reservationItems,
+                InventoryReservationStatus.CREATED, null, null, null, null);
 
         ReservationValidationResult validationResult = validateReservation(tenantId, normalizedItems);
         String failureReason = validationResult.failureReason();

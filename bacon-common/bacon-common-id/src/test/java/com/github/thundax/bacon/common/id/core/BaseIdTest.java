@@ -42,12 +42,6 @@ class BaseIdTest {
     }
 
     @Test
-    void shouldRejectBlankStringValue() {
-        assertThatThrownBy(() -> UserId.of(" "))
-                .isInstanceOf(NumberFormatException.class);
-    }
-
-    @Test
     void shouldRejectNonPositiveLongValue() {
         assertThatThrownBy(() -> SkuId.of(0L))
                 .isInstanceOf(IllegalArgumentException.class)

@@ -1,5 +1,10 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,22 +18,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InventoryAuditReplayTaskItem {
 
-    public static final String STATUS_PENDING = "PENDING";
-    public static final String STATUS_SUCCEEDED = "SUCCEEDED";
-    public static final String STATUS_FAILED = "FAILED";
-
     /** 明细主键。 */
     private Long id;
     /** 回放任务主键。 */
-    private Long taskId;
+    private TaskId taskId;
     /** 所属租户主键。 */
-    private Long tenantId;
+    private TenantId tenantId;
     /** 死信记录主键。 */
-    private Long deadLetterId;
+    private DeadLetterId deadLetterId;
     /** 明细状态。 */
-    private String itemStatus;
+    private InventoryAuditReplayTaskItemStatus itemStatus;
     /** 回放状态。 */
-    private String replayStatus;
+    private InventoryAuditReplayStatus replayStatus;
     /** 回放幂等键。 */
     private String replayKey;
     /** 结果信息。 */
@@ -39,4 +40,36 @@ public class InventoryAuditReplayTaskItem {
     private Instant finishedAt;
     /** 最后更新时间。 */
     private Instant updatedAt;
+
+    public InventoryAuditReplayTaskItem(Long id, Long taskId, Long tenantId, Long deadLetterId, String itemStatus,
+                                        String replayStatus, String replayKey, String resultMessage,
+                                        Instant startedAt, Instant finishedAt, Instant updatedAt) {
+        this(id,
+                taskId == null ? null : TaskId.of(taskId),
+                tenantId == null ? null : TenantId.of(tenantId),
+                deadLetterId == null ? null : DeadLetterId.of(deadLetterId),
+                itemStatus == null ? null : InventoryAuditReplayTaskItemStatus.fromValue(itemStatus),
+                replayStatus == null ? null : InventoryAuditReplayStatus.fromValue(replayStatus),
+                replayKey, resultMessage, startedAt, finishedAt, updatedAt);
+    }
+
+    public Long getTaskIdValue() {
+        return taskId == null ? null : taskId.value();
+    }
+
+    public Long getTenantIdValue() {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    public Long getDeadLetterIdValue() {
+        return deadLetterId == null ? null : deadLetterId.value();
+    }
+
+    public String getItemStatusValue() {
+        return itemStatus == null ? null : itemStatus.value();
+    }
+
+    public String getReplayStatusValue() {
+        return replayStatus == null ? null : replayStatus.value();
+    }
 }

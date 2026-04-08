@@ -2,6 +2,8 @@ package com.github.thundax.bacon.inventory.domain.repository;
 
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +33,8 @@ public interface InventoryAuditReplayTaskRepository {
         return List.of();
     }
 
-    default void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
+    default void markAuditReplayTaskItemResult(Long itemId, InventoryAuditReplayTaskItemStatus itemStatus,
+                                               InventoryAuditReplayStatus replayStatus,
                                                String replayKey, String resultMessage, Instant startedAt,
                                                Instant finishedAt) {
     }

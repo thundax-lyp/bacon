@@ -5,6 +5,8 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
@@ -109,22 +111,24 @@ public class InventoryAuditReplayTaskApplicationService {
             try {
                 String replayKey = buildReplayKey(task, item);
                 InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(task.getTenantIdValue(),
-                        item.getDeadLetterId(), replayKey, task.getOperatorIdValue());
-                String itemStatus = InventoryAuditReplayTaskItem.STATUS_FAILED;
-                if (InventoryAuditReplayTaskItem.STATUS_SUCCEEDED.equals(result.getReplayStatus())) {
-                    itemStatus = InventoryAuditReplayTaskItem.STATUS_SUCCEEDED;
+                        item.getDeadLetterIdValue(), replayKey, task.getOperatorIdValue());
+                InventoryAuditReplayStatus replayStatus = InventoryAuditReplayStatus.fromValue(result.getReplayStatus());
+                InventoryAuditReplayTaskItemStatus itemStatus = InventoryAuditReplayTaskItemStatus.FAILED;
+                if (InventoryAuditReplayStatus.SUCCEEDED.equals(replayStatus)) {
+                    itemStatus = InventoryAuditReplayTaskItemStatus.SUCCEEDED;
                     successDelta++;
                 } else {
                     failedDelta++;
                     lastError = result.getMessage();
                 }
-                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(item.getId(), itemStatus, result.getReplayStatus(),
+                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(item.getId(), itemStatus, replayStatus,
                         result.getReplayKey(), result.getMessage(), startedAt, Instant.now());
             } catch (RuntimeException ex) {
                 failedDelta++;
                 lastError = truncateError(ex.getMessage());
-                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(item.getId(), InventoryAuditReplayTaskItem.STATUS_FAILED,
-                        InventoryAuditReplayTaskItem.STATUS_FAILED, null, "failed:" + lastError, startedAt, Instant.now());
+                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(item.getId(),
+                        InventoryAuditReplayTaskItemStatus.FAILED, InventoryAuditReplayStatus.FAILED, null,
+                        "failed:" + lastError, startedAt, Instant.now());
             }
             processedDelta++;
         }
@@ -153,9 +157,9 @@ public class InventoryAuditReplayTaskApplicationService {
     private String buildReplayKey(InventoryAuditReplayTask task, InventoryAuditReplayTaskItem item) {
         // 优先复用外部提供的回放前缀；否则退化为任务号 + 死信号，确保同一任务内 replayKey 稳定可追踪。
         if (task.getReplayKeyPrefix() == null || task.getReplayKeyPrefix().isBlank()) {
-            return "TASK-" + task.getTaskNoValue() + "-DL-" + item.getDeadLetterId();
+            return "TASK-" + task.getTaskNoValue() + "-DL-" + item.getDeadLetterIdValue();
         }
-        return task.getReplayKeyPrefix() + "-" + item.getDeadLetterId();
+        return task.getReplayKeyPrefix() + "-" + item.getDeadLetterIdValue();
     }
 
     private String truncateError(String error) {

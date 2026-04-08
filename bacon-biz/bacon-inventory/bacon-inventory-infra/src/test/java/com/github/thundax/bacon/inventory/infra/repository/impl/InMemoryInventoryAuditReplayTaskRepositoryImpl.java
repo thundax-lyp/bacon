@@ -2,6 +2,8 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
 import java.time.Instant;
 import java.util.List;
@@ -53,7 +55,8 @@ public class InMemoryInventoryAuditReplayTaskRepositoryImpl implements Inventory
     }
 
     @Override
-    public void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
+    public void markAuditReplayTaskItemResult(Long itemId, InventoryAuditReplayTaskItemStatus itemStatus,
+                                              InventoryAuditReplayStatus replayStatus,
                                               String replayKey, String resultMessage, Instant startedAt,
                                               Instant finishedAt) {
         support.markAuditReplayTaskItemResult(itemId, itemStatus, replayStatus, replayKey, resultMessage, startedAt,

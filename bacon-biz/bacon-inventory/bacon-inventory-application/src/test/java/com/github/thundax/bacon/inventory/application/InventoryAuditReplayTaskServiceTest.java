@@ -9,6 +9,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDead
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -166,7 +167,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             List<InventoryAuditReplayTaskItem> items = taskItems.computeIfAbsent(taskId, key -> new ArrayList<>());
             for (Long deadLetterId : deadLetterIds) {
                 items.add(new InventoryAuditReplayTaskItem(taskItemIdGenerator.getAndIncrement(), taskId, tenantId,
-                        deadLetterId, InventoryAuditReplayTaskItem.STATUS_PENDING, null, null, null, null, null,
+                        deadLetterId, InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null,
                         createdAt));
             }
         }
@@ -209,14 +210,15 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         @Override
         public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
             return taskItems.getOrDefault(taskId, List.of()).stream()
-                    .filter(item -> InventoryAuditReplayTaskItem.STATUS_PENDING.equals(item.getItemStatus()))
+                    .filter(item -> InventoryAuditReplayTaskItemStatus.PENDING.equals(item.getItemStatus()))
                     .sorted(Comparator.comparing(InventoryAuditReplayTaskItem::getId))
                     .limit(limit)
                     .toList();
         }
 
         @Override
-        public void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
+        public void markAuditReplayTaskItemResult(Long itemId, InventoryAuditReplayTaskItemStatus itemStatus,
+                                                  InventoryAuditReplayStatus replayStatus,
                                                   String replayKey, String resultMessage, Instant startedAt,
                                                   Instant finishedAt) {
             taskItems.values().forEach(items -> items.stream()

@@ -13,6 +13,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActio
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
@@ -421,7 +422,7 @@ public class InMemoryInventoryRepositorySupport {
         List<InventoryAuditReplayTaskItem> items = auditReplayTaskItems.computeIfAbsent(taskId, key -> new ArrayList<>());
         for (Long deadLetterId : deadLetterIds) {
             items.add(new InventoryAuditReplayTaskItem(auditReplayTaskItemIdGenerator.getAndIncrement(), taskId, tenantId,
-                    deadLetterId, InventoryAuditReplayTaskItem.STATUS_PENDING, null, null, null, null, null, createdAt));
+                    deadLetterId, InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null, createdAt));
         }
     }
 
@@ -462,20 +463,21 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
         return auditReplayTaskItems.getOrDefault(taskId, List.of()).stream()
-                .filter(item -> InventoryAuditReplayTaskItem.STATUS_PENDING.equals(item.getItemStatus()))
+                .filter(item -> InventoryAuditReplayTaskItemStatus.PENDING.equals(item.getItemStatus()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditReplayTaskItem::getId))
                 .limit(limit)
                 .toList();
     }
 
-    public void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
+    public void markAuditReplayTaskItemResult(Long itemId, InventoryAuditReplayTaskItemStatus itemStatus,
+                                              InventoryAuditReplayStatus replayStatus,
                                               String replayKey, String resultMessage, Instant startedAt,
                                               Instant finishedAt) {
         auditReplayTaskItems.values().forEach(items -> items.stream()
                 .filter(item -> item.getId().equals(itemId))
                 .findFirst()
                 .ifPresent(item -> {
-                    if (!InventoryAuditReplayTaskItem.STATUS_PENDING.equals(item.getItemStatus())) {
+                    if (!InventoryAuditReplayTaskItemStatus.PENDING.equals(item.getItemStatus())) {
                         return;
                     }
                     item.setItemStatus(itemStatus);

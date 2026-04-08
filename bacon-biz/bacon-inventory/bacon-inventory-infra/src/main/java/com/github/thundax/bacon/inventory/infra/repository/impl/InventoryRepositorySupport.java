@@ -17,6 +17,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActio
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
@@ -454,7 +455,7 @@ public class InventoryRepositorySupport {
         }
         for (Long deadLetterId : deadLetterIds) {
             auditReplayTaskItemMapper.insert(new InventoryAuditReplayTaskItemDO(null, taskId, tenantId, deadLetterId,
-                    InventoryAuditReplayTaskItem.STATUS_PENDING, null, null, null, null, null, createdAt));
+                    InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null, createdAt));
         }
     }
 
@@ -517,7 +518,7 @@ public class InventoryRepositorySupport {
     public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
         return auditReplayTaskItemMapper.selectList(Wrappers.<InventoryAuditReplayTaskItemDO>lambdaQuery()
                         .eq(InventoryAuditReplayTaskItemDO::getTaskId, taskId)
-                        .eq(InventoryAuditReplayTaskItemDO::getItemStatus, InventoryAuditReplayTaskItem.STATUS_PENDING)
+                        .eq(InventoryAuditReplayTaskItemDO::getItemStatus, InventoryAuditReplayTaskItemStatus.PENDING.value())
                         .orderByAsc(InventoryAuditReplayTaskItemDO::getId)
                         .last("limit " + limit))
                 .stream()
@@ -525,14 +526,15 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public void markAuditReplayTaskItemResult(Long itemId, String itemStatus, String replayStatus,
+    public void markAuditReplayTaskItemResult(Long itemId, InventoryAuditReplayTaskItemStatus itemStatus,
+                                              InventoryAuditReplayStatus replayStatus,
                                               String replayKey, String resultMessage, Instant startedAt,
                                               Instant finishedAt) {
         auditReplayTaskItemMapper.update(null, Wrappers.<InventoryAuditReplayTaskItemDO>lambdaUpdate()
                 .eq(InventoryAuditReplayTaskItemDO::getId, itemId)
-                .eq(InventoryAuditReplayTaskItemDO::getItemStatus, InventoryAuditReplayTaskItem.STATUS_PENDING)
-                .set(InventoryAuditReplayTaskItemDO::getItemStatus, itemStatus)
-                .set(InventoryAuditReplayTaskItemDO::getReplayStatus, replayStatus)
+                .eq(InventoryAuditReplayTaskItemDO::getItemStatus, InventoryAuditReplayTaskItemStatus.PENDING.value())
+                .set(InventoryAuditReplayTaskItemDO::getItemStatus, itemStatus.value())
+                .set(InventoryAuditReplayTaskItemDO::getReplayStatus, replayStatus == null ? null : replayStatus.value())
                 .set(InventoryAuditReplayTaskItemDO::getReplayKey, replayKey)
                 .set(InventoryAuditReplayTaskItemDO::getResultMessage, resultMessage)
                 .set(InventoryAuditReplayTaskItemDO::getStartedAt, startedAt)

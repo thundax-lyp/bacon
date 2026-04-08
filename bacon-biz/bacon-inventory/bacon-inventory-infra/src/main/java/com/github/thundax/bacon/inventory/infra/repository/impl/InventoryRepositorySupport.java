@@ -21,6 +21,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditRepla
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
@@ -103,7 +104,7 @@ public class InventoryRepositorySupport {
         return Optional.ofNullable(inventoryMapper.selectOne(Wrappers.<InventoryDO>lambdaQuery()
                 .eq(InventoryDO::getTenantId, tenantId == null ? null : tenantId.value())
                 .eq(InventoryDO::getSkuId, skuId == null ? null : skuId.value())))
-                .map(this::toDomain);
+                .map(InventoryPersistenceAssembler::toDomain);
     }
 
     public List<Inventory> findInventories(TenantId tenantId) {
@@ -111,7 +112,7 @@ public class InventoryRepositorySupport {
                         .eq(InventoryDO::getTenantId, tenantId == null ? null : tenantId.value())
                         .orderByAsc(InventoryDO::getSkuId))
                 .stream()
-                .map(this::toDomain)
+                .map(InventoryPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -131,7 +132,7 @@ public class InventoryRepositorySupport {
                         .in(InventoryDO::getSkuId, skuIdValues)
                         .orderByAsc(InventoryDO::getSkuId))
                 .stream()
-                .map(this::toDomain)
+                .map(InventoryPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -141,7 +142,7 @@ public class InventoryRepositorySupport {
                         skuId == null ? null : skuId.value(),
                         status == null ? null : status.value(), offset, pageSize)
                 .stream()
-                .map(this::toDomain)
+                .map(InventoryPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -151,7 +152,7 @@ public class InventoryRepositorySupport {
     }
 
     public Inventory saveInventory(Inventory inventory) {
-        InventoryDO dataObject = toDataObject(inventory);
+        InventoryDO dataObject = InventoryPersistenceAssembler.toDataObject(inventory);
         if (dataObject.getId() == null) {
             inventoryMapper.insert(dataObject);
         } else {
@@ -160,7 +161,7 @@ public class InventoryRepositorySupport {
                         String.valueOf(inventory.getSkuId()));
             }
         }
-        return toDomain(dataObject);
+        return InventoryPersistenceAssembler.toDomain(dataObject);
     }
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
@@ -615,14 +616,6 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt)) > 0;
     }
 
-    private Inventory toDomain(InventoryDO dataObject) {
-        return InventoryPersistenceAssembler.toDomain(dataObject);
-    }
-
-    private InventoryDO toDataObject(Inventory inventory) {
-        return InventoryPersistenceAssembler.toDataObject(inventory);
-    }
-
     private InventoryReservation toDomain(InventoryReservationDO reservation, List<InventoryReservationItem> items) {
         return InventoryReservation.rehydrate(reservation.getId(), reservation.getTenantId(),
                 reservation.getReservationNo(), reservation.getOrderNo(),
@@ -758,10 +751,6 @@ public class InventoryRepositorySupport {
                 dataObject.getFinishedAt(), dataObject.getUpdatedAt());
     }
 
-    private String toStringValue(Long value) {
-        return value == null ? null : String.valueOf(value);
-    }
-
     private EventCode generateEventCode() {
         long id = idGenerator.nextId(AUDIT_OUTBOX_EVENT_CODE_BIZ_TAG);
         String timestamp = LocalDateTime.now().format(EVENT_CODE_TIMESTAMP_FORMATTER);
@@ -779,10 +768,6 @@ public class InventoryRepositorySupport {
 
     private EventCode toDomainEventCode(String eventCode) {
         return eventCode == null ? null : EventCode.of(eventCode);
-    }
-
-    private Long toLongValue(String value) {
-        return value == null ? null : Long.valueOf(value);
     }
 
 }

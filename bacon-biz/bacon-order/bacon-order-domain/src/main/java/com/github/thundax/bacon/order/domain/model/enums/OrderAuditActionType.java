@@ -21,7 +21,7 @@ public enum OrderAuditActionType {
         return name();
     }
 
-    public static OrderAuditActionType fromValue(String value) {
+    public static OrderAuditActionType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

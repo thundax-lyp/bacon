@@ -14,7 +14,7 @@ public enum OrderIdempotencyStatus {
         return name();
     }
 
-    public static OrderIdempotencyStatus fromValue(String value) {
+    public static OrderIdempotencyStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

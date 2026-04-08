@@ -243,7 +243,7 @@ public class Order {
         this.orderStatus = OrderStatus.PENDING_PAYMENT;
         this.payStatus = PayStatus.PAYING;
         this.paymentNo = paymentNo;
-        this.paymentChannelCode = PaymentChannel.fromValue(channelCode);
+        this.paymentChannelCode = PaymentChannel.from(channelCode);
     }
 
     public void markPaid(PaymentNo paymentNo, String channelCode, Money paidAmount, Instant paidTime) {
@@ -253,7 +253,7 @@ public class Order {
         this.orderStatus = OrderStatus.PAID;
         this.payStatus = PayStatus.PAID;
         this.paymentNo = paymentNo;
-        this.paymentChannelCode = PaymentChannel.fromValue(channelCode);
+        this.paymentChannelCode = PaymentChannel.from(channelCode);
         this.paidAmount = paidAmount;
         this.paidAt = paidTime;
     }

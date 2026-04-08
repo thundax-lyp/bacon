@@ -17,7 +17,7 @@ public enum InventoryStatus {
         return name();
     }
 
-    public static InventoryStatus fromValue(String value) {
+    public static InventoryStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

@@ -15,7 +15,7 @@ public enum PaymentChannel {
         return name();
     }
 
-    public static PaymentChannel fromValue(String value) {
+    public static PaymentChannel from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

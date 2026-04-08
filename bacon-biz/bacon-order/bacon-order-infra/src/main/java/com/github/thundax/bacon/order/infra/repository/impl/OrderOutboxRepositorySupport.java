@@ -249,7 +249,7 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxEventType toDomainEventType(String eventType) {
-        return eventType == null ? null : OrderOutboxEventType.fromValue(eventType);
+        return eventType == null ? null : OrderOutboxEventType.from(eventType);
     }
 
     private String toDatabaseStatus(OrderOutboxStatus status) {
@@ -257,7 +257,7 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxStatus toDomainStatus(String status) {
-        return status == null ? null : OrderOutboxStatus.fromValue(status);
+        return status == null ? null : OrderOutboxStatus.from(status);
     }
 
     private OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {

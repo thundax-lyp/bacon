@@ -16,7 +16,7 @@ public enum PayStatus {
         return name();
     }
 
-    public static PayStatus fromValue(String value) {
+    public static PayStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

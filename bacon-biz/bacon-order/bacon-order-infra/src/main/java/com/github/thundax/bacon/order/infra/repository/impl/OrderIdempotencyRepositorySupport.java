@@ -37,7 +37,7 @@ public class OrderIdempotencyRepositorySupport {
         try {
             // 幂等首执依赖唯一业务键插入；插入冲突不算异常，而是说明已经存在并发或历史记录。
             mapper.insert(dataObject);
-            record.setStatus(OrderIdempotencyStatus.fromValue(dataObject.getStatus()));
+            record.setStatus(OrderIdempotencyStatus.from(dataObject.getStatus()));
             record.setAttemptCount(dataObject.getAttemptCount());
             record.setProcessingOwner(dataObject.getProcessingOwner());
             record.setLeaseUntil(dataObject.getLeaseUntil());
@@ -157,7 +157,7 @@ public class OrderIdempotencyRepositorySupport {
     private OrderIdempotencyRecord toDomain(OrderIdempotencyRecordDO dataObject) {
         return new OrderIdempotencyRecord(OrderIdempotencyRecordKey.of(toDomainTenantId(dataObject.getTenantId()),
                 toDomainOrderNo(dataObject.getOrderNo()), dataObject.getEventType()),
-                OrderIdempotencyStatus.fromValue(dataObject.getStatus()),
+                OrderIdempotencyStatus.from(dataObject.getStatus()),
                 dataObject.getAttemptCount(), dataObject.getLastError(), dataObject.getProcessingOwner(),
                 dataObject.getLeaseUntil(), dataObject.getClaimedAt(), dataObject.getCreatedAt(),
                 dataObject.getUpdatedAt());

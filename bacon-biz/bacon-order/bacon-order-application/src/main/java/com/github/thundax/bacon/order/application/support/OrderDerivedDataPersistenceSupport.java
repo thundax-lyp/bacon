@@ -57,15 +57,15 @@ public class OrderDerivedDataPersistenceSupport {
     }
 
     private PaymentChannel toPaymentChannel(String channelCode) {
-        return channelCode == null || channelCode.isBlank() ? null : PaymentChannel.fromValue(channelCode);
+        return channelCode == null || channelCode.isBlank() ? null : PaymentChannel.from(channelCode);
     }
 
     private PayStatus toPayStatus(String payStatus) {
-        return payStatus == null || payStatus.isBlank() ? null : PayStatus.fromValue(payStatus);
+        return payStatus == null || payStatus.isBlank() ? null : PayStatus.from(payStatus);
     }
 
     private PaymentChannelStatus toPaymentChannelStatus(String channelStatus) {
-        return channelStatus == null || channelStatus.isBlank() ? null : PaymentChannelStatus.fromValue(channelStatus);
+        return channelStatus == null || channelStatus.isBlank() ? null : PaymentChannelStatus.from(channelStatus);
     }
 
     private Money toMoney(Money paidAmount, String currencyCode) {

@@ -14,7 +14,7 @@ public enum OrderOutboxEventType {
         return name();
     }
 
-    public static OrderOutboxEventType fromValue(String value) {
+    public static OrderOutboxEventType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

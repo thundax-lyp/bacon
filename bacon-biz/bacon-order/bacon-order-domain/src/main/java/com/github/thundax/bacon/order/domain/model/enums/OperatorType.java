@@ -14,7 +14,7 @@ public enum OperatorType {
         return name();
     }
 
-    public static OperatorType fromValue(String value) {
+    public static OperatorType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

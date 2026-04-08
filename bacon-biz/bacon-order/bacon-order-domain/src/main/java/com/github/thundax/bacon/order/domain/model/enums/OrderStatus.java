@@ -17,7 +17,7 @@ public enum OrderStatus {
         return name();
     }
 
-    public static OrderStatus fromValue(String value) {
+    public static OrderStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

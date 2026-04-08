@@ -348,7 +348,7 @@ public class OrderRepositorySupport {
     }
 
     private PaymentChannel toDomainPaymentChannel(String paymentChannelCode) {
-        return paymentChannelCode == null ? null : PaymentChannel.fromValue(paymentChannelCode);
+        return paymentChannelCode == null ? null : PaymentChannel.from(paymentChannelCode);
     }
 
     private CurrencyCode toDomainCurrencyCode(String currencyCode) {
@@ -388,15 +388,15 @@ public class OrderRepositorySupport {
     }
 
     private OrderStatus toDomainOrderStatus(String orderStatus) {
-        return orderStatus == null ? null : OrderStatus.fromValue(orderStatus);
+        return orderStatus == null ? null : OrderStatus.from(orderStatus);
     }
 
     private PayStatus toDomainPayStatus(String payStatus) {
-        return payStatus == null ? null : PayStatus.fromValue(payStatus);
+        return payStatus == null ? null : PayStatus.from(payStatus);
     }
 
     private InventoryStatus toDomainInventoryStatus(String inventoryStatus) {
-        return inventoryStatus == null ? null : InventoryStatus.fromValue(inventoryStatus);
+        return inventoryStatus == null ? null : InventoryStatus.from(inventoryStatus);
     }
 
     private OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
@@ -430,7 +430,7 @@ public class OrderRepositorySupport {
     }
 
     private PaymentChannelStatus toDomainPaymentChannelStatus(String channelStatus) {
-        return channelStatus == null ? null : PaymentChannelStatus.fromValue(channelStatus);
+        return channelStatus == null ? null : PaymentChannelStatus.from(channelStatus);
     }
 
     private OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {
@@ -482,7 +482,7 @@ public class OrderRepositorySupport {
     }
 
     private OrderAuditActionType toDomainOrderAuditActionType(String actionType) {
-        return actionType == null ? null : OrderAuditActionType.fromValue(actionType);
+        return actionType == null ? null : OrderAuditActionType.from(actionType);
     }
 
     private String toDatabaseOrderStatus(OrderStatus orderStatus) {
@@ -494,7 +494,7 @@ public class OrderRepositorySupport {
     }
 
     private OperatorType toDomainOperatorType(String operatorType) {
-        return operatorType == null ? null : OperatorType.fromValue(operatorType);
+        return operatorType == null ? null : OperatorType.from(operatorType);
     }
 
     private String toDatabaseWarehouseNo(WarehouseNo warehouseNo) {

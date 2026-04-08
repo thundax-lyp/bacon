@@ -14,7 +14,7 @@ public enum OrderOutboxReplayStatus {
         return name();
     }
 
-    public static OrderOutboxReplayStatus fromValue(String value) {
+    public static OrderOutboxReplayStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

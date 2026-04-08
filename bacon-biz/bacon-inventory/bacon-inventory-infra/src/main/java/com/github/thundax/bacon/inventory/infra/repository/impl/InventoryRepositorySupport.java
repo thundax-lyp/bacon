@@ -2,6 +2,8 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
@@ -19,7 +21,9 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditRepla
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
@@ -352,14 +356,14 @@ public class InventoryRepositorySupport {
         auditDeadLetterMapper.insert(toDataObject(deadLetter));
     }
 
-    public List<InventoryAuditDeadLetter> pageAuditDeadLetters(Long tenantId, String orderNo,
+    public List<InventoryAuditDeadLetter> pageAuditDeadLetters(TenantId tenantId, OrderNo orderNo,
                                                                 String replayStatus, int pageNo, int pageSize) {
         long offset = (long) (pageNo - 1) * pageSize;
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
                 Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
-                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId);
-        if (orderNo != null && !orderNo.isBlank()) {
-            query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo);
+                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value());
+        if (orderNo != null) {
+            query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo.value());
         }
         if (replayStatus != null && !replayStatus.isBlank()) {
             query.eq(InventoryAuditDeadLetterDO::getReplayStatus, replayStatus);
@@ -372,12 +376,12 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public long countAuditDeadLetters(Long tenantId, String orderNo, String replayStatus) {
+    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, String replayStatus) {
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
                 Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
-                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId);
-        if (orderNo != null && !orderNo.isBlank()) {
-            query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo);
+                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value());
+        if (orderNo != null) {
+            query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo.value());
         }
         if (replayStatus != null && !replayStatus.isBlank()) {
             query.eq(InventoryAuditDeadLetterDO::getReplayStatus, replayStatus);
@@ -385,51 +389,51 @@ public class InventoryRepositorySupport {
         return auditDeadLetterMapper.selectCount(query);
     }
 
-    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(Long id) {
+    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
         return Optional.ofNullable(auditDeadLetterMapper.selectOne(Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
-                .eq(InventoryAuditDeadLetterDO::getOutboxId, id)))
+                .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())))
                 .map(this::toDomain);
     }
 
-    public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
-                                                 String operatorType, Long operatorId, Instant replayAt) {
+    public boolean claimAuditDeadLetterForReplay(DeadLetterId id, TenantId tenantId, String replayKey,
+                                                 String operatorType, OperatorId operatorId, Instant replayAt) {
         return auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
-                .eq(InventoryAuditDeadLetterDO::getOutboxId, id)
-                .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId)
+                .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
+                .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value())
                 .in(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.PENDING.value(),
                         InventoryAuditReplayStatus.FAILED.value())
                 .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.RUNNING.value())
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType)
-                .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId)
+                .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId == null ? null : Long.valueOf(operatorId.value()))
                 .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
                 .set(InventoryAuditDeadLetterDO::getLastReplayResult, "RUNNING")
                 .set(InventoryAuditDeadLetterDO::getLastReplayError, null)) > 0;
     }
 
-    public void markAuditDeadLetterReplaySuccess(Long id, String replayKey, String operatorType, Long operatorId,
+    public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
                                                  Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
-                .eq(InventoryAuditDeadLetterDO::getOutboxId, id)
+                .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
                 .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.SUCCEEDED.value())
                 .setSql("replay_count = ifnull(replay_count, 0) + 1")
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType)
-                .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId)
+                .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId == null ? null : Long.valueOf(operatorId.value()))
                 .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
                 .set(InventoryAuditDeadLetterDO::getLastReplayResult, "SUCCEEDED")
                 .set(InventoryAuditDeadLetterDO::getLastReplayError, null));
     }
 
-    public void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
+    public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
                                                 String replayError, Instant replayAt) {
         auditDeadLetterMapper.update(null, Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
-                .eq(InventoryAuditDeadLetterDO::getOutboxId, id)
+                .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
                 .set(InventoryAuditDeadLetterDO::getReplayStatus, InventoryAuditReplayStatus.FAILED.value())
                 .setSql("replay_count = ifnull(replay_count, 0) + 1")
                 .set(InventoryAuditDeadLetterDO::getReplayKey, replayKey)
                 .set(InventoryAuditDeadLetterDO::getReplayOperatorType, operatorType)
-                .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId)
+                .set(InventoryAuditDeadLetterDO::getReplayOperatorId, operatorId == null ? null : Long.valueOf(operatorId.value()))
                 .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
                 .set(InventoryAuditDeadLetterDO::getLastReplayResult, "FAILED")
                 .set(InventoryAuditDeadLetterDO::getLastReplayError, replayError));

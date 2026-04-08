@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.application.query;
 
 import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageQueryDTO;
@@ -11,6 +12,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -93,12 +95,13 @@ public class InventoryQueryApplicationService {
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         String normalizedReplayStatus = normalizeStatus(query.getReplayStatus());
         List<InventoryAuditDeadLetterDTO> records = inventoryAuditDeadLetterRepository
-                .pageAuditDeadLetters(query.getTenantId(), query.getOrderNo(), normalizedReplayStatus, pageNo, pageSize)
+                .pageAuditDeadLetters(TenantIdMapper.toDomain(query.getTenantId()), OrderNoMapper.toDomain(query.getOrderNo()),
+                        normalizedReplayStatus, pageNo, pageSize)
                 .stream()
                 .map(this::toAuditDeadLetterDto)
                 .toList();
-        long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(query.getTenantId(), query.getOrderNo(),
-                normalizedReplayStatus);
+        long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(TenantIdMapper.toDomain(query.getTenantId()),
+                OrderNoMapper.toDomain(query.getOrderNo()), normalizedReplayStatus);
         return new InventoryAuditDeadLetterPageResultDTO(records, total, pageNo, pageSize);
     }
 

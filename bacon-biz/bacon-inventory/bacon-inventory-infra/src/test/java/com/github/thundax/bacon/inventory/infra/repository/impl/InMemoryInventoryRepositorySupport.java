@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
@@ -15,7 +17,9 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutbo
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -327,12 +331,12 @@ public class InMemoryInventoryRepositorySupport {
                 .add(deadLetter);
     }
 
-    public List<InventoryAuditDeadLetter> pageAuditDeadLetters(Long tenantId, String orderNo,
+    public List<InventoryAuditDeadLetter> pageAuditDeadLetters(TenantId tenantId, OrderNo orderNo,
                                                                 String replayStatus, int pageNo, int pageSize) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> tenantId.equals(item.getTenantIdValue()))
-                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNoValue()))
+                .filter(item -> tenantId.equals(item.getTenantId()))
+                .filter(item -> orderNo == null || orderNo.equals(item.getOrderNo()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
                         || replayStatus.equals(item.getReplayStatusValue()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditDeadLetter::getDeadAt).reversed()
@@ -342,34 +346,34 @@ public class InMemoryInventoryRepositorySupport {
                 .toList();
     }
 
-    public long countAuditDeadLetters(Long tenantId, String orderNo, String replayStatus) {
+    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, String replayStatus) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> tenantId.equals(item.getTenantIdValue()))
-                .filter(item -> orderNo == null || orderNo.isBlank() || orderNo.equals(item.getOrderNoValue()))
+                .filter(item -> tenantId.equals(item.getTenantId()))
+                .filter(item -> orderNo == null || orderNo.equals(item.getOrderNo()))
                 .filter(item -> replayStatus == null || replayStatus.isBlank()
                         || replayStatus.equals(item.getReplayStatusValue()))
                 .count();
     }
 
-    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(Long id) {
+    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> java.util.Objects.equals(item.getOutboxIdValue(), id))
+                .filter(item -> java.util.Objects.equals(item.getOutboxIdValue(), id == null ? null : id.value()))
                 .findFirst();
     }
 
-    public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
-                                                 String operatorType, Long operatorId, Instant replayAt) {
+    public boolean claimAuditDeadLetterForReplay(DeadLetterId id, TenantId tenantId, String replayKey,
+                                                 String operatorType, OperatorId operatorId, Instant replayAt) {
         return findAuditDeadLetterById(id)
-                .filter(item -> tenantId.equals(item.getTenantIdValue()))
+                .filter(item -> tenantId.equals(item.getTenantId()))
                 .filter(item -> InventoryAuditReplayStatus.PENDING.equals(item.getReplayStatus())
                         || InventoryAuditReplayStatus.FAILED.equals(item.getReplayStatus()))
                 .map(item -> {
                     item.setReplayStatus(InventoryAuditReplayStatus.RUNNING);
                     item.setReplayKey(replayKey);
                     item.setReplayOperatorType(operatorType);
-                    item.setReplayOperatorId(String.valueOf(operatorId));
+                    item.setReplayOperatorId(operatorId == null ? null : operatorId.value());
                     item.setLastReplayAt(replayAt);
                     item.setLastReplayResult("RUNNING");
                     item.setLastReplayError(null);
@@ -378,28 +382,28 @@ public class InMemoryInventoryRepositorySupport {
                 .orElse(false);
     }
 
-    public void markAuditDeadLetterReplaySuccess(Long id, String replayKey, String operatorType, Long operatorId,
+    public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
                                                  Instant replayAt) {
         findAuditDeadLetterById(id).ifPresent(item -> {
             item.setReplayStatus(InventoryAuditReplayStatus.SUCCEEDED);
             item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
             item.setReplayKey(replayKey);
             item.setReplayOperatorType(operatorType);
-            item.setReplayOperatorId(String.valueOf(operatorId));
+            item.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             item.setLastReplayAt(replayAt);
             item.setLastReplayResult("SUCCEEDED");
             item.setLastReplayError(null);
         });
     }
 
-    public void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
+    public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey, String operatorType, OperatorId operatorId,
                                                 String replayError, Instant replayAt) {
         findAuditDeadLetterById(id).ifPresent(item -> {
             item.setReplayStatus(InventoryAuditReplayStatus.FAILED);
             item.setReplayCount((item.getReplayCount() == null ? 0 : item.getReplayCount()) + 1);
             item.setReplayKey(replayKey);
             item.setReplayOperatorType(operatorType);
-            item.setReplayOperatorId(String.valueOf(operatorId));
+            item.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             item.setLastReplayAt(replayAt);
             item.setLastReplayResult("FAILED");
             item.setLastReplayError(replayError);

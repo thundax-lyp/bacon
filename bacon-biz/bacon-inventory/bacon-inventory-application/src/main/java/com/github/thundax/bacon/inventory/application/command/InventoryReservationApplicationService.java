@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -151,9 +152,9 @@ public class InventoryReservationApplicationService {
         Set<Long> skuIds = items.stream()
                 .map(InventoryReservationItemDTO::getSkuId)
                 .filter(java.util.Objects::nonNull)
-                .collect(java.util.stream.Collectors.toSet());
+                .collect(Collectors.toSet());
         Map<Long, Inventory> inventoryBySku = inventoryStockRepository.findInventories(tenantId,
-                        skuIds.stream().map(SkuIdMapper::toDomain).collect(java.util.stream.Collectors.toSet())).stream()
+                        skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet())).stream()
                 .collect(java.util.stream.Collectors.toMap(
                         inventory -> inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
                         inventory -> inventory));
@@ -193,10 +194,12 @@ public class InventoryReservationApplicationService {
                                   InventoryReservationItem item,
                                   Instant operatedAt,
                                   Map<Long, Inventory> inventoryBySku) {
-        Long skuId = item.getSkuId() == null ? null : item.getSkuId().value();
+        Long skuId = SkuIdMapper.toValue(item.getSkuId());
         Inventory inventory = inventoryBySku.get(skuId);
         if (inventory == null) {
-            inventory = loadInventory(tenantId, item.getSkuId());
+            inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
+                    .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                            String.valueOf(SkuIdMapper.toValue(item.getSkuId()))));
             inventoryBySku.put(skuId, inventory);
         }
         inventory.reserve(item.getQuantity(), operatedAt);
@@ -206,7 +209,7 @@ public class InventoryReservationApplicationService {
 
     private InventoryReservationResultDTO completeCreatedReservation(InventoryReservation reservation) {
         List<InventoryReservationItemDTO> items = reservation.getItems().stream()
-                .map(item -> new InventoryReservationItemDTO(item.getSkuId() == null ? null : item.getSkuId().value(),
+                .map(item -> new InventoryReservationItemDTO(SkuIdMapper.toValue(item.getSkuId()),
                         item.getQuantity()))
                 .toList();
         ReservationValidationResult validationResult = validateReservation(reservation.getTenantId(), items);
@@ -226,12 +229,6 @@ public class InventoryReservationApplicationService {
         InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(persisted, operatedAt);
         return InventoryReservationResultAssembler.fromReservation(persisted);
-    }
-
-    private Inventory loadInventory(TenantId tenantId, SkuId skuId) {
-        return inventoryStockRepository.findInventory(tenantId, skuId)
-                .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                        String.valueOf(skuId == null ? null : skuId.value())));
     }
 
     private record ReservationValidationResult(String failureReason, Map<Long, Inventory> inventoryBySku) {

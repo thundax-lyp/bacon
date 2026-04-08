@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -57,7 +58,7 @@ public class InventoryProviderController {
     public List<InventoryStockDTO> batchGetAvailableStock(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                           @RequestParam("skuIds") @NotNull Set<@NotNull @Positive Long> skuIds) {
         return inventoryQueryService.batchGetAvailableStock(TenantId.of(tenantId),
-                skuIds.stream().map(SkuIdMapper::toDomain).collect(java.util.stream.Collectors.toSet()));
+                skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
     }
 
     @Operation(summary = "按订单号查询库存预占结果")

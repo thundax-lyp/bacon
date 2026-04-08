@@ -57,7 +57,7 @@ public class InventoryQueryApplicationService {
     public InventoryStockDTO getAvailableStock(TenantId tenantId, SkuId skuId) {
         return InventoryStockAssembler.fromInventory(inventoryStockRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                        String.valueOf(skuId == null ? null : skuId.value()))));
+                        String.valueOf(SkuIdMapper.toValue(skuId)))));
     }
 
     public List<InventoryStockDTO> batchGetAvailableStock(TenantId tenantId, Set<SkuId> skuIds) {
@@ -84,7 +84,7 @@ public class InventoryQueryApplicationService {
     public InventoryReservationDTO getReservationByOrderNo(TenantId tenantId, OrderNo orderNo) {
         InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.RESERVATION_NOT_FOUND,
-                        orderNo == null ? null : orderNo.value()));
+                        OrderNoMapper.toValue(orderNo)));
         return toReservationDto(reservation);
     }
 

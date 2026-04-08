@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
@@ -31,7 +32,7 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
     @Override
     public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
         return inventoryQueryService.batchGetAvailableStock(TenantId.of(tenantId),
-                skuIds == null ? Set.of() : skuIds.stream().map(SkuIdMapper::toDomain).collect(java.util.stream.Collectors.toSet()));
+                skuIds == null ? Set.of() : skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
     }
 
     @Override

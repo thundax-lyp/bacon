@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -69,7 +70,7 @@ public class InventoryController {
     public List<InventoryStockResponse> listInventories(@CurrentTenant Long tenantId,
                                                         @Valid @ModelAttribute InventoryBatchQueryRequest request) {
         return inventoryQueryService.batchGetAvailableStock(TenantId.of(tenantId),
-                        request.getSkuIds() == null ? java.util.Set.of() : request.getSkuIds().stream().map(SkuIdMapper::toDomain).collect(java.util.stream.Collectors.toSet())).stream()
+                        request.getSkuIds() == null ? java.util.Set.of() : request.getSkuIds().stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet())).stream()
                 .map(InventoryStockResponse::from)
                 .toList();
     }

@@ -1,10 +1,12 @@
 package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
+import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -57,8 +59,8 @@ public class InventoryReleaseApplicationService {
     private InventoryReservationResultDTO releaseReservedStockOnce(TenantId tenantId, OrderNo orderNo, String reason) {
         InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (reservation == null) {
-            return InventoryReservationResultAssembler.failed(tenantId == null ? null : tenantId.value(),
-                    orderNo == null ? null : orderNo.value(), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
+            return InventoryReservationResultAssembler.failed(TenantIdMapper.toValue(tenantId),
+                    OrderNoMapper.toValue(orderNo), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
             return InventoryReservationResultAssembler.fromReservation(reservation);
@@ -67,7 +69,7 @@ public class InventoryReleaseApplicationService {
         Instant releasedAt = Instant.now();
         InventoryReleaseReason releaseReason = toReleaseReason(reason);
         reservation.getItems().forEach(item -> {
-            releaseStockOnce(tenantId, item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity(), releasedAt);
+            releaseStockOnce(tenantId, SkuIdMapper.toValue(item.getSkuId()), item.getQuantity(), releasedAt);
         });
         reservation.release(releaseReason, releasedAt);
         inventoryReservationRepository.saveReservation(reservation);

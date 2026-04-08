@@ -1,10 +1,12 @@
 package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
+import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -56,8 +58,8 @@ public class InventoryDeductionApplicationService {
     private InventoryReservationResultDTO deductReservedStockOnce(TenantId tenantId, OrderNo orderNo) {
         InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (reservation == null) {
-            return InventoryReservationResultAssembler.failed(tenantId == null ? null : tenantId.value(),
-                    orderNo == null ? null : orderNo.value(), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
+            return InventoryReservationResultAssembler.failed(TenantIdMapper.toValue(tenantId),
+                    OrderNoMapper.toValue(orderNo), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
             return InventoryReservationResultAssembler.fromReservation(reservation);
@@ -65,7 +67,7 @@ public class InventoryDeductionApplicationService {
 
         Instant deductedAt = Instant.now();
         reservation.getItems().forEach(item -> {
-            deductStockOnce(tenantId, item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity(), deductedAt);
+            deductStockOnce(tenantId, SkuIdMapper.toValue(item.getSkuId()), item.getQuantity(), deductedAt);
         });
         reservation.deduct(deductedAt);
         inventoryReservationRepository.saveReservation(reservation);

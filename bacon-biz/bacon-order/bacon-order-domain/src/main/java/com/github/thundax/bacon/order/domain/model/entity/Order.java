@@ -89,57 +89,42 @@ public class Order {
 
     public Order(Long id, Long tenantId, String orderNo, Long userId, CurrencyCode currencyCode, String totalAmount,
                  String payableAmount, String remark, Instant expiredAt) {
-        this(id == null ? null : OrderId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                orderNo == null ? null : OrderNo.of(orderNo),
-                userId == null ? null : UserId.of(String.valueOf(userId)),
-                OrderStatus.CREATED, PayStatus.UNPAID, InventoryStatus.UNRESERVED,
-                null, null, currencyCode, totalAmount, payableAmount, remark, null, null, Instant.now(),
-                expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
-    }
-
-    private Order(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, OrderStatus orderStatus, PayStatus payStatus,
-                  InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo, CurrencyCode currencyCode, String totalAmount,
-                  String payableAmount, String remark, String cancelReason,
-                  String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
-                  PaymentChannel paymentChannelCode, String paidAmount, String paymentChannelStatus,
-                  String paymentFailureReason, Instant paymentFailedAt, WarehouseNo warehouseNo,
-                  String inventoryFailureReason, String inventoryReleaseReason, Instant inventoryReleasedAt,
-                  Instant inventoryDeductedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.orderNo = orderNo;
-        this.userId = userId;
-        this.orderStatus = orderStatus;
-        this.payStatus = payStatus;
-        this.inventoryStatus = inventoryStatus;
-        this.paymentNo = paymentNo;
-        this.reservationNo = reservationNo;
         Money resolvedTotalAmount = toMoney(totalAmount, currencyCode);
         Money resolvedPayableAmount = toMoney(payableAmount, currencyCode);
-        Money resolvedPaidAmount = toMoney(paidAmount, currencyCode);
-        MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
+        MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, null);
+        Instant resolvedCreatedAt = Instant.now();
+        Instant resolvedExpiredAt = resolveExpiredAt(resolvedCreatedAt, expiredAt);
+
+        this.id = id == null ? null : OrderId.of(id);
+        this.tenantId = tenantId == null ? null : TenantId.of(tenantId);
+        this.orderNo = orderNo == null ? null : OrderNo.of(orderNo);
+        this.userId = userId == null ? null : UserId.of(String.valueOf(userId));
+        this.orderStatus = OrderStatus.CREATED;
+        this.payStatus = PayStatus.UNPAID;
+        this.inventoryStatus = InventoryStatus.UNRESERVED;
+        this.paymentNo = null;
+        this.reservationNo = null;
         this.currencyCode = currencyCode;
-        MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
+        MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, null);
         this.totalAmount = resolvedTotalAmount;
         this.payableAmount = resolvedPayableAmount;
         this.remark = remark;
-        this.cancelReason = cancelReason;
-        this.closeReason = closeReason;
-        this.createdAt = createdAt == null ? Instant.now() : createdAt;
-        this.expiredAt = expiredAt == null ? this.createdAt.plusSeconds(1800) : expiredAt;
-        this.paidAt = paidAt;
-        this.closedAt = closedAt;
-        this.paymentChannelCode = paymentChannelCode;
-        this.paidAmount = resolvedPaidAmount;
-        this.paymentChannelStatus = paymentChannelStatus;
-        this.paymentFailureReason = paymentFailureReason;
-        this.paymentFailedAt = paymentFailedAt;
-        this.warehouseNo = warehouseNo;
-        this.inventoryFailureReason = inventoryFailureReason;
-        this.inventoryReleaseReason = inventoryReleaseReason;
-        this.inventoryReleasedAt = inventoryReleasedAt;
-        this.inventoryDeductedAt = inventoryDeductedAt;
+        this.paymentChannelCode = null;
+        this.paidAmount = null;
+        this.paymentChannelStatus = null;
+        this.paymentFailureReason = null;
+        this.paymentFailedAt = null;
+        this.warehouseNo = null;
+        this.inventoryFailureReason = null;
+        this.inventoryReleaseReason = null;
+        this.cancelReason = null;
+        this.closeReason = null;
+        this.createdAt = resolvedCreatedAt;
+        this.expiredAt = resolvedExpiredAt;
+        this.paidAt = null;
+        this.inventoryReleasedAt = null;
+        this.inventoryDeductedAt = null;
+        this.closedAt = null;
     }
 
     public static Order rehydrate(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, OrderStatus orderStatus,
@@ -151,21 +136,31 @@ public class Order {
                                   String paymentChannelStatus, String paymentFailureReason, Instant paymentFailedAt,
                                   WarehouseNo warehouseNo, String inventoryFailureReason, String inventoryReleaseReason,
                                   Instant inventoryReleasedAt, Instant inventoryDeductedAt) {
+        Instant resolvedCreatedAt = createdAt == null ? Instant.now() : createdAt;
+        Instant resolvedExpiredAt = resolveExpiredAt(resolvedCreatedAt, expiredAt);
+        Money resolvedTotalAmount = toMoney(totalAmount, currencyCode);
+        Money resolvedPayableAmount = toMoney(payableAmount, currencyCode);
+        Money resolvedPaidAmount = toMoney(paidAmount, currencyCode);
+        MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
+        MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
         // 持久化重建必须保留主单与支付/库存派生状态，避免查询和回写时把终态信息重置成初始值。
         return new Order(id, tenantId, orderNo, userId, orderStatus, payStatus, inventoryStatus, paymentNo,
-                reservationNo, currencyCode,
-                toAmountValue(totalAmount), toAmountValue(payableAmount), remark, cancelReason, closeReason, createdAt,
-                expiredAt, paidAt, closedAt, paymentChannelCode, toAmountValue(paidAmount), paymentChannelStatus, paymentFailureReason,
-                paymentFailedAt, warehouseNo, inventoryFailureReason, inventoryReleaseReason, inventoryReleasedAt,
-                inventoryDeductedAt);
+                reservationNo, currencyCode, resolvedTotalAmount, resolvedPayableAmount, remark, paymentChannelCode,
+                resolvedPaidAmount, paymentChannelStatus, paymentFailureReason, paymentFailedAt, warehouseNo,
+                inventoryFailureReason, inventoryReleaseReason, cancelReason, closeReason, resolvedCreatedAt,
+                resolvedExpiredAt, paidAt, inventoryReleasedAt, inventoryDeductedAt, closedAt);
+    }
+
+    private static Instant resolveExpiredAt(Instant createdAt, Instant expiredAt) {
+        return expiredAt == null ? createdAt.plusSeconds(1800) : expiredAt;
     }
 
     private static Money toMoney(String amount, CurrencyCode currencyCode) {
         return amount == null ? null : Money.of(new BigDecimal(amount), currencyCode);
     }
 
-    private static String toAmountValue(Money money) {
-        return money == null ? null : money.value().toPlainString();
+    private static Money toMoney(Money amount, CurrencyCode currencyCode) {
+        return amount == null ? null : Money.of(amount.value(), currencyCode);
     }
 
     public String getCurrencyCodeValue() {

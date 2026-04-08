@@ -78,7 +78,7 @@ public class InventoryAuditCompensationApplicationService {
     }
 
     public List<InventoryAuditReplayResultDTO> replayDeadLettersBatch(TenantId tenantId, List<DeadLetterId> deadLetterIds,
-                                                                      String replayKeyPrefix, Long operatorId) {
+                                                                      String replayKeyPrefix, OperatorId operatorId) {
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             return List.of();
         }
@@ -88,8 +88,7 @@ public class InventoryAuditCompensationApplicationService {
             String replayKey = replayKeyPrefix == null || replayKeyPrefix.isBlank()
                     ? null
                     : replayKeyPrefix + "-" + deadLetterId.value();
-            results.add(replayDeadLetter(tenantId, deadLetterId, replayKey,
-                    operatorId == null ? null : OperatorId.of(String.valueOf(operatorId))));
+            results.add(replayDeadLetter(tenantId, deadLetterId, replayKey, operatorId));
         }
         return List.copyOf(results);
     }

@@ -70,7 +70,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                 InventoryAuditReplayStatus.RUNNING, 0, null, null, null, null, null, null));
 
         List<InventoryAuditReplayResultDTO> results = service.replayDeadLettersBatch(TenantId.of(3001L),
-                List.of(DeadLetterId.of(1002L), DeadLetterId.of(1003L)), "BATCH-1", 9002L);
+                List.of(DeadLetterId.of(1002L), DeadLetterId.of(1003L)), "BATCH-1", OperatorId.of("9002"));
 
         assertEquals(2, results.size());
         assertEquals(InventoryAuditReplayStatus.SUCCEEDED.value(), results.get(0).getReplayStatus());

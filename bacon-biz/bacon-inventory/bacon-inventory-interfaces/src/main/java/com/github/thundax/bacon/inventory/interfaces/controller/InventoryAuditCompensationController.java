@@ -83,7 +83,7 @@ public class InventoryAuditCompensationController {
                         request.deadLetterIds() == null ? List.of() : request.deadLetterIds().stream()
                                 .map(DeadLetterIdMapper::toDomain)
                                 .toList(),
-                        request.replayKeyPrefix(), request.operatorId())
+                        request.replayKeyPrefix(), OperatorIdMapper.toDomain(request.operatorId()))
                 .stream()
                 .map(InventoryAuditReplayResultResponse::from)
                 .toList();

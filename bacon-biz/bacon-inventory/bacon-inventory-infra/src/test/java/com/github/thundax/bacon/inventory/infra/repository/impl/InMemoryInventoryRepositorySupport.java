@@ -343,13 +343,13 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(TenantId tenantId, OrderNo orderNo,
-                                                                String replayStatus, int pageNo, int pageSize) {
+                                                                InventoryAuditReplayStatus replayStatus,
+                                                                int pageNo, int pageSize) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(item.getTenantId()))
                 .filter(item -> orderNo == null || orderNo.equals(item.getOrderNo()))
-                .filter(item -> replayStatus == null || replayStatus.isBlank()
-                        || replayStatus.equals(item.getReplayStatusValue()))
+                .filter(item -> replayStatus == null || replayStatus.equals(item.getReplayStatus()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditDeadLetter::getDeadAt).reversed()
                         .thenComparing(InventoryAuditDeadLetter::getOutboxIdValue, java.util.Comparator.reverseOrder()))
                 .skip((long) (pageNo - 1) * pageSize)
@@ -357,13 +357,12 @@ public class InMemoryInventoryRepositorySupport {
                 .toList();
     }
 
-    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, String replayStatus) {
+    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(item.getTenantId()))
                 .filter(item -> orderNo == null || orderNo.equals(item.getOrderNo()))
-                .filter(item -> replayStatus == null || replayStatus.isBlank()
-                        || replayStatus.equals(item.getReplayStatusValue()))
+                .filter(item -> replayStatus == null || replayStatus.equals(item.getReplayStatus()))
                 .count();
     }
 

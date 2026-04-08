@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
@@ -31,12 +32,13 @@ public class InMemoryInventoryAuditDeadLetterRepositoryImpl implements Inventory
 
     @Override
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(TenantId tenantId, OrderNo orderNo,
-                                                                String replayStatus, int pageNo, int pageSize) {
+                                                                InventoryAuditReplayStatus replayStatus,
+                                                                int pageNo, int pageSize) {
         return support.pageAuditDeadLetters(tenantId, orderNo, replayStatus, pageNo, pageSize);
     }
 
     @Override
-    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, String replayStatus) {
+    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         return support.countAuditDeadLetters(tenantId, orderNo, replayStatus);
     }
 

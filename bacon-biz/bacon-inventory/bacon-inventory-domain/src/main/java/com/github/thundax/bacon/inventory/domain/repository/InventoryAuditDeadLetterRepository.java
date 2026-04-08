@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.domain.repository;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import java.time.Instant;
@@ -15,11 +16,12 @@ public interface InventoryAuditDeadLetterRepository {
     }
 
     default List<InventoryAuditDeadLetter> pageAuditDeadLetters(TenantId tenantId, OrderNo orderNo,
-                                                                 String replayStatus, int pageNo, int pageSize) {
+                                                                 InventoryAuditReplayStatus replayStatus,
+                                                                 int pageNo, int pageSize) {
         return List.of();
     }
 
-    default long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, String replayStatus) {
+    default long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         return 0L;
     }
 

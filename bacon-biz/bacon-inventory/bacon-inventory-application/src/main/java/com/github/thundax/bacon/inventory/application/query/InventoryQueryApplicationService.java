@@ -17,6 +17,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
@@ -93,15 +94,15 @@ public class InventoryQueryApplicationService {
     public InventoryAuditDeadLetterPageResultDTO pageAuditDeadLetters(InventoryAuditDeadLetterPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String normalizedReplayStatus = normalizeStatus(query.getReplayStatus());
+        InventoryAuditReplayStatus replayStatus = normalizeReplayStatus(query.getReplayStatus());
         List<InventoryAuditDeadLetterDTO> records = inventoryAuditDeadLetterRepository
                 .pageAuditDeadLetters(TenantIdMapper.toDomain(query.getTenantId()), OrderNoMapper.toDomain(query.getOrderNo()),
-                        normalizedReplayStatus, pageNo, pageSize)
+                        replayStatus, pageNo, pageSize)
                 .stream()
                 .map(this::toAuditDeadLetterDto)
                 .toList();
         long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(TenantIdMapper.toDomain(query.getTenantId()),
-                OrderNoMapper.toDomain(query.getOrderNo()), normalizedReplayStatus);
+                OrderNoMapper.toDomain(query.getOrderNo()), replayStatus);
         return new InventoryAuditDeadLetterPageResultDTO(records, total, pageNo, pageSize);
     }
 
@@ -141,11 +142,11 @@ public class InventoryQueryApplicationService {
                 deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), deadLetter.getReplayOperatorId());
     }
 
-    private String normalizeStatus(String status) {
+    private InventoryAuditReplayStatus normalizeReplayStatus(String status) {
         if (status == null || status.isBlank()) {
             return null;
         }
-        return status.trim().toUpperCase(Locale.ROOT);
+        return InventoryAuditReplayStatus.from(status.trim().toUpperCase(Locale.ROOT));
     }
 
 }

@@ -360,7 +360,8 @@ public class InventoryRepositorySupport {
     }
 
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(TenantId tenantId, OrderNo orderNo,
-                                                                String replayStatus, int pageNo, int pageSize) {
+                                                                InventoryAuditReplayStatus replayStatus,
+                                                                int pageNo, int pageSize) {
         long offset = (long) (pageNo - 1) * pageSize;
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
                 Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
@@ -368,8 +369,8 @@ public class InventoryRepositorySupport {
         if (orderNo != null) {
             query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo.value());
         }
-        if (replayStatus != null && !replayStatus.isBlank()) {
-            query.eq(InventoryAuditDeadLetterDO::getReplayStatus, replayStatus);
+        if (replayStatus != null) {
+            query.eq(InventoryAuditDeadLetterDO::getReplayStatus, replayStatus.value());
         }
         return auditDeadLetterMapper.selectList(query
                         .orderByDesc(InventoryAuditDeadLetterDO::getDeadAt, InventoryAuditDeadLetterDO::getOutboxId)
@@ -379,15 +380,15 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, String replayStatus) {
+    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
                 Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
                         .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value());
         if (orderNo != null) {
             query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo.value());
         }
-        if (replayStatus != null && !replayStatus.isBlank()) {
-            query.eq(InventoryAuditDeadLetterDO::getReplayStatus, replayStatus);
+        if (replayStatus != null) {
+            query.eq(InventoryAuditDeadLetterDO::getReplayStatus, replayStatus.value());
         }
         return auditDeadLetterMapper.selectCount(query);
     }

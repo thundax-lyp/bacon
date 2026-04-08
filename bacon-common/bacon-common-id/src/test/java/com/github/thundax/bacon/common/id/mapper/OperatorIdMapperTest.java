@@ -21,4 +21,14 @@ class OperatorIdMapperTest {
     void shouldConvertValueToOperatorId() {
         assertThat(OperatorIdMapper.toDomain("SYSTEM")).isEqualTo(OperatorId.of("SYSTEM"));
     }
+
+    @Test
+    void shouldConvertLongValueToOperatorId() {
+        assertThat(OperatorIdMapper.toDomain(9001L)).isEqualTo(OperatorId.of("9001"));
+    }
+
+    @Test
+    void shouldConvertOperatorIdToLongValue() {
+        assertThat(OperatorIdMapper.toLongValue(OperatorId.of("9001"))).isEqualTo(9001L);
+    }
 }

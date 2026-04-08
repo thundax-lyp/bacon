@@ -14,7 +14,18 @@ public final class OperatorIdMapper {
         return OperatorId.of(value);
     }
 
+    public static OperatorId toDomain(Long value) {
+        if (value == null) {
+            return null;
+        }
+        return OperatorId.of(String.valueOf(value));
+    }
+
     public static String toValue(OperatorId operatorId) {
         return operatorId == null ? null : operatorId.value();
+    }
+
+    public static Long toLongValue(OperatorId operatorId) {
+        return operatorId == null ? null : Long.valueOf(operatorId.value());
     }
 }

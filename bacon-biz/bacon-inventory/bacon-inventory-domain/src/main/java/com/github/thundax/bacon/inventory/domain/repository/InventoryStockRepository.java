@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.domain.repository;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -15,9 +16,9 @@ public interface InventoryStockRepository {
 
     List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds);
 
-    List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, String status, int pageNo, int pageSize);
+    List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize);
 
-    long countInventories(TenantId tenantId, SkuId skuId, String status);
+    long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status);
 
     Inventory saveInventory(Inventory inventory);
 }

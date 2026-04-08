@@ -18,6 +18,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutbo
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
@@ -87,19 +88,19 @@ public class InMemoryInventoryRepositorySupport {
                 .toList();
     }
 
-    public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, String status, int pageNo, int pageSize) {
+    public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
         return findInventories(tenantId).stream()
                 .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
-                .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
+                .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                 .skip((long) (pageNo - 1) * pageSize)
                 .limit(pageSize)
                 .toList();
     }
 
-    public long countInventories(TenantId tenantId, SkuId skuId, String status) {
+    public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
         return findInventories(tenantId).stream()
                 .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
-                .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
+                .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                 .count();
     }
 

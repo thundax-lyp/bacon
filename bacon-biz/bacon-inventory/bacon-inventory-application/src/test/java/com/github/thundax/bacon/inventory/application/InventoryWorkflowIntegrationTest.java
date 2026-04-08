@@ -235,17 +235,17 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, String status, int pageNo, int pageSize) {
+        public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
                     .filter(item -> skuId == null || java.util.Objects.equals(item.getSkuId(), skuId))
-                    .filter(item -> status == null || status.equals(item.getStatus().value()))
+                    .filter(item -> status == null || status.equals(item.getStatus()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)
                     .toList();
         }
 
         @Override
-        public long countInventories(TenantId tenantId, SkuId skuId, String status) {
+        public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
             return pageInventories(tenantId, skuId, status, 1, Integer.MAX_VALUE).size();
         }
 

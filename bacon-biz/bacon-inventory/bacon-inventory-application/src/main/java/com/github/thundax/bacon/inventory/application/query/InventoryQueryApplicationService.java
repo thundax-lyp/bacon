@@ -19,6 +19,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDead
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
@@ -68,7 +69,7 @@ public class InventoryQueryApplicationService {
     public InventoryPageResultDTO pageInventories(InventoryPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        String normalizedStatus = normalizeStatus(query.getStatus());
+        InventoryStatus normalizedStatus = normalizeStatus(query.getStatus());
         List<InventoryStockDTO> records = inventoryStockRepository
                 .pageInventories(TenantIdMapper.toDomain(query.getTenantId()), SkuIdMapper.toDomain(query.getSkuId()),
                         normalizedStatus, pageNo, pageSize).stream()
@@ -154,6 +155,13 @@ public class InventoryQueryApplicationService {
             return null;
         }
         return InventoryAuditReplayStatus.from(status.trim().toUpperCase(Locale.ROOT));
+    }
+
+    private InventoryStatus normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
+        return InventoryStatus.from(status.trim().toUpperCase(Locale.ROOT));
     }
 
 }

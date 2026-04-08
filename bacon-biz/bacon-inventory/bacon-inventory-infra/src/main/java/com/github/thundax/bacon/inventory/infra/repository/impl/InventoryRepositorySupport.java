@@ -135,18 +135,19 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, String status, int pageNo, int pageSize) {
+    public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
         long offset = (long) (pageNo - 1) * pageSize;
         return inventoryMapper.selectPageByCondition(tenantId == null ? null : tenantId.value(),
-                        skuId == null ? null : skuId.value(), status, offset, pageSize)
+                        skuId == null ? null : skuId.value(),
+                        status == null ? null : status.value(), offset, pageSize)
                 .stream()
                 .map(this::toDomain)
                 .toList();
     }
 
-    public long countInventories(TenantId tenantId, SkuId skuId, String status) {
+    public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
         return inventoryMapper.countByCondition(tenantId == null ? null : tenantId.value(),
-                skuId == null ? null : skuId.value(), status);
+                skuId == null ? null : skuId.value(), status == null ? null : status.value());
     }
 
     public Inventory saveInventory(Inventory inventory) {

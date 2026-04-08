@@ -2,6 +2,7 @@ package com.github.thundax.bacon.auth.infra.repository.impl;
 
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
+import com.github.thundax.bacon.auth.domain.model.enums.SessionStatus;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import java.time.Duration;
 import java.time.Instant;
@@ -29,12 +30,12 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
     public AuthSession saveSession(AuthSession authSession) {
         String sessionKey = AuthRedisKeyHelper.session(authSession.getSessionId());
         redisTemplate.opsForValue().set(sessionKey, SessionSnapshot.fromDomain(authSession), ttl(authSession.getExpireAt()));
-        redisTemplate.opsForSet().add(AuthRedisKeyHelper.userSessions(authSession.getTenantId(), authSession.getUserId()),
+        redisTemplate.opsForSet().add(AuthRedisKeyHelper.userSessions(authSession.getTenantIdValue(), authSession.getUserIdValue()),
                 authSession.getSessionId());
-        redisTemplate.expire(AuthRedisKeyHelper.userSessions(authSession.getTenantId(), authSession.getUserId()),
+        redisTemplate.expire(AuthRedisKeyHelper.userSessions(authSession.getTenantIdValue(), authSession.getUserIdValue()),
                 ttl(authSession.getExpireAt()));
-        redisTemplate.opsForSet().add(AuthRedisKeyHelper.tenantSessions(authSession.getTenantId()), authSession.getSessionId());
-        redisTemplate.expire(AuthRedisKeyHelper.tenantSessions(authSession.getTenantId()), ttl(authSession.getExpireAt()));
+        redisTemplate.opsForSet().add(AuthRedisKeyHelper.tenantSessions(authSession.getTenantIdValue()), authSession.getSessionId());
+        redisTemplate.expire(AuthRedisKeyHelper.tenantSessions(authSession.getTenantIdValue()), ttl(authSession.getExpireAt()));
         return authSession;
     }
 
@@ -58,9 +59,9 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
         String tokenKey = AuthRedisKeyHelper.refreshToken(refreshTokenSession.getRefreshTokenHash());
         redisTemplate.opsForValue().set(tokenKey, RefreshTokenSnapshot.fromDomain(refreshTokenSession),
                 ttl(refreshTokenSession.getExpireAt()));
-        redisTemplate.opsForSet().add(AuthRedisKeyHelper.sessionRefreshTokens(refreshTokenSession.getSessionId()),
+        redisTemplate.opsForSet().add(AuthRedisKeyHelper.sessionRefreshTokens(refreshTokenSession.getSessionIdValue()),
                 refreshTokenSession.getRefreshTokenHash());
-        redisTemplate.expire(AuthRedisKeyHelper.sessionRefreshTokens(refreshTokenSession.getSessionId()),
+        redisTemplate.expire(AuthRedisKeyHelper.sessionRefreshTokens(refreshTokenSession.getSessionIdValue()),
                 ttl(refreshTokenSession.getExpireAt()));
         return refreshTokenSession;
     }
@@ -126,22 +127,22 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
         private String invalidateReason;
 
         private static SessionSnapshot fromDomain(AuthSession authSession) {
-            return new SessionSnapshot(authSession.getId(), authSession.getSessionId(), authSession.getTenantId(),
-                    authSession.getUserId(), authSession.getIdentityId(), authSession.getIdentityType(),
+            return new SessionSnapshot(authSession.getId(), authSession.getSessionId(), authSession.getTenantIdValue(),
+                    authSession.getUserIdValue(), authSession.getIdentityId(), authSession.getIdentityType(),
                     authSession.getLoginType(), authSession.getIssuedAt(), authSession.getExpireAt(),
-                    authSession.getSessionStatus(), authSession.getLastAccessTime(), authSession.getLogoutAt(),
+                    authSession.getStatusValue(), authSession.getLastAccessTime(), authSession.getLogoutAt(),
                     authSession.getInvalidateReason());
         }
 
         private AuthSession toDomain() {
             AuthSession authSession = new AuthSession(id, sessionId, tenantId, userId, identityId, identityType,
                     loginType, issuedAt, expireAt);
-            if (!"ACTIVE".equals(sessionStatus)) {
-                if ("LOGGED_OUT".equals(sessionStatus) && logoutAt != null) {
+            if (sessionStatus != null && SessionStatus.ACTIVE != SessionStatus.from(sessionStatus)) {
+                if (SessionStatus.LOGGED_OUT == SessionStatus.from(sessionStatus) && logoutAt != null) {
                     authSession.logout(logoutAt);
-                } else if ("INVALIDATED".equals(sessionStatus)) {
+                } else if (SessionStatus.INVALIDATED == SessionStatus.from(sessionStatus)) {
                     authSession.invalidate(invalidateReason);
-                } else if ("EXPIRED".equals(sessionStatus)) {
+                } else if (SessionStatus.EXPIRED == SessionStatus.from(sessionStatus)) {
                     authSession.expire();
                 }
             }
@@ -164,9 +165,9 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
         private Instant usedAt;
 
         private static RefreshTokenSnapshot fromDomain(RefreshTokenSession refreshTokenSession) {
-            return new RefreshTokenSnapshot(refreshTokenSession.getSessionId(), refreshTokenSession.getRefreshTokenHash(),
+            return new RefreshTokenSnapshot(refreshTokenSession.getSessionIdValue(), refreshTokenSession.getRefreshTokenHash(),
                     refreshTokenSession.getIssuedAt(), refreshTokenSession.getExpireAt(),
-                    refreshTokenSession.getTokenStatus(), refreshTokenSession.getUsedAt());
+                    refreshTokenSession.getStatusValue(), refreshTokenSession.getUsedAt());
         }
 
         private RefreshTokenSession toDomain() {

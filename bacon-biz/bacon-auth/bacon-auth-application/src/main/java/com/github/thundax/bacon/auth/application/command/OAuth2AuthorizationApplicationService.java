@@ -66,7 +66,7 @@ public class OAuth2AuthorizationApplicationService {
         oAuthAuthorizationRepository.saveAuthorizationRequest(new OAuthAuthorizationRequest(
                 authorizationRequestId, clientId, redirectUri, new ArrayList<>(scopes), state, codeChallenge, codeChallengeMethod,
                 tenantId, userId, Instant.now().plusSeconds(300)));
-        return new AuthorizationView(authorizationRequestId, client.getClientId(), client.getClientName(), scope, state);
+        return new AuthorizationView(authorizationRequestId, client.getClientCodeValue(), client.getClientName(), scope, state);
     }
 
     public AuthorizationDecisionResult decide(String authorizationRequestId, String decision) {
@@ -101,7 +101,7 @@ public class OAuth2AuthorizationApplicationService {
             if (!request.getRedirectUri().equals(redirectUri)) {
                 throw new IllegalArgumentException("Redirect uri invalid");
             }
-            return issueOAuthTokens(client, request.getTenantId(), request.getUserId(), request.getScopes());
+            return issueOAuthTokens(client, request.getTenantIdValue(), request.getUserIdValue(), request.getScopes());
         }
         if ("refresh_token".equals(grantType)) {
             OAuthRefreshToken currentRefreshToken = oAuthAuthorizationRepository.findOAuthRefreshTokenByHash(tokenCodec.sha256(refreshToken))
@@ -120,11 +120,11 @@ public class OAuth2AuthorizationApplicationService {
     public OAuth2IntrospectionDTO introspect(String token, String clientId, String clientSecret) {
         validateClient(clientId, clientSecret);
         return oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(token))
-                .filter(accessToken -> "ACTIVE".equals(accessToken.getTokenStatus()))
+                .filter(OAuthAccessToken::isActive)
                 .filter(accessToken -> accessToken.getExpireAt().isAfter(Instant.now()))
-                .map(accessToken -> new OAuth2IntrospectionDTO(true, accessToken.getClientId(),
-                        String.join(" ", accessToken.getScopes()), String.valueOf(accessToken.getUserId()),
-                        accessToken.getTenantId(), accessToken.getExpireAt().getEpochSecond()))
+                .map(accessToken -> new OAuth2IntrospectionDTO(true, accessToken.getClientIdValue(),
+                        String.join(" ", accessToken.getScopes()), String.valueOf(accessToken.getUserIdValue()),
+                        accessToken.getTenantIdValue(), accessToken.getExpireAt().getEpochSecond()))
                 .orElse(new OAuth2IntrospectionDTO(false, clientId, "", "", null, 0L));
     }
 
@@ -142,10 +142,10 @@ public class OAuth2AuthorizationApplicationService {
 
     public OAuth2UserinfoDTO userinfo(String accessToken) {
         OAuthAccessToken token = oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(accessToken))
-                .filter(current -> "ACTIVE".equals(current.getTokenStatus()))
+                .filter(OAuthAccessToken::isActive)
                 .orElseThrow(() -> new IllegalArgumentException("OAuth access token invalid"));
-        String name = token.getScopes().contains("profile") ? "demo-user-" + token.getUserId() : null;
-        return new OAuth2UserinfoDTO(String.valueOf(token.getUserId()), token.getTenantId(), name);
+        String name = token.getScopes().contains("profile") ? "demo-user-" + token.getUserIdValue() : null;
+        return new OAuth2UserinfoDTO(String.valueOf(token.getUserIdValue()), token.getTenantIdValue(), name);
     }
 
     private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, Long tenantId, Long userId, Set<String> scopes) {
@@ -153,14 +153,14 @@ public class OAuth2AuthorizationApplicationService {
         String accessTokenValue = tokenCodec.randomToken();
         String accessTokenId = tokenCodec.sha256(accessTokenValue);
         // access token 和 refresh token 在仓储层都使用哈希作为主识别键，避免明文 token 被直接持久化。
-        OAuthAccessToken accessToken = new OAuthAccessToken(accessTokenId, accessTokenId, client.getClientId(),
+        OAuthAccessToken accessToken = new OAuthAccessToken(accessTokenId, accessTokenId, client.getClientCodeValue(),
                 tenantId, userId, new ArrayList<>(scopes), now, now.plusSeconds(client.getAccessTokenTtlSeconds()));
         oAuthAuthorizationRepository.saveAccessToken(accessToken);
 
         String refreshTokenValue = tokenCodec.randomToken();
         String refreshTokenHash = tokenCodec.sha256(refreshTokenValue);
         OAuthRefreshToken refreshToken = new OAuthRefreshToken(refreshTokenHash, refreshTokenHash, accessTokenId,
-                client.getClientId(), tenantId, userId, now,
+                client.getClientCodeValue(), tenantId, userId, now,
                 now.plusSeconds(client.getRefreshTokenTtlSeconds()));
         oAuthAuthorizationRepository.saveOAuthRefreshToken(refreshToken);
 
@@ -169,7 +169,7 @@ public class OAuth2AuthorizationApplicationService {
     }
 
     private OAuthClient loadClient(String clientId) {
-        return oAuthClientRepository.findByClientId(clientId)
+        return oAuthClientRepository.findByClientCode(clientId)
                 .filter(OAuthClient::isEnabled)
                 .orElseThrow(() -> new IllegalArgumentException("OAuth client invalid"));
     }

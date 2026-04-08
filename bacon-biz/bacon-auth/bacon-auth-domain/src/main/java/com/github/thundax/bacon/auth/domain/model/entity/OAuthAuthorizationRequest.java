@@ -1,5 +1,8 @@
 package com.github.thundax.bacon.auth.domain.model.entity;
 
+import com.github.thundax.bacon.auth.domain.model.valueobject.ClientCode;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,7 +20,7 @@ public class OAuthAuthorizationRequest {
     /** 授权请求标识。 */
     private final String authorizationRequestId;
     /** 客户端标识。 */
-    private final String clientId;
+    private final ClientCode clientId;
     /** 重定向 URI。 */
     private final String redirectUri;
     /** 授权范围集合。 */
@@ -29,9 +32,9 @@ public class OAuthAuthorizationRequest {
     /** PKCE code challenge method。 */
     private final String codeChallengeMethod;
     /** 所属租户编号。 */
-    private final Long tenantId;
+    private final TenantId tenantId;
     /** 用户主键。 */
-    private final Long userId;
+    private final UserId userId;
     /** 过期时间。 */
     private final Instant expireAt;
     /** 是否已使用。 */
@@ -40,12 +43,29 @@ public class OAuthAuthorizationRequest {
     public OAuthAuthorizationRequest(String authorizationRequestId, String clientId, String redirectUri,
                                      List<String> scopes, String state, String codeChallenge,
                                      String codeChallengeMethod, Long tenantId, Long userId, Instant expireAt) {
-        this(authorizationRequestId, clientId, redirectUri, toLinkedHashSet(scopes), state, codeChallenge,
-                codeChallengeMethod, tenantId, userId, expireAt, false);
+        this(authorizationRequestId,
+                clientId == null ? null : ClientCode.of(clientId),
+                redirectUri, toLinkedHashSet(scopes), state, codeChallenge,
+                codeChallengeMethod,
+                tenantId == null ? null : TenantId.of(tenantId),
+                userId == null ? null : UserId.of(userId),
+                expireAt, false);
     }
 
     private static Set<String> toLinkedHashSet(List<String> values) {
         return values == null ? new LinkedHashSet<>() : new LinkedHashSet<>(values);
+    }
+
+    public String getClientIdValue() {
+        return clientId == null ? null : clientId.value();
+    }
+
+    public Long getTenantIdValue() {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    public Long getUserIdValue() {
+        return userId == null ? null : userId.value();
     }
 
     public void markUsed() {

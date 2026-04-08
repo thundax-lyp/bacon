@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.auth.infra.repository.impl;
 
+import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
@@ -32,9 +33,9 @@ public class TestAuthMemoryStore {
                 List.of(
                         "http://127.0.0.1:3000/callback",
                         "http://127.0.0.1:8080/api/swagger-ui/oauth2-redirect.html"
-                ), 1800L, 2592000L, 1,
+                ), 1800L, 2592000L, ClientStatus.ENABLED,
                 "dev@bacon.local", "demo", now, now);
-        clients.put(demoClient.getClientId(), demoClient);
+        clients.put(demoClient.getClientCodeValue(), demoClient);
     }
 
     public Map<String, AuthSession> getSessions() {

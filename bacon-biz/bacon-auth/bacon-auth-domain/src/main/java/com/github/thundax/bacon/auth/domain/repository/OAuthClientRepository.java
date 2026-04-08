@@ -6,5 +6,5 @@ import java.util.Optional;
 
 public interface OAuthClientRepository {
 
-    Optional<OAuthClient> findByClientId(String clientId);
+    Optional<OAuthClient> findByClientCode(String clientCode);
 }

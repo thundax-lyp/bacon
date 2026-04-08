@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.auth.domain.model.entity;
 
-import com.github.thundax.bacon.auth.domain.model.valueobject.ClientId;
+import com.github.thundax.bacon.auth.domain.model.valueobject.ClientCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import java.time.Instant;
@@ -21,7 +21,7 @@ public class OAuthRefreshToken {
     /** 关联访问令牌主键。 */
     private final String accessTokenId;
     /** 客户端标识。 */
-    private final ClientId clientId;
+    private final ClientCode clientId;
     /** 所属租户编号。 */
     private final TenantId tenantId;
     /** 用户主键。 */
@@ -36,7 +36,7 @@ public class OAuthRefreshToken {
     public OAuthRefreshToken(String tokenId, String tokenHash, String accessTokenId, String clientId, Long tenantId,
                              Long userId, Instant issuedAt, Instant expireAt) {
         this(tokenId, tokenHash, accessTokenId,
-                clientId == null ? null : ClientId.of(clientId),
+                clientId == null ? null : ClientCode.of(clientId),
                 tenantId == null ? null : TenantId.of(tenantId),
                 userId == null ? null : UserId.of(userId),
                 issuedAt, expireAt, "ACTIVE");

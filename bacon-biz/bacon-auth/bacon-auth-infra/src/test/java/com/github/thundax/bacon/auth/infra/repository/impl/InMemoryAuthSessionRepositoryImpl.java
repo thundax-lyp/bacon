@@ -33,15 +33,15 @@ public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository 
     @Override
     public List<AuthSession> findSessionsByTenantIdAndUserId(Long tenantId, Long userId) {
         return authStore.getSessions().values().stream()
-                .filter(session -> tenantId.equals(session.getTenantId()))
-                .filter(session -> userId.equals(session.getUserId()))
+                .filter(session -> tenantId.equals(session.getTenantIdValue()))
+                .filter(session -> userId.equals(session.getUserIdValue()))
                 .toList();
     }
 
     @Override
     public List<AuthSession> findSessionsByTenantId(Long tenantId) {
         return authStore.getSessions().values().stream()
-                .filter(session -> tenantId.equals(session.getTenantId()))
+                .filter(session -> tenantId.equals(session.getTenantIdValue()))
                 .toList();
     }
 
@@ -59,7 +59,7 @@ public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository 
     @Override
     public void invalidateRefreshTokensBySessionId(String sessionId) {
         authStore.getRefreshTokenSessions().values().stream()
-                .filter(token -> sessionId.equals(token.getSessionId()))
+                .filter(token -> sessionId.equals(token.getSessionIdValue()))
                 .forEach(RefreshTokenSession::invalidate);
     }
 }

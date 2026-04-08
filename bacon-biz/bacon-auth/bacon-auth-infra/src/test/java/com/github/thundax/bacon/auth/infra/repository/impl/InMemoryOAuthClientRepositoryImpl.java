@@ -17,7 +17,7 @@ public class InMemoryOAuthClientRepositoryImpl implements OAuthClientRepository 
     }
 
     @Override
-    public Optional<OAuthClient> findByClientId(String clientId) {
+    public Optional<OAuthClient> findByClientCode(String clientId) {
         return Optional.ofNullable(authStore.getClients().get(clientId));
     }
 }

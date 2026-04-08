@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.auth.application.command;
 
+import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
@@ -24,7 +25,7 @@ class OAuth2AuthorizationApplicationServiceTest {
         OAuth2AuthorizationApplicationService service = new OAuth2AuthorizationApplicationService(
                 oauthClientRepository(new OAuthClient(1L, "demo-client", passwordEncoder.encode("demo-secret"),
                         "Demo OAuth Client", "CONFIDENTIAL", List.of("refresh_token"), List.of("openid"), List.of(),
-                        1800L, 2592000L, 1, null, null, Instant.now(), Instant.now())),
+                        1800L, 2592000L, ClientStatus.ENABLED, null, null, Instant.now(), Instant.now())),
                 authorizationRepository,
                 mock(SessionApplicationService.class),
                 tokenCodec("hash-refresh"),
@@ -41,7 +42,7 @@ class OAuth2AuthorizationApplicationServiceTest {
         OAuth2AuthorizationApplicationService service = new OAuth2AuthorizationApplicationService(
                 oauthClientRepository(new OAuthClient(1L, "demo-client", passwordEncoder.encode("demo-secret"),
                         "Demo OAuth Client", "CONFIDENTIAL", List.of("refresh_token"), List.of("openid"), List.of(),
-                        1800L, 2592000L, 1, null, null, Instant.now(), Instant.now())),
+                        1800L, 2592000L, ClientStatus.ENABLED, null, null, Instant.now(), Instant.now())),
                 mock(OAuthAuthorizationRepository.class),
                 mock(SessionApplicationService.class),
                 mock(com.github.thundax.bacon.auth.application.support.TokenCodec.class),
@@ -53,7 +54,7 @@ class OAuth2AuthorizationApplicationServiceTest {
 
     private OAuthClientRepository oauthClientRepository(OAuthClient client) {
         OAuthClientRepository repository = mock(OAuthClientRepository.class);
-        when(repository.findByClientId(client.getClientId())).thenReturn(Optional.of(client));
+        when(repository.findByClientCode(client.getClientCodeValue())).thenReturn(Optional.of(client));
         return repository;
     }
 

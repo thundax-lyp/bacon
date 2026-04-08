@@ -33,12 +33,12 @@ public class TokenApplicationService {
 
     public UserTokenRefreshDTO refresh(String refreshToken) {
         RefreshTokenSession refreshTokenSession = authSessionRepository.findRefreshTokenByHash(tokenCodec.sha256(refreshToken))
-                .filter(token -> "ACTIVE".equals(token.getTokenStatus()))
+                .filter(RefreshTokenSession::isActive)
                 .filter(token -> token.getExpireAt().isAfter(Instant.now()))
                 .orElseThrow(() -> new IllegalArgumentException("Refresh token invalid"));
 
-        AuthSession authSession = authSessionRepository.findSessionBySessionId(refreshTokenSession.getSessionId())
-                .filter(session -> "ACTIVE".equals(session.getSessionStatus()))
+        AuthSession authSession = authSessionRepository.findSessionBySessionId(refreshTokenSession.getSessionIdValue())
+                .filter(AuthSession::isActive)
                 .orElseThrow(() -> new IllegalArgumentException("Session invalid"));
 
         // refresh token 采用一次性轮转：旧 token 先失效，再签发新的一对 token，降低长期凭证被重放的窗口。
@@ -62,13 +62,13 @@ public class TokenApplicationService {
         }
         // access token 校验最终还是回到会话仓储，确保已吊销或已过期会话即使 JWT 结构合法也不会被继续接受。
         return authSessionRepository.findSessionBySessionId(sessionId.get())
-                .filter(session -> "ACTIVE".equals(session.getSessionStatus()))
+                .filter(AuthSession::isActive)
                 .filter(session -> session.getExpireAt().isAfter(Instant.now()))
                 .map(session -> {
                     session.touch(Instant.now());
                     authSessionRepository.saveSession(session);
-                    return new SessionValidationDTO(true, session.getTenantId(),
-                            session.getUserId(),
+                    return new SessionValidationDTO(true, session.getTenantIdValue(),
+                            session.getUserIdValue(),
                             session.getSessionId(), session.getIdentityId(), session.getIdentityType(),
                             session.getExpireAt());
                 })
@@ -79,9 +79,9 @@ public class TokenApplicationService {
         AuthSession authSession = authSessionRepository.findSessionBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
         // 这里返回的是仓储里的当前会话快照，不重新解析 access token，避免出现 token 与服务端会话状态不一致。
-        return new CurrentSessionDTO(authSession.getSessionId(), authSession.getTenantId(),
-                authSession.getUserId(),
-                authSession.getIdentityType(), authSession.getLoginType(), authSession.getSessionStatus(),
+        return new CurrentSessionDTO(authSession.getSessionId(), authSession.getTenantIdValue(),
+                authSession.getUserIdValue(),
+                authSession.getIdentityType(), authSession.getLoginType(), authSession.getStatusValue(),
                 authSession.getIssuedAt(), authSession.getLastAccessTime(), authSession.getExpireAt());
     }
 }

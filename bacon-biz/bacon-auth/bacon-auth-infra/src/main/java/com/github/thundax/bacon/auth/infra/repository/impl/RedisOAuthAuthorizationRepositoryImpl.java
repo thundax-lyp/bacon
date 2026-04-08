@@ -106,10 +106,10 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
 
         private static AuthorizationRequestSnapshot fromDomain(OAuthAuthorizationRequest authorizationRequest) {
             return new AuthorizationRequestSnapshot(authorizationRequest.getAuthorizationRequestId(),
-                    authorizationRequest.getClientId(), authorizationRequest.getRedirectUri(), authorizationRequest.getScopes(),
+                    authorizationRequest.getClientIdValue(), authorizationRequest.getRedirectUri(), authorizationRequest.getScopes(),
                     authorizationRequest.getState(), authorizationRequest.getCodeChallenge(),
-                    authorizationRequest.getCodeChallengeMethod(), authorizationRequest.getTenantId(),
-                    authorizationRequest.getUserId(), authorizationRequest.getExpireAt(), authorizationRequest.isUsed());
+                    authorizationRequest.getCodeChallengeMethod(), authorizationRequest.getTenantIdValue(),
+                    authorizationRequest.getUserIdValue(), authorizationRequest.getExpireAt(), authorizationRequest.isUsed());
         }
 
         private OAuthAuthorizationRequest toDomain() {
@@ -138,9 +138,9 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private String tokenStatus;
 
         private static AccessTokenSnapshot fromDomain(OAuthAccessToken accessToken) {
-            return new AccessTokenSnapshot(accessToken.getTokenId(), accessToken.getTokenHash(), accessToken.getClientId(),
-                    accessToken.getTenantId(), accessToken.getUserId(), accessToken.getScopes(),
-                    accessToken.getIssuedAt(), accessToken.getExpireAt(), accessToken.getTokenStatus());
+            return new AccessTokenSnapshot(accessToken.getTokenId(), accessToken.getTokenHash(), accessToken.getClientIdValue(),
+                    accessToken.getTenantIdValue(), accessToken.getUserIdValue(), accessToken.getScopes(),
+                    accessToken.getIssuedAt(), accessToken.getExpireAt(), accessToken.getStatusValue());
         }
 
         private OAuthAccessToken toDomain() {

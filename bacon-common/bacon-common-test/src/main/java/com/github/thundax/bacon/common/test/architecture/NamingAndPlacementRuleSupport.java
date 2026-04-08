@@ -14,8 +14,10 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import java.lang.reflect.Field;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -118,7 +120,7 @@ public final class NamingAndPlacementRuleSupport {
         return ArchRuleDefinition.noClasses()
                 .that().resideInAPackage(basePackage + "..")
                 .should().haveSimpleNameEndingWith("DataObject")
-                .because("持久化对象统一使用 DO 后缀，不再使用 DataObject");
+                .because("Persistence objects must use the DO suffix; do not use DataObject.");
     }
 
     public static ArchRule converterShouldUseConverterNameAndPackage(String basePackage) {
@@ -162,7 +164,7 @@ public final class NamingAndPlacementRuleSupport {
                         return classNames.contains(input.getFullName());
                     }
                 })
-                .should(new ArchCondition<>("use a single explicit boundary constructor delegating via this(...)") {
+                .should(new ArchCondition<>("have a valid explicit boundary constructor") {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
                         List<JavaConstructor> publicConstructors = item.getConstructors().stream()
@@ -174,21 +176,28 @@ public final class NamingAndPlacementRuleSupport {
                                 .filter(constructor -> !sameSignature(constructor, allFieldTypes))
                                 .toList();
                         boolean singleExplicitConstructor = explicitConstructors.size() == 1;
+                        JavaConstructor explicitConstructor = singleExplicitConstructor ? explicitConstructors.get(0) : null;
+                        List<String> invalidBoundaryTypes = explicitConstructor == null
+                                ? List.of()
+                                : explicitConstructor.getRawParameterTypes().stream()
+                                        .filter(parameter -> !isBoundaryConstructorType(parameter))
+                                        .map(JavaClass::getFullName)
+                                        .toList();
                         boolean boundaryTypesOnly = singleExplicitConstructor
-                                && explicitConstructors.get(0).getRawParameterTypes().stream()
-                                .allMatch(parameter -> BOUNDARY_CONSTRUCTOR_TYPES.contains(parameter.getFullName()));
+                                && invalidBoundaryTypes.isEmpty();
                         boolean delegatesToOwnConstructor = singleExplicitConstructor
-                                && explicitConstructors.get(0).getCallsOfSelf().stream()
+                                && explicitConstructor.getCallsOfSelf().stream()
                                 .anyMatch(call -> call.getTargetOwner().equals(item));
                         boolean satisfied = singleExplicitConstructor && boundaryTypesOnly && delegatesToOwnConstructor;
-                        String detail = "explicitConstructors=" + explicitConstructors.size()
-                                + ", boundaryTypesOnly=" + boundaryTypesOnly
-                                + ", delegatesToOwnConstructor=" + delegatesToOwnConstructor;
-                        events.add(new SimpleConditionEvent(item, satisfied, item.getFullName() + " " + detail));
+                        String detail = satisfied
+                                ? item.getFullName() + " entity boundary constructor check passed"
+                                : buildBoundaryConstructorFailureMessage(
+                                        item, explicitConstructors, invalidBoundaryTypes, delegatesToOwnConstructor);
+                        events.add(new SimpleConditionEvent(item, satisfied, detail));
                     }
                 })
                 .allowEmptyShould(false)
-                .because("domain.model.entity should expose one boundary constructor and delegate to all-args constructor");
+                .because("violations should explain the exact failure reason and the correct constructor pattern");
     }
 
     private static boolean sameSignature(JavaConstructor constructor, List<String> fieldTypeNames) {
@@ -198,12 +207,152 @@ public final class NamingAndPlacementRuleSupport {
         return parameterTypeNames.equals(fieldTypeNames);
     }
 
+    static boolean isBoundaryConstructorType(JavaClass parameterType) {
+        return BOUNDARY_CONSTRUCTOR_TYPES.contains(parameterType.getFullName()) || parameterType.isEnum();
+    }
+
+    private static String buildBoundaryConstructorFailureMessage(
+            JavaClass item,
+            List<JavaConstructor> explicitConstructors,
+            List<String> invalidBoundaryTypes,
+            boolean delegatesToOwnConstructor) {
+        List<String> reasons = new ArrayList<>();
+        if (explicitConstructors.size() != 1) {
+            reasons.add("Found " + explicitConstructors.size() + " explicit constructors"
+                    + formatConstructors(explicitConstructors) + "; expected exactly 1 explicit boundary constructor");
+        }
+        if (explicitConstructors.size() == 1 && !invalidBoundaryTypes.isEmpty()) {
+            reasons.add("Explicit boundary constructor " + formatConstructor(explicitConstructors.get(0))
+                    + " uses unsupported parameter types " + invalidBoundaryTypes
+                    + "; allowed types are String, Long, Integer, Instant, and enum");
+        }
+        if (explicitConstructors.size() == 1 && !delegatesToOwnConstructor) {
+            reasons.add("Explicit boundary constructor " + formatConstructor(explicitConstructors.get(0))
+                    + " does not delegate to the all-fields constructor via this(...)");
+        }
+        return item.getFullName() + " violation: " + String.join("; ", reasons)
+                + ". Fix: " + suggestedBoundaryConstructor(item);
+    }
+
+    private static String formatConstructors(List<JavaConstructor> constructors) {
+        if (constructors.isEmpty()) {
+            return "";
+        }
+        return ": " + constructors.stream()
+                .map(NamingAndPlacementRuleSupport::formatConstructor)
+                .collect(Collectors.joining(" / "));
+    }
+
+    private static String formatConstructor(JavaConstructor constructor) {
+        return constructor.getOwner().getSimpleName() + "(" + constructor.getRawParameterTypes().stream()
+                .map(JavaClass::getSimpleName)
+                .collect(Collectors.joining(", ")) + ")";
+    }
+
+    private static String suggestedBoundaryConstructor(JavaClass item) {
+        String parameters = nonStaticFields(item).stream()
+                .map(field -> inferBoundaryParameterTypeName(field.getType()) + " " + field.getName())
+                .collect(Collectors.joining(", "));
+        return item.getSimpleName() + "(" + parameters + ") {...}";
+    }
+
+    private static String inferBoundaryParameterTypeName(Class<?> fieldType) {
+        Class<?> normalizedType = wrapPrimitiveType(fieldType);
+        if (isBoundaryConstructorTypeName(normalizedType.getName()) || normalizedType.isEnum()) {
+            return normalizedType.getSimpleName();
+        }
+        if (inheritsFrom(normalizedType, "com.github.thundax.bacon.common.id.core.BaseLongId")) {
+            return Long.class.getSimpleName();
+        }
+        if (inheritsFrom(normalizedType, "com.github.thundax.bacon.common.id.core.BaseStringId")) {
+            return String.class.getSimpleName();
+        }
+        return findPreferredBoundaryFactoryParameterType(normalizedType)
+                .map(Class::getSimpleName)
+                .orElse(normalizedType.getSimpleName());
+    }
+
+    private static Optional<Class<?>> findPreferredBoundaryFactoryParameterType(Class<?> fieldType) {
+        Class<?> bestMatch = null;
+        for (java.lang.reflect.Method method : fieldType.getDeclaredMethods()) {
+            if (!java.lang.reflect.Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+            if (method.getParameterCount() != 1) {
+                continue;
+            }
+            if (!fieldType.equals(method.getReturnType())) {
+                continue;
+            }
+            Class<?> parameterType = wrapPrimitiveType(method.getParameterTypes()[0]);
+            if (!isBoundaryConstructorTypeName(parameterType.getName()) && !parameterType.isEnum()) {
+                continue;
+            }
+            if (bestMatch == null
+                    || boundaryParameterPriority(parameterType) < boundaryParameterPriority(bestMatch)) {
+                bestMatch = parameterType;
+            }
+        }
+        return Optional.ofNullable(bestMatch);
+    }
+
+    private static int boundaryParameterPriority(Class<?> parameterType) {
+        if (Long.class.equals(parameterType)) {
+            return 0;
+        }
+        if (Integer.class.equals(parameterType)) {
+            return 1;
+        }
+        if (Instant.class.equals(parameterType)) {
+            return 2;
+        }
+        if (parameterType.isEnum()) {
+            return 3;
+        }
+        if (String.class.equals(parameterType)) {
+            return 4;
+        }
+        return 5;
+    }
+
+    private static boolean inheritsFrom(Class<?> fieldType, String expectedSuperclassName) {
+        Class<?> current = fieldType;
+        while (current != null) {
+            if (expectedSuperclassName.equals(current.getName())) {
+                return true;
+            }
+            current = current.getSuperclass();
+        }
+        return false;
+    }
+
+    private static boolean isBoundaryConstructorTypeName(String typeName) {
+        return BOUNDARY_CONSTRUCTOR_TYPES.contains(typeName);
+    }
+
+    private static Class<?> wrapPrimitiveType(Class<?> type) {
+        if (!type.isPrimitive()) {
+            return type;
+        }
+        if (Long.TYPE.equals(type)) {
+            return Long.class;
+        }
+        if (Integer.TYPE.equals(type)) {
+            return Integer.class;
+        }
+        return type;
+    }
+
     private static List<String> nonStaticFieldTypeNames(JavaClass javaClass) {
-        Field[] declaredFields = javaClass.reflect().getDeclaredFields();
-        return Arrays.stream(declaredFields)
-                .filter(field -> !java.lang.reflect.Modifier.isStatic(field.getModifiers()))
+        return nonStaticFields(javaClass).stream()
                 .map(Field::getType)
                 .map(Class::getName)
                 .collect(Collectors.toList());
+    }
+
+    private static List<Field> nonStaticFields(JavaClass javaClass) {
+        return Arrays.stream(javaClass.reflect().getDeclaredFields())
+                .filter(field -> !java.lang.reflect.Modifier.isStatic(field.getModifiers()))
+                .toList();
     }
 }

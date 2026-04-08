@@ -13,7 +13,8 @@ class InventoryEntityConstructorArchitectureTest {
                 "com.github.thundax.bacon.inventory.domain.model.entity.Inventory",
                 "com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter",
                 "com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog",
-                "com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox")
+                "com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox",
+                "com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask")
                 .check(NamingAndPlacementRuleSupport.importDomainClasses("com.github.thundax.bacon.inventory"));
     }
 }

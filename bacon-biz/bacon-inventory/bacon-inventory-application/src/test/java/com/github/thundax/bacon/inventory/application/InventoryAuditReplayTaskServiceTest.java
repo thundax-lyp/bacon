@@ -12,7 +12,9 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
@@ -57,7 +59,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         taskService.processClaimedTask(claimed.get(0), compensationService, owner, 10, 60);
 
         InventoryAuditReplayTask finished = repository.findAuditReplayTaskById(created.getTaskId()).orElseThrow();
-        assertEquals(InventoryAuditReplayTask.STATUS_SUCCEEDED, finished.getStatus());
+        assertEquals(InventoryAuditReplayTaskStatus.SUCCEEDED, finished.getStatus());
         assertEquals(1, finished.getProcessedCount());
         assertEquals(1, finished.getSuccessCount());
         assertEquals(0, finished.getFailedCount());
@@ -153,9 +155,9 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         @Override
         public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
             if (task.getId() == null) {
-                task.setId(taskIdGenerator.getAndIncrement());
+                task.setId(TaskId.of(taskIdGenerator.getAndIncrement()));
             }
-            tasks.put(task.getId(), task);
+            tasks.put(task.getIdValue(), task);
             return task;
         }
 
@@ -178,13 +180,13 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
                                                                             String processingOwner, Instant leaseUntil) {
             return tasks.values().stream()
-                    .filter(task -> InventoryAuditReplayTask.STATUS_PENDING.equals(task.getStatus())
-                            || InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                    .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
+                            || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                     .filter(task -> task.getLeaseUntil() == null || !task.getLeaseUntil().isAfter(now))
-                    .sorted(Comparator.comparing(InventoryAuditReplayTask::getId))
+                    .sorted(Comparator.comparing(InventoryAuditReplayTask::getIdValue))
                     .limit(limit)
                     .peek(task -> {
-                        task.setStatus(InventoryAuditReplayTask.STATUS_RUNNING);
+                        task.setStatus(InventoryAuditReplayTaskStatus.RUNNING);
                         task.setProcessingOwner(processingOwner);
                         task.setLeaseUntil(leaseUntil);
                         if (task.getStartedAt() == null) {
@@ -251,7 +253,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {
                 return;
             }
-            task.setStatus(com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus.fromValue(status));
+            task.setStatus(InventoryAuditReplayTaskStatus.fromValue(status));
             task.setLastError(lastError);
             task.setProcessingOwner(null);
             task.setLeaseUntil(null);

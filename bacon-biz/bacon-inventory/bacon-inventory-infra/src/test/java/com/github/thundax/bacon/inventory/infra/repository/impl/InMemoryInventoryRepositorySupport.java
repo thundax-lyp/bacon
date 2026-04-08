@@ -13,6 +13,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActio
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import lombok.extern.slf4j.Slf4j;
@@ -405,14 +406,14 @@ public class InMemoryInventoryRepositorySupport {
 
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         if (task.getId() == null) {
-            task = new InventoryAuditReplayTask(auditReplayTaskIdGenerator.getAndIncrement(), task.getTenantId(),
-                    task.getTaskNo(), task.getStatus(), task.getTotalCount(), task.getProcessedCount(),
+            task = new InventoryAuditReplayTask(auditReplayTaskIdGenerator.getAndIncrement(), task.getTenantIdValue(),
+                    task.getTaskNoValue(), task.getStatus(), task.getTotalCount(), task.getProcessedCount(),
                     task.getSuccessCount(), task.getFailedCount(), task.getReplayKeyPrefix(), task.getOperatorType(),
-                    task.getOperatorId(), task.getProcessingOwner(), task.getLeaseUntil(), task.getLastError(),
+                    task.getOperatorIdValue(), task.getProcessingOwner(), task.getLeaseUntil(), task.getLastError(),
                     task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(), task.getFinishedAt(),
                     task.getUpdatedAt());
         }
-        auditReplayTasks.put(task.getId(), task);
+        auditReplayTasks.put(task.getIdValue(), task);
         return task;
     }
 
@@ -431,14 +432,14 @@ public class InMemoryInventoryRepositorySupport {
     public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
                                                                         String processingOwner, Instant leaseUntil) {
         return auditReplayTasks.values().stream()
-                .filter(task -> InventoryAuditReplayTask.STATUS_PENDING.equals(task.getStatus())
-                        || InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
+                        || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .filter(task -> task.getLeaseUntil() == null || !task.getLeaseUntil().isAfter(now))
                 .sorted(java.util.Comparator.comparing(InventoryAuditReplayTask::getCreatedAt)
-                        .thenComparing(InventoryAuditReplayTask::getId))
+                        .thenComparing(InventoryAuditReplayTask::getIdValue))
                 .limit(limit)
                 .peek(task -> {
-                    task.setStatus(InventoryAuditReplayTask.STATUS_RUNNING);
+                    task.setStatus(InventoryAuditReplayTaskStatus.RUNNING);
                     task.setProcessingOwner(processingOwner);
                     task.setLeaseUntil(leaseUntil);
                     if (task.getStartedAt() == null) {
@@ -451,7 +452,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
         findAuditReplayTaskById(taskId)
-                .filter(task -> InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .filter(task -> processingOwner.equals(task.getProcessingOwner()))
                 .ifPresent(task -> {
                     task.setLeaseUntil(leaseUntil);
@@ -490,7 +491,7 @@ public class InMemoryInventoryRepositorySupport {
     public void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
                                                  int successDelta, int failedDelta, Instant updatedAt) {
         findAuditReplayTaskById(taskId)
-                .filter(task -> InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .filter(task -> processingOwner.equals(task.getProcessingOwner()))
                 .ifPresent(task -> {
                     task.setProcessedCount((task.getProcessedCount() == null ? 0 : task.getProcessedCount())
@@ -506,10 +507,10 @@ public class InMemoryInventoryRepositorySupport {
     public void finishAuditReplayTask(Long taskId, String processingOwner, String status, String lastError,
                                       Instant finishedAt) {
         findAuditReplayTaskById(taskId)
-                .filter(task -> InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .filter(task -> processingOwner.equals(task.getProcessingOwner()))
                 .ifPresent(task -> {
-                    task.setStatus(com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus.fromValue(status));
+                    task.setStatus(InventoryAuditReplayTaskStatus.fromValue(status));
                     task.setLastError(lastError);
                     task.setProcessingOwner(null);
                     task.setLeaseUntil(null);
@@ -520,11 +521,11 @@ public class InMemoryInventoryRepositorySupport {
 
     public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> tenantId.equals(task.getTenantId()))
-                .filter(task -> InventoryAuditReplayTask.STATUS_PENDING.equals(task.getStatus())
-                        || InventoryAuditReplayTask.STATUS_RUNNING.equals(task.getStatus()))
+                .filter(task -> tenantId.equals(task.getTenantIdValue()))
+                .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
+                        || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .map(task -> {
-                    task.setStatus(InventoryAuditReplayTask.STATUS_PAUSED);
+                    task.setStatus(InventoryAuditReplayTaskStatus.PAUSED);
                     task.setProcessingOwner(null);
                     task.setLeaseUntil(null);
                     task.setPausedAt(pausedAt);
@@ -535,10 +536,10 @@ public class InMemoryInventoryRepositorySupport {
 
     public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> tenantId.equals(task.getTenantId()))
-                .filter(task -> InventoryAuditReplayTask.STATUS_PAUSED.equals(task.getStatus()))
+                .filter(task -> tenantId.equals(task.getTenantIdValue()))
+                .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))
                 .map(task -> {
-                    task.setStatus(InventoryAuditReplayTask.STATUS_PENDING);
+                    task.setStatus(InventoryAuditReplayTaskStatus.PENDING);
                     task.setPausedAt(null);
                     task.setUpdatedAt(updatedAt);
                     return true;

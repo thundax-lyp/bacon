@@ -60,7 +60,7 @@ public class InventoryAuditReplayTaskWorker {
             } catch (RuntimeException ex) {
                 Metrics.counter("bacon.inventory.audit.replay.task.worker.fail.total").increment();
                 log.error("ALERT inventory audit replay task worker failed, taskId={}, taskNo={}",
-                        task.getId(), task.getTaskNo(), ex);
+                        task.getIdValue(), task.getTaskNoValue(), ex);
             }
         }
     }

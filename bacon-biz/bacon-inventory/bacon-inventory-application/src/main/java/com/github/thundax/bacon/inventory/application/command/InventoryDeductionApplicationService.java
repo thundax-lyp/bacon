@@ -1,17 +1,17 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
-import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
-import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
@@ -47,17 +47,17 @@ public class InventoryDeductionApplicationService {
                 new InventoryTransactionExecutor(), new InventoryWriteRetrier());
     }
 
-    public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
+    public InventoryReservationResultDTO deductReservedStock(TenantId tenantId, OrderNo orderNo) {
         return inventoryWriteRetrier.execute("deduct", tenantId + ":" + orderNo, () ->
                 inventoryTransactionExecutor.executeInNewTransaction(() ->
                         deductReservedStockOnce(tenantId, orderNo)));
     }
 
-    private InventoryReservationResultDTO deductReservedStockOnce(Long tenantId, String orderNo) {
-        InventoryReservation reservation = inventoryReservationRepository.findReservation(TenantIdMapper.toDomain(tenantId),
-                OrderNoMapper.toDomain(orderNo)).orElse(null);
+    private InventoryReservationResultDTO deductReservedStockOnce(TenantId tenantId, OrderNo orderNo) {
+        InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (reservation == null) {
-            return InventoryReservationResultAssembler.failed(tenantId, orderNo, InventoryErrorCode.RESERVATION_NOT_FOUND.code());
+            return InventoryReservationResultAssembler.failed(tenantId == null ? null : tenantId.value(),
+                    orderNo == null ? null : orderNo.value(), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
             return InventoryReservationResultAssembler.fromReservation(reservation);
@@ -73,8 +73,8 @@ public class InventoryDeductionApplicationService {
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
-    private void deductStockOnce(Long tenantId, Long skuId, int quantity, Instant operatedAt) {
-        Inventory inventory = inventoryStockRepository.findInventory(TenantIdMapper.toDomain(tenantId), SkuIdMapper.toDomain(skuId))
+    private void deductStockOnce(TenantId tenantId, Long skuId, int quantity, Instant operatedAt) {
+        Inventory inventory = inventoryStockRepository.findInventory(tenantId, SkuIdMapper.toDomain(skuId))
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
         inventory.deduct(quantity, operatedAt);

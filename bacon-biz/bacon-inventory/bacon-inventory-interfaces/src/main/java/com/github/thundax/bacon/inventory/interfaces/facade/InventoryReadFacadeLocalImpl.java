@@ -1,8 +1,10 @@
 package com.github.thundax.bacon.inventory.interfaces.facade;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
+import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -32,6 +34,6 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
 
     @Override
     public InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo) {
-        return inventoryQueryService.getReservationByOrderNo(tenantId, orderNo);
+        return inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo));
     }
 }

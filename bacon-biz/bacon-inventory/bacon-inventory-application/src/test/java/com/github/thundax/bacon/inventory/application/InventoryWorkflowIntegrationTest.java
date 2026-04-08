@@ -73,12 +73,12 @@ class InventoryWorkflowIntegrationTest {
         try {
             CompletableFuture<InventoryReservationResultDTO> first = CompletableFuture.supplyAsync(() -> {
                 await(start);
-                return service.reserveStock(1001L, "ORDER-C1",
+                return service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-C1"),
                         List.of(new InventoryReservationItemDTO(101L, 40)));
             }, pool);
             CompletableFuture<InventoryReservationResultDTO> second = CompletableFuture.supplyAsync(() -> {
                 await(start);
-                return service.reserveStock(1001L, "ORDER-C2",
+                return service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-C2"),
                         List.of(new InventoryReservationItemDTO(101L, 40)));
             }, pool);
 

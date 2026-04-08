@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.application.query;
 
 import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
@@ -20,6 +21,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
@@ -80,21 +82,21 @@ public class InventoryQueryApplicationService {
         return new InventoryPageResultDTO(records, total, pageNo, pageSize);
     }
 
-    public InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo) {
-        InventoryReservation reservation = inventoryReservationRepository.findReservation(TenantIdMapper.toDomain(tenantId),
-                        OrderNoMapper.toDomain(orderNo))
-                .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.RESERVATION_NOT_FOUND, orderNo));
+    public InventoryReservationDTO getReservationByOrderNo(TenantId tenantId, OrderNo orderNo) {
+        InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo)
+                .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.RESERVATION_NOT_FOUND,
+                        orderNo == null ? null : orderNo.value()));
         return toReservationDto(reservation);
     }
 
-    public List<InventoryLedgerDTO> listLedgersByOrderNo(Long tenantId, String orderNo) {
-        return inventoryAuditRecordRepository.findLedgers(TenantIdMapper.toDomain(tenantId), OrderNoMapper.toDomain(orderNo)).stream()
+    public List<InventoryLedgerDTO> listLedgersByOrderNo(TenantId tenantId, OrderNo orderNo) {
+        return inventoryAuditRecordRepository.findLedgers(tenantId, orderNo).stream()
                 .map(this::toLedgerDto)
                 .toList();
     }
 
-    public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(Long tenantId, String orderNo) {
-        return inventoryAuditRecordRepository.findAuditLogs(TenantIdMapper.toDomain(tenantId), OrderNoMapper.toDomain(orderNo)).stream()
+    public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(TenantId tenantId, OrderNo orderNo) {
+        return inventoryAuditRecordRepository.findAuditLogs(tenantId, orderNo).stream()
                 .map(this::toAuditLogDto)
                 .toList();
     }

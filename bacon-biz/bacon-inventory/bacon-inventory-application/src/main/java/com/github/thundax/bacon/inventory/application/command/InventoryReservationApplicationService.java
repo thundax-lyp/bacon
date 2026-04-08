@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
-import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
-import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.application.mapper.ReservationNoMapper;
 import com.github.thundax.bacon.inventory.application.mapper.WarehouseNoMapper;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
@@ -66,15 +65,14 @@ public class InventoryReservationApplicationService {
                 inventoryReservationNoGenerator, new InventoryTransactionExecutor(), new InventoryWriteRetrier());
     }
 
-    public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
+    public InventoryReservationResultDTO reserveStock(TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
         return inventoryWriteRetrier.execute("reserve", tenantId + ":" + orderNo, () ->
                 inventoryTransactionExecutor.executeInNewTransaction(() ->
                         reserveStockOnce(tenantId, orderNo, items)));
     }
 
-    private InventoryReservationResultDTO reserveStockOnce(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
-        InventoryReservation existingReservation = inventoryReservationRepository.findReservation(TenantIdMapper.toDomain(tenantId),
-                OrderNoMapper.toDomain(orderNo)).orElse(null);
+    private InventoryReservationResultDTO reserveStockOnce(TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
+        InventoryReservation existingReservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (existingReservation != null) {
             if (InventoryReservationStatus.CREATED.equals(existingReservation.getReservationStatus())) {
                 return completeCreatedReservation(existingReservation);
@@ -84,21 +82,20 @@ public class InventoryReservationApplicationService {
         return createReservation(tenantId, orderNo, items);
     }
 
-    private InventoryReservationResultDTO createReservation(Long tenantId, String orderNo,
+    private InventoryReservationResultDTO createReservation(TenantId tenantId, OrderNo orderNo,
                                                             List<InventoryReservationItemDTO> items) {
         String reservationNo = inventoryReservationNoGenerator.nextReservationNo();
         ReservationNo reservationNoValue = ReservationNoMapper.toDomain(reservationNo);
-        OrderNo orderNoValue = OrderNoMapper.toDomain(orderNo);
         WarehouseNo warehouseNoValue = WarehouseNoMapper.toDomain(Inventory.DEFAULT_WAREHOUSE_NO.value());
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
         List<InventoryReservationItem> reservationItems = normalizedItems.stream()
-                .map(item -> new InventoryReservationItem(null, TenantIdMapper.toDomain(tenantId),
+                .map(item -> new InventoryReservationItem(null, tenantId,
                         reservationNoValue, SkuIdMapper.toDomain(item.getSkuId()),
                         item.getQuantity()))
                 .toList();
         InventoryReservation reservation = new InventoryReservation(null,
-                TenantIdMapper.toDomain(tenantId),
-                reservationNoValue, orderNoValue, warehouseNoValue, Instant.now(), reservationItems,
+                tenantId,
+                reservationNoValue, orderNo, warehouseNoValue, Instant.now(), reservationItems,
                 InventoryReservationStatus.CREATED, null, null, null, null);
 
         ReservationValidationResult validationResult = validateReservation(tenantId, normalizedItems);
@@ -146,7 +143,7 @@ public class InventoryReservationApplicationService {
                 .toList();
     }
 
-    private ReservationValidationResult validateReservation(Long tenantId, List<InventoryReservationItemDTO> items) {
+    private ReservationValidationResult validateReservation(TenantId tenantId, List<InventoryReservationItemDTO> items) {
         if (items.isEmpty()) {
             return ReservationValidationResult.failed(InventoryErrorCode.INVALID_QUANTITY.code());
         }
@@ -154,7 +151,7 @@ public class InventoryReservationApplicationService {
                 .map(InventoryReservationItemDTO::getSkuId)
                 .filter(java.util.Objects::nonNull)
                 .collect(java.util.stream.Collectors.toSet());
-        Map<Long, Inventory> inventoryBySku = inventoryStockRepository.findInventories(TenantIdMapper.toDomain(tenantId),
+        Map<Long, Inventory> inventoryBySku = inventoryStockRepository.findInventories(tenantId,
                         skuIds.stream().map(SkuIdMapper::toDomain).collect(java.util.stream.Collectors.toSet())).stream()
                 .collect(java.util.stream.Collectors.toMap(
                         inventory -> inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
@@ -187,11 +184,11 @@ public class InventoryReservationApplicationService {
         }
     }
 
-    private InventoryReservation tryFindExistingReservation(Long tenantId, String orderNo) {
-        return inventoryReservationRepository.findReservation(TenantIdMapper.toDomain(tenantId), OrderNoMapper.toDomain(orderNo)).orElse(null);
+    private InventoryReservation tryFindExistingReservation(TenantId tenantId, OrderNo orderNo) {
+        return inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
     }
 
-    private void reserveStockOnce(Long tenantId,
+    private void reserveStockOnce(TenantId tenantId,
                                   InventoryReservationItem item,
                                   Instant operatedAt,
                                   Map<Long, Inventory> inventoryBySku) {
@@ -211,7 +208,7 @@ public class InventoryReservationApplicationService {
                 .map(item -> new InventoryReservationItemDTO(item.getSkuId() == null ? null : item.getSkuId().value(),
                         item.getQuantity()))
                 .toList();
-        ReservationValidationResult validationResult = validateReservation(reservation.getTenantId() == null ? null : reservation.getTenantId().value(), items);
+        ReservationValidationResult validationResult = validateReservation(reservation.getTenantId(), items);
         String failureReason = validationResult.failureReason();
         if (failureReason != null) {
             reservation.fail(failureReason);
@@ -222,7 +219,7 @@ public class InventoryReservationApplicationService {
         Instant operatedAt = Instant.now();
         Map<Long, Inventory> inventoryBySku = new HashMap<>(validationResult.inventoryBySku());
         for (InventoryReservationItem item : reservation.getItems()) {
-            reserveStockOnce(reservation.getTenantId() == null ? null : reservation.getTenantId().value(), item, operatedAt, inventoryBySku);
+            reserveStockOnce(reservation.getTenantId(), item, operatedAt, inventoryBySku);
         }
         reservation.reserve();
         InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);
@@ -230,8 +227,8 @@ public class InventoryReservationApplicationService {
         return InventoryReservationResultAssembler.fromReservation(persisted);
     }
 
-    private Inventory loadInventory(Long tenantId, Long skuId) {
-        return inventoryStockRepository.findInventory(TenantIdMapper.toDomain(tenantId), SkuIdMapper.toDomain(skuId))
+    private Inventory loadInventory(TenantId tenantId, Long skuId) {
+        return inventoryStockRepository.findInventory(tenantId, SkuIdMapper.toDomain(skuId))
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
     }

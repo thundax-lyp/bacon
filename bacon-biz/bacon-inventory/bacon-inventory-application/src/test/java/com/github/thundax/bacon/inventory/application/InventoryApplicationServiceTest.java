@@ -56,9 +56,9 @@ class InventoryApplicationServiceTest {
         );
         InventoryQueryApplicationService queryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryReservationResultDTO first = service.reserveStock(1001L, "ORDER-1",
+        InventoryReservationResultDTO first = service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-1"),
                 List.of(new InventoryReservationItemDTO(101L, 10)));
-        InventoryReservationResultDTO second = service.reserveStock(1001L, "ORDER-1",
+        InventoryReservationResultDTO second = service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-1"),
                 List.of(new InventoryReservationItemDTO(101L, 10)));
         InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
 
@@ -67,9 +67,9 @@ class InventoryApplicationServiceTest {
         assertEquals(first.getReservationNo(), second.getReservationNo());
         assertEquals(10, stock.getReservedQuantity());
         assertEquals(90, stock.getAvailableQuantity());
-        assertEquals(1, queryService.listLedgersByOrderNo(1001L, "ORDER-1").size());
+        assertEquals(1, queryService.listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-1")).size());
         assertEquals(InventoryLedgerType.RESERVE.value(),
-                queryService.listLedgersByOrderNo(1001L, "ORDER-1").get(0).getLedgerType());
+                queryService.listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-1")).get(0).getLedgerType());
     }
 
     @Test
@@ -84,7 +84,7 @@ class InventoryApplicationServiceTest {
         );
         InventoryQueryApplicationService queryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryReservationResultDTO result = service.reserveStock(1001L, "ORDER-2",
+        InventoryReservationResultDTO result = service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-2"),
                 List.of(new InventoryReservationItemDTO(101L, 1000)));
         InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
 
@@ -94,7 +94,7 @@ class InventoryApplicationServiceTest {
         assertEquals(0, stock.getReservedQuantity());
         assertEquals(100, stock.getAvailableQuantity());
         assertEquals(InventoryAuditActionType.RESERVE_FAILED.value(),
-                queryService.listAuditLogsByOrderNo(1001L, "ORDER-2").get(0).getActionType());
+                queryService.listAuditLogsByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-2")).get(0).getActionType());
     }
 
     @Test
@@ -109,18 +109,18 @@ class InventoryApplicationServiceTest {
         );
         InventoryQueryApplicationService queryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        service.reserveStock(1001L, "ORDER-3", List.of(new InventoryReservationItemDTO(101L, 5)));
-        InventoryReservationResultDTO firstRelease = service.releaseReservedStock(1001L, "ORDER-3", "USER_CANCELLED");
-        InventoryReservationResultDTO secondRelease = service.releaseReservedStock(1001L, "ORDER-3", "USER_CANCELLED");
+        service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-3"), List.of(new InventoryReservationItemDTO(101L, 5)));
+        InventoryReservationResultDTO firstRelease = service.releaseReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-3"), "USER_CANCELLED");
+        InventoryReservationResultDTO secondRelease = service.releaseReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-3"), "USER_CANCELLED");
         InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
 
         assertEquals(InventoryReservationStatus.RELEASED.value(), firstRelease.getReservationStatus());
         assertEquals(InventoryReservationStatus.RELEASED.value(), secondRelease.getReservationStatus());
         assertEquals(0, stock.getReservedQuantity());
         assertEquals(100, stock.getAvailableQuantity());
-        assertEquals(2, queryService.listLedgersByOrderNo(1001L, "ORDER-3").size());
+        assertEquals(2, queryService.listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-3")).size());
         assertEquals(InventoryAuditActionType.RELEASE.value(),
-                queryService.listAuditLogsByOrderNo(1001L, "ORDER-3").get(1).getActionType());
+                queryService.listAuditLogsByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-3")).get(1).getActionType());
     }
 
     @Test
@@ -135,9 +135,9 @@ class InventoryApplicationServiceTest {
         );
         InventoryQueryApplicationService queryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        service.reserveStock(1001L, "ORDER-4", List.of(new InventoryReservationItemDTO(101L, 7)));
-        InventoryReservationResultDTO firstDeduct = service.deductReservedStock(1001L, "ORDER-4");
-        InventoryReservationResultDTO secondDeduct = service.deductReservedStock(1001L, "ORDER-4");
+        service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-4"), List.of(new InventoryReservationItemDTO(101L, 7)));
+        InventoryReservationResultDTO firstDeduct = service.deductReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-4"));
+        InventoryReservationResultDTO secondDeduct = service.deductReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-4"));
         InventoryStockDTO stock = queryService.getAvailableStock(1001L, 101L);
 
         assertEquals(InventoryReservationStatus.DEDUCTED.value(), firstDeduct.getReservationStatus());
@@ -145,9 +145,9 @@ class InventoryApplicationServiceTest {
         assertEquals(0, stock.getReservedQuantity());
         assertEquals(93, stock.getOnHandQuantity());
         assertEquals(93, stock.getAvailableQuantity());
-        assertEquals(2, queryService.listLedgersByOrderNo(1001L, "ORDER-4").size());
+        assertEquals(2, queryService.listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-4")).size());
         assertEquals(InventoryLedgerType.DEDUCT.value(),
-                queryService.listLedgersByOrderNo(1001L, "ORDER-4").get(1).getLedgerType());
+                queryService.listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-4")).get(1).getLedgerType());
     }
 
     @Test
@@ -161,7 +161,7 @@ class InventoryApplicationServiceTest {
                 new InventoryDeductionApplicationService(repository, repository, operationLogService)
         );
 
-        service.reserveStock(1001L, "ORDER-5", List.of(
+        service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-5"), List.of(
                 new InventoryReservationItemDTO(101L, 2),
                 new InventoryReservationItemDTO(101L, 3)));
 

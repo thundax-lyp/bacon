@@ -1,7 +1,9 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,15 +23,15 @@ public class InventoryApplicationService {
         this.deductionApplicationService = deductionApplicationService;
     }
 
-    public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
+    public InventoryReservationResultDTO reserveStock(TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
         return reservationApplicationService.reserveStock(tenantId, orderNo, items);
     }
 
-    public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
+    public InventoryReservationResultDTO releaseReservedStock(TenantId tenantId, OrderNo orderNo, String reason) {
         return releaseApplicationService.releaseReservedStock(tenantId, orderNo, reason);
     }
 
-    public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
+    public InventoryReservationResultDTO deductReservedStock(TenantId tenantId, OrderNo orderNo) {
         return deductionApplicationService.deductReservedStock(tenantId, orderNo);
     }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.provider;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReleaseCommandDTO;
@@ -8,6 +9,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReserveCommandDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
+import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,21 +62,21 @@ public class InventoryProviderController {
     @GetMapping("/reservations/{orderNo}")
     public InventoryReservationDTO getReservation(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                   @PathVariable @NotBlank String orderNo) {
-        return inventoryQueryService.getReservationByOrderNo(tenantId, orderNo);
+        return inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo));
     }
 
     @Operation(summary = "按订单号查询库存流水")
     @GetMapping("/ledgers")
     public List<InventoryLedgerDTO> listLedgers(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                 @RequestParam("orderNo") @NotBlank String orderNo) {
-        return inventoryQueryService.listLedgersByOrderNo(tenantId, orderNo);
+        return inventoryQueryService.listLedgersByOrderNo(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo));
     }
 
     @Operation(summary = "按订单号查询库存审计日志")
     @GetMapping("/audit-logs")
     public List<InventoryAuditLogDTO> listAuditLogs(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                     @RequestParam("orderNo") @NotBlank String orderNo) {
-        return inventoryQueryService.listAuditLogsByOrderNo(tenantId, orderNo);
+        return inventoryQueryService.listAuditLogsByOrderNo(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo));
     }
 
     @Operation(summary = "预占库存")
@@ -82,7 +84,7 @@ public class InventoryProviderController {
     public InventoryReservationResultDTO reserve(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                  @PathVariable @NotBlank String orderNo,
                                                  @Valid @RequestBody InventoryReserveCommandDTO request) {
-        return inventoryApplicationService.reserveStock(tenantId, orderNo, request.getItems());
+        return inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo), request.getItems());
     }
 
     @Operation(summary = "释放预占库存")
@@ -90,13 +92,13 @@ public class InventoryProviderController {
     public InventoryReservationResultDTO release(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                  @PathVariable @NotBlank String orderNo,
                                                  @Valid @RequestBody InventoryReleaseCommandDTO request) {
-        return inventoryApplicationService.releaseReservedStock(tenantId, orderNo, request.getReason());
+        return inventoryApplicationService.releaseReservedStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo), request.getReason());
     }
 
     @Operation(summary = "扣减预占库存")
     @PostMapping("/reservations/{orderNo}/deduct")
     public InventoryReservationResultDTO deduct(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                 @PathVariable @NotBlank String orderNo) {
-        return inventoryApplicationService.deductReservedStock(tenantId, orderNo);
+        return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo));
     }
 }

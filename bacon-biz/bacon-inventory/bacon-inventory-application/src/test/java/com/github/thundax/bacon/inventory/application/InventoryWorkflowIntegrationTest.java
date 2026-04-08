@@ -245,17 +245,17 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public synchronized Inventory saveInventory(Inventory inventory) {
-            Inventory current = inventories.get(key(inventory.getTenantId().value(), inventory.getSkuId().value()));
+            Inventory current = inventories.get(key(inventory.getTenantId().value(), inventory.getSkuIdValue()));
             if (current == null) {
-                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(inventory.getSkuId()));
+                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(inventory.getSkuIdValue()));
             }
             if (!current.getVersion().equals(inventory.getVersion())) {
                 throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED,
-                        String.valueOf(inventory.getSkuId()));
+                        String.valueOf(inventory.getSkuIdValue()));
             }
             Inventory persisted = copy(inventory);
             persisted.markPersisted(current.getVersion() + 1);
-            inventories.put(key(persisted.getTenantId().value(), persisted.getSkuId().value()), persisted);
+            inventories.put(key(persisted.getTenantId().value(), persisted.getSkuIdValue()), persisted);
             return copy(persisted);
         }
 
@@ -455,7 +455,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         private Inventory copy(Inventory source) {
-            return new Inventory(source.getId().value(), source.getTenantId().value(), source.getSkuId().value(), source.getWarehouseNo().value(),
+            return new Inventory(source.getId().value(), source.getTenantId().value(), source.getSkuIdValue(), source.getWarehouseNo().value(),
                     source.getOnHandQuantity(), source.getReservedQuantity(), source.getAvailableQuantity(),
                     source.getStatus(), source.getVersion(), source.getUpdatedAt());
         }

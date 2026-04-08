@@ -98,13 +98,13 @@ public class InMemoryInventoryRepositorySupport {
     public Inventory saveInventory(Inventory inventory) {
         if (inventory.getId() == null) {
             inventory = new Inventory(inventoryIdGenerator.getAndIncrement(), inventory.getTenantId().value(),
-                    inventory.getSkuId().value(), inventory.getWarehouseNo().value(), inventory.getOnHandQuantity(),
+                    inventory.getSkuIdValue(), inventory.getWarehouseNo().value(), inventory.getOnHandQuantity(),
                     inventory.getReservedQuantity(), inventory.getAvailableQuantity(), inventory.getStatus(),
                     inventory.getVersion(), inventory.getUpdatedAt());
         }
         Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
         inventory.markPersisted(version);
-        inventories.put(key(inventory.getTenantId().value(), inventory.getSkuId().value()), inventory);
+        inventories.put(key(inventory.getTenantId().value(), inventory.getSkuIdValue()), inventory);
         return inventory;
     }
 

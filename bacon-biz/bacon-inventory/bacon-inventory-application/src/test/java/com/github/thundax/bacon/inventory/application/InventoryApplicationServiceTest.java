@@ -222,7 +222,7 @@ class InventoryApplicationServiceTest {
         public Inventory saveInventory(Inventory inventory) {
             Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
             inventory.markPersisted(version);
-            inventories.put(key(inventory.getTenantId().value(), inventory.getSkuId().value()), inventory);
+            inventories.put(key(inventory.getTenantId().value(), inventory.getSkuIdValue()), inventory);
             return inventory;
         }
 

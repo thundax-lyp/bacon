@@ -13,4 +13,8 @@ public final class OutboxIdMapper {
         }
         return OutboxId.of(value);
     }
+
+    public static Long toValue(OutboxId outboxId) {
+        return outboxId == null ? null : outboxId.value();
+    }
 }

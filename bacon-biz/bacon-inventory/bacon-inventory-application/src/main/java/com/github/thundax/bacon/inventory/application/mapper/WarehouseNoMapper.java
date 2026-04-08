@@ -13,4 +13,8 @@ public final class WarehouseNoMapper {
         }
         return WarehouseNo.of(value);
     }
+
+    public static String toValue(WarehouseNo warehouseNo) {
+        return warehouseNo == null ? null : warehouseNo.value();
+    }
 }

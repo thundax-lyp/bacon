@@ -13,4 +13,8 @@ public final class SkuIdMapper {
         }
         return SkuId.of(value);
     }
+
+    public static Long toValue(SkuId skuId) {
+        return skuId == null ? null : skuId.value();
+    }
 }

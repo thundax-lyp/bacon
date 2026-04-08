@@ -13,4 +13,8 @@ public final class InventoryIdMapper {
         }
         return InventoryId.of(value);
     }
+
+    public static Long toValue(InventoryId inventoryId) {
+        return inventoryId == null ? null : inventoryId.value();
+    }
 }

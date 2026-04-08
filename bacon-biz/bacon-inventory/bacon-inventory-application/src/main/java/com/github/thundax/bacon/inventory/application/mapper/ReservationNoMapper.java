@@ -13,4 +13,8 @@ public final class ReservationNoMapper {
         }
         return ReservationNo.of(value);
     }
+
+    public static String toValue(ReservationNo reservationNo) {
+        return reservationNo == null ? null : reservationNo.value();
+    }
 }

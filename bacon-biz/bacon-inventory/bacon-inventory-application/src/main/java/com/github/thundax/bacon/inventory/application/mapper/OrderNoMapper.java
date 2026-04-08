@@ -13,4 +13,8 @@ public final class OrderNoMapper {
         }
         return OrderNo.of(value);
     }
+
+    public static String toValue(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
 }

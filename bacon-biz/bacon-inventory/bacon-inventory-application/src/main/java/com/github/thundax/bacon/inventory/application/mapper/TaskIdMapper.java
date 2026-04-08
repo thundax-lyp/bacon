@@ -13,4 +13,8 @@ public final class TaskIdMapper {
         }
         return TaskId.of(value);
     }
+
+    public static Long toValue(TaskId taskId) {
+        return taskId == null ? null : taskId.value();
+    }
 }

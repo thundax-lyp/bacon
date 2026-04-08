@@ -13,4 +13,8 @@ public final class DeadLetterIdMapper {
         }
         return DeadLetterId.of(value);
     }
+
+    public static Long toValue(DeadLetterId deadLetterId) {
+        return deadLetterId == null ? null : deadLetterId.value();
+    }
 }

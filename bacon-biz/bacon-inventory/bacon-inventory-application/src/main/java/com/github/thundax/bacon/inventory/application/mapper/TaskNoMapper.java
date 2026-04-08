@@ -13,4 +13,8 @@ public final class TaskNoMapper {
         }
         return TaskNo.of(value);
     }
+
+    public static String toValue(TaskNo taskNo) {
+        return taskNo == null ? null : taskNo.value();
+    }
 }

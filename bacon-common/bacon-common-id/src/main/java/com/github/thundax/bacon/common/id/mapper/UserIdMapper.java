@@ -13,4 +13,8 @@ public final class UserIdMapper {
         }
         return UserId.of(value);
     }
+
+    public static Long toValue(UserId userId) {
+        return userId == null ? null : userId.value();
+    }
 }

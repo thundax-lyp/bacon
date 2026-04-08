@@ -13,4 +13,8 @@ public final class EventCodeMapper {
         }
         return EventCode.of(value);
     }
+
+    public static String toValue(EventCode eventCode) {
+        return eventCode == null ? null : eventCode.value();
+    }
 }

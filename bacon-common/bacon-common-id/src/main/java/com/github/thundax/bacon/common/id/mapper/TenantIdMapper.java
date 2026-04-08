@@ -13,4 +13,8 @@ public final class TenantIdMapper {
         }
         return TenantId.of(value);
     }
+
+    public static Long toValue(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
+    }
 }

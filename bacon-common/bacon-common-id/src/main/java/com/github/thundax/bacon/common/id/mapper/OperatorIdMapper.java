@@ -13,4 +13,8 @@ public final class OperatorIdMapper {
         }
         return OperatorId.of(value);
     }
+
+    public static String toValue(OperatorId operatorId) {
+        return operatorId == null ? null : operatorId.value();
+    }
 }

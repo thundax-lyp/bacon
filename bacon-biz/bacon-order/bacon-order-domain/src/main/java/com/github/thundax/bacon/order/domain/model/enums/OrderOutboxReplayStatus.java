@@ -1,30 +1,23 @@
 package com.github.thundax.bacon.order.domain.model.enums;
 
+import java.util.Arrays;
+
 /**
  * 订单出站死信回放状态。
  */
 public enum OrderOutboxReplayStatus {
-
-    PENDING("PENDING"),
-    SUCCESS("SUCCESS"),
-    FAILED("FAILED");
-
-    private final String value;
-
-    OrderOutboxReplayStatus(String value) {
-        this.value = value;
-    }
+    PENDING,
+    SUCCESS,
+    FAILED;
 
     public String value() {
-        return value;
+        return name();
     }
 
     public static OrderOutboxReplayStatus fromValue(String value) {
-        for (OrderOutboxReplayStatus status : values()) {
-            if (status.value.equals(value)) {
-                return status;
-            }
-        }
-        throw new IllegalArgumentException("Unsupported order outbox replay status: " + value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported order outbox replay status: " + value));
     }
 }

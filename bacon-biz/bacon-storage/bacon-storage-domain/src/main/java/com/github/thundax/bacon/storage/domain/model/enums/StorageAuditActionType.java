@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.domain.model.enums;
 
+import java.util.Arrays;
+
 /**
  * 存储审计动作类型。
  */
@@ -15,6 +17,9 @@ public enum StorageAuditActionType {
     }
 
     public static StorageAuditActionType fromValue(String value) {
-        return value == null ? null : StorageAuditActionType.valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown storage audit action type: " + value));
     }
 }

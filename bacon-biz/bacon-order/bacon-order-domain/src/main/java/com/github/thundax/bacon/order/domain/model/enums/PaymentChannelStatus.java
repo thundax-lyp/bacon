@@ -1,31 +1,24 @@
 package com.github.thundax.bacon.order.domain.model.enums;
 
+import java.util.Arrays;
+
 /**
  * 支付渠道状态。
  */
 public enum PaymentChannelStatus {
-
-    PAYING("PAYING"),
-    SUCCESS("SUCCESS"),
-    FAILED("FAILED"),
-    CLOSED("CLOSED");
-
-    private final String value;
-
-    PaymentChannelStatus(String value) {
-        this.value = value;
-    }
+    PAYING,
+    SUCCESS,
+    FAILED,
+    CLOSED;
 
     public String value() {
-        return value;
+        return name();
     }
 
     public static PaymentChannelStatus fromValue(String value) {
-        for (PaymentChannelStatus status : values()) {
-            if (status.value.equals(value)) {
-                return status;
-            }
-        }
-        throw new IllegalArgumentException("Unsupported payment channel status: " + value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported payment channel status: " + value));
     }
 }

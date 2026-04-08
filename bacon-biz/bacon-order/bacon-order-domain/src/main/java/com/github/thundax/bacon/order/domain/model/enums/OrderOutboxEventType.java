@@ -1,30 +1,23 @@
 package com.github.thundax.bacon.order.domain.model.enums;
 
+import java.util.Arrays;
+
 /**
  * 订单出站事件类型。
  */
 public enum OrderOutboxEventType {
-
-    RESERVE_STOCK("RESERVE_STOCK"),
-    CREATE_PAYMENT("CREATE_PAYMENT"),
-    RELEASE_STOCK("RELEASE_STOCK");
-
-    private final String value;
-
-    OrderOutboxEventType(String value) {
-        this.value = value;
-    }
+    RESERVE_STOCK,
+    CREATE_PAYMENT,
+    RELEASE_STOCK;
 
     public String value() {
-        return value;
+        return name();
     }
 
     public static OrderOutboxEventType fromValue(String value) {
-        for (OrderOutboxEventType type : values()) {
-            if (type.value.equals(value)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("Unsupported order outbox event type: " + value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported order outbox event type: " + value));
     }
 }

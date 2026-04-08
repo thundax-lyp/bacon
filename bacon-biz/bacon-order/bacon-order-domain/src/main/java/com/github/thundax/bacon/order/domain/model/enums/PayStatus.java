@@ -1,32 +1,25 @@
 package com.github.thundax.bacon.order.domain.model.enums;
 
+import java.util.Arrays;
+
 /**
  * 支付状态。
  */
 public enum PayStatus {
-
-    UNPAID("UNPAID"),
-    PAYING("PAYING"),
-    PAID("PAID"),
-    FAILED("FAILED"),
-    CLOSED("CLOSED");
-
-    private final String value;
-
-    PayStatus(String value) {
-        this.value = value;
-    }
+    UNPAID,
+    PAYING,
+    PAID,
+    FAILED,
+    CLOSED;
 
     public String value() {
-        return value;
+        return name();
     }
 
     public static PayStatus fromValue(String value) {
-        for (PayStatus payStatus : values()) {
-            if (payStatus.value.equals(value)) {
-                return payStatus;
-            }
-        }
-        throw new IllegalArgumentException("Unsupported pay status: " + value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported pay status: " + value));
     }
 }

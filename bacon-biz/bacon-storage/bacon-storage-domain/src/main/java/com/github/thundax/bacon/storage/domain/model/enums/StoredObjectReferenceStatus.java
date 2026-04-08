@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum StoredObjectReferenceStatus {
 
     UNREFERENCED,
@@ -10,6 +12,10 @@ public enum StoredObjectReferenceStatus {
     }
 
     public static StoredObjectReferenceStatus fromValue(String value) {
-        return value == null ? null : StoredObjectReferenceStatus.valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Unknown stored object reference status: " + value));
     }
 }

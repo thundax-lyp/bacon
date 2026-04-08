@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum ResourceType {
 
     API,
@@ -11,6 +13,9 @@ public enum ResourceType {
     }
 
     public static ResourceType fromValue(String value) {
-        return value == null ? null : valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown resource type: " + value));
     }
 }

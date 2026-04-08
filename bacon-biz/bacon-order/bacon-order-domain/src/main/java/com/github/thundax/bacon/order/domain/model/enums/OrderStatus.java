@@ -1,33 +1,26 @@
 package com.github.thundax.bacon.order.domain.model.enums;
 
+import java.util.Arrays;
+
 /**
  * 订单主状态。
  */
 public enum OrderStatus {
-
-    CREATED("CREATED"),
-    RESERVING_STOCK("RESERVING_STOCK"),
-    PENDING_PAYMENT("PENDING_PAYMENT"),
-    PAID("PAID"),
-    CANCELLED("CANCELLED"),
-    CLOSED("CLOSED");
-
-    private final String value;
-
-    OrderStatus(String value) {
-        this.value = value;
-    }
+    CREATED,
+    RESERVING_STOCK,
+    PENDING_PAYMENT,
+    PAID,
+    CANCELLED,
+    CLOSED;
 
     public String value() {
-        return value;
+        return name();
     }
 
     public static OrderStatus fromValue(String value) {
-        for (OrderStatus orderStatus : values()) {
-            if (orderStatus.value.equals(value)) {
-                return orderStatus;
-            }
-        }
-        throw new IllegalArgumentException("Unsupported order status: " + value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported order status: " + value));
     }
 }

@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum UploadStatus {
 
     INITIATED,
@@ -12,6 +14,9 @@ public enum UploadStatus {
     }
 
     public static UploadStatus fromValue(String value) {
-        return value == null ? null : UploadStatus.valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown upload status: " + value));
     }
 }

@@ -1,31 +1,24 @@
 package com.github.thundax.bacon.order.domain.model.enums;
 
+import java.util.Arrays;
+
 /**
  * 订单出站事件状态。
  */
 public enum OrderOutboxStatus {
-
-    NEW("NEW"),
-    RETRYING("RETRYING"),
-    PROCESSING("PROCESSING"),
-    DEAD("DEAD");
-
-    private final String value;
-
-    OrderOutboxStatus(String value) {
-        this.value = value;
-    }
+    NEW,
+    RETRYING,
+    PROCESSING,
+    DEAD;
 
     public String value() {
-        return value;
+        return name();
     }
 
     public static OrderOutboxStatus fromValue(String value) {
-        for (OrderOutboxStatus status : values()) {
-            if (status.value.equals(value)) {
-                return status;
-            }
-        }
-        throw new IllegalArgumentException("Unsupported order outbox status: " + value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported order outbox status: " + value));
     }
 }

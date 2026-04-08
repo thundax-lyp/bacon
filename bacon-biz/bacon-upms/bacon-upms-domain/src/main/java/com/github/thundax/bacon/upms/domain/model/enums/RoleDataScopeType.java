@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum RoleDataScopeType {
 
     ALL,
@@ -13,6 +15,9 @@ public enum RoleDataScopeType {
     }
 
     public static RoleDataScopeType fromValue(String value) {
-        return value == null ? null : valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown role data scope type: " + value));
     }
 }

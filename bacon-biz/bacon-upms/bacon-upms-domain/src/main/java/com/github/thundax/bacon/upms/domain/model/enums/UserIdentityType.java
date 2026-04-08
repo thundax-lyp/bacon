@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum UserIdentityType {
 
     ACCOUNT,
@@ -14,6 +16,9 @@ public enum UserIdentityType {
     }
 
     public static UserIdentityType fromValue(String value) {
-        return value == null ? null : valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown user identity type: " + value));
     }
 }

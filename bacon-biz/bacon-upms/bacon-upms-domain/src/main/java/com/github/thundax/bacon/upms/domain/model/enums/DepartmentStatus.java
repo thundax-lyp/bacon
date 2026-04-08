@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum DepartmentStatus {
 
     ENABLED,
@@ -10,6 +12,9 @@ public enum DepartmentStatus {
     }
 
     public static DepartmentStatus fromValue(String value) {
-        return value == null ? null : valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown department status: " + value));
     }
 }

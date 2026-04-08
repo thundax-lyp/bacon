@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.storage.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum StoredObjectStatus {
 
     ACTIVE,
@@ -11,6 +13,9 @@ public enum StoredObjectStatus {
     }
 
     public static StoredObjectStatus fromValue(String value) {
-        return value == null ? null : StoredObjectStatus.valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown stored object status: " + value));
     }
 }

@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum RoleType {
 
     SYSTEM_ROLE,
@@ -11,6 +13,9 @@ public enum RoleType {
     }
 
     public static RoleType fromValue(String value) {
-        return value == null ? null : valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown role type: " + value));
     }
 }

@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum InventoryReservationStatus {
 
     CREATED,
@@ -13,6 +15,9 @@ public enum InventoryReservationStatus {
     }
 
     public static InventoryReservationStatus fromValue(String value) {
-        return InventoryReservationStatus.valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown inventory reservation status: " + value));
     }
 }

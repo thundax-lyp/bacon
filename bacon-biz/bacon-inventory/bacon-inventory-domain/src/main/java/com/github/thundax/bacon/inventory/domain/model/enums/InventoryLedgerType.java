@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum InventoryLedgerType {
 
     RESERVE,
@@ -11,6 +13,9 @@ public enum InventoryLedgerType {
     }
 
     public static InventoryLedgerType fromValue(String value) {
-        return InventoryLedgerType.valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown inventory ledger type: " + value));
     }
 }

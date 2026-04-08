@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum TenantStatus {
 
     ACTIVE,
@@ -11,9 +13,9 @@ public enum TenantStatus {
     }
 
     public static TenantStatus fromValue(String value) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("tenant status must not be blank");
-        }
-        return valueOf(value.trim().toUpperCase());
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown tenant status: " + value));
     }
 }

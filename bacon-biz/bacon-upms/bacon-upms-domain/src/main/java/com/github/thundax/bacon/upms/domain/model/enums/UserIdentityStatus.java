@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.enums;
 
+import java.util.Arrays;
+
 public enum UserIdentityStatus {
 
     ACTIVE,
@@ -10,6 +12,9 @@ public enum UserIdentityStatus {
     }
 
     public static UserIdentityStatus fromValue(String value) {
-        return value == null ? null : UserIdentityStatus.valueOf(value);
+        return Arrays.stream(values())
+                .filter(item -> item.name().equalsIgnoreCase(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown user identity status: " + value));
     }
 }

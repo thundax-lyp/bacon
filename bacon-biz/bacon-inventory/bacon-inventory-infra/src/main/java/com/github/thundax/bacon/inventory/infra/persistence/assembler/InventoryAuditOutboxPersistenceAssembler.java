@@ -1,9 +1,14 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditOutboxDO;
 
 public final class InventoryAuditOutboxPersistenceAssembler {
@@ -23,17 +28,17 @@ public final class InventoryAuditOutboxPersistenceAssembler {
 
     public static InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
         return new InventoryAuditOutbox(
-                dataObject.getId(),
-                dataObject.getEventCode(),
-                dataObject.getTenantId(),
-                dataObject.getOrderNo(),
-                dataObject.getReservationNo(),
-                InventoryAuditActionType.from(dataObject.getActionType()),
-                InventoryAuditOperatorType.from(dataObject.getOperatorType()),
-                dataObject.getOperatorId(),
+                dataObject.getId() == null ? null : OutboxId.of(dataObject.getId()),
+                dataObject.getEventCode() == null ? null : EventCode.of(dataObject.getEventCode()),
+                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
+                dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),
+                dataObject.getReservationNo() == null ? null : ReservationNo.of(dataObject.getReservationNo()),
+                dataObject.getActionType() == null ? null : InventoryAuditActionType.from(dataObject.getActionType()),
+                dataObject.getOperatorType() == null ? null : InventoryAuditOperatorType.from(dataObject.getOperatorType()),
+                dataObject.getOperatorId() == null ? null : String.valueOf(dataObject.getOperatorId()),
                 dataObject.getOccurredAt(),
                 dataObject.getErrorMessage(),
-                InventoryAuditOutboxStatus.from(dataObject.getStatus()),
+                dataObject.getStatus() == null ? null : InventoryAuditOutboxStatus.from(dataObject.getStatus()),
                 dataObject.getRetryCount(),
                 dataObject.getNextRetryAt(),
                 dataObject.getProcessingOwner(),

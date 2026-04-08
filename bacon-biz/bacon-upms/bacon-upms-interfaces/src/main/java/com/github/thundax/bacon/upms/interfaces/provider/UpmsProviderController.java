@@ -90,8 +90,10 @@ public class UpmsProviderController {
 
     @Operation(summary = "按部门 ID 查询部门")
     @GetMapping("/departments/{departmentId}")
-    public DepartmentDTO getDepartmentById(@RequestParam("tenantId") Long tenantId, @PathVariable String departmentId) {
-        return departmentApplicationService.getDepartmentById(requireExistingTenantId(tenantId), DepartmentId.of(Long.parseLong(departmentId.trim())));
+    public DepartmentDTO getDepartmentById(@RequestParam("tenantId") Long tenantId, @PathVariable Long departmentId) {
+        return departmentApplicationService.getDepartmentById(
+                requireExistingTenantId(tenantId),
+                DepartmentId.of(departmentId));
     }
 
     @Operation(summary = "按部门编码查询部门")

@@ -14,7 +14,10 @@ import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
+import java.math.BigDecimal;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,6 +25,7 @@ import lombok.Setter;
  * 订单主单领域实体。
  */
 @Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Order {
 
     /** 订单主键。 */
@@ -84,18 +88,22 @@ public class Order {
     /** 订单关闭时间。 */
     private Instant closedAt;
 
-    public Order(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, CurrencyCode currencyCode, Money totalAmount,
-                 Money payableAmount, String remark, Instant expiredAt) {
-        this(id, tenantId, orderNo, userId, OrderStatus.CREATED, PayStatus.UNPAID, InventoryStatus.UNRESERVED,
+    public Order(Long id, Long tenantId, String orderNo, Long userId, CurrencyCode currencyCode, String totalAmount,
+                 String payableAmount, String remark, Instant expiredAt) {
+        this(id == null ? null : OrderId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                orderNo == null ? null : OrderNo.of(orderNo),
+                userId == null ? null : UserId.of(String.valueOf(userId)),
+                OrderStatus.CREATED, PayStatus.UNPAID, InventoryStatus.UNRESERVED,
                 null, null, currencyCode, totalAmount, payableAmount, remark, null, null, Instant.now(),
                 expiredAt, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     private Order(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, OrderStatus orderStatus, PayStatus payStatus,
-                  InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo, CurrencyCode currencyCode, Money totalAmount,
-                  Money payableAmount, String remark, String cancelReason,
+                  InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo, CurrencyCode currencyCode, String totalAmount,
+                  String payableAmount, String remark, String cancelReason,
                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
-                  PaymentChannel paymentChannelCode, Money paidAmount, String paymentChannelStatus,
+                  PaymentChannel paymentChannelCode, String paidAmount, String paymentChannelStatus,
                   String paymentFailureReason, Instant paymentFailedAt, WarehouseNo warehouseNo,
                   String inventoryFailureReason, String inventoryReleaseReason, Instant inventoryReleasedAt,
                   Instant inventoryDeductedAt) {
@@ -108,11 +116,14 @@ public class Order {
         this.inventoryStatus = inventoryStatus;
         this.paymentNo = paymentNo;
         this.reservationNo = reservationNo;
-        MoneyValidator.ensureSameCurrency(currencyCode, totalAmount, payableAmount, paidAmount);
+        Money resolvedTotalAmount = toMoney(totalAmount, currencyCode);
+        Money resolvedPayableAmount = toMoney(payableAmount, currencyCode);
+        Money resolvedPaidAmount = toMoney(paidAmount, currencyCode);
+        MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
         this.currencyCode = currencyCode;
-        MoneyValidator.ensureSameCurrency(totalAmount, payableAmount, paidAmount);
-        this.totalAmount = totalAmount;
-        this.payableAmount = payableAmount;
+        MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
+        this.totalAmount = resolvedTotalAmount;
+        this.payableAmount = resolvedPayableAmount;
         this.remark = remark;
         this.cancelReason = cancelReason;
         this.closeReason = closeReason;
@@ -121,7 +132,7 @@ public class Order {
         this.paidAt = paidAt;
         this.closedAt = closedAt;
         this.paymentChannelCode = paymentChannelCode;
-        this.paidAmount = paidAmount;
+        this.paidAmount = resolvedPaidAmount;
         this.paymentChannelStatus = paymentChannelStatus;
         this.paymentFailureReason = paymentFailureReason;
         this.paymentFailedAt = paymentFailedAt;
@@ -143,10 +154,19 @@ public class Order {
                                   Instant inventoryReleasedAt, Instant inventoryDeductedAt) {
         // 持久化重建必须保留主单与支付/库存派生状态，避免查询和回写时把终态信息重置成初始值。
         return new Order(id, tenantId, orderNo, userId, orderStatus, payStatus, inventoryStatus, paymentNo,
-                reservationNo, currencyCode, totalAmount, payableAmount, remark, cancelReason, closeReason, createdAt,
-                expiredAt, paidAt, closedAt, paymentChannelCode, paidAmount, paymentChannelStatus, paymentFailureReason,
+                reservationNo, currencyCode,
+                toAmountValue(totalAmount), toAmountValue(payableAmount), remark, cancelReason, closeReason, createdAt,
+                expiredAt, paidAt, closedAt, paymentChannelCode, toAmountValue(paidAmount), paymentChannelStatus, paymentFailureReason,
                 paymentFailedAt, warehouseNo, inventoryFailureReason, inventoryReleaseReason, inventoryReleasedAt,
                 inventoryDeductedAt);
+    }
+
+    private static Money toMoney(String amount, CurrencyCode currencyCode) {
+        return amount == null ? null : Money.of(new BigDecimal(amount), currencyCode);
+    }
+
+    private static String toAmountValue(Money money) {
+        return money == null ? null : money.value().toPlainString();
     }
 
     public String getCurrencyCodeValue() {

@@ -57,8 +57,7 @@ class OrderIdempotencyExecutorTest {
         AtomicInteger executedTimes = new AtomicInteger(0);
 
         OrderIdempotencyRecord stale = new OrderIdempotencyRecord(
-                OrderIdempotencyRecordKey.of(TenantId.of(1001L), OrderNo.of("ORD-3"),
-                        OrderIdempotencyExecutor.EVENT_MARK_PAID),
+                1001L, "ORD-3", OrderIdempotencyExecutor.EVENT_MARK_PAID,
                 OrderIdempotencyStatus.PROCESSING, 1, null,
                 "stale-owner", Instant.now().minusSeconds(30), Instant.now().minusSeconds(60),
                 Instant.now().minusSeconds(120), Instant.now().minusSeconds(60));
@@ -111,8 +110,7 @@ class OrderIdempotencyExecutorTest {
         public boolean createProcessing(OrderIdempotencyRecord record) {
             String key = keyOf(record.getTenantIdValue(), record.getOrderNoValue(), record.getEventType());
             OrderIdempotencyRecord value = new OrderIdempotencyRecord(
-                    OrderIdempotencyRecordKey.of(toTenantId(record.getTenantIdValue()),
-                            toOrderNo(record.getOrderNoValue()), record.getEventType()),
+                    record.getTenantIdValue(), record.getOrderNoValue(), record.getEventType(),
                     OrderIdempotencyStatus.PROCESSING, 1, null, record.getProcessingOwner(),
                     record.getLeaseUntil(), record.getClaimedAt(), Instant.now(), Instant.now());
             return storage.putIfAbsent(key, value) == null;

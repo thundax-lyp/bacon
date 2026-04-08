@@ -401,10 +401,12 @@ public class OrderRepositorySupport {
 
     private OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
         CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(currencyCode);
-        return new OrderItem(toDomainOrderTenantId(dataObject.getTenantId()), toDomainOrderId(toLongOrderId(dataObject.getOrderId())),
-                toDomainSkuId(dataObject.getSkuId()), dataObject.getSkuName(), dataObject.getImageUrl(),
-                dataObject.getQuantity(), Money.of(dataObject.getSalePrice(), resolvedCurrencyCode),
-                Money.of(dataObject.getLineAmount(), resolvedCurrencyCode));
+        return new OrderItem(dataObject.getTenantId(), toLongOrderId(dataObject.getOrderId()),
+                dataObject.getSkuId() == null ? null : Long.valueOf(dataObject.getSkuId()),
+                dataObject.getSkuName(), dataObject.getImageUrl(),
+                dataObject.getQuantity(), resolvedCurrencyCode,
+                dataObject.getSalePrice() == null ? null : dataObject.getSalePrice().toPlainString(),
+                dataObject.getLineAmount() == null ? null : dataObject.getLineAmount().toPlainString());
     }
 
     private SkuId toDomainSkuId(Long skuId) {

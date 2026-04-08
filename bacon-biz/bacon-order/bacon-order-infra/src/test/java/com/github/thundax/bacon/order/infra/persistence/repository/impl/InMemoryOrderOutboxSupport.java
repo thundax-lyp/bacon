@@ -181,18 +181,16 @@ public class InMemoryOrderOutboxSupport {
     }
 
     private OrderOutboxEvent copy(OrderOutboxEvent source) {
-        return new OrderOutboxEvent(source.getId(), source.getEventCode(),
-                source.getTenantId() == null ? null : TenantId.of(source.getTenantId().value()),
-                source.getOrderNo() == null ? null : OrderNo.of(source.getOrderNo().value()), source.getEventType(),
+        return new OrderOutboxEvent(source.getIdValue(), source.getEventCodeValue(),
+                source.getTenantIdValue(), source.getOrderNoValue(), source.getEventType(),
                 source.getBusinessKey(), source.getPayload(), source.getStatus(), source.getRetryCount(),
                 source.getNextRetryAt(), source.getProcessingOwner(), source.getLeaseUntil(), source.getClaimedAt(),
                 source.getErrorMessage(), source.getDeadReason(), source.getCreatedAt(), source.getUpdatedAt());
     }
 
     private OrderOutboxDeadLetter copy(OrderOutboxDeadLetter source) {
-        return new OrderOutboxDeadLetter(source.getOutboxId(), source.getEventCode(),
-                source.getTenantId() == null ? null : TenantId.of(source.getTenantId().value()),
-                source.getOrderNo() == null ? null : OrderNo.of(source.getOrderNo().value()),
+        return new OrderOutboxDeadLetter(source.getOutboxIdValue(), source.getEventCodeValue(),
+                source.getTenantIdValue(), source.getOrderNoValue(),
                 source.getEventType(), source.getBusinessKey(), source.getPayload(),
                 source.getRetryCount(), source.getErrorMessage(), source.getDeadReason(), source.getDeadAt(),
                 source.getReplayStatus(), source.getReplayCount(), source.getLastReplayAt(),

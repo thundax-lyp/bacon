@@ -196,8 +196,8 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxEvent toDomain(OrderOutboxEventDO dataObject) {
-        return new OrderOutboxEvent(toDomainOutboxId(dataObject.getId()), toDomainEventCode(dataObject.getEventCode()),
-                toDomainTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
+        return new OrderOutboxEvent(dataObject.getId(), dataObject.getEventCode(),
+                dataObject.getTenantId(), dataObject.getOrderNo(),
                 toDomainEventType(dataObject.getEventType()), dataObject.getBusinessKey(), dataObject.getPayload(),
                 toDomainStatus(dataObject.getStatus()),
                 dataObject.getRetryCount(), dataObject.getNextRetryAt(), dataObject.getProcessingOwner(),

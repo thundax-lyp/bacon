@@ -180,7 +180,8 @@ class OrderCreateApplicationServiceTest {
         @Override
         public boolean createProcessing(OrderIdempotencyRecord record) {
             String key = keyOf(record.getTenantIdValue(), record.getOrderNoValue(), record.getEventType());
-            OrderIdempotencyRecord value = new OrderIdempotencyRecord(record.getKey(),
+            OrderIdempotencyRecord value = new OrderIdempotencyRecord(record.getTenantIdValue(),
+                    record.getOrderNoValue(), record.getEventType(),
                     com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING, 1, null, record.getProcessingOwner(),
                     record.getLeaseUntil(), record.getClaimedAt(), Instant.now(), Instant.now());
             return storage.putIfAbsent(key, value) == null;

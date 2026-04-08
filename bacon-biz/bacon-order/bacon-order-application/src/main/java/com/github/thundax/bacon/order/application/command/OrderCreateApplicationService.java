@@ -59,9 +59,9 @@ public class OrderCreateApplicationService {
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
         orderRepository.saveItems(savedOrder.getTenantIdValue(), savedOrder.getIdValue(), items.stream()
-                .map(item -> new OrderItem(savedOrder.getTenantId(), toOrderId(savedOrder), toSkuId(item.skuId()),
-                        item.skuName(), item.imageUrl(), item.quantity(), Money.of(item.salePrice(), currencyCode),
-                        Money.of(calculateLineAmount(item), currencyCode)))
+                .map(item -> new OrderItem(savedOrder.getTenantIdValue(), savedOrder.getIdValue(), item.skuId(),
+                        item.skuName(), item.imageUrl(), item.quantity(), currencyCode,
+                        item.salePrice().toPlainString(), calculateLineAmount(item).toPlainString()))
                 .toList());
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);

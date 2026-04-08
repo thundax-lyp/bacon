@@ -14,6 +14,14 @@ public class OrderFactory {
     public Order create(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, CurrencyCode currencyCode,
                         Money totalAmount,
                         Money payableAmount, String remark, Instant expiredAt) {
-        return new Order(id, tenantId, orderNo, userId, currencyCode, totalAmount, payableAmount, remark, expiredAt);
+        return new Order(id == null ? null : id.value(),
+                tenantId == null ? null : tenantId.value(),
+                orderNo == null ? null : orderNo.value(),
+                userId == null ? null : Long.valueOf(userId.value()),
+                currencyCode,
+                totalAmount == null ? null : totalAmount.value().toPlainString(),
+                payableAmount == null ? null : payableAmount.value().toPlainString(),
+                remark,
+                expiredAt);
     }
 }

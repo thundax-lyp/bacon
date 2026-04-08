@@ -7,6 +7,7 @@ import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderOutboxEvent {
     /** 出站事件主键。 */
     private OutboxId id;
@@ -52,6 +53,18 @@ public class OrderOutboxEvent {
     private Instant createdAt;
     /** 最后更新时间。 */
     private Instant updatedAt;
+
+    public OrderOutboxEvent(Long id, String eventCode, Long tenantId, String orderNo, OrderOutboxEventType eventType,
+                            String businessKey, String payload, OrderOutboxStatus status, Integer retryCount,
+                            Instant nextRetryAt, String processingOwner, Instant leaseUntil, Instant claimedAt,
+                            String errorMessage, String deadReason, Instant createdAt, Instant updatedAt) {
+        this(id == null ? null : OutboxId.of(id),
+                eventCode == null ? null : EventCode.of(eventCode),
+                tenantId == null ? null : TenantId.of(tenantId),
+                orderNo == null ? null : OrderNo.of(orderNo),
+                eventType, businessKey, payload, status, retryCount, nextRetryAt, processingOwner, leaseUntil,
+                claimedAt, errorMessage, deadReason, createdAt, updatedAt);
+    }
 
     public String getEventCodeValue() {
         return eventCode == null ? null : eventCode.value();

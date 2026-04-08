@@ -155,9 +155,8 @@ public class OrderIdempotencyRepositorySupport {
     }
 
     private OrderIdempotencyRecord toDomain(OrderIdempotencyRecordDO dataObject) {
-        return new OrderIdempotencyRecord(OrderIdempotencyRecordKey.of(toDomainTenantId(dataObject.getTenantId()),
-                toDomainOrderNo(dataObject.getOrderNo()), dataObject.getEventType()),
-                OrderIdempotencyStatus.from(dataObject.getStatus()),
+        return new OrderIdempotencyRecord(dataObject.getTenantId(), dataObject.getOrderNo(),
+                dataObject.getEventType(), OrderIdempotencyStatus.from(dataObject.getStatus()),
                 dataObject.getAttemptCount(), dataObject.getLastError(), dataObject.getProcessingOwner(),
                 dataObject.getLeaseUntil(), dataObject.getClaimedAt(), dataObject.getCreatedAt(),
                 dataObject.getUpdatedAt());

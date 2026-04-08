@@ -121,8 +121,7 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
     }
 
     private OrderIdempotencyRecord copy(OrderIdempotencyRecord source) {
-        return new OrderIdempotencyRecord(OrderIdempotencyRecordKey.of(toTenantId(source.getTenantIdValue()),
-                toOrderNo(source.getOrderNoValue()), source.getEventType()),
+        return new OrderIdempotencyRecord(source.getTenantIdValue(), source.getOrderNoValue(), source.getEventType(),
                 source.getStatus(), source.getAttemptCount(),
                 source.getLastError(), source.getProcessingOwner(), source.getLeaseUntil(), source.getClaimedAt(),
                 source.getCreatedAt(), source.getUpdatedAt());

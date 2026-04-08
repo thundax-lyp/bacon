@@ -44,6 +44,19 @@ class NamingAndPlacementRuleSupportTest {
                 .doesNotContain("explicitConstructors=");
     }
 
+    @Test
+    void entityBoundaryConstructorRuleShouldSupportWildcardClassPatterns() {
+        EvaluationResult result = NamingAndPlacementRuleSupport
+                .entityShouldUseSingleExplicitBoundaryConstructor(
+                        NamingAndPlacementRuleSupportTest.class.getPackageName() + ".*EntityFixture")
+                .evaluate(new ClassFileImporter().importPackages(NamingAndPlacementRuleSupportTest.class.getPackageName()));
+
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(result.getFailureReport().getDetails())
+                .anyMatch(detail -> detail.contains(InvalidBoundaryTypeEntityFixture.class.getName()))
+                .anyMatch(detail -> detail.contains(MultipleExplicitConstructorsEntityFixture.class.getName()));
+    }
+
     private static EvaluationResult evaluate(Class<?> targetClass) {
         return NamingAndPlacementRuleSupport.entityShouldUseSingleExplicitBoundaryConstructor(targetClass.getName())
                 .evaluate(new ClassFileImporter().importPackages(targetClass.getPackageName()));

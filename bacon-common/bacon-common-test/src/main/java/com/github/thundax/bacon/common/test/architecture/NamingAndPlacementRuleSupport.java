@@ -27,7 +27,8 @@ public final class NamingAndPlacementRuleSupport {
             String.class.getName(),
             Long.class.getName(),
             Integer.class.getName(),
-            Instant.class.getName()
+            Instant.class.getName(),
+            List.class.getName()
     );
 
     private NamingAndPlacementRuleSupport() {
@@ -156,12 +157,13 @@ public final class NamingAndPlacementRuleSupport {
     }
 
     public static ArchRule entityShouldUseSingleExplicitBoundaryConstructor(String... fullyQualifiedClassNames) {
-        Set<String> classNames = Set.of(fullyQualifiedClassNames);
+        Set<String> classNamePatterns = Set.of(fullyQualifiedClassNames);
         return ArchRuleDefinition.classes()
                 .that(new DescribedPredicate<>("match configured entity classes") {
                     @Override
                     public boolean test(JavaClass input) {
-                        return classNames.contains(input.getFullName());
+                        return classNamePatterns.stream()
+                                .anyMatch(pattern -> matchesClassNamePattern(pattern, input.getFullName()));
                     }
                 })
                 .should(new ArchCondition<>("have a valid explicit boundary constructor") {
@@ -207,6 +209,21 @@ public final class NamingAndPlacementRuleSupport {
         return parameterTypeNames.equals(fieldTypeNames);
     }
 
+    private static boolean matchesClassNamePattern(String pattern, String fullName) {
+        if (!pattern.contains("*")) {
+            return pattern.equals(fullName);
+        }
+        String[] segments = pattern.split("\\*", -1);
+        StringBuilder regex = new StringBuilder();
+        for (int i = 0; i < segments.length; i++) {
+            regex.append(java.util.regex.Pattern.quote(segments[i]));
+            if (i < segments.length - 1) {
+                regex.append(".*");
+            }
+        }
+        return fullName.matches(regex.toString());
+    }
+
     static boolean isBoundaryConstructorType(JavaClass parameterType) {
         return BOUNDARY_CONSTRUCTOR_TYPES.contains(parameterType.getFullName()) || parameterType.isEnum();
     }
@@ -224,7 +241,7 @@ public final class NamingAndPlacementRuleSupport {
         if (explicitConstructors.size() == 1 && !invalidBoundaryTypes.isEmpty()) {
             reasons.add("Explicit boundary constructor " + formatConstructor(explicitConstructors.get(0))
                     + " uses unsupported parameter types " + invalidBoundaryTypes
-                    + "; allowed types are String, Long, Integer, Instant, and enum");
+                    + "; allowed types are String, Long, Integer, Instant, List, and enum");
         }
         if (explicitConstructors.size() == 1 && !delegatesToOwnConstructor) {
             reasons.add("Explicit boundary constructor " + formatConstructor(explicitConstructors.get(0))

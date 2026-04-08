@@ -109,12 +109,13 @@ public class BaconIdGeneratorAutoConfiguration {
             if (providerType == IdProviderType.SNOWFLAKE) {
                 continue;
             }
-            generators.add(switch (providerType) {
+            CompositeIdGenerator.NamedIdGenerator generator = switch (providerType) {
                 case TINYID -> new CompositeIdGenerator.NamedIdGenerator("tinyid", createTinyIdGenerator(properties));
                 case LEAF -> new CompositeIdGenerator.NamedIdGenerator("leaf",
                         createLeafIdGenerator(properties, restClientFactory, objectMapper));
                 case SNOWFLAKE -> throw new IllegalStateException("snowflake should not be part of primary generator chain");
-            });
+            };
+            generators.add(generator);
         }
         return generators;
     }

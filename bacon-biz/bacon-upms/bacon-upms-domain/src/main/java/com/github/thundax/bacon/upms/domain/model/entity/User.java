@@ -5,14 +5,15 @@ import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 用户领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class User {
 
     /** 用户主键。 */
@@ -36,35 +37,13 @@ public class User {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public User(UserId id, TenantId tenantId, String name, DepartmentId departmentId, UserStatus status) {
-        this(id, tenantId, name, null, departmentId, status);
-    }
-
-    public User(UserId id, TenantId tenantId, String name, StoredObjectId avatarObjectId, DepartmentId departmentId,
-                UserStatus status) {
-        this(id, tenantId, name, avatarObjectId, departmentId, status,
-                null, null, null, null);
-    }
-
-    public User(UserId id, TenantId tenantId, String name, DepartmentId departmentId, UserStatus status, String createdBy,
-                Instant createdAt,
-                String updatedBy, Instant updatedAt) {
-        this(id, tenantId, name, null, departmentId, status,
-                createdBy, createdAt, updatedBy, updatedAt);
-    }
-
-    public User(UserId id, TenantId tenantId, String name, StoredObjectId avatarObjectId, DepartmentId departmentId,
-                UserStatus status, String createdBy,
-                Instant createdAt, String updatedBy, Instant updatedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.name = name;
-        this.avatarObjectId = avatarObjectId;
-        this.departmentId = departmentId;
-        this.status = status;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
+    public User(Long id, Long tenantId, String name, Long avatarObjectId, Long departmentId, UserStatus status,
+                String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
+        this(id == null ? null : UserId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                name,
+                avatarObjectId == null ? null : StoredObjectId.of(avatarObjectId),
+                departmentId == null ? null : DepartmentId.of(departmentId),
+                status, createdBy, createdAt, updatedBy, updatedAt);
     }
 }

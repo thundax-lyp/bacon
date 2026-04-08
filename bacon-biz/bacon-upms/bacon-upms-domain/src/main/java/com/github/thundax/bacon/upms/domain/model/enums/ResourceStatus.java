@@ -11,7 +11,7 @@ public enum ResourceStatus {
         return name();
     }
 
-    public static ResourceStatus fromValue(String value) {
+    public static ResourceStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

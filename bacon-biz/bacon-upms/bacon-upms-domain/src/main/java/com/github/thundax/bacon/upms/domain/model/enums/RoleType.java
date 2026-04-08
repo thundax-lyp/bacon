@@ -12,7 +12,7 @@ public enum RoleType {
         return name();
     }
 
-    public static RoleType fromValue(String value) {
+    public static RoleType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

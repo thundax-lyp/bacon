@@ -11,7 +11,7 @@ public enum UserCredentialFactorLevel {
         return name();
     }
 
-    public static UserCredentialFactorLevel fromValue(String value) {
+    public static UserCredentialFactorLevel from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

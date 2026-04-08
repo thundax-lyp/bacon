@@ -4,14 +4,15 @@ import com.github.thundax.bacon.common.id.domain.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 部门领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class Department {
 
     /** 部门主键。 */
@@ -39,25 +40,14 @@ public class Department {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Department(DepartmentId id, TenantId tenantId, String code, String name, DepartmentId parentId,
-                      UserId leaderUserId, Integer sort, DepartmentStatus status) {
-        this(id, tenantId, code, name, parentId, leaderUserId, sort, status, null, null, null, null);
-    }
-
-    public Department(DepartmentId id, TenantId tenantId, String code, String name, DepartmentId parentId, UserId leaderUserId,
+    public Department(Long id, Long tenantId, String code, String name, Long parentId, Long leaderUserId,
                       Integer sort, DepartmentStatus status, String createdBy, Instant createdAt, String updatedBy,
                       Instant updatedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.code = code;
-        this.name = name;
-        this.parentId = parentId;
-        this.leaderUserId = leaderUserId;
-        this.sort = sort;
-        this.status = status;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
+        this(id == null ? null : DepartmentId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                code, name,
+                parentId == null ? null : DepartmentId.of(parentId),
+                leaderUserId == null ? null : UserId.of(leaderUserId),
+                sort, status, createdBy, createdAt, updatedBy, updatedAt);
     }
 }

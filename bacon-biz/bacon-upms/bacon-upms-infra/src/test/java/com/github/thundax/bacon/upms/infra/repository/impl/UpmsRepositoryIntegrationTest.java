@@ -295,17 +295,17 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
         Department rootDepartment = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Headquarters",
-                null, null, 1, DepartmentStatus.ENABLED));
+                null, null, 1, DepartmentStatus.ENABLED, null, null, null, null));
         Department childDepartment = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                rootDepartment.getId(), null, 2, DepartmentStatus.ENABLED));
+                rootDepartment.getId(), null, 2, DepartmentStatus.ENABLED, null, null, null, null));
         Menu rootMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
         Menu childMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Users", rootMenu.getId(), "/system/users", "UserPage", "user", 2, "upms:user:view", List.of()));
         Resource resource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:user:edit", "Edit User",
-                ResourceType.API, "POST", "/users", ResourceStatus.ENABLED));
+                ResourceType.API, "POST", "/users", ResourceStatus.ENABLED, null, null, null, null));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator",
-                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
+                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED, null, null, null, null));
         User user = userRepository.save(new User(null, TENANT_ID, "Alice", StoredObjectId.of(901L),
-                childDepartment.getId(), UserStatus.ENABLED),
+                childDepartment.getId(), UserStatus.ENABLED, null, null, null, null),
                 "alice", "13800000001");
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
@@ -346,16 +346,16 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
         Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                null, null, 1, DepartmentStatus.ENABLED));
+                null, null, 1, DepartmentStatus.ENABLED, null, null, null, null));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin",
-                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
+                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED, null, null, null, null));
         User createdUser = userRepository.save(new User(null, TENANT_ID, "Bob", StoredObjectId.of(1001L),
-                department.getId(), UserStatus.ENABLED),
+                department.getId(), UserStatus.ENABLED, null, null, null, null),
                 "bob", "13800000002");
 
         userRepository.assignRoles(TENANT_ID, createdUser.getId(), List.of(role.getId()));
         User updatedUser = userRepository.save(new User(createdUser.getId(), TENANT_ID, "Bob", StoredObjectId.of(1002L),
-                department.getId(), UserStatus.ENABLED), "bob", "13900000003");
+                department.getId(), UserStatus.ENABLED, null, null, null, null), "bob", "13900000003");
 
         assertFalse(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000002").isPresent());
         assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13900000003").isPresent());
@@ -377,8 +377,9 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
         Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                null, null, 1, DepartmentStatus.ENABLED));
-        User createdUser = userRepository.save(new User(null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED),
+                null, null, 1, DepartmentStatus.ENABLED, null, null, null, null));
+        User createdUser = userRepository.save(new User(null, TENANT_ID, "Carol", null, department.getId(),
+                UserStatus.ENABLED, null, null, null, null),
                 "carol", "13600000001");
 
         String originalPasswordHash = userRepository.findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
@@ -398,23 +399,24 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
         Department root = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Root",
-                null, null, 1, DepartmentStatus.ENABLED));
+                null, null, 1, DepartmentStatus.ENABLED, null, null, null, null));
         Department child = departmentRepository.save(new Department(CHILD_DEPARTMENT_ID, TENANT_ID, "CHILD", "Child",
-                root.getId(), null, 2, DepartmentStatus.ENABLED));
+                root.getId(), null, 2, DepartmentStatus.ENABLED, null, null, null, null));
         Menu oldMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
         Menu newMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
         Resource oldResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:old:edit", "Old Edit",
-                ResourceType.API, "POST", "/old", ResourceStatus.ENABLED));
+                ResourceType.API, "POST", "/old", ResourceStatus.ENABLED, null, null, null, null));
         Resource newResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:new:edit", "New Edit",
-                ResourceType.API, "PUT", "/new", ResourceStatus.ENABLED));
+                ResourceType.API, "PUT", "/new", ResourceStatus.ENABLED, null, null, null, null));
         Role role = roleRepository.save(new Role(null, TENANT_ID, "MANAGER", "Manager",
-                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED));
+                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED, null, null, null, null));
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(oldMenu.getId()));
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(oldResource.getCode()));
         roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
-        User user = userRepository.save(new User(null, TENANT_ID, "Manager", null, child.getId(), UserStatus.ENABLED),
+        User user = userRepository.save(new User(null, TENANT_ID, "Manager", null, child.getId(),
+                UserStatus.ENABLED, null, null, null, null),
                 "manager", "13700000001");
         userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));
 

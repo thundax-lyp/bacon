@@ -43,6 +43,6 @@ public class PermissionReadFacadeLocalImpl implements PermissionReadFacade {
     }
 
     private TenantId resolveExistingTenantId(TenantId tenantId) {
-        return tenantApplicationService.getTenantByTenantId(tenantId).getId();
+        return tenantApplicationService.getTenantByTenantId(tenantId.value()).getId();
     }
 }

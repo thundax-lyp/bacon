@@ -15,7 +15,7 @@ public enum UserIdentityType {
         return name();
     }
 
-    public static UserIdentityType fromValue(String value) {
+    public static UserIdentityType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

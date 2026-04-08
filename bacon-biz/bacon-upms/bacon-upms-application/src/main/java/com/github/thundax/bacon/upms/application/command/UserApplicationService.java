@@ -151,8 +151,10 @@ public class UserApplicationService {
         ensureAccountUnique(tenantId, account, null);
         String normalizedAccount = normalize(account);
         String normalizedPhone = normalize(phone);
-        User savedUser = userRepository.save(new User(null, tenantId, normalize(name), toDepartmentId(departmentId),
-                UserStatus.ENABLED), normalizedAccount, normalizedPhone);
+        DepartmentId domainDepartmentId = toDepartmentId(departmentId);
+        User savedUser = userRepository.save(new User(null, tenantId.value(), normalize(name), null,
+                domainDepartmentId == null ? null : domainDepartmentId.value(), UserStatus.ENABLED,
+                null, null, null, null), normalizedAccount, normalizedPhone);
         return toDetailedDto(savedUser);
     }
 
@@ -507,7 +509,7 @@ public class UserApplicationService {
 
     private UserIdentityType toIdentityType(String identityType) {
         validateRequired(identityType, "identityType");
-        return UserIdentityType.fromValue(normalize(identityType).toUpperCase(Locale.ROOT));
+        return UserIdentityType.from(normalize(identityType).toUpperCase(Locale.ROOT));
     }
 
     private String normalize(String value) {

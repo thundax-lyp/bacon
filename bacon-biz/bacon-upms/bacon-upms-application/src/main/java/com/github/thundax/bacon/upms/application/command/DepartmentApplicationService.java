@@ -78,8 +78,11 @@ public class DepartmentApplicationService {
         validateRequired(name, "name");
         DepartmentId parentDepartmentId = normalizeParentId(parentId);
         validateParent(tenantId, parentDepartmentId);
-        return toDto(departmentRepository.save(new Department(ids.departmentId(), tenantId, normalize(code), normalize(name),
-                parentDepartmentId, toUserId(leaderUserId), defaultSort(sort), DepartmentStatus.ENABLED)));
+        UserId leaderId = toUserId(leaderUserId);
+        return toDto(departmentRepository.save(new Department(ids.departmentId().value(), tenantId.value(), normalize(code),
+                normalize(name), parentDepartmentId == null ? null : parentDepartmentId.value(),
+                leaderId == null ? null : leaderId.value(), defaultSort(sort), DepartmentStatus.ENABLED,
+                null, null, null, null)));
     }
 
     @Transactional

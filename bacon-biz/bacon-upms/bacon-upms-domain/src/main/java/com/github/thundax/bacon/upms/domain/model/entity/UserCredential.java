@@ -8,12 +8,14 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLeve
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
  * 用户认证凭据领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class UserCredential {
 
     /** 凭据主键。 */
@@ -55,40 +57,19 @@ public class UserCredential {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, UserIdentityId identityId, UserCredentialType credentialType,
+    public UserCredential(Long id, Long tenantId, Long userId, Long identityId, UserCredentialType credentialType,
                           UserCredentialFactorLevel factorLevel, String credentialValue, UserCredentialStatus status,
-                          boolean needChangePassword,
-                          int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
-                          Instant expiresAt, Instant lastVerifiedAt) {
-        this(id, tenantId, userId, identityId, credentialType, factorLevel, credentialValue, status,
-                needChangePassword, failedCount, failedLimit, lockReason, lockedUntil, expiresAt,
-                lastVerifiedAt, null, null, null, null);
-    }
-
-    public UserCredential(UserCredentialId id, TenantId tenantId, UserId userId, UserIdentityId identityId, UserCredentialType credentialType,
-                          UserCredentialFactorLevel factorLevel, String credentialValue, UserCredentialStatus status,
-                          boolean needChangePassword,
-                          int failedCount, int failedLimit, String lockReason, Instant lockedUntil,
-                          Instant expiresAt, Instant lastVerifiedAt, String createdBy,
+                          Integer needChangePassword, Integer failedCount, Integer failedLimit, String lockReason,
+                          Instant lockedUntil, Instant expiresAt, Instant lastVerifiedAt, String createdBy,
                           Instant createdAt, String updatedBy, Instant updatedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.userId = userId;
-        this.identityId = identityId;
-        this.credentialType = credentialType;
-        this.factorLevel = factorLevel;
-        this.credentialValue = credentialValue;
-        this.status = status;
-        this.needChangePassword = needChangePassword;
-        this.failedCount = failedCount;
-        this.failedLimit = failedLimit;
-        this.lockReason = lockReason;
-        this.lockedUntil = lockedUntil;
-        this.expiresAt = expiresAt;
-        this.lastVerifiedAt = lastVerifiedAt;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
+        this(id == null ? null : UserCredentialId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                userId == null ? null : UserId.of(userId),
+                identityId == null ? null : UserIdentityId.of(identityId),
+                credentialType, factorLevel, credentialValue, status,
+                needChangePassword != null && needChangePassword != 0,
+                failedCount == null ? 0 : failedCount,
+                failedLimit == null ? 0 : failedLimit,
+                lockReason, lockedUntil, expiresAt, lastVerifiedAt, createdBy, createdAt, updatedBy, updatedAt);
     }
 }

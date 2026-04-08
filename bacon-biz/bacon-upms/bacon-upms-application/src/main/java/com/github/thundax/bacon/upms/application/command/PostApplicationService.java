@@ -50,8 +50,9 @@ public class PostApplicationService {
     public PostDTO createPost(TenantId tenantId, String code, String name, String departmentId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
-        return toDto(postRepository.save(new Post(ids.postId(), tenantId, normalize(code), normalize(name),
-                toDepartmentId(departmentId), PostStatus.ENABLED)));
+        DepartmentId domainDepartmentId = toDepartmentId(departmentId);
+        return toDto(postRepository.save(new Post(ids.postId().value(), tenantId.value(), normalize(code), normalize(name),
+                domainDepartmentId == null ? null : domainDepartmentId.value(), PostStatus.ENABLED, null, null, null, null)));
     }
 
     @Transactional
@@ -111,7 +112,7 @@ public class PostApplicationService {
         if (value == null || value.isBlank()) {
             return defaultValue;
         }
-        return PostStatus.fromValue(normalize(value).toUpperCase(Locale.ROOT));
+        return PostStatus.from(normalize(value).toUpperCase(Locale.ROOT));
     }
 
 }

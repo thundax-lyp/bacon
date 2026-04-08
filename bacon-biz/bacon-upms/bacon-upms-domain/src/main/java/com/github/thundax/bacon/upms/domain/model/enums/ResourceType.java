@@ -12,7 +12,7 @@ public enum ResourceType {
         return name();
     }
 
-    public static ResourceType fromValue(String value) {
+    public static ResourceType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

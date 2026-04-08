@@ -11,7 +11,7 @@ public enum PostStatus {
         return name();
     }
 
-    public static PostStatus fromValue(String value) {
+    public static PostStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

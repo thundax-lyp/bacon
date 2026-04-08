@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.audit;
 
-import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
@@ -25,15 +25,18 @@ public class SysLogConsumeApplicationService {
                 sysLogDTO.getAction(),
                 sysLogDTO.getEventType().name(),
                 sysLogDTO.getResult().name(),
-                UserId.of(sysLogDTO.getOperatorId()),
+                sysLogDTO.getOperatorId() == null ? null : UserId.of(sysLogDTO.getOperatorId()).value(),
                 sysLogDTO.getOperatorName(),
                 sysLogDTO.getClientIp(),
                 sysLogDTO.getRequestUri(),
                 sysLogDTO.getHttpMethod(),
                 sysLogDTO.getCostMs(),
                 sysLogDTO.getErrorMessage(),
-                sysLogDTO.getOccurredAt()
-        );
+                sysLogDTO.getOccurredAt(),
+                null,
+                null,
+                null,
+                null);
         // 系统日志同时落数据库和文件：数据库用于检索聚合，文件用于本地排障和最低成本保留。
         sysLogRepository.saveToDatabase(sysLogRecord);
         sysLogRepository.saveToFile(sysLogRecord);

@@ -42,6 +42,6 @@ public class DepartmentReadFacadeLocalImpl implements DepartmentReadFacade {
     }
 
     private TenantId resolveExistingTenantId(TenantId tenantId) {
-        return tenantApplicationService.getTenantByTenantId(tenantId).getId();
+        return tenantApplicationService.getTenantByTenantId(tenantId.value()).getId();
     }
 }

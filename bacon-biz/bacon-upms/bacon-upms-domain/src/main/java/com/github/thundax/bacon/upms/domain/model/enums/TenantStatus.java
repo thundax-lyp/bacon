@@ -12,7 +12,7 @@ public enum TenantStatus {
         return name();
     }
 
-    public static TenantStatus fromValue(String value) {
+    public static TenantStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

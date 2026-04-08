@@ -49,8 +49,8 @@ public class TenantApplicationService {
         tenantRepository.findTenantByCode(normalizedTenantCode.value()).ifPresent(tenant -> {
             throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
         });
-        return toDto(tenantRepository.saveTenant(new Tenant(normalizedTenantId, normalize(name),
-                normalizedTenantCode, TenantStatus.ACTIVE, expiredAt)));
+        return toDto(tenantRepository.saveTenant(new Tenant(normalizedTenantId.value(), normalize(name),
+                normalizedTenantCode.value(), TenantStatus.ACTIVE, expiredAt, null, null, null, null)));
     }
 
     @Transactional

@@ -41,7 +41,8 @@ class TenantApplicationServiceTest {
         when(tenantRepository.findTenantByTenantId(TenantId.of(1001L))).thenReturn(Optional.empty());
         when(tenantRepository.findTenantByCode("TENANT_DEMO")).thenReturn(Optional.empty());
         when(tenantRepository.saveTenant(any(Tenant.class)))
-                .thenReturn(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z")));
+                .thenReturn(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE,
+                        Instant.parse("2099-01-01T00:00:00Z"), null, null, null, null));
 
         TenantDTO result = service.createTenant(1001L, "Demo Tenant", "TENANT_DEMO",
                 Instant.parse("2099-01-01T00:00:00Z"));
@@ -56,7 +57,7 @@ class TenantApplicationServiceTest {
     void shouldRejectDuplicateTenantId() {
         when(tenantRepository.findTenantByTenantId(TenantId.of(1001L)))
                 .thenReturn(Optional.of(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO",
-                        TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
+                        TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"), null, null, null, null)));
 
         assertThatThrownBy(() -> service.createTenant(1001L, "Other", "OTHER", null))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -73,7 +74,8 @@ class TenantApplicationServiceTest {
     @Test
     void shouldInvalidateTenantSessionsWhenTenantDisabled() {
         when(tenantRepository.updateTenantStatus(TenantId.of(1001L), "DISABLED"))
-                .thenReturn(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null));
+                .thenReturn(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED,
+                        null, null, null, null, null));
 
         TenantDTO result = service.updateTenantStatus(1001L, TenantStatusEnum.DISABLED);
 

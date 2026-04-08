@@ -135,7 +135,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             roleDO.setUpdatedAt(now);
             roleMapper.updateById(roleDO);
         }
-        upsertDataPermissionRule(roleDO.getTenantId(), roleDO.getId(), RoleDataScopeType.fromValue(roleDO.getDataScopeType()), now);
+        upsertDataPermissionRule(roleDO.getTenantId(), roleDO.getId(), RoleDataScopeType.from(roleDO.getDataScopeType()), now);
         return toDomain(roleDO);
     }
 

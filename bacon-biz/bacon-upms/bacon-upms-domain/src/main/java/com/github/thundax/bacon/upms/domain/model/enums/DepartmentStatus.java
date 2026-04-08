@@ -11,7 +11,7 @@ public enum DepartmentStatus {
         return name();
     }
 
-    public static DepartmentStatus fromValue(String value) {
+    public static DepartmentStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

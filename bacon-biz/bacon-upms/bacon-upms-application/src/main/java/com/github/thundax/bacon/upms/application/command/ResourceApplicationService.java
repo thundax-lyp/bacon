@@ -50,8 +50,9 @@ public class ResourceApplicationService {
         validateRequired(name, "name");
         validateRequired(resourceType, "resourceType");
         validateRequired(uri, "uri");
-        return toDto(resourceRepository.save(new Resource(null, tenantId, normalize(code), normalize(name),
-                toResourceType(resourceType), normalize(httpMethod), normalize(uri), ResourceStatus.ENABLED)));
+        return toDto(resourceRepository.save(new Resource(null, tenantId.value(), normalize(code), normalize(name),
+                toResourceType(resourceType), normalize(httpMethod), normalize(uri), ResourceStatus.ENABLED,
+                null, null, null, null)));
     }
 
     @Transactional
@@ -112,14 +113,14 @@ public class ResourceApplicationService {
 
     private ResourceType toResourceType(String resourceType) {
         validateRequired(resourceType, "resourceType");
-        return ResourceType.fromValue(normalize(resourceType).toUpperCase(Locale.ROOT));
+        return ResourceType.from(normalize(resourceType).toUpperCase(Locale.ROOT));
     }
 
     private ResourceStatus toResourceStatus(String status, ResourceStatus defaultValue) {
         if (status == null || status.isBlank()) {
             return defaultValue;
         }
-        return ResourceStatus.fromValue(normalize(status).toUpperCase(Locale.ROOT));
+        return ResourceStatus.from(normalize(status).toUpperCase(Locale.ROOT));
     }
 
 }

@@ -70,8 +70,8 @@ public class RoleApplicationService {
         validateRequired(name, "name");
         validateRequired(roleType, "roleType");
         validateRequired(dataScopeType, "dataScopeType");
-        return toDto(roleRepository.save(new Role(null, tenantId, normalize(code), normalize(name), toRoleType(roleType),
-                toRoleDataScopeType(dataScopeType), RoleStatus.ENABLED)));
+        return toDto(roleRepository.save(new Role(null, tenantId.value(), normalize(code), normalize(name),
+                toRoleType(roleType), toRoleDataScopeType(dataScopeType), RoleStatus.ENABLED, null, null, null, null)));
     }
 
     @Transactional
@@ -171,17 +171,17 @@ public class RoleApplicationService {
 
     private RoleType toRoleType(String roleType) {
         validateRequired(roleType, "roleType");
-        return RoleType.fromValue(normalize(roleType).toUpperCase(Locale.ROOT));
+        return RoleType.from(normalize(roleType).toUpperCase(Locale.ROOT));
     }
 
     private RoleDataScopeType toRoleDataScopeType(String dataScopeType) {
         validateRequired(dataScopeType, "dataScopeType");
-        return RoleDataScopeType.fromValue(normalize(dataScopeType).toUpperCase(Locale.ROOT));
+        return RoleDataScopeType.from(normalize(dataScopeType).toUpperCase(Locale.ROOT));
     }
 
     private RoleStatus toRoleStatus(String status) {
         validateRequired(status, "status");
-        return RoleStatus.fromValue(normalize(status).toUpperCase(Locale.ROOT));
+        return RoleStatus.from(normalize(status).toUpperCase(Locale.ROOT));
     }
 
     private TenantId requireExistingTenantId(Long tenantId) {

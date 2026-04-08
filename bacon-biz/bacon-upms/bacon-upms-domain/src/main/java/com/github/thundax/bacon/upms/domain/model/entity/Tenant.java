@@ -3,14 +3,15 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 租户领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class Tenant {
 
     /** 租户主键。 */
@@ -32,30 +33,9 @@ public class Tenant {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Tenant(Long tenantId, String name, String tenantCode, TenantStatus status, Instant expiredAt) {
-        this(TenantId.of(tenantId), name, TenantCode.of(tenantCode), status, expiredAt, null, null, null, null);
-    }
-
     public Tenant(Long tenantId, String name, String tenantCode, TenantStatus status, Instant expiredAt,
                   String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
-        this(TenantId.of(tenantId), name, TenantCode.of(tenantCode), status, expiredAt,
+        this(tenantId == null ? null : TenantId.of(tenantId), name, tenantCode == null ? null : TenantCode.of(tenantCode), status, expiredAt,
                 createdBy, createdAt, updatedBy, updatedAt);
-    }
-
-    public Tenant(TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
-        this(id, name, tenantCode, status, expiredAt, null, null, null, null);
-    }
-
-    public Tenant(TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt,
-                  String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
-        this.id = id;
-        this.name = name;
-        this.tenantCode = tenantCode;
-        this.status = status;
-        this.expiredAt = expiredAt;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
     }
 }

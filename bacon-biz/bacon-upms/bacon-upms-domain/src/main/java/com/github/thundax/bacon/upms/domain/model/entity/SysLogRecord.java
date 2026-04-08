@@ -1,14 +1,15 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.UserId;
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 系统日志领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class SysLogRecord {
 
     /** 日志主键。 */
@@ -53,37 +54,12 @@ public class SysLogRecord {
     private Instant updatedAt;
 
     public SysLogRecord(Long id, Long tenantId, String traceId, String requestId, String module,
-                        String action, String eventType, String result, UserId operatorId, String operatorName,
-                        String clientIp, String requestUri, String httpMethod, Long costMs,
-                        String errorMessage, Instant occurredAt) {
-        this(id, tenantId, traceId, requestId, module, action, eventType, result, operatorId, operatorName,
-                clientIp, requestUri, httpMethod, costMs, errorMessage, occurredAt, null, null, null, null);
-    }
-
-    public SysLogRecord(Long id, Long tenantId, String traceId, String requestId, String module,
-                        String action, String eventType, String result, UserId operatorId, String operatorName,
+                        String action, String eventType, String result, Long operatorId, String operatorName,
                         String clientIp, String requestUri, String httpMethod, Long costMs,
                         String errorMessage, Instant occurredAt, String createdBy, Instant createdAt,
                         String updatedBy, Instant updatedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.traceId = traceId;
-        this.requestId = requestId;
-        this.module = module;
-        this.action = action;
-        this.eventType = eventType;
-        this.result = result;
-        this.operatorId = operatorId;
-        this.operatorName = operatorName;
-        this.clientIp = clientIp;
-        this.requestUri = requestUri;
-        this.httpMethod = httpMethod;
-        this.costMs = costMs;
-        this.errorMessage = errorMessage;
-        this.occurredAt = occurredAt;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
+        this(id, tenantId, traceId, requestId, module, action, eventType, result,
+                operatorId == null ? null : UserId.of(operatorId), operatorName, clientIp, requestUri, httpMethod,
+                costMs, errorMessage, occurredAt, createdBy, createdAt, updatedBy, updatedAt);
     }
 }

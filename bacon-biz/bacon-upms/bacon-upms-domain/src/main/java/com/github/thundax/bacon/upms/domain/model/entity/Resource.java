@@ -5,12 +5,14 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
  * 资源领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class Resource {
 
     /** 资源主键。 */
@@ -38,25 +40,11 @@ public class Resource {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Resource(ResourceId id, TenantId tenantId, String code, String name, ResourceType resourceType,
-                    String httpMethod, String uri, ResourceStatus status) {
-        this(id, tenantId, code, name, resourceType, httpMethod, uri, status, null, null, null, null);
-    }
-
-    public Resource(ResourceId id, TenantId tenantId, String code, String name, ResourceType resourceType, String httpMethod,
+    public Resource(Long id, Long tenantId, String code, String name, ResourceType resourceType, String httpMethod,
                     String uri, ResourceStatus status, String createdBy, Instant createdAt, String updatedBy,
                     Instant updatedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.code = code;
-        this.name = name;
-        this.resourceType = resourceType;
-        this.httpMethod = httpMethod;
-        this.uri = uri;
-        this.status = status;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
+        this(id == null ? null : ResourceId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                code, name, resourceType, httpMethod, uri, status, createdBy, createdAt, updatedBy, updatedAt);
     }
 }

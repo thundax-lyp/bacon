@@ -148,8 +148,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     private User createUser(User user) {
         return new User(ids.userId(), user.getTenantId(), user.getName(), user.getAvatarObjectId(),
-                user.getDepartmentId(),
-                user.getStatus());
+                user.getDepartmentId(), user.getStatus(), null, null, null, null);
     }
 
     private User updateUser(User user) {
@@ -171,14 +170,15 @@ public class UserRepositoryImpl implements UserRepository {
     private UserIdentity replaceAccountIdentity(User user, String account) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
         return support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
-                UserIdentityType.ACCOUNT, requireIdentityValue(account, UserIdentityType.ACCOUNT), ACTIVE_IDENTITY_STATUS));
+                UserIdentityType.ACCOUNT, requireIdentityValue(account, UserIdentityType.ACCOUNT), ACTIVE_IDENTITY_STATUS,
+                null, null, null, null));
     }
 
     private void replacePhoneIdentity(User user, String phone) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
         if (phone != null && !phone.isBlank()) {
             support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
-                    UserIdentityType.PHONE, phone.trim(), ACTIVE_IDENTITY_STATUS));
+                    UserIdentityType.PHONE, phone.trim(), ACTIVE_IDENTITY_STATUS, null, null, null, null));
         }
     }
 

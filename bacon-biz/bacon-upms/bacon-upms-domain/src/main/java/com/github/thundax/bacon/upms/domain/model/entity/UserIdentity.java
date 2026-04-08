@@ -5,14 +5,15 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 用户身份标识领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class UserIdentity {
 
     /** 身份标识主键。 */
@@ -36,23 +37,12 @@ public class UserIdentity {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, UserIdentityType identityType,
-                        String identityValue, UserIdentityStatus status) {
-        this(id, tenantId, userId, identityType, identityValue, status, null, null, null, null);
-    }
-
-    public UserIdentity(UserIdentityId id, TenantId tenantId, UserId userId, UserIdentityType identityType,
-                        String identityValue, UserIdentityStatus status, String createdBy, Instant createdAt,
-                        String updatedBy, Instant updatedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.userId = userId;
-        this.identityType = identityType;
-        this.identityValue = identityValue;
-        this.status = status;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
+    public UserIdentity(Long id, Long tenantId, Long userId, UserIdentityType identityType, String identityValue,
+                        UserIdentityStatus status, String createdBy, Instant createdAt, String updatedBy,
+                        Instant updatedAt) {
+        this(id == null ? null : UserIdentityId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                userId == null ? null : UserId.of(userId),
+                identityType, identityValue, status, createdBy, createdAt, updatedBy, updatedAt);
     }
 }

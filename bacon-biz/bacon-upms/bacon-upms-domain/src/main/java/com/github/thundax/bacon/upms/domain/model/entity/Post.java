@@ -5,12 +5,14 @@ import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
  * 岗位领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class Post {
 
     /** 岗位主键。 */
@@ -34,21 +36,11 @@ public class Post {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Post(PostId id, TenantId tenantId, String code, String name, DepartmentId departmentId, PostStatus status) {
-        this(id, tenantId, code, name, departmentId, status, null, null, null, null);
-    }
-
-    public Post(PostId id, TenantId tenantId, String code, String name, DepartmentId departmentId, PostStatus status,
+    public Post(Long id, Long tenantId, String code, String name, Long departmentId, PostStatus status,
                 String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.code = code;
-        this.name = name;
-        this.departmentId = departmentId;
-        this.status = status;
-        this.createdBy = createdBy;
-        this.createdAt = createdAt;
-        this.updatedBy = updatedBy;
-        this.updatedAt = updatedAt;
+        this(id == null ? null : PostId.of(id),
+                tenantId == null ? null : TenantId.of(tenantId),
+                code, name, departmentId == null ? null : DepartmentId.of(departmentId),
+                status, createdBy, createdAt, updatedBy, updatedAt);
     }
 }

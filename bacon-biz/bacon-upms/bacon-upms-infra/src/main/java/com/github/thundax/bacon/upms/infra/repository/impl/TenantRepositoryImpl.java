@@ -56,7 +56,7 @@ public class TenantRepositoryImpl implements TenantRepository {
                 currentTenant.getId(),
                 currentTenant.getName(),
                 currentTenant.getTenantCode(),
-                com.github.thundax.bacon.upms.domain.model.enums.TenantStatus.fromValue(status),
+                com.github.thundax.bacon.upms.domain.model.enums.TenantStatus.from(status),
                 currentTenant.getExpiredAt(),
                 currentTenant.getCreatedBy(),
                 currentTenant.getCreatedAt(),

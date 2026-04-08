@@ -14,7 +14,7 @@ public enum RoleDataScopeType {
         return name();
     }
 
-    public static RoleDataScopeType fromValue(String value) {
+    public static RoleDataScopeType from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

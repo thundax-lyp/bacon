@@ -75,7 +75,7 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final Tenant toDomain(TenantDO tenantDO) {
         return new Tenant(tenantDO.getId(), tenantDO.getName(),
                 com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode.of(tenantDO.getCode()),
-                TenantStatus.fromValue(tenantDO.getStatus()), toInstant(tenantDO.getExpiredAt()), tenantDO.getCreatedBy(),
+                TenantStatus.from(tenantDO.getStatus()), toInstant(tenantDO.getExpiredAt()), tenantDO.getCreatedBy(),
                 toInstant(tenantDO.getCreatedAt()), tenantDO.getUpdatedBy(), toInstant(tenantDO.getUpdatedAt()));
     }
 
@@ -103,8 +103,8 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final UserIdentity toDomain(UserIdentityDO dataObject) {
         return new UserIdentity(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(),
-                UserIdentityType.fromValue(dataObject.getIdentityType()),
-                dataObject.getIdentityValue(), UserIdentityStatus.fromValue(dataObject.getStatus()), dataObject.getCreatedBy(),
+                UserIdentityType.from(dataObject.getIdentityType()),
+                dataObject.getIdentityValue(), UserIdentityStatus.from(dataObject.getStatus()), dataObject.getCreatedBy(),
                 toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 
@@ -123,9 +123,9 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final UserCredential toDomain(UserCredentialDO dataObject) {
         return new UserCredential(dataObject.getId(), dataObject.getTenantId(), dataObject.getUserId(),
-                dataObject.getIdentityId(), UserCredentialType.fromValue(dataObject.getCredentialType()),
-                UserCredentialFactorLevel.fromValue(dataObject.getFactorLevel()),
-                dataObject.getCredentialValue(), UserCredentialStatus.valueOf(dataObject.getStatus()),
+                dataObject.getIdentityId(), UserCredentialType.from(dataObject.getCredentialType()),
+                UserCredentialFactorLevel.from(dataObject.getFactorLevel()),
+                dataObject.getCredentialValue(), UserCredentialStatus.from(dataObject.getStatus()),
                 Boolean.TRUE.equals(dataObject.getNeedChangePassword()),
                 dataObject.getFailedCount() == null ? 0 : dataObject.getFailedCount(),
                 dataObject.getFailedLimit() == null ? 0 : dataObject.getFailedLimit(), dataObject.getLockReason(),
@@ -144,7 +144,7 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final Department toDomain(DepartmentDO dataObject) {
         return new Department(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
-                dataObject.getParentId(), dataObject.getLeaderUserId(), dataObject.getSort(), DepartmentStatus.fromValue(dataObject.getStatus()),
+                dataObject.getParentId(), dataObject.getLeaderUserId(), dataObject.getSort(), DepartmentStatus.from(dataObject.getStatus()),
                 dataObject.getCreatedBy(),
                 toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
@@ -158,7 +158,7 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final Post toDomain(PostDO dataObject) {
         return new Post(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
-                dataObject.getDepartmentId(), PostStatus.fromValue(dataObject.getStatus()), dataObject.getCreatedBy(),
+                dataObject.getDepartmentId(), PostStatus.from(dataObject.getStatus()), dataObject.getCreatedBy(),
                 toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 
@@ -173,8 +173,8 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final Role toDomain(RoleDO dataObject) {
         return new Role(dataObject.getId(), dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
-                RoleType.fromValue(dataObject.getRoleType()), RoleDataScopeType.fromValue(dataObject.getDataScopeType()),
-                RoleStatus.fromValue(dataObject.getStatus()), dataObject.getCreatedBy(),
+                RoleType.from(dataObject.getRoleType()), RoleDataScopeType.from(dataObject.getDataScopeType()),
+                RoleStatus.from(dataObject.getStatus()), dataObject.getCreatedBy(),
                 toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(), toInstant(dataObject.getUpdatedAt()));
     }
 
@@ -202,8 +202,8 @@ abstract class AbstractUpmsPersistenceSupport {
     protected final Resource toDomain(ResourceDO dataObject) {
         ResourceId resourceId = dataObject.getId();
         return new Resource(resourceId, dataObject.getTenantId(), dataObject.getCode(), dataObject.getName(),
-                ResourceType.fromValue(dataObject.getResourceType()), dataObject.getHttpMethod(), dataObject.getUri(),
-                ResourceStatus.fromValue(dataObject.getStatus()),
+                ResourceType.from(dataObject.getResourceType()), dataObject.getHttpMethod(), dataObject.getUri(),
+                ResourceStatus.from(dataObject.getStatus()),
                 dataObject.getCreatedBy(), toInstant(dataObject.getCreatedAt()), dataObject.getUpdatedBy(),
                 toInstant(dataObject.getUpdatedAt()));
     }

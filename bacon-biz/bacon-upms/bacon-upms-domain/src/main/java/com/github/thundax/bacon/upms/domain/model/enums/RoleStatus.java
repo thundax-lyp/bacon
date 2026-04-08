@@ -11,7 +11,7 @@ public enum RoleStatus {
         return name();
     }
 
-    public static RoleStatus fromValue(String value) {
+    public static RoleStatus from(String value) {
         return Arrays.stream(values())
                 .filter(item -> item.name().equalsIgnoreCase(value))
                 .findFirst()

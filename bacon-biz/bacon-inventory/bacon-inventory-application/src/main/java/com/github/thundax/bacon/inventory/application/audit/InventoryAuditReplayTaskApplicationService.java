@@ -1,10 +1,12 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
+import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
+import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
+import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
 import com.github.thundax.bacon.inventory.application.mapper.DeadLetterIdMapper;
 import com.github.thundax.bacon.inventory.application.mapper.TaskIdMapper;
 import com.github.thundax.bacon.inventory.application.mapper.TaskNoMapper;
@@ -13,6 +15,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
@@ -57,36 +60,34 @@ public class InventoryAuditReplayTaskApplicationService {
         return toDto(saved);
     }
 
-    public InventoryAuditReplayTaskDTO getReplayTask(Long tenantId, Long taskId) {
+    public InventoryAuditReplayTaskDTO getReplayTask(TenantId tenantId, TaskId taskId) {
         InventoryAuditReplayTask task = getTaskById(taskId);
         ensureTaskTenant(task, tenantId);
         return toDto(task);
     }
 
-    public InventoryAuditReplayTaskDTO pauseReplayTask(Long tenantId, Long taskId, Long operatorId) {
+    public InventoryAuditReplayTaskDTO pauseReplayTask(TenantId tenantId, TaskId taskId, OperatorId operatorId) {
         InventoryAuditReplayTask task = getTaskById(taskId);
         ensureTaskTenant(task, tenantId);
         if (isTerminal(task.getStatus())) {
             return toDto(task);
         }
         Instant now = Instant.now();
-        boolean paused = inventoryAuditReplayTaskRepository.pauseAuditReplayTask(TaskIdMapper.toDomain(taskId),
-                TenantIdMapper.toDomain(tenantId), OperatorIdMapper.toDomain(operatorId), now);
+        boolean paused = inventoryAuditReplayTaskRepository.pauseAuditReplayTask(taskId, tenantId, operatorId, now);
         if (paused) {
             Metrics.counter("bacon.inventory.audit.replay.task.paused.total").increment();
         }
         return toDto(getTaskById(taskId));
     }
 
-    public InventoryAuditReplayTaskDTO resumeReplayTask(Long tenantId, Long taskId, Long operatorId) {
+    public InventoryAuditReplayTaskDTO resumeReplayTask(TenantId tenantId, TaskId taskId, OperatorId operatorId) {
         InventoryAuditReplayTask task = getTaskById(taskId);
         ensureTaskTenant(task, tenantId);
         if (isTerminal(task.getStatus())) {
             return toDto(task);
         }
         Instant now = Instant.now();
-        boolean resumed = inventoryAuditReplayTaskRepository.resumeAuditReplayTask(TaskIdMapper.toDomain(taskId),
-                TenantIdMapper.toDomain(tenantId), OperatorIdMapper.toDomain(operatorId), now);
+        boolean resumed = inventoryAuditReplayTaskRepository.resumeAuditReplayTask(taskId, tenantId, operatorId, now);
         if (resumed) {
             Metrics.counter("bacon.inventory.audit.replay.task.resumed.total").increment();
         }
@@ -157,7 +158,7 @@ public class InventoryAuditReplayTaskApplicationService {
         }
     }
 
-    private void finishTask(com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId taskId, String processingOwner) {
+    private void finishTask(TaskId taskId, String processingOwner) {
         InventoryAuditReplayTask latest = getTaskById(taskId);
         // 整个任务只要存在失败项就标记 FAILED；只有全部成功才算 SUCCEEDED，便于上层按任务粒度判断是否还需人工介入。
         InventoryAuditReplayTaskStatus status = Integer.valueOf(0).equals(latest.getFailedCount())
@@ -182,18 +183,14 @@ public class InventoryAuditReplayTaskApplicationService {
         return error.length() <= 512 ? error : error.substring(0, 512);
     }
 
-    private InventoryAuditReplayTask getTaskById(Long taskId) {
-        return getTaskById(TaskIdMapper.toDomain(taskId));
-    }
-
-    private InventoryAuditReplayTask getTaskById(com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId taskId) {
+    private InventoryAuditReplayTask getTaskById(TaskId taskId) {
         return inventoryAuditReplayTaskRepository.findAuditReplayTaskById(taskId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
                         "replay-task-not-found:" + (taskId == null ? null : taskId.value())));
     }
 
-    private void ensureTaskTenant(InventoryAuditReplayTask task, Long tenantId) {
-        if (!Objects.equals(task.getTenantId() == null ? null : task.getTenantId().value(), tenantId)) {
+    private void ensureTaskTenant(InventoryAuditReplayTask task, TenantId tenantId) {
+        if (!Objects.equals(task.getTenantId(), tenantId)) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN,
                     "replay-task-tenant-mismatch");
         }

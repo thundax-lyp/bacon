@@ -138,12 +138,12 @@ class InventoryAuditCompensationApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
+        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
             return List.of();
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
             return List.copyOf(auditLogs);
         }
 

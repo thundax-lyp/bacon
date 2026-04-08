@@ -1,7 +1,9 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import java.util.List;
 import org.springframework.context.annotation.Primary;
@@ -25,7 +27,7 @@ public class InMemoryInventoryAuditRecordRepositoryImpl implements InventoryAudi
     }
 
     @Override
-    public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
+    public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
         return support.findLedgers(tenantId, orderNo);
     }
 
@@ -35,7 +37,7 @@ public class InMemoryInventoryAuditRecordRepositoryImpl implements InventoryAudi
     }
 
     @Override
-    public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+    public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
         return support.findAuditLogs(tenantId, orderNo);
     }
 }

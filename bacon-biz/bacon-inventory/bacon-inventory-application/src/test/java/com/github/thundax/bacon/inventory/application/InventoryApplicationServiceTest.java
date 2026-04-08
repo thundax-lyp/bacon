@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.application;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.application.command.InventoryDeductionApplicationService;
@@ -17,6 +19,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActio
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -180,31 +183,33 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
+        public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
             singleFindInventoryCallCount++;
-            return Optional.ofNullable(inventories.get(key(tenantId, skuId)));
+            return Optional.ofNullable(inventories.get(key(tenantId == null ? null : tenantId.value(),
+                    skuId == null ? null : skuId.value())));
         }
 
         @Override
-        public List<Inventory> findInventories(Long tenantId) {
+        public List<Inventory> findInventories(TenantId tenantId) {
             return inventories.values().stream()
-                    .filter(inventory -> inventory.getTenantId() != null && tenantId.equals(inventory.getTenantId().value()))
+                    .filter(inventory -> java.util.Objects.equals(inventory.getTenantId(), tenantId))
                     .toList();
         }
 
         @Override
-        public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
+        public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
             batchFindInventoriesCallCount++;
             return skuIds.stream()
-                    .map(skuId -> inventories.get(key(tenantId, skuId)))
+                    .map(skuId -> inventories.get(key(tenantId == null ? null : tenantId.value(),
+                            skuId == null ? null : skuId.value())))
                     .filter(java.util.Objects::nonNull)
                     .toList();
         }
 
         @Override
-        public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+        public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, String status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || (inventory.getSkuId() != null && skuId.equals(inventory.getSkuId().value())))
+                    .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)
@@ -212,9 +217,9 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public long countInventories(Long tenantId, Long skuId, String status) {
+        public long countInventories(TenantId tenantId, SkuId skuId, String status) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || (inventory.getSkuId() != null && skuId.equals(inventory.getSkuId().value())))
+                    .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                     .count();
         }
@@ -236,8 +241,9 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
-            return Optional.ofNullable(reservations.get(reservationKey(tenantId, orderNo)));
+        public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+            return Optional.ofNullable(reservations.get(reservationKey(tenantId == null ? null : tenantId.value(),
+                    orderNo == null ? null : orderNo.value())));
         }
 
         @Override
@@ -249,8 +255,9 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
-            return List.copyOf(ledgers.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
+        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+            return List.copyOf(ledgers.getOrDefault(reservationKey(tenantId == null ? null : tenantId.value(),
+                    orderNo == null ? null : orderNo.value()), List.of()));
         }
 
         @Override
@@ -261,8 +268,9 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
-            return List.copyOf(auditLogs.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
+        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+            return List.copyOf(auditLogs.getOrDefault(reservationKey(tenantId == null ? null : tenantId.value(),
+                    orderNo == null ? null : orderNo.value()), List.of()));
         }
 
         private static String key(Long tenantId, Long skuId) {

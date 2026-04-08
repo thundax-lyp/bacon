@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;
@@ -22,7 +24,7 @@ public class InventoryReservationRepositoryImpl implements InventoryReservationR
     }
 
     @Override
-    public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
+    public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
         return support.findReservation(tenantId, orderNo);
     }
 }

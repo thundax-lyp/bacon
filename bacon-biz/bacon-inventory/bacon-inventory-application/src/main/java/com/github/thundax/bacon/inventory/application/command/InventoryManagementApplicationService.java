@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -23,7 +25,7 @@ public class InventoryManagementApplicationService {
 
     @Transactional
     public InventoryStockDTO createInventory(Long tenantId, Long skuId, Integer onHandQuantity, String status) {
-        inventoryRepository.findInventory(tenantId, skuId).ifPresent(inventory -> {
+        inventoryRepository.findInventory(TenantIdMapper.toDomain(tenantId), SkuIdMapper.toDomain(skuId)).ifPresent(inventory -> {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId));
         });
         validateInventoryKey(tenantId, skuId);
@@ -41,7 +43,7 @@ public class InventoryManagementApplicationService {
 
     @Transactional
     public InventoryStockDTO updateInventoryStatus(Long tenantId, Long skuId, String status) {
-        Inventory inventory = inventoryRepository.findInventory(tenantId, skuId)
+        Inventory inventory = inventoryRepository.findInventory(TenantIdMapper.toDomain(tenantId), SkuIdMapper.toDomain(skuId))
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
         inventory.updateStatus(normalizeStatus(status), Instant.now());

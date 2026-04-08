@@ -1,8 +1,11 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
+import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -51,7 +54,8 @@ public class InventoryDeductionApplicationService {
     }
 
     private InventoryReservationResultDTO deductReservedStockOnce(Long tenantId, String orderNo) {
-        InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
+        InventoryReservation reservation = inventoryReservationRepository.findReservation(TenantIdMapper.toDomain(tenantId),
+                OrderNoMapper.toDomain(orderNo)).orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(tenantId, orderNo, InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
@@ -70,7 +74,7 @@ public class InventoryDeductionApplicationService {
     }
 
     private void deductStockOnce(Long tenantId, Long skuId, int quantity, Instant operatedAt) {
-        Inventory inventory = inventoryStockRepository.findInventory(tenantId, skuId)
+        Inventory inventory = inventoryStockRepository.findInventory(TenantIdMapper.toDomain(tenantId), SkuIdMapper.toDomain(skuId))
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
         inventory.deduct(quantity, operatedAt);

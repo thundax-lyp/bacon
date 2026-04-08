@@ -61,7 +61,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                 Instant.now().plusSeconds(60));
         taskService.processClaimedTask(claimed.get(0), compensationService, owner, 10, 60);
 
-        InventoryAuditReplayTask finished = repository.findAuditReplayTaskById(created.getTaskId()).orElseThrow();
+        InventoryAuditReplayTask finished = repository.findAuditReplayTaskById(TaskId.of(created.getTaskId())).orElseThrow();
         assertEquals(InventoryAuditReplayTaskStatus.SUCCEEDED, finished.getStatus());
         assertEquals(1, finished.getProcessedCount());
         assertEquals(1, finished.getSuccessCount());
@@ -87,12 +87,12 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
+        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
             return List.of();
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
             return List.copyOf(auditLogs);
         }
 
@@ -168,18 +168,23 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
-            List<InventoryAuditReplayTaskItem> items = taskItems.computeIfAbsent(taskId, key -> new ArrayList<>());
-            for (Long deadLetterId : deadLetterIds) {
-                items.add(new InventoryAuditReplayTaskItem(taskItemIdGenerator.getAndIncrement(), taskId, tenantId,
-                        deadLetterId, InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null,
+        public void batchSaveAuditReplayTaskItems(TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds,
+                                                  Instant createdAt) {
+            List<InventoryAuditReplayTaskItem> items = taskItems.computeIfAbsent(taskId == null ? null : taskId.value(),
+                    key -> new ArrayList<>());
+            for (DeadLetterId deadLetterId : deadLetterIds) {
+                items.add(new InventoryAuditReplayTaskItem(taskItemIdGenerator.getAndIncrement(),
+                        taskId == null ? null : taskId.value(),
+                        tenantId == null ? null : tenantId.value(),
+                        deadLetterId == null ? null : deadLetterId.value(),
+                        InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null,
                         createdAt));
             }
         }
 
         @Override
-        public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
-            return Optional.ofNullable(tasks.get(taskId));
+        public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
+            return Optional.ofNullable(tasks.get(taskId == null ? null : taskId.value()));
         }
 
         @Override
@@ -204,8 +209,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
-            InventoryAuditReplayTask task = tasks.get(taskId);
+        public void renewAuditReplayTaskLease(TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+            InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task != null && processingOwner.equals(task.getProcessingOwner())) {
                 task.setLeaseUntil(leaseUntil);
                 task.setUpdatedAt(updatedAt);
@@ -213,8 +218,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
-            return taskItems.getOrDefault(taskId, List.of()).stream()
+        public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
+            return taskItems.getOrDefault(taskId == null ? null : taskId.value(), List.of()).stream()
                     .filter(item -> InventoryAuditReplayTaskItemStatus.PENDING.equals(item.getItemStatus()))
                     .sorted(Comparator.comparing(InventoryAuditReplayTaskItem::getId))
                     .limit(limit)
@@ -241,9 +246,9 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
+        public void incrementAuditReplayTaskProgress(TaskId taskId, String processingOwner, int processedDelta,
                                                      int successDelta, int failedDelta, Instant updatedAt) {
-            InventoryAuditReplayTask task = tasks.get(taskId);
+            InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {
                 return;
             }
@@ -254,9 +259,9 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void finishAuditReplayTask(Long taskId, String processingOwner, String status, String lastError,
+        public void finishAuditReplayTask(TaskId taskId, String processingOwner, String status, String lastError,
                                           Instant finishedAt) {
-            InventoryAuditReplayTask task = tasks.get(taskId);
+            InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {
                 return;
             }

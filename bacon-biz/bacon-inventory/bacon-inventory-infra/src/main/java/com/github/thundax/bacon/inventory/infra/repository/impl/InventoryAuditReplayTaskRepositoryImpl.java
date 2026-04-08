@@ -1,9 +1,13 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
 import java.time.Instant;
 import java.util.List;
@@ -27,12 +31,13 @@ public class InventoryAuditReplayTaskRepositoryImpl implements InventoryAuditRep
     }
 
     @Override
-    public void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
+    public void batchSaveAuditReplayTaskItems(TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds,
+                                              Instant createdAt) {
         support.batchSaveAuditReplayTaskItems(taskId, tenantId, deadLetterIds, createdAt);
     }
 
     @Override
-    public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
+    public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
         return support.findAuditReplayTaskById(taskId);
     }
 
@@ -43,12 +48,12 @@ public class InventoryAuditReplayTaskRepositoryImpl implements InventoryAuditRep
     }
 
     @Override
-    public void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+    public void renewAuditReplayTaskLease(TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
         support.renewAuditReplayTaskLease(taskId, processingOwner, leaseUntil, updatedAt);
     }
 
     @Override
-    public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
+    public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
         return support.findPendingAuditReplayTaskItems(taskId, limit);
     }
 
@@ -62,25 +67,25 @@ public class InventoryAuditReplayTaskRepositoryImpl implements InventoryAuditRep
     }
 
     @Override
-    public void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
+    public void incrementAuditReplayTaskProgress(TaskId taskId, String processingOwner, int processedDelta,
                                                  int successDelta, int failedDelta, Instant updatedAt) {
         support.incrementAuditReplayTaskProgress(taskId, processingOwner, processedDelta, successDelta, failedDelta,
                 updatedAt);
     }
 
     @Override
-    public void finishAuditReplayTask(Long taskId, String processingOwner, String status,
+    public void finishAuditReplayTask(TaskId taskId, String processingOwner, String status,
                                       String lastError, Instant finishedAt) {
         support.finishAuditReplayTask(taskId, processingOwner, status, lastError, finishedAt);
     }
 
     @Override
-    public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
+    public boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
         return support.pauseAuditReplayTask(taskId, tenantId, operatorId, pausedAt);
     }
 
     @Override
-    public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
+    public boolean resumeAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant updatedAt) {
         return support.resumeAuditReplayTask(taskId, tenantId, operatorId, updatedAt);
     }
 }

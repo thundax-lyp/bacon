@@ -73,7 +73,8 @@ public class InventoryReservationApplicationService {
     }
 
     private InventoryReservationResultDTO reserveStockOnce(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
-        InventoryReservation existingReservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
+        InventoryReservation existingReservation = inventoryReservationRepository.findReservation(TenantIdMapper.toDomain(tenantId),
+                OrderNoMapper.toDomain(orderNo)).orElse(null);
         if (existingReservation != null) {
             if (InventoryReservationStatus.CREATED.equals(existingReservation.getReservationStatus())) {
                 return completeCreatedReservation(existingReservation);
@@ -153,7 +154,8 @@ public class InventoryReservationApplicationService {
                 .map(InventoryReservationItemDTO::getSkuId)
                 .filter(java.util.Objects::nonNull)
                 .collect(java.util.stream.Collectors.toSet());
-        Map<Long, Inventory> inventoryBySku = inventoryStockRepository.findInventories(tenantId, skuIds).stream()
+        Map<Long, Inventory> inventoryBySku = inventoryStockRepository.findInventories(TenantIdMapper.toDomain(tenantId),
+                        skuIds.stream().map(SkuIdMapper::toDomain).collect(java.util.stream.Collectors.toSet())).stream()
                 .collect(java.util.stream.Collectors.toMap(
                         inventory -> inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
                         inventory -> inventory));
@@ -179,14 +181,14 @@ public class InventoryReservationApplicationService {
         try {
             return inventoryReservationRepository.saveReservation(reservation);
         } catch (DuplicateKeyException ex) {
-            return inventoryReservationRepository.findReservation(reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
-                    reservation.getOrderNoValue())
+            return inventoryReservationRepository.findReservation(reservation.getTenantId(),
+                    reservation.getOrderNo())
                     .orElseThrow(() -> ex);
         }
     }
 
     private InventoryReservation tryFindExistingReservation(Long tenantId, String orderNo) {
-        return inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
+        return inventoryReservationRepository.findReservation(TenantIdMapper.toDomain(tenantId), OrderNoMapper.toDomain(orderNo)).orElse(null);
     }
 
     private void reserveStockOnce(Long tenantId,
@@ -229,7 +231,7 @@ public class InventoryReservationApplicationService {
     }
 
     private Inventory loadInventory(Long tenantId, Long skuId) {
-        return inventoryStockRepository.findInventory(tenantId, skuId)
+        return inventoryStockRepository.findInventory(TenantIdMapper.toDomain(tenantId), SkuIdMapper.toDomain(skuId))
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
     }

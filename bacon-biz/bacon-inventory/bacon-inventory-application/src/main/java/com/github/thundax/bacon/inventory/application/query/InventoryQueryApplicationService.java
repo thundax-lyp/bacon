@@ -13,6 +13,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
+import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -50,13 +51,16 @@ public class InventoryQueryApplicationService {
     }
 
     public InventoryStockDTO getAvailableStock(Long tenantId, Long skuId) {
-        return InventoryStockAssembler.fromInventory(inventoryStockRepository.findInventory(tenantId, skuId)
+        return InventoryStockAssembler.fromInventory(inventoryStockRepository.findInventory(TenantIdMapper.toDomain(tenantId),
+                        SkuIdMapper.toDomain(skuId))
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId))));
     }
 
     public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
-        return inventoryStockRepository.findInventories(tenantId, skuIds).stream()
+        return inventoryStockRepository.findInventories(TenantIdMapper.toDomain(tenantId),
+                        skuIds == null ? Set.of() : skuIds.stream().map(SkuIdMapper::toDomain).collect(java.util.stream.Collectors.toSet()))
+                .stream()
                 .map(InventoryStockAssembler::fromInventory)
                 .toList();
     }
@@ -66,27 +70,30 @@ public class InventoryQueryApplicationService {
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         String normalizedStatus = normalizeStatus(query.getStatus());
         List<InventoryStockDTO> records = inventoryStockRepository
-                .pageInventories(query.getTenantId(), query.getSkuId(), normalizedStatus, pageNo, pageSize).stream()
+                .pageInventories(TenantIdMapper.toDomain(query.getTenantId()), SkuIdMapper.toDomain(query.getSkuId()),
+                        normalizedStatus, pageNo, pageSize).stream()
                 .map(InventoryStockAssembler::fromInventory)
                 .toList();
-        long total = inventoryStockRepository.countInventories(query.getTenantId(), query.getSkuId(), normalizedStatus);
+        long total = inventoryStockRepository.countInventories(TenantIdMapper.toDomain(query.getTenantId()),
+                SkuIdMapper.toDomain(query.getSkuId()), normalizedStatus);
         return new InventoryPageResultDTO(records, total, pageNo, pageSize);
     }
 
     public InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo) {
-        InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo)
+        InventoryReservation reservation = inventoryReservationRepository.findReservation(TenantIdMapper.toDomain(tenantId),
+                        OrderNoMapper.toDomain(orderNo))
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.RESERVATION_NOT_FOUND, orderNo));
         return toReservationDto(reservation);
     }
 
     public List<InventoryLedgerDTO> listLedgersByOrderNo(Long tenantId, String orderNo) {
-        return inventoryAuditRecordRepository.findLedgers(tenantId, orderNo).stream()
+        return inventoryAuditRecordRepository.findLedgers(TenantIdMapper.toDomain(tenantId), OrderNoMapper.toDomain(orderNo)).stream()
                 .map(this::toLedgerDto)
                 .toList();
     }
 
     public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(Long tenantId, String orderNo) {
-        return inventoryAuditRecordRepository.findAuditLogs(tenantId, orderNo).stream()
+        return inventoryAuditRecordRepository.findAuditLogs(TenantIdMapper.toDomain(tenantId), OrderNoMapper.toDomain(orderNo)).stream()
                 .map(this::toAuditLogDto)
                 .toList();
     }

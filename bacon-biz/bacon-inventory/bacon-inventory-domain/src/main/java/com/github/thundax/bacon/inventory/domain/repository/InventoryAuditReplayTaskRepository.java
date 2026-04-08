@@ -1,9 +1,13 @@
 package com.github.thundax.bacon.inventory.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -14,10 +18,11 @@ public interface InventoryAuditReplayTaskRepository {
         return task;
     }
 
-    default void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
+    default void batchSaveAuditReplayTaskItems(TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds,
+                                               Instant createdAt) {
     }
 
-    default Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
+    default Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
         return Optional.empty();
     }
 
@@ -26,10 +31,10 @@ public interface InventoryAuditReplayTaskRepository {
         return List.of();
     }
 
-    default void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+    default void renewAuditReplayTaskLease(TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
     }
 
-    default List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
+    default List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
         return List.of();
     }
 
@@ -39,19 +44,19 @@ public interface InventoryAuditReplayTaskRepository {
                                                Instant finishedAt) {
     }
 
-    default void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
+    default void incrementAuditReplayTaskProgress(TaskId taskId, String processingOwner, int processedDelta,
                                                   int successDelta, int failedDelta, Instant updatedAt) {
     }
 
-    default void finishAuditReplayTask(Long taskId, String processingOwner, String status,
+    default void finishAuditReplayTask(TaskId taskId, String processingOwner, String status,
                                        String lastError, Instant finishedAt) {
     }
 
-    default boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
+    default boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
         return false;
     }
 
-    default boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
+    default boolean resumeAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant updatedAt) {
         return false;
     }
 }

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -21,6 +22,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -65,36 +67,38 @@ public class InMemoryInventoryRepositorySupport {
         log.info("Using in-memory inventory repository");
     }
 
-    public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
-        return Optional.ofNullable(inventories.get(key(tenantId, skuId)));
+    public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
+        return Optional.ofNullable(inventories.get(key(tenantId == null ? null : tenantId.value(),
+                skuId == null ? null : skuId.value())));
     }
 
-    public List<Inventory> findInventories(Long tenantId) {
+    public List<Inventory> findInventories(TenantId tenantId) {
         return inventories.values().stream()
-                .filter(inventory -> inventory.getTenantId() != null && tenantId.equals(inventory.getTenantId().value()))
+                .filter(inventory -> java.util.Objects.equals(inventory.getTenantId(), tenantId))
                 .sorted(java.util.Comparator.comparing(Inventory::getSkuIdValue))
                 .toList();
     }
 
-    public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
+    public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
         return skuIds.stream()
-                .map(skuId -> inventories.get(key(tenantId, skuId)))
+                .map(skuId -> inventories.get(key(tenantId == null ? null : tenantId.value(),
+                        skuId == null ? null : skuId.value())))
                 .filter(java.util.Objects::nonNull)
                 .toList();
     }
 
-    public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+    public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, String status, int pageNo, int pageSize) {
         return findInventories(tenantId).stream()
-                .filter(inventory -> skuId == null || (inventory.getSkuId() != null && skuId.equals(inventory.getSkuId().value())))
+                .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                 .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                 .skip((long) (pageNo - 1) * pageSize)
                 .limit(pageSize)
                 .toList();
     }
 
-    public long countInventories(Long tenantId, Long skuId, String status) {
+    public long countInventories(TenantId tenantId, SkuId skuId, String status) {
         return findInventories(tenantId).stream()
-                .filter(inventory -> skuId == null || (inventory.getSkuId() != null && skuId.equals(inventory.getSkuId().value())))
+                .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                 .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
                 .count();
     }
@@ -134,8 +138,9 @@ public class InMemoryInventoryRepositorySupport {
         return reservation;
     }
 
-    public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
-        return Optional.ofNullable(reservations.get(reservationKey(tenantId, orderNo)));
+    public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+        return Optional.ofNullable(reservations.get(reservationKey(tenantId == null ? null : tenantId.value(),
+                orderNo == null ? null : orderNo.value())));
     }
 
     public void saveLedger(InventoryLedger ledger) {
@@ -152,8 +157,9 @@ public class InMemoryInventoryRepositorySupport {
                 .add(ledger);
     }
 
-    public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
-        return List.copyOf(ledgers.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
+    public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+        return List.copyOf(ledgers.getOrDefault(reservationKey(tenantId == null ? null : tenantId.value(),
+                orderNo == null ? null : orderNo.value()), List.of()));
     }
 
     public void saveAuditLog(InventoryAuditLog auditLog) {
@@ -168,8 +174,9 @@ public class InMemoryInventoryRepositorySupport {
                 .add(auditLog);
     }
 
-    public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
-        return List.copyOf(auditLogs.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
+    public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+        return List.copyOf(auditLogs.getOrDefault(reservationKey(tenantId == null ? null : tenantId.value(),
+                orderNo == null ? null : orderNo.value()), List.of()));
     }
 
     public void saveAuditOutbox(InventoryAuditOutbox outbox) {
@@ -437,16 +444,21 @@ public class InMemoryInventoryRepositorySupport {
         return task;
     }
 
-    public void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
-        List<InventoryAuditReplayTaskItem> items = auditReplayTaskItems.computeIfAbsent(taskId, key -> new ArrayList<>());
-        for (Long deadLetterId : deadLetterIds) {
-            items.add(new InventoryAuditReplayTaskItem(auditReplayTaskItemIdGenerator.getAndIncrement(), taskId, tenantId,
-                    deadLetterId, InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null, createdAt));
+    public void batchSaveAuditReplayTaskItems(TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds,
+                                              Instant createdAt) {
+        List<InventoryAuditReplayTaskItem> items = auditReplayTaskItems.computeIfAbsent(taskId == null ? null : taskId.value(),
+                key -> new ArrayList<>());
+        for (DeadLetterId deadLetterId : deadLetterIds) {
+            items.add(new InventoryAuditReplayTaskItem(auditReplayTaskItemIdGenerator.getAndIncrement(),
+                    taskId == null ? null : taskId.value(),
+                    tenantId == null ? null : tenantId.value(),
+                    deadLetterId == null ? null : deadLetterId.value(),
+                    InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null, createdAt));
         }
     }
 
-    public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
-        return Optional.ofNullable(auditReplayTasks.get(taskId));
+    public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
+        return Optional.ofNullable(auditReplayTasks.get(taskId == null ? null : taskId.value()));
     }
 
     public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
@@ -470,7 +482,7 @@ public class InMemoryInventoryRepositorySupport {
                 .toList();
     }
 
-    public void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+    public void renewAuditReplayTaskLease(TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
         findAuditReplayTaskById(taskId)
                 .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .filter(task -> processingOwner.equals(task.getProcessingOwner()))
@@ -480,8 +492,8 @@ public class InMemoryInventoryRepositorySupport {
                 });
     }
 
-    public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
-        return auditReplayTaskItems.getOrDefault(taskId, List.of()).stream()
+    public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
+        return auditReplayTaskItems.getOrDefault(taskId == null ? null : taskId.value(), List.of()).stream()
                 .filter(item -> InventoryAuditReplayTaskItemStatus.PENDING.equals(item.getItemStatus()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditReplayTaskItem::getId))
                 .limit(limit)
@@ -509,7 +521,7 @@ public class InMemoryInventoryRepositorySupport {
                 }));
     }
 
-    public void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
+    public void incrementAuditReplayTaskProgress(TaskId taskId, String processingOwner, int processedDelta,
                                                  int successDelta, int failedDelta, Instant updatedAt) {
         findAuditReplayTaskById(taskId)
                 .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
@@ -525,7 +537,7 @@ public class InMemoryInventoryRepositorySupport {
                 });
     }
 
-    public void finishAuditReplayTask(Long taskId, String processingOwner, String status, String lastError,
+    public void finishAuditReplayTask(TaskId taskId, String processingOwner, String status, String lastError,
                                       Instant finishedAt) {
         findAuditReplayTaskById(taskId)
                 .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
@@ -540,9 +552,9 @@ public class InMemoryInventoryRepositorySupport {
                 });
     }
 
-    public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
+    public boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> task.getTenantId() != null && tenantId.equals(task.getTenantId().value()))
+                .filter(task -> java.util.Objects.equals(task.getTenantId(), tenantId))
                 .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
                         || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .map(task -> {
@@ -555,9 +567,9 @@ public class InMemoryInventoryRepositorySupport {
                 }).orElse(false);
     }
 
-    public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
+    public boolean resumeAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant updatedAt) {
         return findAuditReplayTaskById(taskId)
-                .filter(task -> task.getTenantId() != null && tenantId.equals(task.getTenantId().value()))
+                .filter(task -> java.util.Objects.equals(task.getTenantId(), tenantId))
                 .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))
                 .map(task -> {
                     task.setStatus(InventoryAuditReplayTaskStatus.PENDING);

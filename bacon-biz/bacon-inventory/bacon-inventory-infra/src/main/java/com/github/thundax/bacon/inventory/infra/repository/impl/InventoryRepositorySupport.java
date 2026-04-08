@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -25,6 +26,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;
@@ -97,45 +99,54 @@ public class InventoryRepositorySupport {
         log.info("Using MyBatis-Plus inventory repository");
     }
 
-    public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
+    public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
         return Optional.ofNullable(inventoryMapper.selectOne(Wrappers.<InventoryDO>lambdaQuery()
-                .eq(InventoryDO::getTenantId, tenantId)
-                .eq(InventoryDO::getSkuId, skuId)))
+                .eq(InventoryDO::getTenantId, tenantId == null ? null : tenantId.value())
+                .eq(InventoryDO::getSkuId, skuId == null ? null : skuId.value())))
                 .map(this::toDomain);
     }
 
-    public List<Inventory> findInventories(Long tenantId) {
+    public List<Inventory> findInventories(TenantId tenantId) {
         return inventoryMapper.selectList(Wrappers.<InventoryDO>lambdaQuery()
-                        .eq(InventoryDO::getTenantId, tenantId)
+                        .eq(InventoryDO::getTenantId, tenantId == null ? null : tenantId.value())
                         .orderByAsc(InventoryDO::getSkuId))
                 .stream()
                 .map(this::toDomain)
                 .toList();
     }
 
-    public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
+    public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
         if (skuIds == null || skuIds.isEmpty()) {
             return List.of();
         }
+        List<Long> skuIdValues = skuIds.stream()
+                .filter(java.util.Objects::nonNull)
+                .map(SkuId::value)
+                .toList();
+        if (skuIdValues.isEmpty()) {
+            return List.of();
+        }
         return inventoryMapper.selectList(Wrappers.<InventoryDO>lambdaQuery()
-                        .eq(InventoryDO::getTenantId, tenantId)
-                        .in(InventoryDO::getSkuId, skuIds)
+                        .eq(InventoryDO::getTenantId, tenantId == null ? null : tenantId.value())
+                        .in(InventoryDO::getSkuId, skuIdValues)
                         .orderByAsc(InventoryDO::getSkuId))
                 .stream()
                 .map(this::toDomain)
                 .toList();
     }
 
-    public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+    public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, String status, int pageNo, int pageSize) {
         long offset = (long) (pageNo - 1) * pageSize;
-        return inventoryMapper.selectPageByCondition(tenantId, skuId, status, offset, pageSize)
+        return inventoryMapper.selectPageByCondition(tenantId == null ? null : tenantId.value(),
+                        skuId == null ? null : skuId.value(), status, offset, pageSize)
                 .stream()
                 .map(this::toDomain)
                 .toList();
     }
 
-    public long countInventories(Long tenantId, Long skuId, String status) {
-        return inventoryMapper.countByCondition(tenantId, skuId, status);
+    public long countInventories(TenantId tenantId, SkuId skuId, String status) {
+        return inventoryMapper.countByCondition(tenantId == null ? null : tenantId.value(),
+                skuId == null ? null : skuId.value(), status);
     }
 
     public Inventory saveInventory(Inventory inventory) {
@@ -164,21 +175,20 @@ public class InventoryRepositorySupport {
         } else {
             reservationMapper.updateById(reservationDataObject);
         }
-        return findReservation(reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
-                reservation.getOrderNoValue()).orElseThrow();
+        return findReservation(reservation.getTenantId(), reservation.getOrderNo()).orElseThrow();
     }
 
-    public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
+    public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
         InventoryReservationDO reservation = reservationMapper.selectOne(
                 Wrappers.<InventoryReservationDO>lambdaQuery()
-                        .eq(InventoryReservationDO::getTenantId, tenantId)
-                        .eq(InventoryReservationDO::getOrderNo, orderNo));
+                        .eq(InventoryReservationDO::getTenantId, tenantId == null ? null : tenantId.value())
+                        .eq(InventoryReservationDO::getOrderNo, orderNo == null ? null : orderNo.value()));
         if (reservation == null) {
             return Optional.empty();
         }
         List<InventoryReservationItem> items = reservationItemMapper.selectList(
                         Wrappers.<InventoryReservationItemDO>lambdaQuery()
-                                .eq(InventoryReservationItemDO::getTenantId, tenantId)
+                                .eq(InventoryReservationItemDO::getTenantId, tenantId == null ? null : tenantId.value())
                                 .eq(InventoryReservationItemDO::getReservationNo, reservation.getReservationNo())
                                 .orderByAsc(InventoryReservationItemDO::getSkuId))
                 .stream()
@@ -191,10 +201,10 @@ public class InventoryRepositorySupport {
         ledgerMapper.insert(toDataObject(ledger));
     }
 
-    public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
+    public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
         return ledgerMapper.selectList(Wrappers.<InventoryLedgerDO>lambdaQuery()
-                        .eq(InventoryLedgerDO::getTenantId, tenantId)
-                        .eq(InventoryLedgerDO::getOrderNo, orderNo)
+                        .eq(InventoryLedgerDO::getTenantId, tenantId == null ? null : tenantId.value())
+                        .eq(InventoryLedgerDO::getOrderNo, orderNo == null ? null : orderNo.value())
                         .orderByAsc(InventoryLedgerDO::getOccurredAt, InventoryLedgerDO::getId))
                 .stream()
                 .map(this::toDomain)
@@ -205,10 +215,10 @@ public class InventoryRepositorySupport {
         auditLogMapper.insert(toDataObject(auditLog));
     }
 
-    public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+    public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
         return auditLogMapper.selectList(Wrappers.<InventoryAuditLogDO>lambdaQuery()
-                        .eq(InventoryAuditLogDO::getTenantId, tenantId)
-                        .eq(InventoryAuditLogDO::getOrderNo, orderNo)
+                        .eq(InventoryAuditLogDO::getTenantId, tenantId == null ? null : tenantId.value())
+                        .eq(InventoryAuditLogDO::getOrderNo, orderNo == null ? null : orderNo.value())
                         .orderByAsc(InventoryAuditLogDO::getOccurredAt, InventoryAuditLogDO::getId))
                 .stream()
                 .map(this::toDomain)
@@ -456,18 +466,22 @@ public class InventoryRepositorySupport {
         return toDomain(dataObject);
     }
 
-    public void batchSaveAuditReplayTaskItems(Long taskId, Long tenantId, List<Long> deadLetterIds, Instant createdAt) {
+    public void batchSaveAuditReplayTaskItems(TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds,
+                                              Instant createdAt) {
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             return;
         }
-        for (Long deadLetterId : deadLetterIds) {
-            auditReplayTaskItemMapper.insert(new InventoryAuditReplayTaskItemDO(null, taskId, tenantId, deadLetterId,
+        for (DeadLetterId deadLetterId : deadLetterIds) {
+            auditReplayTaskItemMapper.insert(new InventoryAuditReplayTaskItemDO(null,
+                    taskId == null ? null : taskId.value(),
+                    tenantId == null ? null : tenantId.value(),
+                    deadLetterId == null ? null : deadLetterId.value(),
                     InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null, createdAt));
         }
     }
 
-    public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(Long taskId) {
-        return Optional.ofNullable(auditReplayTaskMapper.selectById(taskId)).map(this::toDomain);
+    public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
+        return Optional.ofNullable(auditReplayTaskMapper.selectById(taskId == null ? null : taskId.value())).map(this::toDomain);
     }
 
     public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
@@ -513,18 +527,18 @@ public class InventoryRepositorySupport {
         return List.copyOf(claimed);
     }
 
-    public void renewAuditReplayTaskLease(Long taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+    public void renewAuditReplayTaskLease(TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
         auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
-                .eq(InventoryAuditReplayTaskDO::getId, taskId)
+                .eq(InventoryAuditReplayTaskDO::getId, taskId == null ? null : taskId.value())
                 .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.RUNNING)
                 .eq(InventoryAuditReplayTaskDO::getProcessingOwner, processingOwner)
                 .set(InventoryAuditReplayTaskDO::getLeaseUntil, leaseUntil)
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt));
     }
 
-    public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(Long taskId, int limit) {
+    public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
         return auditReplayTaskItemMapper.selectList(Wrappers.<InventoryAuditReplayTaskItemDO>lambdaQuery()
-                        .eq(InventoryAuditReplayTaskItemDO::getTaskId, taskId)
+                        .eq(InventoryAuditReplayTaskItemDO::getTaskId, taskId == null ? null : taskId.value())
                         .eq(InventoryAuditReplayTaskItemDO::getItemStatus, InventoryAuditReplayTaskItemStatus.PENDING.value())
                         .orderByAsc(InventoryAuditReplayTaskItemDO::getId)
                         .last("limit " + limit))
@@ -549,10 +563,10 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditReplayTaskItemDO::getUpdatedAt, finishedAt));
     }
 
-    public void incrementAuditReplayTaskProgress(Long taskId, String processingOwner, int processedDelta,
+    public void incrementAuditReplayTaskProgress(TaskId taskId, String processingOwner, int processedDelta,
                                                  int successDelta, int failedDelta, Instant updatedAt) {
         auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
-                .eq(InventoryAuditReplayTaskDO::getId, taskId)
+                .eq(InventoryAuditReplayTaskDO::getId, taskId == null ? null : taskId.value())
                 .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.RUNNING)
                 .eq(InventoryAuditReplayTaskDO::getProcessingOwner, processingOwner)
                 .setSql("processed_count = ifnull(processed_count, 0) + " + Math.max(processedDelta, 0))
@@ -561,10 +575,10 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt));
     }
 
-    public void finishAuditReplayTask(Long taskId, String processingOwner, String status, String lastError,
+    public void finishAuditReplayTask(TaskId taskId, String processingOwner, String status, String lastError,
                                       Instant finishedAt) {
         auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
-                .eq(InventoryAuditReplayTaskDO::getId, taskId)
+                .eq(InventoryAuditReplayTaskDO::getId, taskId == null ? null : taskId.value())
                 .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.RUNNING)
                 .eq(InventoryAuditReplayTaskDO::getProcessingOwner, processingOwner)
                 .set(InventoryAuditReplayTaskDO::getStatus, status)
@@ -575,10 +589,10 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, finishedAt));
     }
 
-    public boolean pauseAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant pausedAt) {
+    public boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
         return auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
-                .eq(InventoryAuditReplayTaskDO::getId, taskId)
-                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId)
+                .eq(InventoryAuditReplayTaskDO::getId, taskId == null ? null : taskId.value())
+                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId == null ? null : tenantId.value())
                 .in(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.PENDING,
                         InventoryAuditReplayTaskStatus.RUNNING)
                 .set(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.PAUSED)
@@ -588,10 +602,10 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, pausedAt)) > 0;
     }
 
-    public boolean resumeAuditReplayTask(Long taskId, Long tenantId, Long operatorId, Instant updatedAt) {
+    public boolean resumeAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant updatedAt) {
         return auditReplayTaskMapper.update(null, Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
-                .eq(InventoryAuditReplayTaskDO::getId, taskId)
-                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId)
+                .eq(InventoryAuditReplayTaskDO::getId, taskId == null ? null : taskId.value())
+                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId == null ? null : tenantId.value())
                 .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.PAUSED)
                 .set(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.PENDING)
                 .set(InventoryAuditReplayTaskDO::getPausedAt, null)

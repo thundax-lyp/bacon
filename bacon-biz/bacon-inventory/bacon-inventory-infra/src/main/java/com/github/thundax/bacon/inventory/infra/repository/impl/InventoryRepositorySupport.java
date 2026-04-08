@@ -14,13 +14,11 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
@@ -29,6 +27,11 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryAuditDeadLetterPersistenceAssembler;
+import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryAuditLogPersistenceAssembler;
+import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryAuditOutboxPersistenceAssembler;
+import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryAuditReplayTaskItemPersistenceAssembler;
+import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryAuditReplayTaskPersistenceAssembler;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditLogDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditDeadLetterDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryAuditOutboxDO;
@@ -38,7 +41,10 @@ import com.github.thundax.bacon.inventory.infra.persistence.dataobject.Inventory
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryLedgerDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationDO;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationItemDO;
+import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryLedgerPersistenceAssembler;
 import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryPersistenceAssembler;
+import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryReservationItemPersistenceAssembler;
+import com.github.thundax.bacon.inventory.infra.persistence.assembler.InventoryReservationPersistenceAssembler;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditLogMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditDeadLetterMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryAuditOutboxMapper;
@@ -165,11 +171,11 @@ public class InventoryRepositorySupport {
     }
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
-        InventoryReservationDO reservationDataObject = toDataObject(reservation);
+        InventoryReservationDO reservationDataObject = InventoryReservationPersistenceAssembler.toDataObject(reservation);
         if (reservationDataObject.getId() == null) {
             reservationMapper.insert(reservationDataObject);
             List<InventoryReservationItemDO> itemDataObjects = reservation.getItems().stream()
-                    .map(item -> toDataObject(item,
+                    .map(item -> InventoryReservationItemPersistenceAssembler.toDataObject(item,
                             reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
                             reservation.getReservationNoValue()))
                     .toList();
@@ -194,41 +200,41 @@ public class InventoryRepositorySupport {
                                 .eq(InventoryReservationItemDO::getReservationNo, reservation.getReservationNo())
                                 .orderByAsc(InventoryReservationItemDO::getSkuId))
                 .stream()
-                .map(this::toDomain)
+                .map(InventoryReservationItemPersistenceAssembler::toDomain)
                 .toList();
-        return Optional.of(toDomain(reservation, items));
+        return Optional.of(InventoryReservationPersistenceAssembler.toDomain(reservation, items));
     }
 
     public void saveLedger(InventoryLedger ledger) {
-        ledgerMapper.insert(toDataObject(ledger));
+        ledgerMapper.insert(InventoryLedgerPersistenceAssembler.toDataObject(ledger));
     }
 
     public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
         return ledgerMapper.selectList(Wrappers.<InventoryLedgerDO>lambdaQuery()
-                        .eq(InventoryLedgerDO::getTenantId, tenantId == null ? null : tenantId.value())
+                .eq(InventoryLedgerDO::getTenantId, tenantId == null ? null : tenantId.value())
                         .eq(InventoryLedgerDO::getOrderNo, orderNo == null ? null : orderNo.value())
                         .orderByAsc(InventoryLedgerDO::getOccurredAt, InventoryLedgerDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(InventoryLedgerPersistenceAssembler::toDomain)
                 .toList();
     }
 
     public void saveAuditLog(InventoryAuditLog auditLog) {
-        auditLogMapper.insert(toDataObject(auditLog));
+        auditLogMapper.insert(InventoryAuditLogPersistenceAssembler.toDataObject(auditLog));
     }
 
     public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
         return auditLogMapper.selectList(Wrappers.<InventoryAuditLogDO>lambdaQuery()
-                        .eq(InventoryAuditLogDO::getTenantId, tenantId == null ? null : tenantId.value())
+                .eq(InventoryAuditLogDO::getTenantId, tenantId == null ? null : tenantId.value())
                         .eq(InventoryAuditLogDO::getOrderNo, orderNo == null ? null : orderNo.value())
                         .orderByAsc(InventoryAuditLogDO::getOccurredAt, InventoryAuditLogDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(InventoryAuditLogPersistenceAssembler::toDomain)
                 .toList();
     }
 
     public void saveAuditOutbox(InventoryAuditOutbox outbox) {
-        InventoryAuditOutboxDO dataObject = toDataObject(outbox);
+        InventoryAuditOutboxDO dataObject = InventoryAuditOutboxPersistenceAssembler.toDataObject(outbox);
         if (dataObject.getEventCode() == null || dataObject.getEventCode().isBlank()) {
             dataObject.setEventCode(generateEventCode().value());
         }
@@ -247,7 +253,7 @@ public class InventoryRepositorySupport {
                         .orderByAsc(InventoryAuditOutboxDO::getFailedAt, InventoryAuditOutboxDO::getId)
                         .last("limit " + limit))
                 .stream()
-                .map(this::toDomain)
+                .map(InventoryAuditOutboxPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -288,7 +294,7 @@ public class InventoryRepositorySupport {
             }
             InventoryAuditOutboxDO claimedDataObject = auditOutboxMapper.selectById(candidate.getId());
             if (claimedDataObject != null) {
-                claimed.add(toDomain(claimedDataObject));
+                claimed.add(InventoryAuditOutboxPersistenceAssembler.toDomain(claimedDataObject));
             }
         }
         return List.copyOf(claimed);
@@ -368,7 +374,7 @@ public class InventoryRepositorySupport {
     }
 
     public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-        auditDeadLetterMapper.insert(toDataObject(deadLetter));
+        auditDeadLetterMapper.insert(InventoryAuditDeadLetterPersistenceAssembler.toDataObject(deadLetter));
     }
 
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(TenantId tenantId, OrderNo orderNo,
@@ -388,7 +394,7 @@ public class InventoryRepositorySupport {
                         .orderByDesc(InventoryAuditDeadLetterDO::getDeadAt, InventoryAuditDeadLetterDO::getOutboxId)
                         .last("limit " + offset + ", " + pageSize))
                 .stream()
-                .map(this::toDomain)
+                .map(InventoryAuditDeadLetterPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -408,7 +414,7 @@ public class InventoryRepositorySupport {
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
         return Optional.ofNullable(auditDeadLetterMapper.selectOne(Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
                 .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())))
-                .map(this::toDomain);
+                .map(InventoryAuditDeadLetterPersistenceAssembler::toDomain);
     }
 
     public boolean claimAuditDeadLetterForReplay(DeadLetterId id, TenantId tenantId, String replayKey,
@@ -459,13 +465,13 @@ public class InventoryRepositorySupport {
     }
 
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
-        InventoryAuditReplayTaskDO dataObject = toDataObject(task);
+        InventoryAuditReplayTaskDO dataObject = InventoryAuditReplayTaskPersistenceAssembler.toDataObject(task);
         if (dataObject.getId() == null) {
             auditReplayTaskMapper.insert(dataObject);
         } else {
             auditReplayTaskMapper.updateById(dataObject);
         }
-        return toDomain(dataObject);
+        return InventoryAuditReplayTaskPersistenceAssembler.toDomain(dataObject);
     }
 
     public void batchSaveAuditReplayTaskItems(TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds,
@@ -483,7 +489,8 @@ public class InventoryRepositorySupport {
     }
 
     public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
-        return Optional.ofNullable(auditReplayTaskMapper.selectById(taskId == null ? null : taskId.value())).map(this::toDomain);
+        return Optional.ofNullable(auditReplayTaskMapper.selectById(taskId == null ? null : taskId.value()))
+                .map(InventoryAuditReplayTaskPersistenceAssembler::toDomain);
     }
 
     public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
@@ -523,7 +530,7 @@ public class InventoryRepositorySupport {
             }
             InventoryAuditReplayTaskDO claimedDataObject = auditReplayTaskMapper.selectById(candidate.getId());
             if (claimedDataObject != null) {
-                claimed.add(toDomain(claimedDataObject));
+                claimed.add(InventoryAuditReplayTaskPersistenceAssembler.toDomain(claimedDataObject));
             }
         }
         return List.copyOf(claimed);
@@ -545,7 +552,7 @@ public class InventoryRepositorySupport {
                         .orderByAsc(InventoryAuditReplayTaskItemDO::getId)
                         .last("limit " + limit))
                 .stream()
-                .map(this::toDomain)
+                .map(InventoryAuditReplayTaskItemPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -614,141 +621,6 @@ public class InventoryRepositorySupport {
                 .set(InventoryAuditReplayTaskDO::getProcessingOwner, null)
                 .set(InventoryAuditReplayTaskDO::getLeaseUntil, null)
                 .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt)) > 0;
-    }
-
-    private InventoryReservation toDomain(InventoryReservationDO reservation, List<InventoryReservationItem> items) {
-        return InventoryReservation.rehydrate(reservation.getId(), reservation.getTenantId(),
-                reservation.getReservationNo(), reservation.getOrderNo(),
-                reservation.getWarehouseNo(),
-                reservation.getCreatedAt(), items, reservation.getReservationStatus(), reservation.getFailureReason(),
-                reservation.getReleaseReason(), reservation.getReleasedAt(), reservation.getDeductedAt());
-    }
-
-    private InventoryReservationItem toDomain(InventoryReservationItemDO item) {
-        return new InventoryReservationItem(item.getId(), item.getTenantId(), item.getReservationNo(), item.getSkuId(),
-                item.getQuantity());
-    }
-
-    private InventoryReservationDO toDataObject(InventoryReservation reservation) {
-        return new InventoryReservationDO(reservation.getId(), reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
-                reservation.getReservationNoValue(), reservation.getOrderNoValue(), reservation.getReservationStatusValue(),
-                reservation.getWarehouseNoValue(), reservation.getFailureReason(), reservation.getReleaseReasonValue(),
-                reservation.getCreatedAt(), reservation.getReleasedAt(), reservation.getDeductedAt());
-    }
-
-    private InventoryReservationItemDO toDataObject(InventoryReservationItem item, Long tenantId, String reservationNo) {
-        return new InventoryReservationItemDO(item.getId(), tenantId, reservationNo,
-                item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity());
-    }
-
-    private InventoryLedger toDomain(InventoryLedgerDO dataObject) {
-        return new InventoryLedger(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
-                dataObject.getReservationNo(), dataObject.getSkuId(),
-                dataObject.getWarehouseNo(),
-                InventoryLedgerType.from(dataObject.getLedgerType()), dataObject.getQuantity(),
-                dataObject.getOccurredAt());
-    }
-
-    private InventoryLedgerDO toDataObject(InventoryLedger ledger) {
-        return new InventoryLedgerDO(ledger.getId(), ledger.getTenantId() == null ? null : ledger.getTenantId().value(), ledger.getOrderNoValue(),
-                ledger.getReservationNoValue(), ledger.getSkuId() == null ? null : ledger.getSkuId().value(),
-                ledger.getWarehouseNoValue(),
-                ledger.getLedgerTypeValue(),
-                ledger.getQuantity(), ledger.getOccurredAt());
-    }
-
-    private InventoryAuditLog toDomain(InventoryAuditLogDO dataObject) {
-        return new InventoryAuditLog(dataObject.getId(), dataObject.getTenantId(), dataObject.getOrderNo(),
-                dataObject.getReservationNo(), dataObject.getActionType(), dataObject.getOperatorType(),
-                dataObject.getOperatorId(), dataObject.getOccurredAt());
-    }
-
-    private InventoryAuditLogDO toDataObject(InventoryAuditLog auditLog) {
-        return new InventoryAuditLogDO(auditLog.getId(), auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(), auditLog.getOrderNoValue(),
-                auditLog.getReservationNoValue(), auditLog.getActionTypeValue(), auditLog.getOperatorTypeValue(),
-                auditLog.getOperatorId(), auditLog.getOccurredAt());
-    }
-
-    private InventoryAuditOutboxDO toDataObject(InventoryAuditOutbox outbox) {
-        return new InventoryAuditOutboxDO(outbox.getIdValue(), outbox.getEventCodeValue(), outbox.getTenantId() == null ? null : outbox.getTenantId().value(),
-                outbox.getOrderNoValue(), outbox.getReservationNoValue(), outbox.getActionTypeValue(),
-                outbox.getOperatorTypeValue(),
-                outbox.getOperatorIdValue(), outbox.getOccurredAt(), outbox.getErrorMessage(),
-                outbox.getStatusValue(), outbox.getRetryCount(), outbox.getNextRetryAt(), outbox.getProcessingOwner(),
-                outbox.getLeaseUntil(), outbox.getClaimedAt(), outbox.getDeadReason(), outbox.getFailedAt(),
-                outbox.getUpdatedAt());
-    }
-
-    private InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
-        return new InventoryAuditOutbox(
-                dataObject.getId(),
-                dataObject.getEventCode(),
-                dataObject.getTenantId(),
-                dataObject.getOrderNo(),
-                dataObject.getReservationNo(),
-                InventoryAuditActionType.from(dataObject.getActionType()),
-                InventoryAuditOperatorType.from(dataObject.getOperatorType()),
-                dataObject.getOperatorId(),
-                dataObject.getOccurredAt(),
-                dataObject.getErrorMessage(),
-                InventoryAuditOutboxStatus.from(dataObject.getStatus()),
-                dataObject.getRetryCount(),
-                dataObject.getNextRetryAt(),
-                dataObject.getProcessingOwner(),
-                dataObject.getLeaseUntil(),
-                dataObject.getClaimedAt(),
-                dataObject.getDeadReason(),
-                dataObject.getFailedAt(),
-                dataObject.getUpdatedAt());
-    }
-
-    private InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDO(deadLetter.getIdValue(), deadLetter.getOutboxIdValue(),
-                deadLetter.getEventCodeValue(), deadLetter.getTenantId() == null ? null : deadLetter.getTenantId().value(),
-                deadLetter.getOrderNoValue(), deadLetter.getReservationNoValue(), deadLetter.getActionTypeValue(),
-                deadLetter.getOperatorTypeValue(), deadLetter.getOperatorIdValue(), deadLetter.getOccurredAt(),
-                deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
-                deadLetter.getDeadAt(), deadLetter.getReplayStatusValue(), deadLetter.getReplayCount(),
-                deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
-                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), deadLetter.getReplayOperatorIdValue());
-    }
-
-    private InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
-        return new InventoryAuditDeadLetter(dataObject.getId(), dataObject.getOutboxId(), dataObject.getEventCode(),
-                dataObject.getTenantId(), dataObject.getOrderNo(), dataObject.getReservationNo(),
-                dataObject.getActionType(), dataObject.getOperatorType(), dataObject.getOperatorId(),
-                dataObject.getOccurredAt(), dataObject.getRetryCount(), dataObject.getErrorMessage(), dataObject.getDeadReason(),
-                dataObject.getDeadAt(), dataObject.getReplayStatus(), dataObject.getReplayCount(),
-                dataObject.getLastReplayAt(), dataObject.getLastReplayResult(), dataObject.getLastReplayError(),
-                dataObject.getReplayKey(), dataObject.getReplayOperatorType(),
-                dataObject.getReplayOperatorId() == null ? null : String.valueOf(dataObject.getReplayOperatorId()));
-    }
-
-    private InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {
-        return new InventoryAuditReplayTaskDO(task.getIdValue(), task.getTenantId() == null ? null : task.getTenantId().value(),
-                task.getTaskNoValue(), task.getStatus().value(),
-                task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
-                task.getReplayKeyPrefix(), task.getOperatorType(), task.getOperatorIdValue(), task.getProcessingOwner(),
-                task.getLeaseUntil(), task.getLastError(), task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(),
-                task.getFinishedAt(), task.getUpdatedAt());
-    }
-
-    private InventoryAuditReplayTask toDomain(InventoryAuditReplayTaskDO dataObject) {
-        return new InventoryAuditReplayTask(dataObject.getId(), dataObject.getTenantId(), dataObject.getTaskNo(),
-                InventoryAuditReplayTaskStatus.from(dataObject.getStatus()), dataObject.getTotalCount(), dataObject.getProcessedCount(),
-                dataObject.getSuccessCount(), dataObject.getFailedCount(), dataObject.getReplayKeyPrefix(),
-                dataObject.getOperatorType(), dataObject.getOperatorId(), dataObject.getProcessingOwner(),
-                dataObject.getLeaseUntil(), dataObject.getLastError(), dataObject.getCreatedAt(),
-                dataObject.getStartedAt(), dataObject.getPausedAt(), dataObject.getFinishedAt(),
-                dataObject.getUpdatedAt());
-    }
-
-    private InventoryAuditReplayTaskItem toDomain(InventoryAuditReplayTaskItemDO dataObject) {
-        return new InventoryAuditReplayTaskItem(dataObject.getId(), dataObject.getTaskId(),
-                dataObject.getTenantId(),
-                dataObject.getDeadLetterId(), dataObject.getItemStatus(), dataObject.getReplayStatus(),
-                dataObject.getReplayKey(), dataObject.getResultMessage(), dataObject.getStartedAt(),
-                dataObject.getFinishedAt(), dataObject.getUpdatedAt());
     }
 
     private EventCode generateEventCode() {

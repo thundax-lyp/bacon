@@ -24,30 +24,27 @@ class NamingAndPlacementRuleSupportTest {
     }
 
     @Test
-    void entityBoundaryConstructorViolationShouldExplainInvalidBoundaryTypeAndCorrectWriting() {
+    void entityConstructorRuleShouldRejectExplicitConstructors() {
         EvaluationResult result = evaluate(InvalidBoundaryTypeEntityFixture.class);
 
         assertThat(result.hasViolation()).isTrue();
         assertThat(singleViolationDetail(result))
                 .contains(InvalidBoundaryTypeEntityFixture.class.getName() + " violation")
-                .contains("uses unsupported parameter types")
-                .contains(UnsupportedBoundaryTypeFixture.class.getName())
-                .contains("Fix: InvalidBoundaryTypeEntityFixture(Long id, String code, Instant createdAt) {...}")
-                .doesNotContain("explicitConstructors=");
+                .contains("Found 2 explicit constructors")
+                .contains("expected 0 explicit constructors")
+                .contains("move boundary conversion outside the entity");
     }
 
     @Test
-    void entityBoundaryConstructorViolationShouldExplainMultipleExplicitConstructorsAndCorrectWriting() {
+    void entityConstructorRuleShouldRejectMultipleExplicitConstructors() {
         EvaluationResult result = evaluate(MultipleExplicitConstructorsEntityFixture.class);
 
         assertThat(result.hasViolation()).isTrue();
         assertThat(singleViolationDetail(result))
                 .contains(MultipleExplicitConstructorsEntityFixture.class.getName() + " violation")
                 .contains("Found 2 explicit constructors")
-                .contains("MultipleExplicitConstructorsEntityFixture(Long, BoundaryStatusFixture, Instant)")
-                .contains("MultipleExplicitConstructorsEntityFixture(String, BoundaryStatusFixture, Instant)")
-                .contains("Fix: MultipleExplicitConstructorsEntityFixture(Long id, BoundaryStatusFixture status, Instant createdAt) {...}")
-                .doesNotContain("explicitConstructors=");
+                .contains("expected 0 explicit constructors")
+                .contains("move boundary conversion outside the entity");
     }
 
     @Test
@@ -64,17 +61,18 @@ class NamingAndPlacementRuleSupportTest {
     }
 
     @Test
-    void entityBoundaryConstructorRuleShouldRequireAllArgsConstructorAnnotation() {
+    void entityConstructorRuleShouldRequireAllArgsConstructorAnnotation() {
         EvaluationResult result = evaluate(MissingAllArgsConstructorEntityFixture.class);
 
         assertThat(result.hasViolation()).isTrue();
         assertThat(singleViolationDetail(result))
                 .contains(MissingAllArgsConstructorEntityFixture.class.getName() + " violation")
-                .contains("Class must be annotated with @AllArgsConstructor");
+                .contains("Class must be annotated with @AllArgsConstructor")
+                .contains("expected 0 explicit constructors");
     }
 
     @Test
-    void entityBoundaryConstructorRuleShouldSkipRecordClasses() {
+    void entityConstructorRuleShouldSkipRecordClasses() {
         EvaluationResult result = NamingAndPlacementRuleSupport
                 .entityShouldUseSingleExplicitBoundaryConstructor(
                         RecordEntityFixture.class.getName(),
@@ -197,10 +195,6 @@ final class ValidAnnotatedEntityFixture {
     private SampleIdFixture id;
     private BoundaryStatusFixture status;
     private Instant createdAt;
-
-    public ValidAnnotatedEntityFixture(Long id, BoundaryStatusFixture status, Instant createdAt) {
-        this(SampleIdFixture.of(id), status, createdAt);
-    }
 }
 
 record RecordEntityFixture(Long id, String code, Instant createdAt) {

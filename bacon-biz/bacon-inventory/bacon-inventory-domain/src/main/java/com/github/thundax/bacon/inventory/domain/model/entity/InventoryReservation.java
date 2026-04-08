@@ -3,29 +3,23 @@ package com.github.thundax.bacon.inventory.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 库存预占单领域实体。
  */
 @Getter
+@AllArgsConstructor
 public class InventoryReservation {
-
-    private static final Set<String> RELEASE_REASONS = Set.of(
-            "USER_CANCELLED",
-            "SYSTEM_CANCELLED",
-            "PAYMENT_CREATE_FAILED",
-            "PAYMENT_FAILED",
-            "TIMEOUT_CLOSED"
-    );
 
     /** 预占单主键。 */
     private final Long id;
@@ -46,7 +40,7 @@ public class InventoryReservation {
     /** 失败原因。 */
     private String failureReason;
     /** 释放原因。 */
-    private String releaseReason;
+    private InventoryReleaseReason releaseReason;
     /** 释放时间。 */
     private Instant releasedAt;
     /** 扣减时间。 */
@@ -74,25 +68,8 @@ public class InventoryReservation {
                 warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
                 createdAt, items,
                 reservationStatus == null ? null : InventoryReservationStatus.from(reservationStatus),
-                failureReason, releaseReason, releasedAt, deductedAt);
-    }
-
-    private InventoryReservation(Long id, TenantId tenantId, ReservationNo reservationNo, OrderNo orderNo,
-                                 WarehouseNo warehouseNo, Instant createdAt, List<InventoryReservationItem> items,
-                                 InventoryReservationStatus reservationStatus, String failureReason,
-                                 String releaseReason, Instant releasedAt, Instant deductedAt) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.reservationNo = reservationNo;
-        this.orderNo = orderNo;
-        this.warehouseNo = warehouseNo;
-        this.createdAt = createdAt;
-        this.items = items;
-        this.reservationStatus = reservationStatus;
-        this.failureReason = failureReason;
-        this.releaseReason = releaseReason;
-        this.releasedAt = releasedAt;
-        this.deductedAt = deductedAt;
+                failureReason, releaseReason == null ? null : InventoryReleaseReason.from(releaseReason),
+                releasedAt, deductedAt);
     }
 
     public Long getTenantIdValue() {
@@ -115,6 +92,10 @@ public class InventoryReservation {
         return reservationStatus == null ? null : reservationStatus.value();
     }
 
+    public String getReleaseReasonValue() {
+        return releaseReason == null ? null : releaseReason.value();
+    }
+
     public void reserve() {
         // 预占单只允许从 CREATED 进入 RESERVED；一旦失败或终结，就不能再次复用同一预占单。
         ensureStatus(InventoryReservationStatus.CREATED);
@@ -128,12 +109,9 @@ public class InventoryReservation {
         this.failureReason = reason;
     }
 
-    public void release(String reason, Instant releasedTime) {
-        // 释放动作只允许在 RESERVED 后执行，并且原因必须来自固定枚举，便于上游做补偿分流。
+    public void release(InventoryReleaseReason reason, Instant releasedTime) {
+        // 释放动作只允许在 RESERVED 后执行，并且原因由领域枚举约束，便于上游做补偿分流。
         ensureStatus(InventoryReservationStatus.RESERVED);
-        if (!RELEASE_REASONS.contains(reason)) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_RELEASE_REASON, reason);
-        }
         this.reservationStatus = InventoryReservationStatus.RELEASED;
         this.releaseReason = reason;
         this.releasedAt = releasedTime;

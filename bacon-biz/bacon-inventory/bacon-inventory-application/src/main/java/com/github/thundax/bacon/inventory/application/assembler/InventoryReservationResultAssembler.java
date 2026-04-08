@@ -15,7 +15,7 @@ public final class InventoryReservationResultAssembler {
         return new InventoryReservationResultDTO(reservation.getTenantIdValue(), reservation.getOrderNoValue(),
                 reservation.getReservationNoValue(), reservation.getReservationStatusValue(),
                 toInventoryStatus(reservation.getReservationStatus()), reservation.getWarehouseNoValue(),
-                reservation.getFailureReason(), reservation.getReleaseReason(), reservation.getReleasedAt(),
+                reservation.getFailureReason(), reservation.getReleaseReasonValue(), reservation.getReleasedAt(),
                 reservation.getDeductedAt());
     }
 

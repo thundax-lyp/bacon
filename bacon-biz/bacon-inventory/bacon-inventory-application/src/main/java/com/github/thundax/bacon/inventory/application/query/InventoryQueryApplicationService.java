@@ -108,7 +108,7 @@ public class InventoryQueryApplicationService {
                 reservation.getItems().stream()
                         .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
                         .toList(),
-                reservation.getFailureReason(), reservation.getReleaseReason(), reservation.getCreatedAt(),
+                reservation.getFailureReason(), reservation.getReleaseReasonValue(), reservation.getCreatedAt(),
                 reservation.getReleasedAt(), reservation.getDeductedAt());
     }
 

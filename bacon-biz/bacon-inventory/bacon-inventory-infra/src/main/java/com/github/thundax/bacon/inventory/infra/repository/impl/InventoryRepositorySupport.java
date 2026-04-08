@@ -621,7 +621,7 @@ public class InventoryRepositorySupport {
     private InventoryReservationDO toDataObject(InventoryReservation reservation) {
         return new InventoryReservationDO(reservation.getId(), reservation.getTenantIdValue(),
                 reservation.getReservationNoValue(), reservation.getOrderNoValue(), reservation.getReservationStatusValue(),
-                reservation.getWarehouseNoValue(), reservation.getFailureReason(), reservation.getReleaseReason(),
+                reservation.getWarehouseNoValue(), reservation.getFailureReason(), reservation.getReleaseReasonValue(),
                 reservation.getCreatedAt(), reservation.getReleasedAt(), reservation.getDeductedAt());
     }
 

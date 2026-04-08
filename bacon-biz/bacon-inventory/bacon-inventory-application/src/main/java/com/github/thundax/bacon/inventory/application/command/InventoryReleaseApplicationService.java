@@ -9,6 +9,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
@@ -60,10 +61,11 @@ public class InventoryReleaseApplicationService {
         }
 
         Instant releasedAt = Instant.now();
+        InventoryReleaseReason releaseReason = toReleaseReason(reason);
         reservation.getItems().forEach(item -> {
             releaseStockOnce(tenantId, item.getSkuIdValue(), item.getQuantity(), releasedAt);
         });
-        reservation.release(reason, releasedAt);
+        reservation.release(releaseReason, releasedAt);
         inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReleaseSuccess(reservation, releasedAt);
         return InventoryReservationResultAssembler.fromReservation(reservation);
@@ -75,5 +77,13 @@ public class InventoryReleaseApplicationService {
                         String.valueOf(skuId)));
         inventory.release(quantity, operatedAt);
         inventoryStockRepository.saveInventory(inventory);
+    }
+
+    private InventoryReleaseReason toReleaseReason(String reason) {
+        try {
+            return InventoryReleaseReason.from(reason);
+        } catch (IllegalArgumentException ex) {
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_RELEASE_REASON, reason);
+        }
     }
 }

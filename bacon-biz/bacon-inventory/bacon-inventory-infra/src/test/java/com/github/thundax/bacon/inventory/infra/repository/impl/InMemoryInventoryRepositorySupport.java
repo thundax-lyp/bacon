@@ -117,7 +117,7 @@ public class InMemoryInventoryRepositorySupport {
                                     item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
                                     item.getTenantIdValue(), item.getReservationNoValue(), item.getSkuIdValue(), item.getQuantity()))
                             .toList(),
-                    reservation.getReservationStatusValue(), reservation.getFailureReason(), reservation.getReleaseReason(),
+                    reservation.getReservationStatusValue(), reservation.getFailureReason(), reservation.getReleaseReasonValue(),
                     reservation.getReleasedAt(), reservation.getDeductedAt());
         }
         reservations.put(reservationKey(reservation.getTenantIdValue(), reservation.getOrderNoValue()), reservation);

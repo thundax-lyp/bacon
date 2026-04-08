@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.common.id.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -32,6 +33,8 @@ class BaseIdTest {
         assertThat(objectMapper.readValue("1001", UserId.class)).isEqualTo(UserId.of(1001L));
         assertThat(objectMapper.writeValueAsString(TenantId.of(1L))).isEqualTo("1");
         assertThat(objectMapper.readValue("1", TenantId.class)).isEqualTo(TenantId.of(1L));
+        assertThat(objectMapper.writeValueAsString(OperatorId.of("SYSTEM"))).isEqualTo("\"SYSTEM\"");
+        assertThat(objectMapper.readValue("\"SYSTEM\"", OperatorId.class)).isEqualTo(OperatorId.of("SYSTEM"));
     }
 
     @Test
@@ -46,5 +49,12 @@ class BaseIdTest {
         assertThatThrownBy(() -> SkuId.of(0L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("id must be positive");
+    }
+
+    @Test
+    void shouldRejectBlankStringValue() {
+        assertThatThrownBy(() -> OperatorId.of(" "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("id cannot be blank");
     }
 }

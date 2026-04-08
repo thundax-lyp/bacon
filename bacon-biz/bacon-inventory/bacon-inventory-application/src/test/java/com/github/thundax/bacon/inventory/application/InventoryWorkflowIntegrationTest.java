@@ -22,8 +22,11 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -114,12 +117,12 @@ class InventoryWorkflowIntegrationTest {
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
                 null,
-                1001L,
-                "ORDER-DEAD",
-                "RSV-DEAD",
+                TenantId.of(1001L),
+                OrderNo.of("ORDER-DEAD"),
+                ReservationNo.of("RSV-DEAD"),
                 InventoryAuditActionType.RESERVE,
                 InventoryAuditOperatorType.SYSTEM,
-                InventoryAuditLog.OPERATOR_ID_SYSTEM,
+                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                 now,
                 "INIT",
                 InventoryAuditOutboxStatus.NEW,
@@ -153,12 +156,12 @@ class InventoryWorkflowIntegrationTest {
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
                 null,
-                1001L,
-                "ORDER-OK",
-                "RSV-OK",
+                TenantId.of(1001L),
+                OrderNo.of("ORDER-OK"),
+                ReservationNo.of("RSV-OK"),
                 InventoryAuditActionType.RESERVE,
                 InventoryAuditOperatorType.SYSTEM,
-                InventoryAuditLog.OPERATOR_ID_SYSTEM,
+                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                 now,
                 "INIT",
                 InventoryAuditOutboxStatus.NEW,
@@ -205,7 +208,7 @@ class InventoryWorkflowIntegrationTest {
 
         private OptimisticInventoryRepository(boolean failAuditPersist) {
             this.failAuditPersist = failAuditPersist;
-            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, "DEFAULT",
+            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseNo.of("DEFAULT"),
                     100, 0, 100, InventoryStatus.ENABLED, 0L,
                     Instant.parse("2026-03-26T09:59:00Z")));
         }
@@ -470,8 +473,8 @@ class InventoryWorkflowIntegrationTest {
         }
 
         private Inventory copy(Inventory source) {
-            return new Inventory(source.getId().value(), source.getTenantId().value(),
-                    source.getSkuId() == null ? null : source.getSkuId().value(), source.getWarehouseNo().value(),
+            return new Inventory(source.getId(), source.getTenantId(),
+                    source.getSkuId(), source.getWarehouseNo(),
                     source.getOnHandQuantity(), source.getReservedQuantity(), source.getAvailableQuantity(),
                     source.getStatus(), source.getVersion(), source.getUpdatedAt());
         }

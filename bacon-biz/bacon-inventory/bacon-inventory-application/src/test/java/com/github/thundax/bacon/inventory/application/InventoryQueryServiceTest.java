@@ -10,7 +10,9 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -60,13 +62,13 @@ class InventoryQueryApplicationServiceTest {
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 
         private TestInventoryRepository() {
-            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, "DEFAULT", 100, 0, 100,
+            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseNo.of("DEFAULT"), 100, 0, 100,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, "DEFAULT", 80, 0, 80,
+            inventories.put(key(1001L, 102L), new Inventory(InventoryId.of(2L), TenantId.of(1001L), SkuId.of(102L), WarehouseNo.of("DEFAULT"), 80, 0, 80,
                     InventoryStatus.DISABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 103L), new Inventory(3L, 1001L, 103L, "DEFAULT", 60, 0, 60,
+            inventories.put(key(1001L, 103L), new Inventory(InventoryId.of(3L), TenantId.of(1001L), SkuId.of(103L), WarehouseNo.of("DEFAULT"), 60, 0, 60,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 104L), new Inventory(4L, 1001L, 104L, "DEFAULT", 40, 0, 40,
+            inventories.put(key(1001L, 104L), new Inventory(InventoryId.of(4L), TenantId.of(1001L), SkuId.of(104L), WarehouseNo.of("DEFAULT"), 40, 0, 40,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
         }
 

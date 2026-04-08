@@ -41,15 +41,6 @@ public class Inventory {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Inventory(Long id, Long tenantId, Long skuId, String warehouseNo, Integer onHandQuantity,
-                     Integer reservedQuantity, Integer availableQuantity, InventoryStatus status, Long version, Instant updatedAt) {
-        this(id == null ? null : InventoryId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                skuId == null ? null : SkuId.of(skuId),
-                warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
-                onHandQuantity, reservedQuantity, availableQuantity, status, version, updatedAt);
-    }
-
     public void reserve(int quantity, Instant operatedAt) {
         // 预占只减少可用量，不减少实物在库量；真正扣减要等订单支付成功后单独执行。
         ensureReservable(quantity);

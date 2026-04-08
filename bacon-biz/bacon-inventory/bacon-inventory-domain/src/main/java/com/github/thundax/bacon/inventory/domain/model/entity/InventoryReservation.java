@@ -46,16 +46,6 @@ public class InventoryReservation {
     /** 扣减时间。 */
     private Instant deductedAt;
 
-    public InventoryReservation(Long id, Long tenantId, String reservationNo, String orderNo, String warehouseNo,
-                                Instant createdAt, List<InventoryReservationItem> items) {
-        this(id,
-                tenantId == null ? null : TenantId.of(tenantId),
-                reservationNo == null ? null : ReservationNo.of(reservationNo),
-                orderNo == null ? null : OrderNo.of(orderNo),
-                warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
-                createdAt, items, InventoryReservationStatus.CREATED, null, null, null, null);
-    }
-
     public static InventoryReservation rehydrate(Long id, Long tenantId, String reservationNo, String orderNo,
                                                  String warehouseNo, Instant createdAt, List<InventoryReservationItem> items,
                                                  String reservationStatus, String failureReason, String releaseReason,

@@ -24,14 +24,6 @@ public class InventoryReservationItem {
     /** 预占数量。 */
     private Integer quantity;
 
-    public InventoryReservationItem(Long id, Long tenantId, String reservationNo, Long skuId, Integer quantity) {
-        this(id,
-                tenantId == null ? null : TenantId.of(tenantId),
-                reservationNo == null ? null : ReservationNo.of(reservationNo),
-                skuId == null ? null : SkuId.of(skuId),
-                quantity);
-    }
-
     public String getReservationNoValue() {
         return reservationNo == null ? null : reservationNo.value();
     }

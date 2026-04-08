@@ -56,19 +56,6 @@ public class InventoryAuditReplayTask {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public InventoryAuditReplayTask(Long id, Long tenantId, String taskNo, InventoryAuditReplayTaskStatus status,
-                                    Integer totalCount, Integer processedCount, Integer successCount,
-                                    Integer failedCount, String replayKeyPrefix, String operatorType, Long operatorId,
-                                    String processingOwner, Instant leaseUntil, String lastError, Instant createdAt,
-                                    Instant startedAt, Instant pausedAt, Instant finishedAt, Instant updatedAt) {
-        this(id == null ? null : TaskId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                taskNo == null ? null : TaskNo.of(taskNo),
-                status, totalCount, processedCount, successCount, failedCount, replayKeyPrefix, operatorType,
-                operatorId == null ? null : String.valueOf(operatorId), processingOwner, leaseUntil, lastError,
-                createdAt, startedAt, pausedAt, finishedAt, updatedAt);
-    }
-
     public Long getIdValue() {
         return id == null ? null : id.value();
     }

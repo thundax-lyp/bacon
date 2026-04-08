@@ -41,11 +41,11 @@ class InventoryAuditReplayTaskApplicationServiceTest {
     @Test
     void shouldCreateAndProcessReplayTask() {
         TestLogRepository repository = new TestLogRepository();
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, 101L, "EVT20260326000000-000101",
-                3001L, "ORDER-1", "RSV-1", InventoryAuditActionType.RESERVE.value(),
-                InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM,
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L), EventCode.of("EVT20260326000000-000101"),
+                TenantId.of(3001L), OrderNo.of("ORDER-1"), ReservationNo.of("RSV-1"), InventoryAuditActionType.RESERVE,
+                InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                 Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
-                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING.value(),
+                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING,
                 0, null, null, null, null, null, null));
 
         InventoryAuditReplayTaskApplicationService taskService = new InventoryAuditReplayTaskApplicationService(repository);
@@ -174,10 +174,10 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                     key -> new ArrayList<>());
             for (DeadLetterId deadLetterId : deadLetterIds) {
                 items.add(new InventoryAuditReplayTaskItem(taskItemIdGenerator.getAndIncrement(),
-                        taskId == null ? null : taskId.value(),
-                        tenantId == null ? null : tenantId.value(),
-                        deadLetterId == null ? null : deadLetterId.value(),
-                        InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null,
+                        taskId,
+                        tenantId,
+                        deadLetterId,
+                        InventoryAuditReplayTaskItemStatus.PENDING, null, null, null, null, null,
                         createdAt));
             }
         }

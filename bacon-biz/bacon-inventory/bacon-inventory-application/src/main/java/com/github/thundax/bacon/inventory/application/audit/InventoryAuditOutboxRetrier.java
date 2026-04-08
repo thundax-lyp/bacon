@@ -76,9 +76,9 @@ public class InventoryAuditOutboxRetrier {
     private void retryOne(InventoryAuditOutbox item, Instant now, String owner) {
         try {
             // outbox 重试的目标很单一：把原始审计事件补写回正式审计表，成功后立即删除 outbox。
-            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, item.getTenantId() == null ? null : item.getTenantId().value(),
-                    item.getOrderNoValue(), item.getReservationNoValue(), item.getActionTypeValue(),
-                    item.getOperatorTypeValue(),
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, item.getTenantId(),
+                    item.getOrderNo(), item.getReservationNo(), item.getActionType(),
+                    item.getOperatorType(),
                     item.getOperatorIdValue(), item.getOccurredAt()));
             if (!inventoryAuditOutboxRepository.deleteAuditOutboxClaimed(item.getId(), owner)) {
                 Metrics.counter("bacon.inventory.audit.retry.cas_conflict.total", "actionType", item.getActionTypeValue())
@@ -107,11 +107,11 @@ public class InventoryAuditOutboxRetrier {
                         item.getIdValue(), owner);
                 return;
             }
-            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, item.getIdValue(),
-                    item.getEventCodeValue(), item.getTenantId() == null ? null : item.getTenantId().value(), item.getOrderNoValue(), item.getReservationNoValue(),
-                    item.getActionTypeValue(), item.getOperatorTypeValue(), item.getOperatorIdValue(), item.getOccurredAt(),
+            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, item.getId(),
+                    item.getEventCode(), item.getTenantId(), item.getOrderNo(), item.getReservationNo(),
+                    item.getActionType(), item.getOperatorType(), item.getOperatorId(), item.getOccurredAt(),
                     nextRetryCount, errorMessage, deadReason, now,
-                    InventoryAuditReplayStatus.PENDING.value(), 0, null, null, null, null, null, null));
+                    InventoryAuditReplayStatus.PENDING, 0, null, null, null, null, null, null));
             Metrics.counter("bacon.inventory.audit.retry.dead.total", "actionType", item.getActionTypeValue()).increment();
             log.error("ALERT inventory audit retry exhausted, outboxId={}, orderNo={}, reservationNo={}, actionType={}",
                     item.getIdValue(), item.getOrderNoValue(), item.getReservationNoValue(), item.getActionTypeValue(), ex);

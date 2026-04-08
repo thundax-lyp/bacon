@@ -21,9 +21,13 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditRepla
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -106,8 +110,8 @@ public class InMemoryInventoryRepositorySupport {
 
     public Inventory saveInventory(Inventory inventory) {
         if (inventory.getId() == null) {
-            inventory = new Inventory(inventoryIdGenerator.getAndIncrement(), inventory.getTenantId().value(),
-                    inventory.getSkuId() == null ? null : inventory.getSkuId().value(), inventory.getWarehouseNo().value(),
+            inventory = new Inventory(InventoryId.of(inventoryIdGenerator.getAndIncrement()), inventory.getTenantId(),
+                    inventory.getSkuId(), inventory.getWarehouseNo(),
                     inventory.getOnHandQuantity(),
                     inventory.getReservedQuantity(), inventory.getAvailableQuantity(), inventory.getStatus(),
                     inventory.getVersion(), inventory.getUpdatedAt());
@@ -127,9 +131,9 @@ public class InMemoryInventoryRepositorySupport {
                     reservation.getCreatedAt(), reservation.getItems().stream()
                             .map(item -> new InventoryReservationItem(
                                     item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
-                                    item.getTenantId() == null ? null : item.getTenantId().value(),
-                                    item.getReservationNoValue(),
-                                    item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
+                                    item.getTenantId(),
+                                    item.getReservationNo(),
+                                    item.getSkuId(), item.getQuantity()))
                             .toList(),
                     reservation.getReservationStatusValue(), reservation.getFailureReason(), reservation.getReleaseReasonValue(),
                     reservation.getReleasedAt(), reservation.getDeductedAt());
@@ -147,10 +151,10 @@ public class InMemoryInventoryRepositorySupport {
     public void saveLedger(InventoryLedger ledger) {
         if (ledger.getId() == null) {
             ledger = new InventoryLedger(ledgerIdGenerator.getAndIncrement(),
-                    ledger.getTenantId() == null ? null : ledger.getTenantId().value(),
-                    ledger.getOrderNoValue(), ledger.getReservationNoValue(),
-                    ledger.getSkuId() == null ? null : ledger.getSkuId().value(),
-                    ledger.getWarehouseNoValue(), ledger.getLedgerType(), 
+                    ledger.getTenantId(),
+                    ledger.getOrderNo(), ledger.getReservationNo(),
+                    ledger.getSkuId(),
+                    ledger.getWarehouseNo(), ledger.getLedgerType(),
                     ledger.getQuantity(), ledger.getOccurredAt());
         }
         ledgers.computeIfAbsent(reservationKey(ledger.getTenantId() == null ? null : ledger.getTenantId().value(),
@@ -187,14 +191,14 @@ public class InMemoryInventoryRepositorySupport {
         }
         if (outbox.getId() == null) {
             outbox = new InventoryAuditOutbox(
-                    auditOutboxIdGenerator.getAndIncrement(),
-                    eventCode,
-                    outbox.getTenantId() == null ? null : outbox.getTenantId().value(),
-                    outbox.getOrderNoValue(),
-                    outbox.getReservationNoValue(),
+                    OutboxId.of(auditOutboxIdGenerator.getAndIncrement()),
+                    EventCode.of(eventCode),
+                    outbox.getTenantId(),
+                    outbox.getOrderNo(),
+                    outbox.getReservationNo(),
                     outbox.getActionType(),
                     outbox.getOperatorType(),
-                    outbox.getOperatorIdValue(),
+                    outbox.getOperatorId(),
                     outbox.getOccurredAt(),
                     outbox.getErrorMessage(),
                     outbox.getStatus(),
@@ -433,11 +437,11 @@ public class InMemoryInventoryRepositorySupport {
 
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         if (task.getId() == null) {
-            task = new InventoryAuditReplayTask(auditReplayTaskIdGenerator.getAndIncrement(),
-                    task.getTenantId() == null ? null : task.getTenantId().value(),
-                    task.getTaskNoValue(), task.getStatus(), task.getTotalCount(), task.getProcessedCount(),
+            task = new InventoryAuditReplayTask(TaskId.of(auditReplayTaskIdGenerator.getAndIncrement()),
+                    task.getTenantId(),
+                    task.getTaskNo(), task.getStatus(), task.getTotalCount(), task.getProcessedCount(),
                     task.getSuccessCount(), task.getFailedCount(), task.getReplayKeyPrefix(), task.getOperatorType(),
-                    task.getOperatorIdValue(), task.getProcessingOwner(), task.getLeaseUntil(), task.getLastError(),
+                    task.getOperatorId(), task.getProcessingOwner(), task.getLeaseUntil(), task.getLastError(),
                     task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(), task.getFinishedAt(),
                     task.getUpdatedAt());
         }
@@ -451,10 +455,10 @@ public class InMemoryInventoryRepositorySupport {
                 key -> new ArrayList<>());
         for (DeadLetterId deadLetterId : deadLetterIds) {
             items.add(new InventoryAuditReplayTaskItem(auditReplayTaskItemIdGenerator.getAndIncrement(),
-                    taskId == null ? null : taskId.value(),
-                    tenantId == null ? null : tenantId.value(),
-                    deadLetterId == null ? null : deadLetterId.value(),
-                    InventoryAuditReplayTaskItemStatus.PENDING.value(), null, null, null, null, null, createdAt));
+                    taskId,
+                    tenantId,
+                    deadLetterId,
+                    InventoryAuditReplayTaskItemStatus.PENDING, null, null, null, null, null, createdAt));
         }
     }
 

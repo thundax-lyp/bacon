@@ -32,7 +32,7 @@ public class InventoryManagementApplicationService {
         validateOnHandQuantity(skuId, onHandQuantity);
         InventoryStatus normalizedStatus = normalizeStatus(status);
         Instant now = Instant.now();
-        Inventory inventory = new Inventory(null, tenantId, skuId, Inventory.DEFAULT_WAREHOUSE_NO.value(),
+        Inventory inventory = new Inventory(null, TenantIdMapper.toDomain(tenantId), SkuIdMapper.toDomain(skuId), Inventory.DEFAULT_WAREHOUSE_NO,
                 onHandQuantity, 0, onHandQuantity, normalizedStatus, 0L, now);
         try {
             return InventoryStockAssembler.fromInventory(inventoryRepository.saveInventory(inventory));

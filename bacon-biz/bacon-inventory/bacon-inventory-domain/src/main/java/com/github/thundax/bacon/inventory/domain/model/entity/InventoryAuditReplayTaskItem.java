@@ -41,18 +41,6 @@ public class InventoryAuditReplayTaskItem {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public InventoryAuditReplayTaskItem(Long id, Long taskId, Long tenantId, Long deadLetterId, String itemStatus,
-                                        String replayStatus, String replayKey, String resultMessage,
-                                        Instant startedAt, Instant finishedAt, Instant updatedAt) {
-        this(id,
-                taskId == null ? null : TaskId.of(taskId),
-                tenantId == null ? null : TenantId.of(tenantId),
-                deadLetterId == null ? null : DeadLetterId.of(deadLetterId),
-                itemStatus == null ? null : InventoryAuditReplayTaskItemStatus.from(itemStatus),
-                replayStatus == null ? null : InventoryAuditReplayStatus.from(replayStatus),
-                replayKey, resultMessage, startedAt, finishedAt, updatedAt);
-    }
-
     public Long getTaskIdValue() {
         return taskId == null ? null : taskId.value();
     }

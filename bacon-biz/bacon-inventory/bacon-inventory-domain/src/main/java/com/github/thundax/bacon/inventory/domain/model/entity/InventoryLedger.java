@@ -36,17 +36,6 @@ public class InventoryLedger {
     /** 发生时间。 */
     private Instant occurredAt;
 
-    public InventoryLedger(Long id, Long tenantId, String orderNo, String reservationNo, Long skuId,
-                           String warehouseNo, InventoryLedgerType ledgerType, Integer quantity, Instant occurredAt) {
-        this(id,
-                tenantId == null ? null : TenantId.of(tenantId),
-                orderNo == null ? null : OrderNo.of(orderNo),
-                reservationNo == null ? null : ReservationNo.of(reservationNo),
-                skuId == null ? null : SkuId.of(skuId),
-                warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
-                ledgerType, quantity, occurredAt);
-    }
-
     public String getOrderNoValue() {
         return orderNo == null ? null : orderNo.value();
     }

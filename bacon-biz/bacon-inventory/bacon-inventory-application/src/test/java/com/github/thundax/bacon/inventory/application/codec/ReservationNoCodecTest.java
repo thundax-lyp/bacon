@@ -1,25 +1,25 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ReservationNoMapperTest {
+class ReservationNoCodecTest {
 
     @Test
     void shouldReturnNullWhenValueIsNull() {
-        assertThat(ReservationNoMapper.toDomain(null)).isNull();
+        assertThat(ReservationNoCodec.toDomain(null)).isNull();
     }
 
     @Test
     void shouldReturnNullWhenValueIsBlank() {
-        assertThat(ReservationNoMapper.toDomain("   ")).isNull();
+        assertThat(ReservationNoCodec.toDomain("   ")).isNull();
     }
 
     @Test
     void shouldConvertPlainValueToReservationNo() {
-        assertThat(ReservationNoMapper.toDomain("RSV-001"))
+        assertThat(ReservationNoCodec.toDomain("RSV-001"))
                 .isEqualTo(ReservationNo.of("RSV-001"));
     }
 }

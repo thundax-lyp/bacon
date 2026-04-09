@@ -8,8 +8,8 @@ import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationAssembler;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
-import com.github.thundax.bacon.inventory.application.mapper.ReservationNoMapper;
-import com.github.thundax.bacon.inventory.application.mapper.WarehouseNoMapper;
+import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
+import com.github.thundax.bacon.inventory.application.codec.WarehouseNoCodec;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -88,8 +88,8 @@ public class InventoryReservationApplicationService {
     private InventoryReservationResultDTO createReservation(TenantId tenantId, OrderNo orderNo,
                                                             List<InventoryReservationItemDTO> items) {
         String reservationNo = inventoryReservationNoGenerator.nextReservationNo();
-        ReservationNo reservationNoValue = ReservationNoMapper.toDomain(reservationNo);
-        WarehouseNo warehouseNoValue = WarehouseNoMapper.toDomain(Inventory.DEFAULT_WAREHOUSE_NO.value());
+        ReservationNo reservationNoValue = ReservationNoCodec.toDomain(reservationNo);
+        WarehouseNo warehouseNoValue = WarehouseNoCodec.toDomain(Inventory.DEFAULT_WAREHOUSE_NO.value());
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
         List<InventoryReservationItem> reservationItems = InventoryReservationAssembler.toDomainItems(
                 tenantId == null ? null : tenantId.value(),

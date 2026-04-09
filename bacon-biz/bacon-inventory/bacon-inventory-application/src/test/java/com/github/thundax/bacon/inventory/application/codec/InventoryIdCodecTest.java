@@ -1,20 +1,20 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class InventoryIdMapperTest {
+class InventoryIdCodecTest {
 
     @Test
     void shouldReturnNullWhenValueIsNull() {
-        assertThat(InventoryIdMapper.toDomain(null)).isNull();
+        assertThat(InventoryIdCodec.toDomain(null)).isNull();
     }
 
     @Test
     void shouldConvertPlainValueToInventoryId() {
-        assertThat(InventoryIdMapper.toDomain(1004L))
+        assertThat(InventoryIdCodec.toDomain(1004L))
                 .isEqualTo(InventoryId.of(1004L));
     }
 }

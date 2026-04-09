@@ -126,6 +126,14 @@ public final class NamingAndPlacementRuleSupport {
                 .because("Converter -> infra.repository.converter");
     }
 
+    public static ArchRule codecShouldUseCodecNameAndPackage(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that().haveSimpleNameEndingWith("Codec")
+                .should().resideInAPackage(basePackage + ".application.codec..")
+                .allowEmptyShould(true)
+                .because("Codec -> application.codec");
+    }
+
     public static ArchRule facadeShouldUseFacadeNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that().haveSimpleNameEndingWith("Facade")

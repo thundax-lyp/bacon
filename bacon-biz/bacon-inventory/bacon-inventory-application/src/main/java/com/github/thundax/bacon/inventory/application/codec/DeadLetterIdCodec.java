@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 
-public final class DeadLetterIdMapper {
+public final class DeadLetterIdCodec {
 
-    private DeadLetterIdMapper() {
+    private DeadLetterIdCodec() {
     }
 
     public static DeadLetterId toDomain(Long value) {

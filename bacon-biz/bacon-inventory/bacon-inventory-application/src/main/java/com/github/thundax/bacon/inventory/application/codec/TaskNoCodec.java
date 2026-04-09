@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
 
-public final class TaskNoMapper {
+public final class TaskNoCodec {
 
-    private TaskNoMapper() {
+    private TaskNoCodec() {
     }
 
     public static TaskNo toDomain(String value) {

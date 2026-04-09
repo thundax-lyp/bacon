@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 
-public final class InventoryIdMapper {
+public final class InventoryIdCodec {
 
-    private InventoryIdMapper() {
+    private InventoryIdCodec() {
     }
 
     public static InventoryId toDomain(Long value) {

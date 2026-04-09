@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 
-public final class OrderNoMapper {
+public final class OrderNoCodec {
 
-    private OrderNoMapper() {
+    private OrderNoCodec() {
     }
 
     public static OrderNo toDomain(String value) {

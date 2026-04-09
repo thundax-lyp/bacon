@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 
-public final class WarehouseNoMapper {
+public final class WarehouseNoCodec {
 
-    private WarehouseNoMapper() {
+    private WarehouseNoCodec() {
     }
 
     public static WarehouseNo toDomain(String value) {

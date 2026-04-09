@@ -3,8 +3,8 @@ package com.github.thundax.bacon.inventory.application.assembler;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
-import com.github.thundax.bacon.inventory.application.mapper.TaskIdMapper;
-import com.github.thundax.bacon.inventory.application.mapper.TaskNoMapper;
+import com.github.thundax.bacon.inventory.application.codec.TaskIdCodec;
+import com.github.thundax.bacon.inventory.application.codec.TaskNoCodec;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
@@ -26,9 +26,9 @@ public final class InventoryAuditReplayTaskAssembler {
     }
 
     public static InventoryAuditReplayTaskDTO toDto(InventoryAuditReplayTask task) {
-        return new InventoryAuditReplayTaskDTO(TaskIdMapper.toValue(task.getId()),
+        return new InventoryAuditReplayTaskDTO(TaskIdCodec.toValue(task.getId()),
                 TenantIdMapper.toValue(task.getTenantId()),
-                TaskNoMapper.toValue(task.getTaskNo()),
+                TaskNoCodec.toValue(task.getTaskNo()),
                 task.getStatus().value(),
                 task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
                 task.getReplayKeyPrefix(), task.getOperatorId(), task.getLastError(), task.getCreatedAt(),

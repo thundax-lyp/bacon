@@ -1,25 +1,25 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class WarehouseNoMapperTest {
+class WarehouseNoCodecTest {
 
     @Test
     void shouldReturnNullWhenValueIsNull() {
-        assertThat(WarehouseNoMapper.toDomain(null)).isNull();
+        assertThat(WarehouseNoCodec.toDomain(null)).isNull();
     }
 
     @Test
     void shouldReturnNullWhenValueIsBlank() {
-        assertThat(WarehouseNoMapper.toDomain("   ")).isNull();
+        assertThat(WarehouseNoCodec.toDomain("   ")).isNull();
     }
 
     @Test
     void shouldConvertPlainValueToWarehouseNo() {
-        assertThat(WarehouseNoMapper.toDomain("WH-001"))
+        assertThat(WarehouseNoCodec.toDomain("WH-001"))
                 .isEqualTo(WarehouseNo.of("WH-001"));
     }
 }

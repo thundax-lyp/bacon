@@ -1,25 +1,25 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class OrderNoMapperTest {
+class OrderNoCodecTest {
 
     @Test
     void shouldReturnNullWhenValueIsNull() {
-        assertThat(OrderNoMapper.toDomain(null)).isNull();
+        assertThat(OrderNoCodec.toDomain(null)).isNull();
     }
 
     @Test
     void shouldReturnNullWhenValueIsBlank() {
-        assertThat(OrderNoMapper.toDomain("   ")).isNull();
+        assertThat(OrderNoCodec.toDomain("   ")).isNull();
     }
 
     @Test
     void shouldConvertPlainValueToOrderNo() {
-        OrderNo result = OrderNoMapper.toDomain("ORDER-001");
+        OrderNo result = OrderNoCodec.toDomain("ORDER-001");
 
         assertThat(result).isEqualTo(OrderNo.of("ORDER-001"));
     }

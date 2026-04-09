@@ -6,7 +6,7 @@ import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
-import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
+import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -64,7 +64,7 @@ public class InventoryReleaseApplicationService {
         InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(TenantIdMapper.toValue(tenantId),
-                    OrderNoMapper.toValue(orderNo), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
+                    OrderNoCodec.toValue(orderNo), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
             return InventoryReservationResultAssembler.fromReservation(reservation);

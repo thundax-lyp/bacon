@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 
-public final class EventCodeMapper {
+public final class EventCodeCodec {
 
-    private EventCodeMapper() {
+    private EventCodeCodec() {
     }
 
     public static EventCode toDomain(String value) {

@@ -7,8 +7,8 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryAuditReplayTaskAssembler;
-import com.github.thundax.bacon.inventory.application.mapper.DeadLetterIdMapper;
-import com.github.thundax.bacon.inventory.application.mapper.TaskNoMapper;
+import com.github.thundax.bacon.inventory.application.codec.DeadLetterIdCodec;
+import com.github.thundax.bacon.inventory.application.codec.TaskNoCodec;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -43,13 +43,13 @@ public class InventoryAuditReplayTaskApplicationService {
                     "replay-task-empty-dead-letter-ids");
         }
         Instant now = Instant.now();
-        TaskNo taskNo = TaskNoMapper.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
+        TaskNo taskNo = TaskNoCodec.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
         // 回放任务只负责“组织一批死信逐条回放”，真正的单条回放语义仍复用 compensation service。
         InventoryAuditReplayTask task = InventoryAuditReplayTaskAssembler.toDomain(createDTO, taskNo, OPERATOR_TYPE_MANUAL, now);
         InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
         inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getId(),
                 saved.getTenantId(),
-                createDTO.getDeadLetterIds().stream().map(DeadLetterIdMapper::toDomain).toList(), now);
+                createDTO.getDeadLetterIds().stream().map(DeadLetterIdCodec::toDomain).toList(), now);
         Metrics.counter("bacon.inventory.audit.replay.task.created.total").increment();
         return InventoryAuditReplayTaskAssembler.toDto(saved);
     }
@@ -118,7 +118,7 @@ public class InventoryAuditReplayTaskApplicationService {
             try {
                 String replayKey = buildReplayKey(task, item);
                 InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(task.getTenantId(),
-                        DeadLetterIdMapper.toDomain(item.getDeadLetterIdValue()), replayKey,
+                        DeadLetterIdCodec.toDomain(item.getDeadLetterIdValue()), replayKey,
                         OperatorIdMapper.toDomain(task.getOperatorId()));
                 InventoryAuditReplayStatus replayStatus = InventoryAuditReplayStatus.from(result.getReplayStatus());
                 InventoryAuditReplayTaskItemStatus itemStatus = InventoryAuditReplayTaskItemStatus.FAILED;

@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 
-public final class TaskIdMapper {
+public final class TaskIdCodec {
 
-    private TaskIdMapper() {
+    private TaskIdCodec() {
     }
 
     public static TaskId toDomain(Long value) {

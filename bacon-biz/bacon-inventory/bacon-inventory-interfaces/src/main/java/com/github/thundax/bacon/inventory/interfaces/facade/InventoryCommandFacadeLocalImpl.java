@@ -5,7 +5,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
-import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
+import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
@@ -26,12 +26,12 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
 
     @Override
     public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
-        return inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo), items);
+        return inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), items);
     }
 
     @Override
     public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        return inventoryApplicationService.releaseReservedStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo),
+        return inventoryApplicationService.releaseReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo),
                 toReleaseReason(reason));
     }
 
@@ -45,6 +45,6 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
 
     @Override
     public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
-        return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo));
+        return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
     }
 }

@@ -91,6 +91,12 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
+    @DisplayName("Codec：值对象编解码，命名 {业务对象}Codec，目录 application/codec/")
+    void shouldFollowCodecRule() {
+        NamingAndPlacementRuleSupport.codecShouldUseCodecNameAndPackage(basePackage()).check(classes());
+    }
+
+    @Test
     @DisplayName("Facade：跨域调用契约，命名 {业务对象}{动作}Facade，目录 api/facade/")
     void shouldFollowFacadeRule() {
         NamingAndPlacementRuleSupport.facadeShouldUseFacadeNameAndPackage(basePackage()).check(classes());

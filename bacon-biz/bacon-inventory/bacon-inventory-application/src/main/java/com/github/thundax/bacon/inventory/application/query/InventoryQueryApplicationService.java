@@ -14,7 +14,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
-import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
+import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -78,7 +78,7 @@ public class InventoryQueryApplicationService {
     public InventoryReservationDTO getReservationByOrderNo(TenantId tenantId, OrderNo orderNo) {
         InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.RESERVATION_NOT_FOUND,
-                        OrderNoMapper.toValue(orderNo)));
+                        OrderNoCodec.toValue(orderNo)));
         return InventoryReservationAssembler.toDto(reservation);
     }
 

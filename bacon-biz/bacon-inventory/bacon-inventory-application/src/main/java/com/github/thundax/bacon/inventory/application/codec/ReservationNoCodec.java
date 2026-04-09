@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 
-public final class ReservationNoMapper {
+public final class ReservationNoCodec {
 
-    private ReservationNoMapper() {
+    private ReservationNoCodec() {
     }
 
     public static ReservationNo toDomain(String value) {

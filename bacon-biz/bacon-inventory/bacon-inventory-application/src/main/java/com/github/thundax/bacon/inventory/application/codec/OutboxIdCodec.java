@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.inventory.application.mapper;
+package com.github.thundax.bacon.inventory.application.codec;
 
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 
-public final class OutboxIdMapper {
+public final class OutboxIdCodec {
 
-    private OutboxIdMapper() {
+    private OutboxIdCodec() {
     }
 
     public static OutboxId toDomain(Long value) {

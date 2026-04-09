@@ -1,6 +1,6 @@
-package com.github.thundax.bacon.common.id.mapper;
+package com.github.thundax.bacon.common.commerce.mapper;
 
-import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 
 public final class SkuIdMapper {
 

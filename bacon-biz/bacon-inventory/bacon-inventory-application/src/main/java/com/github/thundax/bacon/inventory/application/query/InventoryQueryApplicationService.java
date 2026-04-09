@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.application.query;
 
-import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryAuditDeadLetterAssembler;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryAuditLogAssembler;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryLedgerAssembler;
@@ -15,7 +15,7 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
-import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;

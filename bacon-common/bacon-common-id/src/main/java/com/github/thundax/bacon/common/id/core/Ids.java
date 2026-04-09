@@ -6,7 +6,6 @@ import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
-import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -31,8 +30,6 @@ public interface Ids {
     RoleId roleId();
 
     OrderId orderId();
-
-    SkuId skuId();
 
     StoredObjectId storedObjectId();
 }

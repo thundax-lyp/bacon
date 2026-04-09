@@ -6,7 +6,6 @@ import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
-import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -23,7 +22,6 @@ public class DefaultIds implements Ids {
     private static final String USER_IDENTITY_ID_BIZ_TAG = "user-identity-id";
     private static final String ROLE_ID_BIZ_TAG = "role-id";
     private static final String ORDER_ID_BIZ_TAG = "order-id";
-    private static final String SKU_ID_BIZ_TAG = "sku-id";
     private static final String STORED_OBJECT_ID_BIZ_TAG = "stored-object-id";
 
     private final IdGenerator idGenerator;
@@ -75,11 +73,6 @@ public class DefaultIds implements Ids {
     @Override
     public OrderId orderId() {
         return OrderId.of(idGenerator.nextId(ORDER_ID_BIZ_TAG));
-    }
-
-    @Override
-    public SkuId skuId() {
-        return SkuId.of(idGenerator.nextId(SKU_ID_BIZ_TAG));
     }
 
     @Override

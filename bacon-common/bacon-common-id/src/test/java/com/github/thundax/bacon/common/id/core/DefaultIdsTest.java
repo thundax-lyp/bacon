@@ -2,7 +2,6 @@ package com.github.thundax.bacon.common.id.core;
 
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
-import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.domain.UserIdentityId;
@@ -24,16 +23,18 @@ class DefaultIdsTest {
         UserIdentityId userIdentityId = ids.userIdentityId();
         RoleId roleId = ids.roleId();
         OrderId orderId = ids.orderId();
-        SkuId skuId = ids.skuId();
         StoredObjectId storedObjectId = ids.storedObjectId();
 
         assertThat(userId).isEqualTo(UserId.of(1001L));
         assertThat(userIdentityId).isEqualTo(UserIdentityId.of(1002L));
         assertThat(roleId).isEqualTo(RoleId.of(1003L));
         assertThat(orderId).isEqualTo(OrderId.of(1004L));
-        assertThat(skuId).isEqualTo(SkuId.of(1005L));
-        assertThat(storedObjectId).isEqualTo(StoredObjectId.of(1006L));
-        assertThat(idGenerator.bizTags).containsExactly("user-id", "user-identity-id", "role-id", "order-id", "sku-id",
+        assertThat(storedObjectId).isEqualTo(StoredObjectId.of(1005L));
+        assertThat(idGenerator.bizTags).containsExactly(
+                "user-id",
+                "user-identity-id",
+                "role-id",
+                "order-id",
                 "stored-object-id");
     }
 

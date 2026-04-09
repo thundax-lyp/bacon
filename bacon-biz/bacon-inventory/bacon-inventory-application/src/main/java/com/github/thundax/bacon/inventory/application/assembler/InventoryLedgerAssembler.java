@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
-import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;

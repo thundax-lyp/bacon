@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.provider;
 
-import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;

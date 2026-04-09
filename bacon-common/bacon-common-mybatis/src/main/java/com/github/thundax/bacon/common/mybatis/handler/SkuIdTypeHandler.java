@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.common.mybatis.handler;
 
-import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;

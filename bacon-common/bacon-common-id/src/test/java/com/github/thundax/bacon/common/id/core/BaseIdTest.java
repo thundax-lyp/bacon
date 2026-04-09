@@ -3,7 +3,6 @@ package com.github.thundax.bacon.common.id.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.RoleId;
-import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import org.junit.jupiter.api.Test;
@@ -46,7 +45,7 @@ class BaseIdTest {
 
     @Test
     void shouldRejectNonPositiveLongValue() {
-        assertThatThrownBy(() -> SkuId.of(0L))
+        assertThatThrownBy(() -> RoleId.of(0L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("id must be positive");
     }

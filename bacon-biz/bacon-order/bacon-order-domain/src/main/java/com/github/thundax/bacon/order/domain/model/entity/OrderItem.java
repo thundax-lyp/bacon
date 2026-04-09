@@ -3,7 +3,7 @@ package com.github.thundax.bacon.order.domain.model.entity;
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
-import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;

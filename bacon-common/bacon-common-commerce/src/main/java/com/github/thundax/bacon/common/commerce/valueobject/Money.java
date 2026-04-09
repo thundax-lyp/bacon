@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.common.commerce.valueobject;
 
-import com.github.thundax.bacon.common.core.enums.CurrencyCode;
+import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;

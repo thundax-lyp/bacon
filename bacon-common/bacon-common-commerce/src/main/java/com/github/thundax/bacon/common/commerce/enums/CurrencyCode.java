@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.common.core.enums;
+package com.github.thundax.bacon.common.commerce.enums;
 
 /**
  * 币种编码。

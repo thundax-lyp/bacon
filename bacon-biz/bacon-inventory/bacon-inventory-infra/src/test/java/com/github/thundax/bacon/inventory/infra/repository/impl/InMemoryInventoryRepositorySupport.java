@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
@@ -80,7 +81,7 @@ public class InMemoryInventoryRepositorySupport {
     public List<Inventory> findInventories(TenantId tenantId) {
         return inventories.values().stream()
                 .filter(inventory -> java.util.Objects.equals(inventory.getTenantId(), tenantId))
-                .sorted(java.util.Comparator.comparing(Inventory::getSkuIdValue))
+                .sorted(java.util.Comparator.comparing(inventory -> SkuIdMapper.toValue(inventory.getSkuId())))
                 .toList();
     }
 

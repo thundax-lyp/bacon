@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.application;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTransactionExecutor;
+import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
@@ -98,7 +99,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
 
         @Override
         public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-            deadLetters.put(deadLetter.getOutboxIdValue(), deadLetter);
+            deadLetters.put(OutboxIdCodec.toValue(deadLetter.getOutboxId()), deadLetter);
         }
 
         @Override

@@ -67,44 +67,4 @@ public class InventoryAuditDeadLetter {
     /** 回放操作人主键。 */
     private String replayOperatorId;
 
-    public Long getIdValue() {
-        return id == null ? null : id.value();
-    }
-
-    public Long getOutboxIdValue() {
-        return outboxId == null ? null : outboxId.value();
-    }
-
-    public String getEventCodeValue() {
-        return eventCode == null ? null : eventCode.value();
-    }
-
-    public String getReplayStatusValue() {
-        return replayStatus == null ? null : replayStatus.value();
-    }
-
-    public String getOrderNoValue() {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    public String getReservationNoValue() {
-        return reservationNo == null ? null : reservationNo.value();
-    }
-
-    public String getActionTypeValue() {
-        return actionType == null ? null : actionType.value();
-    }
-
-    public String getOperatorTypeValue() {
-        return operatorType == null ? null : operatorType.value();
-    }
-
-    public Long getOperatorIdValue() {
-        return operatorId == null ? null : Long.valueOf(operatorId);
-    }
-
-    public Long getReplayOperatorIdValue() {
-        return replayOperatorId == null ? null : Long.valueOf(replayOperatorId);
-    }
-
 }

@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.application.audit;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
+import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -42,7 +43,8 @@ public class InventoryAuditCompensationApplicationService {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "dead-letter-tenant-mismatch");
         }
         if (InventoryAuditReplayStatus.SUCCEEDED.equals(deadLetter.getReplayStatus())) {
-            return new InventoryAuditReplayResultDTO(deadLetterId.value(), deadLetter.getReplayStatusValue(), deadLetter.getReplayKey(),
+            return new InventoryAuditReplayResultDTO(deadLetterId.value(),
+                    deadLetter.getReplayStatus() == null ? null : deadLetter.getReplayStatus().value(), deadLetter.getReplayKey(),
                     "already-replayed");
         }
         String resolvedReplayKey = resolveReplayKey(deadLetter, replayKey);
@@ -98,7 +100,7 @@ public class InventoryAuditCompensationApplicationService {
             return replayKey;
         }
         int replayCount = deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount();
-        return "DLQ-" + deadLetter.getOutboxIdValue() + "-R" + (replayCount + 1);
+        return "DLQ-" + OutboxIdCodec.toValue(deadLetter.getOutboxId()) + "-R" + (replayCount + 1);
     }
 
     private String truncateError(String message) {

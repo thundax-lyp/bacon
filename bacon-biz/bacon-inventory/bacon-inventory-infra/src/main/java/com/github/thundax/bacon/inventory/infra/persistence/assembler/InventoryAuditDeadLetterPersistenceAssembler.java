@@ -18,14 +18,20 @@ public final class InventoryAuditDeadLetterPersistenceAssembler {
     }
 
     public static InventoryAuditDeadLetterDO toDataObject(InventoryAuditDeadLetter deadLetter) {
-        return new InventoryAuditDeadLetterDO(deadLetter.getIdValue(), deadLetter.getOutboxIdValue(),
-                deadLetter.getEventCodeValue(), deadLetter.getTenantId() == null ? null : deadLetter.getTenantId().value(),
-                deadLetter.getOrderNoValue(), deadLetter.getReservationNoValue(), deadLetter.getActionTypeValue(),
-                deadLetter.getOperatorTypeValue(), deadLetter.getOperatorIdValue(), deadLetter.getOccurredAt(),
+        return new InventoryAuditDeadLetterDO(deadLetter.getId() == null ? null : deadLetter.getId().value(),
+                deadLetter.getOutboxId() == null ? null : deadLetter.getOutboxId().value(),
+                deadLetter.getEventCode() == null ? null : deadLetter.getEventCode().value(),
+                deadLetter.getTenantId() == null ? null : deadLetter.getTenantId().value(),
+                deadLetter.getOrderNo() == null ? null : deadLetter.getOrderNo().value(),
+                deadLetter.getReservationNo() == null ? null : deadLetter.getReservationNo().value(),
+                deadLetter.getActionType() == null ? null : deadLetter.getActionType().value(),
+                deadLetter.getOperatorType() == null ? null : deadLetter.getOperatorType().value(),
+                deadLetter.getOperatorId() == null ? null : Long.valueOf(deadLetter.getOperatorId()), deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(),
-                deadLetter.getDeadAt(), deadLetter.getReplayStatusValue(), deadLetter.getReplayCount(),
+                deadLetter.getDeadAt(), deadLetter.getReplayStatus() == null ? null : deadLetter.getReplayStatus().value(), deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(), deadLetter.getLastReplayResult(), deadLetter.getLastReplayError(),
-                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(), deadLetter.getReplayOperatorIdValue());
+                deadLetter.getReplayKey(), deadLetter.getReplayOperatorType(),
+                deadLetter.getReplayOperatorId() == null ? null : Long.valueOf(deadLetter.getReplayOperatorId()));
     }
 
     public static InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {

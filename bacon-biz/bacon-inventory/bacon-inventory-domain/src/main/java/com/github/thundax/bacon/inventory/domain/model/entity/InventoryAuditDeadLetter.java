@@ -58,8 +58,8 @@ public class InventoryAuditDeadLetter {
     private Integer replayCount;
     /** 最近一次回放时间。 */
     private Instant lastReplayAt;
-    /** 最近一次回放结果。 */
-    private String lastReplayResult;
+    /** 最近一次回放说明。 */
+    private String lastReplayMessage;
     /** 最近一次回放错误。 */
     private String lastReplayError;
     /** 回放幂等键。 */
@@ -131,7 +131,7 @@ public class InventoryAuditDeadLetter {
             InventoryAuditReplayStatus replayStatus,
             Integer replayCount,
             Instant lastReplayAt,
-            String lastReplayResult,
+            String lastReplayMessage,
             String lastReplayError,
             String replayKey,
             String replayOperatorType,
@@ -154,7 +154,7 @@ public class InventoryAuditDeadLetter {
                 replayStatus,
                 replayCount,
                 lastReplayAt,
-                lastReplayResult,
+                lastReplayMessage,
                 lastReplayError,
                 replayKey,
                 replayOperatorType,
@@ -171,7 +171,7 @@ public class InventoryAuditDeadLetter {
         this.replayOperatorType = operatorType == null ? null : operatorType.value();
         this.replayOperatorId = operatorId;
         this.lastReplayAt = replayAt;
-        this.lastReplayResult = "RUNNING";
+        this.lastReplayMessage = "RUNNING";
         this.lastReplayError = null;
     }
 
@@ -186,7 +186,7 @@ public class InventoryAuditDeadLetter {
         this.replayOperatorType = operatorType == null ? null : operatorType.value();
         this.replayOperatorId = operatorId;
         this.lastReplayAt = replayAt;
-        this.lastReplayResult = "SUCCEEDED";
+        this.lastReplayMessage = "SUCCEEDED";
         this.lastReplayError = null;
     }
 
@@ -202,7 +202,7 @@ public class InventoryAuditDeadLetter {
         this.replayOperatorType = operatorType == null ? null : operatorType.value();
         this.replayOperatorId = operatorId;
         this.lastReplayAt = replayAt;
-        this.lastReplayResult = "FAILED";
+        this.lastReplayMessage = "FAILED";
         this.lastReplayError = replayError;
     }
 }

@@ -304,7 +304,7 @@
 | `replay_status` | `varchar(16)` | N | 重放状态，`PENDING/RUNNING/SUCCEEDED/FAILED` |
 | `replay_count` | `int` | N | 重放次数 |
 | `last_replay_at` | `datetime(3)` | Y | 最近一次重放时间 |
-| `last_replay_result` | `varchar(16)` | Y | 最近一次重放结果 |
+| `last_replay_message` | `varchar(16)` | Y | 最近一次重放说明 |
 | `last_replay_error` | `varchar(512)` | Y | 最近一次重放失败原因 |
 | `replay_key` | `varchar(128)` | Y | 重放幂等键 |
 | `replay_operator_type` | `varchar(32)` | Y | 最近一次重放操作人类型 |

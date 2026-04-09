@@ -66,8 +66,8 @@ public class InventoryAuditDeadLetterDO {
     @TableField("last_replay_at")
     private Instant lastReplayAt;
 
-    @TableField("last_replay_result")
-    private String lastReplayResult;
+    @TableField("last_replay_message")
+    private String lastReplayMessage;
 
     @TableField("last_replay_error")
     private String lastReplayError;

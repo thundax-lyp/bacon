@@ -489,7 +489,7 @@ public class InventoryRepositorySupport {
                                         InventoryAuditDeadLetterDO::getReplayOperatorId,
                                         operatorId == null ? null : Long.valueOf(operatorId.value()))
                                 .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
-                                .set(InventoryAuditDeadLetterDO::getLastReplayResult, "RUNNING")
+                                .set(InventoryAuditDeadLetterDO::getLastReplayMessage, "RUNNING")
                                 .set(InventoryAuditDeadLetterDO::getLastReplayError, null))
                 > 0;
     }
@@ -514,7 +514,7 @@ public class InventoryRepositorySupport {
                                 InventoryAuditDeadLetterDO::getReplayOperatorId,
                                 operatorId == null ? null : Long.valueOf(operatorId.value()))
                         .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
-                        .set(InventoryAuditDeadLetterDO::getLastReplayResult, "SUCCEEDED")
+                        .set(InventoryAuditDeadLetterDO::getLastReplayMessage, "SUCCEEDED")
                         .set(InventoryAuditDeadLetterDO::getLastReplayError, null));
     }
 
@@ -539,7 +539,7 @@ public class InventoryRepositorySupport {
                                 InventoryAuditDeadLetterDO::getReplayOperatorId,
                                 operatorId == null ? null : Long.valueOf(operatorId.value()))
                         .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
-                        .set(InventoryAuditDeadLetterDO::getLastReplayResult, "FAILED")
+                        .set(InventoryAuditDeadLetterDO::getLastReplayMessage, "FAILED")
                         .set(InventoryAuditDeadLetterDO::getLastReplayError, replayError));
     }
 

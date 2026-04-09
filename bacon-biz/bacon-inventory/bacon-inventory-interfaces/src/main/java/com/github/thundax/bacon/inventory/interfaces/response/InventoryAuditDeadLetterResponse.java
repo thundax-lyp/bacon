@@ -41,8 +41,8 @@ public record InventoryAuditDeadLetterResponse(
         Integer replayCount,
         /** 最近一次回放时间。 */
         Instant lastReplayAt,
-        /** 最近一次回放结果。 */
-        String lastReplayResult,
+        /** 最近一次回放说明。 */
+        String lastReplayMessage,
         /** 最近一次回放错误。 */
         String lastReplayError,
         /** 回放幂等键。 */
@@ -71,7 +71,7 @@ public record InventoryAuditDeadLetterResponse(
                 dto.getReplayStatus(),
                 dto.getReplayCount(),
                 dto.getLastReplayAt(),
-                dto.getLastReplayResult(),
+                dto.getLastReplayMessage(),
                 dto.getLastReplayError(),
                 dto.getReplayKey(),
                 dto.getReplayOperatorType(),

@@ -47,8 +47,8 @@ public class InventoryAuditDeadLetterDTO {
     private Integer replayCount;
     /** 最近一次回放时间。 */
     private Instant lastReplayAt;
-    /** 最近一次回放结果。 */
-    private String lastReplayResult;
+    /** 最近一次回放说明。 */
+    private String lastReplayMessage;
     /** 最近一次回放错误。 */
     private String lastReplayError;
     /** 回放幂等键。 */

@@ -24,18 +24,6 @@ class NamingAndPlacementRuleSupportTest {
     }
 
     @Test
-    void entityConstructorRuleShouldRejectExplicitConstructors() {
-        EvaluationResult result = evaluate(InvalidBoundaryTypeEntityFixture.class);
-
-        assertThat(result.hasViolation()).isTrue();
-        assertThat(singleViolationDetail(result))
-                .contains(InvalidBoundaryTypeEntityFixture.class.getName() + " violation")
-                .contains("Found 2 explicit constructors")
-                .contains("expected 0 explicit constructors")
-                .contains("move boundary conversion outside the entity");
-    }
-
-    @Test
     void entityConstructorRuleShouldRejectMultipleExplicitConstructors() {
         EvaluationResult result = evaluate(MultipleExplicitConstructorsEntityFixture.class);
 

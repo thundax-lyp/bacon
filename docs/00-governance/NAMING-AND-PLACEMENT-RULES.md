@@ -33,7 +33,6 @@
 - `FacadeLocalImpl`：单体模式门面实现，直接调用对方 `ApplicationService`，命名 `{业务对象}{动作}FacadeLocalImpl`，目录 `interfaces/facade/`
 - `FacadeRemoteImpl`：微服务模式门面实现，通过 HTTP / RPC 调用对方服务，命名 `{业务对象}{动作}FacadeRemoteImpl`，目录 `infra/facade/remote/`
 - `Service`：通用技术能力，命名 `{能力}Service`，目录对应技术模块的 `service/`
-- `domain.model.entity`：统一使用 `@AllArgsConstructor` 提供全字段构造方法，禁止显式定义任何构造方法；边界基础类型到值对象的转换必须放在 entity 外部完成，保持 entity 构造入口稳定、纯净、可预测
 - `domain.model.enums`：简单枚举统一成 `value() -> name()`、`from()` 走 `Arrays.stream(values()) + equalsIgnoreCase + orElseThrow(...)`
 - `Controller`、`ProviderController` 直接调用本域 `ApplicationService`
 - 跨域调用统一依赖 `Facade`，不直接依赖对方 `ApplicationService`

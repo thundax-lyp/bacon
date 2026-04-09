@@ -40,7 +40,7 @@
 - 文档不得过度简化
 - 文档不得保留模糊口径
 - 同一规则不得在多处重复且表述不一致
-- 面向测试与治理规则时，优先保留给人类阅读的主表达；例如 `@DisplayName` 属于人类口味，ArchUnit 的 `.because()` 属于 AI 口味，默认不写 `.because()`，除非规则本身离开该说明后无法被人直接理解
+- 面向测试与治理规则时，`@DisplayName` 负责给人阅读，ArchUnit 的 `.because()` 负责给 AI 排查；默认同时保留 `@DisplayName` 与简洁的 `.because()`，其中 `.because()` 必须短、稳、直接表达规则意图，不得写成长段解释
 
 ## 5. Requirement Style
 

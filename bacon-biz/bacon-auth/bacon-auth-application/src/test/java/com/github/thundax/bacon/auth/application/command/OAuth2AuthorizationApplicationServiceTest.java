@@ -45,7 +45,7 @@ class OAuth2AuthorizationApplicationServiceTest {
                         1800L, 2592000L, ClientStatus.ENABLED, null, null, Instant.now(), Instant.now())),
                 mock(OAuthAuthorizationRepository.class),
                 mock(SessionApplicationService.class),
-                mock(com.github.thundax.bacon.auth.application.support.TokenCodec.class),
+                mock(com.github.thundax.bacon.auth.application.codec.TokenCodec.class),
                 passwordEncoder);
 
         assertThrows(IllegalArgumentException.class,
@@ -58,9 +58,9 @@ class OAuth2AuthorizationApplicationServiceTest {
         return repository;
     }
 
-    private com.github.thundax.bacon.auth.application.support.TokenCodec tokenCodec(String hashValue) {
-        com.github.thundax.bacon.auth.application.support.TokenCodec tokenCodec =
-                mock(com.github.thundax.bacon.auth.application.support.TokenCodec.class);
+    private com.github.thundax.bacon.auth.application.codec.TokenCodec tokenCodec(String hashValue) {
+        com.github.thundax.bacon.auth.application.codec.TokenCodec tokenCodec =
+                mock(com.github.thundax.bacon.auth.application.codec.TokenCodec.class);
         when(tokenCodec.sha256("refresh")).thenReturn(hashValue);
         return tokenCodec;
     }

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.auth.application.support;
+package com.github.thundax.bacon.auth.application.codec;
 
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import org.springframework.stereotype.Component;

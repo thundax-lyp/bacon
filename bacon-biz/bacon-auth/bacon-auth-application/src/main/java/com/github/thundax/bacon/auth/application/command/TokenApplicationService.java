@@ -4,7 +4,7 @@ import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.api.dto.UserTokenRefreshDTO;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
-import com.github.thundax.bacon.auth.application.support.TokenCodec;
+import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;

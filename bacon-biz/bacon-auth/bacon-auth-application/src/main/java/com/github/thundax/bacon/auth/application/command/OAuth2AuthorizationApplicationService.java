@@ -3,7 +3,7 @@ package com.github.thundax.bacon.auth.application.command;
 import com.github.thundax.bacon.auth.api.dto.OAuth2IntrospectionDTO;
 import com.github.thundax.bacon.auth.api.dto.OAuth2TokenDTO;
 import com.github.thundax.bacon.auth.api.dto.OAuth2UserinfoDTO;
-import com.github.thundax.bacon.auth.application.support.TokenCodec;
+import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;

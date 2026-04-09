@@ -5,7 +5,7 @@ import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
 import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicationService;
-import com.github.thundax.bacon.auth.application.support.TokenCodec;
+import com.github.thundax.bacon.auth.application.codec.TokenCodec;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;

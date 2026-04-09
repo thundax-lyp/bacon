@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
-import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import lombok.Getter;
 
 import java.time.Instant;

@@ -16,7 +16,7 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.stereotype.Service;

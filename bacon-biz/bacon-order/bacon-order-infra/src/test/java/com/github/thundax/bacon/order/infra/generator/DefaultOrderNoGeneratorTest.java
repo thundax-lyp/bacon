@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import org.junit.jupiter.api.Test;
 
 class DefaultOrderNoGeneratorTest {

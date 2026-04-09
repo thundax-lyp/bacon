@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.order.infra.generator;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

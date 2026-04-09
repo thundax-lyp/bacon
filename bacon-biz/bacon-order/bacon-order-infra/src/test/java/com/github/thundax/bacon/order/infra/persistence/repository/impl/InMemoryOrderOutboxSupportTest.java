@@ -3,7 +3,7 @@ package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;

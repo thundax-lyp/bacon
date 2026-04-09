@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.domain.model.valueobject;
+package com.github.thundax.bacon.common.commerce.valueobject;
 
 /**
  * 支付业务单号。

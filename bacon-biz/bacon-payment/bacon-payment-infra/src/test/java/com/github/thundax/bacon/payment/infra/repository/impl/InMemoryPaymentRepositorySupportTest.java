@@ -13,7 +13,7 @@ import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
-import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;

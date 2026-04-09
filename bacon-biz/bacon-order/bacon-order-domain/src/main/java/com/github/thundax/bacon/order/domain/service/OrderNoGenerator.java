@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.order.domain.service;
 
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 
 public interface OrderNoGenerator {
 

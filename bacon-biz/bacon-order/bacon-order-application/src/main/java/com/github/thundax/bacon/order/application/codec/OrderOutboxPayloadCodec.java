@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.application.saga;
+package com.github.thundax.bacon.order.application.codec;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;

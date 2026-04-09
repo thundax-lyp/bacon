@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
 import com.alicp.jetcache.Cache;
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
@@ -39,6 +41,8 @@ import com.github.thundax.bacon.upms.infra.persistence.handler.DepartmentIdTypeH
 import com.github.thundax.bacon.upms.infra.persistence.handler.MenuIdTypeHandler;
 import com.github.thundax.bacon.upms.infra.persistence.handler.PostIdTypeHandler;
 import com.github.thundax.bacon.upms.infra.persistence.handler.RoleIdTypeHandler;
+import com.github.thundax.bacon.upms.infra.persistence.handler.UserCredentialIdTypeHandler;
+import com.github.thundax.bacon.upms.infra.persistence.handler.UserIdentityIdTypeHandler;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DataPermissionRuleMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DepartmentMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.MenuMapper;
@@ -483,6 +487,8 @@ class UpmsRepositoryIntegrationTest {
             configuration.getTypeHandlerRegistry().register(PostId.class, PostIdTypeHandler.class);
             configuration.getTypeHandlerRegistry().register(com.github.thundax.bacon.upms.domain.model.valueobject.RoleId.class,
                     RoleIdTypeHandler.class);
+            configuration.getTypeHandlerRegistry().register(UserIdentityId.class, UserIdentityIdTypeHandler.class);
+            configuration.getTypeHandlerRegistry().register(UserCredentialId.class, UserCredentialIdTypeHandler.class);
             factoryBean.setConfiguration(configuration);
             return factoryBean.getObject();
         }
@@ -580,9 +586,10 @@ class UpmsRepositoryIntegrationTest {
                                               RoleRepositoryImpl roleRepository,
                                               PasswordEncoder passwordEncoder,
                                               UpmsPermissionCacheSupport upmsPermissionCacheSupport,
-                                              Ids ids) {
+                                              Ids ids,
+                                              IdGenerator idGenerator) {
             return new UserRepositoryImpl(userPersistenceSupport, roleRepository, passwordEncoder,
-                    upmsPermissionCacheSupport, ids);
+                    upmsPermissionCacheSupport, ids, idGenerator);
         }
 
         @Bean

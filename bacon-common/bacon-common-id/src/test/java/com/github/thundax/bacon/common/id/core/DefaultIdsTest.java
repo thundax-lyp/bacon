@@ -2,7 +2,6 @@ package com.github.thundax.bacon.common.id.core;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -18,15 +17,12 @@ class DefaultIdsTest {
         DefaultIds ids = new DefaultIds(idGenerator);
 
         UserId userId = ids.userId();
-        UserIdentityId userIdentityId = ids.userIdentityId();
         StoredObjectId storedObjectId = ids.storedObjectId();
 
         assertThat(userId).isEqualTo(UserId.of(1001L));
-        assertThat(userIdentityId).isEqualTo(UserIdentityId.of(1002L));
-        assertThat(storedObjectId).isEqualTo(StoredObjectId.of(1003L));
+        assertThat(storedObjectId).isEqualTo(StoredObjectId.of(1002L));
         assertThat(idGenerator.bizTags).containsExactly(
                 "user-id",
-                "user-identity-id",
                 "stored-object-id");
     }
 

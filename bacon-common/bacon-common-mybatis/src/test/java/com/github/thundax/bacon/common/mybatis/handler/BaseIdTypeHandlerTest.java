@@ -2,8 +2,6 @@ package com.github.thundax.bacon.common.mybatis.handler;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.common.id.domain.UserCredentialId;
-import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -55,23 +53,6 @@ class BaseIdTypeHandlerTest {
         ResultSet resultSet = resultSet(Map.of("tenant_id", 1001L));
 
         assertThat(handler.getNullableResult(resultSet, "tenant_id")).isEqualTo(TenantId.of(1001L));
-    }
-
-    @Test
-    void shouldReadUserIdentityIdentifierFromResultSet() throws Exception {
-        UserIdentityIdTypeHandler handler = new UserIdentityIdTypeHandler();
-        ResultSet resultSet = resultSet(Map.of("identity_id", 1001L));
-
-        assertThat(handler.getNullableResult(resultSet, "identity_id")).isEqualTo(UserIdentityId.of(1001L));
-    }
-
-    @Test
-    void shouldReadNumericCredentialIdentifierAsStringValue() throws Exception {
-        UserCredentialIdTypeHandler handler = new UserCredentialIdTypeHandler();
-        ResultSet resultSet = resultSet(Map.of("credential_id", 1001L, 1, "1002"));
-
-        assertThat(handler.getNullableResult(resultSet, "credential_id")).isEqualTo(UserCredentialId.of(1001L));
-        assertThat(handler.getNullableResult(resultSet, 1)).isEqualTo(UserCredentialId.of(1002L));
     }
 
     private ResultSet resultSet(Map<Object, Object> values) {

@@ -2,7 +2,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.common.id.domain.UserIdentityId;
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import java.time.Instant;

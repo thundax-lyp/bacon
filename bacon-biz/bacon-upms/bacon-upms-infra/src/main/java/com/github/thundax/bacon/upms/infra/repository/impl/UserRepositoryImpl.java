@@ -1,5 +1,8 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
@@ -29,6 +32,8 @@ import org.springframework.stereotype.Repository;
 public class UserRepositoryImpl implements UserRepository {
 
     private static final String DEFAULT_PASSWORD = "123456";
+    private static final String USER_IDENTITY_ID_BIZ_TAG = "user-identity-id";
+    private static final String USER_CREDENTIAL_ID_BIZ_TAG = "user-credential-id";
     private static final UserCredentialType PASSWORD_CREDENTIAL_TYPE = UserCredentialType.PASSWORD;
     private static final UserCredentialFactorLevel PRIMARY_FACTOR_LEVEL = UserCredentialFactorLevel.PRIMARY;
     private static final int PASSWORD_FAILED_LIMIT = 5;
@@ -40,17 +45,20 @@ public class UserRepositoryImpl implements UserRepository {
     private final PasswordEncoder passwordEncoder;
     private final UpmsPermissionCacheSupport cacheSupport;
     private final Ids ids;
+    private final IdGenerator idGenerator;
 
     public UserRepositoryImpl(UserPersistenceSupport support,
                               RoleRepositoryImpl roleRepository,
                               PasswordEncoder passwordEncoder,
                               UpmsPermissionCacheSupport cacheSupport,
-                              Ids ids) {
+                              Ids ids,
+                              IdGenerator idGenerator) {
         this.support = support;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.cacheSupport = cacheSupport;
         this.ids = ids;
+        this.idGenerator = idGenerator;
     }
 
     @Override
@@ -169,7 +177,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     private UserIdentity replaceAccountIdentity(User user, String account) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
-        return support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
+        return support.saveUserIdentity(new UserIdentity(nextUserIdentityId(), user.getTenantId(), user.getId(),
                 UserIdentityType.ACCOUNT, requireIdentityValue(account, UserIdentityType.ACCOUNT), ACTIVE_IDENTITY_STATUS,
                 null, null, null, null));
     }
@@ -177,7 +185,7 @@ public class UserRepositoryImpl implements UserRepository {
     private void replacePhoneIdentity(User user, String phone) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
         if (phone != null && !phone.isBlank()) {
-            support.saveUserIdentity(new UserIdentity(ids.userIdentityId(), user.getTenantId(), user.getId(),
+            support.saveUserIdentity(new UserIdentity(nextUserIdentityId(), user.getTenantId(), user.getId(),
                     UserIdentityType.PHONE, phone.trim(), ACTIVE_IDENTITY_STATUS, null, null, null, null));
         }
     }
@@ -208,7 +216,7 @@ public class UserRepositoryImpl implements UserRepository {
         UserCredential currentCredential = support.findUserCredential(user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .orElse(null);
         support.saveUserCredential(new UserCredential(
-                currentCredential == null ? ids.userCredentialId() : currentCredential.getId(),
+                currentCredential == null ? nextUserCredentialId() : currentCredential.getId(),
                 user.getTenantId(),
                 user.getId(),
                 accountIdentity.getId(),
@@ -227,6 +235,14 @@ public class UserRepositoryImpl implements UserRepository {
                 currentCredential == null ? null : currentCredential.getCreatedAt(),
                 currentCredential == null ? null : currentCredential.getUpdatedBy(),
                 currentCredential == null ? null : currentCredential.getUpdatedAt()));
+    }
+
+    private UserIdentityId nextUserIdentityId() {
+        return UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG));
+    }
+
+    private UserCredentialId nextUserCredentialId() {
+        return UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG));
     }
 
     boolean hasActiveUserInDepartment(TenantId tenantId, DepartmentId departmentId) {

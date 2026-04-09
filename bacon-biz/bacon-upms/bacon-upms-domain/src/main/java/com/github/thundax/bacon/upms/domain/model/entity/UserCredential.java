@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.domain.UserCredentialId;
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.common.id.domain.UserIdentityId;
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;

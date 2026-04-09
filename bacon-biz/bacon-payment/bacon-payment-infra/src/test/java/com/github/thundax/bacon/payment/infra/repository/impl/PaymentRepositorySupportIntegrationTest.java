@@ -3,7 +3,7 @@ package com.github.thundax.bacon.payment.infra.repository.impl;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;

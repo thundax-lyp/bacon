@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.common.id.domain.PaymentOrderId;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;

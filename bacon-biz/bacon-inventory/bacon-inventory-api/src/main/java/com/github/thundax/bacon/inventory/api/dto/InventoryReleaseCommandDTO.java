@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.api.dto;
 
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +14,6 @@ import lombok.NoArgsConstructor;
 public class InventoryReleaseCommandDTO {
 
     /** 释放原因。 */
-    @NotNull
-    private InventoryReleaseReason reason;
+    @NotBlank
+    private String reason;
 }

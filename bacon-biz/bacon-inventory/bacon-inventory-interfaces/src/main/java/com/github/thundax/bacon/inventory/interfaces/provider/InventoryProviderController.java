@@ -12,6 +12,9 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -95,7 +98,8 @@ public class InventoryProviderController {
     public InventoryReservationResultDTO release(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                  @PathVariable @NotBlank String orderNo,
                                                  @Valid @RequestBody InventoryReleaseCommandDTO request) {
-        return inventoryApplicationService.releaseReservedStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo), request.getReason());
+        return inventoryApplicationService.releaseReservedStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo),
+                toReleaseReason(request.getReason()));
     }
 
     @Operation(summary = "扣减预占库存")
@@ -103,5 +107,13 @@ public class InventoryProviderController {
     public InventoryReservationResultDTO deduct(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
                                                 @PathVariable @NotBlank String orderNo) {
         return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo));
+    }
+
+    private InventoryReleaseReason toReleaseReason(String reason) {
+        try {
+            return InventoryReleaseReason.from(reason);
+        } catch (IllegalArgumentException ex) {
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_RELEASE_REASON, reason);
+        }
     }
 }

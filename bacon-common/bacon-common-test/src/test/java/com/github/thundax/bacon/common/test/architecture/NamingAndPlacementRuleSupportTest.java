@@ -3,9 +3,12 @@ package com.github.thundax.bacon.common.test.architecture;
 import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.EnumFieldFixture;
 import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.InvalidSimpleEnumFixture;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.EvaluationResult;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 
@@ -21,30 +24,27 @@ class NamingAndPlacementRuleSupportTest {
     }
 
     @Test
-    void entityBoundaryConstructorViolationShouldExplainInvalidBoundaryTypeAndCorrectWriting() {
+    void entityConstructorRuleShouldRejectExplicitConstructors() {
         EvaluationResult result = evaluate(InvalidBoundaryTypeEntityFixture.class);
 
         assertThat(result.hasViolation()).isTrue();
         assertThat(singleViolationDetail(result))
                 .contains(InvalidBoundaryTypeEntityFixture.class.getName() + " violation")
-                .contains("uses unsupported parameter types")
-                .contains(UnsupportedBoundaryTypeFixture.class.getName())
-                .contains("Fix: InvalidBoundaryTypeEntityFixture(Long id, String code, Instant createdAt) {...}")
-                .doesNotContain("explicitConstructors=");
+                .contains("Found 2 explicit constructors")
+                .contains("expected 0 explicit constructors")
+                .contains("move boundary conversion outside the entity");
     }
 
     @Test
-    void entityBoundaryConstructorViolationShouldExplainMultipleExplicitConstructorsAndCorrectWriting() {
+    void entityConstructorRuleShouldRejectMultipleExplicitConstructors() {
         EvaluationResult result = evaluate(MultipleExplicitConstructorsEntityFixture.class);
 
         assertThat(result.hasViolation()).isTrue();
         assertThat(singleViolationDetail(result))
                 .contains(MultipleExplicitConstructorsEntityFixture.class.getName() + " violation")
                 .contains("Found 2 explicit constructors")
-                .contains("MultipleExplicitConstructorsEntityFixture(Long, BoundaryStatusFixture, Instant)")
-                .contains("MultipleExplicitConstructorsEntityFixture(String, BoundaryStatusFixture, Instant)")
-                .contains("Fix: MultipleExplicitConstructorsEntityFixture(Long id, BoundaryStatusFixture status, Instant createdAt) {...}")
-                .doesNotContain("explicitConstructors=");
+                .contains("expected 0 explicit constructors")
+                .contains("move boundary conversion outside the entity");
     }
 
     @Test
@@ -61,17 +61,18 @@ class NamingAndPlacementRuleSupportTest {
     }
 
     @Test
-    void entityBoundaryConstructorRuleShouldRequireAllArgsConstructorAnnotation() {
+    void entityConstructorRuleShouldRequireAllArgsConstructorAnnotation() {
         EvaluationResult result = evaluate(MissingAllArgsConstructorEntityFixture.class);
 
         assertThat(result.hasViolation()).isTrue();
         assertThat(singleViolationDetail(result))
                 .contains(MissingAllArgsConstructorEntityFixture.class.getName() + " violation")
-                .contains("Class must be annotated with @AllArgsConstructor");
+                .contains("Class must be annotated with @AllArgsConstructor")
+                .contains("expected 0 explicit constructors");
     }
 
     @Test
-    void entityBoundaryConstructorRuleShouldSkipRecordClasses() {
+    void entityConstructorRuleShouldSkipRecordClasses() {
         EvaluationResult result = NamingAndPlacementRuleSupport
                 .entityShouldUseSingleExplicitBoundaryConstructor(
                         RecordEntityFixture.class.getName(),
@@ -79,6 +80,19 @@ class NamingAndPlacementRuleSupportTest {
                 .evaluate(new ClassFileImporter().importPackages(NamingAndPlacementRuleSupportTest.class.getPackageName()));
 
         assertThat(result.hasViolation()).isFalse();
+    }
+
+    @Test
+    void resolveSourceFilePathShouldFallbackToWorkspaceLookupWhenClassSourceIsUnavailable() {
+        JavaClass targetClass = new ClassFileImporter().importClasses(ValidAnnotatedEntityFixture.class)
+                .get(ValidAnnotatedEntityFixture.class);
+
+        Optional<Path> sourceFile = NamingAndPlacementRuleSupport.resolveSourceFilePath(Optional.empty(), targetClass);
+
+        assertThat(sourceFile).isPresent();
+        assertThat(sourceFile.orElseThrow())
+                .endsWith(Path.of("src", "test", "java", "com", "github", "thundax", "bacon",
+                        "common", "test", "architecture", "NamingAndPlacementRuleSupportTest.java"));
     }
 
     @Test
@@ -181,10 +195,6 @@ final class ValidAnnotatedEntityFixture {
     private SampleIdFixture id;
     private BoundaryStatusFixture status;
     private Instant createdAt;
-
-    public ValidAnnotatedEntityFixture(Long id, BoundaryStatusFixture status, Instant createdAt) {
-        this(SampleIdFixture.of(id), status, createdAt);
-    }
 }
 
 record RecordEntityFixture(Long id, String code, Instant createdAt) {

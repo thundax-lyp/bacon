@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.application;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageQueryDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
@@ -8,6 +10,9 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -57,51 +62,53 @@ class InventoryQueryApplicationServiceTest {
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 
         private TestInventoryRepository() {
-            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, "DEFAULT", 100, 0, 100,
+            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseNo.of("DEFAULT"), 100, 0, 100,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 102L), new Inventory(2L, 1001L, 102L, "DEFAULT", 80, 0, 80,
+            inventories.put(key(1001L, 102L), new Inventory(InventoryId.of(2L), TenantId.of(1001L), SkuId.of(102L), WarehouseNo.of("DEFAULT"), 80, 0, 80,
                     InventoryStatus.DISABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 103L), new Inventory(3L, 1001L, 103L, "DEFAULT", 60, 0, 60,
+            inventories.put(key(1001L, 103L), new Inventory(InventoryId.of(3L), TenantId.of(1001L), SkuId.of(103L), WarehouseNo.of("DEFAULT"), 60, 0, 60,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 104L), new Inventory(4L, 1001L, 104L, "DEFAULT", 40, 0, 40,
+            inventories.put(key(1001L, 104L), new Inventory(InventoryId.of(4L), TenantId.of(1001L), SkuId.of(104L), WarehouseNo.of("DEFAULT"), 40, 0, 40,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
         }
 
         @Override
-        public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
-            return Optional.ofNullable(inventories.get(key(tenantId, skuId)));
+        public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
+            return Optional.ofNullable(inventories.get(key(tenantId == null ? null : tenantId.value(),
+                    skuId == null ? null : skuId.value())));
         }
 
         @Override
-        public List<Inventory> findInventories(Long tenantId) {
+        public List<Inventory> findInventories(TenantId tenantId) {
             return inventories.values().stream()
-                    .filter(inventory -> inventory.getTenantIdValue().equals(tenantId))
-                    .sorted(java.util.Comparator.comparing(Inventory::getSkuIdValue))
+                    .filter(inventory -> java.util.Objects.equals(inventory.getTenantId(), tenantId))
+                    .sorted(java.util.Comparator.comparing(inventory -> inventory.getSkuId() == null ? null : inventory.getSkuId().value()))
                     .toList();
         }
 
         @Override
-        public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
-            return skuIds.stream().map(skuId -> inventories.get(key(tenantId, skuId)))
+        public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
+            return skuIds.stream().map(skuId -> inventories.get(key(tenantId == null ? null : tenantId.value(),
+                            skuId == null ? null : skuId.value())))
                     .filter(java.util.Objects::nonNull)
                     .toList();
         }
 
         @Override
-        public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+        public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || inventory.getSkuIdValue().equals(skuId))
-                    .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
+                    .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
+                    .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)
                     .toList();
         }
 
         @Override
-        public long countInventories(Long tenantId, Long skuId, String status) {
+        public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
             return findInventories(tenantId).stream()
-                    .filter(inventory -> skuId == null || inventory.getSkuIdValue().equals(skuId))
-                    .filter(inventory -> status == null || status.equals(inventory.getStatus().value()))
+                    .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
+                    .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                     .count();
         }
 
@@ -109,7 +116,8 @@ class InventoryQueryApplicationServiceTest {
         public Inventory saveInventory(Inventory inventory) {
             Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
             inventory.markPersisted(version);
-            inventories.put(key(inventory.getTenantIdValue(), inventory.getSkuIdValue()), inventory);
+            inventories.put(key(inventory.getTenantId() == null ? null : inventory.getTenantId().value(),
+                    inventory.getSkuId() == null ? null : inventory.getSkuId().value()), inventory);
             return inventory;
         }
 
@@ -119,7 +127,7 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
+        public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
             return Optional.empty();
         }
 
@@ -128,7 +136,7 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
+        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
             return List.of();
         }
 
@@ -137,7 +145,7 @@ class InventoryQueryApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
             return List.of();
         }
 

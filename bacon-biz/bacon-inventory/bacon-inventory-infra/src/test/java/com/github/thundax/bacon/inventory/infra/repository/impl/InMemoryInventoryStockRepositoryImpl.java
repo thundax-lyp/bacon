@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.util.List;
 import java.util.Optional;
@@ -21,27 +24,27 @@ public class InMemoryInventoryStockRepositoryImpl implements InventoryStockRepos
     }
 
     @Override
-    public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
+    public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
         return support.findInventory(tenantId, skuId);
     }
 
     @Override
-    public List<Inventory> findInventories(Long tenantId) {
+    public List<Inventory> findInventories(TenantId tenantId) {
         return support.findInventories(tenantId);
     }
 
     @Override
-    public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
+    public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
         return support.findInventories(tenantId, skuIds);
     }
 
     @Override
-    public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+    public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
         return support.pageInventories(tenantId, skuId, status, pageNo, pageSize);
     }
 
     @Override
-    public long countInventories(Long tenantId, Long skuId, String status) {
+    public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
         return support.countInventories(tenantId, skuId, status);
     }
 

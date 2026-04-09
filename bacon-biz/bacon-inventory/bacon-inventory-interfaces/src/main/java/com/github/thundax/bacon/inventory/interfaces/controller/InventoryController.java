@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
@@ -17,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -48,8 +51,8 @@ public class InventoryController {
     @PostMapping
     public InventoryStockResponse createInventory(@CurrentTenant Long tenantId,
                                                   @Valid @RequestBody CreateInventoryRequest request) {
-        return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(tenantId,
-                request.skuId(), request.onHandQuantity(), request.status()));
+        return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(TenantId.of(tenantId),
+                SkuIdMapper.toDomain(request.skuId()), request.onHandQuantity(), request.status()));
     }
 
     @Operation(summary = "查询 SKU 可用库存")
@@ -57,7 +60,7 @@ public class InventoryController {
     @GetMapping("/{skuId}")
     public InventoryStockResponse getInventory(@CurrentTenant Long tenantId, @PathVariable @Positive Long skuId) {
         return InventoryStockResponse.from(
-                inventoryQueryService.getAvailableStock(tenantId, skuId)
+                inventoryQueryService.getAvailableStock(TenantId.of(tenantId), SkuIdMapper.toDomain(skuId))
         );
     }
 
@@ -66,7 +69,8 @@ public class InventoryController {
     @GetMapping
     public List<InventoryStockResponse> listInventories(@CurrentTenant Long tenantId,
                                                         @Valid @ModelAttribute InventoryBatchQueryRequest request) {
-        return inventoryQueryService.batchGetAvailableStock(tenantId, request.getSkuIds()).stream()
+        return inventoryQueryService.batchGetAvailableStock(TenantId.of(tenantId),
+                        request.getSkuIds() == null ? java.util.Set.of() : request.getSkuIds().stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet())).stream()
                 .map(InventoryStockResponse::from)
                 .toList();
     }
@@ -88,6 +92,6 @@ public class InventoryController {
                                                         @PathVariable @Positive Long skuId,
                                                         @Valid @RequestBody InventoryStatusUpdateRequest request) {
         return InventoryStockResponse.from(inventoryManagementApplicationService.updateInventoryStatus(
-                tenantId, skuId, request.status()));
+                TenantId.of(tenantId), SkuIdMapper.toDomain(skuId), request.status()));
     }
 }

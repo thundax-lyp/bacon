@@ -58,10 +58,6 @@ public class OAuthAccessToken {
         return tenantId == null ? null : tenantId.value();
     }
 
-    public Long getUserIdValue() {
-        return userId == null ? null : userId.value();
-    }
-
     public String getStatusValue() {
         return status == null ? null : status.value();
     }

@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
@@ -9,6 +11,9 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -88,31 +93,31 @@ class InventoryControllerContractTest {
     private static final class StubInventoryRepository implements InventoryStockRepository,
             InventoryReservationRepository, InventoryLogRepository {
 
-        private final Inventory stock = new Inventory(1L, 1001L, 101L, "DEFAULT", 100,
+        private final Inventory stock = new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseNo.of("DEFAULT"), 100,
                 10, 90, InventoryStatus.ENABLED, 1L, Instant.parse("2026-03-26T10:00:00Z"));
 
         @Override
-        public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
+        public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
             return Optional.of(stock);
         }
 
         @Override
-        public List<Inventory> findInventories(Long tenantId) {
+        public List<Inventory> findInventories(TenantId tenantId) {
             return List.of(stock);
         }
 
         @Override
-        public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
+        public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
             return List.of(stock);
         }
 
         @Override
-        public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+        public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             return List.of(stock);
         }
 
         @Override
-        public long countInventories(Long tenantId, Long skuId, String status) {
+        public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
             return 1;
         }
 
@@ -127,7 +132,7 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
+        public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
             return Optional.empty();
         }
 
@@ -136,7 +141,7 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
+        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
             return List.of();
         }
 
@@ -145,7 +150,7 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
             return List.of();
         }
 

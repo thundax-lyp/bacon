@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.application;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditOutboxRetrier;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.command.InventoryReservationApplicationService;
@@ -20,7 +22,11 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -67,12 +73,12 @@ class InventoryWorkflowIntegrationTest {
         try {
             CompletableFuture<InventoryReservationResultDTO> first = CompletableFuture.supplyAsync(() -> {
                 await(start);
-                return service.reserveStock(1001L, "ORDER-C1",
+                return service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-C1"),
                         List.of(new InventoryReservationItemDTO(101L, 40)));
             }, pool);
             CompletableFuture<InventoryReservationResultDTO> second = CompletableFuture.supplyAsync(() -> {
                 await(start);
-                return service.reserveStock(1001L, "ORDER-C2",
+                return service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-C2"),
                         List.of(new InventoryReservationItemDTO(101L, 40)));
             }, pool);
 
@@ -84,13 +90,13 @@ class InventoryWorkflowIntegrationTest {
             assertEquals(InventoryReservationStatus.RESERVED.value(), firstResult.getReservationStatus());
             assertEquals(InventoryReservationStatus.RESERVED.value(), secondResult.getReservationStatus());
 
-            Inventory inventory = repository.findInventory(1001L, 101L).orElseThrow();
+            Inventory inventory = repository.findInventory(TenantId.of(1001L), SkuId.of(101L)).orElseThrow();
             assertEquals(80, inventory.getReservedQuantity());
             assertEquals(20, inventory.getAvailableQuantity());
             assertTrue(inventory.getVersion() >= 2);
 
-            assertNotNull(repository.findReservation(1001L, "ORDER-C1").orElse(null));
-            assertNotNull(repository.findReservation(1001L, "ORDER-C2").orElse(null));
+            assertNotNull(repository.findReservation(TenantId.of(1001L), OrderNo.of("ORDER-C1")).orElse(null));
+            assertNotNull(repository.findReservation(TenantId.of(1001L), OrderNo.of("ORDER-C2")).orElse(null));
         } finally {
             pool.shutdownNow();
         }
@@ -111,12 +117,12 @@ class InventoryWorkflowIntegrationTest {
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
                 null,
-                1001L,
-                "ORDER-DEAD",
-                "RSV-DEAD",
+                TenantId.of(1001L),
+                OrderNo.of("ORDER-DEAD"),
+                ReservationNo.of("RSV-DEAD"),
                 InventoryAuditActionType.RESERVE,
                 InventoryAuditOperatorType.SYSTEM,
-                InventoryAuditLog.OPERATOR_ID_SYSTEM,
+                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                 now,
                 "INIT",
                 InventoryAuditOutboxStatus.NEW,
@@ -150,12 +156,12 @@ class InventoryWorkflowIntegrationTest {
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
                 null,
-                1001L,
-                "ORDER-OK",
-                "RSV-OK",
+                TenantId.of(1001L),
+                OrderNo.of("ORDER-OK"),
+                ReservationNo.of("RSV-OK"),
                 InventoryAuditActionType.RESERVE,
                 InventoryAuditOperatorType.SYSTEM,
-                InventoryAuditLog.OPERATOR_ID_SYSTEM,
+                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                 now,
                 "INIT",
                 InventoryAuditOutboxStatus.NEW,
@@ -202,67 +208,73 @@ class InventoryWorkflowIntegrationTest {
 
         private OptimisticInventoryRepository(boolean failAuditPersist) {
             this.failAuditPersist = failAuditPersist;
-            inventories.put(key(1001L, 101L), new Inventory(1L, 1001L, 101L, "DEFAULT",
+            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseNo.of("DEFAULT"),
                     100, 0, 100, InventoryStatus.ENABLED, 0L,
                     Instant.parse("2026-03-26T09:59:00Z")));
         }
 
         @Override
-        public Optional<Inventory> findInventory(Long tenantId, Long skuId) {
-            return Optional.ofNullable(inventories.get(key(tenantId, skuId))).map(this::copy);
+        public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
+            return Optional.ofNullable(inventories.get(key(tenantId == null ? null : tenantId.value(),
+                    skuId == null ? null : skuId.value()))).map(this::copy);
         }
 
         @Override
-        public List<Inventory> findInventories(Long tenantId) {
+        public List<Inventory> findInventories(TenantId tenantId) {
             return inventories.values().stream()
-                    .filter(item -> tenantId.equals(item.getTenantIdValue()))
+                    .filter(item -> java.util.Objects.equals(item.getTenantId(), tenantId))
                     .map(this::copy)
                     .toList();
         }
 
         @Override
-        public List<Inventory> findInventories(Long tenantId, Set<Long> skuIds) {
+        public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
             return skuIds.stream()
-                    .map(skuId -> inventories.get(key(tenantId, skuId)))
+                    .map(skuId -> inventories.get(key(tenantId == null ? null : tenantId.value(),
+                            skuId == null ? null : skuId.value())))
                     .filter(java.util.Objects::nonNull)
                     .map(this::copy)
                     .toList();
         }
 
         @Override
-        public List<Inventory> pageInventories(Long tenantId, Long skuId, String status, int pageNo, int pageSize) {
+        public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
-                    .filter(item -> skuId == null || skuId.equals(item.getSkuIdValue()))
-                    .filter(item -> status == null || status.equals(item.getStatus().value()))
+                    .filter(item -> skuId == null || java.util.Objects.equals(item.getSkuId(), skuId))
+                    .filter(item -> status == null || status.equals(item.getStatus()))
                     .skip((long) (pageNo - 1) * pageSize)
                     .limit(pageSize)
                     .toList();
         }
 
         @Override
-        public long countInventories(Long tenantId, Long skuId, String status) {
+        public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
             return pageInventories(tenantId, skuId, status, 1, Integer.MAX_VALUE).size();
         }
 
         @Override
         public synchronized Inventory saveInventory(Inventory inventory) {
-            Inventory current = inventories.get(key(inventory.getTenantId().value(), inventory.getSkuIdValue()));
+            Inventory current = inventories.get(key(inventory.getTenantId().value(),
+                    inventory.getSkuId() == null ? null : inventory.getSkuId().value()));
             if (current == null) {
-                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(inventory.getSkuIdValue()));
+                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+                        String.valueOf(inventory.getSkuId() == null ? null : inventory.getSkuId().value()));
             }
             if (!current.getVersion().equals(inventory.getVersion())) {
                 throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED,
-                        String.valueOf(inventory.getSkuIdValue()));
+                        String.valueOf(inventory.getSkuId() == null ? null : inventory.getSkuId().value()));
             }
             Inventory persisted = copy(inventory);
             persisted.markPersisted(current.getVersion() + 1);
-            inventories.put(key(persisted.getTenantId().value(), persisted.getSkuIdValue()), persisted);
+            inventories.put(key(persisted.getTenantId().value(),
+                    persisted.getSkuId() == null ? null : persisted.getSkuId().value()), persisted);
             return copy(persisted);
         }
 
         @Override
         public InventoryReservation saveReservation(InventoryReservation reservation) {
-            String key = reservationKey(reservation.getTenantIdValue(), reservation.getOrderNoValue());
+            String key = reservationKey(reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                    reservation.getOrderNoValue());
             InventoryReservation existing = reservations.get(key);
             if (existing != null && !existing.getReservationNo().equals(reservation.getReservationNo())) {
                 throw new DuplicateKeyException("duplicate orderNo");
@@ -272,20 +284,23 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(Long tenantId, String orderNo) {
-            return Optional.ofNullable(reservations.get(reservationKey(tenantId, orderNo)));
+        public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+            return Optional.ofNullable(reservations.get(reservationKey(tenantId == null ? null : tenantId.value(),
+                    orderNo == null ? null : orderNo.value())));
         }
 
         @Override
         public void saveLedger(InventoryLedger ledger) {
-            ledgers.computeIfAbsent(reservationKey(ledger.getTenantIdValue(), ledger.getOrderNoValue()),
+            ledgers.computeIfAbsent(reservationKey(ledger.getTenantId() == null ? null : ledger.getTenantId().value(),
+                            ledger.getOrderNoValue()),
                             ignored -> new ArrayList<>())
                     .add(ledger);
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
-            return List.copyOf(ledgers.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
+        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+            return List.copyOf(ledgers.getOrDefault(reservationKey(tenantId == null ? null : tenantId.value(),
+                    orderNo == null ? null : orderNo.value()), List.of()));
         }
 
         @Override
@@ -293,13 +308,15 @@ class InventoryWorkflowIntegrationTest {
             if (failAuditPersist) {
                 throw new RuntimeException("force-fail-audit");
             }
-            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantIdValue(), auditLog.getOrderNoValue()),
+            auditLogs.computeIfAbsent(reservationKey(auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(),
+                    auditLog.getOrderNoValue()),
                     ignored -> new ArrayList<>()).add(auditLog);
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
-            return List.copyOf(auditLogs.getOrDefault(reservationKey(tenantId, orderNo), List.of()));
+        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+            return List.copyOf(auditLogs.getOrDefault(reservationKey(tenantId == null ? null : tenantId.value(),
+                    orderNo == null ? null : orderNo.value()), List.of()));
         }
 
         @Override
@@ -456,7 +473,8 @@ class InventoryWorkflowIntegrationTest {
         }
 
         private Inventory copy(Inventory source) {
-            return new Inventory(source.getId().value(), source.getTenantId().value(), source.getSkuIdValue(), source.getWarehouseNo().value(),
+            return new Inventory(source.getId(), source.getTenantId(),
+                    source.getSkuId(), source.getWarehouseNo(),
                     source.getOnHandQuantity(), source.getReservedQuantity(), source.getAvailableQuantity(),
                     source.getStatus(), source.getVersion(), source.getUpdatedAt());
         }

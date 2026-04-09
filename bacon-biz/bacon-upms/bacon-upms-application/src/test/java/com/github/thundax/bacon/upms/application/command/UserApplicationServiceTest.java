@@ -96,7 +96,7 @@ class UserApplicationServiceTest {
         when(storedObjectFacade.uploadObject(any())).thenReturn(storedObject);
         when(userRepository.save(any(User.class), any(), any())).thenReturn(savedUser);
 
-        UserDTO result = service.updateAvatar(TENANT_ID, "101", "avatar.png", "image/png", 1024L,
+        UserDTO result = service.updateAvatar(TENANT_ID, 101L, "avatar.png", "image/png", 1024L,
                 new ByteArrayInputStream(createImageBytes("png", 256, 256)));
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
@@ -116,7 +116,7 @@ class UserApplicationServiceTest {
                 DEPARTMENT_ID, UserStatus.ENABLED, null, null, null, null);
         when(userRepository.findUserById(TENANT_ID, UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
-        assertThatThrownBy(() -> service.updateAvatar(TENANT_ID, "101", "avatar.gif", "image/gif", 12L,
+        assertThatThrownBy(() -> service.updateAvatar(TENANT_ID, 101L, "avatar.gif", "image/gif", 12L,
                 new ByteArrayInputStream(new byte[]{1, 2, 3})))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("avatar contentType must be image/jpeg or image/png");
@@ -129,7 +129,7 @@ class UserApplicationServiceTest {
         byte[] bytes = createImageBytes("png", 256, 180);
         when(userRepository.findUserById(TENANT_ID, UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
-        assertThatThrownBy(() -> service.updateAvatar(TENANT_ID, "101", "avatar.png", "image/png", (long) bytes.length,
+        assertThatThrownBy(() -> service.updateAvatar(TENANT_ID, 101L, "avatar.png", "image/png", (long) bytes.length,
                 new ByteArrayInputStream(bytes)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("avatar image must be square");
@@ -159,7 +159,7 @@ class UserApplicationServiceTest {
                 DEPARTMENT_ID, UserStatus.ENABLED, null, null, null, null);
         when(userRepository.findUserById(TENANT_ID, UserId.of(101L))).thenReturn(Optional.of(user));
 
-        service.deleteUser(TENANT_ID, "101");
+        service.deleteUser(TENANT_ID, 101L);
 
         verify(userRepository).deleteUser(TENANT_ID, UserId.of(101L));
         verify(storedObjectFacade).clearObjectReference("O501", "UPMS_USER_AVATAR", "101");
@@ -175,7 +175,7 @@ class UserApplicationServiceTest {
         when(userRepository.findUserById(TENANT_ID, UserId.of(101L))).thenReturn(Optional.of(user));
         when(storedObjectFacade.getObjectById("O501")).thenReturn(storedObject);
 
-        assertThat(service.getAvatarAccessUrl(TENANT_ID, "101")).contains("https://cdn.example.com/avatar/501.png");
+        assertThat(service.getAvatarAccessUrl(TENANT_ID, 101L)).contains("https://cdn.example.com/avatar/501.png");
     }
 
     @Test
@@ -229,7 +229,7 @@ class UserApplicationServiceTest {
                 .thenReturn(Optional.of(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO",
                         TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"), null, null, null, null)));
 
-        service.changePassword(1001L, "101", "old-password", "new-password");
+        service.changePassword(1001L, 101L, "old-password", "new-password");
 
         verify(userRepository).updatePassword(TENANT_ID, UserId.of(101L), "new-password", false);
     }

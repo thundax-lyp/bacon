@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.domain.OperatorId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,7 +29,7 @@ public class SysLogRecord {
     /** 执行结果。 */
     private String result;
     /** 操作人主键。 */
-    private UserId operatorId;
+    private OperatorId operatorId;
     /** 操作人名称。 */
     private String operatorName;
     /** 客户端 IP。 */
@@ -52,14 +52,4 @@ public class SysLogRecord {
     private String updatedBy;
     /** 最后更新时间。 */
     private Instant updatedAt;
-
-    public SysLogRecord(Long id, Long tenantId, String traceId, String requestId, String module,
-                        String action, String eventType, String result, Long operatorId, String operatorName,
-                        String clientIp, String requestUri, String httpMethod, Long costMs,
-                        String errorMessage, Instant occurredAt, String createdBy, Instant createdAt,
-                        String updatedBy, Instant updatedAt) {
-        this(id, tenantId, traceId, requestId, module, action, eventType, result,
-                operatorId == null ? null : UserId.of(operatorId), operatorName, clientIp, requestUri, httpMethod,
-                costMs, errorMessage, occurredAt, createdBy, createdAt, updatedBy, updatedAt);
-    }
 }

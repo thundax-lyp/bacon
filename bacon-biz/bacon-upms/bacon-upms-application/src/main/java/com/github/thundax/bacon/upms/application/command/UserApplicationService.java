@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
@@ -81,8 +82,8 @@ public class UserApplicationService {
         return toDetailedDto(requireUser(tenantId, userId));
     }
 
-    public UserDTO getUserById(Long tenantId, String userId) {
-        return getUserById(requireExistingTenantId(tenantId), UserId.of(userId));
+    public UserDTO getUserById(Long tenantId, Long userId) {
+        return getUserById(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     public UserIdentityDTO getUserIdentity(TenantId tenantId, String identityType, String identityValue) {
@@ -145,7 +146,7 @@ public class UserApplicationService {
     }
 
     @Transactional
-    public UserDTO createUser(TenantId tenantId, String account, String name, String phone, String departmentId) {
+    public UserDTO createUser(TenantId tenantId, String account, String name, String phone, Long departmentId) {
         validateRequired(account, "account");
         validateRequired(name, "name");
         ensureAccountUnique(tenantId, account, null);
@@ -159,8 +160,8 @@ public class UserApplicationService {
     }
 
     @Transactional
-    public UserDTO updateUser(TenantId tenantId, String userId, String account, String name, String phone, String departmentId) {
-        UserId domainUserId = UserId.of(userId);
+    public UserDTO updateUser(TenantId tenantId, Long userId, String account, String name, String phone, Long departmentId) {
+        UserId domainUserId = UserIdMapper.toDomain(userId);
         User currentUser = requireUser(tenantId, domainUserId);
         validateRequired(account, "account");
         validateRequired(name, "name");
@@ -182,8 +183,8 @@ public class UserApplicationService {
     }
 
     @Transactional
-    public UserDTO updateUserStatus(TenantId tenantId, String userId, EnableStatusEnum status) {
-        UserId domainUserId = UserId.of(userId);
+    public UserDTO updateUserStatus(TenantId tenantId, Long userId, EnableStatusEnum status) {
+        UserId domainUserId = UserIdMapper.toDomain(userId);
         User currentUser = requireUser(tenantId, domainUserId);
         if (status == null) {
             throw new IllegalArgumentException("status must not be null");
@@ -207,8 +208,8 @@ public class UserApplicationService {
         return toDetailedDto(savedUser);
     }
 
-    public Optional<String> getAvatarAccessUrl(TenantId tenantId, String userId) {
-        User user = requireUser(tenantId, UserId.of(userId));
+    public Optional<String> getAvatarAccessUrl(TenantId tenantId, Long userId) {
+        User user = requireUser(tenantId, UserIdMapper.toDomain(userId));
         if (user.getAvatarObjectId() == null) {
             return Optional.empty();
         }
@@ -216,20 +217,20 @@ public class UserApplicationService {
     }
 
     @Transactional
-    public void deleteUser(TenantId tenantId, String userId) {
-        UserId domainUserId = UserId.of(userId);
+    public void deleteUser(TenantId tenantId, Long userId) {
+        UserId domainUserId = UserIdMapper.toDomain(userId);
         User currentUser = requireUser(tenantId, domainUserId);
         userRepository.deleteUser(tenantId, domainUserId);
         if (currentUser.getAvatarObjectId() != null) {
             storedObjectFacade.clearObjectReference(currentUser.getAvatarObjectId().externalValue(), USER_AVATAR_OWNER_TYPE,
-                    userId);
+                    String.valueOf(userId));
         }
         sessionCommandFacade.invalidateUserSessions(tenantId.value(), domainUserId.value(), "USER_DELETED");
     }
 
     @Transactional
-    public UserDTO initPassword(TenantId tenantId, String userId) {
-        UserId domainUserId = UserId.of(userId);
+    public UserDTO initPassword(TenantId tenantId, Long userId) {
+        UserId domainUserId = UserIdMapper.toDomain(userId);
         requireUser(tenantId, domainUserId);
         User user = userRepository.updatePassword(tenantId, domainUserId, DEFAULT_PASSWORD, true);
         sessionCommandFacade.invalidateUserSessions(tenantId.value(), domainUserId.value(), "USER_PASSWORD_INITIALIZED");
@@ -237,8 +238,8 @@ public class UserApplicationService {
     }
 
     @Transactional
-    public UserDTO resetPassword(TenantId tenantId, String userId, String newPassword) {
-        UserId domainUserId = UserId.of(userId);
+    public UserDTO resetPassword(TenantId tenantId, Long userId, String newPassword) {
+        UserId domainUserId = UserIdMapper.toDomain(userId);
         requireUser(tenantId, domainUserId);
         validateRequired(newPassword, "newPassword");
         User user = userRepository.updatePassword(tenantId, domainUserId, normalize(newPassword), true);
@@ -259,15 +260,15 @@ public class UserApplicationService {
         userRepository.updatePassword(tenantId, userId, normalize(newPassword), false);
     }
 
-    public void changePassword(Long tenantId, String userId, String oldPassword, String newPassword) {
-        changePassword(requireExistingTenantId(tenantId), UserId.of(userId), oldPassword, newPassword);
+    public void changePassword(Long tenantId, Long userId, String oldPassword, String newPassword) {
+        changePassword(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId), oldPassword, newPassword);
     }
 
     @Transactional
-    public List<RoleDTO> assignRoles(TenantId tenantId, String userId, List<String> roleIds) {
-        UserId domainUserId = UserId.of(userId);
+    public List<RoleDTO> assignRoles(TenantId tenantId, Long userId, List<Long> roleIds) {
+        UserId domainUserId = UserIdMapper.toDomain(userId);
         requireUser(tenantId, domainUserId);
-        List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds.stream().map(Long::parseLong).map(RoleId::of).toList();
+        List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds.stream().map(RoleId::of).toList();
         return userRepository.assignRoles(tenantId, domainUserId, domainRoleIds).stream()
                 .map(role -> toRoleDto(role, tenantId.value()))
                 .toList();
@@ -280,8 +281,8 @@ public class UserApplicationService {
                 .toList();
     }
 
-    public List<RoleDTO> getRolesByUserId(TenantId tenantId, String userId) {
-        return getRolesByUserId(tenantId, UserId.of(userId));
+    public List<RoleDTO> getRolesByUserId(TenantId tenantId, Long userId) {
+        return getRolesByUserId(tenantId, UserIdMapper.toDomain(userId));
     }
 
     @Transactional
@@ -301,13 +302,13 @@ public class UserApplicationService {
                 query.getStatus()).stream().map(user -> toSummaryDto(user, tenantIdValue)).toList();
     }
 
-    public UserDTO updateAvatar(TenantId tenantId, String userId, String originalFilename, String contentType, Long size,
+    public UserDTO updateAvatar(TenantId tenantId, Long userId, String originalFilename, String contentType, Long size,
                                 InputStream inputStream) {
-        User currentUser = requireUser(tenantId, UserId.of(userId));
+        User currentUser = requireUser(tenantId, UserIdMapper.toDomain(userId));
         AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
         StoredObjectDTO storedObject = uploadAvatarObject(tenantId, avatarImage);
         StoredObjectId storedObjectId = storedObject.getId();
-        storedObjectFacade.markObjectReferenced(storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, userId);
+        storedObjectFacade.markObjectReferenced(storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId));
         StoredObjectId previousAvatarObjectId = currentUser.getAvatarObjectId();
         try {
             User savedUser = userRepository.save(new User(
@@ -325,11 +326,11 @@ public class UserApplicationService {
                     resolveIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.PHONE));
             if (previousAvatarObjectId != null && !previousAvatarObjectId.equals(storedObjectId)) {
                 storedObjectFacade.clearObjectReference(previousAvatarObjectId.externalValue(), USER_AVATAR_OWNER_TYPE,
-                        userId);
+                        String.valueOf(userId));
             }
             return toDto(savedUser, storedObject.getAccessEndpoint(), savedUser.getTenantId().value());
         } catch (RuntimeException ex) {
-            storedObjectFacade.clearObjectReference(storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, userId);
+            storedObjectFacade.clearObjectReference(storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId));
             throw ex;
         }
     }
@@ -384,16 +385,16 @@ public class UserApplicationService {
                 .orElse(null);
     }
 
-    private DepartmentId toDepartmentId(String departmentId) {
-        return departmentId == null || departmentId.isBlank() ? null : DepartmentId.of(Long.parseLong(departmentId.trim()));
+    private DepartmentId toDepartmentId(Long departmentId) {
+        return departmentId == null ? null : DepartmentId.of(departmentId);
     }
 
-    private String resolveDepartmentIdByCode(TenantId tenantId, String departmentCode) {
+    private Long resolveDepartmentIdByCode(TenantId tenantId, String departmentCode) {
         if (departmentCode == null || departmentCode.isBlank()) {
             return null;
         }
         return departmentRepository.findDepartmentByCode(tenantId, departmentCode.trim())
-                .map(department -> String.valueOf(department.getId().value()))
+                .map(department -> department.getId().value())
                 .orElseThrow(() -> new IllegalArgumentException("Department not found by code: " + departmentCode));
     }
 

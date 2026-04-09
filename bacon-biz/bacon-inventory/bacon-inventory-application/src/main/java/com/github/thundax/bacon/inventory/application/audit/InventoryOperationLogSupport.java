@@ -54,9 +54,10 @@ public class InventoryOperationLogSupport {
     private void recordLedgerBatch(InventoryReservation reservation, List<InventoryReservationItem> items,
                                    InventoryLedgerType ledgerType, Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantIdValue(),
-                    reservation.getOrderNoValue(), reservation.getReservationNoValue(), item.getSkuIdValue(),
-                    reservation.getWarehouseNoValue(), ledgerType, item.getQuantity(), occurredAt));
+            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(), reservation.getOrderNo(),
+                    reservation.getReservationNo(),
+                    item.getSkuId(),
+                    reservation.getWarehouseNo(), ledgerType, item.getQuantity(), occurredAt));
         }
     }
 
@@ -78,9 +79,9 @@ public class InventoryOperationLogSupport {
     private void saveAuditSafely(InventoryReservation reservation, InventoryAuditActionType actionType,
                                  Instant occurredAt) {
         try {
-            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantIdValue(),
-                    reservation.getOrderNoValue(), reservation.getReservationNoValue(), actionType.value(),
-                    InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
+                    reservation.getOrderNo(), reservation.getReservationNo(), actionType,
+                    InventoryAuditOperatorType.SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
             Metrics.counter("bacon.inventory.audit.write.success.total", "actionType", actionType.value()).increment();
         } catch (RuntimeException ex) {
             Metrics.counter("bacon.inventory.audit.write.fail.total", "actionType", actionType.value()).increment();
@@ -96,12 +97,12 @@ public class InventoryOperationLogSupport {
             inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(
                     null,
                     null,
-                    reservation.getTenantIdValue(),
-                    reservation.getOrderNoValue(),
-                    reservation.getReservationNoValue(),
+                    reservation.getTenantId(),
+                    reservation.getOrderNo(),
+                    reservation.getReservationNo(),
                     actionType,
                     InventoryAuditOperatorType.SYSTEM,
-                    InventoryAuditLog.OPERATOR_ID_SYSTEM,
+                    String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                     occurredAt,
                     truncateErrorMessage(ex.getMessage()),
                     InventoryAuditOutboxStatus.NEW,

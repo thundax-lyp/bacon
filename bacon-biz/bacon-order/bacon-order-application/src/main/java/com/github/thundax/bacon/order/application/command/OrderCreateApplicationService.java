@@ -4,8 +4,8 @@ import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import com.github.thundax.bacon.common.core.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
+import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
@@ -54,7 +54,7 @@ public class OrderCreateApplicationService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         OrderNo orderNo = orderNoGenerator.nextOrderNo();
         CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
-        Order order = orderFactory.create(null, toTenantId(command.tenantId()), orderNo, toUserId(command.userId()), currencyCode,
+        Order order = orderFactory.create(null, TenantIdMapper.toDomain(command.tenantId()), orderNo, UserIdMapper.toDomain(command.userId()), currencyCode,
                 Money.of(totalAmount, currencyCode), Money.of(totalAmount, currencyCode), command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
@@ -69,7 +69,7 @@ public class OrderCreateApplicationService {
                 command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
         return new OrderSummaryDTO(savedOrder.getIdValue(), savedOrder.getTenantIdValue(),
-                savedOrder.getOrderNoValue(), savedOrder.getUserIdValue(),
+                savedOrder.getOrderNoValue(), savedOrder.getUserId() == null ? null : savedOrder.getUserId().value(),
                 savedOrder.getOrderStatusValue(), savedOrder.getPayStatusValue(),
                 savedOrder.getInventoryStatusValue(), savedOrder.getPaymentNoValue(), savedOrder.getReservationNoValue(),
                 savedOrder.getCurrencyCodeValue(), savedOrder.getTotalAmount().value(), savedOrder.getPayableAmount().value(),
@@ -96,13 +96,5 @@ public class OrderCreateApplicationService {
 
     private SkuId toSkuId(Long skuId) {
         return skuId == null ? null : SkuId.of(skuId);
-    }
-
-    private UserId toUserId(Long userId) {
-        return userId == null ? null : UserId.of(String.valueOf(userId));
-    }
-
-    private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
     }
 }

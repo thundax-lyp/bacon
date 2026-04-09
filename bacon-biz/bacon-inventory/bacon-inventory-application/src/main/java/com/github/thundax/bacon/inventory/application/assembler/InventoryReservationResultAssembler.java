@@ -12,7 +12,7 @@ public final class InventoryReservationResultAssembler {
     }
 
     public static InventoryReservationResultDTO fromReservation(InventoryReservation reservation) {
-        return new InventoryReservationResultDTO(reservation.getTenantIdValue(), reservation.getOrderNoValue(),
+        return new InventoryReservationResultDTO(reservation.getTenantId() == null ? null : reservation.getTenantId().value(), reservation.getOrderNoValue(),
                 reservation.getReservationNoValue(), reservation.getReservationStatusValue(),
                 toInventoryStatus(reservation.getReservationStatus()), reservation.getWarehouseNoValue(),
                 reservation.getFailureReason(), reservation.getReleaseReasonValue(), reservation.getReleasedAt(),

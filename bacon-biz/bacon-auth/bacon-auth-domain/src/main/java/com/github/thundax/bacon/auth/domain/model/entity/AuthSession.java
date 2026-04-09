@@ -80,10 +80,6 @@ public class AuthSession {
         return tenantId == null ? null : tenantId.value();
     }
 
-    public Long getUserIdValue() {
-        return userId == null ? null : userId.value();
-    }
-
     public boolean isActive() {
         return SessionStatus.ACTIVE == status;
     }

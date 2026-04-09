@@ -67,36 +67,6 @@ public class InventoryAuditDeadLetter {
     /** 回放操作人主键。 */
     private String replayOperatorId;
 
-    public InventoryAuditDeadLetter(Long id, Long outboxId, String eventCode, Long tenantId, String orderNo,
-                                    String reservationNo, String actionType, String operatorType, Long operatorId,
-                                    Instant occurredAt, Integer retryCount, String errorMessage, String deadReason,
-                                    Instant deadAt, String replayStatus, Integer replayCount, Instant lastReplayAt,
-                                    String lastReplayResult, String lastReplayError, String replayKey,
-                                    String replayOperatorType, String replayOperatorId) {
-        this(id == null ? null : DeadLetterId.of(id),
-                outboxId == null ? null : OutboxId.of(outboxId),
-                eventCode == null ? null : EventCode.of(eventCode),
-                tenantId == null ? null : TenantId.of(tenantId),
-                orderNo == null ? null : OrderNo.of(orderNo),
-                reservationNo == null ? null : ReservationNo.of(reservationNo),
-                actionType == null ? null : InventoryAuditActionType.from(actionType),
-                operatorType == null ? null : InventoryAuditOperatorType.from(operatorType),
-                operatorId == null ? null : String.valueOf(operatorId),
-                occurredAt,
-                retryCount,
-                errorMessage,
-                deadReason,
-                deadAt,
-                replayStatus == null ? null : InventoryAuditReplayStatus.from(replayStatus),
-                replayCount,
-                lastReplayAt,
-                lastReplayResult,
-                lastReplayError,
-                replayKey,
-                replayOperatorType,
-                replayOperatorId);
-    }
-
     public Long getIdValue() {
         return id == null ? null : id.value();
     }
@@ -111,10 +81,6 @@ public class InventoryAuditDeadLetter {
 
     public String getReplayStatusValue() {
         return replayStatus == null ? null : replayStatus.value();
-    }
-
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
     }
 
     public String getOrderNoValue() {

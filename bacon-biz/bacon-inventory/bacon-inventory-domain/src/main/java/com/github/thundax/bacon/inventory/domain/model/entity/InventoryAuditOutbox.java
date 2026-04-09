@@ -60,31 +60,12 @@ public class InventoryAuditOutbox {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public InventoryAuditOutbox(Long id, String eventCode, Long tenantId, String orderNo, String reservationNo,
-                                InventoryAuditActionType actionType, InventoryAuditOperatorType operatorType,
-                                Long operatorId, Instant occurredAt, String errorMessage,
-                                InventoryAuditOutboxStatus status, Integer retryCount, Instant nextRetryAt,
-                                String processingOwner, Instant leaseUntil, Instant claimedAt, String deadReason,
-                                Instant failedAt, Instant updatedAt) {
-        this(id == null ? null : OutboxId.of(id),
-                eventCode == null ? null : EventCode.of(eventCode),
-                tenantId == null ? null : TenantId.of(tenantId),
-                orderNo == null ? null : OrderNo.of(orderNo),
-                reservationNo == null ? null : ReservationNo.of(reservationNo), actionType, operatorType,
-                operatorId == null ? null : String.valueOf(operatorId), occurredAt, errorMessage, status, retryCount,
-                nextRetryAt, processingOwner, leaseUntil, claimedAt, deadReason, failedAt, updatedAt);
-    }
-
     public Long getIdValue() {
         return id == null ? null : id.value();
     }
 
     public String getEventCodeValue() {
         return eventCode == null ? null : eventCode.value();
-    }
-
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
     }
 
     public String getOrderNoValue() {

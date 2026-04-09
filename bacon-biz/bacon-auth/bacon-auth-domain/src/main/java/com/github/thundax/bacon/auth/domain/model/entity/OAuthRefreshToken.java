@@ -50,10 +50,6 @@ public class OAuthRefreshToken {
         return tenantId == null ? null : tenantId.value();
     }
 
-    public Long getUserIdValue() {
-        return userId == null ? null : userId.value();
-    }
-
     public void markUsed() {
         // 刷新令牌采用一次性轮转；被成功消费后必须立刻标记 USED，禁止再次换发访问令牌。
         this.tokenStatus = "USED";

@@ -30,9 +30,11 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
     public AuthSession saveSession(AuthSession authSession) {
         String sessionKey = AuthRedisKeyHelper.session(authSession.getSessionId());
         redisTemplate.opsForValue().set(sessionKey, SessionSnapshot.fromDomain(authSession), ttl(authSession.getExpireAt()));
-        redisTemplate.opsForSet().add(AuthRedisKeyHelper.userSessions(authSession.getTenantIdValue(), authSession.getUserIdValue()),
+        redisTemplate.opsForSet().add(AuthRedisKeyHelper.userSessions(authSession.getTenantIdValue(),
+                authSession.getUserId() == null ? null : authSession.getUserId().value()),
                 authSession.getSessionId());
-        redisTemplate.expire(AuthRedisKeyHelper.userSessions(authSession.getTenantIdValue(), authSession.getUserIdValue()),
+        redisTemplate.expire(AuthRedisKeyHelper.userSessions(authSession.getTenantIdValue(),
+                authSession.getUserId() == null ? null : authSession.getUserId().value()),
                 ttl(authSession.getExpireAt()));
         redisTemplate.opsForSet().add(AuthRedisKeyHelper.tenantSessions(authSession.getTenantIdValue()), authSession.getSessionId());
         redisTemplate.expire(AuthRedisKeyHelper.tenantSessions(authSession.getTenantIdValue()), ttl(authSession.getExpireAt()));
@@ -128,7 +130,8 @@ public class RedisAuthSessionRepositoryImpl implements AuthSessionRepository {
 
         private static SessionSnapshot fromDomain(AuthSession authSession) {
             return new SessionSnapshot(authSession.getId(), authSession.getSessionId(), authSession.getTenantIdValue(),
-                    authSession.getUserIdValue(), authSession.getIdentityId(), authSession.getIdentityType(),
+                    authSession.getUserId() == null ? null : authSession.getUserId().value(),
+                    authSession.getIdentityId(), authSession.getIdentityType(),
                     authSession.getLoginType(), authSession.getIssuedAt(), authSession.getExpireAt(),
                     authSession.getStatusValue(), authSession.getLastAccessTime(), authSession.getLogoutAt(),
                     authSession.getInvalidateReason());

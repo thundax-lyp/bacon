@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.application.audit;
 
-import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
@@ -25,7 +25,7 @@ public class SysLogConsumeApplicationService {
                 sysLogDTO.getAction(),
                 sysLogDTO.getEventType().name(),
                 sysLogDTO.getResult().name(),
-                sysLogDTO.getOperatorId() == null ? null : UserId.of(sysLogDTO.getOperatorId()).value(),
+                OperatorIdMapper.toDomain(sysLogDTO.getOperatorId()),
                 sysLogDTO.getOperatorName(),
                 sysLogDTO.getClientIp(),
                 sysLogDTO.getRequestUri(),

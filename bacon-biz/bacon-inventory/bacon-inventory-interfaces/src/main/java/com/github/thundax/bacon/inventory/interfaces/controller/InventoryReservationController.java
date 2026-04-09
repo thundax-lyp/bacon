@@ -1,9 +1,11 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
+import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryReservationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,7 +35,7 @@ public class InventoryReservationController {
     public InventoryReservationResponse getReservation(@CurrentTenant Long tenantId,
                                                        @PathVariable @NotBlank String orderNo) {
         return InventoryReservationResponse.from(
-                inventoryQueryService.getReservationByOrderNo(tenantId, orderNo)
+                inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo))
         );
     }
 }

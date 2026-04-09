@@ -109,7 +109,8 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
                     authorizationRequest.getClientIdValue(), authorizationRequest.getRedirectUri(), authorizationRequest.getScopes(),
                     authorizationRequest.getState(), authorizationRequest.getCodeChallenge(),
                     authorizationRequest.getCodeChallengeMethod(), authorizationRequest.getTenantIdValue(),
-                    authorizationRequest.getUserIdValue(), authorizationRequest.getExpireAt(), authorizationRequest.isUsed());
+                    authorizationRequest.getUserId() == null ? null : authorizationRequest.getUserId().value(),
+                    authorizationRequest.getExpireAt(), authorizationRequest.isUsed());
         }
 
         private OAuthAuthorizationRequest toDomain() {
@@ -139,7 +140,8 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
 
         private static AccessTokenSnapshot fromDomain(OAuthAccessToken accessToken) {
             return new AccessTokenSnapshot(accessToken.getTokenId(), accessToken.getTokenHash(), accessToken.getClientIdValue(),
-                    accessToken.getTenantIdValue(), accessToken.getUserIdValue(), accessToken.getScopes(),
+                    accessToken.getTenantIdValue(),
+                    accessToken.getUserId() == null ? null : accessToken.getUserId().value(), accessToken.getScopes(),
                     accessToken.getIssuedAt(), accessToken.getExpireAt(), accessToken.getStatusValue());
         }
 
@@ -170,7 +172,8 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private static RefreshTokenSnapshot fromDomain(OAuthRefreshToken refreshToken) {
             return new RefreshTokenSnapshot(refreshToken.getTokenId(), refreshToken.getTokenHash(),
                     refreshToken.getAccessTokenId(), refreshToken.getClientIdValue(), refreshToken.getTenantIdValue(),
-                    refreshToken.getUserIdValue(), refreshToken.getIssuedAt(), refreshToken.getExpireAt(),
+                    refreshToken.getUserId() == null ? null : refreshToken.getUserId().value(),
+                    refreshToken.getIssuedAt(), refreshToken.getExpireAt(),
                     refreshToken.getTokenStatus());
         }
 

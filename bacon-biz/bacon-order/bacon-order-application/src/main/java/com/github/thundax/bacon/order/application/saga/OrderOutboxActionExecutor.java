@@ -84,7 +84,8 @@ public class OrderOutboxActionExecutor {
         List<OrderItem> items = orderRepository.findItemsByOrderId(order.getTenantIdValue(), order.getIdValue(),
                 order.getCurrencyCodeValue());
         List<InventoryReservationItemDTO> reserveItems = items.stream()
-                .map(item -> new InventoryReservationItemDTO(item.getSkuIdValue(), item.getQuantity()))
+                .map(item -> new InventoryReservationItemDTO(item.getSkuId() == null ? null : item.getSkuId().value(),
+                        item.getQuantity()))
                 .toList();
         InventoryReservationResultDTO reserveResult = inventoryCommandFacade.reserveStock(order.getTenantIdValue(),
                 order.getOrderNoValue(), reserveItems);
@@ -122,7 +123,8 @@ public class OrderOutboxActionExecutor {
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
         PaymentCreateResultDTO paymentResult = paymentCommandFacade.createPayment(order.getTenantIdValue(), order.getOrderNoValue(),
-                order.getUserIdValue(), order.getPayableAmount().value(), channelCode, "order:" + order.getOrderNoValue(),
+                order.getUserId() == null ? null : order.getUserId().value(), order.getPayableAmount().value(),
+                channelCode, "order:" + order.getOrderNoValue(),
                 order.getExpiredAt());
         // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
         if (paymentResult.getPaymentNo() == null || paymentResult.getPaymentNo().isBlank()

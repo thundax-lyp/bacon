@@ -35,22 +35,6 @@ public class InventoryAuditLog {
     /** 发生时间。 */
     private Instant occurredAt;
 
-    public InventoryAuditLog(Long id, Long tenantId, String orderNo, String reservationNo, String actionType,
-                             String operatorType, Long operatorId, Instant occurredAt) {
-        this(id,
-                tenantId == null ? null : TenantId.of(tenantId),
-                orderNo == null ? null : OrderNo.of(orderNo),
-                reservationNo == null ? null : ReservationNo.of(reservationNo),
-                actionType == null ? null : InventoryAuditActionType.from(actionType),
-                operatorType == null ? null : InventoryAuditOperatorType.from(operatorType),
-                operatorId,
-                occurredAt);
-    }
-
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
     public String getOrderNoValue() {
         return orderNo == null ? null : orderNo.value();
     }

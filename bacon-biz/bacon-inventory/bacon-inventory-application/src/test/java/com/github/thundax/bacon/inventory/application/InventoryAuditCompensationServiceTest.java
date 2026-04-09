@@ -10,9 +10,11 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import java.time.Instant;
@@ -33,14 +35,15 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldReplayDeadLetterSuccessfully() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, 1001L, "EVT20260326000000-001001",
-                3001L, "ORDER-1", "RSV-1", InventoryAuditActionType.RESERVE.value(),
-                InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM,
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1001L), EventCode.of("EVT20260326000000-001001"),
+                TenantId.of(3001L), OrderNo.of("ORDER-1"), ReservationNo.of("RSV-1"), InventoryAuditActionType.RESERVE,
+                InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                 Instant.parse("2026-03-26T00:00:00Z"), 3, "FAIL",
-                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING.value(),
+                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING,
                 0, null, null, null, null, null, null));
 
-        InventoryAuditReplayResultDTO result = service.replayDeadLetter(3001L, 1001L, "MANUAL-REPLAY-1001", 9001L);
+        InventoryAuditReplayResultDTO result = service.replayDeadLetter(TenantId.of(3001L), DeadLetterId.of(1001L),
+                "MANUAL-REPLAY-1001", OperatorId.of("9001"));
 
         assertEquals(InventoryAuditReplayStatus.SUCCEEDED.value(), result.getReplayStatus());
         assertEquals("MANUAL-REPLAY-1001", result.getReplayKey());
@@ -55,19 +58,19 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldBatchReplayAndKeepRunningItemsUnchanged() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, 1002L, "EVT20260326000000-001002",
-                3001L, "ORDER-2", "RSV-2", InventoryAuditActionType.RELEASE.value(),
-                InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM,
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1002L), EventCode.of("EVT20260326000000-001002"),
+                TenantId.of(3001L), OrderNo.of("ORDER-2"), ReservationNo.of("RSV-2"), InventoryAuditActionType.RELEASE,
+                InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                 Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL", "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditReplayStatus.PENDING.value(), 0, null, null, null, null, null, null));
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, 1003L, "EVT20260326000000-001003",
-                3001L, "ORDER-3", "RSV-3", InventoryAuditActionType.DEDUCT.value(),
-                InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM,
+                InventoryAuditReplayStatus.PENDING, 0, null, null, null, null, null, null));
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1003L), EventCode.of("EVT20260326000000-001003"),
+                TenantId.of(3001L), OrderNo.of("ORDER-3"), ReservationNo.of("RSV-3"), InventoryAuditActionType.DEDUCT,
+                InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                 Instant.parse("2026-03-26T00:00:00Z"), 2, "FAIL", "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditReplayStatus.RUNNING.value(), 0, null, null, null, null, null, null));
+                InventoryAuditReplayStatus.RUNNING, 0, null, null, null, null, null, null));
 
-        List<InventoryAuditReplayResultDTO> results = service.replayDeadLettersBatch(3001L, List.of(1002L, 1003L),
-                "BATCH-1", 9002L);
+        List<InventoryAuditReplayResultDTO> results = service.replayDeadLettersBatch(TenantId.of(3001L),
+                List.of(DeadLetterId.of(1002L), DeadLetterId.of(1003L)), "BATCH-1", OperatorId.of("9002"));
 
         assertEquals(2, results.size());
         assertEquals(InventoryAuditReplayStatus.SUCCEEDED.value(), results.get(0).getReplayStatus());
@@ -78,14 +81,15 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldCompensateWhenReplayTransactionFails() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository, new FailingOnceTransactionExecutor());
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, 1004L, "EVT20260326000000-001004",
-                3001L, "ORDER-4", "RSV-4", InventoryAuditActionType.RESERVE.value(),
-                InventoryAuditOperatorType.SYSTEM.value(), InventoryAuditLog.OPERATOR_ID_SYSTEM,
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1004L), EventCode.of("EVT20260326000000-001004"),
+                TenantId.of(3001L), OrderNo.of("ORDER-4"), ReservationNo.of("RSV-4"), InventoryAuditActionType.RESERVE,
+                InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
                 Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
-                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING.value(),
+                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING,
                 0, null, null, null, null, null, null));
 
-        InventoryAuditReplayResultDTO result = service.replayDeadLetter(3001L, 1004L, "MANUAL-REPLAY-1004", 9001L);
+        InventoryAuditReplayResultDTO result = service.replayDeadLetter(TenantId.of(3001L), DeadLetterId.of(1004L),
+                "MANUAL-REPLAY-1004", OperatorId.of("9001"));
 
         assertEquals(InventoryAuditReplayStatus.FAILED.value(), result.getReplayStatus());
         assertTrue(result.getMessage().startsWith("tx-failed:"));
@@ -134,12 +138,12 @@ class InventoryAuditCompensationApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(Long tenantId, String orderNo) {
+        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
             return List.of();
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
             return List.copyOf(auditLogs);
         }
 
@@ -149,15 +153,16 @@ class InventoryAuditCompensationApplicationServiceTest {
         }
 
         @Override
-        public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(Long id) {
-            return Optional.ofNullable(deadLetters.get(id));
+        public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
+            return Optional.ofNullable(deadLetters.get(id.value()));
         }
 
         @Override
-        public boolean claimAuditDeadLetterForReplay(Long id, Long tenantId, String replayKey,
-                                                     String operatorType, Long operatorId, Instant replayAt) {
-            InventoryAuditDeadLetter deadLetter = deadLetters.get(id);
-            if (deadLetter == null || !tenantId.equals(deadLetter.getTenantIdValue())) {
+        public boolean claimAuditDeadLetterForReplay(DeadLetterId id, TenantId tenantId, String replayKey,
+                                                     InventoryAuditOperatorType operatorType, OperatorId operatorId,
+                                                     Instant replayAt) {
+            InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
+            if (deadLetter == null || !tenantId.equals(deadLetter.getTenantId())) {
                 return false;
             }
             if (!InventoryAuditReplayStatus.PENDING.equals(deadLetter.getReplayStatus())
@@ -166,8 +171,8 @@ class InventoryAuditCompensationApplicationServiceTest {
             }
             deadLetter.setReplayStatus(InventoryAuditReplayStatus.RUNNING);
             deadLetter.setReplayKey(replayKey);
-            deadLetter.setReplayOperatorType(operatorType);
-            deadLetter.setReplayOperatorId(String.valueOf(operatorId));
+            deadLetter.setReplayOperatorType(operatorType == null ? null : operatorType.value());
+            deadLetter.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             deadLetter.setLastReplayAt(replayAt);
             deadLetter.setLastReplayResult("RUNNING");
             deadLetter.setLastReplayError(null);
@@ -175,28 +180,30 @@ class InventoryAuditCompensationApplicationServiceTest {
         }
 
         @Override
-        public void markAuditDeadLetterReplaySuccess(Long id, String replayKey, String operatorType, Long operatorId,
+        public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey,
+                                                     InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                      Instant replayAt) {
-            InventoryAuditDeadLetter deadLetter = deadLetters.get(id);
+            InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             deadLetter.setReplayStatus(InventoryAuditReplayStatus.SUCCEEDED);
             deadLetter.setReplayCount((deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount()) + 1);
             deadLetter.setReplayKey(replayKey);
-            deadLetter.setReplayOperatorType(operatorType);
-            deadLetter.setReplayOperatorId(String.valueOf(operatorId));
+            deadLetter.setReplayOperatorType(operatorType == null ? null : operatorType.value());
+            deadLetter.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             deadLetter.setLastReplayAt(replayAt);
             deadLetter.setLastReplayResult("SUCCEEDED");
             deadLetter.setLastReplayError(null);
         }
 
         @Override
-        public void markAuditDeadLetterReplayFailed(Long id, String replayKey, String operatorType, Long operatorId,
+        public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey,
+                                                    InventoryAuditOperatorType operatorType, OperatorId operatorId,
                                                     String replayError, Instant replayAt) {
-            InventoryAuditDeadLetter deadLetter = deadLetters.get(id);
+            InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             deadLetter.setReplayStatus(InventoryAuditReplayStatus.FAILED);
             deadLetter.setReplayCount((deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount()) + 1);
             deadLetter.setReplayKey(replayKey);
-            deadLetter.setReplayOperatorType(operatorType);
-            deadLetter.setReplayOperatorId(String.valueOf(operatorId));
+            deadLetter.setReplayOperatorType(operatorType == null ? null : operatorType.value());
+            deadLetter.setReplayOperatorId(operatorId == null ? null : operatorId.value());
             deadLetter.setLastReplayAt(replayAt);
             deadLetter.setLastReplayResult("FAILED");
             deadLetter.setLastReplayError(replayError);

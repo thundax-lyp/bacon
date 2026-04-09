@@ -1,5 +1,8 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -22,7 +25,7 @@ public class InventoryManagementApplicationService {
     }
 
     @Transactional
-    public InventoryStockDTO createInventory(Long tenantId, Long skuId, Integer onHandQuantity, String status) {
+    public InventoryStockDTO createInventory(TenantId tenantId, SkuId skuId, Integer onHandQuantity, String status) {
         inventoryRepository.findInventory(tenantId, skuId).ifPresent(inventory -> {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId));
         });
@@ -30,7 +33,7 @@ public class InventoryManagementApplicationService {
         validateOnHandQuantity(skuId, onHandQuantity);
         InventoryStatus normalizedStatus = normalizeStatus(status);
         Instant now = Instant.now();
-        Inventory inventory = new Inventory(null, tenantId, skuId, Inventory.DEFAULT_WAREHOUSE_NO.value(),
+        Inventory inventory = new Inventory(null, tenantId, skuId, Inventory.DEFAULT_WAREHOUSE_NO,
                 onHandQuantity, 0, onHandQuantity, normalizedStatus, 0L, now);
         try {
             return InventoryStockAssembler.fromInventory(inventoryRepository.saveInventory(inventory));
@@ -40,7 +43,7 @@ public class InventoryManagementApplicationService {
     }
 
     @Transactional
-    public InventoryStockDTO updateInventoryStatus(Long tenantId, Long skuId, String status) {
+    public InventoryStockDTO updateInventoryStatus(TenantId tenantId, SkuId skuId, String status) {
         Inventory inventory = inventoryRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
@@ -48,13 +51,13 @@ public class InventoryManagementApplicationService {
         return InventoryStockAssembler.fromInventory(inventoryRepository.saveInventory(inventory));
     }
 
-    private void validateInventoryKey(Long tenantId, Long skuId) {
+    private void validateInventoryKey(TenantId tenantId, SkuId skuId) {
         if (tenantId == null || skuId == null) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
         }
     }
 
-    private void validateOnHandQuantity(Long skuId, Integer onHandQuantity) {
+    private void validateOnHandQuantity(SkuId skuId, Integer onHandQuantity) {
         if (onHandQuantity == null || onHandQuantity < 0) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_ON_HAND_QUANTITY, String.valueOf(skuId));
         }

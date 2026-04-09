@@ -101,7 +101,8 @@ public class OAuth2AuthorizationApplicationService {
             if (!request.getRedirectUri().equals(redirectUri)) {
                 throw new IllegalArgumentException("Redirect uri invalid");
             }
-            return issueOAuthTokens(client, request.getTenantIdValue(), request.getUserIdValue(), request.getScopes());
+            return issueOAuthTokens(client, request.getTenantIdValue(),
+                    request.getUserId() == null ? null : request.getUserId().value(), request.getScopes());
         }
         if ("refresh_token".equals(grantType)) {
             OAuthRefreshToken currentRefreshToken = oAuthAuthorizationRepository.findOAuthRefreshTokenByHash(tokenCodec.sha256(refreshToken))
@@ -112,7 +113,8 @@ public class OAuth2AuthorizationApplicationService {
             oAuthAuthorizationRepository.saveOAuthRefreshToken(currentRefreshToken);
             Optional<OAuthAccessToken> accessToken = oAuthAuthorizationRepository.findAccessTokenByHash(currentRefreshToken.getAccessTokenId());
             Set<String> scopes = accessToken.map(OAuthAccessToken::getScopes).orElseGet(LinkedHashSet::new);
-            return issueOAuthTokens(client, currentRefreshToken.getTenantIdValue(), currentRefreshToken.getUserIdValue(), scopes);
+            return issueOAuthTokens(client, currentRefreshToken.getTenantIdValue(),
+                    currentRefreshToken.getUserId() == null ? null : currentRefreshToken.getUserId().value(), scopes);
         }
         throw new IllegalArgumentException("Grant type unsupported");
     }
@@ -123,7 +125,8 @@ public class OAuth2AuthorizationApplicationService {
                 .filter(OAuthAccessToken::isActive)
                 .filter(accessToken -> accessToken.getExpireAt().isAfter(Instant.now()))
                 .map(accessToken -> new OAuth2IntrospectionDTO(true, accessToken.getClientIdValue(),
-                        String.join(" ", accessToken.getScopes()), String.valueOf(accessToken.getUserIdValue()),
+                        String.join(" ", accessToken.getScopes()),
+                        String.valueOf(accessToken.getUserId() == null ? null : accessToken.getUserId().value()),
                         accessToken.getTenantIdValue(), accessToken.getExpireAt().getEpochSecond()))
                 .orElse(new OAuth2IntrospectionDTO(false, clientId, "", "", null, 0L));
     }
@@ -144,8 +147,9 @@ public class OAuth2AuthorizationApplicationService {
         OAuthAccessToken token = oAuthAuthorizationRepository.findAccessTokenByHash(tokenCodec.sha256(accessToken))
                 .filter(OAuthAccessToken::isActive)
                 .orElseThrow(() -> new IllegalArgumentException("OAuth access token invalid"));
-        String name = token.getScopes().contains("profile") ? "demo-user-" + token.getUserIdValue() : null;
-        return new OAuth2UserinfoDTO(String.valueOf(token.getUserIdValue()), token.getTenantIdValue(), name);
+        Long userId = token.getUserId() == null ? null : token.getUserId().value();
+        String name = token.getScopes().contains("profile") ? "demo-user-" + userId : null;
+        return new OAuth2UserinfoDTO(String.valueOf(userId), token.getTenantIdValue(), name);
     }
 
     private OAuth2TokenDTO issueOAuthTokens(OAuthClient client, Long tenantId, Long userId, Set<String> scopes) {

@@ -29,12 +29,12 @@ class InMemoryInventoryRepositorySupportTest {
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
                 null,
-                1001L,
-                "ORDER-1",
-                "RSV-1",
+                TenantId.of(1001L),
+                OrderNo.of("ORDER-1"),
+                ReservationNo.of("RSV-1"),
                 InventoryAuditActionType.RESERVE,
                 InventoryAuditOperatorType.SYSTEM,
-                0L,
+                "0",
                 now,
                 "DB_TIMEOUT",
                 InventoryAuditOutboxStatus.NEW,
@@ -60,9 +60,9 @@ class InMemoryInventoryRepositorySupportTest {
         repository.markAuditOutboxDead(outboxId, 6, "MAX_RETRIES_EXCEEDED", now.plusSeconds(600));
         assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(601), 10).isEmpty());
 
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, outboxId.value(), retryable.get(0).getEventCodeValue(),
-                1001L, "ORDER-1", "RSV-1", "RESERVE", "SYSTEM", 0L,
-                now, 6, "RETRY_FAIL", "MAX_RETRIES_EXCEEDED", now.plusSeconds(600), InventoryAuditReplayStatus.PENDING.value(),
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, outboxId, retryable.get(0).getEventCode(),
+                TenantId.of(1001L), OrderNo.of("ORDER-1"), ReservationNo.of("RSV-1"), InventoryAuditActionType.RESERVE, InventoryAuditOperatorType.SYSTEM, "0",
+                now, 6, "RETRY_FAIL", "MAX_RETRIES_EXCEEDED", now.plusSeconds(600), InventoryAuditReplayStatus.PENDING,
                 0, null, null, null, null, null, null));
 
         repository.deleteAuditOutbox(outboxId);
@@ -76,12 +76,12 @@ class InMemoryInventoryRepositorySupportTest {
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
                 null,
-                1001L,
-                "ORDER-2",
-                "RSV-2",
+                TenantId.of(1001L),
+                OrderNo.of("ORDER-2"),
+                ReservationNo.of("RSV-2"),
                 InventoryAuditActionType.RESERVE,
                 InventoryAuditOperatorType.SYSTEM,
-                0L,
+                "0",
                 now,
                 "INIT",
                 InventoryAuditOutboxStatus.NEW,
@@ -113,12 +113,12 @@ class InMemoryInventoryRepositorySupportTest {
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
                 null,
-                1001L,
-                "ORDER-3",
-                "RSV-3",
+                TenantId.of(1001L),
+                OrderNo.of("ORDER-3"),
+                ReservationNo.of("RSV-3"),
                 InventoryAuditActionType.RESERVE,
                 InventoryAuditOperatorType.SYSTEM,
-                0L,
+                "0",
                 now,
                 "INIT",
                 InventoryAuditOutboxStatus.NEW,

@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
@@ -9,6 +10,7 @@ import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainExcept
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
 import java.util.Objects;
@@ -19,10 +21,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class InventoryManagementApplicationService {
 
-    private final InventoryStockRepository inventoryRepository;
+    private static final String INVENTORY_ID_BIZ_TAG = "inventory-id";
 
-    public InventoryManagementApplicationService(InventoryStockRepository inventoryRepository) {
+    private final InventoryStockRepository inventoryRepository;
+    private final IdGenerator idGenerator;
+
+    public InventoryManagementApplicationService(
+            InventoryStockRepository inventoryRepository, IdGenerator idGenerator) {
         this.inventoryRepository = inventoryRepository;
+        this.idGenerator = idGenerator;
     }
 
     @Transactional
@@ -36,7 +43,12 @@ public class InventoryManagementApplicationService {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId));
         });
         Instant now = Instant.now();
-        Inventory inventory = Inventory.create(tenantId, skuId, WarehouseCode.DEFAULT, onHandQuantity);
+        Inventory inventory = Inventory.create(
+                InventoryId.of(idGenerator.nextId(INVENTORY_ID_BIZ_TAG)),
+                tenantId,
+                skuId,
+                WarehouseCode.DEFAULT,
+                onHandQuantity);
         if (!InventoryStatus.ENABLED.equals(status)) {
             inventory.updateStatus(status, now);
         }

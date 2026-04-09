@@ -30,7 +30,8 @@ class InventoryManagementApplicationServiceTest {
     @Test
     void createInventoryShouldInitializeAvailableQuantity() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
+        InventoryManagementApplicationService service =
+                new InventoryManagementApplicationService(repository, bizTag -> 10001L);
 
         InventoryStockDTO result =
                 service.createInventory(TenantId.of(1001L), SkuId.of(103L), 30, InventoryStatus.ENABLED);
@@ -45,7 +46,8 @@ class InventoryManagementApplicationServiceTest {
     @Test
     void updateInventoryStatusShouldPersistStatus() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
+        InventoryManagementApplicationService service =
+                new InventoryManagementApplicationService(repository, bizTag -> 10001L);
 
         InventoryStockDTO result =
                 service.updateInventoryStatus(TenantId.of(1001L), SkuId.of(101L), InventoryStatus.DISABLED);

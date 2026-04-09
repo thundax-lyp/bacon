@@ -44,8 +44,12 @@ public class Inventory {
     private Instant updatedAt;
 
     public static Inventory create(
-            TenantId tenantId, SkuId skuId, WarehouseCode warehouseCode, Integer onHandQuantity) {
-        if (Objects.isNull(tenantId) || Objects.isNull(skuId) || Objects.isNull(warehouseCode)) {
+            InventoryId id,
+            TenantId tenantId,
+            SkuId skuId,
+            WarehouseCode warehouseCode,
+            Integer onHandQuantity) {
+        if (Objects.isNull(id) || Objects.isNull(tenantId) || Objects.isNull(skuId) || Objects.isNull(warehouseCode)) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
         }
         if (Objects.isNull(onHandQuantity) || onHandQuantity < 0) {
@@ -53,7 +57,7 @@ public class Inventory {
                     InventoryErrorCode.INVALID_ON_HAND_QUANTITY, String.valueOf(onHandQuantity));
         }
         return new Inventory(
-                null,
+                id,
                 tenantId,
                 skuId,
                 warehouseCode,

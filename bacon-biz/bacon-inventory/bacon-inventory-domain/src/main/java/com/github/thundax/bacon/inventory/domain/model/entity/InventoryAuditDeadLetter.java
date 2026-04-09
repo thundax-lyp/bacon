@@ -161,10 +161,6 @@ public class InventoryAuditDeadLetter {
                 replayOperatorId);
     }
 
-    public void assignOutboxId(OutboxId outboxId) {
-        this.outboxId = outboxId;
-    }
-
     public void markReplayRunning(
             String replayKey,
             InventoryAuditOperatorType operatorType,

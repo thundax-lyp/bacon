@@ -6,7 +6,6 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.EvaluationResult;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -50,11 +49,6 @@ class NamingAndPlacementRuleSupportTest {
         assertThat(result.hasViolation()).isFalse();
     }
 
-    private static EvaluationResult evaluate(Class<?> targetClass) {
-        return NamingAndPlacementRuleSupport.entityShouldUseSingleExplicitBoundaryConstructor(targetClass.getName())
-                .evaluate(new ClassFileImporter().importPackages(targetClass.getPackageName()));
-    }
-
     private static EvaluationResult evaluateSimpleEnum(Class<?> targetClass) {
         return NamingAndPlacementRuleSupport
                 .simpleEnumShouldUseNameAndFromConvention(targetClass.getName())
@@ -68,112 +62,8 @@ class NamingAndPlacementRuleSupportTest {
     }
 }
 
-final class InvalidBoundaryTypeEntityFixture {
-
-    private SampleIdFixture id;
-    private SampleCodeFixture code;
-    private Instant createdAt;
-
-    public InvalidBoundaryTypeEntityFixture(SampleIdFixture id, SampleCodeFixture code, Instant createdAt) {
-        this.id = id;
-        this.code = code;
-        this.createdAt = createdAt;
-    }
-
-    public InvalidBoundaryTypeEntityFixture(Long id, UnsupportedBoundaryTypeFixture code, Instant createdAt) {
-        this(SampleIdFixture.of(id), SampleCodeFixture.of(code.value()), createdAt);
-    }
-}
-
-final class MultipleExplicitConstructorsEntityFixture {
-
-    private SampleIdFixture id;
-    private BoundaryStatusFixture status;
-    private Instant createdAt;
-
-    public MultipleExplicitConstructorsEntityFixture(SampleIdFixture id, BoundaryStatusFixture status, Instant createdAt) {
-        this.id = id;
-        this.status = status;
-        this.createdAt = createdAt;
-    }
-
-    public MultipleExplicitConstructorsEntityFixture(Long id, BoundaryStatusFixture status, Instant createdAt) {
-        this(SampleIdFixture.of(id), status, createdAt);
-    }
-
-    public MultipleExplicitConstructorsEntityFixture(String id, BoundaryStatusFixture status, Instant createdAt) {
-        this(SampleIdFixture.of(Long.valueOf(id)), status, createdAt);
-    }
-}
-
-final class MissingAllArgsConstructorEntityFixture {
-
-    private SampleIdFixture id;
-    private BoundaryStatusFixture status;
-    private Instant createdAt;
-
-    private MissingAllArgsConstructorEntityFixture(SampleIdFixture id, BoundaryStatusFixture status, Instant createdAt) {
-        this.id = id;
-        this.status = status;
-        this.createdAt = createdAt;
-    }
-
-    public MissingAllArgsConstructorEntityFixture(Long id, BoundaryStatusFixture status, Instant createdAt) {
-        this(SampleIdFixture.of(id), status, createdAt);
-    }
-}
-
 @AllArgsConstructor
 final class ValidAnnotatedEntityFixture {
 
-    private SampleIdFixture id;
-    private BoundaryStatusFixture status;
-    private Instant createdAt;
-}
-
-record RecordEntityFixture(Long id, String code, Instant createdAt) {
-}
-
-final class SampleIdFixture {
-
-    private final Long value;
-
-    private SampleIdFixture(Long value) {
-        this.value = value;
-    }
-
-    static SampleIdFixture of(Long value) {
-        return value == null ? null : new SampleIdFixture(value);
-    }
-}
-
-final class SampleCodeFixture {
-
-    private final String value;
-
-    private SampleCodeFixture(String value) {
-        this.value = value;
-    }
-
-    static SampleCodeFixture of(String value) {
-        return value == null ? null : new SampleCodeFixture(value);
-    }
-}
-
-final class UnsupportedBoundaryTypeFixture {
-
-    private final String value;
-
-    UnsupportedBoundaryTypeFixture(String value) {
-        this.value = value;
-    }
-
-    String value() {
-        return value;
-    }
-}
-
-enum BoundaryStatusFixture {
-    ENABLED,
-    DISABLED
+    private String id;
 }

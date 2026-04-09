@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
 import com.github.thundax.bacon.inventory.application.codec.DeadLetterIdCodec;
@@ -13,32 +14,38 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOpera
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 
 public final class InventoryAuditDeadLetterAssembler {
 
-    private InventoryAuditDeadLetterAssembler() {
-    }
+    private InventoryAuditDeadLetterAssembler() {}
 
     public static InventoryAuditDeadLetterDTO toDto(InventoryAuditDeadLetter deadLetter) {
         return new InventoryAuditDeadLetterDTO(
                 DeadLetterIdCodec.toValue(deadLetter.getId()),
                 OutboxIdCodec.toValue(deadLetter.getOutboxId()),
                 EventCodeCodec.toValue(deadLetter.getEventCode()),
-                deadLetter.getTenantId() == null ? null : deadLetter.getTenantId().value(),
+                deadLetter.getTenantId() == null
+                        ? null
+                        : deadLetter.getTenantId().value(),
                 OrderNoCodec.toValue(deadLetter.getOrderNo()),
                 ReservationNoCodec.toValue(deadLetter.getReservationNo()),
-                deadLetter.getActionType() == null ? null : deadLetter.getActionType().value(),
-                deadLetter.getOperatorType() == null ? null : deadLetter.getOperatorType().value(),
+                deadLetter.getActionType() == null
+                        ? null
+                        : deadLetter.getActionType().value(),
+                deadLetter.getOperatorType() == null
+                        ? null
+                        : deadLetter.getOperatorType().value(),
                 deadLetter.getOperatorId(),
                 deadLetter.getOccurredAt(),
                 deadLetter.getRetryCount(),
                 deadLetter.getErrorMessage(),
                 deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(),
-                deadLetter.getReplayStatus() == null ? null : deadLetter.getReplayStatus().value(),
+                deadLetter.getReplayStatus() == null
+                        ? null
+                        : deadLetter.getReplayStatus().value(),
                 deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(),
                 deadLetter.getLastReplayResult(),

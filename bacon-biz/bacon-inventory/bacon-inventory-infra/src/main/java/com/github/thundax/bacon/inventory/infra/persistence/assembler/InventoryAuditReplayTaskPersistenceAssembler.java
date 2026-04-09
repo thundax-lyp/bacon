@@ -9,27 +9,51 @@ import com.github.thundax.bacon.inventory.infra.persistence.dataobject.Inventory
 
 public final class InventoryAuditReplayTaskPersistenceAssembler {
 
-    private InventoryAuditReplayTaskPersistenceAssembler() {
-    }
+    private InventoryAuditReplayTaskPersistenceAssembler() {}
 
     public static InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {
-        return new InventoryAuditReplayTaskDO(task.getIdValue(), task.getTenantId() == null ? null : task.getTenantId().value(),
-                task.getTaskNoValue(), task.getStatus().value(),
-                task.getTotalCount(), task.getProcessedCount(), task.getSuccessCount(), task.getFailedCount(),
-                task.getReplayKeyPrefix(), task.getOperatorType(), task.getOperatorIdValue(), task.getProcessingOwner(),
-                task.getLeaseUntil(), task.getLastError(), task.getCreatedAt(), task.getStartedAt(), task.getPausedAt(),
-                task.getFinishedAt(), task.getUpdatedAt());
+        return new InventoryAuditReplayTaskDO(
+                task.getIdValue(),
+                task.getTenantId() == null ? null : task.getTenantId().value(),
+                task.getTaskNoValue(),
+                task.getStatus().value(),
+                task.getTotalCount(),
+                task.getProcessedCount(),
+                task.getSuccessCount(),
+                task.getFailedCount(),
+                task.getReplayKeyPrefix(),
+                task.getOperatorType(),
+                task.getOperatorIdValue(),
+                task.getProcessingOwner(),
+                task.getLeaseUntil(),
+                task.getLastError(),
+                task.getCreatedAt(),
+                task.getStartedAt(),
+                task.getPausedAt(),
+                task.getFinishedAt(),
+                task.getUpdatedAt());
     }
 
     public static InventoryAuditReplayTask toDomain(InventoryAuditReplayTaskDO dataObject) {
-        return new InventoryAuditReplayTask(dataObject.getId() == null ? null : TaskId.of(dataObject.getId()),
+        return new InventoryAuditReplayTask(
+                dataObject.getId() == null ? null : TaskId.of(dataObject.getId()),
                 dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getTaskNo() == null ? null : TaskNo.of(dataObject.getTaskNo()),
-                InventoryAuditReplayTaskStatus.from(dataObject.getStatus()), dataObject.getTotalCount(), dataObject.getProcessedCount(),
-                dataObject.getSuccessCount(), dataObject.getFailedCount(), dataObject.getReplayKeyPrefix(),
-                dataObject.getOperatorType(), dataObject.getOperatorId() == null ? null : String.valueOf(dataObject.getOperatorId()), dataObject.getProcessingOwner(),
-                dataObject.getLeaseUntil(), dataObject.getLastError(), dataObject.getCreatedAt(),
-                dataObject.getStartedAt(), dataObject.getPausedAt(), dataObject.getFinishedAt(),
+                InventoryAuditReplayTaskStatus.from(dataObject.getStatus()),
+                dataObject.getTotalCount(),
+                dataObject.getProcessedCount(),
+                dataObject.getSuccessCount(),
+                dataObject.getFailedCount(),
+                dataObject.getReplayKeyPrefix(),
+                dataObject.getOperatorType(),
+                dataObject.getOperatorId() == null ? null : String.valueOf(dataObject.getOperatorId()),
+                dataObject.getProcessingOwner(),
+                dataObject.getLeaseUntil(),
+                dataObject.getLastError(),
+                dataObject.getCreatedAt(),
+                dataObject.getStartedAt(),
+                dataObject.getPausedAt(),
+                dataObject.getFinishedAt(),
                 dataObject.getUpdatedAt());
     }
 }

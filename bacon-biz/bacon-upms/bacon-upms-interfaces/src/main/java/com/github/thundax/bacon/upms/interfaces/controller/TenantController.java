@@ -42,9 +42,13 @@ public class TenantController {
     @GetMapping("/page")
     public TenantPageResponse pageTenants(@Valid @ModelAttribute TenantPageRequest request) {
         return TenantPageResponse.from(tenantApplicationService.pageTenants(new TenantPageQueryDTO(
-                request.getTenantCode() == null || request.getTenantCode().isBlank() ? null : Long.valueOf(request.getTenantCode().trim()),
-                request.getName(), request.getStatus() == null ? null : request.getStatus().name(),
-                request.getPageNo(), request.getPageSize())));
+                request.getTenantCode() == null || request.getTenantCode().isBlank()
+                        ? null
+                        : Long.valueOf(request.getTenantCode().trim()),
+                request.getName(),
+                request.getStatus() == null ? null : request.getStatus().name(),
+                request.getPageNo(),
+                request.getPageSize())));
     }
 
     @Operation(summary = "创建租户")
@@ -77,7 +81,8 @@ public class TenantController {
     @HasPermission("sys:tenant:update")
     @SysLog(module = "UPMS", action = "变更租户状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{tenantId}/status")
-    public TenantResponse updateTenantStatus(@PathVariable Long tenantId, @RequestBody TenantStatusUpdateRequest request) {
+    public TenantResponse updateTenantStatus(
+            @PathVariable Long tenantId, @RequestBody TenantStatusUpdateRequest request) {
         return TenantResponse.from(tenantApplicationService.updateTenantStatus(tenantId, request.status()));
     }
 }

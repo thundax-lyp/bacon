@@ -30,7 +30,15 @@ public record UserMenuTreeResponse(
         List<UserMenuTreeResponse> childResponses = dto.getChildren() == null
                 ? List.of()
                 : dto.getChildren().stream().map(UserMenuTreeResponse::from).toList();
-        return new UserMenuTreeResponse(dto.getId(), dto.getName(), dto.getMenuType(), dto.getParentId(),
-                dto.getRoutePath(), dto.getComponentName(), dto.getIcon(), dto.getSort(), childResponses);
+        return new UserMenuTreeResponse(
+                dto.getId(),
+                dto.getName(),
+                dto.getMenuType(),
+                dto.getParentId(),
+                dto.getRoutePath(),
+                dto.getComponentName(),
+                dto.getIcon(),
+                dto.getSort(),
+                childResponses);
     }
 }

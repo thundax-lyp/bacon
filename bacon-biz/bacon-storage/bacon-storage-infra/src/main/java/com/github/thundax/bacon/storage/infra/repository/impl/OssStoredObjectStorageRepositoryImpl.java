@@ -10,13 +10,12 @@ import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
-
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 /**
  * 基于通用 S3 API 客户端的对象存储仓储。
@@ -32,16 +31,16 @@ public class OssStoredObjectStorageRepositoryImpl implements StoredObjectStorage
     }
 
     @Override
-    public StoredObjectStorageResult upload(String category, String originalFilename, String contentType,
-                                            InputStream inputStream) {
+    public StoredObjectStorageResult upload(
+            String category, String originalFilename, String contentType, InputStream inputStream) {
         String objectKey = buildObjectKey(category, originalFilename);
         ObjectStorageWriteResult result = objectStorageClient.putObject(objectKey, contentType, inputStream);
         return toStorageResult(result);
     }
 
     @Override
-    public MultipartUploadStorageSession initMultipartUpload(String category, String originalFilename,
-                                                             String contentType) {
+    public MultipartUploadStorageSession initMultipartUpload(
+            String category, String originalFilename, String contentType) {
         String objectKey = buildObjectKey(category, originalFilename);
         String providerUploadId = objectStorageClient.initiateMultipartUpload(objectKey, contentType);
         return new MultipartUploadStorageSession(objectKey, providerUploadId);
@@ -49,15 +48,17 @@ public class OssStoredObjectStorageRepositoryImpl implements StoredObjectStorage
 
     @Override
     public String uploadPart(MultipartUploadSession session, Integer partNumber, Long size, InputStream inputStream) {
-        return objectStorageClient.uploadPart(session.getObjectKey(), session.getProviderUploadId(), partNumber, size,
-                inputStream);
+        return objectStorageClient.uploadPart(
+                session.getObjectKey(), session.getProviderUploadId(), partNumber, size, inputStream);
     }
 
     @Override
-    public StoredObjectStorageResult completeMultipartUpload(MultipartUploadSession session,
-                                                             List<MultipartUploadPart> parts) {
-        ObjectStorageWriteResult result = objectStorageClient.completeMultipartUpload(session.getObjectKey(),
-                session.getProviderUploadId(), parts.stream()
+    public StoredObjectStorageResult completeMultipartUpload(
+            MultipartUploadSession session, List<MultipartUploadPart> parts) {
+        ObjectStorageWriteResult result = objectStorageClient.completeMultipartUpload(
+                session.getObjectKey(),
+                session.getProviderUploadId(),
+                parts.stream()
                         .map(part -> new ObjectStoragePart(part.getPartNumber(), part.getEtag()))
                         .toList());
         return toStorageResult(result);
@@ -74,8 +75,8 @@ public class OssStoredObjectStorageRepositoryImpl implements StoredObjectStorage
     }
 
     private StoredObjectStorageResult toStorageResult(ObjectStorageWriteResult result) {
-        return new StoredObjectStorageResult(StorageType.OSS, result.bucketName(), result.objectKey(),
-                result.accessEndpoint());
+        return new StoredObjectStorageResult(
+                StorageType.OSS, result.bucketName(), result.objectKey(), result.accessEndpoint());
     }
 
     private String buildObjectKey(String category, String originalFilename) {

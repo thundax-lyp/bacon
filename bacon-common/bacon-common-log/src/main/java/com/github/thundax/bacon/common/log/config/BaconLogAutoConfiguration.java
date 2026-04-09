@@ -26,9 +26,10 @@ public class BaconLogAutoConfiguration {
     @Bean
     @Primary
     @ConditionalOnMissingBean(MqSysLogMessageProducer.class)
-    public SysLogMessageProducer mqSysLogMessageProducer(BaconMqSender baconMqSender,
-                                                         BaconMqProperties baconMqProperties,
-                                                         BaconMqSysLogProperties baconMqSysLogProperties) {
+    public SysLogMessageProducer mqSysLogMessageProducer(
+            BaconMqSender baconMqSender,
+            BaconMqProperties baconMqProperties,
+            BaconMqSysLogProperties baconMqSysLogProperties) {
         return new MqSysLogMessageProducer(baconMqSender, baconMqProperties, baconMqSysLogProperties);
     }
 

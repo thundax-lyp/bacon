@@ -5,8 +5,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.Money;
 
 public final class MoneyValidator {
 
-    private MoneyValidator() {
-    }
+    private MoneyValidator() {}
 
     public static void ensureSameCurrency(Money base, Money... others) {
         if (base == null || others == null) {

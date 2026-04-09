@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.core.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public enum InventoryErrorCode implements ErrorCode {
-
     INVALID_INVENTORY_KEY("INV-400001", "Invalid inventory key", HttpStatus.BAD_REQUEST),
     INVALID_ON_HAND_QUANTITY("INV-400002", "Invalid on hand quantity", HttpStatus.BAD_REQUEST),
     INSUFFICIENT_STOCK("INV-409001", "Insufficient stock", HttpStatus.CONFLICT),

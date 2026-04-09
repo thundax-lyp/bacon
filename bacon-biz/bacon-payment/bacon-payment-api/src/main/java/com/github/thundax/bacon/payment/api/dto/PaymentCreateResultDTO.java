@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.payment.api.dto;
 
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 /**
  * 支付创建结果传输对象。

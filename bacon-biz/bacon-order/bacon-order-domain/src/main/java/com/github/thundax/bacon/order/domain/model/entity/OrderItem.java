@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
-import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,9 +33,18 @@ public class OrderItem {
     /** 行金额。 */
     private final Money lineAmount;
 
-    public OrderItem(Long tenantId, Long orderId, Long skuId, String skuName, String imageUrl, Integer quantity,
-                     CurrencyCode currencyCode, String salePrice, String lineAmount) {
-        this(tenantId == null ? null : TenantId.of(tenantId),
+    public OrderItem(
+            Long tenantId,
+            Long orderId,
+            Long skuId,
+            String skuName,
+            String imageUrl,
+            Integer quantity,
+            CurrencyCode currencyCode,
+            String salePrice,
+            String lineAmount) {
+        this(
+                tenantId == null ? null : TenantId.of(tenantId),
                 orderId == null ? null : OrderId.of(orderId),
                 skuId == null ? null : SkuId.of(skuId),
                 skuName,
@@ -52,5 +61,4 @@ public class OrderItem {
     public Long getOrderIdValue() {
         return orderId == null ? null : orderId.value();
     }
-
 }

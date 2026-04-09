@@ -2,7 +2,6 @@ package com.github.thundax.bacon.auth.domain.repository;
 
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
-
 import java.util.List;
 import java.util.Optional;
 

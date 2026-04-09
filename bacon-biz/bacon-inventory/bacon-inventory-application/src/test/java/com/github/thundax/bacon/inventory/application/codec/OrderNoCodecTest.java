@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.inventory.application.codec;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class OrderNoCodecTest {
 

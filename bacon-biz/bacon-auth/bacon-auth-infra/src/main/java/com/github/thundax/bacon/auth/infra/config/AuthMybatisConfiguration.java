@@ -7,5 +7,4 @@ import org.springframework.context.annotation.Profile;
 @Configuration(proxyBeanMethods = false)
 @Profile("!test")
 @MapperScan("com.github.thundax.bacon.auth.infra.persistence.mapper")
-public class AuthMybatisConfiguration {
-}
+public class AuthMybatisConfiguration {}

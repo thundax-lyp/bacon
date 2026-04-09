@@ -25,46 +25,56 @@ public abstract class AbstractLayeredArchitectureTest {
     @Test
     @DisplayName("默认分层依赖方向：domain/application/interfaces/infra 只能沿既定方向依赖")
     void shouldFollowDefaultDirection() {
-        LayeredArchitectureRuleSupport.domainShouldNotDependOnOuterLayers(basePackage()).check(classes());
-        LayeredArchitectureRuleSupport.applicationShouldNotDependOnInterfacesOrOwnInfra(basePackage()).check(classes());
-        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnOwnInfra(basePackage()).check(classes());
-        LayeredArchitectureRuleSupport.infraShouldNotDependOnApplicationOrInterfaces(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.domainShouldNotDependOnOuterLayers(basePackage())
+                .check(classes());
+        LayeredArchitectureRuleSupport.applicationShouldNotDependOnInterfacesOrOwnInfra(basePackage())
+                .check(classes());
+        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnOwnInfra(basePackage())
+                .check(classes());
+        LayeredArchitectureRuleSupport.infraShouldNotDependOnApplicationOrInterfaces(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("interfaces 不得直接依赖 infra.persistence.mapper")
     void shouldKeepInterfacesAwayFromPersistenceMapper() {
-        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnPersistenceMapper(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnPersistenceMapper(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("interfaces 不得直接依赖其他业务域的 infra")
     void shouldKeepInterfacesAwayFromOtherDomainInfra() {
-        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnOtherDomainInfra(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnOtherDomainInfra(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("application 不得依赖本域或他域的 infra")
     void shouldKeepApplicationAwayFromInfra() {
-        LayeredArchitectureRuleSupport.applicationShouldNotDependOnAnyDomainInfra(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.applicationShouldNotDependOnAnyDomainInfra(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("domain 不得依赖 Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术包")
     void shouldKeepDomainAwayFromTechnicalPackages() {
-        LayeredArchitectureRuleSupport.domainShouldNotDependOnTechnicalPackages(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.domainShouldNotDependOnTechnicalPackages(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("@SysLog 只能出现在 interfaces.controller")
     void shouldKeepSysLogInInterfacesController() {
-        LayeredArchitectureRuleSupport.sysLogShouldOnlyAppearInInterfacesController(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.sysLogShouldOnlyAppearInInterfacesController(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("@Transactional 默认只允许出现在 application")
     void shouldKeepTransactionalInApplication() {
-        LayeredArchitectureRuleSupport.transactionalShouldOnlyAppearInApplication(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.transactionalShouldOnlyAppearInApplication(basePackage())
+                .check(classes());
     }
 
     @Test

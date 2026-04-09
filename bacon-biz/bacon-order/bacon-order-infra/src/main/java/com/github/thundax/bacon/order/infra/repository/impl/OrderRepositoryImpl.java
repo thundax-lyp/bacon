@@ -53,7 +53,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId, String currencyCode) {
+    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(
+            Long tenantId, Long orderId, String currencyCode) {
         return support.findPaymentSnapshotByOrderId(tenantId, orderId, currencyCode);
     }
 
@@ -78,18 +79,42 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public long countOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
-                            String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
-        return support.countOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus,
-                createdAtFrom, createdAtTo);
+    public long countOrders(
+            Long tenantId,
+            Long userId,
+            String orderNo,
+            String orderStatus,
+            String payStatus,
+            String inventoryStatus,
+            Instant createdAtFrom,
+            Instant createdAtTo) {
+        return support.countOrders(
+                tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
     }
 
     @Override
-    public List<Order> pageOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
-                                  String inventoryStatus, Instant createdAtFrom, Instant createdAtTo,
-                                  int offset, int limit) {
-        return support.pageOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus,
-                createdAtFrom, createdAtTo, offset, limit);
+    public List<Order> pageOrders(
+            Long tenantId,
+            Long userId,
+            String orderNo,
+            String orderStatus,
+            String payStatus,
+            String inventoryStatus,
+            Instant createdAtFrom,
+            Instant createdAtTo,
+            int offset,
+            int limit) {
+        return support.pageOrders(
+                tenantId,
+                userId,
+                orderNo,
+                orderStatus,
+                payStatus,
+                inventoryStatus,
+                createdAtFrom,
+                createdAtTo,
+                offset,
+                limit);
     }
 
     @Override

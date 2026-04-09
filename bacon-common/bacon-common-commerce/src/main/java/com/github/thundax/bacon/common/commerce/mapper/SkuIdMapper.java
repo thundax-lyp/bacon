@@ -4,8 +4,7 @@ import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 
 public final class SkuIdMapper {
 
-    private SkuIdMapper() {
-    }
+    private SkuIdMapper() {}
 
     public static SkuId toDomain(Long value) {
         if (value == null) {

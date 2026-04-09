@@ -51,8 +51,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
                 sysLogRecord.getCreatedBy(),
                 sysLogRecord.getCreatedAt(),
                 sysLogRecord.getUpdatedBy(),
-                sysLogRecord.getUpdatedAt()
-        );
+                sysLogRecord.getUpdatedAt());
         support.saveSysLog(persistedRecord);
     }
 
@@ -69,8 +68,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
                     StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE,
                     StandardOpenOption.WRITE,
-                    StandardOpenOption.APPEND
-            );
+                    StandardOpenOption.APPEND);
         } catch (IOException ex) {
             throw new IllegalStateException("Failed to write sys log file", ex);
         }
@@ -82,8 +80,14 @@ public class SysLogRepositoryImpl implements SysLogRepository {
     }
 
     @Override
-    public List<SysLogRecord> pageLogs(Long tenantId, String module, String eventType, String result,
-                                       String operatorName, int pageNo, int pageSize) {
+    public List<SysLogRecord> pageLogs(
+            Long tenantId,
+            String module,
+            String eventType,
+            String result,
+            String operatorName,
+            int pageNo,
+            int pageSize) {
         return support.listSysLogs(tenantId, module, eventType, result, operatorName, pageNo, pageSize);
     }
 
@@ -93,23 +97,24 @@ public class SysLogRepositoryImpl implements SysLogRepository {
     }
 
     private String formatLine(SysLogRecord sysLogRecord) {
-        return String.join("|",
-                nullSafe(sysLogRecord.getTraceId()),
-                nullSafe(sysLogRecord.getRequestId()),
-                nullSafe(sysLogRecord.getModule()),
-                nullSafe(sysLogRecord.getAction()),
-                nullSafe(sysLogRecord.getEventType()),
-                nullSafe(sysLogRecord.getResult()),
-                nullSafe(sysLogRecord.getTenantId()),
-                nullSafe(sysLogRecord.getOperatorId()),
-                nullSafe(sysLogRecord.getOperatorName()),
-                nullSafe(sysLogRecord.getClientIp()),
-                nullSafe(sysLogRecord.getRequestUri()),
-                nullSafe(sysLogRecord.getHttpMethod()),
-                nullSafe(sysLogRecord.getCostMs()),
-                nullSafe(sysLogRecord.getErrorMessage()),
-                sysLogRecord.getOccurredAt() == null ? "" : FORMATTER.format(sysLogRecord.getOccurredAt())
-        ) + System.lineSeparator();
+        return String.join(
+                        "|",
+                        nullSafe(sysLogRecord.getTraceId()),
+                        nullSafe(sysLogRecord.getRequestId()),
+                        nullSafe(sysLogRecord.getModule()),
+                        nullSafe(sysLogRecord.getAction()),
+                        nullSafe(sysLogRecord.getEventType()),
+                        nullSafe(sysLogRecord.getResult()),
+                        nullSafe(sysLogRecord.getTenantId()),
+                        nullSafe(sysLogRecord.getOperatorId()),
+                        nullSafe(sysLogRecord.getOperatorName()),
+                        nullSafe(sysLogRecord.getClientIp()),
+                        nullSafe(sysLogRecord.getRequestUri()),
+                        nullSafe(sysLogRecord.getHttpMethod()),
+                        nullSafe(sysLogRecord.getCostMs()),
+                        nullSafe(sysLogRecord.getErrorMessage()),
+                        sysLogRecord.getOccurredAt() == null ? "" : FORMATTER.format(sysLogRecord.getOccurredAt()))
+                + System.lineSeparator();
     }
 
     private String nullSafe(Object value) {

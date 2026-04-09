@@ -20,7 +20,8 @@ public class InternalApiGuardInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
         if (!properties.isEnabled() || !matches(request.getRequestURI())) {
             return true;
         }

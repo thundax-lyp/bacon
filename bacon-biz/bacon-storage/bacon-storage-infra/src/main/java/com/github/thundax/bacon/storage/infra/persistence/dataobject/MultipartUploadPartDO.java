@@ -2,11 +2,10 @@ package com.github.thundax.bacon.storage.infra.persistence.dataobject;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 /**
  * 分段上传分片持久化数据对象。

@@ -26,7 +26,15 @@ public record UserResponse(
         String status) {
 
     public static UserResponse from(UserDTO dto) {
-        return new UserResponse(dto.getId(), dto.getTenantId(), dto.getAccount(), dto.getName(),
-                dto.getAvatarObjectId(), dto.getPhone(), dto.getDepartmentId(), dto.getAvatarUrl(), dto.getStatus());
+        return new UserResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getAccount(),
+                dto.getName(),
+                dto.getAvatarObjectId(),
+                dto.getPhone(),
+                dto.getDepartmentId(),
+                dto.getAvatarUrl(),
+                dto.getStatus());
     }
 }

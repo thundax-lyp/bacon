@@ -3,7 +3,6 @@ package com.github.thundax.bacon.storage.domain.model.enums;
 import java.util.Arrays;
 
 public enum UploadStatus {
-
     INITIATED,
     UPLOADING,
     COMPLETED,

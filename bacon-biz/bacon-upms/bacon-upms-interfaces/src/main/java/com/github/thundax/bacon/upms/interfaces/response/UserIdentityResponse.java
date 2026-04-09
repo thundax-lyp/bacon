@@ -20,7 +20,12 @@ public record UserIdentityResponse(
         String status) {
 
     public static UserIdentityResponse from(UserIdentityDTO dto) {
-        return new UserIdentityResponse(dto.getId(), dto.getTenantId(), dto.getUserId(), dto.getIdentityType(),
-                dto.getIdentityValue(), dto.getStatus());
+        return new UserIdentityResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getUserId(),
+                dto.getIdentityType(),
+                dto.getIdentityValue(),
+                dto.getStatus());
     }
 }

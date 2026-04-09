@@ -1,11 +1,10 @@
 package com.github.thundax.bacon.payment.api.dto;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.time.Instant;
 
 /**
  * 支付详情传输对象。

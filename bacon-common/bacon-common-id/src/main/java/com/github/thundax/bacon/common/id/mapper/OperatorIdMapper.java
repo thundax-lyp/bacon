@@ -4,8 +4,7 @@ import com.github.thundax.bacon.common.id.domain.OperatorId;
 
 public final class OperatorIdMapper {
 
-    private OperatorIdMapper() {
-    }
+    private OperatorIdMapper() {}
 
     public static OperatorId toDomain(String value) {
         if (value == null || value.isBlank()) {

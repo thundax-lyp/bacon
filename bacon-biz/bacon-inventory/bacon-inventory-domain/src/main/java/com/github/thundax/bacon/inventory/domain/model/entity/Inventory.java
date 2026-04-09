@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -44,17 +44,13 @@ public class Inventory {
     private Instant updatedAt;
 
     public static Inventory create(
-            TenantId tenantId,
-            SkuId skuId,
-            WarehouseCode warehouseCode,
-            Integer onHandQuantity) {
+            TenantId tenantId, SkuId skuId, WarehouseCode warehouseCode, Integer onHandQuantity) {
         if (Objects.isNull(tenantId) || Objects.isNull(skuId) || Objects.isNull(warehouseCode)) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
         }
         if (Objects.isNull(onHandQuantity) || onHandQuantity < 0) {
             throw new InventoryDomainException(
-                    InventoryErrorCode.INVALID_ON_HAND_QUANTITY,
-                    String.valueOf(onHandQuantity));
+                    InventoryErrorCode.INVALID_ON_HAND_QUANTITY, String.valueOf(onHandQuantity));
         }
         return new Inventory(
                 null,
@@ -161,5 +157,4 @@ public class Inventory {
         availableQuantity = onHandQuantity - reservedQuantity;
         updatedAt = operatedAt;
     }
-
 }

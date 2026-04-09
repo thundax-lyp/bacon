@@ -1,5 +1,11 @@
 package com.github.thundax.bacon.payment.interfaces.provider;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
@@ -18,12 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 class PaymentProviderControllerContractTest {
 
     private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
@@ -31,8 +31,10 @@ class PaymentProviderControllerContractTest {
 
     @Test
     void shouldKeepRawProviderPayloadWithoutResponseEnvelope() throws Exception {
-        PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+        PaymentProviderController controller = new PaymentProviderController(
+                new StubPaymentQueryApplicationService(),
+                new StubPaymentAuditQueryApplicationService(),
+                new PaymentCreateApplicationService(null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -49,39 +51,46 @@ class PaymentProviderControllerContractTest {
 
     @Test
     void shouldReturnBadRequestWhenProviderRequiredParamMissing() throws Exception {
-        PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+        PaymentProviderController controller = new PaymentProviderController(
+                new StubPaymentQueryApplicationService(),
+                new StubPaymentAuditQueryApplicationService(),
+                new PaymentCreateApplicationService(null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
 
-        mockMvc.perform(get("/providers/payment/PAY-10001")
-                        .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
+        mockMvc.perform(get("/providers/payment/PAY-10001").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldExposeRawExceptionSemanticForProvider() {
-        PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+        PaymentProviderController controller = new PaymentProviderController(
+                new StubPaymentQueryApplicationService(),
+                new StubPaymentAuditQueryApplicationService(),
+                new PaymentCreateApplicationService(null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
 
-        ServletException exception = assertThrows(ServletException.class, () -> mockMvc.perform(
-                get("/providers/payment/PAY-10001")
+        ServletException exception = assertThrows(
+                ServletException.class,
+                () -> mockMvc.perform(get("/providers/payment/PAY-10001")
                         .param("tenantId", "9999")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
         assertEquals(PaymentDomainException.class, exception.getCause().getClass());
-        assertEquals(PaymentErrorCode.PAYMENT_NOT_FOUND.code(), ((PaymentDomainException) exception.getCause()).getCode());
+        assertEquals(
+                PaymentErrorCode.PAYMENT_NOT_FOUND.code(), ((PaymentDomainException) exception.getCause()).getCode());
     }
 
     @Test
     void shouldExposeRawAuditLogPayloadForProvider() throws Exception {
-        PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+        PaymentProviderController controller = new PaymentProviderController(
+                new StubPaymentQueryApplicationService(),
+                new StubPaymentAuditQueryApplicationService(),
+                new PaymentCreateApplicationService(null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -97,22 +106,25 @@ class PaymentProviderControllerContractTest {
 
     @Test
     void shouldRejectProviderCallWhenTokenMissing() throws Exception {
-        PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+        PaymentProviderController controller = new PaymentProviderController(
+                new StubPaymentQueryApplicationService(),
+                new StubPaymentAuditQueryApplicationService(),
+                new PaymentCreateApplicationService(null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
 
-        mockMvc.perform(get("/providers/payment/PAY-10001")
-                        .param("tenantId", "1001"))
+        mockMvc.perform(get("/providers/payment/PAY-10001").param("tenantId", "1001"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldRejectProviderCallWhenTokenInvalid() throws Exception {
-        PaymentProviderController controller = new PaymentProviderController(new StubPaymentQueryApplicationService(),
-                new StubPaymentAuditQueryApplicationService(), new PaymentCreateApplicationService(null, null, null),
+        PaymentProviderController controller = new PaymentProviderController(
+                new StubPaymentQueryApplicationService(),
+                new StubPaymentAuditQueryApplicationService(),
+                new PaymentCreateApplicationService(null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -144,10 +156,23 @@ class PaymentProviderControllerContractTest {
             if (Long.valueOf(9999L).equals(tenantId)) {
                 throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
             }
-            return new PaymentDetailDTO(tenantId, paymentNo, "ORD-10001", 2001L, "MOCK", "PAID",
-                    new BigDecimal("88.80"), new BigDecimal("88.80"), Instant.parse("2026-03-27T10:00:00Z"),
-                    Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:01:00Z"),
-                    "provider-payment", null, "TXN-10001", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
+            return new PaymentDetailDTO(
+                    tenantId,
+                    paymentNo,
+                    "ORD-10001",
+                    2001L,
+                    "MOCK",
+                    "PAID",
+                    new BigDecimal("88.80"),
+                    new BigDecimal("88.80"),
+                    Instant.parse("2026-03-27T10:00:00Z"),
+                    Instant.parse("2026-03-27T10:30:00Z"),
+                    Instant.parse("2026-03-27T10:01:00Z"),
+                    "provider-payment",
+                    null,
+                    "TXN-10001",
+                    "SUCCESS",
+                    "{\"tradeStatus\":\"SUCCESS\"}");
         }
     }
 
@@ -159,8 +184,15 @@ class PaymentProviderControllerContractTest {
 
         @Override
         public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
-            return List.of(new PaymentAuditLogDTO(tenantId, paymentNo, "CREATE", null, "PAYING",
-                    "SYSTEM", "0", Instant.parse("2026-03-27T10:00:00Z")));
+            return List.of(new PaymentAuditLogDTO(
+                    tenantId,
+                    paymentNo,
+                    "CREATE",
+                    null,
+                    "PAYING",
+                    "SYSTEM",
+                    "0",
+                    Instant.parse("2026-03-27T10:00:00Z")));
         }
     }
 }

@@ -27,8 +27,7 @@ public class JacksonAutoConfiguration {
      */
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jackson2ObjectMapperBuilderCustomizer() {
-        return builder -> builder
-                .serializationInclusion(JsonInclude.Include.NON_NULL)
+        return builder -> builder.serializationInclusion(JsonInclude.Include.NON_NULL)
                 .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .modulesToInstall(JavaTimeModule.class)
                 .serializerByType(Long.class, ToStringSerializer.instance)
@@ -37,12 +36,10 @@ public class JacksonAutoConfiguration {
                 .serializers(
                         new LocalDateTimeSerializer(DatePattern.NORM_DATETIME_FORMATTER),
                         new LocalDateSerializer(DatePattern.NORM_DATE_FORMATTER),
-                        new LocalTimeSerializer(DatePattern.NORM_TIME_FORMATTER)
-                )
+                        new LocalTimeSerializer(DatePattern.NORM_TIME_FORMATTER))
                 .deserializers(
                         new LocalDateTimeDeserializer(DatePattern.NORM_DATETIME_FORMATTER),
                         new LocalDateDeserializer(DatePattern.NORM_DATE_FORMATTER),
-                        new LocalTimeDeserializer(DatePattern.NORM_TIME_FORMATTER)
-                );
+                        new LocalTimeDeserializer(DatePattern.NORM_TIME_FORMATTER));
     }
 }

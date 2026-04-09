@@ -3,8 +3,8 @@ package com.github.thundax.bacon.storage.application.support;
 import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import org.springframework.stereotype.Service;
@@ -21,9 +21,10 @@ public class StoredObjectDeletionTransactionService {
     private final StoredObjectReferenceRepository storedObjectReferenceRepository;
     private final StorageAuditApplicationService storageAuditApplicationService;
 
-    public StoredObjectDeletionTransactionService(StoredObjectRepository storedObjectRepository,
-                                                 StoredObjectReferenceRepository storedObjectReferenceRepository,
-                                                 StorageAuditApplicationService storageAuditApplicationService) {
+    public StoredObjectDeletionTransactionService(
+            StoredObjectRepository storedObjectRepository,
+            StoredObjectReferenceRepository storedObjectReferenceRepository,
+            StorageAuditApplicationService storageAuditApplicationService) {
         this.storedObjectRepository = storedObjectRepository;
         this.storedObjectReferenceRepository = storedObjectReferenceRepository;
         this.storageAuditApplicationService = storageAuditApplicationService;
@@ -31,7 +32,8 @@ public class StoredObjectDeletionTransactionService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public StoredObject markDeleting(StoredObjectId objectId) {
-        StoredObject storedObject = storedObjectRepository.findById(objectId)
+        StoredObject storedObject = storedObjectRepository
+                .findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         if (storedObject.isDeleted() || storedObject.isDeleting()) {
             return storedObject;
@@ -45,7 +47,8 @@ public class StoredObjectDeletionTransactionService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markDeleted(StoredObjectId objectId) {
-        StoredObject storedObject = storedObjectRepository.findById(objectId)
+        StoredObject storedObject = storedObjectRepository
+                .findById(objectId)
                 .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
         if (storedObject.isDeleted()) {
             return;
@@ -53,7 +56,13 @@ public class StoredObjectDeletionTransactionService {
         String beforeStatus = storedObject.getObjectStatus().value();
         storedObject.markDeleted();
         StoredObject savedObject = storedObjectRepository.save(storedObject);
-        storageAuditApplicationService.record(savedObject.getTenantId(), objectId, null, null,
-                StorageAuditActionType.DELETE, beforeStatus, savedObject.getObjectStatus().value());
+        storageAuditApplicationService.record(
+                savedObject.getTenantId(),
+                objectId,
+                null,
+                null,
+                StorageAuditActionType.DELETE,
+                beforeStatus,
+                savedObject.getObjectStatus().value());
     }
 }

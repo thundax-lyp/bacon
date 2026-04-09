@@ -11,9 +11,12 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
-    default boolean claimExpiredProcessing(OrderIdempotencyRecordKey key,
-                                           String processingOwner, Instant leaseUntil, Instant claimedAt,
-                                           Instant updatedAt) {
+    default boolean claimExpiredProcessing(
+            OrderIdempotencyRecordKey key,
+            String processingOwner,
+            Instant leaseUntil,
+            Instant claimedAt,
+            Instant updatedAt) {
         return false;
     }
 
@@ -33,8 +36,12 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
-    default boolean retryFromFailed(OrderIdempotencyRecordKey key,
-                                    String processingOwner, Instant leaseUntil, Instant claimedAt, Instant updatedAt) {
+    default boolean retryFromFailed(
+            OrderIdempotencyRecordKey key,
+            String processingOwner,
+            Instant leaseUntil,
+            Instant claimedAt,
+            Instant updatedAt) {
         return false;
     }
 

@@ -57,6 +57,7 @@ abstract class AbstractLongUpmsIdTypeHandler<I extends Identifier<Long>> extends
                 throw new SQLException("Failed to parse long id value: " + stringValue, ex);
             }
         }
-        throw new SQLException("Unsupported long id value type: " + value.getClass().getName());
+        throw new SQLException(
+                "Unsupported long id value type: " + value.getClass().getName());
     }
 }

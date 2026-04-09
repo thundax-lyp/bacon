@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.ArrayList;
@@ -25,9 +25,10 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     private final RoleRepositoryImpl roleRepository;
     private final UpmsPermissionCacheSupport cacheSupport;
 
-    public PermissionRepositoryImpl(MenuRepositoryImpl menuRepository,
-                                    RoleRepositoryImpl roleRepository,
-                                    UpmsPermissionCacheSupport cacheSupport) {
+    public PermissionRepositoryImpl(
+            MenuRepositoryImpl menuRepository,
+            RoleRepositoryImpl roleRepository,
+            UpmsPermissionCacheSupport cacheSupport) {
         this.menuRepository = menuRepository;
         this.roleRepository = roleRepository;
         this.cacheSupport = cacheSupport;
@@ -64,7 +65,8 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     private List<Menu> loadUserMenuTree(TenantId tenantId, UserId userId) {
-        List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
+        List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles =
+                roleRepository.findRolesByUserId(tenantId, userId);
         if (roles.isEmpty()) {
             return List.of();
         }
@@ -80,7 +82,8 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     private Set<String> loadUserPermissionCodes(TenantId tenantId, UserId userId) {
-        List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
+        List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles =
+                roleRepository.findRolesByUserId(tenantId, userId);
         if (roles.isEmpty()) {
             return Set.of();
         }
@@ -90,7 +93,9 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         roles.forEach(role -> {
             roleRepository.getAssignedMenus(role.getTenantId(), role.getId()).forEach(menuId -> {
                 Menu menu = menuMap.get(menuId);
-                if (menu != null && menu.getPermissionCode() != null && !menu.getPermissionCode().isBlank()) {
+                if (menu != null
+                        && menu.getPermissionCode() != null
+                        && !menu.getPermissionCode().isBlank()) {
                     permissionCodes.add(menu.getPermissionCode());
                 }
             });
@@ -101,29 +106,46 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 
     private Set<DepartmentId> loadUserDepartmentIds(TenantId tenantId, UserId userId) {
         Set<DepartmentId> departmentIds = new HashSet<>();
-        roleRepository.findRolesByUserId(tenantId, userId)
-                .forEach(role -> departmentIds.addAll(roleRepository.getAssignedDataScopeDepartments(role.getTenantId(), role.getId())));
+        roleRepository
+                .findRolesByUserId(tenantId, userId)
+                .forEach(role -> departmentIds.addAll(
+                        roleRepository.getAssignedDataScopeDepartments(role.getTenantId(), role.getId())));
         return Set.copyOf(departmentIds);
     }
 
     private Set<String> loadUserScopeTypes(TenantId tenantId, UserId userId) {
         Set<String> scopeTypes = new HashSet<>();
-        roleRepository.findRolesByUserId(tenantId, userId)
-                .forEach(role -> scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getTenantId(), role.getId())));
+        roleRepository
+                .findRolesByUserId(tenantId, userId)
+                .forEach(role ->
+                        scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getTenantId(), role.getId())));
         return Set.copyOf(scopeTypes);
     }
 
     private List<Menu> buildMenuTree(List<Menu> flatMenus) {
         Map<MenuId, Menu> menuMap = new HashMap<>();
         flatMenus.stream()
-                .sorted(Comparator.comparing(Menu::getSort).thenComparing(menu -> menu.getId().value()))
-                .forEach(menu -> menuMap.put(menu.getId(), new Menu(menu.getId(), menu.getTenantId(), menu.getMenuType(),
-                        menu.getName(), menu.getParentId(), menu.getRoutePath(), menu.getComponentName(), menu.getIcon(),
-                        menu.getSort(), menu.getPermissionCode(), new ArrayList<>())));
+                .sorted(Comparator.comparing(Menu::getSort)
+                        .thenComparing(menu -> menu.getId().value()))
+                .forEach(menu -> menuMap.put(
+                        menu.getId(),
+                        new Menu(
+                                menu.getId(),
+                                menu.getTenantId(),
+                                menu.getMenuType(),
+                                menu.getName(),
+                                menu.getParentId(),
+                                menu.getRoutePath(),
+                                menu.getComponentName(),
+                                menu.getIcon(),
+                                menu.getSort(),
+                                menu.getPermissionCode(),
+                                new ArrayList<>())));
 
         List<Menu> roots = new ArrayList<>();
         menuMap.values().stream()
-                .sorted(Comparator.comparing(Menu::getSort).thenComparing(menu -> menu.getId().value()))
+                .sorted(Comparator.comparing(Menu::getSort)
+                        .thenComparing(menu -> menu.getId().value()))
                 .forEach(menu -> {
                     if (menu.getParentId() == null || !menuMap.containsKey(menu.getParentId())) {
                         roots.add(menu);

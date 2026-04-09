@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.PostDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.PostMapper;
 import java.time.LocalDateTime;
@@ -30,9 +30,16 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    List<Post> listPosts(TenantId tenantId, String code, String name, DepartmentId departmentId, String status, int pageNo,
-                         int pageSize) {
-        return postMapper.selectList(Wrappers.<PostDO>lambdaQuery()
+    List<Post> listPosts(
+            TenantId tenantId,
+            String code,
+            String name,
+            DepartmentId departmentId,
+            String status,
+            int pageNo,
+            int pageSize) {
+        return postMapper
+                .selectList(Wrappers.<PostDO>lambdaQuery()
                         .eq(tenantId != null, PostDO::getTenantId, tenantId)
                         .like(hasText(code), PostDO::getCode, code)
                         .like(hasText(name), PostDO::getName, name)
@@ -70,8 +77,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void deletePost(TenantId tenantId, PostId postId) {
-        postMapper.delete(Wrappers.<PostDO>lambdaQuery()
-                .eq(PostDO::getTenantId, tenantId)
-                .eq(PostDO::getId, postId));
+        postMapper.delete(
+                Wrappers.<PostDO>lambdaQuery().eq(PostDO::getTenantId, tenantId).eq(PostDO::getId, postId));
     }
 }

@@ -5,5 +5,4 @@ import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxEv
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface OrderOutboxEventMapper extends BaseMapper<OrderOutboxEventDO> {
-}
+public interface OrderOutboxEventMapper extends BaseMapper<OrderOutboxEventDO> {}

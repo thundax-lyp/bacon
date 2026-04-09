@@ -1,19 +1,20 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
-import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 
 public final class InventoryReservationResultAssembler {
 
-    private InventoryReservationResultAssembler() {
-    }
+    private InventoryReservationResultAssembler() {}
 
     public static InventoryReservationResultDTO fromReservation(InventoryReservation reservation) {
         return new InventoryReservationResultDTO(
-                reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                reservation.getTenantId() == null
+                        ? null
+                        : reservation.getTenantId().value(),
                 reservation.getOrderNoValue(),
                 reservation.getReservationNoValue(),
                 reservation.getReservationStatusValue(),
@@ -46,8 +47,9 @@ public final class InventoryReservationResultAssembler {
             case RELEASED -> "RELEASED";
             case DEDUCTED -> "DEDUCTED";
             case FAILED -> "FAILED";
-            default -> throw new InventoryDomainException(InventoryErrorCode.UNKNOWN_RESERVATION_STATUS,
-                    reservationStatus.value());
+            default ->
+                throw new InventoryDomainException(
+                        InventoryErrorCode.UNKNOWN_RESERVATION_STATUS, reservationStatus.value());
         };
     }
 }

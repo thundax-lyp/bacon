@@ -4,8 +4,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 
 public final class OrderNoCodec {
 
-    private OrderNoCodec() {
-    }
+    private OrderNoCodec() {}
 
     public static OrderNo toDomain(String value) {
         if (value == null || value.isBlank()) {

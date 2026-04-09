@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import java.util.List;
 import java.util.Optional;

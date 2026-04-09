@@ -1,11 +1,11 @@
 package com.github.thundax.bacon.common.commerce.valueobject;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class MoneyTest {
 
@@ -26,8 +26,7 @@ class MoneyTest {
 
     @Test
     void shouldRejectCrossCurrencyComparison() {
-        assertThrows(IllegalArgumentException.class,
-                () -> Money.of(new BigDecimal("10"), CurrencyCode.RMB)
-                        .compareTo(Money.of(new BigDecimal("10"), CurrencyCode.USD)));
+        assertThrows(IllegalArgumentException.class, () -> Money.of(new BigDecimal("10"), CurrencyCode.RMB)
+                .compareTo(Money.of(new BigDecimal("10"), CurrencyCode.USD)));
     }
 }

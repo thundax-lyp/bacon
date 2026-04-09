@@ -5,5 +5,4 @@ import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderAuditLog
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface OrderAuditLogMapper extends BaseMapper<OrderAuditLogDO> {
-}
+public interface OrderAuditLogMapper extends BaseMapper<OrderAuditLogDO> {}

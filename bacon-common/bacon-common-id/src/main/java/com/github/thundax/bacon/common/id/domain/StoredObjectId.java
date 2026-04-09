@@ -19,5 +19,4 @@ public final class StoredObjectId extends BaseLongId {
     public String externalValue() {
         return EXTERNAL_PREFIX + value();
     }
-
 }

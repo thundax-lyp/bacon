@@ -1,22 +1,30 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class MultipartUploadSessionTest {
 
     @Test
     void shouldTrackUploadStateTransitions() {
-        MultipartUploadSession session = MultipartUploadSession.initiate("upload-1", TenantId.of(1L),
-                "GENERIC_ATTACHMENT", "owner-1", "attachment", "attachment.png", "image/png",
-                "attachment/object-1.png", "provider-upload-1", 10_240L, 5_120L);
+        MultipartUploadSession session = MultipartUploadSession.initiate(
+                "upload-1",
+                TenantId.of(1L),
+                "GENERIC_ATTACHMENT",
+                "owner-1",
+                "attachment",
+                "attachment.png",
+                "image/png",
+                "attachment/object-1.png",
+                "provider-upload-1",
+                10_240L,
+                5_120L);
 
         session.recordUploadedPart();
         session.recordUploadedPart();
@@ -33,14 +41,21 @@ class MultipartUploadSessionTest {
 
     @Test
     void shouldRejectInvalidPartAndAbortSession() {
-        assertThrows(IllegalArgumentException.class, () -> MultipartUploadPart.create("u-1", 0,
-                "etag-1", 1024L));
-        assertThrows(IllegalArgumentException.class, () -> MultipartUploadPart.create("u-1", 1,
-                "", 1024L));
+        assertThrows(IllegalArgumentException.class, () -> MultipartUploadPart.create("u-1", 0, "etag-1", 1024L));
+        assertThrows(IllegalArgumentException.class, () -> MultipartUploadPart.create("u-1", 1, "", 1024L));
 
-        MultipartUploadSession session = MultipartUploadSession.initiate("upload-2", TenantId.of(1L),
-                "GENERIC_ATTACHMENT", "owner-2", "attachment", "attachment.png", "image/png",
-                "attachment/object-2.png", null, 10_240L, 5_120L);
+        MultipartUploadSession session = MultipartUploadSession.initiate(
+                "upload-2",
+                TenantId.of(1L),
+                "GENERIC_ATTACHMENT",
+                "owner-2",
+                "attachment",
+                "attachment.png",
+                "image/png",
+                "attachment/object-2.png",
+                null,
+                10_240L,
+                5_120L);
         session.markAborted();
         assertTrue(session.isAborted());
         assertThrows(IllegalStateException.class, session::recordUploadedPart);
@@ -48,14 +63,24 @@ class MultipartUploadSessionTest {
 
     @Test
     void shouldValidateOwnershipAndMultipartIntegrity() {
-        MultipartUploadSession session = MultipartUploadSession.initiate("upload-3", TenantId.of(1L),
-                "GENERIC_ATTACHMENT", "owner-3", "attachment", "attachment.png", "image/png",
-                "attachment/object-3.png", "provider-upload-3", 10_240L, 5_120L);
+        MultipartUploadSession session = MultipartUploadSession.initiate(
+                "upload-3",
+                TenantId.of(1L),
+                "GENERIC_ATTACHMENT",
+                "owner-3",
+                "attachment",
+                "attachment.png",
+                "image/png",
+                "attachment/object-3.png",
+                "provider-upload-3",
+                10_240L,
+                5_120L);
         session.recordUploadedPart();
         session.recordUploadedPart();
 
         session.assertOwnership(TenantId.of(1L), "GENERIC_ATTACHMENT", "owner-3");
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> session.assertOwnership(TenantId.of(2L), "GENERIC_ATTACHMENT", "owner-3"));
 
         List<MultipartUploadPart> validParts = List.of(

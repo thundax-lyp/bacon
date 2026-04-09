@@ -58,10 +58,27 @@ public record OrderDetailResponse(
         List<OrderItemResponse> itemResponses = dto.getItems() == null
                 ? List.of()
                 : dto.getItems().stream().map(OrderItemResponse::from).toList();
-        return new OrderDetailResponse(dto.getId(), dto.getTenantId(), dto.getOrderNo(), dto.getUserId(),
-                dto.getOrderStatus(), dto.getPayStatus(), dto.getInventoryStatus(), dto.getPaymentNo(),
-                dto.getReservationNo(), dto.getCurrencyCode(), dto.getTotalAmount(), dto.getPayableAmount(),
-                dto.getCancelReason(), dto.getCloseReason(), dto.getCreatedAt(), dto.getExpiredAt(), itemResponses,
-                dto.getPaymentSnapshot(), dto.getInventorySnapshot(), dto.getPaidAt(), dto.getClosedAt());
+        return new OrderDetailResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getOrderNo(),
+                dto.getUserId(),
+                dto.getOrderStatus(),
+                dto.getPayStatus(),
+                dto.getInventoryStatus(),
+                dto.getPaymentNo(),
+                dto.getReservationNo(),
+                dto.getCurrencyCode(),
+                dto.getTotalAmount(),
+                dto.getPayableAmount(),
+                dto.getCancelReason(),
+                dto.getCloseReason(),
+                dto.getCreatedAt(),
+                dto.getExpiredAt(),
+                itemResponses,
+                dto.getPaymentSnapshot(),
+                dto.getInventorySnapshot(),
+                dto.getPaidAt(),
+                dto.getClosedAt());
     }
 }

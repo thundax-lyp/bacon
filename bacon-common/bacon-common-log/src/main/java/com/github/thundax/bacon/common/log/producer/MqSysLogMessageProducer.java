@@ -14,8 +14,10 @@ public class MqSysLogMessageProducer implements SysLogMessageProducer {
     private final BaconMqProperties baconMqProperties;
     private final BaconMqSysLogProperties baconMqSysLogProperties;
 
-    public MqSysLogMessageProducer(BaconMqSender baconMqSender, BaconMqProperties baconMqProperties,
-                                   BaconMqSysLogProperties baconMqSysLogProperties) {
+    public MqSysLogMessageProducer(
+            BaconMqSender baconMqSender,
+            BaconMqProperties baconMqProperties,
+            BaconMqSysLogProperties baconMqSysLogProperties) {
         this.baconMqSender = baconMqSender;
         this.baconMqProperties = baconMqProperties;
         this.baconMqSysLogProperties = baconMqSysLogProperties;
@@ -32,21 +34,12 @@ public class MqSysLogMessageProducer implements SysLogMessageProducer {
                     baconMqSysLogProperties.getExchange(),
                     baconMqSysLogProperties.getRoutingKey(),
                     message.getTraceId(),
-                    message
-            );
+                    message);
         }
         if (baconMqProperties.getType() == BaconMqType.KAFKA) {
-            return BaconMqMessage.forTopic(
-                    baconMqSysLogProperties.getTopic(),
-                    message.getTraceId(),
-                    message
-            );
+            return BaconMqMessage.forTopic(baconMqSysLogProperties.getTopic(), message.getTraceId(), message);
         }
         return BaconMqMessage.forTopicWithTag(
-                baconMqSysLogProperties.getTopic(),
-                baconMqSysLogProperties.getTag(),
-                message.getTraceId(),
-                message
-        );
+                baconMqSysLogProperties.getTopic(), baconMqSysLogProperties.getTag(), message.getTraceId(), message);
     }
 }

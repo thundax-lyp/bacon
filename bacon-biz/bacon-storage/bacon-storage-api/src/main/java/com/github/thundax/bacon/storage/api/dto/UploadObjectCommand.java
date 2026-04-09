@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.storage.api.dto;
 
+import java.io.InputStream;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.InputStream;
 
 /**
  * 上传存储对象命令。

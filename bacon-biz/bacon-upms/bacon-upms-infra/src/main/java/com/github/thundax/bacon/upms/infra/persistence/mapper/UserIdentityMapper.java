@@ -5,5 +5,4 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserIdentityDO
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface UserIdentityMapper extends BaseMapper<UserIdentityDO> {
-}
+public interface UserIdentityMapper extends BaseMapper<UserIdentityDO> {}

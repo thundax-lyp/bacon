@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.common.web.config;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class InternalApiGuardInterceptorTest {
 

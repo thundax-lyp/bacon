@@ -1,5 +1,11 @@
 package com.github.thundax.bacon.storage.infra.facade.remote;
 
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
@@ -7,6 +13,8 @@ import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.infra.config.StorageRemoteClientProperties;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -15,15 +23,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
-
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class StoredObjectFacadeRemoteContractTest {
 
@@ -47,8 +46,14 @@ class StoredObjectFacadeRemoteContractTest {
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.uploadObject(new UploadObjectCommand("GENERIC_ATTACHMENT", 1L, "attachment",
-                "a.txt", "text/plain", 3L, new ByteArrayInputStream("abc".getBytes(StandardCharsets.UTF_8))));
+        facade.uploadObject(new UploadObjectCommand(
+                "GENERIC_ATTACHMENT",
+                1L,
+                "attachment",
+                "a.txt",
+                "text/plain",
+                3L,
+                new ByteArrayInputStream("abc".getBytes(StandardCharsets.UTF_8))));
 
         server.verify();
     }
@@ -63,8 +68,8 @@ class StoredObjectFacadeRemoteContractTest {
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.initMultipartUpload(new InitMultipartUploadCommand("GENERIC_ATTACHMENT", "owner-1", 1L,
-                "attachment", "a.txt", "text/plain", 1024L, 8L * 1024 * 1024));
+        facade.initMultipartUpload(new InitMultipartUploadCommand(
+                "GENERIC_ATTACHMENT", "owner-1", 1L, "attachment", "a.txt", "text/plain", 1024L, 8L * 1024 * 1024));
 
         server.verify();
     }
@@ -78,8 +83,8 @@ class StoredObjectFacadeRemoteContractTest {
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.uploadMultipartPart(new UploadMultipartPartCommand(1L, "GENERIC_ATTACHMENT", "owner-1",
-                1L, 1, 3L, new ByteArrayInputStream(new byte[]{1, 2, 3})));
+        facade.uploadMultipartPart(new UploadMultipartPartCommand(
+                1L, "GENERIC_ATTACHMENT", "owner-1", 1L, 1, 3L, new ByteArrayInputStream(new byte[] {1, 2, 3})));
 
         server.verify();
     }
@@ -93,8 +98,7 @@ class StoredObjectFacadeRemoteContractTest {
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.completeMultipartUpload(new CompleteMultipartUploadCommand(1L, "GENERIC_ATTACHMENT",
-                "owner-1", 1L));
+        facade.completeMultipartUpload(new CompleteMultipartUploadCommand(1L, "GENERIC_ATTACHMENT", "owner-1", 1L));
 
         server.verify();
     }
@@ -108,8 +112,7 @@ class StoredObjectFacadeRemoteContractTest {
                 .andRespond(withSuccess());
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.abortMultipartUpload(new AbortMultipartUploadCommand(1L, "GENERIC_ATTACHMENT",
-                "owner-1", 1L));
+        facade.abortMultipartUpload(new AbortMultipartUploadCommand(1L, "GENERIC_ATTACHMENT", "owner-1", 1L));
 
         server.verify();
     }

@@ -40,11 +40,31 @@ public class Resource {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Resource(Long id, Long tenantId, String code, String name, ResourceType resourceType, String httpMethod,
-                    String uri, ResourceStatus status, String createdBy, Instant createdAt, String updatedBy,
-                    Instant updatedAt) {
-        this(id == null ? null : ResourceId.of(id),
+    public Resource(
+            Long id,
+            Long tenantId,
+            String code,
+            String name,
+            ResourceType resourceType,
+            String httpMethod,
+            String uri,
+            ResourceStatus status,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        this(
+                id == null ? null : ResourceId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
-                code, name, resourceType, httpMethod, uri, status, createdBy, createdAt, updatedBy, updatedAt);
+                code,
+                name,
+                resourceType,
+                httpMethod,
+                uri,
+                status,
+                createdBy,
+                createdAt,
+                updatedBy,
+                updatedAt);
     }
 }

@@ -4,8 +4,8 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryOrderScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryLedgerResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,9 +34,11 @@ public class InventoryLedgerController {
     @Operation(summary = "按订单号查询库存流水")
     @HasPermission("inventory:ledger:view")
     @GetMapping
-    public List<InventoryLedgerResponse> listByOrderNo(@CurrentTenant Long tenantId,
-                                                       @Valid @ModelAttribute InventoryOrderScopedRequest request) {
-        return inventoryQueryService.listLedgersByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(request.getOrderNo())).stream()
+    public List<InventoryLedgerResponse> listByOrderNo(
+            @CurrentTenant Long tenantId, @Valid @ModelAttribute InventoryOrderScopedRequest request) {
+        return inventoryQueryService
+                .listLedgersByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(request.getOrderNo()))
+                .stream()
                 .map(InventoryLedgerResponse::from)
                 .toList();
     }

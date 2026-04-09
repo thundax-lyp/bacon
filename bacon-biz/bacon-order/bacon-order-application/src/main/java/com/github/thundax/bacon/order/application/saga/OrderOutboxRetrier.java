@@ -25,24 +25,31 @@ public class OrderOutboxRetrier {
 
     @Value("${bacon.order.outbox.retry.enabled:true}")
     private boolean enabled;
+
     @Value("${bacon.order.outbox.retry.batch-size:100}")
     private int batchSize;
+
     @Value("${bacon.order.outbox.retry.max-retries:6}")
     private int maxRetries;
+
     @Value("${bacon.order.outbox.retry.base-delay-seconds:30}")
     private long baseDelaySeconds;
+
     @Value("${bacon.order.outbox.retry.max-delay-seconds:1800}")
     private long maxDelaySeconds;
+
     @Value("${bacon.order.outbox.retry.lease-seconds:60}")
     private long leaseSeconds;
+
     @Value("${spring.application.name:bacon-order}")
     private String applicationName;
 
     private final String processingOwner = UUID.randomUUID().toString();
 
-    public OrderOutboxRetrier(OrderOutboxRepository orderOutboxRepository,
-                              OrderOutboxDeadLetterRepository orderOutboxDeadLetterRepository,
-                              OrderOutboxActionExecutor orderOutboxActionExecutor) {
+    public OrderOutboxRetrier(
+            OrderOutboxRepository orderOutboxRepository,
+            OrderOutboxDeadLetterRepository orderOutboxDeadLetterRepository,
+            OrderOutboxActionExecutor orderOutboxActionExecutor) {
         this.orderOutboxRepository = orderOutboxRepository;
         this.orderOutboxDeadLetterRepository = orderOutboxDeadLetterRepository;
         this.orderOutboxActionExecutor = orderOutboxActionExecutor;
@@ -59,7 +66,8 @@ public class OrderOutboxRetrier {
         int safeBatchSize = Math.max(batchSize, 1);
         Instant leaseUntil = now.plusSeconds(Math.max(leaseSeconds, 1L));
         String owner = applicationName + ":" + processingOwner;
-        List<OrderOutboxEvent> events = orderOutboxRepository.claimRetryableOutbox(now, safeBatchSize, owner, leaseUntil);
+        List<OrderOutboxEvent> events =
+                orderOutboxRepository.claimRetryableOutbox(now, safeBatchSize, owner, leaseUntil);
         for (OrderOutboxEvent event : events) {
             retryOne(event, owner, now);
         }
@@ -82,20 +90,43 @@ public class OrderOutboxRetrier {
         if (nextRetryCount > maxRetries) {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (orderOutboxRepository.markDeadClaimed(event.getId(), owner, nextRetryCount, deadReason, message, now)) {
-                orderOutboxDeadLetterRepository.saveDeadLetter(new OrderOutboxDeadLetter(event.getIdValue(), event.getEventCodeValue(),
-                        event.getTenantIdValue(), event.getOrderNoValue(), event.getEventType(), event.getBusinessKey(),
-                        event.getPayload(), nextRetryCount, message, deadReason, now,
-                        OrderOutboxReplayStatus.PENDING, 0, null, null, now, now));
-                log.error("ALERT order outbox retry exhausted, outboxId={}, eventType={}, orderNo={}",
-                        event.getId(), event.getEventTypeValue(), event.getOrderNoValue(), ex);
+                orderOutboxDeadLetterRepository.saveDeadLetter(new OrderOutboxDeadLetter(
+                        event.getIdValue(),
+                        event.getEventCodeValue(),
+                        event.getTenantIdValue(),
+                        event.getOrderNoValue(),
+                        event.getEventType(),
+                        event.getBusinessKey(),
+                        event.getPayload(),
+                        nextRetryCount,
+                        message,
+                        deadReason,
+                        now,
+                        OrderOutboxReplayStatus.PENDING,
+                        0,
+                        null,
+                        null,
+                        now,
+                        now));
+                log.error(
+                        "ALERT order outbox retry exhausted, outboxId={}, eventType={}, orderNo={}",
+                        event.getId(),
+                        event.getEventTypeValue(),
+                        event.getOrderNoValue(),
+                        ex);
             }
             return;
         }
         // 未到上限时按指数退避回写下一次重试时间，避免固定频率放大下游故障。
         Instant nextRetryAt = now.plusSeconds(nextDelaySeconds(nextRetryCount));
         orderOutboxRepository.markRetryingClaimed(event.getId(), owner, nextRetryCount, nextRetryAt, message, now);
-        log.warn("Order outbox retry failed, outboxId={}, eventType={}, orderNo={}, retryCount={}",
-                event.getId(), event.getEventTypeValue(), event.getOrderNoValue(), nextRetryCount, ex);
+        log.warn(
+                "Order outbox retry failed, outboxId={}, eventType={}, orderNo={}, retryCount={}",
+                event.getId(),
+                event.getEventTypeValue(),
+                event.getOrderNoValue(),
+                nextRetryCount,
+                ex);
     }
 
     private long nextDelaySeconds(int retryCount) {

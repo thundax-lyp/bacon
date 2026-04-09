@@ -3,7 +3,6 @@ package com.github.thundax.bacon.common.test.architecture.fixture.domain.model.e
 import java.util.Arrays;
 
 public enum InvalidSimpleEnumFixture {
-
     ENABLED,
     DISABLED;
 

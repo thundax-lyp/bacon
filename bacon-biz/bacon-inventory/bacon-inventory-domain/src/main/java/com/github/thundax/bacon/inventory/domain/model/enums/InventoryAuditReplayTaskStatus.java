@@ -18,6 +18,7 @@ public enum InventoryAuditReplayTaskStatus {
         return Arrays.stream(values())
                 .filter(status -> status.name().equalsIgnoreCase(value))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown inventory audit replay task status: " + value));
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Unknown inventory audit replay task status: " + value));
     }
 }

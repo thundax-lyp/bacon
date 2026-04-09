@@ -41,10 +41,22 @@ public record InventoryAuditReplayTaskResponse(
         Instant updatedAt) {
 
     public static InventoryAuditReplayTaskResponse from(InventoryAuditReplayTaskDTO dto) {
-        return new InventoryAuditReplayTaskResponse(dto.getTaskId(), dto.getTenantId(), dto.getTaskNo(),
-                dto.getStatus(), dto.getTotalCount(), dto.getProcessedCount(), dto.getSuccessCount(),
-                dto.getFailedCount(), dto.getReplayKeyPrefix(), dto.getOperatorId(), dto.getLastError(),
-                dto.getCreatedAt(), dto.getStartedAt(), dto.getPausedAt(), dto.getFinishedAt(),
+        return new InventoryAuditReplayTaskResponse(
+                dto.getTaskId(),
+                dto.getTenantId(),
+                dto.getTaskNo(),
+                dto.getStatus(),
+                dto.getTotalCount(),
+                dto.getProcessedCount(),
+                dto.getSuccessCount(),
+                dto.getFailedCount(),
+                dto.getReplayKeyPrefix(),
+                dto.getOperatorId(),
+                dto.getLastError(),
+                dto.getCreatedAt(),
+                dto.getStartedAt(),
+                dto.getPausedAt(),
+                dto.getFinishedAt(),
                 dto.getUpdatedAt());
     }
 }

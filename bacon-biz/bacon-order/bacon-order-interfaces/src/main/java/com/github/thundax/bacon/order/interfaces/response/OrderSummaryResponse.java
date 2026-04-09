@@ -44,9 +44,22 @@ public record OrderSummaryResponse(
         @Schema(description = "过期时间") Instant expiredAt) {
 
     public static OrderSummaryResponse from(OrderSummaryDTO dto) {
-        return new OrderSummaryResponse(dto.getId(), dto.getTenantId(), dto.getOrderNo(), dto.getUserId(),
-                dto.getOrderStatus(), dto.getPayStatus(), dto.getInventoryStatus(), dto.getPaymentNo(),
-                dto.getReservationNo(), dto.getCurrencyCode(), dto.getTotalAmount(), dto.getPayableAmount(),
-                dto.getCancelReason(), dto.getCloseReason(), dto.getCreatedAt(), dto.getExpiredAt());
+        return new OrderSummaryResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getOrderNo(),
+                dto.getUserId(),
+                dto.getOrderStatus(),
+                dto.getPayStatus(),
+                dto.getInventoryStatus(),
+                dto.getPaymentNo(),
+                dto.getReservationNo(),
+                dto.getCurrencyCode(),
+                dto.getTotalAmount(),
+                dto.getPayableAmount(),
+                dto.getCancelReason(),
+                dto.getCloseReason(),
+                dto.getCreatedAt(),
+                dto.getExpiredAt());
     }
 }

@@ -1,9 +1,6 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
-import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
@@ -15,11 +12,14 @@ import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
+import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
+import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
-import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +35,8 @@ public class RoleApplicationService {
     }
 
     public RoleDTO getRoleById(TenantId tenantId, RoleId roleId) {
-        return toDto(roleRepository.findRoleById(tenantId, roleId)
+        return toDto(roleRepository
+                .findRoleById(tenantId, roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value())));
     }
 
@@ -56,13 +57,23 @@ public class RoleApplicationService {
     public PageResultDTO<RoleDTO> pageRoles(RolePageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        return new PageResultDTO<>(roleRepository.pageRoles(query.getTenantId(), query.getCode(), query.getName(),
-                query.getRoleType(), query.getStatus(), pageNo, pageSize).stream()
-                .map(role -> toDto(role, query.getTenantId().value()))
-                .toList(),
-                roleRepository.countRoles(query.getTenantId(), query.getCode(), query.getName(), query.getRoleType(),
-                        query.getStatus()),
-                pageNo, pageSize);
+        return new PageResultDTO<>(
+                roleRepository
+                        .pageRoles(
+                                query.getTenantId(),
+                                query.getCode(),
+                                query.getName(),
+                                query.getRoleType(),
+                                query.getStatus(),
+                                pageNo,
+                                pageSize)
+                        .stream()
+                        .map(role -> toDto(role, query.getTenantId().value()))
+                        .toList(),
+                roleRepository.countRoles(
+                        query.getTenantId(), query.getCode(), query.getName(), query.getRoleType(), query.getStatus()),
+                pageNo,
+                pageSize);
     }
 
     @Transactional
@@ -71,14 +82,26 @@ public class RoleApplicationService {
         validateRequired(name, "name");
         validateRequired(roleType, "roleType");
         validateRequired(dataScopeType, "dataScopeType");
-        return toDto(roleRepository.save(new Role(null, tenantId.value(), normalize(code), normalize(name),
-                toRoleType(roleType), toRoleDataScopeType(dataScopeType), RoleStatus.ENABLED, null, null, null, null)));
+        return toDto(roleRepository.save(new Role(
+                null,
+                tenantId.value(),
+                normalize(code),
+                normalize(name),
+                toRoleType(roleType),
+                toRoleDataScopeType(dataScopeType),
+                RoleStatus.ENABLED,
+                null,
+                null,
+                null,
+                null)));
     }
 
     @Transactional
-    public RoleDTO updateRole(TenantId tenantId, String roleId, String code, String name, String roleType, String dataScopeType) {
+    public RoleDTO updateRole(
+            TenantId tenantId, String roleId, String code, String name, String roleType, String dataScopeType) {
         RoleId domainRoleId = toRoleId(roleId);
-        Role currentRole = roleRepository.findRoleById(tenantId, domainRoleId)
+        Role currentRole = roleRepository
+                .findRoleById(tenantId, domainRoleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -107,7 +130,8 @@ public class RoleApplicationService {
     @Transactional
     public void deleteRole(TenantId tenantId, String roleId) {
         RoleId domainRoleId = toRoleId(roleId);
-        roleRepository.findRoleById(tenantId, domainRoleId)
+        roleRepository
+                .findRoleById(tenantId, domainRoleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         roleRepository.deleteRole(tenantId, domainRoleId);
     }
@@ -143,10 +167,11 @@ public class RoleApplicationService {
     }
 
     @Transactional
-    public Set<DepartmentId> assignDataScope(TenantId tenantId, String roleId, String dataScopeType, Set<String> departmentIds) {
+    public Set<DepartmentId> assignDataScope(
+            TenantId tenantId, String roleId, String dataScopeType, Set<String> departmentIds) {
         validateRequired(dataScopeType, "dataScopeType");
-        return roleRepository.assignDataScope(tenantId, toRoleId(roleId), toRoleDataScopeType(dataScopeType),
-                toDepartmentIds(departmentIds));
+        return roleRepository.assignDataScope(
+                tenantId, toRoleId(roleId), toRoleDataScopeType(dataScopeType), toDepartmentIds(departmentIds));
     }
 
     private RoleDTO toDto(Role role) {
@@ -154,7 +179,11 @@ public class RoleApplicationService {
     }
 
     private RoleDTO toDto(Role role, Long tenantIdValue) {
-        return new RoleDTO(role.getId() == null ? null : role.getId().value(), tenantIdValue, role.getCode(), role.getName(),
+        return new RoleDTO(
+                role.getId() == null ? null : role.getId().value(),
+                tenantIdValue,
+                role.getCode(),
+                role.getName(),
                 role.getRoleType() == null ? null : role.getRoleType().value(),
                 role.getDataScopeType() == null ? null : role.getDataScopeType().value(),
                 role.getStatus() == null ? null : role.getStatus().value());
@@ -189,27 +218,32 @@ public class RoleApplicationService {
         if (tenantId == null) {
             throw new IllegalArgumentException("tenantId must not be null");
         }
-        return tenantRepository.findTenantByTenantId(TenantId.of(tenantId))
+        return tenantRepository
+                .findTenantByTenantId(TenantId.of(tenantId))
                 .map(Tenant::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
     }
 
     private Set<DepartmentId> toDepartmentIds(Set<String> departmentIds) {
-        return departmentIds == null ? Set.of() : departmentIds.stream()
-                .map(String::trim)
-                .filter(value -> !value.isBlank())
-                .map(Long::parseLong)
-                .map(DepartmentId::of)
-                .collect(java.util.stream.Collectors.toSet());
+        return departmentIds == null
+                ? Set.of()
+                : departmentIds.stream()
+                        .map(String::trim)
+                        .filter(value -> !value.isBlank())
+                        .map(Long::parseLong)
+                        .map(DepartmentId::of)
+                        .collect(java.util.stream.Collectors.toSet());
     }
 
     private Set<MenuId> toMenuIds(Set<String> menuIds) {
-        return menuIds == null ? Set.of() : menuIds.stream()
-                .map(String::trim)
-                .filter(value -> !value.isBlank())
-                .map(Long::parseLong)
-                .map(MenuId::of)
-                .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+        return menuIds == null
+                ? Set.of()
+                : menuIds.stream()
+                        .map(String::trim)
+                        .filter(value -> !value.isBlank())
+                        .map(Long::parseLong)
+                        .map(MenuId::of)
+                        .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
     }
 
     private RoleId toRoleId(String roleId) {
@@ -223,5 +257,4 @@ public class RoleApplicationService {
         }
         return RoleId.of(roleId);
     }
-
 }

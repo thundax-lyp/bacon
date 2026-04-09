@@ -16,7 +16,7 @@ public record InventoryAuditReplayResultResponse(
         String message) {
 
     public static InventoryAuditReplayResultResponse from(InventoryAuditReplayResultDTO dto) {
-        return new InventoryAuditReplayResultResponse(dto.getDeadLetterId(), dto.getReplayStatus(), dto.getReplayKey(),
-                dto.getMessage());
+        return new InventoryAuditReplayResultResponse(
+                dto.getDeadLetterId(), dto.getReplayStatus(), dto.getReplayKey(), dto.getMessage());
     }
 }

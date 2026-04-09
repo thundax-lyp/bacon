@@ -41,9 +41,22 @@ public record SysLogResponse(
         Instant occurredAt) {
 
     public static SysLogResponse from(SysLogDTO dto) {
-        return new SysLogResponse(dto.getId(), dto.getTenantId(), dto.getTraceId(), dto.getRequestId(),
-                dto.getModule(), dto.getAction(), dto.getEventType(), dto.getResult(), dto.getOperatorId(),
-                dto.getOperatorName(), dto.getClientIp(), dto.getRequestUri(), dto.getHttpMethod(),
-                dto.getCostMs(), dto.getErrorMessage(), dto.getOccurredAt());
+        return new SysLogResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getTraceId(),
+                dto.getRequestId(),
+                dto.getModule(),
+                dto.getAction(),
+                dto.getEventType(),
+                dto.getResult(),
+                dto.getOperatorId(),
+                dto.getOperatorName(),
+                dto.getClientIp(),
+                dto.getRequestUri(),
+                dto.getHttpMethod(),
+                dto.getCostMs(),
+                dto.getErrorMessage(),
+                dto.getOccurredAt());
     }
 }

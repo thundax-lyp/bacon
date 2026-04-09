@@ -33,16 +33,18 @@ public class PaymentQueryController {
     @Operation(summary = "按支付单号查询支付单")
     @HasPermission("payment:payment:view")
     @GetMapping("/{paymentNo}")
-    public PaymentDetailResponse getByPaymentNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
-                                                @PathVariable("paymentNo") @NotBlank String paymentNo) {
+    public PaymentDetailResponse getByPaymentNo(
+            @RequestParam("tenantId") @NotNull @Positive Long tenantId,
+            @PathVariable("paymentNo") @NotBlank String paymentNo) {
         return PaymentDetailResponseAssembler.from(paymentQueryService.getByPaymentNo(tenantId, paymentNo));
     }
 
     @Operation(summary = "按订单号查询支付单")
     @HasPermission("payment:payment:view")
     @GetMapping
-    public PaymentDetailResponse getByOrderNo(@RequestParam("tenantId") @NotNull @Positive Long tenantId,
-                                              @RequestParam("orderNo") @NotBlank String orderNo) {
+    public PaymentDetailResponse getByOrderNo(
+            @RequestParam("tenantId") @NotNull @Positive Long tenantId,
+            @RequestParam("orderNo") @NotBlank String orderNo) {
         return PaymentDetailResponseAssembler.from(paymentQueryService.getByOrderNo(tenantId, orderNo));
     }
 }

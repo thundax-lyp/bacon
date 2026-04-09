@@ -1,11 +1,16 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleDataScopeRelDO;
@@ -27,11 +32,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class RolePersistenceSupportTest {
 
@@ -39,16 +39,22 @@ class RolePersistenceSupportTest {
 
     @Mock
     private RoleMapper roleMapper;
+
     @Mock
     private ResourceMapper resourceMapper;
+
     @Mock
     private UserRoleRelMapper userRoleRelMapper;
+
     @Mock
     private RoleMenuRelMapper roleMenuRelMapper;
+
     @Mock
     private RoleResourceRelMapper roleResourceRelMapper;
+
     @Mock
     private DataPermissionRuleMapper dataPermissionRuleMapper;
+
     @Mock
     private RoleDataScopeRelMapper roleDataScopeRelMapper;
 
@@ -56,8 +62,14 @@ class RolePersistenceSupportTest {
 
     @BeforeEach
     void setUp() {
-        support = new RolePersistenceSupport(roleMapper, resourceMapper, userRoleRelMapper, roleMenuRelMapper,
-                roleResourceRelMapper, dataPermissionRuleMapper, roleDataScopeRelMapper);
+        support = new RolePersistenceSupport(
+                roleMapper,
+                resourceMapper,
+                userRoleRelMapper,
+                roleMenuRelMapper,
+                roleResourceRelMapper,
+                dataPermissionRuleMapper,
+                roleDataScopeRelMapper);
     }
 
     @Test
@@ -66,29 +78,56 @@ class RolePersistenceSupportTest {
         ArgumentCaptor<RoleDataScopeRelDO> relationCaptor = ArgumentCaptor.forClass(RoleDataScopeRelDO.class);
         when(dataPermissionRuleMapper.selectOne(any(Wrapper.class))).thenReturn(null);
 
-        support.replaceRoleDataScope(TENANT_ID, RoleId.of(9L), RoleDataScopeType.CUSTOM,
-                Set.of(DepartmentId.of(11L), DepartmentId.of(12L)));
+        support.replaceRoleDataScope(
+                TENANT_ID, RoleId.of(9L), RoleDataScopeType.CUSTOM, Set.of(DepartmentId.of(11L), DepartmentId.of(12L)));
 
         verify(dataPermissionRuleMapper).insert(ruleCaptor.capture());
         verify(roleDataScopeRelMapper, Mockito.times(2)).insert(relationCaptor.capture());
         assertThat(ruleCaptor.getValue().getTenantId()).isEqualTo(TENANT_ID);
         assertThat(ruleCaptor.getValue().getRoleId()).isEqualTo(RoleId.of(9L));
         assertThat(ruleCaptor.getValue().getDataScopeType()).isEqualTo("CUSTOM");
-        assertThat(relationCaptor.getAllValues()).extracting(RoleDataScopeRelDO::getRoleId).containsOnly(RoleId.of(9L));
-        assertThat(relationCaptor.getAllValues()).extracting(RoleDataScopeRelDO::getDepartmentId)
+        assertThat(relationCaptor.getAllValues())
+                .extracting(RoleDataScopeRelDO::getRoleId)
+                .containsOnly(RoleId.of(9L));
+        assertThat(relationCaptor.getAllValues())
+                .extracting(RoleDataScopeRelDO::getDepartmentId)
                 .containsExactlyInAnyOrder(DepartmentId.of(11L), DepartmentId.of(12L));
     }
 
     @Test
     void shouldResolveAssignedResourceCodesFromRelationRows() {
-        when(roleResourceRelMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
-                new RoleResourceRelDO(1L, TENANT_ID, RoleId.of(9L), ResourceId.of(21L)),
-                new RoleResourceRelDO(2L, TENANT_ID, RoleId.of(9L), ResourceId.of(22L))));
-        when(resourceMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
-                new ResourceDO(ResourceId.of(21L), TENANT_ID, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE",
-                        null, null, null, null),
-                new ResourceDO(ResourceId.of(22L), TENANT_ID, "upms:user:edit", "User Edit", "API", "POST", "/users", "ACTIVE",
-                        null, null, null, null)));
+        when(roleResourceRelMapper.selectList(any(Wrapper.class)))
+                .thenReturn(List.of(
+                        new RoleResourceRelDO(1L, TENANT_ID, RoleId.of(9L), ResourceId.of(21L)),
+                        new RoleResourceRelDO(2L, TENANT_ID, RoleId.of(9L), ResourceId.of(22L))));
+        when(resourceMapper.selectList(any(Wrapper.class)))
+                .thenReturn(List.of(
+                        new ResourceDO(
+                                ResourceId.of(21L),
+                                TENANT_ID,
+                                "upms:user:view",
+                                "User View",
+                                "API",
+                                "GET",
+                                "/users",
+                                "ACTIVE",
+                                null,
+                                null,
+                                null,
+                                null),
+                        new ResourceDO(
+                                ResourceId.of(22L),
+                                TENANT_ID,
+                                "upms:user:edit",
+                                "User Edit",
+                                "API",
+                                "POST",
+                                "/users",
+                                "ACTIVE",
+                                null,
+                                null,
+                                null,
+                                null)));
 
         Set<String> assignedResourceCodes = support.getAssignedResourceCodes(TENANT_ID, RoleId.of(9L));
 
@@ -98,9 +137,20 @@ class RolePersistenceSupportTest {
     @Test
     void shouldPersistRoleResourceRelationsByResourceCode() {
         ArgumentCaptor<RoleResourceRelDO> captor = ArgumentCaptor.forClass(RoleResourceRelDO.class);
-        when(resourceMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
-                new ResourceDO(ResourceId.of(21L), TENANT_ID, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE",
-                        null, null, null, null)));
+        when(resourceMapper.selectList(any(Wrapper.class)))
+                .thenReturn(List.of(new ResourceDO(
+                        ResourceId.of(21L),
+                        TENANT_ID,
+                        "upms:user:view",
+                        "User View",
+                        "API",
+                        "GET",
+                        "/users",
+                        "ACTIVE",
+                        null,
+                        null,
+                        null,
+                        null)));
 
         support.replaceRoleResources(TENANT_ID, RoleId.of(9L), Set.of("upms:user:view"));
 

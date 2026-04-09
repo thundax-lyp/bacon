@@ -1,22 +1,25 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
+import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
-import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
-import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentAuditLogDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentCallbackRecordDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentOrderDO;
@@ -31,10 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 class PaymentRepositorySupportTest {
 
     @Test
@@ -44,13 +43,19 @@ class PaymentRepositorySupportTest {
                 createOrderMapper(insertedRef, null, null),
                 createCallbackMapper(null, null, null),
                 createAuditLogMapper(null, null),
-                createIdGenerator()
-        );
+                createIdGenerator());
 
-        PaymentOrder persisted = support.saveOrder(new PaymentOrder(null, TenantId.of(1001L), PaymentNo.of("PAY-10001"),
-                OrderNo.of("ORD-10001"), UserId.of(2001L),
-                PaymentChannelCode.MOCK, Money.of(new BigDecimal("88.80")), "strict-insert",
-                Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:00:00Z")));
+        PaymentOrder persisted = support.saveOrder(new PaymentOrder(
+                null,
+                TenantId.of(1001L),
+                PaymentNo.of("PAY-10001"),
+                OrderNo.of("ORD-10001"),
+                UserId.of(2001L),
+                PaymentChannelCode.MOCK,
+                Money.of(new BigDecimal("88.80")),
+                "strict-insert",
+                Instant.parse("2026-03-27T10:30:00Z"),
+                Instant.parse("2026-03-27T10:00:00Z")));
 
         assertNotNull(insertedRef.get());
         assertEquals("PAY-10001", insertedRef.get().getPaymentNo());
@@ -65,14 +70,25 @@ class PaymentRepositorySupportTest {
                 createOrderMapper(null, updatedRef, null),
                 createCallbackMapper(null, null, null),
                 createAuditLogMapper(null, null),
-                createIdGenerator()
-        );
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of(9001L), TenantId.of(1001L),
-                PaymentNo.of("PAY-10002"), OrderNo.of("ORD-10002"),
+                createIdGenerator());
+        PaymentOrder paymentOrder = PaymentOrder.rehydrate(
+                PaymentOrderId.of(9001L),
+                TenantId.of(1001L),
+                PaymentNo.of("PAY-10002"),
+                OrderNo.of("ORD-10002"),
                 UserId.of(2002L),
-                PaymentChannelCode.MOCK, Money.of(new BigDecimal("99.90")), Money.zero(), "strict-update",
-                Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
-                null, null, PaymentStatus.PAYING, null, null, null);
+                PaymentChannelCode.MOCK,
+                Money.of(new BigDecimal("99.90")),
+                Money.zero(),
+                "strict-update",
+                Instant.parse("2026-03-27T10:05:00Z"),
+                Instant.parse("2026-03-27T10:35:00Z"),
+                null,
+                null,
+                PaymentStatus.PAYING,
+                null,
+                null,
+                null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));
 
         PaymentOrder persisted = support.saveOrder(paymentOrder);
@@ -89,14 +105,25 @@ class PaymentRepositorySupportTest {
                 createOrderMapper(null, null, null, 0),
                 createCallbackMapper(null, null, null),
                 createAuditLogMapper(null, null),
-                createIdGenerator()
-        );
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(PaymentOrderId.of(9002L), TenantId.of(1001L),
-                PaymentNo.of("PAY-10009"), OrderNo.of("ORD-10009"),
+                createIdGenerator());
+        PaymentOrder paymentOrder = PaymentOrder.rehydrate(
+                PaymentOrderId.of(9002L),
+                TenantId.of(1001L),
+                PaymentNo.of("PAY-10009"),
+                OrderNo.of("ORD-10009"),
                 UserId.of(2009L),
-                PaymentChannelCode.MOCK, Money.of(new BigDecimal("66.00")), Money.zero(), "strict-conflict",
-                Instant.parse("2026-03-27T10:05:00Z"), Instant.parse("2026-03-27T10:35:00Z"),
-                null, null, PaymentStatus.PAYING, null, null, null);
+                PaymentChannelCode.MOCK,
+                Money.of(new BigDecimal("66.00")),
+                Money.zero(),
+                "strict-conflict",
+                Instant.parse("2026-03-27T10:05:00Z"),
+                Instant.parse("2026-03-27T10:35:00Z"),
+                null,
+                null,
+                PaymentStatus.PAYING,
+                null,
+                null,
+                null);
         paymentOrder.close(Instant.parse("2026-03-27T10:15:00Z"));
 
         PaymentDomainException ex = assertThrows(PaymentDomainException.class, () -> support.saveOrder(paymentOrder));
@@ -106,29 +133,63 @@ class PaymentRepositorySupportTest {
 
     @Test
     void shouldMapStrictReadModelsFromMappers() {
-        PaymentOrderDO orderDataObject = new PaymentOrderDO(9101L, 1001L, "PAY-10003", "ORD-10003", 2003L,
-                "MOCK", PaymentStatus.PAID.value(), new BigDecimal("128.00"), new BigDecimal("128.00"),
-                "strict-read", Instant.parse("2026-03-27T10:10:00Z"), Instant.parse("2026-03-27T10:11:00Z"),
-                Instant.parse("2026-03-27T10:40:00Z"), Instant.parse("2026-03-27T10:11:30Z"), null);
-        PaymentCallbackRecordDO callbackDataObject = new PaymentCallbackRecordDO(9201L, 1001L, "PAY-10003", "ORD-10003",
-                "MOCK", "TXN-10003", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}",
+        PaymentOrderDO orderDataObject = new PaymentOrderDO(
+                9101L,
+                1001L,
+                "PAY-10003",
+                "ORD-10003",
+                2003L,
+                "MOCK",
+                PaymentStatus.PAID.value(),
+                new BigDecimal("128.00"),
+                new BigDecimal("128.00"),
+                "strict-read",
+                Instant.parse("2026-03-27T10:10:00Z"),
+                Instant.parse("2026-03-27T10:11:00Z"),
+                Instant.parse("2026-03-27T10:40:00Z"),
+                Instant.parse("2026-03-27T10:11:30Z"),
+                null);
+        PaymentCallbackRecordDO callbackDataObject = new PaymentCallbackRecordDO(
+                9201L,
+                1001L,
+                "PAY-10003",
+                "ORD-10003",
+                "MOCK",
+                "TXN-10003",
+                "SUCCESS",
+                "{\"tradeStatus\":\"SUCCESS\"}",
                 Instant.parse("2026-03-27T10:11:20Z"));
-        PaymentAuditLogDO createLog = new PaymentAuditLogDO(9301L, 1001L, "PAY-10003", PaymentAuditActionType.CREATE.value(),
-                null, PaymentStatus.PAYING.value(), PaymentAuditOperatorType.SYSTEM.value(), "0",
+        PaymentAuditLogDO createLog = new PaymentAuditLogDO(
+                9301L,
+                1001L,
+                "PAY-10003",
+                PaymentAuditActionType.CREATE.value(),
+                null,
+                PaymentStatus.PAYING.value(),
+                PaymentAuditOperatorType.SYSTEM.value(),
+                "0",
                 Instant.parse("2026-03-27T10:10:00Z"));
-        PaymentAuditLogDO paidLog = new PaymentAuditLogDO(9302L, 1001L, "PAY-10003", PaymentAuditActionType.CALLBACK_PAID.value(),
-                PaymentStatus.PAYING.value(), PaymentStatus.PAID.value(), PaymentAuditOperatorType.CHANNEL.value(), "0",
+        PaymentAuditLogDO paidLog = new PaymentAuditLogDO(
+                9302L,
+                1001L,
+                "PAY-10003",
+                PaymentAuditActionType.CALLBACK_PAID.value(),
+                PaymentStatus.PAYING.value(),
+                PaymentStatus.PAID.value(),
+                PaymentAuditOperatorType.CHANNEL.value(),
+                "0",
                 Instant.parse("2026-03-27T10:11:30Z"));
 
         PaymentRepositorySupport support = new PaymentRepositorySupport(
                 createOrderMapper(null, null, orderDataObject),
                 createCallbackMapper(callbackDataObject, callbackDataObject, List.of(callbackDataObject)),
                 createAuditLogMapper(null, List.of(createLog, paidLog)),
-                createIdGenerator()
-        );
+                createIdGenerator());
 
-        PaymentOrder paymentOrder = support.findOrderByPaymentNo(1001L, "PAY-10003").orElseThrow();
-        PaymentCallbackRecord latestCallback = support.findLatestCallbackByPaymentNo(1001L, "PAY-10003").orElseThrow();
+        PaymentOrder paymentOrder =
+                support.findOrderByPaymentNo(1001L, "PAY-10003").orElseThrow();
+        PaymentCallbackRecord latestCallback =
+                support.findLatestCallbackByPaymentNo(1001L, "PAY-10003").orElseThrow();
         List<PaymentAuditLog> auditLogs = support.findAuditLogsByPaymentNo(1001L, "PAY-10003");
 
         assertEquals(PaymentStatus.PAID.value(), paymentOrder.getPaymentStatus().value());
@@ -139,19 +200,23 @@ class PaymentRepositorySupportTest {
     }
 
     @SuppressWarnings("unchecked")
-    private PaymentOrderMapper createOrderMapper(AtomicReference<PaymentOrderDO> insertedRef,
-                                                 AtomicReference<PaymentOrderDO> updatedRef,
-                                                 PaymentOrderDO selectedOrder) {
+    private PaymentOrderMapper createOrderMapper(
+            AtomicReference<PaymentOrderDO> insertedRef,
+            AtomicReference<PaymentOrderDO> updatedRef,
+            PaymentOrderDO selectedOrder) {
         return createOrderMapper(insertedRef, updatedRef, selectedOrder, 1);
     }
 
     @SuppressWarnings("unchecked")
-    private PaymentOrderMapper createOrderMapper(AtomicReference<PaymentOrderDO> insertedRef,
-                                                 AtomicReference<PaymentOrderDO> updatedRef,
-                                                 PaymentOrderDO selectedOrder,
-                                                 int updateRows) {
-        return (PaymentOrderMapper) Proxy.newProxyInstance(PaymentOrderMapper.class.getClassLoader(),
-                new Class[]{PaymentOrderMapper.class}, (proxy, method, args) -> {
+    private PaymentOrderMapper createOrderMapper(
+            AtomicReference<PaymentOrderDO> insertedRef,
+            AtomicReference<PaymentOrderDO> updatedRef,
+            PaymentOrderDO selectedOrder,
+            int updateRows) {
+        return (PaymentOrderMapper) Proxy.newProxyInstance(
+                PaymentOrderMapper.class.getClassLoader(),
+                new Class[] {PaymentOrderMapper.class},
+                (proxy, method, args) -> {
                     if ("insert".equals(method.getName())) {
                         PaymentOrderDO dataObject = (PaymentOrderDO) args[0];
                         dataObject.setId(8001L);
@@ -172,12 +237,15 @@ class PaymentRepositorySupportTest {
     }
 
     @SuppressWarnings("unchecked")
-    private PaymentCallbackRecordMapper createCallbackMapper(PaymentCallbackRecordDO singleSelected,
-                                                             PaymentCallbackRecordDO transactionSelected,
-                                                             List<PaymentCallbackRecordDO> listSelected) {
+    private PaymentCallbackRecordMapper createCallbackMapper(
+            PaymentCallbackRecordDO singleSelected,
+            PaymentCallbackRecordDO transactionSelected,
+            List<PaymentCallbackRecordDO> listSelected) {
         AtomicInteger selectListCalls = new AtomicInteger(0);
-        return (PaymentCallbackRecordMapper) Proxy.newProxyInstance(PaymentCallbackRecordMapper.class.getClassLoader(),
-                new Class[]{PaymentCallbackRecordMapper.class}, (proxy, method, args) -> {
+        return (PaymentCallbackRecordMapper) Proxy.newProxyInstance(
+                PaymentCallbackRecordMapper.class.getClassLoader(),
+                new Class[] {PaymentCallbackRecordMapper.class},
+                (proxy, method, args) -> {
                     if ("insert".equals(method.getName())) {
                         PaymentCallbackRecordDO dataObject = (PaymentCallbackRecordDO) args[0];
                         return 1;
@@ -202,10 +270,12 @@ class PaymentRepositorySupportTest {
     }
 
     @SuppressWarnings("unchecked")
-    private PaymentAuditLogMapper createAuditLogMapper(AtomicReference<PaymentAuditLogDO> insertedRef,
-                                                       List<PaymentAuditLogDO> selectedLogs) {
-        return (PaymentAuditLogMapper) Proxy.newProxyInstance(PaymentAuditLogMapper.class.getClassLoader(),
-                new Class[]{PaymentAuditLogMapper.class}, (proxy, method, args) -> {
+    private PaymentAuditLogMapper createAuditLogMapper(
+            AtomicReference<PaymentAuditLogDO> insertedRef, List<PaymentAuditLogDO> selectedLogs) {
+        return (PaymentAuditLogMapper) Proxy.newProxyInstance(
+                PaymentAuditLogMapper.class.getClassLoader(),
+                new Class[] {PaymentAuditLogMapper.class},
+                (proxy, method, args) -> {
                     if ("insert".equals(method.getName())) {
                         PaymentAuditLogDO dataObject = (PaymentAuditLogDO) args[0];
                         if (insertedRef != null) {

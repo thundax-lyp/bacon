@@ -50,9 +50,8 @@ public class CacheVerificationCodeServiceImpl implements VerificationCodeService
         if (length <= 0) {
             throw new BadRequestException("Verification code length must be greater than zero");
         }
-        LineCaptcha captcha = createLineCaptcha(
-                length, DEFAULT_CAPTCHA_WIDTH, DEFAULT_CAPTCHA_HEIGHT, DEFAULT_INTERFERE_COUNT
-        );
+        LineCaptcha captcha =
+                createLineCaptcha(length, DEFAULT_CAPTCHA_WIDTH, DEFAULT_CAPTCHA_HEIGHT, DEFAULT_INTERFERE_COUNT);
         String code = captcha.getCode();
         saveCode(scene, target, code, ttl);
         return code;
@@ -60,13 +59,19 @@ public class CacheVerificationCodeServiceImpl implements VerificationCodeService
 
     @Override
     public VerificationCodeImage generateImageCode(String scene, String target) {
-        return generateImageCode(scene, target, DEFAULT_CAPTCHA_WIDTH, DEFAULT_CAPTCHA_HEIGHT,
-                DEFAULT_CODE_LENGTH, DEFAULT_INTERFERE_COUNT, DEFAULT_TTL);
+        return generateImageCode(
+                scene,
+                target,
+                DEFAULT_CAPTCHA_WIDTH,
+                DEFAULT_CAPTCHA_HEIGHT,
+                DEFAULT_CODE_LENGTH,
+                DEFAULT_INTERFERE_COUNT,
+                DEFAULT_TTL);
     }
 
     @Override
-    public VerificationCodeImage generateImageCode(String scene, String target, int width, int height, int length,
-                                                   int interfereCount, Duration ttl) {
+    public VerificationCodeImage generateImageCode(
+            String scene, String target, int width, int height, int length, int interfereCount, Duration ttl) {
         if (width <= 0 || height <= 0) {
             throw new BadRequestException("Verification code image size must be greater than zero");
         }
@@ -132,9 +137,8 @@ public class CacheVerificationCodeServiceImpl implements VerificationCodeService
         if (length <= 0) {
             throw new BadRequestException("Verification code length must be greater than zero");
         }
-        LineCaptcha captcha = CaptchaUtil.createLineCaptcha(
-                width, height, new RandomGenerator(NUMBERS, length), interfereCount
-        );
+        LineCaptcha captcha =
+                CaptchaUtil.createLineCaptcha(width, height, new RandomGenerator(NUMBERS, length), interfereCount);
         captcha.createCode();
         return captcha;
     }

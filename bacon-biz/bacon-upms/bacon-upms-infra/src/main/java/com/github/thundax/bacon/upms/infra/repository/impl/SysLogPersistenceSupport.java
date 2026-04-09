@@ -34,13 +34,19 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Optional<SysLogRecord> findSysLogById(Long logId) {
-        return Optional.ofNullable(sysLogRecordMapper.selectById(logId))
-                .map(this::toDomain);
+        return Optional.ofNullable(sysLogRecordMapper.selectById(logId)).map(this::toDomain);
     }
 
-    List<SysLogRecord> listSysLogs(Long tenantId, String module, String eventType, String result,
-                                   String operatorName, int pageNo, int pageSize) {
-        return sysLogRecordMapper.selectList(Wrappers.<SysLogRecordDO>lambdaQuery()
+    List<SysLogRecord> listSysLogs(
+            Long tenantId,
+            String module,
+            String eventType,
+            String result,
+            String operatorName,
+            int pageNo,
+            int pageSize) {
+        return sysLogRecordMapper
+                .selectList(Wrappers.<SysLogRecordDO>lambdaQuery()
                         .eq(tenantId != null, SysLogRecordDO::getTenantId, tenantId)
                         .eq(hasText(module), SysLogRecordDO::getModule, trim(module))
                         .eq(hasText(eventType), SysLogRecordDO::getEventType, trim(eventType))

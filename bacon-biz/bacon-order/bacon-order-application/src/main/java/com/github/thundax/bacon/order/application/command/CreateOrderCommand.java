@@ -10,6 +10,4 @@ public record CreateOrderCommand(
         String channelCode,
         String remark,
         Instant expiredAt,
-        List<CreateOrderItemCommand> items
-) {
-}
+        List<CreateOrderItemCommand> items) {}

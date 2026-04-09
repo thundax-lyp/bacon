@@ -15,21 +15,17 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 class BaconLogAutoConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(
-                    BaconMqAutoConfiguration.class,
-                    BaconLogAutoConfiguration.class));
+            .withConfiguration(AutoConfigurations.of(BaconMqAutoConfiguration.class, BaconLogAutoConfiguration.class));
 
     @Test
     void shouldRegisterMqSysLogProducerWhenMqSenderFallsBackToNoOp() {
-        contextRunner
-                .withPropertyValues("bacon.mq.enabled=false")
-                .run(context -> {
+        contextRunner.withPropertyValues("bacon.mq.enabled=false").run(context -> {
             assertThat(context).hasSingleBean(BaconMqSender.class);
             assertThat(context.getBean(BaconMqSender.class)).isInstanceOf(NoOpBaconMqSender.class);
             assertThat(context).hasSingleBean(MqSysLogMessageProducer.class);
             assertThat(context.getBean(SysLogMessageProducer.class)).isInstanceOf(MqSysLogMessageProducer.class);
             assertThat(context).hasBean("noOpSysLogMessageProducer");
             assertThat(context.getBean("noOpSysLogMessageProducer")).isInstanceOf(NoOpSysLogMessageProducer.class);
-                });
+        });
     }
 }

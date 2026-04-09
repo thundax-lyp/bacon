@@ -21,25 +21,24 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Optional<Tenant> findTenantById(TenantId tenantId) {
-        return Optional.ofNullable(tenantId)
-                .map(tenantMapper::selectById)
-                .map(this::toDomain);
+        return Optional.ofNullable(tenantId).map(tenantMapper::selectById).map(this::toDomain);
     }
 
     Optional<Tenant> findTenantByTenantId(TenantId tenantId) {
-        return Optional.ofNullable(tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(TenantDO::getId, tenantId)))
+        return Optional.ofNullable(
+                        tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery().eq(TenantDO::getId, tenantId)))
                 .map(this::toDomain);
     }
 
     Optional<Tenant> findTenantByCode(String tenantCode) {
-        return Optional.ofNullable(tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(TenantDO::getCode, trim(tenantCode))))
+        return Optional.ofNullable(tenantMapper.selectOne(
+                        Wrappers.<TenantDO>lambdaQuery().eq(TenantDO::getCode, trim(tenantCode))))
                 .map(this::toDomain);
     }
 
     List<Tenant> listTenants(TenantId tenantId, String name, String status, int pageNo, int pageSize) {
-        return tenantMapper.selectList(Wrappers.<TenantDO>lambdaQuery()
+        return tenantMapper
+                .selectList(Wrappers.<TenantDO>lambdaQuery()
                         .eq(tenantId != null, TenantDO::getId, tenantId)
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))

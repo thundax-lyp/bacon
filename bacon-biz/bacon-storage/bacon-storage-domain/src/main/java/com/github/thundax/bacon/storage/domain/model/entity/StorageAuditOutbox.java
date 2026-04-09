@@ -32,22 +32,59 @@ public class StorageAuditOutbox {
     private final Instant nextRetryAt;
     private final Instant updatedAt;
 
-    public StorageAuditOutbox(Long id, Long tenantId, Long objectId, String ownerType, String ownerId,
-                              StorageAuditActionType actionType, String beforeStatus, String afterStatus,
-                              String operatorType, Long operatorId, Instant occurredAt, String errorMessage,
-                              StorageAuditOutboxStatus status, Integer retryCount, Instant nextRetryAt,
-                              Instant updatedAt) {
-        this(id,
+    public StorageAuditOutbox(
+            Long id,
+            Long tenantId,
+            Long objectId,
+            String ownerType,
+            String ownerId,
+            StorageAuditActionType actionType,
+            String beforeStatus,
+            String afterStatus,
+            String operatorType,
+            Long operatorId,
+            Instant occurredAt,
+            String errorMessage,
+            StorageAuditOutboxStatus status,
+            Integer retryCount,
+            Instant nextRetryAt,
+            Instant updatedAt) {
+        this(
+                id,
                 tenantId == null ? null : TenantId.of(tenantId),
                 objectId == null ? null : StoredObjectId.of(objectId),
-                ownerType, ownerId, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt,
-                errorMessage, status, retryCount, nextRetryAt, updatedAt);
+                ownerType,
+                ownerId,
+                actionType,
+                beforeStatus,
+                afterStatus,
+                operatorType,
+                operatorId,
+                occurredAt,
+                errorMessage,
+                status,
+                retryCount,
+                nextRetryAt,
+                updatedAt);
     }
 
     public static StorageAuditOutbox newEvent(StorageAuditLog auditLog, String errorMessage, Instant now) {
-        return new StorageAuditOutbox(null, auditLog.getTenantId(), auditLog.getObjectId(), auditLog.getOwnerType(),
-                auditLog.getOwnerId(), auditLog.getActionType(), auditLog.getBeforeStatus(), auditLog.getAfterStatus(),
-                auditLog.getOperatorType(), auditLog.getOperatorId(), auditLog.getOccurredAt(), errorMessage,
-                StorageAuditOutboxStatus.NEW, 0, now, now);
+        return new StorageAuditOutbox(
+                null,
+                auditLog.getTenantId(),
+                auditLog.getObjectId(),
+                auditLog.getOwnerType(),
+                auditLog.getOwnerId(),
+                auditLog.getActionType(),
+                auditLog.getBeforeStatus(),
+                auditLog.getAfterStatus(),
+                auditLog.getOperatorType(),
+                auditLog.getOperatorId(),
+                auditLog.getOccurredAt(),
+                errorMessage,
+                StorageAuditOutboxStatus.NEW,
+                0,
+                now,
+                now);
     }
 }

@@ -41,8 +41,7 @@ class RedisAutoConfigurationTest {
     private RedisConnectionFactory createRedisConnectionFactory() {
         return (RedisConnectionFactory) Proxy.newProxyInstance(
                 RedisConnectionFactory.class.getClassLoader(),
-                new Class[]{RedisConnectionFactory.class},
-                (proxy, method, args) -> null
-        );
+                new Class[] {RedisConnectionFactory.class},
+                (proxy, method, args) -> null);
     }
 }

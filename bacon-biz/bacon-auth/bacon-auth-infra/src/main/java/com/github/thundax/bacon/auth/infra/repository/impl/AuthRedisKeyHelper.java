@@ -2,8 +2,7 @@ package com.github.thundax.bacon.auth.infra.repository.impl;
 
 final class AuthRedisKeyHelper {
 
-    private AuthRedisKeyHelper() {
-    }
+    private AuthRedisKeyHelper() {}
 
     static String session(String sessionId) {
         return "auth:session:" + sessionId;

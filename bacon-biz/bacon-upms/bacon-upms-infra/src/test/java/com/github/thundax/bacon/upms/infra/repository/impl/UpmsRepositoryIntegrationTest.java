@@ -1,15 +1,20 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
-import com.baomidou.mybatisplus.core.MybatisConfiguration;
-import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.alicp.jetcache.Cache;
+import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
-import com.github.thundax.bacon.common.id.domain.ResourceId;
+import com.github.thundax.bacon.common.id.core.DefaultIds;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
@@ -18,18 +23,17 @@ import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
-import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
-import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
-import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
-import com.github.thundax.bacon.common.id.core.DefaultIds;
-import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -51,8 +55,8 @@ import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleDataScopeRelMa
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMenuRelMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleResourceRelMapper;
-import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
+import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
 import java.sql.Connection;
@@ -71,12 +75,6 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UpmsRepositoryIntegrationTest {
 
@@ -98,7 +96,8 @@ class UpmsRepositoryIntegrationTest {
 
     @BeforeEach
     void setUpSchema() throws Exception {
-        try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
+        try (Connection connection = dataSource.getConnection();
+                Statement statement = connection.createStatement()) {
             statement.execute("DROP TABLE IF EXISTS bacon_upms_role_data_scope_rel");
             statement.execute("DROP TABLE IF EXISTS bacon_upms_data_permission_rule");
             statement.execute("DROP TABLE IF EXISTS bacon_upms_role_resource_rel");
@@ -112,7 +111,8 @@ class UpmsRepositoryIntegrationTest {
             statement.execute("DROP TABLE IF EXISTS bacon_upms_user");
             statement.execute("DROP TABLE IF EXISTS bacon_upms_department");
 
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_department (
                         id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
@@ -129,7 +129,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_user (
                         id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
@@ -145,7 +146,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_user_identity (
                         id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
@@ -160,7 +162,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_user_credential (
                         id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
@@ -184,7 +187,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_role (
                         id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
@@ -200,7 +204,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_menu (
                         id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
@@ -215,7 +220,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_resource (
                         id varchar(64) NOT NULL,
                         tenant_id varchar(64) NOT NULL,
@@ -232,7 +238,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_user_role_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
@@ -241,7 +248,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_role_menu_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
@@ -250,7 +258,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_role_resource_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
@@ -259,7 +268,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_data_permission_rule (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
@@ -272,7 +282,8 @@ class UpmsRepositoryIntegrationTest {
                         PRIMARY KEY (id)
                     )
                     """);
-            statement.execute("""
+            statement.execute(
+                    """
                     CREATE TABLE bacon_upms_role_data_scope_rel (
                         id bigint NOT NULL AUTO_INCREMENT,
                         tenant_id varchar(64) NOT NULL,
@@ -291,9 +302,9 @@ class UpmsRepositoryIntegrationTest {
 
     private boolean isUserDeleted(String userId) {
         try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(
-                     "SELECT deleted FROM bacon_upms_user WHERE id = '" + userId + "'")) {
+                Statement statement = connection.createStatement();
+                ResultSet resultSet =
+                        statement.executeQuery("SELECT deleted FROM bacon_upms_user WHERE id = '" + userId + "'")) {
             if (!resultSet.next()) {
                 return false;
             }
@@ -305,38 +316,116 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
-        Department rootDepartment = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Headquarters",
-                null, null, 1, DepartmentStatus.ENABLED, null, null, null, null));
-        Department childDepartment = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                rootDepartment.getId(), null, 2, DepartmentStatus.ENABLED, null, null, null, null));
-        Menu rootMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
-        Menu childMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Users", rootMenu.getId(), "/system/users", "UserPage", "user", 2, "upms:user:view", List.of()));
-        Resource resource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:user:edit", "Edit User",
-                ResourceType.API, "POST", "/users", ResourceStatus.ENABLED, null, null, null, null));
-        Role role = roleRepository.save(new Role(null, TENANT_ID, "ADMIN", "Administrator",
-                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED, null, null, null, null));
-        User user = userRepository.save(new User(null, TENANT_ID, "Alice", StoredObjectId.of(901L),
-                childDepartment.getId(), UserStatus.ENABLED, null, null, null, null),
-                "alice", "13800000001");
+        Department rootDepartment = departmentRepository.save(new Department(
+                HEADQUARTERS_DEPARTMENT_ID,
+                TENANT_ID,
+                "ROOT",
+                "Headquarters",
+                null,
+                null,
+                1,
+                DepartmentStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        Department childDepartment = departmentRepository.save(new Department(
+                OPERATIONS_DEPARTMENT_ID,
+                TENANT_ID,
+                "OPS",
+                "Operations",
+                rootDepartment.getId(),
+                null,
+                2,
+                DepartmentStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        Menu rootMenu = menuRepository.save(new Menu(
+                null, TENANT_ID, "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
+        Menu childMenu = menuRepository.save(new Menu(
+                null,
+                TENANT_ID,
+                "MENU",
+                "Users",
+                rootMenu.getId(),
+                "/system/users",
+                "UserPage",
+                "user",
+                2,
+                "upms:user:view",
+                List.of()));
+        Resource resource = resourceRepository.save(new Resource(
+                null,
+                TENANT_ID,
+                "upms:user:edit",
+                "Edit User",
+                ResourceType.API,
+                "POST",
+                "/users",
+                ResourceStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        Role role = roleRepository.save(new Role(
+                null,
+                TENANT_ID,
+                "ADMIN",
+                "Administrator",
+                RoleType.SYSTEM_ROLE,
+                RoleDataScopeType.SELF,
+                RoleStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        User user = userRepository.save(
+                new User(
+                        null,
+                        TENANT_ID,
+                        "Alice",
+                        StoredObjectId.of(901L),
+                        childDepartment.getId(),
+                        UserStatus.ENABLED,
+                        null,
+                        null,
+                        null,
+                        null),
+                "alice",
+                "13800000001");
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(resource.getCode()));
-        roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM,
+        roleRepository.assignDataScope(
+                TENANT_ID,
+                role.getId(),
+                RoleDataScopeType.CUSTOM,
                 Set.of(rootDepartment.getId(), childDepartment.getId()));
         userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));
 
         assertEquals(1, permissionRepository.listMenus(TENANT_ID).size());
 
-        User persistedUser = userRepository.findUserByAccount(TENANT_ID, "alice").orElseThrow();
+        User persistedUser =
+                userRepository.findUserByAccount(TENANT_ID, "alice").orElseThrow();
         assertNotNull(persistedUser.getId());
         assertTrue(persistedUser.getId().value() > 0);
         assertEquals(StoredObjectId.of(901L), persistedUser.getAvatarObjectId());
-        assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice").isPresent());
-        assertNotNull(userRepository.findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD)
-                .orElseThrow().getCredentialValue());
-        assertTrue(userRepository.findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD).orElseThrow()
+        assertTrue(userRepository
+                .findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice")
+                .isPresent());
+        assertNotNull(userRepository
+                .findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD)
+                .orElseThrow()
+                .getCredentialValue());
+        assertTrue(userRepository
+                .findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD)
+                .orElseThrow()
                 .isNeedChangePassword());
-        assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000001").isPresent());
+        assertTrue(userRepository
+                .findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000001")
+                .isPresent());
         assertEquals(1L, userRepository.countUsers(TENANT_ID, "ali", null, null, "ENABLED"));
 
         List<Menu> menuTree = permissionRepository.getUserMenuTree(TENANT_ID, user.getId());
@@ -349,91 +438,226 @@ class UpmsRepositoryIntegrationTest {
         assertTrue(permissionCodes.contains("upms:user:view"));
         assertTrue(permissionCodes.contains("upms:user:edit"));
         assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(TENANT_ID, user.getId()));
-        assertEquals(Set.of(rootDepartment.getId(), childDepartment.getId()),
+        assertEquals(
+                Set.of(rootDepartment.getId(), childDepartment.getId()),
                 permissionRepository.getUserDepartmentIds(TENANT_ID, user.getId()));
         assertFalse(permissionRepository.hasAllAccess(TENANT_ID, user.getId()));
     }
 
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
-        Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                null, null, 1, DepartmentStatus.ENABLED, null, null, null, null));
-        Role role = roleRepository.save(new Role(null, TENANT_ID, "OPS_ADMIN", "Ops Admin",
-                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED, null, null, null, null));
-        User createdUser = userRepository.save(new User(null, TENANT_ID, "Bob", StoredObjectId.of(1001L),
-                department.getId(), UserStatus.ENABLED, null, null, null, null),
-                "bob", "13800000002");
+        Department department = departmentRepository.save(new Department(
+                OPERATIONS_DEPARTMENT_ID,
+                TENANT_ID,
+                "OPS",
+                "Operations",
+                null,
+                null,
+                1,
+                DepartmentStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        Role role = roleRepository.save(new Role(
+                null,
+                TENANT_ID,
+                "OPS_ADMIN",
+                "Ops Admin",
+                RoleType.SYSTEM_ROLE,
+                RoleDataScopeType.SELF,
+                RoleStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        User createdUser = userRepository.save(
+                new User(
+                        null,
+                        TENANT_ID,
+                        "Bob",
+                        StoredObjectId.of(1001L),
+                        department.getId(),
+                        UserStatus.ENABLED,
+                        null,
+                        null,
+                        null,
+                        null),
+                "bob",
+                "13800000002");
 
         userRepository.assignRoles(TENANT_ID, createdUser.getId(), List.of(role.getId()));
-        User updatedUser = userRepository.save(new User(createdUser.getId(), TENANT_ID, "Bob", StoredObjectId.of(1002L),
-                department.getId(), UserStatus.ENABLED, null, null, null, null), "bob", "13900000003");
+        User updatedUser = userRepository.save(
+                new User(
+                        createdUser.getId(),
+                        TENANT_ID,
+                        "Bob",
+                        StoredObjectId.of(1002L),
+                        department.getId(),
+                        UserStatus.ENABLED,
+                        null,
+                        null,
+                        null,
+                        null),
+                "bob",
+                "13900000003");
 
-        assertFalse(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000002").isPresent());
-        assertTrue(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13900000003").isPresent());
-        assertNotNull(userRepository.findUserCredential(TENANT_ID, updatedUser.getId(), UserCredentialType.PASSWORD)
-                .orElseThrow().getCredentialValue());
-        assertEquals(StoredObjectId.of(1002L),
-                userRepository.findUserById(TENANT_ID, updatedUser.getId()).orElseThrow().getAvatarObjectId());
+        assertFalse(userRepository
+                .findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000002")
+                .isPresent());
+        assertTrue(userRepository
+                .findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13900000003")
+                .isPresent());
+        assertNotNull(userRepository
+                .findUserCredential(TENANT_ID, updatedUser.getId(), UserCredentialType.PASSWORD)
+                .orElseThrow()
+                .getCredentialValue());
+        assertEquals(
+                StoredObjectId.of(1002L),
+                userRepository
+                        .findUserById(TENANT_ID, updatedUser.getId())
+                        .orElseThrow()
+                        .getAvatarObjectId());
         assertTrue(departmentRepository.existsUserInDepartment(TENANT_ID, department.getId()));
 
         userRepository.deleteUser(TENANT_ID, updatedUser.getId());
 
         assertFalse(userRepository.findUserById(TENANT_ID, updatedUser.getId()).isPresent());
-        assertFalse(userRepository.findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "bob").isPresent());
-        assertTrue(roleRepository.findRolesByUserId(TENANT_ID, updatedUser.getId()).isEmpty());
+        assertFalse(userRepository
+                .findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "bob")
+                .isPresent());
+        assertTrue(
+                roleRepository.findRolesByUserId(TENANT_ID, updatedUser.getId()).isEmpty());
         assertFalse(departmentRepository.existsUserInDepartment(TENANT_ID, department.getId()));
         assertTrue(isUserDeleted(String.valueOf(updatedUser.getId().value())));
     }
 
     @Test
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
-        Department department = departmentRepository.save(new Department(OPERATIONS_DEPARTMENT_ID, TENANT_ID, "OPS", "Operations",
-                null, null, 1, DepartmentStatus.ENABLED, null, null, null, null));
-        User createdUser = userRepository.save(new User(null, TENANT_ID, "Carol", null, department.getId(),
-                UserStatus.ENABLED, null, null, null, null),
-                "carol", "13600000001");
+        Department department = departmentRepository.save(new Department(
+                OPERATIONS_DEPARTMENT_ID,
+                TENANT_ID,
+                "OPS",
+                "Operations",
+                null,
+                null,
+                1,
+                DepartmentStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        User createdUser = userRepository.save(
+                new User(
+                        null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED, null, null, null, null),
+                "carol",
+                "13600000001");
 
-        String originalPasswordHash = userRepository.findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
+        String originalPasswordHash = userRepository
+                .findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue();
 
         User updatedUser = userRepository.updatePassword(TENANT_ID, createdUser.getId(), "654321", false);
 
-        String updatedPasswordHash = userRepository.findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
+        String updatedPasswordHash = userRepository
+                .findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue();
         assertNotEquals(originalPasswordHash, updatedPasswordHash);
-        assertFalse(userRepository.findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD).orElseThrow()
+        assertFalse(userRepository
+                .findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
+                .orElseThrow()
                 .isNeedChangePassword());
     }
 
     @Test
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
-        Department root = departmentRepository.save(new Department(HEADQUARTERS_DEPARTMENT_ID, TENANT_ID, "ROOT", "Root",
-                null, null, 1, DepartmentStatus.ENABLED, null, null, null, null));
-        Department child = departmentRepository.save(new Department(CHILD_DEPARTMENT_ID, TENANT_ID, "CHILD", "Child",
-                root.getId(), null, 2, DepartmentStatus.ENABLED, null, null, null, null));
-        Menu oldMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
-        Menu newMenu = menuRepository.save(new Menu(null, TENANT_ID, "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
-        Resource oldResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:old:edit", "Old Edit",
-                ResourceType.API, "POST", "/old", ResourceStatus.ENABLED, null, null, null, null));
-        Resource newResource = resourceRepository.save(new Resource(null, TENANT_ID, "upms:new:edit", "New Edit",
-                ResourceType.API, "PUT", "/new", ResourceStatus.ENABLED, null, null, null, null));
-        Role role = roleRepository.save(new Role(null, TENANT_ID, "MANAGER", "Manager",
-                RoleType.SYSTEM_ROLE, RoleDataScopeType.SELF, RoleStatus.ENABLED, null, null, null, null));
+        Department root = departmentRepository.save(new Department(
+                HEADQUARTERS_DEPARTMENT_ID,
+                TENANT_ID,
+                "ROOT",
+                "Root",
+                null,
+                null,
+                1,
+                DepartmentStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        Department child = departmentRepository.save(new Department(
+                CHILD_DEPARTMENT_ID,
+                TENANT_ID,
+                "CHILD",
+                "Child",
+                root.getId(),
+                null,
+                2,
+                DepartmentStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        Menu oldMenu = menuRepository.save(new Menu(
+                null, TENANT_ID, "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
+        Menu newMenu = menuRepository.save(new Menu(
+                null, TENANT_ID, "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
+        Resource oldResource = resourceRepository.save(new Resource(
+                null,
+                TENANT_ID,
+                "upms:old:edit",
+                "Old Edit",
+                ResourceType.API,
+                "POST",
+                "/old",
+                ResourceStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        Resource newResource = resourceRepository.save(new Resource(
+                null,
+                TENANT_ID,
+                "upms:new:edit",
+                "New Edit",
+                ResourceType.API,
+                "PUT",
+                "/new",
+                ResourceStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
+        Role role = roleRepository.save(new Role(
+                null,
+                TENANT_ID,
+                "MANAGER",
+                "Manager",
+                RoleType.SYSTEM_ROLE,
+                RoleDataScopeType.SELF,
+                RoleStatus.ENABLED,
+                null,
+                null,
+                null,
+                null));
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(oldMenu.getId()));
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(oldResource.getCode()));
         roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
-        User user = userRepository.save(new User(null, TENANT_ID, "Manager", null, child.getId(),
-                UserStatus.ENABLED, null, null, null, null),
-                "manager", "13700000001");
+        User user = userRepository.save(
+                new User(null, TENANT_ID, "Manager", null, child.getId(), UserStatus.ENABLED, null, null, null, null),
+                "manager",
+                "13700000001");
         userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));
 
-        assertEquals(Set.of("upms:old:view", "upms:old:edit"), permissionRepository.getUserPermissionCodes(TENANT_ID, user.getId()));
+        assertEquals(
+                Set.of("upms:old:view", "upms:old:edit"),
+                permissionRepository.getUserPermissionCodes(TENANT_ID, user.getId()));
         assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(TENANT_ID, user.getId()));
-        assertEquals(1, permissionRepository.getUserMenuTree(TENANT_ID, user.getId()).size());
+        assertEquals(
+                1, permissionRepository.getUserMenuTree(TENANT_ID, user.getId()).size());
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(newMenu.getId()));
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(newResource.getCode()));
@@ -443,10 +667,13 @@ class UpmsRepositoryIntegrationTest {
         assertEquals(Set.of(newResource.getCode()), roleRepository.getAssignedResources(TENANT_ID, role.getId()));
         assertEquals("ALL", roleRepository.getAssignedDataScopeType(TENANT_ID, role.getId()));
         assertEquals(Set.of(child.getId()), roleRepository.getAssignedDataScopeDepartments(TENANT_ID, role.getId()));
-        assertEquals(Set.of("upms:new:view", "upms:new:edit"), permissionRepository.getUserPermissionCodes(TENANT_ID, user.getId()));
+        assertEquals(
+                Set.of("upms:new:view", "upms:new:edit"),
+                permissionRepository.getUserPermissionCodes(TENANT_ID, user.getId()));
         assertEquals(Set.of("ALL"), permissionRepository.getUserScopeTypes(TENANT_ID, user.getId()));
         assertTrue(departmentRepository.existsChildDepartment(TENANT_ID, root.getId()));
-        assertEquals(Set.of(root.getId(), child.getId()),
+        assertEquals(
+                Set.of(root.getId(), child.getId()),
                 departmentRepository.listDepartmentsByIds(TENANT_ID, Set.of(root.getId(), child.getId())).stream()
                         .map(Department::getId)
                         .collect(java.util.stream.Collectors.toSet()));
@@ -456,7 +683,9 @@ class UpmsRepositoryIntegrationTest {
 
         assertTrue(roleRepository.getAssignedMenus(TENANT_ID, role.getId()).isEmpty());
         assertTrue(roleRepository.getAssignedResources(TENANT_ID, role.getId()).isEmpty());
-        assertTrue(permissionRepository.getUserPermissionCodes(TENANT_ID, user.getId()).isEmpty());
+        assertTrue(permissionRepository
+                .getUserPermissionCodes(TENANT_ID, user.getId())
+                .isEmpty());
         assertNotEquals(oldMenu.getId(), newMenu.getId());
         assertNotEquals(oldResource.getId(), newResource.getId());
     }
@@ -485,8 +714,11 @@ class UpmsRepositoryIntegrationTest {
             configuration.getTypeHandlerRegistry().register(DepartmentId.class, DepartmentIdTypeHandler.class);
             configuration.getTypeHandlerRegistry().register(MenuId.class, MenuIdTypeHandler.class);
             configuration.getTypeHandlerRegistry().register(PostId.class, PostIdTypeHandler.class);
-            configuration.getTypeHandlerRegistry().register(com.github.thundax.bacon.upms.domain.model.valueobject.RoleId.class,
-                    RoleIdTypeHandler.class);
+            configuration
+                    .getTypeHandlerRegistry()
+                    .register(
+                            com.github.thundax.bacon.upms.domain.model.valueobject.RoleId.class,
+                            RoleIdTypeHandler.class);
             configuration.getTypeHandlerRegistry().register(UserIdentityId.class, UserIdentityIdTypeHandler.class);
             configuration.getTypeHandlerRegistry().register(UserCredentialId.class, UserCredentialIdTypeHandler.class);
             factoryBean.setConfiguration(configuration);
@@ -507,8 +739,7 @@ class UpmsRepositoryIntegrationTest {
                     this.<String, List<Menu>>buildCache(),
                     this.<String, Set<String>>buildCache(),
                     this.<String, Set<DepartmentId>>buildCache(),
-                    this.<String, Set<String>>buildCache()
-            );
+                    this.<String, Set<String>>buildCache());
         }
 
         private <K, V> Cache<K, V> buildCache() {
@@ -518,13 +749,16 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        TenantPersistenceSupport tenantPersistenceSupport(com.github.thundax.bacon.upms.infra.persistence.mapper.TenantMapper tenantMapper) {
+        TenantPersistenceSupport tenantPersistenceSupport(
+                com.github.thundax.bacon.upms.infra.persistence.mapper.TenantMapper tenantMapper) {
             return new TenantPersistenceSupport(tenantMapper);
         }
 
         @Bean
-        UserPersistenceSupport userPersistenceSupport(UserMapper userMapper, UserIdentityMapper userIdentityMapper,
-                                                     UserCredentialMapper userCredentialMapper) {
+        UserPersistenceSupport userPersistenceSupport(
+                UserMapper userMapper,
+                UserIdentityMapper userIdentityMapper,
+                UserCredentialMapper userCredentialMapper) {
             return new UserPersistenceSupport(userMapper, userIdentityMapper, userCredentialMapper);
         }
 
@@ -534,20 +768,28 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        PostPersistenceSupport postPersistenceSupport(com.github.thundax.bacon.upms.infra.persistence.mapper.PostMapper postMapper) {
+        PostPersistenceSupport postPersistenceSupport(
+                com.github.thundax.bacon.upms.infra.persistence.mapper.PostMapper postMapper) {
             return new PostPersistenceSupport(postMapper);
         }
 
         @Bean
-        RolePersistenceSupport rolePersistenceSupport(RoleMapper roleMapper,
-                                                     ResourceMapper resourceMapper,
-                                                     UserRoleRelMapper userRoleRelMapper,
-                                                     RoleMenuRelMapper roleMenuRelMapper,
-                                                     RoleResourceRelMapper roleResourceRelMapper,
-                                                     DataPermissionRuleMapper dataPermissionRuleMapper,
-                                                     RoleDataScopeRelMapper roleDataScopeRelMapper) {
-            return new RolePersistenceSupport(roleMapper, resourceMapper, userRoleRelMapper, roleMenuRelMapper,
-                    roleResourceRelMapper, dataPermissionRuleMapper, roleDataScopeRelMapper);
+        RolePersistenceSupport rolePersistenceSupport(
+                RoleMapper roleMapper,
+                ResourceMapper resourceMapper,
+                UserRoleRelMapper userRoleRelMapper,
+                RoleMenuRelMapper roleMenuRelMapper,
+                RoleResourceRelMapper roleResourceRelMapper,
+                DataPermissionRuleMapper dataPermissionRuleMapper,
+                RoleDataScopeRelMapper roleDataScopeRelMapper) {
+            return new RolePersistenceSupport(
+                    roleMapper,
+                    resourceMapper,
+                    userRoleRelMapper,
+                    roleMenuRelMapper,
+                    roleResourceRelMapper,
+                    dataPermissionRuleMapper,
+                    roleDataScopeRelMapper);
         }
 
         @Bean
@@ -556,40 +798,48 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        ResourcePersistenceSupport resourcePersistenceSupport(ResourceMapper resourceMapper,
-                                                             RoleResourceRelMapper roleResourceRelMapper) {
+        ResourcePersistenceSupport resourcePersistenceSupport(
+                ResourceMapper resourceMapper, RoleResourceRelMapper roleResourceRelMapper) {
             return new ResourcePersistenceSupport(resourceMapper, roleResourceRelMapper);
         }
 
         @Bean
-        RoleRepositoryImpl roleRepository(RolePersistenceSupport rolePersistenceSupport,
-                                          UpmsPermissionCacheSupport upmsPermissionCacheSupport,
-                                          IdGenerator idGenerator) {
+        RoleRepositoryImpl roleRepository(
+                RolePersistenceSupport rolePersistenceSupport,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport,
+                IdGenerator idGenerator) {
             return new RoleRepositoryImpl(rolePersistenceSupport, upmsPermissionCacheSupport, idGenerator);
         }
 
         @Bean
-        ResourceRepository resourceRepository(ResourcePersistenceSupport resourcePersistenceSupport,
-                                            UpmsPermissionCacheSupport upmsPermissionCacheSupport,
-                                            Ids ids) {
+        ResourceRepository resourceRepository(
+                ResourcePersistenceSupport resourcePersistenceSupport,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport,
+                Ids ids) {
             return new ResourceRepositoryImpl(resourcePersistenceSupport, upmsPermissionCacheSupport, ids);
         }
 
         @Bean
-        DepartmentRepository departmentRepository(DepartmentPersistenceSupport departmentPersistenceSupport,
-                                                  UserRepositoryImpl userRepository) {
+        DepartmentRepository departmentRepository(
+                DepartmentPersistenceSupport departmentPersistenceSupport, UserRepositoryImpl userRepository) {
             return new DepartmentRepositoryImpl(departmentPersistenceSupport, userRepository);
         }
 
         @Bean
-        UserRepositoryImpl userRepositoryImpl(UserPersistenceSupport userPersistenceSupport,
-                                              RoleRepositoryImpl roleRepository,
-                                              PasswordEncoder passwordEncoder,
-                                              UpmsPermissionCacheSupport upmsPermissionCacheSupport,
-                                              Ids ids,
-                                              IdGenerator idGenerator) {
-            return new UserRepositoryImpl(userPersistenceSupport, roleRepository, passwordEncoder,
-                    upmsPermissionCacheSupport, ids, idGenerator);
+        UserRepositoryImpl userRepositoryImpl(
+                UserPersistenceSupport userPersistenceSupport,
+                RoleRepositoryImpl roleRepository,
+                PasswordEncoder passwordEncoder,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport,
+                Ids ids,
+                IdGenerator idGenerator) {
+            return new UserRepositoryImpl(
+                    userPersistenceSupport,
+                    roleRepository,
+                    passwordEncoder,
+                    upmsPermissionCacheSupport,
+                    ids,
+                    idGenerator);
         }
 
         @Bean
@@ -604,18 +854,21 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        PermissionRepository permissionRepository(MenuRepositoryImpl menuRepository,
-                                                  RoleRepositoryImpl roleRepository,
-                                                  UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+        PermissionRepository permissionRepository(
+                MenuRepositoryImpl menuRepository,
+                RoleRepositoryImpl roleRepository,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
             return new PermissionRepositoryImpl(menuRepository, roleRepository, upmsPermissionCacheSupport);
         }
 
         @Bean
-        MenuRepositoryImpl menuRepositoryImpl(MenuPersistenceSupport menuPersistenceSupport,
-                                              RoleRepositoryImpl roleRepository,
-                                              UpmsPermissionCacheSupport upmsPermissionCacheSupport,
-                                              IdGenerator idGenerator) {
-            return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport, idGenerator);
+        MenuRepositoryImpl menuRepositoryImpl(
+                MenuPersistenceSupport menuPersistenceSupport,
+                RoleRepositoryImpl roleRepository,
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport,
+                IdGenerator idGenerator) {
+            return new MenuRepositoryImpl(
+                    menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport, idGenerator);
         }
     }
 

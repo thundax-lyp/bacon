@@ -33,8 +33,8 @@ public class InMemoryInventoryAuditReplayTaskRepositoryImpl implements Inventory
     }
 
     @Override
-    public void batchSaveAuditReplayTaskItems(TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds,
-                                              Instant createdAt) {
+    public void batchSaveAuditReplayTaskItems(
+            TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
         support.batchSaveAuditReplayTaskItems(taskId, tenantId, deadLetterIds, createdAt);
     }
 
@@ -44,13 +44,14 @@ public class InMemoryInventoryAuditReplayTaskRepositoryImpl implements Inventory
     }
 
     @Override
-    public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
-                                                                        String processingOwner, Instant leaseUntil) {
+    public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(
+            Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return support.claimRunnableAuditReplayTasks(now, limit, processingOwner, leaseUntil);
     }
 
     @Override
-    public void renewAuditReplayTaskLease(TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+    public void renewAuditReplayTaskLease(
+            TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
         support.renewAuditReplayTaskLease(taskId, processingOwner, leaseUntil, updatedAt);
     }
 
@@ -60,24 +61,33 @@ public class InMemoryInventoryAuditReplayTaskRepositoryImpl implements Inventory
     }
 
     @Override
-    public void markAuditReplayTaskItemResult(Long itemId, InventoryAuditReplayTaskItemStatus itemStatus,
-                                              InventoryAuditReplayStatus replayStatus,
-                                              String replayKey, String resultMessage, Instant startedAt,
-                                              Instant finishedAt) {
-        support.markAuditReplayTaskItemResult(itemId, itemStatus, replayStatus, replayKey, resultMessage, startedAt,
-                finishedAt);
+    public void markAuditReplayTaskItemResult(
+            Long itemId,
+            InventoryAuditReplayTaskItemStatus itemStatus,
+            InventoryAuditReplayStatus replayStatus,
+            String replayKey,
+            String resultMessage,
+            Instant startedAt,
+            Instant finishedAt) {
+        support.markAuditReplayTaskItemResult(
+                itemId, itemStatus, replayStatus, replayKey, resultMessage, startedAt, finishedAt);
     }
 
     @Override
-    public void incrementAuditReplayTaskProgress(TaskId taskId, String processingOwner, int processedDelta,
-                                                 int successDelta, int failedDelta, Instant updatedAt) {
-        support.incrementAuditReplayTaskProgress(taskId, processingOwner, processedDelta, successDelta, failedDelta,
-                updatedAt);
+    public void incrementAuditReplayTaskProgress(
+            TaskId taskId,
+            String processingOwner,
+            int processedDelta,
+            int successDelta,
+            int failedDelta,
+            Instant updatedAt) {
+        support.incrementAuditReplayTaskProgress(
+                taskId, processingOwner, processedDelta, successDelta, failedDelta, updatedAt);
     }
 
     @Override
-    public void finishAuditReplayTask(TaskId taskId, String processingOwner, String status,
-                                      String lastError, Instant finishedAt) {
+    public void finishAuditReplayTask(
+            TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {
         support.finishAuditReplayTask(taskId, processingOwner, status, lastError, finishedAt);
     }
 

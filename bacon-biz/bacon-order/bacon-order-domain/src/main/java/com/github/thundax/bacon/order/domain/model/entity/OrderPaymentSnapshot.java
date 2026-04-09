@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import java.time.Instant;
 
 /**
@@ -34,8 +34,7 @@ public record OrderPaymentSnapshot(
         /** 支付渠道状态。 */
         PaymentChannelStatus channelStatus,
         /** 最后更新时间。 */
-        Instant updatedAt
-) {
+        Instant updatedAt) {
 
     public Long tenantIdValue() {
         return tenantId == null ? null : tenantId.value();

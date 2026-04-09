@@ -6,7 +6,6 @@ import java.util.Arrays;
  * 存储审计补偿出站状态。
  */
 public enum StorageAuditOutboxStatus {
-
     NEW,
     RETRYING,
     PROCESSING,

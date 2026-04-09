@@ -7,6 +7,4 @@ public record CancelOrderRequest(
         @Schema(description = "租户编码", example = "TENANT_DEMO") String tenantCode,
         @Schema(description = "取消原因", example = "USER_CANCELLED") String reason,
         @Schema(description = "操作人类型", example = "USER") String operatorType,
-        @Schema(description = "操作人ID", example = "u_2001") String operatorId
-) {
-}
+        @Schema(description = "操作人ID", example = "u_2001") String operatorId) {}

@@ -1,11 +1,11 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import java.time.Instant;
@@ -91,5 +91,4 @@ public class InventoryAuditOutbox {
     public Long getOperatorIdValue() {
         return operatorId == null ? null : Long.valueOf(operatorId);
     }
-
 }

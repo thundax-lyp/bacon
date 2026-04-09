@@ -16,11 +16,15 @@ public class PaymentAuditQueryApplicationService {
     }
 
     public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
-        return paymentAuditLogRepository.findAuditLogsByPaymentNo(tenantId, paymentNo)
-                .stream()
-                .map(auditLog -> new PaymentAuditLogDTO(toLongTenantValue(auditLog.getTenantId()), auditLog.getPaymentNo().value(),
-                        auditLog.getActionType().value(), toStatusValue(auditLog.getBeforeStatus()),
-                        toStatusValue(auditLog.getAfterStatus()), auditLog.getOperatorType().value(), auditLog.getOperatorId(),
+        return paymentAuditLogRepository.findAuditLogsByPaymentNo(tenantId, paymentNo).stream()
+                .map(auditLog -> new PaymentAuditLogDTO(
+                        toLongTenantValue(auditLog.getTenantId()),
+                        auditLog.getPaymentNo().value(),
+                        auditLog.getActionType().value(),
+                        toStatusValue(auditLog.getBeforeStatus()),
+                        toStatusValue(auditLog.getAfterStatus()),
+                        auditLog.getOperatorType().value(),
+                        auditLog.getOperatorId(),
                         auditLog.getOccurredAt()))
                 .toList();
     }

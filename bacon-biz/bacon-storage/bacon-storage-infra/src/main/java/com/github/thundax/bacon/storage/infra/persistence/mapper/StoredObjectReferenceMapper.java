@@ -5,5 +5,4 @@ import com.github.thundax.bacon.storage.infra.persistence.dataobject.StoredObjec
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface StoredObjectReferenceMapper extends BaseMapper<StoredObjectReferenceDO> {
-}
+public interface StoredObjectReferenceMapper extends BaseMapper<StoredObjectReferenceDO> {}

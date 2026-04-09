@@ -5,5 +5,4 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.MenuDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface MenuMapper extends BaseMapper<MenuDO> {
-}
+public interface MenuMapper extends BaseMapper<MenuDO> {}

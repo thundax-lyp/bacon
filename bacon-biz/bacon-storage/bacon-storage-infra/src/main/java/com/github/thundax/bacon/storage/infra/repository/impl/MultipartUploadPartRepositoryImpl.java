@@ -6,10 +6,9 @@ import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.MultipartUploadPartDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.MultipartUploadPartMapper;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRepository {
@@ -19,8 +18,8 @@ public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRep
     private final MultipartUploadPartMapper multipartUploadPartMapper;
     private final IdGenerator idGenerator;
 
-    public MultipartUploadPartRepositoryImpl(MultipartUploadPartMapper multipartUploadPartMapper,
-                                             IdGenerator idGenerator) {
+    public MultipartUploadPartRepositoryImpl(
+            MultipartUploadPartMapper multipartUploadPartMapper, IdGenerator idGenerator) {
         this.multipartUploadPartMapper = multipartUploadPartMapper;
         this.idGenerator = idGenerator;
     }
@@ -40,13 +39,15 @@ public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRep
     @Override
     public Optional<MultipartUploadPart> findByUploadIdAndPartNumber(String uploadId, Integer partNumber) {
         return Optional.ofNullable(multipartUploadPartMapper.selectOne(Wrappers.<MultipartUploadPartDO>lambdaQuery()
-                .eq(MultipartUploadPartDO::getUploadId, uploadId)
-                .eq(MultipartUploadPartDO::getPartNumber, partNumber))).map(this::toDomain);
+                        .eq(MultipartUploadPartDO::getUploadId, uploadId)
+                        .eq(MultipartUploadPartDO::getPartNumber, partNumber)))
+                .map(this::toDomain);
     }
 
     @Override
     public List<MultipartUploadPart> listByUploadId(String uploadId) {
-        return multipartUploadPartMapper.selectList(Wrappers.<MultipartUploadPartDO>lambdaQuery()
+        return multipartUploadPartMapper
+                .selectList(Wrappers.<MultipartUploadPartDO>lambdaQuery()
                         .eq(MultipartUploadPartDO::getUploadId, uploadId)
                         .orderByAsc(MultipartUploadPartDO::getPartNumber))
                 .stream()
@@ -56,17 +57,27 @@ public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRep
 
     @Override
     public void deleteByUploadId(String uploadId) {
-        multipartUploadPartMapper.delete(Wrappers.<MultipartUploadPartDO>lambdaQuery()
-                .eq(MultipartUploadPartDO::getUploadId, uploadId));
+        multipartUploadPartMapper.delete(
+                Wrappers.<MultipartUploadPartDO>lambdaQuery().eq(MultipartUploadPartDO::getUploadId, uploadId));
     }
 
     private MultipartUploadPartDO toDataObject(MultipartUploadPart part) {
-        return new MultipartUploadPartDO(part.getId(), part.getUploadId(), part.getPartNumber(), part.getEtag(),
-                part.getSize(), part.getCreatedAt());
+        return new MultipartUploadPartDO(
+                part.getId(),
+                part.getUploadId(),
+                part.getPartNumber(),
+                part.getEtag(),
+                part.getSize(),
+                part.getCreatedAt());
     }
 
     private MultipartUploadPart toDomain(MultipartUploadPartDO dataObject) {
-        return new MultipartUploadPart(dataObject.getId(), dataObject.getUploadId(), dataObject.getPartNumber(),
-                dataObject.getEtag(), dataObject.getSize(), dataObject.getCreatedAt());
+        return new MultipartUploadPart(
+                dataObject.getId(),
+                dataObject.getUploadId(),
+                dataObject.getPartNumber(),
+                dataObject.getEtag(),
+                dataObject.getSize(),
+                dataObject.getCreatedAt());
     }
 }

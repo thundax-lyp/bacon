@@ -2,10 +2,9 @@ package com.github.thundax.bacon.common.log.dto;
 
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.LogResult;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.time.Instant;
 
 /**
  * 系统访问日志跨模块传输对象。

@@ -13,8 +13,8 @@ public interface VerificationCodeService {
 
     VerificationCodeImage generateImageCode(String scene, String target);
 
-    VerificationCodeImage generateImageCode(String scene, String target, int width, int height, int length,
-                                            int interfereCount, Duration ttl);
+    VerificationCodeImage generateImageCode(
+            String scene, String target, int width, int height, int length, int interfereCount, Duration ttl);
 
     void saveCode(String scene, String target, String code, Duration ttl);
 

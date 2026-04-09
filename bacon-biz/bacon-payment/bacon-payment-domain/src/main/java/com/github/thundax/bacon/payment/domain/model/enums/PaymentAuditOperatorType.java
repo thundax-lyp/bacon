@@ -6,7 +6,6 @@ import java.util.Arrays;
  * 支付审计操作人类型。
  */
 public enum PaymentAuditOperatorType {
-
     SYSTEM,
     CHANNEL;
 

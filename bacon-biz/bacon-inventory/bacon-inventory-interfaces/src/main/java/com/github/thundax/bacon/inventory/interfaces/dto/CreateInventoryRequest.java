@@ -5,8 +5,4 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
 public record CreateInventoryRequest(
-        @NotNull @Positive Long skuId,
-        @NotNull @PositiveOrZero Integer onHandQuantity,
-        @NotNull String status
-) {
-}
+        @NotNull @Positive Long skuId, @NotNull @PositiveOrZero Integer onHandQuantity, @NotNull String status) {}

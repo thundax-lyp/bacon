@@ -1,18 +1,17 @@
 package com.github.thundax.bacon.inventory.interfaces.facade;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
@@ -31,8 +30,11 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
 
     @Override
     public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
-        return inventoryQueryService.batchGetAvailableStock(TenantId.of(tenantId),
-                skuIds == null ? Set.of() : skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
+        return inventoryQueryService.batchGetAvailableStock(
+                TenantId.of(tenantId),
+                skuIds == null
+                        ? Set.of()
+                        : skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
     }
 
     @Override

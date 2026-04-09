@@ -13,14 +13,13 @@ public record CreateOrderRequest(
         @Schema(description = "渠道编码", example = "MOCK") String channelCode,
         @Schema(description = "备注", example = "normal-order") String remark,
         @Schema(description = "过期时间") Instant expiredAt,
-        @Schema(description = "订单项") List<CreateOrderItemRequest> items
-) {
+        @Schema(description = "订单项") List<CreateOrderItemRequest> items) {
 
     public CreateOrderCommand toCommand() {
         List<com.github.thundax.bacon.order.application.command.CreateOrderItemCommand> itemCommands = items == null
                 ? List.of()
                 : items.stream().map(CreateOrderItemRequest::toCommand).toList();
-        return new CreateOrderCommand(Long.parseLong(tenantCode.trim()), userId, currencyCode, channelCode, remark, expiredAt,
-                itemCommands);
+        return new CreateOrderCommand(
+                Long.parseLong(tenantCode.trim()), userId, currencyCode, channelCode, remark, expiredAt, itemCommands);
     }
 }

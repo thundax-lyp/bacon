@@ -1,5 +1,8 @@
 package com.github.thundax.bacon.payment.interfaces.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.github.thundax.bacon.payment.application.command.PaymentCallbackApplicationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -7,18 +10,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 class PaymentCallbackControllerContractTest {
 
     @Test
     void shouldRejectSuccessfulCallbackWithoutTransactionNo() throws Exception {
         MockMvc mockMvc = buildMockMvc();
 
-        mockMvc.perform(post("/payments/callback/MOCK")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/payments/callback/MOCK")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "tenantCode": "1001",
                                   "paymentNo": "PAY-10001",
@@ -34,9 +36,11 @@ class PaymentCallbackControllerContractTest {
     void shouldRejectFailedCallbackWithoutReason() throws Exception {
         MockMvc mockMvc = buildMockMvc();
 
-        mockMvc.perform(post("/payments/callback/MOCK")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/payments/callback/MOCK")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "tenantCode": "1001",
                                   "paymentNo": "PAY-10001",
@@ -52,9 +56,11 @@ class PaymentCallbackControllerContractTest {
     void shouldAcceptValidSuccessfulCallback() throws Exception {
         MockMvc mockMvc = buildMockMvc();
 
-        mockMvc.perform(post("/payments/callback/MOCK")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/payments/callback/MOCK")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "tenantCode": "1001",
                                   "paymentNo": "PAY-10001",
@@ -68,7 +74,8 @@ class PaymentCallbackControllerContractTest {
     }
 
     private MockMvc buildMockMvc() {
-        PaymentCallbackController controller = new PaymentCallbackController(new StubPaymentCallbackApplicationService());
+        PaymentCallbackController controller =
+                new PaymentCallbackController(new StubPaymentCallbackApplicationService());
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         return MockMvcBuilders.standaloneSetup(controller)
@@ -83,13 +90,21 @@ class PaymentCallbackControllerContractTest {
         }
 
         @Override
-        public void callbackPaid(String channelCode, Long tenantId, String paymentNo, String channelTransactionNo,
-                                 String channelStatus, String rawPayload) {
-        }
+        public void callbackPaid(
+                String channelCode,
+                Long tenantId,
+                String paymentNo,
+                String channelTransactionNo,
+                String channelStatus,
+                String rawPayload) {}
 
         @Override
-        public void callbackFailed(String channelCode, Long tenantId, String paymentNo, String channelStatus,
-                                   String rawPayload, String reason) {
-        }
+        public void callbackFailed(
+                String channelCode,
+                Long tenantId,
+                String paymentNo,
+                String channelStatus,
+                String rawPayload,
+                String reason) {}
     }
 }

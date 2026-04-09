@@ -3,7 +3,6 @@ package com.github.thundax.bacon.auth.domain.model.enums;
 import java.util.Arrays;
 
 public enum RefreshTokenSessionStatus {
-
     ACTIVE,
     USED,
     INVALIDATED,

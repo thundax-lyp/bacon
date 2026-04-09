@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.core.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public enum PaymentErrorCode implements ErrorCode {
-
     PAYMENT_NOT_FOUND("PAY-404001", "Payment not found", HttpStatus.NOT_FOUND),
     INVALID_PAYMENT_AMOUNT("PAY-400001", "Invalid payment amount", HttpStatus.BAD_REQUEST),
     INVALID_CHANNEL_CODE("PAY-400002", "Invalid channel code", HttpStatus.BAD_REQUEST),

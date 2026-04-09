@@ -19,7 +19,7 @@ public record OAuth2TokenResponse(
         String scope) {
 
     public static OAuth2TokenResponse from(OAuth2TokenDTO dto) {
-        return new OAuth2TokenResponse(dto.getAccessToken(), dto.getTokenType(), dto.getExpiresIn(),
-                dto.getRefreshToken(), dto.getScope());
+        return new OAuth2TokenResponse(
+                dto.getAccessToken(), dto.getTokenType(), dto.getExpiresIn(), dto.getRefreshToken(), dto.getScope());
     }
 }

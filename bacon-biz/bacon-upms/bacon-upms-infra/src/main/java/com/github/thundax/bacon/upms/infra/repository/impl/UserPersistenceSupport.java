@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -10,8 +9,9 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
-import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredentialDO;
+import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserIdentityDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
@@ -32,8 +32,8 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     private final UserIdentityMapper userIdentityMapper;
     private final UserCredentialMapper userCredentialMapper;
 
-    UserPersistenceSupport(UserMapper userMapper, UserIdentityMapper userIdentityMapper,
-                           UserCredentialMapper userCredentialMapper) {
+    UserPersistenceSupport(
+            UserMapper userMapper, UserIdentityMapper userIdentityMapper, UserCredentialMapper userCredentialMapper) {
         this.userMapper = userMapper;
         this.userIdentityMapper = userIdentityMapper;
         this.userCredentialMapper = userCredentialMapper;
@@ -74,17 +74,20 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return Optional.ofNullable(userCredentialMapper.selectOne(Wrappers.<UserCredentialDO>lambdaQuery()
                         .eq(UserCredentialDO::getTenantId, tenantId)
                         .eq(UserCredentialDO::getUserId, userId)
-                        .eq(UserCredentialDO::getCredentialType, credentialType == null ? null : credentialType.value())))
+                        .eq(
+                                UserCredentialDO::getCredentialType,
+                                credentialType == null ? null : credentialType.value())))
                 .map(this::toDomain);
     }
 
-    List<User> listUsers(TenantId tenantId, String account, String name, String phone, String status, int pageNo,
-                         int pageSize) {
+    List<User> listUsers(
+            TenantId tenantId, String account, String name, String phone, String status, int pageNo, int pageSize) {
         Set<UserId> userIds = resolveUserIdsByIdentityFilters(tenantId, account, phone);
         if (userIds != null && userIds.isEmpty()) {
             return List.of();
         }
-        return userMapper.selectList(Wrappers.<UserDO>lambdaQuery()
+        return userMapper
+                .selectList(Wrappers.<UserDO>lambdaQuery()
                         .eq(UserDO::getTenantId, tenantId)
                         .eq(UserDO::getDeleted, false)
                         .in(userIds != null, UserDO::getId, userIds)
@@ -127,8 +130,10 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return filteredUserIds;
     }
 
-    private Set<UserId> queryUserIdsByIdentityLike(TenantId tenantId, UserIdentityType identityType, String identityValue) {
-        return new LinkedHashSet<>(userIdentityMapper.selectList(Wrappers.<UserIdentityDO>lambdaQuery()
+    private Set<UserId> queryUserIdsByIdentityLike(
+            TenantId tenantId, UserIdentityType identityType, String identityValue) {
+        return new LinkedHashSet<>(userIdentityMapper
+                .selectList(Wrappers.<UserIdentityDO>lambdaQuery()
                         .eq(UserIdentityDO::getTenantId, tenantId)
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
                         .like(UserIdentityDO::getIdentityValue, trim(identityValue))
@@ -216,9 +221,10 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     boolean hasActiveUserInDepartment(TenantId tenantId, DepartmentId departmentId) {
         return Optional.ofNullable(userMapper.selectCount(Wrappers.<UserDO>lambdaQuery()
-                        .eq(UserDO::getTenantId, tenantId)
-                        .eq(UserDO::getDepartmentId, departmentId)
-                        .eq(UserDO::getDeleted, false)))
-                .orElse(0L) > 0L;
+                                .eq(UserDO::getTenantId, tenantId)
+                                .eq(UserDO::getDepartmentId, departmentId)
+                                .eq(UserDO::getDeleted, false)))
+                        .orElse(0L)
+                > 0L;
     }
 }

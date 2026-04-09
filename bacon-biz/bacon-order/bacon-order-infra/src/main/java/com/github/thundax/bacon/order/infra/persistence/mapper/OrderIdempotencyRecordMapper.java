@@ -5,5 +5,4 @@ import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderIdempote
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface OrderIdempotencyRecordMapper extends BaseMapper<OrderIdempotencyRecordDO> {
-}
+public interface OrderIdempotencyRecordMapper extends BaseMapper<OrderIdempotencyRecordDO> {}

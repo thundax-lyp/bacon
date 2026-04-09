@@ -27,7 +27,8 @@ public class PaymentReadFacadeRemoteImpl implements PaymentReadFacade {
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getByPaymentNoFallback")
     public PaymentDetailDTO getByPaymentNo(Long tenantId, String paymentNo) {
         // 查询链路也沿用同一套 resilience + translator 规则，避免读写远程调用产生不同的失败语义。
-        return restClient.get()
+        return restClient
+                .get()
                 .uri("/providers/payment/{paymentNo}?tenantId={tenantId}", paymentNo, tenantId)
                 .retrieve()
                 .body(PaymentDetailDTO.class);
@@ -38,7 +39,8 @@ public class PaymentReadFacadeRemoteImpl implements PaymentReadFacade {
     @CircuitBreaker(name = "paymentRemote", fallbackMethod = "getByOrderNoFallback")
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getByOrderNoFallback")
     public PaymentDetailDTO getByOrderNo(Long tenantId, String orderNo) {
-        return restClient.get()
+        return restClient
+                .get()
                 .uri("/providers/payment?tenantId={tenantId}&orderNo={orderNo}", tenantId, orderNo)
                 .retrieve()
                 .body(PaymentDetailDTO.class);

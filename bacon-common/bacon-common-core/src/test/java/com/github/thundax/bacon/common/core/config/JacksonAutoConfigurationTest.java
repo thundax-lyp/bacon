@@ -24,8 +24,7 @@ class JacksonAutoConfigurationTest {
                 LocalDateTime.of(2026, 3, 24, 12, 30, 45),
                 LocalDate.of(2026, 3, 24),
                 LocalTime.of(12, 30, 45),
-                null
-        );
+                null);
 
         String json = objectMapper.writeValueAsString(payload);
 
@@ -36,7 +35,6 @@ class JacksonAutoConfigurationTest {
         assertThat(json).doesNotContain("nullableField");
     }
 
-    private record DemoPayload(Long id, LocalDateTime createdAt, LocalDate bizDate, LocalTime bizTime,
-                               String nullableField) {
-    }
+    private record DemoPayload(
+            Long id, LocalDateTime createdAt, LocalDate bizDate, LocalTime bizTime, String nullableField) {}
 }

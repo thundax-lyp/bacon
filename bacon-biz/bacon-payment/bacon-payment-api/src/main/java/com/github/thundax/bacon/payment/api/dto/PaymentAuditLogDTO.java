@@ -21,5 +21,4 @@ public record PaymentAuditLogDTO(
         /** 操作人主键。 */
         String operatorId,
         /** 发生时间。 */
-        Instant occurredAt) {
-}
+        Instant occurredAt) {}

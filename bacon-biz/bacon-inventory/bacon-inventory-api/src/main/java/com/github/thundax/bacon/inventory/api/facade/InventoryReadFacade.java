@@ -2,7 +2,6 @@ package com.github.thundax.bacon.inventory.api.facade;
 
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
-
 import java.util.List;
 import java.util.Set;
 

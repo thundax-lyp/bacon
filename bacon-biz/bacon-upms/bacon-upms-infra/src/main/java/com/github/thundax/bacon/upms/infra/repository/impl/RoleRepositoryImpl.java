@@ -1,14 +1,14 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
@@ -27,9 +27,8 @@ public class RoleRepositoryImpl implements RoleRepository {
     private final UpmsPermissionCacheSupport cacheSupport;
     private final IdGenerator idGenerator;
 
-    public RoleRepositoryImpl(RolePersistenceSupport support,
-                              UpmsPermissionCacheSupport cacheSupport,
-                              IdGenerator idGenerator) {
+    public RoleRepositoryImpl(
+            RolePersistenceSupport support, UpmsPermissionCacheSupport cacheSupport, IdGenerator idGenerator) {
         this.support = support;
         this.cacheSupport = cacheSupport;
         this.idGenerator = idGenerator;
@@ -46,8 +45,8 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public List<Role> pageRoles(TenantId tenantId, String code, String name, String roleType, String status, int pageNo,
-                                int pageSize) {
+    public List<Role> pageRoles(
+            TenantId tenantId, String code, String name, String roleType, String status, int pageNo, int pageSize) {
         return support.listRoles(tenantId, code, name, roleType, status, pageNo, pageSize);
     }
 
@@ -73,7 +72,8 @@ public class RoleRepositoryImpl implements RoleRepository {
                         role.getUpdatedAt())
                 : role;
         Role savedRole = support.saveRole(roleToSave);
-        cacheSupport.evictUsersPermission(savedRole.getTenantId(), support.findAssignedUserIds(savedRole.getTenantId(), savedRole.getId()));
+        cacheSupport.evictUsersPermission(
+                savedRole.getTenantId(), support.findAssignedUserIds(savedRole.getTenantId(), savedRole.getId()));
         return savedRole;
     }
 
@@ -104,13 +104,15 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public Set<MenuId> getAssignedMenus(TenantId tenantId, RoleId roleId) {
-        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(tenantId, roleId)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedMenuIds(tenantId, roleId);
     }
 
     @Override
     public Set<MenuId> assignMenus(TenantId tenantId, RoleId roleId, Set<MenuId> menuIds) {
-        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(tenantId, roleId)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         Set<MenuId> safeMenuIds = menuIds == null ? Set.of() : Set.copyOf(menuIds);
         support.replaceRoleMenus(tenantId, roleId, safeMenuIds);
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
@@ -119,13 +121,15 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public Set<String> getAssignedResources(TenantId tenantId, RoleId roleId) {
-        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(tenantId, roleId)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedResourceCodes(tenantId, roleId);
     }
 
     @Override
     public Set<String> assignResources(TenantId tenantId, RoleId roleId, Set<String> resourceCodes) {
-        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(tenantId, roleId)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         Set<String> safeResourceCodes = resourceCodes == null ? Set.of() : Set.copyOf(resourceCodes);
         support.replaceRoleResources(tenantId, roleId, safeResourceCodes);
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
@@ -134,32 +138,45 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public String getAssignedDataScopeType(TenantId tenantId, RoleId roleId) {
-        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(tenantId, roleId)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedDataScopeType(tenantId, roleId);
     }
 
     @Override
     public Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, RoleId roleId) {
-        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(tenantId, roleId)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedDataScopeDepartments(tenantId, roleId);
     }
 
     @Override
-    public Set<DepartmentId> assignDataScope(TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType,
-                                             Set<DepartmentId> departmentIds) {
-        findRoleById(tenantId, roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+    public Set<DepartmentId> assignDataScope(
+            TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
+        findRoleById(tenantId, roleId)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         Set<DepartmentId> safeDepartmentIds = departmentIds == null ? Set.of() : Set.copyOf(departmentIds);
         support.replaceRoleDataScope(tenantId, roleId, dataScopeType, safeDepartmentIds);
         Role currentRole = findRoleById(tenantId, roleId).orElseThrow();
-        support.saveRole(new Role(currentRole.getId(), currentRole.getTenantId(), currentRole.getCode(), currentRole.getName(),
-                currentRole.getRoleType(), dataScopeType, currentRole.getStatus(), currentRole.getCreatedBy(),
-                currentRole.getCreatedAt(), currentRole.getUpdatedBy(), currentRole.getUpdatedAt()));
+        support.saveRole(new Role(
+                currentRole.getId(),
+                currentRole.getTenantId(),
+                currentRole.getCode(),
+                currentRole.getName(),
+                currentRole.getRoleType(),
+                dataScopeType,
+                currentRole.getStatus(),
+                currentRole.getCreatedBy(),
+                currentRole.getCreatedAt(),
+                currentRole.getUpdatedBy(),
+                currentRole.getUpdatedAt()));
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
         return safeDepartmentIds;
     }
 
     void bindUserRoles(TenantId tenantId, UserId userId, List<Role> assignedRoles) {
-        support.replaceUserRoles(tenantId, userId, assignedRoles.stream().map(Role::getId).toList());
+        support.replaceUserRoles(
+                tenantId, userId, assignedRoles.stream().map(Role::getId).toList());
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 

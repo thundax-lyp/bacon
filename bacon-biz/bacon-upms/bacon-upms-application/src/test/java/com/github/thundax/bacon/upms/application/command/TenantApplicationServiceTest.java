@@ -1,13 +1,19 @@
 package com.github.thundax.bacon.upms.application.command;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
-import java.time.Instant;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,17 +21,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class TenantApplicationServiceTest {
 
     @Mock
     private TenantRepository tenantRepository;
+
     @Mock
     private SessionCommandFacade sessionCommandFacade;
 
@@ -41,11 +42,19 @@ class TenantApplicationServiceTest {
         when(tenantRepository.findTenantByTenantId(TenantId.of(1001L))).thenReturn(Optional.empty());
         when(tenantRepository.findTenantByCode("TENANT_DEMO")).thenReturn(Optional.empty());
         when(tenantRepository.saveTenant(any(Tenant.class)))
-                .thenReturn(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE,
-                        Instant.parse("2099-01-01T00:00:00Z"), null, null, null, null));
+                .thenReturn(new Tenant(
+                        1001L,
+                        "Demo Tenant",
+                        "TENANT_DEMO",
+                        TenantStatus.ACTIVE,
+                        Instant.parse("2099-01-01T00:00:00Z"),
+                        null,
+                        null,
+                        null,
+                        null));
 
-        TenantDTO result = service.createTenant(1001L, "Demo Tenant", "TENANT_DEMO",
-                Instant.parse("2099-01-01T00:00:00Z"));
+        TenantDTO result =
+                service.createTenant(1001L, "Demo Tenant", "TENANT_DEMO", Instant.parse("2099-01-01T00:00:00Z"));
 
         assertThat(result.getId().value()).isEqualTo(1001L);
         assertThat(result.getName()).isEqualTo("Demo Tenant");
@@ -56,8 +65,16 @@ class TenantApplicationServiceTest {
     @Test
     void shouldRejectDuplicateTenantId() {
         when(tenantRepository.findTenantByTenantId(TenantId.of(1001L)))
-                .thenReturn(Optional.of(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO",
-                        TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"), null, null, null, null)));
+                .thenReturn(Optional.of(new Tenant(
+                        1001L,
+                        "Demo Tenant",
+                        "TENANT_DEMO",
+                        TenantStatus.ACTIVE,
+                        Instant.parse("2099-01-01T00:00:00Z"),
+                        null,
+                        null,
+                        null,
+                        null)));
 
         assertThatThrownBy(() -> service.createTenant(1001L, "Other", "OTHER", null))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -74,8 +91,8 @@ class TenantApplicationServiceTest {
     @Test
     void shouldInvalidateTenantSessionsWhenTenantDisabled() {
         when(tenantRepository.updateTenantStatus(TenantId.of(1001L), "DISABLED"))
-                .thenReturn(new Tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED,
-                        null, null, null, null, null));
+                .thenReturn(new Tenant(
+                        1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null, null, null, null, null));
 
         TenantDTO result = service.updateTenantStatus(1001L, TenantStatusEnum.DISABLED);
 

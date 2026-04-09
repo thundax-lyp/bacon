@@ -5,5 +5,4 @@ import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentOrde
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface PaymentOrderMapper extends BaseMapper<PaymentOrderDO> {
-}
+public interface PaymentOrderMapper extends BaseMapper<PaymentOrderDO> {}

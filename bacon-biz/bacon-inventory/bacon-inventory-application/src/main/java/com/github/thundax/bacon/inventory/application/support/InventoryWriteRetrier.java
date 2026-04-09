@@ -31,12 +31,12 @@ public class InventoryWriteRetrier {
     public <T> T execute(String operation, String businessKey, Supplier<T> action) {
         try {
             // 这里只重试“明确识别为并发写冲突”的异常，其它业务异常直接原样抛出，避免把不可重试错误误当成临时冲突。
-            return writeConflictRetrier.execute(action, this::isConcurrentModified,
-                    new InventoryRetryMetricsListener(operation, businessKey));
+            return writeConflictRetrier.execute(
+                    action, this::isConcurrentModified, new InventoryRetryMetricsListener(operation, businessKey));
         } catch (IllegalStateException exception) {
             if ("write-conflict-retry-interrupted".equals(exception.getMessage())) {
-                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED,
-                        "retry-interrupted", exception);
+                throw new InventoryDomainException(
+                        InventoryErrorCode.INVENTORY_CONCURRENT_MODIFIED, "retry-interrupted", exception);
             }
             throw exception;
         }
@@ -61,32 +61,46 @@ public class InventoryWriteRetrier {
 
         @Override
         public void onConflict(int attempt, RuntimeException exception) {
-            Metrics.counter("bacon.inventory.write.retry.conflict.total", "operation", operation).increment();
+            Metrics.counter("bacon.inventory.write.retry.conflict.total", "operation", operation)
+                    .increment();
         }
 
         @Override
         public void onRetry(int attempt, long backoffMillis, RuntimeException exception) {
-            log.warn("Inventory write conflict retry, operation={}, businessKey={}, attempt={}, backoffMs={}",
-                    operation, businessKey, attempt, backoffMillis);
+            log.warn(
+                    "Inventory write conflict retry, operation={}, businessKey={}, attempt={}, backoffMs={}",
+                    operation,
+                    businessKey,
+                    attempt,
+                    backoffMillis);
         }
 
         @Override
         public void onRecovered(int attempt) {
-            Metrics.counter("bacon.inventory.write.retry.recovered.total", "operation", operation).increment();
+            Metrics.counter("bacon.inventory.write.retry.recovered.total", "operation", operation)
+                    .increment();
         }
 
         @Override
         public void onExhausted(int attempt, RuntimeException exception) {
-            Metrics.counter("bacon.inventory.write.retry.exhausted.total", "operation", operation).increment();
-            log.error("ALERT inventory write retry exhausted, operation={}, businessKey={}, attempts={}",
-                    operation, businessKey, attempt, exception);
+            Metrics.counter("bacon.inventory.write.retry.exhausted.total", "operation", operation)
+                    .increment();
+            log.error(
+                    "ALERT inventory write retry exhausted, operation={}, businessKey={}, attempts={}",
+                    operation,
+                    businessKey,
+                    attempt,
+                    exception);
         }
 
         @Override
-        public void onInterrupted(int attempt, long backoffMillis, RuntimeException cause,
-                                  InterruptedException interruptedException) {
-            log.error("ALERT inventory write retry interrupted, operation={}, businessKey={}",
-                    operation, businessKey, interruptedException);
+        public void onInterrupted(
+                int attempt, long backoffMillis, RuntimeException cause, InterruptedException interruptedException) {
+            log.error(
+                    "ALERT inventory write retry interrupted, operation={}, businessKey={}",
+                    operation,
+                    businessKey,
+                    interruptedException);
         }
     }
 }

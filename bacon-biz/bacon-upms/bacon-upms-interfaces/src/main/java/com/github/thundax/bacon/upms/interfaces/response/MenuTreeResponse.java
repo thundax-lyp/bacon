@@ -34,8 +34,17 @@ public record MenuTreeResponse(
         List<MenuTreeResponse> childResponses = dto.getChildren() == null
                 ? List.of()
                 : dto.getChildren().stream().map(MenuTreeResponse::from).toList();
-        return new MenuTreeResponse(dto.getId(), dto.getTenantId(), dto.getMenuType(), dto.getName(), dto.getParentId(),
-                dto.getRoutePath(), dto.getComponentName(), dto.getIcon(), dto.getSort(), dto.getPermissionCode(),
+        return new MenuTreeResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getMenuType(),
+                dto.getName(),
+                dto.getParentId(),
+                dto.getRoutePath(),
+                dto.getComponentName(),
+                dto.getIcon(),
+                dto.getSort(),
+                dto.getPermissionCode(),
                 childResponses);
     }
 }

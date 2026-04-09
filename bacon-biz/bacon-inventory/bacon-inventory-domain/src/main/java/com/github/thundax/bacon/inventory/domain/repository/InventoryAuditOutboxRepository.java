@@ -7,15 +7,14 @@ import java.util.List;
 
 public interface InventoryAuditOutboxRepository {
 
-    default void saveAuditOutbox(InventoryAuditOutbox outbox) {
-    }
+    default void saveAuditOutbox(InventoryAuditOutbox outbox) {}
 
     default List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
         return List.of();
     }
 
-    default List<InventoryAuditOutbox> claimRetryableAuditOutbox(Instant now, int limit,
-                                                                  String processingOwner, Instant leaseUntil) {
+    default List<InventoryAuditOutbox> claimRetryableAuditOutbox(
+            Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return List.of();
     }
 
@@ -23,25 +22,27 @@ public interface InventoryAuditOutboxRepository {
         return 0;
     }
 
-    default void updateAuditOutboxForRetry(OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage,
-                                           Instant updatedAt) {
-    }
+    default void updateAuditOutboxForRetry(
+            OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage, Instant updatedAt) {}
 
-    default boolean updateAuditOutboxForRetryClaimed(OutboxId outboxId, String processingOwner, int retryCount,
-                                                     Instant nextRetryAt, String errorMessage, Instant updatedAt) {
+    default boolean updateAuditOutboxForRetryClaimed(
+            OutboxId outboxId,
+            String processingOwner,
+            int retryCount,
+            Instant nextRetryAt,
+            String errorMessage,
+            Instant updatedAt) {
         return false;
     }
 
-    default void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
-    }
+    default void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {}
 
-    default boolean markAuditOutboxDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount,
-                                               String deadReason, Instant updatedAt) {
+    default boolean markAuditOutboxDeadClaimed(
+            OutboxId outboxId, String processingOwner, int retryCount, String deadReason, Instant updatedAt) {
         return false;
     }
 
-    default void deleteAuditOutbox(OutboxId outboxId) {
-    }
+    default void deleteAuditOutbox(OutboxId outboxId) {}
 
     default boolean deleteAuditOutboxClaimed(OutboxId outboxId, String processingOwner) {
         return false;

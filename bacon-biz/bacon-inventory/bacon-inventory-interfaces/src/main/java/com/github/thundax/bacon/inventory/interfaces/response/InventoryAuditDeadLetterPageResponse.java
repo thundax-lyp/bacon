@@ -19,8 +19,10 @@ public record InventoryAuditDeadLetterPageResponse(
     public static InventoryAuditDeadLetterPageResponse from(InventoryAuditDeadLetterPageResultDTO dto) {
         List<InventoryAuditDeadLetterResponse> recordResponses = dto.getRecords() == null
                 ? List.of()
-                : dto.getRecords().stream().map(InventoryAuditDeadLetterResponse::from).toList();
-        return new InventoryAuditDeadLetterPageResponse(recordResponses, dto.getTotal(), dto.getPageNo(),
-                dto.getPageSize());
+                : dto.getRecords().stream()
+                        .map(InventoryAuditDeadLetterResponse::from)
+                        .toList();
+        return new InventoryAuditDeadLetterPageResponse(
+                recordResponses, dto.getTotal(), dto.getPageNo(), dto.getPageSize());
     }
 }

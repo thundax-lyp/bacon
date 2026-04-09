@@ -24,8 +24,14 @@ public record UserLoginResponse(
         Boolean needChangePassword) {
 
     public static UserLoginResponse from(UserLoginDTO dto) {
-        return new UserLoginResponse(dto.getAccessToken(), dto.getRefreshToken(), dto.getTokenType(),
-                dto.getExpiresIn(), dto.getSessionId(), dto.getUserId(), dto.getTenantId(),
+        return new UserLoginResponse(
+                dto.getAccessToken(),
+                dto.getRefreshToken(),
+                dto.getTokenType(),
+                dto.getExpiresIn(),
+                dto.getSessionId(),
+                dto.getUserId(),
+                dto.getTenantId(),
                 dto.getNeedChangePassword());
     }
 }

@@ -25,8 +25,14 @@ public record InventoryStockResponse(
         Instant updatedAt) {
 
     public static InventoryStockResponse from(InventoryStockDTO dto) {
-        return new InventoryStockResponse(dto.getTenantId(), dto.getSkuId(), dto.getWarehouseCode(),
-                dto.getOnHandQuantity(), dto.getReservedQuantity(), dto.getAvailableQuantity(), dto.getStatus(),
+        return new InventoryStockResponse(
+                dto.getTenantId(),
+                dto.getSkuId(),
+                dto.getWarehouseCode(),
+                dto.getOnHandQuantity(),
+                dto.getReservedQuantity(),
+                dto.getAvailableQuantity(),
+                dto.getStatus(),
                 dto.getUpdatedAt());
     }
 }

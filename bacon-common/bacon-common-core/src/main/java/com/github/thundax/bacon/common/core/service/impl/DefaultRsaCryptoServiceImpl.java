@@ -32,7 +32,9 @@ public class DefaultRsaCryptoServiceImpl implements RsaCryptoService {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(ALGORITHM);
             keyPairGenerator.initialize(KEY_SIZE);
             java.security.KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            return new RsaKeyPair(encode(keyPair.getPublic().getEncoded()), encode(keyPair.getPrivate().getEncoded()));
+            return new RsaKeyPair(
+                    encode(keyPair.getPublic().getEncoded()),
+                    encode(keyPair.getPrivate().getEncoded()));
         } catch (GeneralSecurityException ex) {
             throw new IllegalStateException("Failed to generate RSA key pair", ex);
         }
@@ -79,7 +81,8 @@ public class DefaultRsaCryptoServiceImpl implements RsaCryptoService {
         if (StringUtils.isBlank(privateKey)) {
             throw new BadRequestException("RSA private key must not be blank");
         }
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey));
+        PKCS8EncodedKeySpec keySpec =
+                new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey));
         return KeyFactory.getInstance(ALGORITHM).generatePrivate(keySpec);
     }
 

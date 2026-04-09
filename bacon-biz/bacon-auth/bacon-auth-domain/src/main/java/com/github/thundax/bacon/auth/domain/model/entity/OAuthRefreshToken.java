@@ -33,13 +33,25 @@ public class OAuthRefreshToken {
     /** 令牌状态。 */
     private String tokenStatus;
 
-    public OAuthRefreshToken(String tokenId, String tokenHash, String accessTokenId, String clientId, Long tenantId,
-                             Long userId, Instant issuedAt, Instant expireAt) {
-        this(tokenId, tokenHash, accessTokenId,
+    public OAuthRefreshToken(
+            String tokenId,
+            String tokenHash,
+            String accessTokenId,
+            String clientId,
+            Long tenantId,
+            Long userId,
+            Instant issuedAt,
+            Instant expireAt) {
+        this(
+                tokenId,
+                tokenHash,
+                accessTokenId,
                 clientId == null ? null : ClientCode.of(clientId),
                 tenantId == null ? null : TenantId.of(tenantId),
                 userId == null ? null : UserId.of(userId),
-                issuedAt, expireAt, "ACTIVE");
+                issuedAt,
+                expireAt,
+                "ACTIVE");
     }
 
     public String getClientIdValue() {

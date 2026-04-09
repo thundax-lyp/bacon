@@ -27,21 +27,31 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
 
     @Override
     public OAuthAuthorizationRequest saveAuthorizationRequest(OAuthAuthorizationRequest authorizationRequest) {
-        redisTemplate.opsForValue().set(AuthRedisKeyHelper.authorizationRequest(authorizationRequest.getAuthorizationRequestId()),
-                AuthorizationRequestSnapshot.fromDomain(authorizationRequest), ttl(authorizationRequest.getExpireAt()));
+        redisTemplate
+                .opsForValue()
+                .set(
+                        AuthRedisKeyHelper.authorizationRequest(authorizationRequest.getAuthorizationRequestId()),
+                        AuthorizationRequestSnapshot.fromDomain(authorizationRequest),
+                        ttl(authorizationRequest.getExpireAt()));
         return authorizationRequest;
     }
 
     @Override
     public Optional<OAuthAuthorizationRequest> findAuthorizationRequestById(String authorizationRequestId) {
-        return readValue(AuthRedisKeyHelper.authorizationRequest(authorizationRequestId), AuthorizationRequestSnapshot.class)
+        return readValue(
+                        AuthRedisKeyHelper.authorizationRequest(authorizationRequestId),
+                        AuthorizationRequestSnapshot.class)
                 .map(AuthorizationRequestSnapshot::toDomain);
     }
 
     @Override
     public void saveAuthorizationCode(String authorizationCode, OAuthAuthorizationRequest authorizationRequest) {
-        redisTemplate.opsForValue().set(AuthRedisKeyHelper.authorizationCode(authorizationCode),
-                AuthorizationRequestSnapshot.fromDomain(authorizationRequest), ttl(authorizationRequest.getExpireAt()));
+        redisTemplate
+                .opsForValue()
+                .set(
+                        AuthRedisKeyHelper.authorizationCode(authorizationCode),
+                        AuthorizationRequestSnapshot.fromDomain(authorizationRequest),
+                        ttl(authorizationRequest.getExpireAt()));
     }
 
     @Override
@@ -52,9 +62,12 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
 
     @Override
     public OAuthAccessToken saveAccessToken(OAuthAccessToken accessToken) {
-        redisTemplate.opsForValue().set(AuthRedisKeyHelper.accessToken(accessToken.getTokenHash()),
-                AccessTokenSnapshot.fromDomain(accessToken),
-                ttl(accessToken.getExpireAt()));
+        redisTemplate
+                .opsForValue()
+                .set(
+                        AuthRedisKeyHelper.accessToken(accessToken.getTokenHash()),
+                        AccessTokenSnapshot.fromDomain(accessToken),
+                        ttl(accessToken.getExpireAt()));
         return accessToken;
     }
 
@@ -66,9 +79,12 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
 
     @Override
     public OAuthRefreshToken saveOAuthRefreshToken(OAuthRefreshToken refreshToken) {
-        redisTemplate.opsForValue().set(AuthRedisKeyHelper.refreshOAuthToken(refreshToken.getTokenHash()),
-                RefreshTokenSnapshot.fromDomain(refreshToken),
-                ttl(refreshToken.getExpireAt()));
+        redisTemplate
+                .opsForValue()
+                .set(
+                        AuthRedisKeyHelper.refreshOAuthToken(refreshToken.getTokenHash()),
+                        RefreshTokenSnapshot.fromDomain(refreshToken),
+                        ttl(refreshToken.getExpireAt()));
         return refreshToken;
     }
 
@@ -105,18 +121,34 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private boolean used;
 
         private static AuthorizationRequestSnapshot fromDomain(OAuthAuthorizationRequest authorizationRequest) {
-            return new AuthorizationRequestSnapshot(authorizationRequest.getAuthorizationRequestId(),
-                    authorizationRequest.getClientIdValue(), authorizationRequest.getRedirectUri(), authorizationRequest.getScopes(),
-                    authorizationRequest.getState(), authorizationRequest.getCodeChallenge(),
-                    authorizationRequest.getCodeChallengeMethod(), authorizationRequest.getTenantIdValue(),
-                    authorizationRequest.getUserId() == null ? null : authorizationRequest.getUserId().value(),
-                    authorizationRequest.getExpireAt(), authorizationRequest.isUsed());
+            return new AuthorizationRequestSnapshot(
+                    authorizationRequest.getAuthorizationRequestId(),
+                    authorizationRequest.getClientIdValue(),
+                    authorizationRequest.getRedirectUri(),
+                    authorizationRequest.getScopes(),
+                    authorizationRequest.getState(),
+                    authorizationRequest.getCodeChallenge(),
+                    authorizationRequest.getCodeChallengeMethod(),
+                    authorizationRequest.getTenantIdValue(),
+                    authorizationRequest.getUserId() == null
+                            ? null
+                            : authorizationRequest.getUserId().value(),
+                    authorizationRequest.getExpireAt(),
+                    authorizationRequest.isUsed());
         }
 
         private OAuthAuthorizationRequest toDomain() {
-            OAuthAuthorizationRequest request = new OAuthAuthorizationRequest(authorizationRequestId, clientId, redirectUri,
-                    scopes == null ? null : scopes.stream().toList(), state, codeChallenge, codeChallengeMethod,
-                    tenantId, userId, expireAt);
+            OAuthAuthorizationRequest request = new OAuthAuthorizationRequest(
+                    authorizationRequestId,
+                    clientId,
+                    redirectUri,
+                    scopes == null ? null : scopes.stream().toList(),
+                    state,
+                    codeChallenge,
+                    codeChallengeMethod,
+                    tenantId,
+                    userId,
+                    expireAt);
             if (used) {
                 request.markUsed();
             }
@@ -139,15 +171,30 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private String tokenStatus;
 
         private static AccessTokenSnapshot fromDomain(OAuthAccessToken accessToken) {
-            return new AccessTokenSnapshot(accessToken.getTokenId(), accessToken.getTokenHash(), accessToken.getClientIdValue(),
+            return new AccessTokenSnapshot(
+                    accessToken.getTokenId(),
+                    accessToken.getTokenHash(),
+                    accessToken.getClientIdValue(),
                     accessToken.getTenantIdValue(),
-                    accessToken.getUserId() == null ? null : accessToken.getUserId().value(), accessToken.getScopes(),
-                    accessToken.getIssuedAt(), accessToken.getExpireAt(), accessToken.getStatusValue());
+                    accessToken.getUserId() == null
+                            ? null
+                            : accessToken.getUserId().value(),
+                    accessToken.getScopes(),
+                    accessToken.getIssuedAt(),
+                    accessToken.getExpireAt(),
+                    accessToken.getStatusValue());
         }
 
         private OAuthAccessToken toDomain() {
-            OAuthAccessToken accessToken = new OAuthAccessToken(tokenId, tokenHash, clientId, tenantId, userId,
-                    scopes == null ? null : scopes.stream().toList(), issuedAt, expireAt);
+            OAuthAccessToken accessToken = new OAuthAccessToken(
+                    tokenId,
+                    tokenHash,
+                    clientId,
+                    tenantId,
+                    userId,
+                    scopes == null ? null : scopes.stream().toList(),
+                    issuedAt,
+                    expireAt);
             if ("REVOKED".equals(tokenStatus)) {
                 accessToken.revoke();
             }
@@ -170,16 +217,23 @@ public class RedisOAuthAuthorizationRepositoryImpl implements OAuthAuthorization
         private String tokenStatus;
 
         private static RefreshTokenSnapshot fromDomain(OAuthRefreshToken refreshToken) {
-            return new RefreshTokenSnapshot(refreshToken.getTokenId(), refreshToken.getTokenHash(),
-                    refreshToken.getAccessTokenId(), refreshToken.getClientIdValue(), refreshToken.getTenantIdValue(),
-                    refreshToken.getUserId() == null ? null : refreshToken.getUserId().value(),
-                    refreshToken.getIssuedAt(), refreshToken.getExpireAt(),
+            return new RefreshTokenSnapshot(
+                    refreshToken.getTokenId(),
+                    refreshToken.getTokenHash(),
+                    refreshToken.getAccessTokenId(),
+                    refreshToken.getClientIdValue(),
+                    refreshToken.getTenantIdValue(),
+                    refreshToken.getUserId() == null
+                            ? null
+                            : refreshToken.getUserId().value(),
+                    refreshToken.getIssuedAt(),
+                    refreshToken.getExpireAt(),
                     refreshToken.getTokenStatus());
         }
 
         private OAuthRefreshToken toDomain() {
-            OAuthRefreshToken refreshToken = new OAuthRefreshToken(tokenId, tokenHash, accessTokenId, clientId, tenantId,
-                    userId, issuedAt, expireAt);
+            OAuthRefreshToken refreshToken = new OAuthRefreshToken(
+                    tokenId, tokenHash, accessTokenId, clientId, tenantId, userId, issuedAt, expireAt);
             if ("USED".equals(tokenStatus)) {
                 refreshToken.markUsed();
             } else if ("REVOKED".equals(tokenStatus)) {

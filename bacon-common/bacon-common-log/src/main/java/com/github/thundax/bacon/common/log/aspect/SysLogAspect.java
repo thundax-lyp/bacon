@@ -6,6 +6,9 @@ import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import com.github.thundax.bacon.common.log.producer.SysLogMessageProducer;
 import jakarta.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
+import java.time.Instant;
+import java.util.UUID;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -14,10 +17,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import java.lang.reflect.Method;
-import java.time.Instant;
-import java.util.UUID;
 
 @Aspect
 public class SysLogAspect {
@@ -48,11 +47,11 @@ public class SysLogAspect {
         }
     }
 
-    private SysLogDTO buildMessage(ProceedingJoinPoint joinPoint, SysLog sysLog, long startTime,
-                                   Throwable throwable) {
+    private SysLogDTO buildMessage(ProceedingJoinPoint joinPoint, SysLog sysLog, long startTime, Throwable throwable) {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = requestAttributes instanceof ServletRequestAttributes servletRequestAttributes
-                ? servletRequestAttributes.getRequest() : null;
+                ? servletRequestAttributes.getRequest()
+                : null;
         long costMs = System.currentTimeMillis() - startTime;
 
         String traceId = readRequestValue(request, LogFieldNames.TRACE_ID, "X-Trace-Id");
@@ -79,8 +78,7 @@ public class SysLogAspect {
                 httpMethod,
                 costMs,
                 throwable == null ? null : throwable.getMessage(),
-                Instant.now()
-        );
+                Instant.now());
     }
 
     private SysLog resolveSysLog(ProceedingJoinPoint joinPoint) {

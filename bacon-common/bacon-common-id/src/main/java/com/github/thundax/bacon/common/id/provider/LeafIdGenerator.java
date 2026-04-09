@@ -14,9 +14,7 @@ public class LeafIdGenerator implements IdGenerator {
     private final String pathTemplate;
     private final ObjectMapper objectMapper;
 
-    public LeafIdGenerator(RestClient restClient,
-                           BaconIdGeneratorProperties properties,
-                           ObjectMapper objectMapper) {
+    public LeafIdGenerator(RestClient restClient, BaconIdGeneratorProperties properties, ObjectMapper objectMapper) {
         this.restClient = restClient;
         this.pathTemplate = properties.getLeaf().getPathTemplate();
         this.objectMapper = objectMapper;
@@ -25,23 +23,21 @@ public class LeafIdGenerator implements IdGenerator {
     @Override
     public long nextId(String bizTag) {
         try {
-            String response = restClient.get()
-                    .uri(pathTemplate, bizTag)
-                    .retrieve()
-                    .body(String.class);
+            String response =
+                    restClient.get().uri(pathTemplate, bizTag).retrieve().body(String.class);
             return parseId(response, bizTag);
         } catch (IdGeneratorException ex) {
             throw ex;
         } catch (RuntimeException ex) {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE,
-                    "leaf generate failed, bizTag=" + bizTag, ex);
+            throw new IdGeneratorException(
+                    IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "leaf generate failed, bizTag=" + bizTag, ex);
         }
     }
 
     private long parseId(String response, String bizTag) {
         if (response == null || response.isBlank()) {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_RESPONSE_INVALID,
-                    "leaf return empty body, bizTag=" + bizTag);
+            throw new IdGeneratorException(
+                    IdGeneratorErrorCode.ID_PROVIDER_RESPONSE_INVALID, "leaf return empty body, bizTag=" + bizTag);
         }
         Long plainLong = tryParseLong(response.trim());
         if (plainLong != null && plainLong > 0L) {
@@ -56,7 +52,8 @@ public class LeafIdGenerator implements IdGenerator {
         } catch (Exception ignored) {
             // ignore parse exception and throw unified BizException below
         }
-        throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_RESPONSE_INVALID,
+        throw new IdGeneratorException(
+                IdGeneratorErrorCode.ID_PROVIDER_RESPONSE_INVALID,
                 "leaf return invalid body, bizTag=" + bizTag + ", body=" + response);
     }
 
@@ -70,14 +67,14 @@ public class LeafIdGenerator implements IdGenerator {
         if (root.isTextual()) {
             return tryParseLong(root.textValue());
         }
-        JsonNode[] candidates = new JsonNode[]{
-                root.path("id"),
-                root.path("value"),
-                root.path("result"),
-                root.path("data"),
-                root.path("data").path("id"),
-                root.path("data").path("value"),
-                root.path("data").path("result")
+        JsonNode[] candidates = new JsonNode[] {
+            root.path("id"),
+            root.path("value"),
+            root.path("result"),
+            root.path("data"),
+            root.path("data").path("id"),
+            root.path("data").path("value"),
+            root.path("data").path("result")
         };
         for (JsonNode candidate : candidates) {
             Long value = extractId(candidate);

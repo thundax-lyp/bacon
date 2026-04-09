@@ -4,8 +4,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 
 public final class TaskIdCodec {
 
-    private TaskIdCodec() {
-    }
+    private TaskIdCodec() {}
 
     public static TaskId toDomain(Long value) {
         if (value == null) {

@@ -8,21 +8,20 @@ import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 @Repository
 @ConditionalOnProperty(name = "bacon.storage.type", havingValue = "LOCAL_FILE", matchIfMissing = true)
@@ -42,23 +41,23 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
     }
 
     @Override
-    public StoredObjectStorageResult upload(String category, String originalFilename, String contentType,
-                                            InputStream inputStream) {
+    public StoredObjectStorageResult upload(
+            String category, String originalFilename, String contentType, InputStream inputStream) {
         String objectKey = buildObjectKey(category, originalFilename);
         Path targetPath = resolveObjectPath(objectKey);
         try {
             Files.createDirectories(targetPath.getParent());
             Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
-            return new StoredObjectStorageResult(StorageType.LOCAL_FILE, bucketName, objectKey,
-                    buildAccessEndpoint(objectKey));
+            return new StoredObjectStorageResult(
+                    StorageType.LOCAL_FILE, bucketName, objectKey, buildAccessEndpoint(objectKey));
         } catch (IOException ex) {
             throw new SystemException("Failed to store file to local storage", ex);
         }
     }
 
     @Override
-    public MultipartUploadStorageSession initMultipartUpload(String category, String originalFilename,
-                                                             String contentType) {
+    public MultipartUploadStorageSession initMultipartUpload(
+            String category, String originalFilename, String contentType) {
         return new MultipartUploadStorageSession(buildObjectKey(category, originalFilename), null);
     }
 
@@ -75,13 +74,13 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
     }
 
     @Override
-    public StoredObjectStorageResult completeMultipartUpload(MultipartUploadSession session,
-                                                             List<MultipartUploadPart> parts) {
+    public StoredObjectStorageResult completeMultipartUpload(
+            MultipartUploadSession session, List<MultipartUploadPart> parts) {
         Path targetPath = resolveObjectPath(session.getObjectKey());
         try {
             Files.createDirectories(targetPath.getParent());
-            try (OutputStream outputStream = Files.newOutputStream(targetPath, StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING)) {
+            try (OutputStream outputStream = Files.newOutputStream(
+                    targetPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
                 for (MultipartUploadPart part : parts.stream()
                         .sorted(Comparator.comparing(MultipartUploadPart::getPartNumber))
                         .toList()) {
@@ -89,7 +88,10 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
                 }
             }
             deleteMultipartDirectory(session.getUploadId());
-            return new StoredObjectStorageResult(StorageType.LOCAL_FILE, bucketName, session.getObjectKey(),
+            return new StoredObjectStorageResult(
+                    StorageType.LOCAL_FILE,
+                    bucketName,
+                    session.getObjectKey(),
                     buildAccessEndpoint(session.getObjectKey()));
         } catch (IOException ex) {
             throw new SystemException("Failed to complete multipart upload in local storage", ex);
@@ -140,8 +142,8 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
     }
 
     private String buildAccessEndpoint(String objectKey) {
-        String normalizedBaseUrl = publicBaseUrl.endsWith("/")
-                ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1) : publicBaseUrl;
+        String normalizedBaseUrl =
+                publicBaseUrl.endsWith("/") ? publicBaseUrl.substring(0, publicBaseUrl.length() - 1) : publicBaseUrl;
         return normalizedBaseUrl + "/" + objectKey;
     }
 
@@ -151,14 +153,13 @@ public class LocalFileStoredObjectStorageRepositoryImpl implements StoredObjectS
             return;
         }
         try (var paths = Files.walk(multipartDirectory)) {
-            paths.sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.deleteIfExists(path);
-                        } catch (IOException ex) {
-                            throw new SystemException("Failed to clean multipart temporary files", ex);
-                        }
-                    });
+            paths.sorted(Comparator.reverseOrder()).forEach(path -> {
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException ex) {
+                    throw new SystemException("Failed to clean multipart temporary files", ex);
+                }
+            });
         }
     }
 }

@@ -41,13 +41,30 @@ public class AuthSession {
     /** 失效原因。 */
     private String invalidateReason;
 
-    public AuthSession(Long id, String sessionId, Long tenantId, Long userId, Long identityId, String identityType,
-                       String loginType, Instant issuedAt, Instant expireAt) {
-        this(id, sessionId,
+    public AuthSession(
+            Long id,
+            String sessionId,
+            Long tenantId,
+            Long userId,
+            Long identityId,
+            String identityType,
+            String loginType,
+            Instant issuedAt,
+            Instant expireAt) {
+        this(
+                id,
+                sessionId,
                 tenantId == null ? null : TenantId.of(tenantId),
                 userId == null ? null : UserId.of(userId),
-                identityId, identityType, loginType, issuedAt, expireAt,
-                SessionStatus.ACTIVE, issuedAt, null, null);
+                identityId,
+                identityType,
+                loginType,
+                issuedAt,
+                expireAt,
+                SessionStatus.ACTIVE,
+                issuedAt,
+                null,
+                null);
     }
 
     public void touch(Instant accessTime) {

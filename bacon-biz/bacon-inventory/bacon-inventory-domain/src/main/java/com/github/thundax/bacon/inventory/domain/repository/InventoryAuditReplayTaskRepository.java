@@ -18,39 +18,44 @@ public interface InventoryAuditReplayTaskRepository {
         return task;
     }
 
-    default void batchSaveAuditReplayTaskItems(TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds,
-                                               Instant createdAt) {
-    }
+    default void batchSaveAuditReplayTaskItems(
+            TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds, Instant createdAt) {}
 
     default Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
         return Optional.empty();
     }
 
-    default List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
-                                                                         String processingOwner, Instant leaseUntil) {
+    default List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(
+            Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return List.of();
     }
 
-    default void renewAuditReplayTaskLease(TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
-    }
+    default void renewAuditReplayTaskLease(
+            TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {}
 
     default List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
         return List.of();
     }
 
-    default void markAuditReplayTaskItemResult(Long itemId, InventoryAuditReplayTaskItemStatus itemStatus,
-                                               InventoryAuditReplayStatus replayStatus,
-                                               String replayKey, String resultMessage, Instant startedAt,
-                                               Instant finishedAt) {
-    }
+    default void markAuditReplayTaskItemResult(
+            Long itemId,
+            InventoryAuditReplayTaskItemStatus itemStatus,
+            InventoryAuditReplayStatus replayStatus,
+            String replayKey,
+            String resultMessage,
+            Instant startedAt,
+            Instant finishedAt) {}
 
-    default void incrementAuditReplayTaskProgress(TaskId taskId, String processingOwner, int processedDelta,
-                                                  int successDelta, int failedDelta, Instant updatedAt) {
-    }
+    default void incrementAuditReplayTaskProgress(
+            TaskId taskId,
+            String processingOwner,
+            int processedDelta,
+            int successDelta,
+            int failedDelta,
+            Instant updatedAt) {}
 
-    default void finishAuditReplayTask(TaskId taskId, String processingOwner, String status,
-                                       String lastError, Instant finishedAt) {
-    }
+    default void finishAuditReplayTask(
+            TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {}
 
     default boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
         return false;

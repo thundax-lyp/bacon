@@ -1,5 +1,12 @@
 package com.github.thundax.bacon.storage.application.support;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.application.config.StorageAuditRetryProperties;
@@ -10,6 +17,8 @@ import com.github.thundax.bacon.storage.domain.repository.StorageAuditLogReposit
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditOutboxRepository;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,21 +26,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class StorageAuditOutboxRetryServiceTest {
 
     @Mock
     private StorageAuditLogRepository storageAuditLogRepository;
+
     @Mock
     private StorageAuditOutboxRepository storageAuditOutboxRepository;
 
@@ -48,7 +48,8 @@ class StorageAuditOutboxRetryServiceTest {
         properties.setMaxRetries(2);
         properties.setBaseDelaySeconds(30L);
         properties.setMaxDelaySeconds(300L);
-        service = new StorageAuditOutboxRetryService(storageAuditLogRepository, storageAuditOutboxRepository, properties);
+        service =
+                new StorageAuditOutboxRetryService(storageAuditLogRepository, storageAuditOutboxRepository, properties);
     }
 
     @AfterEach
@@ -61,44 +62,66 @@ class StorageAuditOutboxRetryServiceTest {
     void shouldDeleteOutboxWhenRetrySucceeds() {
         StorageAuditOutbox item = outbox(100L, 0);
         when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
-        when(storageAuditOutboxRepository.claimForProcessing(eq(100L), any(), any(), any())).thenReturn(true);
+        when(storageAuditOutboxRepository.claimForProcessing(eq(100L), any(), any(), any()))
+                .thenReturn(true);
 
         int processed = service.retryOutbox();
 
         assertEquals(1, processed);
         verify(storageAuditLogRepository).save(any());
         verify(storageAuditOutboxRepository).deleteById(100L);
-        assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.retry.success.total")
-                .tag("actionType", "UPLOAD").counter().count());
+        assertEquals(
+                1.0d,
+                meterRegistry
+                        .get("bacon.storage.audit.retry.success.total")
+                        .tag("actionType", "UPLOAD")
+                        .counter()
+                        .count());
     }
 
     @Test
     void shouldMarkRetryWhenRetryFailsBelowMaxRetries() {
         StorageAuditOutbox item = outbox(101L, 0);
         when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
-        when(storageAuditOutboxRepository.claimForProcessing(eq(101L), any(), any(), any())).thenReturn(true);
-        doThrow(new IllegalStateException("retry-fail")).when(storageAuditLogRepository).save(any());
+        when(storageAuditOutboxRepository.claimForProcessing(eq(101L), any(), any(), any()))
+                .thenReturn(true);
+        doThrow(new IllegalStateException("retry-fail"))
+                .when(storageAuditLogRepository)
+                .save(any());
 
         service.retryOutbox();
 
-        verify(storageAuditOutboxRepository).updateForRetry(eq(101L), eq(1), any(), eq("retry-fail"),
-                eq(StorageAuditOutboxStatus.RETRYING), any());
-        assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.retry.fail.total")
-                .tag("actionType", "UPLOAD").counter().count());
+        verify(storageAuditOutboxRepository)
+                .updateForRetry(eq(101L), eq(1), any(), eq("retry-fail"), eq(StorageAuditOutboxStatus.RETRYING), any());
+        assertEquals(
+                1.0d,
+                meterRegistry
+                        .get("bacon.storage.audit.retry.fail.total")
+                        .tag("actionType", "UPLOAD")
+                        .counter()
+                        .count());
     }
 
     @Test
     void shouldMarkDeadWhenRetryExhausted() {
         StorageAuditOutbox item = outbox(102L, 2);
         when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
-        when(storageAuditOutboxRepository.claimForProcessing(eq(102L), any(), any(), any())).thenReturn(true);
-        doThrow(new IllegalStateException("retry-fail")).when(storageAuditLogRepository).save(any());
+        when(storageAuditOutboxRepository.claimForProcessing(eq(102L), any(), any(), any()))
+                .thenReturn(true);
+        doThrow(new IllegalStateException("retry-fail"))
+                .when(storageAuditLogRepository)
+                .save(any());
 
         service.retryOutbox();
 
         verify(storageAuditOutboxRepository).markDead(eq(102L), eq(3), eq("retry-fail"), any());
-        assertEquals(1.0d, meterRegistry.get("bacon.storage.audit.retry.dead.total")
-                .tag("actionType", "UPLOAD").counter().count());
+        assertEquals(
+                1.0d,
+                meterRegistry
+                        .get("bacon.storage.audit.retry.dead.total")
+                        .tag("actionType", "UPLOAD")
+                        .counter()
+                        .count());
     }
 
     @Test
@@ -108,15 +131,20 @@ class StorageAuditOutboxRetryServiceTest {
         int deleted = service.cleanupExpiredDeadOutbox();
 
         assertEquals(2, deleted);
-        assertEquals(2.0d, meterRegistry.get("bacon.storage.audit.cleanup.dead.total")
-                .counter().count());
+        assertEquals(
+                2.0d,
+                meterRegistry
+                        .get("bacon.storage.audit.cleanup.dead.total")
+                        .counter()
+                        .count());
     }
 
     @Test
     void shouldSkipOutboxWhenClaimFails() {
         StorageAuditOutbox item = outbox(103L, 0);
         when(storageAuditOutboxRepository.listRetryable(any(), any(), eq(10))).thenReturn(List.of(item));
-        when(storageAuditOutboxRepository.claimForProcessing(eq(103L), any(), any(), any())).thenReturn(false);
+        when(storageAuditOutboxRepository.claimForProcessing(eq(103L), any(), any(), any()))
+                .thenReturn(false);
 
         int processed = service.retryOutbox();
 
@@ -127,8 +155,22 @@ class StorageAuditOutboxRetryServiceTest {
 
     private StorageAuditOutbox outbox(Long id, int retryCount) {
         Instant now = Instant.parse("2026-03-27T12:00:00Z");
-        return new StorageAuditOutbox(id, TenantId.of(1L), StoredObjectId.of(100L), "GENERIC_ATTACHMENT",
-                "owner-1", StorageAuditActionType.UPLOAD, null, "ACTIVE", "SYSTEM", 0L, now, "force-fail-audit",
-                StorageAuditOutboxStatus.NEW, retryCount, now, now);
+        return new StorageAuditOutbox(
+                id,
+                TenantId.of(1L),
+                StoredObjectId.of(100L),
+                "GENERIC_ATTACHMENT",
+                "owner-1",
+                StorageAuditActionType.UPLOAD,
+                null,
+                "ACTIVE",
+                "SYSTEM",
+                0L,
+                now,
+                "force-fail-audit",
+                StorageAuditOutboxStatus.NEW,
+                retryCount,
+                now,
+                now);
     }
 }

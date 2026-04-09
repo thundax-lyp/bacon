@@ -1,11 +1,10 @@
 package com.github.thundax.bacon.storage.infra.config;
 
+import java.time.Duration;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import java.time.Duration;
 
 /**
  * Storage 远程客户端配置。

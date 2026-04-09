@@ -12,15 +12,16 @@ public class TinyIdGenerator implements IdGenerator {
         try {
             Long id = TinyId.nextId(bizTag);
             if (id == null || id <= 0L) {
-                throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_RESPONSE_INVALID,
+                throw new IdGeneratorException(
+                        IdGeneratorErrorCode.ID_PROVIDER_RESPONSE_INVALID,
                         "tinyid return invalid id, bizTag=" + bizTag);
             }
             return id;
         } catch (IdGeneratorException ex) {
             throw ex;
         } catch (RuntimeException ex) {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE,
-                    "tinyid generate failed, bizTag=" + bizTag, ex);
+            throw new IdGeneratorException(
+                    IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "tinyid generate failed, bizTag=" + bizTag, ex);
         }
     }
 }

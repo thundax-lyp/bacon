@@ -40,18 +40,51 @@ public class StorageAuditLog {
     /** 审计发生时间。 */
     private Instant occurredAt;
 
-    public StorageAuditLog(Long id, Long tenantId, Long objectId, String ownerType, String ownerId,
-                           StorageAuditActionType actionType, String beforeStatus, String afterStatus,
-                           String operatorType, Long operatorId, Instant occurredAt) {
-        this(id,
+    public StorageAuditLog(
+            Long id,
+            Long tenantId,
+            Long objectId,
+            String ownerType,
+            String ownerId,
+            StorageAuditActionType actionType,
+            String beforeStatus,
+            String afterStatus,
+            String operatorType,
+            Long operatorId,
+            Instant occurredAt) {
+        this(
+                id,
                 tenantId == null ? null : TenantId.of(tenantId),
                 objectId == null ? null : StoredObjectId.of(objectId),
-                ownerType, ownerId, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
+                ownerType,
+                ownerId,
+                actionType,
+                beforeStatus,
+                afterStatus,
+                operatorType,
+                operatorId,
+                occurredAt);
     }
 
-    public static StorageAuditLog systemAction(TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId,
-                                               StorageAuditActionType actionType, String beforeStatus, String afterStatus) {
-        return new StorageAuditLog(null, tenantId, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus,
-                OPERATOR_TYPE_SYSTEM, OPERATOR_ID_SYSTEM, Instant.now());
+    public static StorageAuditLog systemAction(
+            TenantId tenantId,
+            StoredObjectId objectId,
+            String ownerType,
+            String ownerId,
+            StorageAuditActionType actionType,
+            String beforeStatus,
+            String afterStatus) {
+        return new StorageAuditLog(
+                null,
+                tenantId,
+                objectId,
+                ownerType,
+                ownerId,
+                actionType,
+                beforeStatus,
+                afterStatus,
+                OPERATOR_TYPE_SYSTEM,
+                OPERATOR_ID_SYSTEM,
+                Instant.now());
     }
 }

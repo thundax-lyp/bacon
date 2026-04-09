@@ -3,8 +3,8 @@ package com.github.thundax.bacon.order.infra.generator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import org.junit.jupiter.api.Test;
 
 class DefaultOrderNoGeneratorTest {

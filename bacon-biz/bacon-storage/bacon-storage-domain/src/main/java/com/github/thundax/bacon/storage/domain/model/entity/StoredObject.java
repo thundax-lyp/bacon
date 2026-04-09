@@ -2,9 +2,9 @@ package com.github.thundax.bacon.storage.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
-import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,23 +47,67 @@ public class StoredObject {
     /** 更新时间。 */
     private Instant updatedAt;
 
-    public StoredObject(Long id, Long tenantId, StorageType storageType, String bucketName, String objectKey,
-                        String originalFilename, String contentType, Long size, String accessEndpoint,
-                        StoredObjectStatus objectStatus, StoredObjectReferenceStatus referenceStatus,
-                        String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
-        this(id == null ? null : StoredObjectId.of(id),
+    public StoredObject(
+            Long id,
+            Long tenantId,
+            StorageType storageType,
+            String bucketName,
+            String objectKey,
+            String originalFilename,
+            String contentType,
+            Long size,
+            String accessEndpoint,
+            StoredObjectStatus objectStatus,
+            StoredObjectReferenceStatus referenceStatus,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        this(
+                id == null ? null : StoredObjectId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
-                storageType, bucketName, objectKey, originalFilename, contentType, size, accessEndpoint,
-                objectStatus, referenceStatus, createdBy, createdAt, updatedBy, updatedAt);
+                storageType,
+                bucketName,
+                objectKey,
+                originalFilename,
+                contentType,
+                size,
+                accessEndpoint,
+                objectStatus,
+                referenceStatus,
+                createdBy,
+                createdAt,
+                updatedBy,
+                updatedAt);
     }
 
-    public static StoredObject newUploadedObject(TenantId tenantId, StorageType storageType, String bucketName, String objectKey,
-                                                 String originalFilename, String contentType, Long size, String accessEndpoint,
-                                                 String createdBy) {
+    public static StoredObject newUploadedObject(
+            TenantId tenantId,
+            StorageType storageType,
+            String bucketName,
+            String objectKey,
+            String originalFilename,
+            String contentType,
+            Long size,
+            String accessEndpoint,
+            String createdBy) {
         Instant now = Instant.now();
-        return new StoredObject(null, tenantId, storageType, bucketName, objectKey, originalFilename, contentType, size,
-                accessEndpoint, StoredObjectStatus.ACTIVE, StoredObjectReferenceStatus.UNREFERENCED, createdBy, now,
-                createdBy, now);
+        return new StoredObject(
+                null,
+                tenantId,
+                storageType,
+                bucketName,
+                objectKey,
+                originalFilename,
+                contentType,
+                size,
+                accessEndpoint,
+                StoredObjectStatus.ACTIVE,
+                StoredObjectReferenceStatus.UNREFERENCED,
+                createdBy,
+                now,
+                createdBy,
+                now);
     }
 
     public boolean isDeleted() {

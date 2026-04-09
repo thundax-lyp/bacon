@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.order.api.dto;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 /**
  * 订单项传输对象。

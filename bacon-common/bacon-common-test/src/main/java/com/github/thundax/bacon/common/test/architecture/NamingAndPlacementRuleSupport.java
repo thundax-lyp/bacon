@@ -1,11 +1,11 @@
 package com.github.thundax.bacon.common.test.architecture;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -25,8 +25,7 @@ import java.util.stream.Collectors;
 
 public final class NamingAndPlacementRuleSupport {
 
-    private NamingAndPlacementRuleSupport() {
-    }
+    private NamingAndPlacementRuleSupport() {}
 
     public static JavaClasses importDomainClasses(String basePackage) {
         return new ClassFileImporter()
@@ -36,124 +35,156 @@ public final class NamingAndPlacementRuleSupport {
 
     public static ArchRule controllerShouldUseControllerNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("Controller")
-                .and().haveNameNotMatching(".*ProviderController$")
-                .should().resideInAPackage(basePackage + ".interfaces.controller..")
+                .that()
+                .haveSimpleNameEndingWith("Controller")
+                .and()
+                .haveNameNotMatching(".*ProviderController$")
+                .should()
+                .resideInAPackage(basePackage + ".interfaces.controller..")
                 .allowEmptyShould(true)
                 .because("Controller -> interfaces.controller");
     }
 
     public static ArchRule providerControllerShouldUseProviderControllerNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("ProviderController")
-                .should().resideInAPackage(basePackage + ".interfaces.provider..")
+                .that()
+                .haveSimpleNameEndingWith("ProviderController")
+                .should()
+                .resideInAPackage(basePackage + ".interfaces.provider..")
                 .allowEmptyShould(true)
                 .because("ProviderController -> interfaces.provider");
     }
 
     public static ArchRule resolverShouldUseResolverNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("Resolver")
-                .should().resideInAPackage(basePackage + ".interfaces.resolver..")
+                .that()
+                .haveSimpleNameEndingWith("Resolver")
+                .should()
+                .resideInAPackage(basePackage + ".interfaces.resolver..")
                 .allowEmptyShould(true)
                 .because("Resolver -> interfaces.resolver");
     }
 
     public static ArchRule applicationServiceShouldUseApplicationServiceNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("ApplicationService")
-                .should().resideInAnyPackage(
+                .that()
+                .haveSimpleNameEndingWith("ApplicationService")
+                .should()
+                .resideInAnyPackage(
                         basePackage + ".application.command..",
                         basePackage + ".application.query..",
                         basePackage + ".application.audit..",
                         basePackage + ".application.support..")
                 .allowEmptyShould(true)
-                .because("ApplicationService -> application.command/query/audit, temporarily allows application.support");
+                .because(
+                        "ApplicationService -> application.command/query/audit, temporarily allows application.support");
     }
 
     public static ArchRule domainServiceShouldUseDomainServiceNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("DomainService")
-                .should().resideInAPackage(basePackage + ".domain.service..")
+                .that()
+                .haveSimpleNameEndingWith("DomainService")
+                .should()
+                .resideInAPackage(basePackage + ".domain.service..")
                 .allowEmptyShould(true)
                 .because("DomainService -> domain.service");
     }
 
     public static ArchRule repositoryShouldUseRepositoryNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("Repository")
-                .should().resideInAPackage(basePackage + ".domain.repository..")
+                .that()
+                .haveSimpleNameEndingWith("Repository")
+                .should()
+                .resideInAPackage(basePackage + ".domain.repository..")
                 .allowEmptyShould(true)
                 .because("Repository -> domain.repository");
     }
 
     public static ArchRule repositoryImplShouldUseRepositoryImplNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("RepositoryImpl")
-                .should().resideInAPackage(basePackage + ".infra.repository.impl..")
+                .that()
+                .haveSimpleNameEndingWith("RepositoryImpl")
+                .should()
+                .resideInAPackage(basePackage + ".infra.repository.impl..")
                 .allowEmptyShould(true)
                 .because("RepositoryImpl -> infra.repository.impl");
     }
 
     public static ArchRule mapperShouldUseMapperNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("Mapper")
-                .should().resideInAPackage(basePackage + ".infra.persistence.mapper..")
+                .that()
+                .haveSimpleNameEndingWith("Mapper")
+                .should()
+                .resideInAPackage(basePackage + ".infra.persistence.mapper..")
                 .allowEmptyShould(true)
                 .because("Mapper -> infra.persistence.mapper");
     }
 
     public static ArchRule dataObjectShouldUseDONameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("DO")
-                .should().resideInAPackage(basePackage + ".infra.persistence.dataobject..")
+                .that()
+                .haveSimpleNameEndingWith("DO")
+                .should()
+                .resideInAPackage(basePackage + ".infra.persistence.dataobject..")
                 .allowEmptyShould(true)
                 .because("DO -> infra.persistence.dataobject");
     }
 
     public static ArchRule shouldNotUseDataObjectSuffix(String basePackage) {
         return ArchRuleDefinition.noClasses()
-                .that().resideInAPackage(basePackage + "..")
-                .should().haveSimpleNameEndingWith("DataObject")
+                .that()
+                .resideInAPackage(basePackage + "..")
+                .should()
+                .haveSimpleNameEndingWith("DataObject")
                 .because("Persistence objects must use the DO suffix; do not use DataObject.");
     }
 
     public static ArchRule converterShouldUseConverterNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("Converter")
-                .should().resideInAPackage(basePackage + ".infra.repository.converter..")
+                .that()
+                .haveSimpleNameEndingWith("Converter")
+                .should()
+                .resideInAPackage(basePackage + ".infra.repository.converter..")
                 .allowEmptyShould(true)
                 .because("Converter -> infra.repository.converter");
     }
 
     public static ArchRule codecShouldUseCodecNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("Codec")
-                .should().resideInAPackage(basePackage + ".application.codec..")
+                .that()
+                .haveSimpleNameEndingWith("Codec")
+                .should()
+                .resideInAPackage(basePackage + ".application.codec..")
                 .allowEmptyShould(true)
                 .because("Codec -> application.codec");
     }
 
     public static ArchRule facadeShouldUseFacadeNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("Facade")
-                .should().resideInAPackage(basePackage + ".api.facade..")
+                .that()
+                .haveSimpleNameEndingWith("Facade")
+                .should()
+                .resideInAPackage(basePackage + ".api.facade..")
                 .allowEmptyShould(true)
                 .because("Facade -> api.facade");
     }
 
     public static ArchRule facadeLocalImplShouldUseFacadeLocalImplNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("FacadeLocalImpl")
-                .should().resideInAPackage(basePackage + ".interfaces.facade..")
+                .that()
+                .haveSimpleNameEndingWith("FacadeLocalImpl")
+                .should()
+                .resideInAPackage(basePackage + ".interfaces.facade..")
                 .allowEmptyShould(true)
                 .because("FacadeLocalImpl -> interfaces.facade");
     }
 
     public static ArchRule facadeRemoteImplShouldUseFacadeRemoteImplNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
-                .that().haveSimpleNameEndingWith("FacadeRemoteImpl")
-                .should().resideInAPackage(basePackage + ".infra.facade.remote..")
+                .that()
+                .haveSimpleNameEndingWith("FacadeRemoteImpl")
+                .should()
+                .resideInAPackage(basePackage + ".infra.facade.remote..")
                 .allowEmptyShould(true)
                 .because("FacadeRemoteImpl -> infra.facade.remote");
     }
@@ -168,7 +199,8 @@ public final class NamingAndPlacementRuleSupport {
                                 .anyMatch(pattern -> matchesClassNamePattern(pattern, input.getFullName()));
                     }
                 })
-                .and().areEnums()
+                .and()
+                .areEnums()
                 .and(new DescribedPredicate<>("are simple enums without instance fields") {
                     @Override
                     public boolean test(JavaClass input) {
@@ -178,77 +210,82 @@ public final class NamingAndPlacementRuleSupport {
                                 .isEmpty();
                     }
                 })
-                .should(new ArchCondition<>("use value() -> name() and from(String) -> values/equalsIgnoreCase/orElseThrow") {
-                    @Override
-                    public void check(JavaClass item, ConditionEvents events) {
-                        List<String> violations = new ArrayList<>();
-                        Optional<JavaMethod> valueMethod = item.tryGetMethod("value");
-                        Optional<JavaMethod> fromMethod = item.tryGetMethod("from", String.class);
-                        Optional<JavaMethod> fromValueMethod = item.tryGetMethod("fromValue", String.class);
+                .should(
+                        new ArchCondition<>(
+                                "use value() -> name() and from(String) -> values/equalsIgnoreCase/orElseThrow") {
+                            @Override
+                            public void check(JavaClass item, ConditionEvents events) {
+                                List<String> violations = new ArrayList<>();
+                                Optional<JavaMethod> valueMethod = item.tryGetMethod("value");
+                                Optional<JavaMethod> fromMethod = item.tryGetMethod("from", String.class);
+                                Optional<JavaMethod> fromValueMethod = item.tryGetMethod("fromValue", String.class);
 
-                        if (valueMethod.isEmpty()) {
-                            violations.add("missing method value()");
-                        } else {
-                            JavaMethod method = valueMethod.get();
-                            if (method.getModifiers().contains(JavaModifier.STATIC)) {
-                                violations.add("value() must be an instance method");
-                            }
-                            if (!String.class.getName().equals(method.getRawReturnType().getFullName())) {
-                                violations.add("value() must return String");
-                            }
-                            if (!callsMethod(method, "name")) {
-                                violations.add("value() must delegate to name()");
-                            }
-                        }
+                                if (valueMethod.isEmpty()) {
+                                    violations.add("missing method value()");
+                                } else {
+                                    JavaMethod method = valueMethod.get();
+                                    if (method.getModifiers().contains(JavaModifier.STATIC)) {
+                                        violations.add("value() must be an instance method");
+                                    }
+                                    if (!String.class
+                                            .getName()
+                                            .equals(method.getRawReturnType().getFullName())) {
+                                        violations.add("value() must return String");
+                                    }
+                                    if (!callsMethod(method, "name")) {
+                                        violations.add("value() must delegate to name()");
+                                    }
+                                }
 
-                        if (fromValueMethod.isPresent()) {
-                            violations.add("simple enum must not declare fromValue(String); use from(String)");
-                        }
+                                if (fromValueMethod.isPresent()) {
+                                    violations.add("simple enum must not declare fromValue(String); use from(String)");
+                                }
 
-                        if (fromMethod.isEmpty()) {
-                            violations.add("missing static method from(String)");
-                        } else {
-                            JavaMethod method = fromMethod.get();
-                            if (!method.getModifiers().contains(JavaModifier.STATIC)) {
-                                violations.add("from(String) must be static");
-                            }
-                            if (!method.getRawReturnType().equals(item)) {
-                                violations.add("from(String) must return " + item.getSimpleName());
-                            }
-                            if (!callsMethod(method, "values")) {
-                                violations.add("from(String) must call values()");
-                            }
-                            if (!callsMethod(method, "equalsIgnoreCase")) {
-                                violations.add("from(String) must call String.equalsIgnoreCase(..)");
-                            }
-                            if (!callsMethod(method, "orElseThrow")) {
-                                violations.add("from(String) must call Optional.orElseThrow(..)");
-                            }
-                        }
+                                if (fromMethod.isEmpty()) {
+                                    violations.add("missing static method from(String)");
+                                } else {
+                                    JavaMethod method = fromMethod.get();
+                                    if (!method.getModifiers().contains(JavaModifier.STATIC)) {
+                                        violations.add("from(String) must be static");
+                                    }
+                                    if (!method.getRawReturnType().equals(item)) {
+                                        violations.add("from(String) must return " + item.getSimpleName());
+                                    }
+                                    if (!callsMethod(method, "values")) {
+                                        violations.add("from(String) must call values()");
+                                    }
+                                    if (!callsMethod(method, "equalsIgnoreCase")) {
+                                        violations.add("from(String) must call String.equalsIgnoreCase(..)");
+                                    }
+                                    if (!callsMethod(method, "orElseThrow")) {
+                                        violations.add("from(String) must call Optional.orElseThrow(..)");
+                                    }
+                                }
 
-                        List<String> extraMethods = item.getMethods().stream()
-                                .filter(method -> !method.getModifiers().contains(JavaModifier.SYNTHETIC))
-                                .filter(method -> !method.getModifiers().contains(JavaModifier.BRIDGE))
-                                .filter(method -> !isCompilerGeneratedEnumMethod(method))
-                                .filter(method -> !isAllowedSimpleEnumMethod(method))
-                                .map(NamingAndPlacementRuleSupport::formatMethod)
-                                .sorted()
-                                .toList();
-                        if (!extraMethods.isEmpty()) {
-                            violations.add("simple enum must only declare value() and static from(String); found extra methods "
-                                    + extraMethods);
-                        }
+                                List<String> extraMethods = item.getMethods().stream()
+                                        .filter(method -> !method.getModifiers().contains(JavaModifier.SYNTHETIC))
+                                        .filter(method -> !method.getModifiers().contains(JavaModifier.BRIDGE))
+                                        .filter(method -> !isCompilerGeneratedEnumMethod(method))
+                                        .filter(method -> !isAllowedSimpleEnumMethod(method))
+                                        .map(NamingAndPlacementRuleSupport::formatMethod)
+                                        .sorted()
+                                        .toList();
+                                if (!extraMethods.isEmpty()) {
+                                    violations.add(
+                                            "simple enum must only declare value() and static from(String); found extra methods "
+                                                    + extraMethods);
+                                }
 
-                        boolean satisfied = violations.isEmpty();
-                        String detail = satisfied
-                                ? item.getFullName() + " simple enum convention check passed"
-                                : item.getFullName() + " violation: " + String.join("; ", violations)
-                                + ". Fix: declare value() { return name(); } and static from(String value) using "
-                                + "Arrays.stream(values()).filter(item -> item.name().equalsIgnoreCase(value))"
-                                + ".findFirst().orElseThrow(...)";
-                        events.add(new SimpleConditionEvent(item, satisfied, detail));
-                    }
-                })
+                                boolean satisfied = violations.isEmpty();
+                                String detail = satisfied
+                                        ? item.getFullName() + " simple enum convention check passed"
+                                        : item.getFullName() + " violation: " + String.join("; ", violations)
+                                                + ". Fix: declare value() { return name(); } and static from(String value) using "
+                                                + "Arrays.stream(values()).filter(item -> item.name().equalsIgnoreCase(value))"
+                                                + ".findFirst().orElseThrow(...)";
+                                events.add(new SimpleConditionEvent(item, satisfied, detail));
+                            }
+                        })
                 .allowEmptyShould(true)
                 .because("configured simple enums must expose value() -> name() and from(String)");
     }
@@ -316,8 +353,10 @@ public final class NamingAndPlacementRuleSupport {
         try {
             String packagePath = item.getPackageName().replace('.', '/');
             String sourceFileName = item.getSourceCodeLocation().getSourceFileName();
-            Path mainRelativePath = Path.of("src", "main", "java").resolve(packagePath).resolve(sourceFileName);
-            Path testRelativePath = Path.of("src", "test", "java").resolve(packagePath).resolve(sourceFileName);
+            Path mainRelativePath =
+                    Path.of("src", "main", "java").resolve(packagePath).resolve(sourceFileName);
+            Path testRelativePath =
+                    Path.of("src", "test", "java").resolve(packagePath).resolve(sourceFileName);
             Path searchRoot = Path.of("").toAbsolutePath().normalize();
             for (Path candidateRoot = searchRoot; candidateRoot != null; candidateRoot = candidateRoot.getParent()) {
                 Optional<Path> mainSource = findWorkspaceFile(candidateRoot, mainRelativePath);
@@ -341,9 +380,7 @@ public final class NamingAndPlacementRuleSupport {
             return Optional.of(directPath);
         }
         try (java.util.stream.Stream<Path> paths = Files.find(
-                workspaceRoot,
-                20,
-                (path, attributes) -> attributes.isRegularFile() && path.endsWith(relativePath))) {
+                workspaceRoot, 20, (path, attributes) -> attributes.isRegularFile() && path.endsWith(relativePath))) {
             return paths.findFirst();
         } catch (Exception ignored) {
             return Optional.empty();
@@ -379,10 +416,10 @@ public final class NamingAndPlacementRuleSupport {
     }
 
     private static String formatMethod(JavaMethod method) {
-        String methodName = method.getName() + "(" + method.getRawParameterTypes().stream()
-                .map(JavaClass::getSimpleName)
-                .collect(Collectors.joining(", ")) + ")";
+        String methodName = method.getName() + "("
+                + method.getRawParameterTypes().stream()
+                        .map(JavaClass::getSimpleName)
+                        .collect(Collectors.joining(", ")) + ")";
         return method.getModifiers().contains(JavaModifier.STATIC) ? "static " + methodName : methodName;
     }
-
 }

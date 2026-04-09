@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.inventory.application.codec;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class WarehouseCodeCodecTest {
 
@@ -19,7 +19,6 @@ class WarehouseCodeCodecTest {
 
     @Test
     void shouldConvertPlainValueToWarehouseCode() {
-        assertThat(WarehouseCodeCodec.toDomain("WH-001"))
-                .isEqualTo(WarehouseCode.of("WH-001"));
+        assertThat(WarehouseCodeCodec.toDomain("WH-001")).isEqualTo(WarehouseCode.of("WH-001"));
     }
 }

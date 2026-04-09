@@ -8,5 +8,4 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @EnableConfigurationProperties(BaconMqProperties.class)
 @Import(BaconMqSenderConfiguration.class)
-public class BaconMqAutoConfiguration {
-}
+public class BaconMqAutoConfiguration {}

@@ -19,8 +19,7 @@ public class MultipartUploadCleanupScheduler {
 
     @Scheduled(
             fixedDelayString = "${bacon.storage.multipart-cleanup.fixed-delay-millis:600000}",
-            initialDelayString = "${bacon.storage.multipart-cleanup.fixed-delay-millis:600000}"
-    )
+            initialDelayString = "${bacon.storage.multipart-cleanup.fixed-delay-millis:600000}")
     public void cleanupExpiredMultipartUploads() {
         int cleanedCount = multipartUploadCleanupService.cleanupExpiredSessions();
         if (cleanedCount > 0) {

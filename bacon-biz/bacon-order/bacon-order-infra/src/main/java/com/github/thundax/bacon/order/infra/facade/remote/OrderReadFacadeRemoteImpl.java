@@ -18,16 +18,18 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
 
     private final RestClient restClient;
 
-    public OrderReadFacadeRemoteImpl(RestClientFactory restClientFactory,
-                                     @Value("${bacon.remote.order-base-url:http://127.0.0.1:8083/api}") String baseUrl,
-                                     @Value("${bacon.remote.order.provider-token:}") String providerToken) {
+    public OrderReadFacadeRemoteImpl(
+            RestClientFactory restClientFactory,
+            @Value("${bacon.remote.order-base-url:http://127.0.0.1:8083/api}") String baseUrl,
+            @Value("${bacon.remote.order.provider-token:}") String providerToken) {
         this.restClient = restClientFactory.create(baseUrl, PROVIDER_TOKEN_HEADER, providerToken);
     }
 
     @Override
     public OrderDetailDTO getById(Long tenantId, Long orderId) {
         // provider 查询返回内部 DTO，remote facade 不再包装，保持跨服务读取模型稳定。
-        return restClient.get()
+        return restClient
+                .get()
                 .uri("/providers/orders/{orderId}?tenantId={tenantId}", orderId, tenantId)
                 .retrieve()
                 .body(OrderDetailDTO.class);
@@ -35,7 +37,8 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
 
     @Override
     public OrderDetailDTO getByOrderNo(Long tenantId, String orderNo) {
-        return restClient.get()
+        return restClient
+                .get()
                 .uri("/providers/orders/by-order-no/{orderNo}?tenantId={tenantId}", orderNo, tenantId)
                 .retrieve()
                 .body(OrderDetailDTO.class);
@@ -44,8 +47,10 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
     @Override
     public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
         // 分页查询只透传当前 provider 实际支持的条件；其余筛选条件应先在契约层明确后再下沉到这里。
-        return restClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/providers/orders")
+        return restClient
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/providers/orders")
                         .queryParam("tenantId", query.getTenantId())
                         .queryParam("userId", query.getUserId())
                         .queryParam("orderNo", query.getOrderNo())

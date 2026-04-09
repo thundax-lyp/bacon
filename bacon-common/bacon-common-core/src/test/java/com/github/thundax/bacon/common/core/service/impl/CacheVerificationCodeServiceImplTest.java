@@ -10,7 +10,6 @@ import com.github.thundax.bacon.common.core.service.VerificationCodeImage;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 class CacheVerificationCodeServiceImplTest {
 
@@ -34,7 +33,8 @@ class CacheVerificationCodeServiceImplTest {
         String code = verificationCodeService.generateCode("sms", "13800138000");
 
         assertThat(code).hasSize(6).containsOnlyDigits();
-        assertThat(verificationCodeService.verifyCode("sms", "13800138000", code)).isTrue();
+        assertThat(verificationCodeService.verifyCode("sms", "13800138000", code))
+                .isTrue();
     }
 
     @Test
@@ -42,15 +42,18 @@ class CacheVerificationCodeServiceImplTest {
         String code = verificationCodeService.generateCode("email", "user@test.com", 4, Duration.ofMinutes(1));
 
         assertThat(code).hasSize(4).containsOnlyDigits();
-        assertThat(verificationCodeService.verifyCode("email", "user@test.com", code)).isTrue();
+        assertThat(verificationCodeService.verifyCode("email", "user@test.com", code))
+                .isTrue();
     }
 
     @Test
     void shouldVerifyAndConsumeCode() {
         verificationCodeService.saveCode("sms", "13800138000", "123456", Duration.ofMinutes(5));
 
-        assertThat(verificationCodeService.verifyAndConsume("sms", "13800138000", "123456")).isTrue();
-        assertThat(verificationCodeService.verifyCode("sms", "13800138000", "123456")).isFalse();
+        assertThat(verificationCodeService.verifyAndConsume("sms", "13800138000", "123456"))
+                .isTrue();
+        assertThat(verificationCodeService.verifyCode("sms", "13800138000", "123456"))
+                .isFalse();
     }
 
     @Test
@@ -59,7 +62,8 @@ class CacheVerificationCodeServiceImplTest {
 
         verificationCodeService.removeCode("sms", "13800138000");
 
-        assertThat(verificationCodeService.verifyCode("sms", "13800138000", "123456")).isFalse();
+        assertThat(verificationCodeService.verifyCode("sms", "13800138000", "123456"))
+                .isFalse();
     }
 
     @Test
@@ -68,8 +72,9 @@ class CacheVerificationCodeServiceImplTest {
                 .isInstanceOf(BadRequestException.class);
         assertThatThrownBy(() -> verificationCodeService.generateCode("sms", "13800138000", 0, Duration.ofMinutes(5)))
                 .isInstanceOf(BadRequestException.class);
-        assertThatThrownBy(() -> verificationCodeService.generateImageCode("sms", "13800138000", 0, 48, 4, 10,
-                Duration.ofMinutes(5))).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> verificationCodeService.generateImageCode(
+                        "sms", "13800138000", 0, 48, 4, 10, Duration.ofMinutes(5)))
+                .isInstanceOf(BadRequestException.class);
         assertThatThrownBy(() -> verificationCodeService.saveCode("sms", "13800138000", "123456", Duration.ZERO))
                 .isInstanceOf(BadRequestException.class);
     }
@@ -80,6 +85,7 @@ class CacheVerificationCodeServiceImplTest {
 
         assertThat(image.getCode()).hasSize(6).containsOnlyDigits();
         assertThat(image.getImageBase64Data()).startsWith("data:image/png;base64,");
-        assertThat(verificationCodeService.verifyCode("login", "captcha-key", image.getCode())).isTrue();
+        assertThat(verificationCodeService.verifyCode("login", "captcha-key", image.getCode()))
+                .isTrue();
     }
 }

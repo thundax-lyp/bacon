@@ -8,8 +8,7 @@ import java.util.Map;
 
 public final class OrderOutboxPayloadCodec {
 
-    private OrderOutboxPayloadCodec() {
-    }
+    private OrderOutboxPayloadCodec() {}
 
     public static String encode(Map<String, String> values) {
         if (values == null || values.isEmpty()) {
@@ -20,7 +19,8 @@ public final class OrderOutboxPayloadCodec {
             if (builder.length() > 0) {
                 builder.append('&');
             }
-            builder.append(encodePart(entry.getKey())).append('=')
+            builder.append(encodePart(entry.getKey()))
+                    .append('=')
                     .append(encodePart(entry.getValue() == null ? "" : entry.getValue()));
         }
         return builder.toString();

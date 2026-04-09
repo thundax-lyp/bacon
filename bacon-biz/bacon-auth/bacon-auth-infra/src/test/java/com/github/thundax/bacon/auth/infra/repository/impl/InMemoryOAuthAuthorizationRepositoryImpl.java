@@ -4,10 +4,9 @@ import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.repository.OAuthAuthorizationRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.context.annotation.Profile;
-
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @Profile("test")
@@ -21,7 +20,9 @@ public class InMemoryOAuthAuthorizationRepositoryImpl implements OAuthAuthorizat
 
     @Override
     public OAuthAuthorizationRequest saveAuthorizationRequest(OAuthAuthorizationRequest authorizationRequest) {
-        authStore.getAuthorizationRequests().put(authorizationRequest.getAuthorizationRequestId(), authorizationRequest);
+        authStore
+                .getAuthorizationRequests()
+                .put(authorizationRequest.getAuthorizationRequestId(), authorizationRequest);
         return authorizationRequest;
     }
 

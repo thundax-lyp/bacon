@@ -3,10 +3,10 @@ package com.github.thundax.bacon.upms.infra.cache;
 import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.CreateCache;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -20,44 +20,65 @@ public class UpmsPermissionCacheSupport {
     private static final int DEFAULT_EXPIRE_SECONDS = 300;
     private static final long INITIAL_VERSION = 0L;
 
-    @CreateCache(name = "upms:permission:tenantVersion:", cacheType = CacheType.REMOTE,
-            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(
+            name = "upms:permission:tenantVersion:",
+            cacheType = CacheType.REMOTE,
+            expire = DEFAULT_EXPIRE_SECONDS,
+            timeUnit = TimeUnit.SECONDS)
     private Cache<TenantId, Long> tenantPermissionVersionCache;
 
-    @CreateCache(name = "upms:permission:userVersion:", cacheType = CacheType.REMOTE,
-            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(
+            name = "upms:permission:userVersion:",
+            cacheType = CacheType.REMOTE,
+            expire = DEFAULT_EXPIRE_SECONDS,
+            timeUnit = TimeUnit.SECONDS)
     private Cache<String, Long> userPermissionVersionCache;
 
-    @CreateCache(name = "upms:permission:tenantMenuTree:", cacheType = CacheType.BOTH,
-            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(
+            name = "upms:permission:tenantMenuTree:",
+            cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS,
+            timeUnit = TimeUnit.SECONDS)
     private Cache<String, List<Menu>> tenantMenuTreeCache;
 
-    @CreateCache(name = "upms:permission:userMenuTree:", cacheType = CacheType.BOTH,
-            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(
+            name = "upms:permission:userMenuTree:",
+            cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS,
+            timeUnit = TimeUnit.SECONDS)
     private Cache<String, List<Menu>> userMenuTreeCache;
 
-    @CreateCache(name = "upms:permission:userCodes:", cacheType = CacheType.BOTH,
-            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(
+            name = "upms:permission:userCodes:",
+            cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS,
+            timeUnit = TimeUnit.SECONDS)
     private Cache<String, Set<String>> userPermissionCodeCache;
 
-    @CreateCache(name = "upms:permission:userDepartments:", cacheType = CacheType.BOTH,
-            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(
+            name = "upms:permission:userDepartments:",
+            cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS,
+            timeUnit = TimeUnit.SECONDS)
     private Cache<String, Set<DepartmentId>> userDepartmentIdsCache;
 
-    @CreateCache(name = "upms:permission:userScopes:", cacheType = CacheType.BOTH,
-            expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+    @CreateCache(
+            name = "upms:permission:userScopes:",
+            cacheType = CacheType.BOTH,
+            expire = DEFAULT_EXPIRE_SECONDS,
+            timeUnit = TimeUnit.SECONDS)
     private Cache<String, Set<String>> userScopeTypesCache;
 
-    public UpmsPermissionCacheSupport() {
-    }
+    public UpmsPermissionCacheSupport() {}
 
-    public UpmsPermissionCacheSupport(Cache<TenantId, Long> tenantPermissionVersionCache,
-                                      Cache<String, Long> userPermissionVersionCache,
-                                      Cache<String, List<Menu>> tenantMenuTreeCache,
-                                      Cache<String, List<Menu>> userMenuTreeCache,
-                                      Cache<String, Set<String>> userPermissionCodeCache,
-                                      Cache<String, Set<DepartmentId>> userDepartmentIdsCache,
-                                      Cache<String, Set<String>> userScopeTypesCache) {
+    public UpmsPermissionCacheSupport(
+            Cache<TenantId, Long> tenantPermissionVersionCache,
+            Cache<String, Long> userPermissionVersionCache,
+            Cache<String, List<Menu>> tenantMenuTreeCache,
+            Cache<String, List<Menu>> userMenuTreeCache,
+            Cache<String, Set<String>> userPermissionCodeCache,
+            Cache<String, Set<DepartmentId>> userDepartmentIdsCache,
+            Cache<String, Set<String>> userScopeTypesCache) {
         this.tenantPermissionVersionCache = tenantPermissionVersionCache;
         this.userPermissionVersionCache = userPermissionVersionCache;
         this.tenantMenuTreeCache = tenantMenuTreeCache;
@@ -100,7 +121,8 @@ public class UpmsPermissionCacheSupport {
         return loadedCodes;
     }
 
-    public Set<DepartmentId> getUserDepartmentIds(TenantId tenantId, UserId userId, Supplier<Set<DepartmentId>> loader) {
+    public Set<DepartmentId> getUserDepartmentIds(
+            TenantId tenantId, UserId userId, Supplier<Set<DepartmentId>> loader) {
         String cacheKey = buildUserCacheKey(tenantId, userId);
         Set<DepartmentId> cachedDepartmentIds = userDepartmentIdsCache.get(cacheKey);
         if (cachedDepartmentIds != null) {
@@ -138,7 +160,8 @@ public class UpmsPermissionCacheSupport {
     }
 
     private String buildUserCacheKey(TenantId tenantId, UserId userId) {
-        return tenantId + ":" + userId + ":" + getTenantPermissionVersion(tenantId) + ":" + getUserPermissionVersion(tenantId, userId);
+        return tenantId + ":" + userId + ":" + getTenantPermissionVersion(tenantId) + ":"
+                + getUserPermissionVersion(tenantId, userId);
     }
 
     private String buildUserVersionKey(TenantId tenantId, UserId userId) {
@@ -171,8 +194,17 @@ public class UpmsPermissionCacheSupport {
     }
 
     private Menu copyMenu(Menu menu) {
-        return new Menu(menu.getId(), menu.getTenantId(), menu.getMenuType(), menu.getName(), menu.getParentId(),
-                menu.getRoutePath(), menu.getComponentName(), menu.getIcon(), menu.getSort(), menu.getPermissionCode(),
+        return new Menu(
+                menu.getId(),
+                menu.getTenantId(),
+                menu.getMenuType(),
+                menu.getName(),
+                menu.getParentId(),
+                menu.getRoutePath(),
+                menu.getComponentName(),
+                menu.getIcon(),
+                menu.getSort(),
+                menu.getPermissionCode(),
                 copyMenus(menu.getChildren()));
     }
 }

@@ -3,11 +3,10 @@ package com.github.thundax.bacon.auth.infra.repository.impl;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.context.annotation.Profile;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @Profile("test")
@@ -34,7 +33,8 @@ public class InMemoryAuthSessionRepositoryImpl implements AuthSessionRepository 
     public List<AuthSession> findSessionsByTenantIdAndUserId(Long tenantId, Long userId) {
         return authStore.getSessions().values().stream()
                 .filter(session -> tenantId.equals(session.getTenantIdValue()))
-                .filter(session -> session.getUserId() != null && userId.equals(session.getUserId().value()))
+                .filter(session -> session.getUserId() != null
+                        && userId.equals(session.getUserId().value()))
                 .toList();
     }
 

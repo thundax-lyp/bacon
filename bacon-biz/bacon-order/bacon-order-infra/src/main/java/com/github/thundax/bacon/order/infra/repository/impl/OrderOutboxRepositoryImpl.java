@@ -24,8 +24,8 @@ public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
     }
 
     @Override
-    public List<OrderOutboxEvent> claimRetryableOutbox(Instant now, int limit, String processingOwner,
-                                                        Instant leaseUntil) {
+    public List<OrderOutboxEvent> claimRetryableOutbox(
+            Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return support.claimRetryableOutbox(now, limit, processingOwner, leaseUntil);
     }
 
@@ -35,14 +35,24 @@ public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
     }
 
     @Override
-    public boolean markRetryingClaimed(OutboxId outboxId, String processingOwner, int retryCount, Instant nextRetryAt,
-                                       String errorMessage, Instant updatedAt) {
+    public boolean markRetryingClaimed(
+            OutboxId outboxId,
+            String processingOwner,
+            int retryCount,
+            Instant nextRetryAt,
+            String errorMessage,
+            Instant updatedAt) {
         return support.markRetryingClaimed(outboxId, processingOwner, retryCount, nextRetryAt, errorMessage, updatedAt);
     }
 
     @Override
-    public boolean markDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount, String deadReason,
-                                   String errorMessage, Instant updatedAt) {
+    public boolean markDeadClaimed(
+            OutboxId outboxId,
+            String processingOwner,
+            int retryCount,
+            String deadReason,
+            String errorMessage,
+            Instant updatedAt) {
         return support.markDeadClaimed(outboxId, processingOwner, retryCount, deadReason, errorMessage, updatedAt);
     }
 

@@ -48,16 +48,38 @@ public class OAuthClient {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public OAuthClient(Long id, String clientId, String clientSecret, String clientName, String clientType,
-                       List<String> grantTypes, List<String> scopes, List<String> redirectUris,
-                       Long accessTokenTtlSeconds, Long refreshTokenTtlSeconds, ClientStatus enabled,
-                       String contact, String remark, Instant createdAt, Instant updatedAt) {
-        this(id == null ? null : ClientId.of(id),
+    public OAuthClient(
+            Long id,
+            String clientId,
+            String clientSecret,
+            String clientName,
+            String clientType,
+            List<String> grantTypes,
+            List<String> scopes,
+            List<String> redirectUris,
+            Long accessTokenTtlSeconds,
+            Long refreshTokenTtlSeconds,
+            ClientStatus enabled,
+            String contact,
+            String remark,
+            Instant createdAt,
+            Instant updatedAt) {
+        this(
+                id == null ? null : ClientId.of(id),
                 clientId == null ? null : ClientCode.of(clientId),
-                clientSecret, clientName, clientType, toLinkedHashSet(grantTypes), toLinkedHashSet(scopes),
-                toLinkedHashSet(redirectUris), accessTokenTtlSeconds == null ? 0L : accessTokenTtlSeconds,
-                refreshTokenTtlSeconds == null ? 0L : refreshTokenTtlSeconds, enabled, contact, remark,
-                createdAt, updatedAt);
+                clientSecret,
+                clientName,
+                clientType,
+                toLinkedHashSet(grantTypes),
+                toLinkedHashSet(scopes),
+                toLinkedHashSet(redirectUris),
+                accessTokenTtlSeconds == null ? 0L : accessTokenTtlSeconds,
+                refreshTokenTtlSeconds == null ? 0L : refreshTokenTtlSeconds,
+                enabled,
+                contact,
+                remark,
+                createdAt,
+                updatedAt);
     }
 
     private static Set<String> toLinkedHashSet(List<String> values) {

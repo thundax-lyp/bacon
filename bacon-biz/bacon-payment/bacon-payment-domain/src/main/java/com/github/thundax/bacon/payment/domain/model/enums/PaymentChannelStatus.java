@@ -6,7 +6,6 @@ import java.util.Arrays;
  * 支付渠道状态。
  */
 public enum PaymentChannelStatus {
-
     PAYING,
     SUCCESS,
     FAILED,

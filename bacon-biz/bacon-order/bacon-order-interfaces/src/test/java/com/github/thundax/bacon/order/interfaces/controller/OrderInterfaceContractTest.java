@@ -1,5 +1,11 @@
 package com.github.thundax.bacon.order.interfaces.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
@@ -11,22 +17,16 @@ import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
-import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
+import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.interfaces.provider.OrderReadProviderController;
+import jakarta.servlet.ServletException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
-import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class OrderInterfaceContractTest {
 
@@ -35,7 +35,9 @@ class OrderInterfaceContractTest {
 
     @Test
     void wrappedControllerShouldReturnUnifiedSuccessEnvelope() throws Exception {
-        OrderController controller = new OrderController(null, new StubOrderQueryApplicationService(),
+        OrderController controller = new OrderController(
+                null,
+                new StubOrderQueryApplicationService(),
                 new OrderCancelApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
@@ -52,7 +54,9 @@ class OrderInterfaceContractTest {
 
     @Test
     void wrappedControllerShouldReturnBadRequestForIllegalArgument() throws Exception {
-        OrderController controller = new OrderController(null, new StubOrderQueryApplicationService(),
+        OrderController controller = new OrderController(
+                null,
+                new StubOrderQueryApplicationService(),
                 new OrderCancelApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
@@ -96,11 +100,13 @@ class OrderInterfaceContractTest {
                 .addInterceptors(providerGuardInterceptor())
                 .build();
 
-        ServletException exception = assertThrows(ServletException.class, () -> mockMvc.perform(get("/providers/orders")
-                .param("tenantId", "9999")
-                .param("pageNo", "1")
-                .param("pageSize", "20")
-                .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
+        ServletException exception = assertThrows(
+                ServletException.class,
+                () -> mockMvc.perform(get("/providers/orders")
+                        .param("tenantId", "9999")
+                        .param("pageNo", "1")
+                        .param("pageSize", "20")
+                        .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
         assertEquals("Invalid tenant: 9999", exception.getCause().getMessage());
     }
 
@@ -159,11 +165,28 @@ class OrderInterfaceContractTest {
             if (!Long.valueOf(1001L).equals(tenantId)) {
                 throw new IllegalArgumentException("Order not found: " + orderId);
             }
-            return new OrderDetailDTO(orderId, tenantId, "ORD-1", 2001L,
-                    "CREATED", "UNPAID", "UNRESERVED", null, null,
-                    "CNY", BigDecimal.TEN, BigDecimal.TEN, null, null,
-                    Instant.parse("2026-03-26T10:00:00Z"), Instant.parse("2026-03-26T10:30:00Z"),
-                    List.of(), null, null, null, null);
+            return new OrderDetailDTO(
+                    orderId,
+                    tenantId,
+                    "ORD-1",
+                    2001L,
+                    "CREATED",
+                    "UNPAID",
+                    "UNRESERVED",
+                    null,
+                    null,
+                    "CNY",
+                    BigDecimal.TEN,
+                    BigDecimal.TEN,
+                    null,
+                    null,
+                    Instant.parse("2026-03-26T10:00:00Z"),
+                    Instant.parse("2026-03-26T10:30:00Z"),
+                    List.of(),
+                    null,
+                    null,
+                    null,
+                    null);
         }
 
         @Override
@@ -171,10 +194,23 @@ class OrderInterfaceContractTest {
             if (Long.valueOf(9999L).equals(query.getTenantId())) {
                 throw new IllegalArgumentException("Invalid tenant: " + query.getTenantId());
             }
-            OrderSummaryDTO summary = new OrderSummaryDTO(1L, 1001L, "ORD-1", 2001L,
-                    "CREATED", "UNPAID", "UNRESERVED", null, null,
-                    "CNY", BigDecimal.TEN, BigDecimal.TEN, null, null,
-                    Instant.parse("2026-03-26T10:00:00Z"), Instant.parse("2026-03-26T10:30:00Z"));
+            OrderSummaryDTO summary = new OrderSummaryDTO(
+                    1L,
+                    1001L,
+                    "ORD-1",
+                    2001L,
+                    "CREATED",
+                    "UNPAID",
+                    "UNRESERVED",
+                    null,
+                    null,
+                    "CNY",
+                    BigDecimal.TEN,
+                    BigDecimal.TEN,
+                    null,
+                    null,
+                    Instant.parse("2026-03-26T10:00:00Z"),
+                    Instant.parse("2026-03-26T10:30:00Z"));
             return new OrderPageResultDTO(List.of(summary), 1, 1, 20);
         }
     }

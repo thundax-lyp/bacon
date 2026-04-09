@@ -33,9 +33,25 @@ public class Tenant {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Tenant(Long tenantId, String name, String tenantCode, TenantStatus status, Instant expiredAt,
-                  String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
-        this(tenantId == null ? null : TenantId.of(tenantId), name, tenantCode == null ? null : TenantCode.of(tenantCode), status, expiredAt,
-                createdBy, createdAt, updatedBy, updatedAt);
+    public Tenant(
+            Long tenantId,
+            String name,
+            String tenantCode,
+            TenantStatus status,
+            Instant expiredAt,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        this(
+                tenantId == null ? null : TenantId.of(tenantId),
+                name,
+                tenantCode == null ? null : TenantCode.of(tenantCode),
+                status,
+                expiredAt,
+                createdBy,
+                createdAt,
+                updatedBy,
+                updatedAt);
     }
 }

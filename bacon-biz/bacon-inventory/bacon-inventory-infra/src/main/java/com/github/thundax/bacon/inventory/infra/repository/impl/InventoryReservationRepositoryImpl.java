@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;

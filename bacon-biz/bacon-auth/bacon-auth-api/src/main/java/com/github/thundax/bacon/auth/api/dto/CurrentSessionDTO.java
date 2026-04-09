@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.auth.api.dto;
 
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 /**
  * 当前会话传输对象。

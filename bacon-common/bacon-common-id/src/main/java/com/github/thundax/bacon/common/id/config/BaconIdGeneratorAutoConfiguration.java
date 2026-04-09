@@ -32,24 +32,20 @@ public class BaconIdGeneratorAutoConfiguration {
     @Bean
     @Primary
     @ConditionalOnMissingBean
-    public IdGenerator idGenerator(BaconIdGeneratorProperties properties,
-                                   RestClientFactory restClientFactory,
-                                   ObjectMapper objectMapper,
-                                   ApplicationEventPublisher eventPublisher) {
+    public IdGenerator idGenerator(
+            BaconIdGeneratorProperties properties,
+            RestClientFactory restClientFactory,
+            ObjectMapper objectMapper,
+            ApplicationEventPublisher eventPublisher) {
         SnowflakeIdGenerator snowflakeIdGenerator = createSnowflakeIdGenerator(properties);
         List<IdProviderType> configuredProviders = resolveConfiguredProviders(properties);
         if (configuredProviders.size() == 1 && configuredProviders.contains(IdProviderType.SNOWFLAKE)) {
             return snowflakeIdGenerator;
         }
-        List<CompositeIdGenerator.NamedIdGenerator> generators = resolvePrimaryGeneratorChain(
-                properties,
-                restClientFactory,
-                objectMapper,
-                configuredProviders);
-        return new CompositeIdGenerator(generators,
-                snowflakeIdGenerator,
-                eventPublisher,
-                properties.isFallbackEnabled());
+        List<CompositeIdGenerator.NamedIdGenerator> generators =
+                resolvePrimaryGeneratorChain(properties, restClientFactory, objectMapper, configuredProviders);
+        return new CompositeIdGenerator(
+                generators, snowflakeIdGenerator, eventPublisher, properties.isFallbackEnabled());
     }
 
     private TinyIdGenerator createTinyIdGenerator(BaconIdGeneratorProperties properties) {
@@ -60,61 +56,65 @@ public class BaconIdGeneratorAutoConfiguration {
     private void applyTinyIdProperties(BaconIdGeneratorProperties properties) {
         BaconIdGeneratorProperties.TinyId tinyId = properties.getTinyId();
         if (tinyId.getServer() == null || tinyId.getServer().isBlank()) {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
-                    "tinyid server is blank");
+            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED, "tinyid server is blank");
         }
         if (tinyId.getToken() == null || tinyId.getToken().isBlank()) {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
-                    "tinyid token is blank");
+            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED, "tinyid token is blank");
         }
         System.setProperty("tinyid.server", tinyId.getServer());
         System.setProperty("tinyid.token", tinyId.getToken());
-        System.setProperty("tinyid.connectTimeout", durationToMillisString(tinyId.getConnectTimeout(), "connectTimeout"));
+        System.setProperty(
+                "tinyid.connectTimeout", durationToMillisString(tinyId.getConnectTimeout(), "connectTimeout"));
         System.setProperty("tinyid.readTimeout", durationToMillisString(tinyId.getReadTimeout(), "readTimeout"));
     }
 
     private String durationToMillisString(Duration duration, String propertyName) {
         if (duration == null || duration.isZero() || duration.isNegative()) {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
-                    "tinyid " + propertyName + " must be positive");
+            throw new IdGeneratorException(
+                    IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED, "tinyid " + propertyName + " must be positive");
         }
         return String.valueOf(duration.toMillis());
     }
 
-    private LeafIdGenerator createLeafIdGenerator(BaconIdGeneratorProperties properties,
-                                                  RestClientFactory restClientFactory,
-                                                  ObjectMapper objectMapper) {
+    private LeafIdGenerator createLeafIdGenerator(
+            BaconIdGeneratorProperties properties, RestClientFactory restClientFactory, ObjectMapper objectMapper) {
         String baseUrl = properties.getLeaf().getBaseUrl();
         if (baseUrl == null || baseUrl.isBlank()) {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
-                    "leaf base-url is blank");
+            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED, "leaf base-url is blank");
         }
-        RestClient restClient = restClientFactory.create(baseUrl,
+        RestClient restClient = restClientFactory.create(
+                baseUrl,
                 properties.getLeaf().getConnectTimeout(),
                 properties.getLeaf().getReadTimeout());
         return new LeafIdGenerator(restClient, properties, objectMapper);
     }
 
     private SnowflakeIdGenerator createSnowflakeIdGenerator(BaconIdGeneratorProperties properties) {
-        return new SnowflakeIdGenerator(properties.getSnowflake().getWorkerId(),
+        return new SnowflakeIdGenerator(
+                properties.getSnowflake().getWorkerId(),
                 properties.getSnowflake().getDatacenterId());
     }
 
-    private List<CompositeIdGenerator.NamedIdGenerator> resolvePrimaryGeneratorChain(BaconIdGeneratorProperties properties,
-                                                                                     RestClientFactory restClientFactory,
-                                                                                     ObjectMapper objectMapper,
-                                                                                     List<IdProviderType> configuredProviders) {
+    private List<CompositeIdGenerator.NamedIdGenerator> resolvePrimaryGeneratorChain(
+            BaconIdGeneratorProperties properties,
+            RestClientFactory restClientFactory,
+            ObjectMapper objectMapper,
+            List<IdProviderType> configuredProviders) {
         List<CompositeIdGenerator.NamedIdGenerator> generators = new ArrayList<>(configuredProviders.size());
         for (IdProviderType providerType : configuredProviders) {
             if (providerType == IdProviderType.SNOWFLAKE) {
                 continue;
             }
-            CompositeIdGenerator.NamedIdGenerator generator = switch (providerType) {
-                case TINYID -> new CompositeIdGenerator.NamedIdGenerator("tinyid", createTinyIdGenerator(properties));
-                case LEAF -> new CompositeIdGenerator.NamedIdGenerator("leaf",
-                        createLeafIdGenerator(properties, restClientFactory, objectMapper));
-                case SNOWFLAKE -> throw new IllegalStateException("snowflake should not be part of primary generator chain");
-            };
+            CompositeIdGenerator.NamedIdGenerator generator =
+                    switch (providerType) {
+                        case TINYID ->
+                            new CompositeIdGenerator.NamedIdGenerator("tinyid", createTinyIdGenerator(properties));
+                        case LEAF ->
+                            new CompositeIdGenerator.NamedIdGenerator(
+                                    "leaf", createLeafIdGenerator(properties, restClientFactory, objectMapper));
+                        case SNOWFLAKE ->
+                            throw new IllegalStateException("snowflake should not be part of primary generator chain");
+                    };
             generators.add(generator);
         }
         return generators;

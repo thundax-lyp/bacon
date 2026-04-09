@@ -1,14 +1,14 @@
 package com.github.thundax.bacon.order.application.executor;
 
-import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import java.time.Instant;
-import java.util.UUID;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +25,7 @@ public class OrderIdempotencyExecutor {
 
     @Value("${bacon.order.idempotency.lease-seconds:60}")
     private long leaseSeconds;
+
     @Value("${spring.application.name:bacon-order}")
     private String applicationName;
 
@@ -36,7 +37,8 @@ public class OrderIdempotencyExecutor {
         Instant now = Instant.now();
         String owner = applicationName + ":" + processingOwner;
         Instant leaseUntil = now.plusSeconds(Math.max(leaseSeconds, 1L));
-        OrderIdempotencyRecordKey key = OrderIdempotencyRecordKey.of(toTenantId(tenantId), toOrderNo(orderNo), eventType);
+        OrderIdempotencyRecordKey key =
+                OrderIdempotencyRecordKey.of(toTenantId(tenantId), toOrderNo(orderNo), eventType);
         OrderIdempotencyRecord record = new OrderIdempotencyRecord();
         record.setKey(key);
         record.setProcessingOwner(owner);

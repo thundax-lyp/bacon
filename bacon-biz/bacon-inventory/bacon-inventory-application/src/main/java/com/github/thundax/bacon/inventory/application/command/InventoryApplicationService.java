@@ -1,13 +1,12 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 @Service
 public class InventoryApplicationService {
@@ -16,19 +15,22 @@ public class InventoryApplicationService {
     private final InventoryReleaseApplicationService releaseApplicationService;
     private final InventoryDeductionApplicationService deductionApplicationService;
 
-    public InventoryApplicationService(InventoryReservationApplicationService reservationApplicationService,
-                                       InventoryReleaseApplicationService releaseApplicationService,
-                                       InventoryDeductionApplicationService deductionApplicationService) {
+    public InventoryApplicationService(
+            InventoryReservationApplicationService reservationApplicationService,
+            InventoryReleaseApplicationService releaseApplicationService,
+            InventoryDeductionApplicationService deductionApplicationService) {
         this.reservationApplicationService = reservationApplicationService;
         this.releaseApplicationService = releaseApplicationService;
         this.deductionApplicationService = deductionApplicationService;
     }
 
-    public InventoryReservationResultDTO reserveStock(TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
+    public InventoryReservationResultDTO reserveStock(
+            TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
         return reservationApplicationService.reserveStock(tenantId, orderNo, items);
     }
 
-    public InventoryReservationResultDTO releaseReservedStock(TenantId tenantId, OrderNo orderNo, InventoryReleaseReason reason) {
+    public InventoryReservationResultDTO releaseReservedStock(
+            TenantId tenantId, OrderNo orderNo, InventoryReleaseReason reason) {
         return releaseApplicationService.releaseReservedStock(tenantId, orderNo, reason);
     }
 

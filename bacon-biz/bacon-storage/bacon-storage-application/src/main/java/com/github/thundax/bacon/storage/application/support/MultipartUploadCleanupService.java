@@ -7,11 +7,10 @@ import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRep
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
 import io.micrometer.core.instrument.Metrics;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 /**
  * 分片上传超时清理服务。
@@ -20,21 +19,19 @@ import java.util.List;
 @Service
 public class MultipartUploadCleanupService {
 
-    private static final List<UploadStatus> EXPIRED_UPLOAD_STATUSES = List.of(
-            UploadStatus.INITIATED,
-            UploadStatus.UPLOADING,
-            UploadStatus.ABORTED
-    );
+    private static final List<UploadStatus> EXPIRED_UPLOAD_STATUSES =
+            List.of(UploadStatus.INITIATED, UploadStatus.UPLOADING, UploadStatus.ABORTED);
 
     private final MultipartUploadSessionRepository multipartUploadSessionRepository;
     private final MultipartUploadPartRepository multipartUploadPartRepository;
     private final StoredObjectStorageRepository storedObjectStorageRepository;
     private final StorageMultipartCleanupProperties properties;
 
-    public MultipartUploadCleanupService(MultipartUploadSessionRepository multipartUploadSessionRepository,
-                                         MultipartUploadPartRepository multipartUploadPartRepository,
-                                         StoredObjectStorageRepository storedObjectStorageRepository,
-                                         StorageMultipartCleanupProperties properties) {
+    public MultipartUploadCleanupService(
+            MultipartUploadSessionRepository multipartUploadSessionRepository,
+            MultipartUploadPartRepository multipartUploadPartRepository,
+            StoredObjectStorageRepository storedObjectStorageRepository,
+            StorageMultipartCleanupProperties properties) {
         this.multipartUploadSessionRepository = multipartUploadSessionRepository;
         this.multipartUploadPartRepository = multipartUploadPartRepository;
         this.storedObjectStorageRepository = storedObjectStorageRepository;
@@ -53,19 +50,25 @@ public class MultipartUploadCleanupService {
             String uploadStatus = session.getUploadStatus().value();
             try {
                 cleanupSingleSession(session);
-                Metrics.counter("bacon.storage.multipart.cleanup.success.total",
-                        "uploadStatus", uploadStatus).increment();
+                Metrics.counter("bacon.storage.multipart.cleanup.success.total", "uploadStatus", uploadStatus)
+                        .increment();
                 cleanedCount++;
             } catch (RuntimeException ex) {
-                Metrics.counter("bacon.storage.multipart.cleanup.fail.total",
-                        "uploadStatus", uploadStatus).increment();
-                log.warn("Multipart upload expired cleanup failed, uploadId={}, ownerType={}, ownerId={}",
-                        session.getUploadId(), session.getOwnerType(), session.getOwnerId(), ex);
+                Metrics.counter("bacon.storage.multipart.cleanup.fail.total", "uploadStatus", uploadStatus)
+                        .increment();
+                log.warn(
+                        "Multipart upload expired cleanup failed, uploadId={}, ownerType={}, ownerId={}",
+                        session.getUploadId(),
+                        session.getOwnerType(),
+                        session.getOwnerId(),
+                        ex);
             }
         }
         if (!expiredSessions.isEmpty()) {
-            log.info("Multipart upload expired cleanup batch scanned, candidateCount={}, cleanedCount={}",
-                    expiredSessions.size(), cleanedCount);
+            log.info(
+                    "Multipart upload expired cleanup batch scanned, candidateCount={}, cleanedCount={}",
+                    expiredSessions.size(),
+                    cleanedCount);
         }
         return cleanedCount;
     }
@@ -77,7 +80,10 @@ public class MultipartUploadCleanupService {
             session.markAborted();
             multipartUploadSessionRepository.save(session);
         }
-        log.info("Multipart upload expired cleanup completed, uploadId={}, ownerType={}, ownerId={}",
-                session.getUploadId(), session.getOwnerType(), session.getOwnerId());
+        log.info(
+                "Multipart upload expired cleanup completed, uploadId={}, ownerType={}, ownerId={}",
+                session.getUploadId(),
+                session.getOwnerType(),
+                session.getOwnerId());
     }
 }

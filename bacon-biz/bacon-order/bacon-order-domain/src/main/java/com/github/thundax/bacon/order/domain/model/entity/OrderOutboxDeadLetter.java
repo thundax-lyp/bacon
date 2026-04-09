@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -54,17 +54,42 @@ public class OrderOutboxDeadLetter {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public OrderOutboxDeadLetter(Long outboxId, String eventCode, Long tenantId, String orderNo,
-                                 OrderOutboxEventType eventType, String businessKey, String payload, Integer retryCount,
-                                 String errorMessage, String deadReason, Instant deadAt,
-                                 OrderOutboxReplayStatus replayStatus, Integer replayCount, Instant lastReplayAt,
-                                 String lastReplayMessage, Instant createdAt, Instant updatedAt) {
-        this(outboxId == null ? null : OutboxId.of(outboxId),
+    public OrderOutboxDeadLetter(
+            Long outboxId,
+            String eventCode,
+            Long tenantId,
+            String orderNo,
+            OrderOutboxEventType eventType,
+            String businessKey,
+            String payload,
+            Integer retryCount,
+            String errorMessage,
+            String deadReason,
+            Instant deadAt,
+            OrderOutboxReplayStatus replayStatus,
+            Integer replayCount,
+            Instant lastReplayAt,
+            String lastReplayMessage,
+            Instant createdAt,
+            Instant updatedAt) {
+        this(
+                outboxId == null ? null : OutboxId.of(outboxId),
                 eventCode == null ? null : EventCode.of(eventCode),
                 tenantId == null ? null : TenantId.of(tenantId),
                 orderNo == null ? null : OrderNo.of(orderNo),
-                eventType, businessKey, payload, retryCount, errorMessage, deadReason, deadAt, replayStatus,
-                replayCount, lastReplayAt, lastReplayMessage, createdAt, updatedAt);
+                eventType,
+                businessKey,
+                payload,
+                retryCount,
+                errorMessage,
+                deadReason,
+                deadAt,
+                replayStatus,
+                replayCount,
+                lastReplayAt,
+                lastReplayMessage,
+                createdAt,
+                updatedAt);
     }
 
     public String getEventCodeValue() {

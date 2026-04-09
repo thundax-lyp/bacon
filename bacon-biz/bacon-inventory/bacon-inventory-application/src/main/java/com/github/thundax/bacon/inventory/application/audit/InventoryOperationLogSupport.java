@@ -26,8 +26,9 @@ public class InventoryOperationLogSupport {
     private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
     private final InventoryAuditOutboxRepository inventoryAuditOutboxRepository;
 
-    public InventoryOperationLogSupport(InventoryAuditRecordRepository inventoryAuditRecordRepository,
-                                        InventoryAuditOutboxRepository inventoryAuditOutboxRepository) {
+    public InventoryOperationLogSupport(
+            InventoryAuditRecordRepository inventoryAuditRecordRepository,
+            InventoryAuditOutboxRepository inventoryAuditOutboxRepository) {
         this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;
         this.inventoryAuditOutboxRepository = inventoryAuditOutboxRepository;
     }
@@ -51,18 +52,27 @@ public class InventoryOperationLogSupport {
         recordAuditAfterCommit(reservation, InventoryAuditActionType.DEDUCT, occurredAt);
     }
 
-    private void recordLedgerBatch(InventoryReservation reservation, List<InventoryReservationItem> items,
-                                   InventoryLedgerType ledgerType, Instant occurredAt) {
+    private void recordLedgerBatch(
+            InventoryReservation reservation,
+            List<InventoryReservationItem> items,
+            InventoryLedgerType ledgerType,
+            Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(), reservation.getOrderNo(),
+            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(
+                    null,
+                    reservation.getTenantId(),
+                    reservation.getOrderNo(),
                     reservation.getReservationNo(),
                     item.getSkuId(),
-                    reservation.getWarehouseCode(), ledgerType, item.getQuantity(), occurredAt));
+                    reservation.getWarehouseCode(),
+                    ledgerType,
+                    item.getQuantity(),
+                    occurredAt));
         }
     }
 
-    private void recordAuditAfterCommit(InventoryReservation reservation, InventoryAuditActionType actionType,
-                                        Instant occurredAt) {
+    private void recordAuditAfterCommit(
+            InventoryReservation reservation, InventoryAuditActionType actionType, Instant occurredAt) {
         Runnable task = () -> saveAuditSafely(reservation, actionType, occurredAt);
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             task.run();
@@ -76,23 +86,38 @@ public class InventoryOperationLogSupport {
         });
     }
 
-    private void saveAuditSafely(InventoryReservation reservation, InventoryAuditActionType actionType,
-                                 Instant occurredAt) {
+    private void saveAuditSafely(
+            InventoryReservation reservation, InventoryAuditActionType actionType, Instant occurredAt) {
         try {
-            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(null, reservation.getTenantId(),
-                    reservation.getOrderNo(), reservation.getReservationNo(), actionType,
-                    InventoryAuditOperatorType.SYSTEM, InventoryAuditLog.OPERATOR_ID_SYSTEM, occurredAt));
-            Metrics.counter("bacon.inventory.audit.write.success.total", "actionType", actionType.value()).increment();
+            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(
+                    null,
+                    reservation.getTenantId(),
+                    reservation.getOrderNo(),
+                    reservation.getReservationNo(),
+                    actionType,
+                    InventoryAuditOperatorType.SYSTEM,
+                    InventoryAuditLog.OPERATOR_ID_SYSTEM,
+                    occurredAt));
+            Metrics.counter("bacon.inventory.audit.write.success.total", "actionType", actionType.value())
+                    .increment();
         } catch (RuntimeException ex) {
-            Metrics.counter("bacon.inventory.audit.write.fail.total", "actionType", actionType.value()).increment();
+            Metrics.counter("bacon.inventory.audit.write.fail.total", "actionType", actionType.value())
+                    .increment();
             saveAuditOutboxSafely(reservation, actionType, occurredAt, ex);
-            log.error("ALERT inventory audit write failed, orderNo={}, reservationNo={}, actionType={}",
-                    reservation.getOrderNoValue(), reservation.getReservationNoValue(), actionType.value(), ex);
+            log.error(
+                    "ALERT inventory audit write failed, orderNo={}, reservationNo={}, actionType={}",
+                    reservation.getOrderNoValue(),
+                    reservation.getReservationNoValue(),
+                    actionType.value(),
+                    ex);
         }
     }
 
-    private void saveAuditOutboxSafely(InventoryReservation reservation, InventoryAuditActionType actionType,
-                                       Instant occurredAt, RuntimeException ex) {
+    private void saveAuditOutboxSafely(
+            InventoryReservation reservation,
+            InventoryAuditActionType actionType,
+            Instant occurredAt,
+            RuntimeException ex) {
         try {
             inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(
                     null,
@@ -119,8 +144,12 @@ public class InventoryOperationLogSupport {
         } catch (RuntimeException outboxEx) {
             Metrics.counter("bacon.inventory.audit.outbox.persist.fail.total", "actionType", actionType.value())
                     .increment();
-            log.error("ALERT inventory audit outbox persist failed, orderNo={}, reservationNo={}, actionType={}",
-                    reservation.getOrderNoValue(), reservation.getReservationNoValue(), actionType.value(), outboxEx);
+            log.error(
+                    "ALERT inventory audit outbox persist failed, orderNo={}, reservationNo={}, actionType={}",
+                    reservation.getOrderNoValue(),
+                    reservation.getReservationNoValue(),
+                    actionType.value(),
+                    outboxEx);
         }
     }
 

@@ -5,5 +5,4 @@ import com.github.thundax.bacon.storage.infra.persistence.dataobject.MultipartUp
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface MultipartUploadSessionMapper extends BaseMapper<MultipartUploadSessionDO> {
-}
+public interface MultipartUploadSessionMapper extends BaseMapper<MultipartUploadSessionDO> {}

@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,14 +36,31 @@ public class OrderIdempotencyRecord {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public OrderIdempotencyRecord(Long tenantId, String orderNo, String eventType, OrderIdempotencyStatus status,
-                                  Integer attemptCount, String lastError, String processingOwner,
-                                  Instant leaseUntil, Instant claimedAt, Instant createdAt, Instant updatedAt) {
-        this(OrderIdempotencyRecordKey.of(
+    public OrderIdempotencyRecord(
+            Long tenantId,
+            String orderNo,
+            String eventType,
+            OrderIdempotencyStatus status,
+            Integer attemptCount,
+            String lastError,
+            String processingOwner,
+            Instant leaseUntil,
+            Instant claimedAt,
+            Instant createdAt,
+            Instant updatedAt) {
+        this(
+                OrderIdempotencyRecordKey.of(
                         tenantId == null ? null : TenantId.of(tenantId),
                         orderNo == null ? null : OrderNo.of(orderNo),
                         eventType),
-                status, attemptCount, lastError, processingOwner, leaseUntil, claimedAt, createdAt, updatedAt);
+                status,
+                attemptCount,
+                lastError,
+                processingOwner,
+                leaseUntil,
+                claimedAt,
+                createdAt,
+                updatedAt);
     }
 
     public Long getTenantIdValue() {

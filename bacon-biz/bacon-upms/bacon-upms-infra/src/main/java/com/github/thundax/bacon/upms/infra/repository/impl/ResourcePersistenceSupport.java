@@ -33,9 +33,10 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    List<Resource> listResources(TenantId tenantId, String code, String name, String resourceType, String status,
-                                 int pageNo, int pageSize) {
-        return resourceMapper.selectList(Wrappers.<ResourceDO>lambdaQuery()
+    List<Resource> listResources(
+            TenantId tenantId, String code, String name, String resourceType, String status, int pageNo, int pageSize) {
+        return resourceMapper
+                .selectList(Wrappers.<ResourceDO>lambdaQuery()
                         .eq(tenantId != null, ResourceDO::getTenantId, tenantId)
                         .like(hasText(code), ResourceDO::getCode, code)
                         .like(hasText(name), ResourceDO::getName, name)

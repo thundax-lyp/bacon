@@ -42,14 +42,18 @@ public class ResourceController {
     @HasPermission("sys:resource:view")
     @SysLog(module = "UPMS", action = "分页查询资源", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public ResourcePageResponse pageResources(@CurrentTenant Long tenantId,
-                                              @Valid @ModelAttribute ResourcePageRequest request) {
+    public ResourcePageResponse pageResources(
+            @CurrentTenant Long tenantId, @Valid @ModelAttribute ResourcePageRequest request) {
         return ResourcePageResponse.from(resourceApplicationService.pageResources(new ResourcePageQueryDTO(
-                TenantId.of(tenantId), request.getCode(), request.getName(),
-                request.getResourceType() == null ? null : request.getResourceType().name(),
+                TenantId.of(tenantId),
+                request.getCode(),
+                request.getName(),
+                request.getResourceType() == null
+                        ? null
+                        : request.getResourceType().name(),
                 request.getStatus() == null ? null : request.getStatus().name(),
-                request.getPageNo(), request.getPageSize()
-        )));
+                request.getPageNo(),
+                request.getPageSize())));
     }
 
     @Operation(summary = "按资源 ID 查询资源")
@@ -66,19 +70,29 @@ public class ResourceController {
     @PostMapping
     public ResourceResponse createResource(@CurrentTenant Long tenantId, @RequestBody ResourceCreateRequest request) {
         return ResourceResponse.from(resourceApplicationService.createResource(
-                TenantId.of(tenantId), request.code(), request.name(), request.resourceType(),
-                request.httpMethod(), request.uri()));
+                TenantId.of(tenantId),
+                request.code(),
+                request.name(),
+                request.resourceType(),
+                request.httpMethod(),
+                request.uri()));
     }
 
     @Operation(summary = "修改资源")
     @HasPermission("sys:resource:update")
     @SysLog(module = "UPMS", action = "修改资源", eventType = LogEventType.UPDATE)
     @PutMapping("/{resourceId}")
-    public ResourceResponse updateResource(@CurrentTenant Long tenantId, @PathVariable String resourceId,
-                                           @RequestBody ResourceUpdateRequest request) {
+    public ResourceResponse updateResource(
+            @CurrentTenant Long tenantId, @PathVariable String resourceId, @RequestBody ResourceUpdateRequest request) {
         return ResourceResponse.from(resourceApplicationService.updateResource(
-                TenantId.of(tenantId), resourceId, request.code(), request.name(), request.resourceType(),
-                request.httpMethod(), request.uri(), request.status()));
+                TenantId.of(tenantId),
+                resourceId,
+                request.code(),
+                request.name(),
+                request.resourceType(),
+                request.httpMethod(),
+                request.uri(),
+                request.status()));
     }
 
     @Operation(summary = "删除资源")

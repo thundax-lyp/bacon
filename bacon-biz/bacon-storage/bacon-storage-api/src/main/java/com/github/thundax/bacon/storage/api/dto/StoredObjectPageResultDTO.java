@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.storage.api.dto;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 /**
  * 存储对象分页结果。

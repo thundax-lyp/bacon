@@ -7,11 +7,10 @@ import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxSta
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditLogRepository;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditOutboxRepository;
 import io.micrometer.core.instrument.Metrics;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 /**
  * 存储审计补偿重试服务。
@@ -21,18 +20,17 @@ import java.util.List;
 public class StorageAuditOutboxRetryService {
 
     private static final int MAX_EXPONENT = 20;
-    private static final List<StorageAuditOutboxStatus> RETRYABLE_STATUSES = List.of(
-            StorageAuditOutboxStatus.NEW,
-            StorageAuditOutboxStatus.RETRYING
-    );
+    private static final List<StorageAuditOutboxStatus> RETRYABLE_STATUSES =
+            List.of(StorageAuditOutboxStatus.NEW, StorageAuditOutboxStatus.RETRYING);
 
     private final StorageAuditLogRepository storageAuditLogRepository;
     private final StorageAuditOutboxRepository storageAuditOutboxRepository;
     private final StorageAuditRetryProperties properties;
 
-    public StorageAuditOutboxRetryService(StorageAuditLogRepository storageAuditLogRepository,
-                                          StorageAuditOutboxRepository storageAuditOutboxRepository,
-                                          StorageAuditRetryProperties properties) {
+    public StorageAuditOutboxRetryService(
+            StorageAuditLogRepository storageAuditLogRepository,
+            StorageAuditOutboxRepository storageAuditOutboxRepository,
+            StorageAuditRetryProperties properties) {
         this.storageAuditLogRepository = storageAuditLogRepository;
         this.storageAuditOutboxRepository = storageAuditOutboxRepository;
         this.properties = properties;
@@ -61,8 +59,8 @@ public class StorageAuditOutboxRetryService {
             return 0;
         }
         Instant updatedBefore = Instant.now().minusSeconds(Math.max(properties.getDeadRetentionSeconds(), 1L));
-        int deleted = storageAuditOutboxRepository.deleteExpiredDead(updatedBefore,
-                Math.max(properties.getCleanupBatchSize(), 1));
+        int deleted = storageAuditOutboxRepository.deleteExpiredDead(
+                updatedBefore, Math.max(properties.getCleanupBatchSize(), 1));
         if (deleted > 0) {
             Metrics.counter("bacon.storage.audit.cleanup.dead.total").increment(deleted);
             log.info("Storage audit dead outbox cleanup completed, deleted={}", deleted);
@@ -72,11 +70,24 @@ public class StorageAuditOutboxRetryService {
 
     protected void retryOne(StorageAuditOutbox item, Instant now) {
         try {
-            storageAuditLogRepository.save(new StorageAuditLog(null, item.getTenantId(), item.getObjectId(),
-                    item.getOwnerType(), item.getOwnerId(), item.getActionType(), item.getBeforeStatus(),
-                    item.getAfterStatus(), item.getOperatorType(), item.getOperatorId(), item.getOccurredAt()));
+            storageAuditLogRepository.save(new StorageAuditLog(
+                    null,
+                    item.getTenantId(),
+                    item.getObjectId(),
+                    item.getOwnerType(),
+                    item.getOwnerId(),
+                    item.getActionType(),
+                    item.getBeforeStatus(),
+                    item.getAfterStatus(),
+                    item.getOperatorType(),
+                    item.getOperatorId(),
+                    item.getOccurredAt()));
             storageAuditOutboxRepository.deleteById(item.getId());
-            Metrics.counter("bacon.storage.audit.retry.success.total", "actionType", item.getActionType().value()).increment();
+            Metrics.counter(
+                            "bacon.storage.audit.retry.success.total",
+                            "actionType",
+                            item.getActionType().value())
+                    .increment();
         } catch (RuntimeException ex) {
             handleRetryFailure(item, now, ex);
         }
@@ -87,17 +98,34 @@ public class StorageAuditOutboxRetryService {
         String errorMessage = truncateMessage(ex.getMessage());
         if (nextRetryCount > properties.getMaxRetries()) {
             storageAuditOutboxRepository.markDead(item.getId(), nextRetryCount, errorMessage, now);
-            Metrics.counter("bacon.storage.audit.retry.dead.total", "actionType", item.getActionType().value()).increment();
-            log.error("ALERT storage audit retry exhausted, outboxId={}, objectId={}, actionType={}",
-                    item.getId(), item.getObjectId(), item.getActionType().value(), ex);
+            Metrics.counter(
+                            "bacon.storage.audit.retry.dead.total",
+                            "actionType",
+                            item.getActionType().value())
+                    .increment();
+            log.error(
+                    "ALERT storage audit retry exhausted, outboxId={}, objectId={}, actionType={}",
+                    item.getId(),
+                    item.getObjectId(),
+                    item.getActionType().value(),
+                    ex);
             return;
         }
         Instant nextRetryAt = now.plusSeconds(nextDelaySeconds(nextRetryCount));
-        storageAuditOutboxRepository.updateForRetry(item.getId(), nextRetryCount, nextRetryAt,
-                errorMessage, StorageAuditOutboxStatus.RETRYING, now);
-        Metrics.counter("bacon.storage.audit.retry.fail.total", "actionType", item.getActionType().value()).increment();
-        log.warn("Storage audit retry failed, outboxId={}, objectId={}, actionType={}, retryCount={}",
-                item.getId(), item.getObjectId(), item.getActionType().value(), nextRetryCount, ex);
+        storageAuditOutboxRepository.updateForRetry(
+                item.getId(), nextRetryCount, nextRetryAt, errorMessage, StorageAuditOutboxStatus.RETRYING, now);
+        Metrics.counter(
+                        "bacon.storage.audit.retry.fail.total",
+                        "actionType",
+                        item.getActionType().value())
+                .increment();
+        log.warn(
+                "Storage audit retry failed, outboxId={}, objectId={}, actionType={}, retryCount={}",
+                item.getId(),
+                item.getObjectId(),
+                item.getActionType().value(),
+                nextRetryCount,
+                ex);
     }
 
     private long nextDelaySeconds(int retryCount) {

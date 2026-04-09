@@ -4,8 +4,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 
 public final class DeadLetterIdCodec {
 
-    private DeadLetterIdCodec() {
-    }
+    private DeadLetterIdCodec() {}
 
     public static DeadLetterId toDomain(Long value) {
         if (value == null) {

@@ -52,7 +52,8 @@ class RestTemplateAutoConfigurationTest {
 
     @Test
     void shouldNotRegisterLoadBalancedClientsWhenDiscoveryDisabled() {
-        contextRunner.withPropertyValues("spring.cloud.nacos.discovery.enabled=false")
+        contextRunner
+                .withPropertyValues("spring.cloud.nacos.discovery.enabled=false")
                 .run(context -> {
                     assertThat(context).doesNotHaveBean(RestTemplate.class);
                     assertThat(context).doesNotHaveBean(RestClient.Builder.class);

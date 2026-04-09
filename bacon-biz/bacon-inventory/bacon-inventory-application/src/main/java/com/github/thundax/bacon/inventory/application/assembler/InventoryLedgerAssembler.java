@@ -1,18 +1,17 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 
 public final class InventoryLedgerAssembler {
 
-    private InventoryLedgerAssembler() {
-    }
+    private InventoryLedgerAssembler() {}
 
     public static InventoryLedgerDTO toDto(InventoryLedger ledger) {
         return new InventoryLedgerDTO(

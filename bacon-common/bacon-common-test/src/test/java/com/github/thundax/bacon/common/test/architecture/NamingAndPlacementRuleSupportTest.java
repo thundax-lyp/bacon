@@ -1,9 +1,11 @@
 package com.github.thundax.bacon.common.test.architecture;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.EnumFieldFixture;
 import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.InvalidSimpleEnumFixture;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.EvaluationResult;
 import java.nio.file.Path;
 import java.util.List;
@@ -11,21 +13,30 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class NamingAndPlacementRuleSupportTest {
 
     @Test
     void resolveSourceFilePathShouldFallbackToWorkspaceLookupWhenClassSourceIsUnavailable() {
-        JavaClass targetClass = new ClassFileImporter().importClasses(ValidAnnotatedEntityFixture.class)
+        JavaClass targetClass = new ClassFileImporter()
+                .importClasses(ValidAnnotatedEntityFixture.class)
                 .get(ValidAnnotatedEntityFixture.class);
 
         Optional<Path> sourceFile = NamingAndPlacementRuleSupport.resolveSourceFilePath(Optional.empty(), targetClass);
 
         assertThat(sourceFile).isPresent();
         assertThat(sourceFile.orElseThrow())
-                .endsWith(Path.of("src", "test", "java", "com", "github", "thundax", "bacon",
-                        "common", "test", "architecture", "NamingAndPlacementRuleSupportTest.java"));
+                .endsWith(Path.of(
+                        "src",
+                        "test",
+                        "java",
+                        "com",
+                        "github",
+                        "thundax",
+                        "bacon",
+                        "common",
+                        "test",
+                        "architecture",
+                        "NamingAndPlacementRuleSupportTest.java"));
     }
 
     @Test
@@ -37,21 +48,21 @@ class NamingAndPlacementRuleSupportTest {
                 .contains(InvalidSimpleEnumFixture.class.getName() + " violation")
                 .contains("simple enum must not declare fromValue(String); use from(String)")
                 .contains("missing static method from(String)")
-                .contains("Fix: declare value() { return name(); } and static from(String value) using Arrays.stream(values())");
+                .contains(
+                        "Fix: declare value() { return name(); } and static from(String value) using Arrays.stream(values())");
     }
 
     @Test
     void simpleEnumConventionShouldIgnoreEnumsWithInstanceFields() {
-        EvaluationResult result = NamingAndPlacementRuleSupport
-                .simpleEnumShouldUseNameAndFromConvention(EnumFieldFixture.class.getName())
+        EvaluationResult result = NamingAndPlacementRuleSupport.simpleEnumShouldUseNameAndFromConvention(
+                        EnumFieldFixture.class.getName())
                 .evaluate(new ClassFileImporter().importPackages(EnumFieldFixture.class.getPackageName()));
 
         assertThat(result.hasViolation()).isFalse();
     }
 
     private static EvaluationResult evaluateSimpleEnum(Class<?> targetClass) {
-        return NamingAndPlacementRuleSupport
-                .simpleEnumShouldUseNameAndFromConvention(targetClass.getName())
+        return NamingAndPlacementRuleSupport.simpleEnumShouldUseNameAndFromConvention(targetClass.getName())
                 .evaluate(new ClassFileImporter().importPackages(targetClass.getPackageName()));
     }
 

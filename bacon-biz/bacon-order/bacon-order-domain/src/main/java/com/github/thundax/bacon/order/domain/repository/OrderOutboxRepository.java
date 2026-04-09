@@ -7,11 +7,10 @@ import java.util.List;
 
 public interface OrderOutboxRepository {
 
-    default void saveOutboxEvent(OrderOutboxEvent event) {
-    }
+    default void saveOutboxEvent(OrderOutboxEvent event) {}
 
-    default List<OrderOutboxEvent> claimRetryableOutbox(Instant now, int limit,
-                                                         String processingOwner, Instant leaseUntil) {
+    default List<OrderOutboxEvent> claimRetryableOutbox(
+            Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return List.of();
     }
 
@@ -19,13 +18,23 @@ public interface OrderOutboxRepository {
         return 0;
     }
 
-    default boolean markRetryingClaimed(OutboxId outboxId, String processingOwner, int retryCount,
-                                        Instant nextRetryAt, String errorMessage, Instant updatedAt) {
+    default boolean markRetryingClaimed(
+            OutboxId outboxId,
+            String processingOwner,
+            int retryCount,
+            Instant nextRetryAt,
+            String errorMessage,
+            Instant updatedAt) {
         return false;
     }
 
-    default boolean markDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount,
-                                    String deadReason, String errorMessage, Instant updatedAt) {
+    default boolean markDeadClaimed(
+            OutboxId outboxId,
+            String processingOwner,
+            int retryCount,
+            String deadReason,
+            String errorMessage,
+            Instant updatedAt) {
         return false;
     }
 

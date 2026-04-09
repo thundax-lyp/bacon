@@ -4,8 +4,6 @@ import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -17,6 +15,8 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.time.Instant;
@@ -47,12 +47,13 @@ public class UserRepositoryImpl implements UserRepository {
     private final Ids ids;
     private final IdGenerator idGenerator;
 
-    public UserRepositoryImpl(UserPersistenceSupport support,
-                              RoleRepositoryImpl roleRepository,
-                              PasswordEncoder passwordEncoder,
-                              UpmsPermissionCacheSupport cacheSupport,
-                              Ids ids,
-                              IdGenerator idGenerator) {
+    public UserRepositoryImpl(
+            UserPersistenceSupport support,
+            RoleRepositoryImpl roleRepository,
+            PasswordEncoder passwordEncoder,
+            UpmsPermissionCacheSupport cacheSupport,
+            Ids ids,
+            IdGenerator idGenerator) {
         this.support = support;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -72,23 +73,26 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<UserIdentity> findUserIdentity(TenantId tenantId, UserIdentityType identityType, String identityValue) {
+    public Optional<UserIdentity> findUserIdentity(
+            TenantId tenantId, UserIdentityType identityType, String identityValue) {
         return support.findUserIdentity(tenantId, identityType, identityValue);
     }
 
     @Override
-    public Optional<UserIdentity> findUserIdentityByUserId(TenantId tenantId, UserId userId, UserIdentityType identityType) {
+    public Optional<UserIdentity> findUserIdentityByUserId(
+            TenantId tenantId, UserId userId, UserIdentityType identityType) {
         return support.findUserIdentityByUserId(tenantId, userId, identityType);
     }
 
     @Override
-    public Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, UserCredentialType credentialType) {
+    public Optional<UserCredential> findUserCredential(
+            TenantId tenantId, UserId userId, UserCredentialType credentialType) {
         return support.findUserCredential(tenantId, userId, credentialType);
     }
 
     @Override
-    public List<User> pageUsers(TenantId tenantId, String account, String name, String phone, String status, int pageNo,
-                                int pageSize) {
+    public List<User> pageUsers(
+            TenantId tenantId, String account, String name, String phone, String status, int pageNo, int pageSize) {
         return support.listUsers(tenantId, account, name, phone, status, pageNo, pageSize);
     }
 
@@ -130,14 +134,16 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getUpdatedAt());
         User savedUser = support.saveUser(updatedUser);
         UserIdentity accountIdentity = requireUserIdentity(tenantId, userId, UserIdentityType.ACCOUNT);
-        upsertPasswordCredential(savedUser, accountIdentity, passwordEncoder.encode(password), false, needChangePassword);
+        upsertPasswordCredential(
+                savedUser, accountIdentity, passwordEncoder.encode(password), false, needChangePassword);
         return savedUser;
     }
 
     @Override
     public List<Role> assignRoles(TenantId tenantId, UserId userId, List<RoleId> roleIds) {
         List<Role> roles = roleIds.stream()
-                .map(roleId -> roleRepository.findRoleById(tenantId, roleId)
+                .map(roleId -> roleRepository
+                        .findRoleById(tenantId, roleId)
                         .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value())))
                 .toList();
         roleRepository.bindUserRoles(tenantId, userId, roles);
@@ -155,8 +161,17 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private User createUser(User user) {
-        return new User(ids.userId(), user.getTenantId(), user.getName(), user.getAvatarObjectId(),
-                user.getDepartmentId(), user.getStatus(), null, null, null, null);
+        return new User(
+                ids.userId(),
+                user.getTenantId(),
+                user.getName(),
+                user.getAvatarObjectId(),
+                user.getDepartmentId(),
+                user.getStatus(),
+                null,
+                null,
+                null,
+                null);
     }
 
     private User updateUser(User user) {
@@ -177,22 +192,40 @@ public class UserRepositoryImpl implements UserRepository {
 
     private UserIdentity replaceAccountIdentity(User user, String account) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
-        return support.saveUserIdentity(new UserIdentity(nextUserIdentityId(), user.getTenantId(), user.getId(),
-                UserIdentityType.ACCOUNT, requireIdentityValue(account, UserIdentityType.ACCOUNT), ACTIVE_IDENTITY_STATUS,
-                null, null, null, null));
+        return support.saveUserIdentity(new UserIdentity(
+                nextUserIdentityId(),
+                user.getTenantId(),
+                user.getId(),
+                UserIdentityType.ACCOUNT,
+                requireIdentityValue(account, UserIdentityType.ACCOUNT),
+                ACTIVE_IDENTITY_STATUS,
+                null,
+                null,
+                null,
+                null));
     }
 
     private void replacePhoneIdentity(User user, String phone) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
         if (phone != null && !phone.isBlank()) {
-            support.saveUserIdentity(new UserIdentity(nextUserIdentityId(), user.getTenantId(), user.getId(),
-                    UserIdentityType.PHONE, phone.trim(), ACTIVE_IDENTITY_STATUS, null, null, null, null));
+            support.saveUserIdentity(new UserIdentity(
+                    nextUserIdentityId(),
+                    user.getTenantId(),
+                    user.getId(),
+                    UserIdentityType.PHONE,
+                    phone.trim(),
+                    ACTIVE_IDENTITY_STATUS,
+                    null,
+                    null,
+                    null,
+                    null));
         }
     }
 
     private UserIdentity requireUserIdentity(TenantId tenantId, UserId userId, UserIdentityType identityType) {
         return support.findUserIdentityByUserId(tenantId, userId, identityType)
-                .orElseThrow(() -> new IllegalArgumentException("User identity not found: " + userId + "/" + identityType.value()));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "User identity not found: " + userId + "/" + identityType.value()));
     }
 
     private String requireIdentityValue(String identityValue, UserIdentityType identityType) {
@@ -211,9 +244,10 @@ public class UserRepositoryImpl implements UserRepository {
                 .orElseGet(() -> passwordEncoder.encode(DEFAULT_PASSWORD));
     }
 
-    private void upsertPasswordCredential(User user, UserIdentity accountIdentity, String passwordHash, boolean newUser,
-                                          boolean needChangePassword) {
-        UserCredential currentCredential = support.findUserCredential(user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
+    private void upsertPasswordCredential(
+            User user, UserIdentity accountIdentity, String passwordHash, boolean newUser, boolean needChangePassword) {
+        UserCredential currentCredential = support.findUserCredential(
+                        user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .orElse(null);
         support.saveUserCredential(new UserCredential(
                 currentCredential == null ? nextUserCredentialId() : currentCredential.getId(),

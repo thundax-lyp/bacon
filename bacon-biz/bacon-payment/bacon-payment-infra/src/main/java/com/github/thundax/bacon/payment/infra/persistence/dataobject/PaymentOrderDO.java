@@ -18,32 +18,46 @@ public class PaymentOrderDO {
 
     @TableId(type = IdType.INPUT)
     private Long id;
+
     @TableField("tenant_id")
     private Long tenantId;
+
     @TableField("payment_no")
     private String paymentNo;
+
     @TableField("order_no")
     private String orderNo;
+
     @TableField("user_id")
     private Long userId;
+
     @TableField("channel_code")
     private String channelCode;
+
     @TableField("payment_status")
     private String paymentStatus;
+
     @TableField("amount")
     private BigDecimal amount;
+
     @TableField("paid_amount")
     private BigDecimal paidAmount;
+
     @TableField("subject")
     private String subject;
+
     @TableField("created_at")
     private Instant createdAt;
+
     @TableField("updated_at")
     private Instant updatedAt;
+
     @TableField("expired_at")
     private Instant expiredAt;
+
     @TableField("paid_at")
     private Instant paidAt;
+
     @TableField("closed_at")
     private Instant closedAt;
 }

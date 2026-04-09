@@ -1,19 +1,23 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
-import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
-import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -27,10 +31,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 class InventoryControllerContractTest {
 
     private MockMvc mockMvc;
@@ -38,7 +38,8 @@ class InventoryControllerContractTest {
     @BeforeEach
     void setUp() {
         StubInventoryRepository repository = new StubInventoryRepository();
-        InventoryQueryApplicationService inventoryQueryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
+        InventoryQueryApplicationService inventoryQueryService =
+                new InventoryQueryApplicationService(repository, repository, repository, repository);
         InventoryController controller = new InventoryController(null, inventoryQueryService);
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
@@ -52,9 +53,7 @@ class InventoryControllerContractTest {
 
     @Test
     void shouldAllowPageRequestWithoutTenantIdParam() throws Exception {
-        mockMvc.perform(get("/inventories/page")
-                        .param("pageNo", "1")
-                        .param("pageSize", "20"))
+        mockMvc.perform(get("/inventories/page").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1))
                 .andExpect(jsonPath("$.pageNo").value(1))
@@ -63,9 +62,7 @@ class InventoryControllerContractTest {
 
     @Test
     void shouldRejectPageRequestWithOversizedPageSize() throws Exception {
-        mockMvc.perform(get("/inventories/page")
-                        .param("pageNo", "1")
-                        .param("pageSize", "1000"))
+        mockMvc.perform(get("/inventories/page").param("pageNo", "1").param("pageSize", "1000"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -90,8 +87,8 @@ class InventoryControllerContractTest {
                 .andExpect(status().isBadRequest());
     }
 
-    private static final class StubInventoryRepository implements InventoryStockRepository,
-            InventoryReservationRepository, InventoryLogRepository {
+    private static final class StubInventoryRepository
+            implements InventoryStockRepository, InventoryReservationRepository, InventoryLogRepository {
 
         private final Inventory stock = Inventory.reconstruct(
                 InventoryId.of(1L),
@@ -121,7 +118,8 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        public List<Inventory> pageInventories(
+                TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             return List.of(stock);
         }
 
@@ -146,8 +144,7 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public void saveLedger(InventoryLedger ledger) {
-        }
+        public void saveLedger(InventoryLedger ledger) {}
 
         @Override
         public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
@@ -155,8 +152,7 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public void saveAuditLog(InventoryAuditLog auditLog) {
-        }
+        public void saveAuditLog(InventoryAuditLog auditLog) {}
 
         @Override
         public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
@@ -164,11 +160,9 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public void saveAuditOutbox(InventoryAuditOutbox outbox) {
-        }
+        public void saveAuditOutbox(InventoryAuditOutbox outbox) {}
 
         @Override
-        public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-        }
+        public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
     }
 }

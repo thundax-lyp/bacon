@@ -2,8 +2,8 @@ package com.github.thundax.bacon.common.test.architecture;
 
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
-import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -20,9 +20,8 @@ public final class LayeredArchitectureRuleSupport {
 
     private static final String ROOT_PACKAGE = "com.github.thundax.bacon";
     private static final String SYS_LOG_ANNOTATION = "com.github.thundax.bacon.common.log.annotation.SysLog";
-    private static final List<String> TRANSACTIONAL_ANNOTATIONS = List.of(
-            "org.springframework.transaction.annotation.Transactional",
-            "jakarta.transaction.Transactional");
+    private static final List<String> TRANSACTIONAL_ANNOTATIONS =
+            List.of("org.springframework.transaction.annotation.Transactional", "jakarta.transaction.Transactional");
     private static final List<String> DOMAIN_FORBIDDEN_TECH_PACKAGES = List.of(
             "org.springframework.web.",
             "org.springframework.http.",
@@ -38,8 +37,7 @@ public final class LayeredArchitectureRuleSupport {
             "org.springframework.kafka.",
             "org.apache.rocketmq.");
 
-    private LayeredArchitectureRuleSupport() {
-    }
+    private LayeredArchitectureRuleSupport() {}
 
     public static JavaClasses importDomainClasses(String basePackage) {
         return new ClassFileImporter()
@@ -65,36 +63,42 @@ public final class LayeredArchitectureRuleSupport {
 
     public static ArchRule domainShouldNotDependOnOuterLayers(String basePackage) {
         return ArchRuleDefinition.noClasses()
-                .that().resideInAPackage(basePackage + ".domain..")
-                .should().dependOnClassesThat().resideInAnyPackage(
-                        basePackage + ".application..",
-                        basePackage + ".interfaces..",
-                        basePackage + ".infra..")
+                .that()
+                .resideInAPackage(basePackage + ".domain..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(
+                        basePackage + ".application..", basePackage + ".interfaces..", basePackage + ".infra..")
                 .because("domain 不依赖 application、interfaces、infra");
     }
 
     public static ArchRule applicationShouldNotDependOnInterfacesOrOwnInfra(String basePackage) {
         return ArchRuleDefinition.noClasses()
-                .that().resideInAPackage(basePackage + ".application..")
-                .should().dependOnClassesThat().resideInAnyPackage(
-                        basePackage + ".interfaces..",
-                        basePackage + ".infra..")
+                .that()
+                .resideInAPackage(basePackage + ".application..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(basePackage + ".interfaces..", basePackage + ".infra..")
                 .because("application 不依赖 interfaces、infra");
     }
 
     public static ArchRule interfacesShouldNotDependOnOwnInfra(String basePackage) {
         return ArchRuleDefinition.noClasses()
-                .that().resideInAPackage(basePackage + ".interfaces..")
-                .should().dependOnClassesThat().resideInAnyPackage(basePackage + ".infra..")
+                .that()
+                .resideInAPackage(basePackage + ".interfaces..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(basePackage + ".infra..")
                 .because("interfaces 可以使用 domain 类型，但不依赖 infra");
     }
 
     public static ArchRule infraShouldNotDependOnApplicationOrInterfaces(String basePackage) {
         return ArchRuleDefinition.noClasses()
-                .that().resideInAPackage(basePackage + ".infra..")
-                .should().dependOnClassesThat().resideInAnyPackage(
-                        basePackage + ".application..",
-                        basePackage + ".interfaces..")
+                .that()
+                .resideInAPackage(basePackage + ".infra..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(basePackage + ".application..", basePackage + ".interfaces..")
                 .because("infra 不依赖 application、interfaces");
     }
 
@@ -119,8 +123,7 @@ public final class LayeredArchitectureRuleSupport {
     public static ArchRule applicationShouldNotDependOnAnyDomainInfra(String basePackage) {
         return noDirectDependencies(
                 basePackage + ".application..",
-                packageName -> packageName.startsWith(ROOT_PACKAGE + ".")
-                        && packageName.contains(".infra."),
+                packageName -> packageName.startsWith(ROOT_PACKAGE + ".") && packageName.contains(".infra."),
                 "infra",
                 "application 不得依赖本域或他域的 infra");
     }
@@ -151,8 +154,10 @@ public final class LayeredArchitectureRuleSupport {
 
     public static ArchRule infraShouldOnlyDependOnDomainRepositoryAsImplementation(String basePackage) {
         return ArchRuleDefinition.noClasses()
-                .that().resideInAPackage(basePackage + ".infra..")
-                .and().resideOutsideOfPackage(basePackage + ".infra.repository.impl..")
+                .that()
+                .resideInAPackage(basePackage + ".infra..")
+                .and()
+                .resideOutsideOfPackage(basePackage + ".infra.repository.impl..")
                 .should(new ArchCondition<>("depend on domain.repository") {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
@@ -169,18 +174,12 @@ public final class LayeredArchitectureRuleSupport {
 
     public static ArchRule domainEntityCreateShouldOnlyBeCalledByApplication(String basePackage) {
         return noClassesOutsidePackageShouldCallDomainEntityStaticFactory(
-                basePackage,
-                basePackage + ".application..",
-                "create",
-                "domain entity 只能由 application 创建");
+                basePackage, basePackage + ".application..", "create", "domain entity 只能由 application 创建");
     }
 
     public static ArchRule domainEntityReconstructShouldOnlyBeCalledByInfra(String basePackage) {
         return noClassesOutsidePackageShouldCallDomainEntityStaticFactory(
-                basePackage,
-                basePackage + ".infra..",
-                "reconstruct",
-                "domain entity 只能由 infra 重建");
+                basePackage, basePackage + ".infra..", "reconstruct", "domain entity 只能由 infra 重建");
     }
 
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {
@@ -188,19 +187,16 @@ public final class LayeredArchitectureRuleSupport {
     }
 
     private static ArchRule noClassesOutsidePackageShouldUseAnnotations(
-            String allowedPackage,
-            List<String> annotationNames,
-            String annotationDescription,
-            String because) {
+            String allowedPackage, List<String> annotationNames, String annotationDescription, String because) {
         return ArchRuleDefinition.noClasses()
-                .that().resideOutsideOfPackage(allowedPackage)
+                .that()
+                .resideOutsideOfPackage(allowedPackage)
                 .should(new ArchCondition<>("use " + annotationDescription) {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
                         if (hasAnyAnnotation(item.getAnnotations(), annotationNames)) {
                             events.add(SimpleConditionEvent.violated(
-                                    item,
-                                    item.getName() + " is annotated with " + annotationDescription));
+                                    item, item.getName() + " is annotated with " + annotationDescription));
                         }
                         for (JavaCodeUnit codeUnit : item.getCodeUnits()) {
                             if (hasAnyAnnotation(codeUnit.getAnnotations(), annotationNames)) {
@@ -215,12 +211,10 @@ public final class LayeredArchitectureRuleSupport {
     }
 
     private static ArchRule noClassesOutsidePackageShouldCallDomainEntityStaticFactory(
-            String basePackage,
-            String allowedPackage,
-            String methodName,
-            String because) {
+            String basePackage, String allowedPackage, String methodName, String because) {
         return ArchRuleDefinition.noClasses()
-                .that().resideOutsideOfPackage(allowedPackage)
+                .that()
+                .resideOutsideOfPackage(allowedPackage)
                 .should(new ArchCondition<>("call domain entity static method " + methodName) {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {
@@ -237,8 +231,7 @@ public final class LayeredArchitectureRuleSupport {
     }
 
     private static boolean hasAnyAnnotation(
-            Iterable<? extends JavaAnnotation<?>> annotations,
-            List<String> annotationNames) {
+            Iterable<? extends JavaAnnotation<?>> annotations, List<String> annotationNames) {
         for (JavaAnnotation<?> annotation : annotations) {
             if (annotationNames.contains(annotation.getRawType().getName())) {
                 return true;
@@ -253,7 +246,8 @@ public final class LayeredArchitectureRuleSupport {
             String forbiddenDescription,
             String because) {
         return ArchRuleDefinition.noClasses()
-                .that().resideInAPackage(sourcePackage)
+                .that()
+                .resideInAPackage(sourcePackage)
                 .should(new ArchCondition<>("directly depend on " + forbiddenDescription) {
                     @Override
                     public void check(JavaClass item, ConditionEvents events) {

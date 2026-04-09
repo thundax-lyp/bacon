@@ -22,8 +22,9 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
     private final ObjectProvider<CurrentTenantProvider> currentTenantProvider;
     private final ObjectProvider<InternalApiGuardProperties> internalApiGuardProperties;
 
-    public WebMvcConfiguration(ObjectProvider<CurrentTenantProvider> currentTenantProvider,
-                               ObjectProvider<InternalApiGuardProperties> internalApiGuardProperties) {
+    public WebMvcConfiguration(
+            ObjectProvider<CurrentTenantProvider> currentTenantProvider,
+            ObjectProvider<InternalApiGuardProperties> internalApiGuardProperties) {
         this.currentTenantProvider = currentTenantProvider;
         this.internalApiGuardProperties = internalApiGuardProperties;
     }

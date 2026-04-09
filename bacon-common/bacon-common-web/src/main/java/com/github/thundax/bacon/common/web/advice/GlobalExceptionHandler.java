@@ -51,8 +51,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleMissingServletRequestParameter(MissingServletRequestParameterException exception) {
-        return ApiResponse.fail("BAD_REQUEST",
-                "Missing required parameter: " + exception.getParameterName());
+        return ApiResponse.fail("BAD_REQUEST", "Missing required parameter: " + exception.getParameterName());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -85,8 +84,16 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleHandlerMethodValidation(HandlerMethodValidationException exception) {
         if (!exception.getParameterValidationResults().isEmpty()
-                && !exception.getParameterValidationResults().get(0).getResolvableErrors().isEmpty()) {
-            String message = exception.getParameterValidationResults().get(0).getResolvableErrors().get(0)
+                && !exception
+                        .getParameterValidationResults()
+                        .get(0)
+                        .getResolvableErrors()
+                        .isEmpty()) {
+            String message = exception
+                    .getParameterValidationResults()
+                    .get(0)
+                    .getResolvableErrors()
+                    .get(0)
                     .getDefaultMessage();
             if (message != null && !message.isBlank()) {
                 return ApiResponse.fail("BAD_REQUEST", message);

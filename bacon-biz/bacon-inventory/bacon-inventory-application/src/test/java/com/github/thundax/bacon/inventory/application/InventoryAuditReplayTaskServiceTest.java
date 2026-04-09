@@ -1,28 +1,31 @@
 package com.github.thundax.bacon.inventory.application;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
-import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,35 +37,55 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 class InventoryAuditReplayTaskApplicationServiceTest {
 
     @Test
     void shouldCreateAndProcessReplayTask() {
         TestLogRepository repository = new TestLogRepository();
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(null, com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L), EventCode.of("EVT20260326000000-000101"),
-                TenantId.of(3001L), OrderNo.of("ORDER-1"), ReservationNo.of("RSV-1"), InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM, String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
-                Instant.parse("2026-03-26T00:00:00Z"), 1, "FAIL",
-                "MAX_RETRIES_EXCEEDED", Instant.parse("2026-03-26T00:01:00Z"), InventoryAuditReplayStatus.PENDING,
-                0, null, null, null, null, null, null));
+        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(
+                null,
+                com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L),
+                EventCode.of("EVT20260326000000-000101"),
+                TenantId.of(3001L),
+                OrderNo.of("ORDER-1"),
+                ReservationNo.of("RSV-1"),
+                InventoryAuditActionType.RESERVE,
+                InventoryAuditOperatorType.SYSTEM,
+                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                Instant.parse("2026-03-26T00:00:00Z"),
+                1,
+                "FAIL",
+                "MAX_RETRIES_EXCEEDED",
+                Instant.parse("2026-03-26T00:01:00Z"),
+                InventoryAuditReplayStatus.PENDING,
+                0,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null));
 
-        InventoryAuditReplayTaskApplicationService taskService = new InventoryAuditReplayTaskApplicationService(repository);
-        InventoryAuditCompensationApplicationService compensationService = new InventoryAuditCompensationApplicationService(repository,
-                new InventoryAuditReplayTransactionExecutor(repository, repository, new InventoryTransactionExecutor()));
+        InventoryAuditReplayTaskApplicationService taskService =
+                new InventoryAuditReplayTaskApplicationService(repository);
+        InventoryAuditCompensationApplicationService compensationService =
+                new InventoryAuditCompensationApplicationService(
+                        repository,
+                        new InventoryAuditReplayTransactionExecutor(
+                                repository, repository, new InventoryTransactionExecutor()));
 
-        var created = taskService.createReplayTask(new InventoryAuditReplayTaskCreateDTO(3001L, 9001L,
-                "TASK-BATCH", List.of(101L)));
+        var created = taskService.createReplayTask(
+                new InventoryAuditReplayTaskCreateDTO(3001L, 9001L, "TASK-BATCH", List.of(101L)));
         assertNotNull(created.getTaskId());
 
         String owner = "test-owner";
-        List<InventoryAuditReplayTask> claimed = repository.claimRunnableAuditReplayTasks(Instant.now(), 1, owner,
-                Instant.now().plusSeconds(60));
+        List<InventoryAuditReplayTask> claimed = repository.claimRunnableAuditReplayTasks(
+                Instant.now(), 1, owner, Instant.now().plusSeconds(60));
         taskService.processClaimedTask(claimed.get(0), compensationService, owner, 10, 60);
 
-        InventoryAuditReplayTask finished = repository.findAuditReplayTaskById(TaskId.of(created.getTaskId())).orElseThrow();
+        InventoryAuditReplayTask finished = repository
+                .findAuditReplayTaskById(TaskId.of(created.getTaskId()))
+                .orElseThrow();
         assertEquals(InventoryAuditReplayTaskStatus.SUCCEEDED, finished.getStatus());
         assertEquals(1, finished.getProcessedCount());
         assertEquals(1, finished.getSuccessCount());
@@ -84,8 +107,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void saveLedger(InventoryLedger ledger) {
-        }
+        public void saveLedger(InventoryLedger ledger) {}
 
         @Override
         public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
@@ -108,9 +130,13 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public boolean claimAuditDeadLetterForReplay(DeadLetterId id, TenantId tenantId, String replayKey,
-                                                     InventoryAuditOperatorType operatorType, OperatorId operatorId,
-                                                     Instant replayAt) {
+        public boolean claimAuditDeadLetterForReplay(
+                DeadLetterId id,
+                TenantId tenantId,
+                String replayKey,
+                InventoryAuditOperatorType operatorType,
+                OperatorId operatorId,
+                Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             if (deadLetter == null || !tenantId.equals(deadLetter.getTenantId())) {
                 return false;
@@ -130,9 +156,12 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void markAuditDeadLetterReplaySuccess(DeadLetterId id, String replayKey,
-                                                     InventoryAuditOperatorType operatorType, OperatorId operatorId,
-                                                     Instant replayAt) {
+        public void markAuditDeadLetterReplaySuccess(
+                DeadLetterId id,
+                String replayKey,
+                InventoryAuditOperatorType operatorType,
+                OperatorId operatorId,
+                Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             deadLetter.setReplayStatus(InventoryAuditReplayStatus.SUCCEEDED);
             deadLetter.setReplayCount((deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount()) + 1);
@@ -145,9 +174,13 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void markAuditDeadLetterReplayFailed(DeadLetterId id, String replayKey,
-                                                    InventoryAuditOperatorType operatorType, OperatorId operatorId,
-                                                    String replayError, Instant replayAt) {
+        public void markAuditDeadLetterReplayFailed(
+                DeadLetterId id,
+                String replayKey,
+                InventoryAuditOperatorType operatorType,
+                OperatorId operatorId,
+                String replayError,
+                Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             deadLetter.setReplayStatus(InventoryAuditReplayStatus.FAILED);
             deadLetter.setReplayCount((deadLetter.getReplayCount() == null ? 0 : deadLetter.getReplayCount()) + 1);
@@ -169,16 +202,22 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void batchSaveAuditReplayTaskItems(TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds,
-                                                  Instant createdAt) {
-            List<InventoryAuditReplayTaskItem> items = taskItems.computeIfAbsent(taskId == null ? null : taskId.value(),
-                    key -> new ArrayList<>());
+        public void batchSaveAuditReplayTaskItems(
+                TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
+            List<InventoryAuditReplayTaskItem> items =
+                    taskItems.computeIfAbsent(taskId == null ? null : taskId.value(), key -> new ArrayList<>());
             for (DeadLetterId deadLetterId : deadLetterIds) {
-                items.add(new InventoryAuditReplayTaskItem(taskItemIdGenerator.getAndIncrement(),
+                items.add(new InventoryAuditReplayTaskItem(
+                        taskItemIdGenerator.getAndIncrement(),
                         taskId,
                         tenantId,
                         deadLetterId,
-                        InventoryAuditReplayTaskItemStatus.PENDING, null, null, null, null, null,
+                        InventoryAuditReplayTaskItemStatus.PENDING,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
                         createdAt));
             }
         }
@@ -189,12 +228,13 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(Instant now, int limit,
-                                                                            String processingOwner, Instant leaseUntil) {
+        public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(
+                Instant now, int limit, String processingOwner, Instant leaseUntil) {
             return tasks.values().stream()
                     .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
                             || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
-                    .filter(task -> task.getLeaseUntil() == null || !task.getLeaseUntil().isAfter(now))
+                    .filter(task -> task.getLeaseUntil() == null
+                            || !task.getLeaseUntil().isAfter(now))
                     .sorted(Comparator.comparing(InventoryAuditReplayTask::getIdValue))
                     .limit(limit)
                     .peek(task -> {
@@ -210,7 +250,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void renewAuditReplayTaskLease(TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
+        public void renewAuditReplayTaskLease(
+                TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
             InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task != null && processingOwner.equals(task.getProcessingOwner())) {
                 task.setLeaseUntil(leaseUntil);
@@ -228,10 +269,14 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void markAuditReplayTaskItemResult(Long itemId, InventoryAuditReplayTaskItemStatus itemStatus,
-                                                  InventoryAuditReplayStatus replayStatus,
-                                                  String replayKey, String resultMessage, Instant startedAt,
-                                                  Instant finishedAt) {
+        public void markAuditReplayTaskItemResult(
+                Long itemId,
+                InventoryAuditReplayTaskItemStatus itemStatus,
+                InventoryAuditReplayStatus replayStatus,
+                String replayKey,
+                String resultMessage,
+                Instant startedAt,
+                Instant finishedAt) {
             taskItems.values().forEach(items -> items.stream()
                     .filter(item -> item.getId().equals(itemId))
                     .findFirst()
@@ -247,8 +292,13 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void incrementAuditReplayTaskProgress(TaskId taskId, String processingOwner, int processedDelta,
-                                                     int successDelta, int failedDelta, Instant updatedAt) {
+        public void incrementAuditReplayTaskProgress(
+                TaskId taskId,
+                String processingOwner,
+                int processedDelta,
+                int successDelta,
+                int failedDelta,
+                Instant updatedAt) {
             InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {
                 return;
@@ -260,8 +310,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void finishAuditReplayTask(TaskId taskId, String processingOwner, String status, String lastError,
-                                          Instant finishedAt) {
+        public void finishAuditReplayTask(
+                TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {
             InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {
                 return;

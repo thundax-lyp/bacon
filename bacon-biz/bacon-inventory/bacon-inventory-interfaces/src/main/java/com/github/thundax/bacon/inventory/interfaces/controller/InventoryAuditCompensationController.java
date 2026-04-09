@@ -27,8 +27,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Validated
 @RestController
@@ -49,9 +49,10 @@ public class InventoryAuditCompensationController {
     private final InventoryAuditCompensationApplicationService inventoryAuditCompensationService;
     private final InventoryAuditReplayTaskApplicationService inventoryAuditReplayTaskService;
 
-    public InventoryAuditCompensationController(InventoryQueryApplicationService inventoryQueryService,
-                                                InventoryAuditCompensationApplicationService inventoryAuditCompensationService,
-                                                InventoryAuditReplayTaskApplicationService inventoryAuditReplayTaskService) {
+    public InventoryAuditCompensationController(
+            InventoryQueryApplicationService inventoryQueryService,
+            InventoryAuditCompensationApplicationService inventoryAuditCompensationService,
+            InventoryAuditReplayTaskApplicationService inventoryAuditReplayTaskService) {
         this.inventoryQueryService = inventoryQueryService;
         this.inventoryAuditCompensationService = inventoryAuditCompensationService;
         this.inventoryAuditReplayTaskService = inventoryAuditReplayTaskService;
@@ -60,8 +61,8 @@ public class InventoryAuditCompensationController {
     @Operation(summary = "分页查询库存审计死信")
     @HasPermission("inventory:audit:dead:view")
     @GetMapping
-    public InventoryAuditDeadLetterPageResponse pageDeadLetters(@CurrentTenant Long tenantId,
-                                                                @Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
+    public InventoryAuditDeadLetterPageResponse pageDeadLetters(
+            @CurrentTenant Long tenantId, @Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
         InventoryAuditReplayStatus replayStatus = parseReplayStatus(request.getReplayStatus());
         return InventoryAuditDeadLetterPageResponse.from(inventoryQueryService.pageAuditDeadLetters(
                 TenantId.of(tenantId),
@@ -74,24 +75,32 @@ public class InventoryAuditCompensationController {
     @Operation(summary = "重放单条库存审计死信")
     @HasPermission("inventory:audit:dead:replay")
     @PostMapping("/{deadLetterId}/replay")
-    public InventoryAuditReplayResultResponse replayOne(@CurrentTenant Long tenantId,
-                                                        @PathVariable @NotNull @Positive Long deadLetterId,
-                                                        @Valid @RequestBody InventoryAuditReplayRequest request) {
+    public InventoryAuditReplayResultResponse replayOne(
+            @CurrentTenant Long tenantId,
+            @PathVariable @NotNull @Positive Long deadLetterId,
+            @Valid @RequestBody InventoryAuditReplayRequest request) {
         return InventoryAuditReplayResultResponse.from(inventoryAuditCompensationService.replayDeadLetter(
-                TenantId.of(tenantId), DeadLetterIdCodec.toDomain(deadLetterId), request.replayKey(),
+                TenantId.of(tenantId),
+                DeadLetterIdCodec.toDomain(deadLetterId),
+                request.replayKey(),
                 OperatorIdMapper.toDomain(request.operatorId() == null ? null : String.valueOf(request.operatorId()))));
     }
 
     @Operation(summary = "批量重放库存审计死信")
     @HasPermission("inventory:audit:dead:replay")
     @PostMapping("/replay-batch")
-    public List<InventoryAuditReplayResultResponse> replayBatch(@CurrentTenant Long tenantId,
-                                                                @Valid @RequestBody InventoryAuditBatchReplayRequest request) {
-        return inventoryAuditCompensationService.replayDeadLettersBatch(TenantId.of(tenantId),
-                        request.deadLetterIds() == null ? List.of() : request.deadLetterIds().stream()
-                                .map(DeadLetterIdCodec::toDomain)
-                                .toList(),
-                        request.replayKeyPrefix(), OperatorIdMapper.toDomainFromLong(request.operatorId()))
+    public List<InventoryAuditReplayResultResponse> replayBatch(
+            @CurrentTenant Long tenantId, @Valid @RequestBody InventoryAuditBatchReplayRequest request) {
+        return inventoryAuditCompensationService
+                .replayDeadLettersBatch(
+                        TenantId.of(tenantId),
+                        request.deadLetterIds() == null
+                                ? List.of()
+                                : request.deadLetterIds().stream()
+                                        .map(DeadLetterIdCodec::toDomain)
+                                        .toList(),
+                        request.replayKeyPrefix(),
+                        OperatorIdMapper.toDomainFromLong(request.operatorId()))
                 .stream()
                 .map(InventoryAuditReplayResultResponse::from)
                 .toList();
@@ -100,40 +109,46 @@ public class InventoryAuditCompensationController {
     @Operation(summary = "创建库存审计死信批量重放任务")
     @HasPermission("inventory:audit:dead:replay")
     @PostMapping("/replay-tasks")
-    public InventoryAuditReplayTaskResponse createReplayTask(@CurrentTenant Long tenantId,
-                                                             @Valid @RequestBody InventoryAuditReplayTaskCreateRequest request) {
-        return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.createReplayTask(
-                new InventoryAuditReplayTaskCreateDTO(tenantId, request.operatorId(),
-                        request.replayKeyPrefix(), request.deadLetterIds())));
+    public InventoryAuditReplayTaskResponse createReplayTask(
+            @CurrentTenant Long tenantId, @Valid @RequestBody InventoryAuditReplayTaskCreateRequest request) {
+        return InventoryAuditReplayTaskResponse.from(
+                inventoryAuditReplayTaskService.createReplayTask(new InventoryAuditReplayTaskCreateDTO(
+                        tenantId, request.operatorId(), request.replayKeyPrefix(), request.deadLetterIds())));
     }
 
     @Operation(summary = "查询库存审计死信批量重放任务进度")
     @HasPermission("inventory:audit:dead:view")
     @GetMapping("/replay-tasks/{taskId}")
-    public InventoryAuditReplayTaskResponse getReplayTask(@CurrentTenant Long tenantId,
-                                                          @PathVariable @NotNull @Positive Long taskId) {
-        return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.getReplayTask(
-                TenantId.of(tenantId), TaskIdCodec.toDomain(taskId)));
+    public InventoryAuditReplayTaskResponse getReplayTask(
+            @CurrentTenant Long tenantId, @PathVariable @NotNull @Positive Long taskId) {
+        return InventoryAuditReplayTaskResponse.from(
+                inventoryAuditReplayTaskService.getReplayTask(TenantId.of(tenantId), TaskIdCodec.toDomain(taskId)));
     }
 
     @Operation(summary = "暂停库存审计死信批量重放任务")
     @HasPermission("inventory:audit:dead:replay")
     @PostMapping("/replay-tasks/{taskId}/pause")
-    public InventoryAuditReplayTaskResponse pauseReplayTask(@CurrentTenant Long tenantId,
-                                                            @PathVariable @NotNull @Positive Long taskId,
-                                                            @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
+    public InventoryAuditReplayTaskResponse pauseReplayTask(
+            @CurrentTenant Long tenantId,
+            @PathVariable @NotNull @Positive Long taskId,
+            @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
         return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.pauseReplayTask(
-                TenantId.of(tenantId), TaskIdCodec.toDomain(taskId), OperatorIdMapper.toDomainFromLong(request.operatorId())));
+                TenantId.of(tenantId),
+                TaskIdCodec.toDomain(taskId),
+                OperatorIdMapper.toDomainFromLong(request.operatorId())));
     }
 
     @Operation(summary = "恢复库存审计死信批量重放任务")
     @HasPermission("inventory:audit:dead:replay")
     @PostMapping("/replay-tasks/{taskId}/resume")
-    public InventoryAuditReplayTaskResponse resumeReplayTask(@CurrentTenant Long tenantId,
-                                                             @PathVariable @NotNull @Positive Long taskId,
-                                                             @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
+    public InventoryAuditReplayTaskResponse resumeReplayTask(
+            @CurrentTenant Long tenantId,
+            @PathVariable @NotNull @Positive Long taskId,
+            @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
         return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.resumeReplayTask(
-                TenantId.of(tenantId), TaskIdCodec.toDomain(taskId), OperatorIdMapper.toDomainFromLong(request.operatorId())));
+                TenantId.of(tenantId),
+                TaskIdCodec.toDomain(taskId),
+                OperatorIdMapper.toDomainFromLong(request.operatorId())));
     }
 
     private InventoryAuditReplayStatus parseReplayStatus(String replayStatus) {

@@ -13,10 +13,10 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Bean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
@@ -35,24 +35,29 @@ public class SwaggerConfiguration {
             return new OpenAPI().info(new Info().title("Bacon API").version("v1"));
         }
 
-        String authorizationUrl = resolveUrl(environment, swaggerProperties.getOauth2().getAuthorizationUrl(),
+        String authorizationUrl = resolveUrl(
+                environment,
+                swaggerProperties.getOauth2().getAuthorizationUrl(),
                 swaggerProperties.getOauth2().getAuthorizationPath());
-        String tokenUrl = resolveUrl(environment, swaggerProperties.getOauth2().getTokenUrl(),
+        String tokenUrl = resolveUrl(
+                environment,
+                swaggerProperties.getOauth2().getTokenUrl(),
                 swaggerProperties.getOauth2().getTokenPath());
-        String refreshUrl = resolveUrl(environment, swaggerProperties.getOauth2().getRefreshUrl(),
+        String refreshUrl = resolveUrl(
+                environment,
+                swaggerProperties.getOauth2().getRefreshUrl(),
                 swaggerProperties.getOauth2().getRefreshPath());
 
-        Scopes scopes = new Scopes()
-                .addString("openid", "OpenID scope")
-                .addString("profile", "Profile scope");
+        Scopes scopes = new Scopes().addString("openid", "OpenID scope").addString("profile", "Profile scope");
 
         SecurityScheme oauth2Scheme = new SecurityScheme()
                 .type(SecurityScheme.Type.OAUTH2)
-                .flows(new OAuthFlows().authorizationCode(new OAuthFlow()
-                        .authorizationUrl(authorizationUrl)
-                        .tokenUrl(tokenUrl)
-                        .refreshUrl(refreshUrl)
-                        .scopes(scopes)));
+                .flows(new OAuthFlows()
+                        .authorizationCode(new OAuthFlow()
+                                .authorizationUrl(authorizationUrl)
+                                .tokenUrl(tokenUrl)
+                                .refreshUrl(refreshUrl)
+                                .scopes(scopes)));
 
         return new OpenAPI()
                 .info(new Info().title("Bacon API").version("v1"))
@@ -65,8 +70,7 @@ public class SwaggerConfiguration {
         return GroupedOpenApi.builder()
                 .group(FRONTEND_GROUP)
                 .addOpenApiMethodFilter(
-                        method -> hasPackageSegment(method.getDeclaringClass(), CONTROLLER_PACKAGE_SEGMENT)
-                )
+                        method -> hasPackageSegment(method.getDeclaringClass(), CONTROLLER_PACKAGE_SEGMENT))
                 .build();
     }
 
@@ -75,8 +79,7 @@ public class SwaggerConfiguration {
         return GroupedOpenApi.builder()
                 .group(INNER_GROUP)
                 .addOpenApiMethodFilter(
-                        method -> hasPackageSegment(method.getDeclaringClass(), PROVIDER_PACKAGE_SEGMENT)
-                )
+                        method -> hasPackageSegment(method.getDeclaringClass(), PROVIDER_PACKAGE_SEGMENT))
                 .build();
     }
 

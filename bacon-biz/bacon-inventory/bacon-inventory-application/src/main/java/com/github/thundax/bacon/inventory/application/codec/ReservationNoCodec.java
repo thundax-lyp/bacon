@@ -4,8 +4,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo
 
 public final class ReservationNoCodec {
 
-    private ReservationNoCodec() {
-    }
+    private ReservationNoCodec() {}
 
     public static ReservationNo toDomain(String value) {
         if (value == null || value.isBlank()) {

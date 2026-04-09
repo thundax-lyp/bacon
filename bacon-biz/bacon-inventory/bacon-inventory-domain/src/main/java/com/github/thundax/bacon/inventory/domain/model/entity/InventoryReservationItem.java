@@ -27,5 +27,4 @@ public class InventoryReservationItem {
     public String getReservationNoValue() {
         return reservationNo == null ? null : reservationNo.value();
     }
-
 }

@@ -1,7 +1,5 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
@@ -10,6 +8,8 @@ import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.application.command.PostApplicationService;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.interfaces.dto.PostCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostUpdateRequest;
@@ -47,12 +47,15 @@ public class PostController {
     public PostPageResponse pagePosts(@CurrentTenant Long tenantId, @Valid @ModelAttribute PostPageRequest request) {
         return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(
                 TenantId.of(tenantId),
-                request.getCode(), request.getName(),
+                request.getCode(),
+                request.getName(),
                 request.getDepartmentId() == null || request.getDepartmentId().isBlank()
                         ? null
-                        : DepartmentId.of(Long.parseLong(request.getDepartmentId().trim())),
+                        : DepartmentId.of(
+                                Long.parseLong(request.getDepartmentId().trim())),
                 request.getStatus() == null ? null : request.getStatus().name(),
-                request.getPageNo(), request.getPageSize())));
+                request.getPageNo(),
+                request.getPageSize())));
     }
 
     @Operation(summary = "按岗位 ID 查询岗位")
@@ -60,8 +63,8 @@ public class PostController {
     @SysLog(module = "UPMS", action = "查询岗位详情", eventType = LogEventType.QUERY)
     @GetMapping("/{postId}")
     public PostResponse getPostById(@CurrentTenant Long tenantId, @PathVariable String postId) {
-        return PostResponse.from(postApplicationService.getPostById(
-                TenantId.of(tenantId), PostId.of(Long.parseLong(postId.trim()))));
+        return PostResponse.from(
+                postApplicationService.getPostById(TenantId.of(tenantId), PostId.of(Long.parseLong(postId.trim()))));
     }
 
     @Operation(summary = "创建岗位")
@@ -77,11 +80,15 @@ public class PostController {
     @HasPermission("sys:post:update")
     @SysLog(module = "UPMS", action = "修改岗位", eventType = LogEventType.UPDATE)
     @PutMapping("/{postId}")
-    public PostResponse updatePost(@CurrentTenant Long tenantId, @PathVariable String postId,
-                                   @RequestBody PostUpdateRequest request) {
+    public PostResponse updatePost(
+            @CurrentTenant Long tenantId, @PathVariable String postId, @RequestBody PostUpdateRequest request) {
         return PostResponse.from(postApplicationService.updatePost(
-                TenantId.of(tenantId), PostId.of(Long.parseLong(postId.trim())), request.code(),
-                request.name(), request.departmentId(), request.status()));
+                TenantId.of(tenantId),
+                PostId.of(Long.parseLong(postId.trim())),
+                request.code(),
+                request.name(),
+                request.departmentId(),
+                request.status()));
     }
 
     @Operation(summary = "删除岗位")

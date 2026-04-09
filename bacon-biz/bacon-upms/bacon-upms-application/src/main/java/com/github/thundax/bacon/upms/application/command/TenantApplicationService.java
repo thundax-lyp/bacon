@@ -31,10 +31,13 @@ public class TenantApplicationService {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         TenantId tenantId = toTenantId(query.getTenantId());
-        return new PageResultDTO<>(tenantRepository.pageTenants(tenantId, query.getName(),
-                query.getStatus(), pageNo, pageSize).stream().map(this::toDto).toList(),
+        return new PageResultDTO<>(
+                tenantRepository.pageTenants(tenantId, query.getName(), query.getStatus(), pageNo, pageSize).stream()
+                        .map(this::toDto)
+                        .toList(),
                 tenantRepository.countTenants(tenantId, query.getName(), query.getStatus()),
-                pageNo, pageSize);
+                pageNo,
+                pageSize);
     }
 
     @Transactional
@@ -49,8 +52,16 @@ public class TenantApplicationService {
         tenantRepository.findTenantByCode(normalizedTenantCode.value()).ifPresent(tenant -> {
             throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
         });
-        return toDto(tenantRepository.saveTenant(new Tenant(normalizedTenantId.value(), normalize(name),
-                normalizedTenantCode.value(), TenantStatus.ACTIVE, expiredAt, null, null, null, null)));
+        return toDto(tenantRepository.saveTenant(new Tenant(
+                normalizedTenantId.value(),
+                normalize(name),
+                normalizedTenantCode.value(),
+                TenantStatus.ACTIVE,
+                expiredAt,
+                null,
+                null,
+                null,
+                null)));
     }
 
     @Transactional
@@ -60,10 +71,12 @@ public class TenantApplicationService {
         TenantId normalizedTenantId = TenantId.of(tenantId);
         Tenant currentTenant = requireTenant(normalizedTenantId);
         TenantCode normalizedTenantCode = TenantCode.of(tenantCode);
-        tenantRepository.findTenantByCode(normalizedTenantCode.value())
+        tenantRepository
+                .findTenantByCode(normalizedTenantCode.value())
                 .filter(tenant -> !tenant.getId().equals(normalizedTenantId))
                 .ifPresent(tenant -> {
-                    throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
+                    throw new IllegalArgumentException(
+                            "Tenant tenantCode already exists: " + normalizedTenantCode.value());
                 });
         return toDto(tenantRepository.saveTenant(new Tenant(
                 currentTenant.getId(),
@@ -96,13 +109,18 @@ public class TenantApplicationService {
     }
 
     private Tenant requireTenant(TenantId tenantId) {
-        return tenantRepository.findTenantByTenantId(tenantId)
+        return tenantRepository
+                .findTenantByTenantId(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 
     private TenantDTO toDto(Tenant tenant) {
-        return new TenantDTO(tenant.getId(), tenant.getName(), tenant.getTenantCode().value(),
-                tenant.getStatus().value(), tenant.getExpiredAt());
+        return new TenantDTO(
+                tenant.getId(),
+                tenant.getName(),
+                tenant.getTenantCode().value(),
+                tenant.getStatus().value(),
+                tenant.getExpiredAt());
     }
 
     private void validateRequired(String value, String fieldName) {
@@ -121,5 +139,4 @@ public class TenantApplicationService {
         }
         return TenantId.of(tenantId);
     }
-
 }

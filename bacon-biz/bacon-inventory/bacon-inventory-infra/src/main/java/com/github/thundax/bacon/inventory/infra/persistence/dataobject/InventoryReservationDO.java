@@ -17,24 +17,34 @@ public class InventoryReservationDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+
     @TableField("tenant_id")
     private Long tenantId;
+
     @TableField("reservation_no")
     private String reservationNo;
+
     @TableField("order_no")
     private String orderNo;
+
     @TableField("reservation_status")
     private String reservationStatus;
+
     @TableField("warehouse_code")
     private String warehouseCode;
+
     @TableField("failure_reason")
     private String failureReason;
+
     @TableField("release_reason")
     private String releaseReason;
+
     @TableField("created_at")
     private Instant createdAt;
+
     @TableField("released_at")
     private Instant releasedAt;
+
     @TableField("deducted_at")
     private Instant deductedAt;
 }

@@ -5,5 +5,4 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.SysLogRecordDO
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface SysLogRecordMapper extends BaseMapper<SysLogRecordDO> {
-}
+public interface SysLogRecordMapper extends BaseMapper<SysLogRecordDO> {}

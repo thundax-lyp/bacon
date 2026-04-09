@@ -27,7 +27,15 @@ public record InventoryLedgerResponse(
         Instant occurredAt) {
 
     public static InventoryLedgerResponse from(InventoryLedgerDTO dto) {
-        return new InventoryLedgerResponse(dto.getId(), dto.getTenantId(), dto.getOrderNo(), dto.getReservationNo(),
-                dto.getSkuId(), dto.getWarehouseCode(), dto.getLedgerType(), dto.getQuantity(), dto.getOccurredAt());
+        return new InventoryLedgerResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getOrderNo(),
+                dto.getReservationNo(),
+                dto.getSkuId(),
+                dto.getWarehouseCode(),
+                dto.getLedgerType(),
+                dto.getQuantity(),
+                dto.getOccurredAt());
     }
 }

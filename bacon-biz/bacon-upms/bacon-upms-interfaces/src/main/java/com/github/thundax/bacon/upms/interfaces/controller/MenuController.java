@@ -51,19 +51,33 @@ public class MenuController {
     @PostMapping
     public MenuTreeResponse createMenu(@CurrentTenant Long tenantId, @RequestBody MenuCreateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.createMenu(
-                TenantId.of(tenantId), request.menuType(), request.name(), request.parentId(), request.routePath(),
-                request.componentName(), request.icon(), request.sort(), request.permissionCode()));
+                TenantId.of(tenantId),
+                request.menuType(),
+                request.name(),
+                request.parentId(),
+                request.routePath(),
+                request.componentName(),
+                request.icon(),
+                request.sort(),
+                request.permissionCode()));
     }
 
     @Operation(summary = "修改菜单")
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "修改菜单", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}")
-    public MenuTreeResponse updateMenu(@CurrentTenant Long tenantId, @PathVariable String menuId,
-                                       @RequestBody MenuUpdateRequest request) {
+    public MenuTreeResponse updateMenu(
+            @CurrentTenant Long tenantId, @PathVariable String menuId, @RequestBody MenuUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenu(
-                TenantId.of(tenantId), menuId, request.menuType(), request.name(), request.parentId(),
-                request.routePath(), request.componentName(), request.icon(), request.sort(),
+                TenantId.of(tenantId),
+                menuId,
+                request.menuType(),
+                request.name(),
+                request.parentId(),
+                request.routePath(),
+                request.componentName(),
+                request.icon(),
+                request.sort(),
                 request.permissionCode()));
     }
 
@@ -79,9 +93,9 @@ public class MenuController {
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "调整菜单排序", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}/sort")
-    public MenuTreeResponse updateSort(@CurrentTenant Long tenantId, @PathVariable String menuId,
-                                       @RequestBody MenuSortUpdateRequest request) {
-        return MenuTreeResponse.from(menuApplicationService.updateMenuSort(
-                TenantId.of(tenantId), menuId, request.sort()));
+    public MenuTreeResponse updateSort(
+            @CurrentTenant Long tenantId, @PathVariable String menuId, @RequestBody MenuSortUpdateRequest request) {
+        return MenuTreeResponse.from(
+                menuApplicationService.updateMenuSort(TenantId.of(tenantId), menuId, request.sort()));
     }
 }

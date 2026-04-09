@@ -5,5 +5,4 @@ import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentAudi
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface PaymentAuditLogMapper extends BaseMapper<PaymentAuditLogDO> {
-}
+public interface PaymentAuditLogMapper extends BaseMapper<PaymentAuditLogDO> {}

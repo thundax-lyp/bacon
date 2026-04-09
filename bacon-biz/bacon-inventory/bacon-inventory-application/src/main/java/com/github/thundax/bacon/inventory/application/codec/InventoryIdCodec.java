@@ -4,8 +4,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 
 public final class InventoryIdCodec {
 
-    private InventoryIdCodec() {
-    }
+    private InventoryIdCodec() {}
 
     public static InventoryId toDomain(Long value) {
         if (value == null) {

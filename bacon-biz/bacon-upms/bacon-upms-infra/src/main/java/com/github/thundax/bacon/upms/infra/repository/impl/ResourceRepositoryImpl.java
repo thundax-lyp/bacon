@@ -19,7 +19,8 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     private final UpmsPermissionCacheSupport cacheSupport;
     private final Ids ids;
 
-    public ResourceRepositoryImpl(ResourcePersistenceSupport support, UpmsPermissionCacheSupport cacheSupport, Ids ids) {
+    public ResourceRepositoryImpl(
+            ResourcePersistenceSupport support, UpmsPermissionCacheSupport cacheSupport, Ids ids) {
         this.support = support;
         this.cacheSupport = cacheSupport;
         this.ids = ids;
@@ -31,8 +32,8 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     }
 
     @Override
-    public List<Resource> pageResources(TenantId tenantId, String code, String name, String resourceType, String status,
-                                        int pageNo, int pageSize) {
+    public List<Resource> pageResources(
+            TenantId tenantId, String code, String name, String resourceType, String status, int pageNo, int pageSize) {
         return support.listResources(tenantId, code, name, resourceType, status, pageNo, pageSize);
     }
 
@@ -44,9 +45,19 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     @Override
     public Resource save(Resource resource) {
         Resource resourceToSave = resource.getId() == null
-                ? new Resource(ids.resourceId(), resource.getTenantId(), resource.getCode(), resource.getName(),
-                resource.getResourceType(), resource.getHttpMethod(), resource.getUri(), resource.getStatus(),
-                resource.getCreatedBy(), resource.getCreatedAt(), resource.getUpdatedBy(), resource.getUpdatedAt())
+                ? new Resource(
+                        ids.resourceId(),
+                        resource.getTenantId(),
+                        resource.getCode(),
+                        resource.getName(),
+                        resource.getResourceType(),
+                        resource.getHttpMethod(),
+                        resource.getUri(),
+                        resource.getStatus(),
+                        resource.getCreatedBy(),
+                        resource.getCreatedAt(),
+                        resource.getUpdatedBy(),
+                        resource.getUpdatedAt())
                 : resource;
         Resource savedResource = support.saveResource(resourceToSave);
         cacheSupport.evictTenantPermission(savedResource.getTenantId());

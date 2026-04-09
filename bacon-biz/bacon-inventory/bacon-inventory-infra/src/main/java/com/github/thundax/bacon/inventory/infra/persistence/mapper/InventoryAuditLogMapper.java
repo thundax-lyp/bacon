@@ -5,5 +5,4 @@ import com.github.thundax.bacon.inventory.infra.persistence.dataobject.Inventory
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface InventoryAuditLogMapper extends BaseMapper<InventoryAuditLogDO> {
-}
+public interface InventoryAuditLogMapper extends BaseMapper<InventoryAuditLogDO> {}

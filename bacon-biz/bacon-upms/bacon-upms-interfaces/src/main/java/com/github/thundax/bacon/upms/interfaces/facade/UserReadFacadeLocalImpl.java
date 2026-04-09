@@ -33,7 +33,8 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     }
 
     @Override
-    public UserLoginCredentialDTO getUserLoginCredential(@NonNull TenantId tenantId, String identityType, String identityValue) {
+    public UserLoginCredentialDTO getUserLoginCredential(
+            @NonNull TenantId tenantId, String identityType, String identityValue) {
         return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
     }
 

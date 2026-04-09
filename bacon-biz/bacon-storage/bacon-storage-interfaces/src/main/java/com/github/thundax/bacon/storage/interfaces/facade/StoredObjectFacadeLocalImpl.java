@@ -1,13 +1,13 @@
 package com.github.thundax.bacon.storage.interfaces.facade;
 
+import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
+import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import com.github.thundax.bacon.storage.application.command.MultipartUploadApplicationService;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
@@ -23,9 +23,10 @@ public class StoredObjectFacadeLocalImpl implements StoredObjectFacade {
     private final MultipartUploadApplicationService multipartUploadApplicationService;
     private final StoredObjectQueryApplicationService storedObjectQueryApplicationService;
 
-    public StoredObjectFacadeLocalImpl(StoredObjectApplicationService storedObjectApplicationService,
-                                       MultipartUploadApplicationService multipartUploadApplicationService,
-                                       StoredObjectQueryApplicationService storedObjectQueryApplicationService) {
+    public StoredObjectFacadeLocalImpl(
+            StoredObjectApplicationService storedObjectApplicationService,
+            MultipartUploadApplicationService multipartUploadApplicationService,
+            StoredObjectQueryApplicationService storedObjectQueryApplicationService) {
         this.storedObjectApplicationService = storedObjectApplicationService;
         this.multipartUploadApplicationService = multipartUploadApplicationService;
         this.storedObjectQueryApplicationService = storedObjectQueryApplicationService;

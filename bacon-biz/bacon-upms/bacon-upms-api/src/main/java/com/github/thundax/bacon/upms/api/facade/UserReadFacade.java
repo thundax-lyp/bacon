@@ -14,7 +14,8 @@ public interface UserReadFacade {
 
     UserIdentityDTO getUserIdentity(@NonNull TenantId tenantId, String identityType, String identityValue);
 
-    UserLoginCredentialDTO getUserLoginCredential(@NonNull TenantId tenantId, String identityType, String identityValue);
+    UserLoginCredentialDTO getUserLoginCredential(
+            @NonNull TenantId tenantId, String identityType, String identityValue);
 
     TenantDTO getTenantByTenantId(@NonNull TenantId tenantId);
 }

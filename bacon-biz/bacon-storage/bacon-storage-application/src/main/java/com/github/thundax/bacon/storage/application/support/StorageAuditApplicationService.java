@@ -8,11 +8,10 @@ import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionTyp
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditLogRepository;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditOutboxRepository;
 import io.micrometer.core.instrument.Metrics;
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
 
 /**
  * 存储审计应用服务。
@@ -25,38 +24,62 @@ public class StorageAuditApplicationService {
     private final StorageAuditLogRepository storageAuditLogRepository;
     private final StorageAuditOutboxRepository storageAuditOutboxRepository;
 
-    public StorageAuditApplicationService(StorageAuditLogRepository storageAuditLogRepository,
-                                          StorageAuditOutboxRepository storageAuditOutboxRepository) {
+    public StorageAuditApplicationService(
+            StorageAuditLogRepository storageAuditLogRepository,
+            StorageAuditOutboxRepository storageAuditOutboxRepository) {
         this.storageAuditLogRepository = storageAuditLogRepository;
         this.storageAuditOutboxRepository = storageAuditOutboxRepository;
     }
 
-    public void record(TenantId tenantId, StoredObjectId objectId, String ownerType, String ownerId,
-                       StorageAuditActionType actionType,
-                       String beforeStatus, String afterStatus) {
-        StorageAuditLog auditLog = StorageAuditLog.systemAction(tenantId, objectId, ownerType, ownerId,
-                actionType, beforeStatus, afterStatus);
+    public void record(
+            TenantId tenantId,
+            StoredObjectId objectId,
+            String ownerType,
+            String ownerId,
+            StorageAuditActionType actionType,
+            String beforeStatus,
+            String afterStatus) {
+        StorageAuditLog auditLog = StorageAuditLog.systemAction(
+                tenantId, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus);
         try {
             storageAuditLogRepository.save(auditLog);
-            Metrics.counter("bacon.storage.audit.write.success.total", "actionType", actionType.value()).increment();
+            Metrics.counter("bacon.storage.audit.write.success.total", "actionType", actionType.value())
+                    .increment();
         } catch (RuntimeException ex) {
-            Metrics.counter("bacon.storage.audit.write.fail.total", "actionType", actionType.value()).increment();
+            Metrics.counter("bacon.storage.audit.write.fail.total", "actionType", actionType.value())
+                    .increment();
             saveAuditOutboxSafely(auditLog, ex);
-            log.error("ALERT storage audit log write failed, objectId={}, ownerType={}, ownerId={}, actionType={}",
-                    objectId, ownerType, ownerId, actionType.value(), ex);
+            log.error(
+                    "ALERT storage audit log write failed, objectId={}, ownerType={}, ownerId={}, actionType={}",
+                    objectId,
+                    ownerType,
+                    ownerId,
+                    actionType.value(),
+                    ex);
         }
     }
 
     private void saveAuditOutboxSafely(StorageAuditLog auditLog, RuntimeException ex) {
         try {
-            storageAuditOutboxRepository.save(StorageAuditOutbox.newEvent(auditLog, truncateMessage(ex.getMessage()), Instant.now()));
-            Metrics.counter("bacon.storage.audit.outbox.persist.success.total", "actionType", auditLog.getActionType().value())
+            storageAuditOutboxRepository.save(
+                    StorageAuditOutbox.newEvent(auditLog, truncateMessage(ex.getMessage()), Instant.now()));
+            Metrics.counter(
+                            "bacon.storage.audit.outbox.persist.success.total",
+                            "actionType",
+                            auditLog.getActionType().value())
                     .increment();
         } catch (RuntimeException outboxEx) {
-            Metrics.counter("bacon.storage.audit.outbox.persist.fail.total", "actionType", auditLog.getActionType().value())
+            Metrics.counter(
+                            "bacon.storage.audit.outbox.persist.fail.total",
+                            "actionType",
+                            auditLog.getActionType().value())
                     .increment();
-            log.error("ALERT storage audit outbox persist failed, objectId={}, ownerType={}, ownerId={}, actionType={}",
-                    auditLog.getObjectId(), auditLog.getOwnerType(), auditLog.getOwnerId(), auditLog.getActionType().value(),
+            log.error(
+                    "ALERT storage audit outbox persist failed, objectId={}, ownerType={}, ownerId={}, actionType={}",
+                    auditLog.getObjectId(),
+                    auditLog.getOwnerType(),
+                    auditLog.getOwnerId(),
+                    auditLog.getActionType().value(),
                     outboxEx);
         }
     }

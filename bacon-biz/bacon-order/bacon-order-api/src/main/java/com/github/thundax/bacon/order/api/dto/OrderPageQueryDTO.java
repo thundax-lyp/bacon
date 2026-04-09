@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.order.api.dto;
 
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.Instant;
 
 /**
  * 订单分页查询条件。

@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.storage.interfaces.response;
 
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-
 import java.time.Instant;
 
 public record StoredObjectResponse(
@@ -18,9 +17,17 @@ public record StoredObjectResponse(
         Instant createdAt) {
 
     public static StoredObjectResponse from(StoredObjectDTO dto) {
-        return new StoredObjectResponse(dto.getId() == null ? null : dto.getId().externalValue(),
-                dto.getStorageType(), dto.getBucketName(), dto.getObjectKey(),
-                dto.getOriginalFilename(), dto.getContentType(), dto.getSize(), dto.getAccessEndpoint(),
-                dto.getObjectStatus(), dto.getReferenceStatus(), dto.getCreatedAt());
+        return new StoredObjectResponse(
+                dto.getId() == null ? null : dto.getId().externalValue(),
+                dto.getStorageType(),
+                dto.getBucketName(),
+                dto.getObjectKey(),
+                dto.getOriginalFilename(),
+                dto.getContentType(),
+                dto.getSize(),
+                dto.getAccessEndpoint(),
+                dto.getObjectStatus(),
+                dto.getReferenceStatus(),
+                dto.getCreatedAt());
     }
 }

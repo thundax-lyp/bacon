@@ -75,24 +75,18 @@ public final class WriteConflictRetrier {
     public interface RetryListener {
 
         static RetryListener noop() {
-            return new RetryListener() {
-            };
+            return new RetryListener() {};
         }
 
-        default void onConflict(int attempt, RuntimeException exception) {
-        }
+        default void onConflict(int attempt, RuntimeException exception) {}
 
-        default void onRetry(int attempt, long backoffMillis, RuntimeException exception) {
-        }
+        default void onRetry(int attempt, long backoffMillis, RuntimeException exception) {}
 
-        default void onRecovered(int attempt) {
-        }
+        default void onRecovered(int attempt) {}
 
-        default void onExhausted(int attempt, RuntimeException exception) {
-        }
+        default void onExhausted(int attempt, RuntimeException exception) {}
 
-        default void onInterrupted(int attempt, long backoffMillis, RuntimeException cause,
-                                   InterruptedException interruptedException) {
-        }
+        default void onInterrupted(
+                int attempt, long backoffMillis, RuntimeException cause, InterruptedException interruptedException) {}
     }
 }

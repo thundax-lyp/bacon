@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.common.mybatis.handler;
 
 import com.github.thundax.bacon.common.id.core.Identifier;
-
 import java.sql.SQLException;
 import java.util.function.Function;
 
@@ -26,6 +25,7 @@ abstract class AbstractLongBaseIdTypeHandler<I extends Identifier<Long>> extends
                 throw new SQLException("Failed to parse long id value: " + stringValue, ex);
             }
         }
-        throw new SQLException("Unsupported long id value type: " + value.getClass().getName());
+        throw new SQLException(
+                "Unsupported long id value type: " + value.getClass().getName());
     }
 }

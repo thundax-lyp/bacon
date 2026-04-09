@@ -25,19 +25,22 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     @Test
     @DisplayName("Controller：对外业务 HTTP 入口，命名 {业务对象}{动作}Controller，目录 interfaces/controller/")
     void shouldFollowControllerRule() {
-        NamingAndPlacementRuleSupport.controllerShouldUseControllerNameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.controllerShouldUseControllerNameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("ProviderController：对内服务 HTTP 入口，命名 {业务对象}{动作}ProviderController，目录 interfaces/provider/")
     void shouldFollowProviderControllerRule() {
-        NamingAndPlacementRuleSupport.providerControllerShouldUseProviderControllerNameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.providerControllerShouldUseProviderControllerNameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("Resolver：接口层请求解析辅助对象，命名 {业务对象}{动作}Resolver，目录 interfaces/resolver/")
     void shouldFollowResolverRule() {
-        NamingAndPlacementRuleSupport.resolverShouldUseResolverNameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.resolverShouldUseResolverNameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test
@@ -50,13 +53,15 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     @Test
     @DisplayName("DomainService：封装领域规则，命名 {业务对象}DomainService，目录 domain/service/")
     void shouldFollowDomainServiceRule() {
-        NamingAndPlacementRuleSupport.domainServiceShouldUseDomainServiceNameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.domainServiceShouldUseDomainServiceNameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("Repository：领域仓储接口，命名 {业务对象}Repository，目录 domain/repository/")
     void shouldFollowRepositoryRule() {
-        NamingAndPlacementRuleSupport.repositoryShouldUseRepositoryNameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.repositoryShouldUseRepositoryNameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test
@@ -69,37 +74,43 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     @Test
     @DisplayName("Mapper：持久化映射，命名 {业务对象}Mapper，目录 infra/persistence/mapper/")
     void shouldFollowMapperRule() {
-        NamingAndPlacementRuleSupport.mapperShouldUseMapperNameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.mapperShouldUseMapperNameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("DO：持久化对象，命名 {业务对象}DO，目录 infra/persistence/dataobject/")
     void shouldFollowDataObjectRule() {
-        NamingAndPlacementRuleSupport.dataObjectShouldUseDONameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.dataObjectShouldUseDONameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("持久化对象不再使用 DataObject 后缀")
     void shouldNotUseDataObjectSuffix() {
-        NamingAndPlacementRuleSupport.shouldNotUseDataObjectSuffix(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.shouldNotUseDataObjectSuffix(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("Converter：对象转换，命名 {业务对象}Converter，目录 infra/repository/converter/")
     void shouldFollowConverterRule() {
-        NamingAndPlacementRuleSupport.converterShouldUseConverterNameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.converterShouldUseConverterNameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("Codec：值对象编解码，命名 {业务对象}Codec，目录 application/codec/")
     void shouldFollowCodecRule() {
-        NamingAndPlacementRuleSupport.codecShouldUseCodecNameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.codecShouldUseCodecNameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("Facade：跨域调用契约，命名 {业务对象}{动作}Facade，目录 api/facade/")
     void shouldFollowFacadeRule() {
-        NamingAndPlacementRuleSupport.facadeShouldUseFacadeNameAndPackage(basePackage()).check(classes());
+        NamingAndPlacementRuleSupport.facadeShouldUseFacadeNameAndPackage(basePackage())
+                .check(classes());
     }
 
     @Test

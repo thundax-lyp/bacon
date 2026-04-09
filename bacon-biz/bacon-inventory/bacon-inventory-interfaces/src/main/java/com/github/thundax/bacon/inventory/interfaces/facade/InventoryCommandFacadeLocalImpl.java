@@ -4,15 +4,14 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
-import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
+import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
+import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
@@ -25,14 +24,15 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
     }
 
     @Override
-    public InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
+    public InventoryReservationResultDTO reserveStock(
+            Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
         return inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), items);
     }
 
     @Override
     public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        return inventoryApplicationService.releaseReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo),
-                toReleaseReason(reason));
+        return inventoryApplicationService.releaseReservedStock(
+                TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), toReleaseReason(reason));
     }
 
     private InventoryReleaseReason toReleaseReason(String reason) {

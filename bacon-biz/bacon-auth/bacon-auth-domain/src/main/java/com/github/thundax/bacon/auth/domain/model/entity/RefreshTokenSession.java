@@ -27,8 +27,13 @@ public class RefreshTokenSession {
     private Instant usedAt;
 
     public RefreshTokenSession(String sessionId, String refreshTokenHash, Instant issuedAt, Instant expireAt) {
-        this(sessionId == null ? null : SessionCode.of(sessionId), refreshTokenHash, issuedAt, expireAt,
-                RefreshTokenSessionStatus.ACTIVE, null);
+        this(
+                sessionId == null ? null : SessionCode.of(sessionId),
+                refreshTokenHash,
+                issuedAt,
+                expireAt,
+                RefreshTokenSessionStatus.ACTIVE,
+                null);
     }
 
     public void markUsed(Instant useTime) {

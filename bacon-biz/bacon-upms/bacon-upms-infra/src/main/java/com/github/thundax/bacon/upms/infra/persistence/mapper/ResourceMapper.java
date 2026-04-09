@@ -5,5 +5,4 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface ResourceMapper extends BaseMapper<ResourceDO> {
-}
+public interface ResourceMapper extends BaseMapper<ResourceDO> {}

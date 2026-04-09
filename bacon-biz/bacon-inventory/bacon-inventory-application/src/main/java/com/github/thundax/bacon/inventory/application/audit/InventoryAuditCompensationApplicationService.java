@@ -4,12 +4,12 @@ import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
-import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
@@ -28,59 +28,80 @@ public class InventoryAuditCompensationApplicationService {
     private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
     private final InventoryAuditReplayTransactionExecutor inventoryAuditReplayTransactionService;
 
-    public InventoryAuditCompensationApplicationService(InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
-                                             InventoryAuditReplayTransactionExecutor inventoryAuditReplayTransactionService) {
+    public InventoryAuditCompensationApplicationService(
+            InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
+            InventoryAuditReplayTransactionExecutor inventoryAuditReplayTransactionService) {
         this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
         this.inventoryAuditReplayTransactionService = inventoryAuditReplayTransactionService;
     }
 
-    public InventoryAuditReplayResultDTO replayDeadLetter(TenantId tenantId, DeadLetterId deadLetterId, String replayKey,
-                                                          OperatorId operatorId) {
-        InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository.findAuditDeadLetterById(deadLetterId)
-                .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
-                        "dead-letter-not-found:" + deadLetterId));
+    public InventoryAuditReplayResultDTO replayDeadLetter(
+            TenantId tenantId, DeadLetterId deadLetterId, String replayKey, OperatorId operatorId) {
+        InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository
+                .findAuditDeadLetterById(deadLetterId)
+                .orElseThrow(() -> new InventoryDomainException(
+                        InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND, "dead-letter-not-found:" + deadLetterId));
         if (!Objects.equals(tenantId, deadLetter.getTenantId())) {
-            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "dead-letter-tenant-mismatch");
+            throw new InventoryDomainException(
+                    InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "dead-letter-tenant-mismatch");
         }
         if (InventoryAuditReplayStatus.SUCCEEDED.equals(deadLetter.getReplayStatus())) {
-            return new InventoryAuditReplayResultDTO(deadLetterId.value(),
-                    deadLetter.getReplayStatus() == null ? null : deadLetter.getReplayStatus().value(), deadLetter.getReplayKey(),
+            return new InventoryAuditReplayResultDTO(
+                    deadLetterId.value(),
+                    deadLetter.getReplayStatus() == null
+                            ? null
+                            : deadLetter.getReplayStatus().value(),
+                    deadLetter.getReplayKey(),
                     "already-replayed");
         }
         String resolvedReplayKey = resolveReplayKey(deadLetter, replayKey);
         Instant replayAt = Instant.now();
         // 回放前先认领死信，确保同一条死信在人工操作和后台任务并发时只会有一个执行者真正进入事务。
-        boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(deadLetterId, tenantId,
-                resolvedReplayKey, REPLAY_OPERATOR_TYPE, operatorId, replayAt);
+        boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(
+                deadLetterId, tenantId, resolvedReplayKey, REPLAY_OPERATOR_TYPE, operatorId, replayAt);
         if (!claimed) {
-            return new InventoryAuditReplayResultDTO(deadLetterId.value(), InventoryAuditReplayStatus.FAILED.value(),
-                    resolvedReplayKey, "dead-letter-not-claimable");
+            return new InventoryAuditReplayResultDTO(
+                    deadLetterId.value(),
+                    InventoryAuditReplayStatus.FAILED.value(),
+                    resolvedReplayKey,
+                    "dead-letter-not-claimable");
         }
         try {
-            return inventoryAuditReplayTransactionService.replayClaimedDeadLetter(deadLetter, resolvedReplayKey,
-                    REPLAY_OPERATOR_TYPE, operatorId, replayAt);
+            return inventoryAuditReplayTransactionService.replayClaimedDeadLetter(
+                    deadLetter, resolvedReplayKey, REPLAY_OPERATOR_TYPE, operatorId, replayAt);
         } catch (RuntimeException txException) {
             String truncatedError = truncateError(txException.getMessage());
             Metrics.counter("bacon.inventory.audit.replay.tx.fail.total").increment();
-            log.error("ALERT inventory audit replay tx failed, deadLetterId={}, replayKey={}",
-                    deadLetterId, resolvedReplayKey, txException);
+            log.error(
+                    "ALERT inventory audit replay tx failed, deadLetterId={}, replayKey={}",
+                    deadLetterId,
+                    resolvedReplayKey,
+                    txException);
             try {
                 // 事务层抛异常后，再走单独的补偿事务把死信状态和失败审计补全，避免原事务整体回滚后没有追踪痕迹。
-                inventoryAuditReplayTransactionService.compensateReplayTxFailure(deadLetter, resolvedReplayKey,
-                        REPLAY_OPERATOR_TYPE, operatorId, replayAt, truncatedError);
-                Metrics.counter("bacon.inventory.audit.replay.tx.compensate.success.total").increment();
+                inventoryAuditReplayTransactionService.compensateReplayTxFailure(
+                        deadLetter, resolvedReplayKey, REPLAY_OPERATOR_TYPE, operatorId, replayAt, truncatedError);
+                Metrics.counter("bacon.inventory.audit.replay.tx.compensate.success.total")
+                        .increment();
             } catch (RuntimeException compensateException) {
-                Metrics.counter("bacon.inventory.audit.replay.tx.compensate.fail.total").increment();
-                log.error("ALERT inventory audit replay tx compensate failed, deadLetterId={}, replayKey={}",
-                        deadLetterId, resolvedReplayKey, compensateException);
+                Metrics.counter("bacon.inventory.audit.replay.tx.compensate.fail.total")
+                        .increment();
+                log.error(
+                        "ALERT inventory audit replay tx compensate failed, deadLetterId={}, replayKey={}",
+                        deadLetterId,
+                        resolvedReplayKey,
+                        compensateException);
             }
-            return new InventoryAuditReplayResultDTO(deadLetterId.value(), InventoryAuditReplayStatus.FAILED.value(),
-                    resolvedReplayKey, "tx-failed:" + truncatedError);
+            return new InventoryAuditReplayResultDTO(
+                    deadLetterId.value(),
+                    InventoryAuditReplayStatus.FAILED.value(),
+                    resolvedReplayKey,
+                    "tx-failed:" + truncatedError);
         }
     }
 
-    public List<InventoryAuditReplayResultDTO> replayDeadLettersBatch(TenantId tenantId, List<DeadLetterId> deadLetterIds,
-                                                                      String replayKeyPrefix, OperatorId operatorId) {
+    public List<InventoryAuditReplayResultDTO> replayDeadLettersBatch(
+            TenantId tenantId, List<DeadLetterId> deadLetterIds, String replayKeyPrefix, OperatorId operatorId) {
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             return List.of();
         }

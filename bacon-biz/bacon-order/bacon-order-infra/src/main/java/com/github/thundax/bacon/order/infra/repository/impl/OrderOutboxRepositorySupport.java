@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
@@ -9,7 +10,6 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxDeadLetterDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxEventDO;
@@ -31,15 +31,17 @@ public class OrderOutboxRepositorySupport {
     private static final String OUTBOX_ID_BIZ_TAG = "order_outbox_id";
     private static final String OUTBOX_EVENT_CODE_BIZ_TAG = "order_outbox_event_code";
     private static final String DEAD_LETTER_ID_BIZ_TAG = "order_outbox_dead_letter_id";
-    private static final DateTimeFormatter EVENT_CODE_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final DateTimeFormatter EVENT_CODE_TIMESTAMP_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final OrderOutboxEventMapper outboxEventMapper;
     private final OrderOutboxDeadLetterMapper deadLetterMapper;
     private final IdGenerator idGenerator;
 
-    public OrderOutboxRepositorySupport(OrderOutboxEventMapper outboxEventMapper,
-                                        OrderOutboxDeadLetterMapper deadLetterMapper,
-                                        IdGenerator idGenerator) {
+    public OrderOutboxRepositorySupport(
+            OrderOutboxEventMapper outboxEventMapper,
+            OrderOutboxDeadLetterMapper deadLetterMapper,
+            IdGenerator idGenerator) {
         this.outboxEventMapper = outboxEventMapper;
         this.deadLetterMapper = deadLetterMapper;
         this.idGenerator = idGenerator;
@@ -68,12 +70,17 @@ public class OrderOutboxRepositorySupport {
         event.setEventCode(EventCode.of(dataObject.getEventCode()));
     }
 
-    public List<OrderOutboxEvent> claimRetryableOutbox(Instant now, int limit, String processingOwner, Instant leaseUntil) {
-        List<OrderOutboxEventDO> candidates = outboxEventMapper.selectList(Wrappers.<OrderOutboxEventDO>lambdaQuery()
-                        .in(OrderOutboxEventDO::getStatus, OrderOutboxStatus.NEW.value(),
+    public List<OrderOutboxEvent> claimRetryableOutbox(
+            Instant now, int limit, String processingOwner, Instant leaseUntil) {
+        List<OrderOutboxEventDO> candidates = outboxEventMapper
+                .selectList(Wrappers.<OrderOutboxEventDO>lambdaQuery()
+                        .in(
+                                OrderOutboxEventDO::getStatus,
+                                OrderOutboxStatus.NEW.value(),
                                 OrderOutboxStatus.RETRYING.value())
                         .and(wrapper -> wrapper.isNull(OrderOutboxEventDO::getNextRetryAt)
-                                .or().le(OrderOutboxEventDO::getNextRetryAt, now))
+                                .or()
+                                .le(OrderOutboxEventDO::getNextRetryAt, now))
                         .orderByAsc(OrderOutboxEventDO::getCreatedAt, OrderOutboxEventDO::getId)
                         .last("limit " + Math.max(limit * 3, limit)))
                 .stream()
@@ -87,16 +94,22 @@ public class OrderOutboxRepositorySupport {
             if (claimed.size() >= limit) {
                 break;
             }
-            int updated = outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDO>lambdaUpdate()
-                    .eq(OrderOutboxEventDO::getId, candidate.getId())
-                    .in(OrderOutboxEventDO::getStatus, OrderOutboxStatus.NEW.value(), OrderOutboxStatus.RETRYING.value())
-                    .and(wrapper -> wrapper.isNull(OrderOutboxEventDO::getNextRetryAt)
-                            .or().le(OrderOutboxEventDO::getNextRetryAt, now))
-                    .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
-                    .set(OrderOutboxEventDO::getProcessingOwner, processingOwner)
-                    .set(OrderOutboxEventDO::getLeaseUntil, leaseUntil)
-                    .set(OrderOutboxEventDO::getClaimedAt, now)
-                    .set(OrderOutboxEventDO::getUpdatedAt, now));
+            int updated = outboxEventMapper.update(
+                    null,
+                    Wrappers.<OrderOutboxEventDO>lambdaUpdate()
+                            .eq(OrderOutboxEventDO::getId, candidate.getId())
+                            .in(
+                                    OrderOutboxEventDO::getStatus,
+                                    OrderOutboxStatus.NEW.value(),
+                                    OrderOutboxStatus.RETRYING.value())
+                            .and(wrapper -> wrapper.isNull(OrderOutboxEventDO::getNextRetryAt)
+                                    .or()
+                                    .le(OrderOutboxEventDO::getNextRetryAt, now))
+                            .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
+                            .set(OrderOutboxEventDO::getProcessingOwner, processingOwner)
+                            .set(OrderOutboxEventDO::getLeaseUntil, leaseUntil)
+                            .set(OrderOutboxEventDO::getClaimedAt, now)
+                            .set(OrderOutboxEventDO::getUpdatedAt, now));
             if (updated == 0) {
                 continue;
             }
@@ -110,55 +123,74 @@ public class OrderOutboxRepositorySupport {
 
     public int releaseExpiredLease(Instant now) {
         // 租约过期的 PROCESSING 事件统一回到 RETRYING，等待下一轮重试器重新认领。
-        return outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDO>lambdaUpdate()
-                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
-                .le(OrderOutboxEventDO::getLeaseUntil, now)
-                .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.RETRYING.value())
-                .set(OrderOutboxEventDO::getProcessingOwner, null)
-                .set(OrderOutboxEventDO::getLeaseUntil, null)
-                .set(OrderOutboxEventDO::getClaimedAt, null)
-                .set(OrderOutboxEventDO::getUpdatedAt, now));
+        return outboxEventMapper.update(
+                null,
+                Wrappers.<OrderOutboxEventDO>lambdaUpdate()
+                        .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
+                        .le(OrderOutboxEventDO::getLeaseUntil, now)
+                        .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.RETRYING.value())
+                        .set(OrderOutboxEventDO::getProcessingOwner, null)
+                        .set(OrderOutboxEventDO::getLeaseUntil, null)
+                        .set(OrderOutboxEventDO::getClaimedAt, null)
+                        .set(OrderOutboxEventDO::getUpdatedAt, now));
     }
 
-    public boolean markRetryingClaimed(OutboxId outboxId, String processingOwner, int retryCount,
-                                       Instant nextRetryAt, String errorMessage, Instant updatedAt) {
+    public boolean markRetryingClaimed(
+            OutboxId outboxId,
+            String processingOwner,
+            int retryCount,
+            Instant nextRetryAt,
+            String errorMessage,
+            Instant updatedAt) {
         // 只有当前 owner 仍持有执行权时才允许改回 RETRYING，避免旧节点回写覆盖新节点状态。
-        return outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDO>lambdaUpdate()
-                .eq(OrderOutboxEventDO::getId, toDatabaseOutboxId(outboxId))
-                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
-                .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)
-                .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.RETRYING.value())
-                .set(OrderOutboxEventDO::getRetryCount, retryCount)
-                .set(OrderOutboxEventDO::getNextRetryAt, nextRetryAt)
-                .set(OrderOutboxEventDO::getErrorMessage, truncate(errorMessage))
-                .set(OrderOutboxEventDO::getProcessingOwner, null)
-                .set(OrderOutboxEventDO::getLeaseUntil, null)
-                .set(OrderOutboxEventDO::getClaimedAt, null)
-                .set(OrderOutboxEventDO::getUpdatedAt, updatedAt)) > 0;
+        return outboxEventMapper.update(
+                        null,
+                        Wrappers.<OrderOutboxEventDO>lambdaUpdate()
+                                .eq(OrderOutboxEventDO::getId, toDatabaseOutboxId(outboxId))
+                                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
+                                .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)
+                                .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.RETRYING.value())
+                                .set(OrderOutboxEventDO::getRetryCount, retryCount)
+                                .set(OrderOutboxEventDO::getNextRetryAt, nextRetryAt)
+                                .set(OrderOutboxEventDO::getErrorMessage, truncate(errorMessage))
+                                .set(OrderOutboxEventDO::getProcessingOwner, null)
+                                .set(OrderOutboxEventDO::getLeaseUntil, null)
+                                .set(OrderOutboxEventDO::getClaimedAt, null)
+                                .set(OrderOutboxEventDO::getUpdatedAt, updatedAt))
+                > 0;
     }
 
-    public boolean markDeadClaimed(OutboxId outboxId, String processingOwner, int retryCount,
-                                   String deadReason, String errorMessage, Instant updatedAt) {
+    public boolean markDeadClaimed(
+            OutboxId outboxId,
+            String processingOwner,
+            int retryCount,
+            String deadReason,
+            String errorMessage,
+            Instant updatedAt) {
         // DEAD 也是带 owner 条件的 CAS 更新，确保只有最后一次失败的真实执行者能把事件送进死信。
-        return outboxEventMapper.update(null, Wrappers.<OrderOutboxEventDO>lambdaUpdate()
-                .eq(OrderOutboxEventDO::getId, toDatabaseOutboxId(outboxId))
-                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
-                .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)
-                .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.DEAD.value())
-                .set(OrderOutboxEventDO::getRetryCount, retryCount)
-                .set(OrderOutboxEventDO::getDeadReason, deadReason)
-                .set(OrderOutboxEventDO::getErrorMessage, truncate(errorMessage))
-                .set(OrderOutboxEventDO::getProcessingOwner, null)
-                .set(OrderOutboxEventDO::getLeaseUntil, null)
-                .set(OrderOutboxEventDO::getClaimedAt, null)
-                .set(OrderOutboxEventDO::getUpdatedAt, updatedAt)) > 0;
+        return outboxEventMapper.update(
+                        null,
+                        Wrappers.<OrderOutboxEventDO>lambdaUpdate()
+                                .eq(OrderOutboxEventDO::getId, toDatabaseOutboxId(outboxId))
+                                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
+                                .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)
+                                .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.DEAD.value())
+                                .set(OrderOutboxEventDO::getRetryCount, retryCount)
+                                .set(OrderOutboxEventDO::getDeadReason, deadReason)
+                                .set(OrderOutboxEventDO::getErrorMessage, truncate(errorMessage))
+                                .set(OrderOutboxEventDO::getProcessingOwner, null)
+                                .set(OrderOutboxEventDO::getLeaseUntil, null)
+                                .set(OrderOutboxEventDO::getClaimedAt, null)
+                                .set(OrderOutboxEventDO::getUpdatedAt, updatedAt))
+                > 0;
     }
 
     public boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
         return outboxEventMapper.delete(Wrappers.<OrderOutboxEventDO>lambdaQuery()
-                .eq(OrderOutboxEventDO::getId, toDatabaseOutboxId(outboxId))
-                .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
-                .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)) > 0;
+                        .eq(OrderOutboxEventDO::getId, toDatabaseOutboxId(outboxId))
+                        .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
+                        .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner))
+                > 0;
     }
 
     public void saveDeadLetter(OrderOutboxDeadLetter deadLetter) {
@@ -186,23 +218,45 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxEventDO toDataObject(OrderOutboxEvent event) {
-        return new OrderOutboxEventDO(toDatabaseOutboxId(event.getId()), toDatabaseEventCode(event.getEventCode()),
+        return new OrderOutboxEventDO(
+                toDatabaseOutboxId(event.getId()),
+                toDatabaseEventCode(event.getEventCode()),
                 toDatabaseTenantId(event.getTenantId()),
-                toDatabaseOrderNo(event.getOrderNo()), toDatabaseEventType(event.getEventType()), event.getBusinessKey(),
-                event.getPayload(), toDatabaseStatus(event.getStatus()),
-                event.getRetryCount(), event.getNextRetryAt(), event.getProcessingOwner(), event.getLeaseUntil(),
-                event.getClaimedAt(), event.getErrorMessage(), event.getDeadReason(), event.getCreatedAt(),
+                toDatabaseOrderNo(event.getOrderNo()),
+                toDatabaseEventType(event.getEventType()),
+                event.getBusinessKey(),
+                event.getPayload(),
+                toDatabaseStatus(event.getStatus()),
+                event.getRetryCount(),
+                event.getNextRetryAt(),
+                event.getProcessingOwner(),
+                event.getLeaseUntil(),
+                event.getClaimedAt(),
+                event.getErrorMessage(),
+                event.getDeadReason(),
+                event.getCreatedAt(),
                 event.getUpdatedAt());
     }
 
     private OrderOutboxEvent toDomain(OrderOutboxEventDO dataObject) {
-        return new OrderOutboxEvent(dataObject.getId(), dataObject.getEventCode(),
-                dataObject.getTenantId(), dataObject.getOrderNo(),
-                toDomainEventType(dataObject.getEventType()), dataObject.getBusinessKey(), dataObject.getPayload(),
+        return new OrderOutboxEvent(
+                dataObject.getId(),
+                dataObject.getEventCode(),
+                dataObject.getTenantId(),
+                dataObject.getOrderNo(),
+                toDomainEventType(dataObject.getEventType()),
+                dataObject.getBusinessKey(),
+                dataObject.getPayload(),
                 toDomainStatus(dataObject.getStatus()),
-                dataObject.getRetryCount(), dataObject.getNextRetryAt(), dataObject.getProcessingOwner(),
-                dataObject.getLeaseUntil(), dataObject.getClaimedAt(), dataObject.getErrorMessage(),
-                dataObject.getDeadReason(), dataObject.getCreatedAt(), dataObject.getUpdatedAt());
+                dataObject.getRetryCount(),
+                dataObject.getNextRetryAt(),
+                dataObject.getProcessingOwner(),
+                dataObject.getLeaseUntil(),
+                dataObject.getClaimedAt(),
+                dataObject.getErrorMessage(),
+                dataObject.getDeadReason(),
+                dataObject.getCreatedAt(),
+                dataObject.getUpdatedAt());
     }
 
     private EventCode generateEventCode() {
@@ -261,12 +315,24 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {
-        return new OrderOutboxDeadLetterDO(null, toDatabaseOutboxId(deadLetter.getOutboxId()),
+        return new OrderOutboxDeadLetterDO(
+                null,
+                toDatabaseOutboxId(deadLetter.getOutboxId()),
                 toDatabaseEventCode(deadLetter.getEventCode()),
-                deadLetter.getTenantIdValue(), deadLetter.getOrderNoValue(), deadLetter.getEventTypeValue(),
-                deadLetter.getBusinessKey(), deadLetter.getPayload(),
-                deadLetter.getRetryCount(), deadLetter.getErrorMessage(), deadLetter.getDeadReason(), deadLetter.getDeadAt(),
-                deadLetter.getReplayStatusValue(), deadLetter.getReplayCount(), deadLetter.getLastReplayAt(),
-                deadLetter.getLastReplayMessage(), deadLetter.getCreatedAt(), deadLetter.getUpdatedAt());
+                deadLetter.getTenantIdValue(),
+                deadLetter.getOrderNoValue(),
+                deadLetter.getEventTypeValue(),
+                deadLetter.getBusinessKey(),
+                deadLetter.getPayload(),
+                deadLetter.getRetryCount(),
+                deadLetter.getErrorMessage(),
+                deadLetter.getDeadReason(),
+                deadLetter.getDeadAt(),
+                deadLetter.getReplayStatusValue(),
+                deadLetter.getReplayCount(),
+                deadLetter.getLastReplayAt(),
+                deadLetter.getLastReplayMessage(),
+                deadLetter.getCreatedAt(),
+                deadLetter.getUpdatedAt());
     }
 }

@@ -52,20 +52,58 @@ public class MultipartUploadSession {
     /** 取消时间。 */
     private Instant abortedAt;
 
-    public MultipartUploadSession(Long id, String uploadId, Long tenantId, String ownerType, String ownerId,
-                                  String category, String originalFilename, String contentType, String objectKey,
-                                  String providerUploadId, Long totalSize, Long partSize, Integer uploadedPartCount,
-                                  UploadStatus uploadStatus, Instant createdAt, Instant updatedAt, Instant completedAt,
-                                  Instant abortedAt) {
-        this(id, uploadId, tenantId == null ? null : TenantId.of(tenantId), ownerType, ownerId, category,
-                originalFilename, contentType, objectKey, providerUploadId, totalSize, partSize, uploadedPartCount,
-                uploadStatus, createdAt, updatedAt, completedAt, abortedAt);
+    public MultipartUploadSession(
+            Long id,
+            String uploadId,
+            Long tenantId,
+            String ownerType,
+            String ownerId,
+            String category,
+            String originalFilename,
+            String contentType,
+            String objectKey,
+            String providerUploadId,
+            Long totalSize,
+            Long partSize,
+            Integer uploadedPartCount,
+            UploadStatus uploadStatus,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant completedAt,
+            Instant abortedAt) {
+        this(
+                id,
+                uploadId,
+                tenantId == null ? null : TenantId.of(tenantId),
+                ownerType,
+                ownerId,
+                category,
+                originalFilename,
+                contentType,
+                objectKey,
+                providerUploadId,
+                totalSize,
+                partSize,
+                uploadedPartCount,
+                uploadStatus,
+                createdAt,
+                updatedAt,
+                completedAt,
+                abortedAt);
     }
 
-    public static MultipartUploadSession initiate(String uploadId, TenantId tenantId, String ownerType, String ownerId,
-                                                  String category, String originalFilename, String contentType,
-                                                  String objectKey, String providerUploadId, Long totalSize,
-                                                  Long partSize) {
+    public static MultipartUploadSession initiate(
+            String uploadId,
+            TenantId tenantId,
+            String ownerType,
+            String ownerId,
+            String category,
+            String originalFilename,
+            String contentType,
+            String objectKey,
+            String providerUploadId,
+            Long totalSize,
+            Long partSize) {
         requireText(uploadId, "uploadId");
         requireText(ownerType, "ownerType");
         requireText(ownerId, "ownerId");
@@ -73,9 +111,25 @@ public class MultipartUploadSession {
         requirePositive(totalSize, "totalSize");
         requirePositive(partSize, "partSize");
         Instant now = Instant.now();
-        return new MultipartUploadSession(null, uploadId, tenantId, ownerType, ownerId, category, originalFilename,
-                contentType, objectKey, providerUploadId, totalSize, partSize, 0, UploadStatus.INITIATED, now, now,
-                null, null);
+        return new MultipartUploadSession(
+                null,
+                uploadId,
+                tenantId,
+                ownerType,
+                ownerId,
+                category,
+                originalFilename,
+                contentType,
+                objectKey,
+                providerUploadId,
+                totalSize,
+                partSize,
+                0,
+                UploadStatus.INITIATED,
+                now,
+                now,
+                null,
+                null);
     }
 
     public boolean isCompleted() {
@@ -145,7 +199,8 @@ public class MultipartUploadSession {
             if (index < parts.size() - 1 && !Objects.equals(part.getSize(), partSize)) {
                 throw new IllegalArgumentException("Multipart upload non-last part size mismatch");
             }
-            if (index == parts.size() - 1 && (part.getSize() == null || part.getSize() <= 0L || part.getSize() > partSize)) {
+            if (index == parts.size() - 1
+                    && (part.getSize() == null || part.getSize() <= 0L || part.getSize() > partSize)) {
                 throw new IllegalArgumentException("Multipart upload last part size invalid");
             }
             totalUploadedSize += part.getSize();

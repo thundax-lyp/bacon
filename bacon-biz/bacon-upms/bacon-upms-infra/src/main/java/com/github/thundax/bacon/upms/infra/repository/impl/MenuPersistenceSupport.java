@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.MenuDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.MenuMapper;
 import java.util.List;
@@ -22,7 +22,8 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     List<Menu> listMenus(TenantId tenantId) {
-        return menuMapper.selectList(Wrappers.<MenuDO>lambdaQuery()
+        return menuMapper
+                .selectList(Wrappers.<MenuDO>lambdaQuery()
                         .eq(MenuDO::getTenantId, tenantId)
                         .orderByAsc(MenuDO::getSort, MenuDO::getId))
                 .stream()
@@ -48,15 +49,15 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void deleteMenu(TenantId tenantId, MenuId menuId) {
-        menuMapper.delete(Wrappers.<MenuDO>lambdaQuery()
-                .eq(MenuDO::getTenantId, tenantId)
-                .eq(MenuDO::getId, menuId));
+        menuMapper.delete(
+                Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getTenantId, tenantId).eq(MenuDO::getId, menuId));
     }
 
     boolean existsChildMenu(TenantId tenantId, MenuId menuId) {
         return Optional.ofNullable(menuMapper.selectCount(Wrappers.<MenuDO>lambdaQuery()
-                        .eq(MenuDO::getTenantId, tenantId)
-                        .eq(MenuDO::getParentId, menuId)))
-                .orElse(0L) > 0L;
+                                .eq(MenuDO::getTenantId, tenantId)
+                                .eq(MenuDO::getParentId, menuId)))
+                        .orElse(0L)
+                > 0L;
     }
 }

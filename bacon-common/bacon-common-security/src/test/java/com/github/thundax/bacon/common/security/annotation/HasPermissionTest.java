@@ -1,13 +1,12 @@
 package com.github.thundax.bacon.common.security.annotation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
 import org.springframework.security.core.annotation.SecurityAnnotationScanners;
-
-import java.lang.reflect.Method;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class HasPermissionTest {
 
@@ -25,7 +24,6 @@ class HasPermissionTest {
     static class SecuredController {
 
         @HasPermission("sys:user:view")
-        void list() {
-        }
+        void list() {}
     }
 }

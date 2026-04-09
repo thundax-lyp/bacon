@@ -18,7 +18,11 @@ public record UserTokenRefreshResponse(
         String sessionId) {
 
     public static UserTokenRefreshResponse from(UserTokenRefreshDTO dto) {
-        return new UserTokenRefreshResponse(dto.getAccessToken(), dto.getRefreshToken(), dto.getTokenType(),
-                dto.getExpiresIn(), dto.getSessionId());
+        return new UserTokenRefreshResponse(
+                dto.getAccessToken(),
+                dto.getRefreshToken(),
+                dto.getTokenType(),
+                dto.getExpiresIn(),
+                dto.getSessionId());
     }
 }

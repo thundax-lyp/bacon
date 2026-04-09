@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
@@ -56,7 +55,6 @@ public class PermissionController {
     @GetMapping("/data-scope")
     public UserDataScopeResponse getUserDataScope(@CurrentTenant Long tenantId, @PathVariable Long userId) {
         return UserDataScopeResponse.from(
-                permissionQueryService.getUserDataScope(TenantId.of(tenantId), UserIdMapper.toDomain(userId))
-        );
+                permissionQueryService.getUserDataScope(TenantId.of(tenantId), UserIdMapper.toDomain(userId)));
     }
 }

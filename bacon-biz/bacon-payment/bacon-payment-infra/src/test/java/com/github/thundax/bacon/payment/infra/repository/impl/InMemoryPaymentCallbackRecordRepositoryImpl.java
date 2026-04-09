@@ -30,8 +30,8 @@ public class InMemoryPaymentCallbackRecordRepositoryImpl implements PaymentCallb
     }
 
     @Override
-    public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(Long tenantId, String channelCode,
-                                                                              String channelTransactionNo) {
+    public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
+            Long tenantId, String channelCode, String channelTransactionNo) {
         return support.findCallbackByChannelTransactionNo(tenantId, channelCode, channelTransactionNo);
     }
 

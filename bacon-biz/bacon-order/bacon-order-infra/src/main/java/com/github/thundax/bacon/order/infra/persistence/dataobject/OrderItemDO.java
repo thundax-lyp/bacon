@@ -17,20 +17,28 @@ public class OrderItemDO {
 
     @TableId(type = IdType.INPUT)
     private Long id;
+
     @TableField("tenant_id")
     private Long tenantId;
+
     @TableField("order_id")
     private String orderId;
+
     @TableField("sku_id")
     private String skuId;
+
     @TableField("sku_name")
     private String skuName;
+
     @TableField("image_url")
     private String imageUrl;
+
     @TableField("quantity")
     private Integer quantity;
+
     @TableField("sale_price")
     private BigDecimal salePrice;
+
     @TableField("line_amount")
     private BigDecimal lineAmount;
 }

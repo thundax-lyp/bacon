@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
@@ -57,19 +57,45 @@ public class UserCredential {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserCredential(Long id, Long tenantId, Long userId, Long identityId, UserCredentialType credentialType,
-                          UserCredentialFactorLevel factorLevel, String credentialValue, UserCredentialStatus status,
-                          Integer needChangePassword, Integer failedCount, Integer failedLimit, String lockReason,
-                          Instant lockedUntil, Instant expiresAt, Instant lastVerifiedAt, String createdBy,
-                          Instant createdAt, String updatedBy, Instant updatedAt) {
-        this(id == null ? null : UserCredentialId.of(id),
+    public UserCredential(
+            Long id,
+            Long tenantId,
+            Long userId,
+            Long identityId,
+            UserCredentialType credentialType,
+            UserCredentialFactorLevel factorLevel,
+            String credentialValue,
+            UserCredentialStatus status,
+            Integer needChangePassword,
+            Integer failedCount,
+            Integer failedLimit,
+            String lockReason,
+            Instant lockedUntil,
+            Instant expiresAt,
+            Instant lastVerifiedAt,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        this(
+                id == null ? null : UserCredentialId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
                 userId == null ? null : UserId.of(userId),
                 identityId == null ? null : UserIdentityId.of(identityId),
-                credentialType, factorLevel, credentialValue, status,
+                credentialType,
+                factorLevel,
+                credentialValue,
+                status,
                 needChangePassword != null && needChangePassword != 0,
                 failedCount == null ? 0 : failedCount,
                 failedLimit == null ? 0 : failedLimit,
-                lockReason, lockedUntil, expiresAt, lastVerifiedAt, createdBy, createdAt, updatedBy, updatedAt);
+                lockReason,
+                lockedUntil,
+                expiresAt,
+                lastVerifiedAt,
+                createdBy,
+                createdAt,
+                updatedBy,
+                updatedAt);
     }
 }

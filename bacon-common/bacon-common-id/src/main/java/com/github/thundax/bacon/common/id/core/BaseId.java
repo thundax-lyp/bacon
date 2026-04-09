@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.common.id.core;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -18,14 +17,13 @@ public abstract class BaseId<T> implements Identifier<T>, Serializable {
         this.value = Objects.requireNonNull(value, "id value must not be null");
         this.type = Objects.requireNonNull(type, "id type must not be null");
         if (!type.isInstance(value)) {
-            throw new IllegalArgumentException("id value type mismatch: expected " + type.getName()
-                    + " but was " + value.getClass().getName());
+            throw new IllegalArgumentException("id value type mismatch: expected " + type.getName() + " but was "
+                    + value.getClass().getName());
         }
         validate(value);
     }
 
-    protected void validate(T value) {
-    }
+    protected void validate(T value) {}
 
     @Override
     @JsonValue

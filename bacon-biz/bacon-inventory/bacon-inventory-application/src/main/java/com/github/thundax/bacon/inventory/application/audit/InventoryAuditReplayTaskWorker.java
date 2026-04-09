@@ -21,20 +21,25 @@ public class InventoryAuditReplayTaskWorker {
 
     @Value("${bacon.inventory.audit.replay-task.enabled:true}")
     private boolean enabled;
+
     @Value("${bacon.inventory.audit.replay-task.claim-size:2}")
     private int claimSize;
+
     @Value("${bacon.inventory.audit.replay-task.batch-size:20}")
     private int batchSize;
+
     @Value("${bacon.inventory.audit.replay-task.lease-seconds:60}")
     private long leaseSeconds;
+
     @Value("${spring.application.name:bacon-inventory}")
     private String applicationName;
 
     private final String ownerSuffix = UUID.randomUUID().toString();
 
-    public InventoryAuditReplayTaskWorker(InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository,
-                                          InventoryAuditReplayTaskApplicationService inventoryAuditReplayTaskService,
-                                          InventoryAuditCompensationApplicationService inventoryAuditCompensationService) {
+    public InventoryAuditReplayTaskWorker(
+            InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository,
+            InventoryAuditReplayTaskApplicationService inventoryAuditReplayTaskService,
+            InventoryAuditCompensationApplicationService inventoryAuditCompensationService) {
         this.inventoryAuditReplayTaskRepository = inventoryAuditReplayTaskRepository;
         this.inventoryAuditReplayTaskService = inventoryAuditReplayTaskService;
         this.inventoryAuditCompensationService = inventoryAuditCompensationService;
@@ -47,20 +52,23 @@ public class InventoryAuditReplayTaskWorker {
         }
         Instant now = Instant.now();
         String owner = applicationName + ":" + ownerSuffix;
-        List<InventoryAuditReplayTask> tasks = inventoryAuditReplayTaskRepository.claimRunnableAuditReplayTasks(now,
-                Math.max(claimSize, 1), owner,
-                now.plusSeconds(Math.max(leaseSeconds, 1L)));
+        List<InventoryAuditReplayTask> tasks = inventoryAuditReplayTaskRepository.claimRunnableAuditReplayTasks(
+                now, Math.max(claimSize, 1), owner, now.plusSeconds(Math.max(leaseSeconds, 1L)));
         if (tasks.isEmpty()) {
             return;
         }
         for (InventoryAuditReplayTask task : tasks) {
             try {
-                inventoryAuditReplayTaskService.processClaimedTask(task, inventoryAuditCompensationService, owner,
-                        batchSize, leaseSeconds);
+                inventoryAuditReplayTaskService.processClaimedTask(
+                        task, inventoryAuditCompensationService, owner, batchSize, leaseSeconds);
             } catch (RuntimeException ex) {
-                Metrics.counter("bacon.inventory.audit.replay.task.worker.fail.total").increment();
-                log.error("ALERT inventory audit replay task worker failed, taskId={}, taskNo={}",
-                        task.getIdValue(), task.getTaskNoValue(), ex);
+                Metrics.counter("bacon.inventory.audit.replay.task.worker.fail.total")
+                        .increment();
+                log.error(
+                        "ALERT inventory audit replay task worker failed, taskId={}, taskNo={}",
+                        task.getIdValue(),
+                        task.getTaskNoValue(),
+                        ex);
             }
         }
     }

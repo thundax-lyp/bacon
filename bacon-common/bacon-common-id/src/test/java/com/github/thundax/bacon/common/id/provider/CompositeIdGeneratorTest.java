@@ -16,9 +16,11 @@ class CompositeIdGeneratorTest {
     @Test
     void shouldUseFirstGeneratorWhenAvailable() {
         RecordingEventPublisher eventPublisher = new RecordingEventPublisher();
-        CompositeIdGenerator generator = new CompositeIdGenerator(List.of(
-                new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> 1001L)
-        ), bizTag -> 2001L, eventPublisher, true);
+        CompositeIdGenerator generator = new CompositeIdGenerator(
+                List.of(new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> 1001L)),
+                bizTag -> 2001L,
+                eventPublisher,
+                true);
 
         assertThat(generator.nextId("order-id")).isEqualTo(1001L);
         assertThat(eventPublisher.events).isEmpty();
@@ -27,12 +29,15 @@ class CompositeIdGeneratorTest {
     @Test
     void shouldFallbackToNextGeneratorAndPublishEvent() {
         RecordingEventPublisher eventPublisher = new RecordingEventPublisher();
-        CompositeIdGenerator generator = new CompositeIdGenerator(List.of(
-                new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> {
-                    throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "tinyid down");
-                }),
-                new CompositeIdGenerator.NamedIdGenerator("leaf", bizTag -> 1002L)
-        ), bizTag -> 2001L, eventPublisher, true);
+        CompositeIdGenerator generator = new CompositeIdGenerator(
+                List.of(
+                        new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> {
+                            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "tinyid down");
+                        }),
+                        new CompositeIdGenerator.NamedIdGenerator("leaf", bizTag -> 1002L)),
+                bizTag -> 2001L,
+                eventPublisher,
+                true);
 
         assertThat(generator.nextId("order-id")).isEqualTo(1002L);
         assertThat(eventPublisher.events).hasSize(1);
@@ -44,14 +49,17 @@ class CompositeIdGeneratorTest {
     @Test
     void shouldFallbackToSnowflakeAfterRemoteProvidersFail() {
         RecordingEventPublisher eventPublisher = new RecordingEventPublisher();
-        CompositeIdGenerator generator = new CompositeIdGenerator(List.of(
-                new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> {
-                    throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "tinyid down");
-                }),
-                new CompositeIdGenerator.NamedIdGenerator("leaf", bizTag -> {
-                    throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "leaf down");
-                })
-        ), bizTag -> 2001L, eventPublisher, true);
+        CompositeIdGenerator generator = new CompositeIdGenerator(
+                List.of(
+                        new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> {
+                            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "tinyid down");
+                        }),
+                        new CompositeIdGenerator.NamedIdGenerator("leaf", bizTag -> {
+                            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "leaf down");
+                        })),
+                bizTag -> 2001L,
+                eventPublisher,
+                true);
 
         assertThat(generator.nextId("order-id")).isEqualTo(2001L);
         assertThat(eventPublisher.events).hasSize(2);
@@ -62,13 +70,15 @@ class CompositeIdGeneratorTest {
     @Test
     void shouldThrowLastExceptionWhenAllGeneratorsFail() {
         RecordingEventPublisher eventPublisher = new RecordingEventPublisher();
-        CompositeIdGenerator generator = new CompositeIdGenerator(List.of(
-                new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> {
+        CompositeIdGenerator generator = new CompositeIdGenerator(
+                List.of(new CompositeIdGenerator.NamedIdGenerator("tinyid", bizTag -> {
                     throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "tinyid down");
-                })
-        ), bizTag -> {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "snowflake down");
-        }, eventPublisher, true);
+                })),
+                bizTag -> {
+                    throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_UNAVAILABLE, "snowflake down");
+                },
+                eventPublisher,
+                true);
 
         assertThatThrownBy(() -> generator.nextId("order-id"))
                 .isInstanceOf(IdGeneratorException.class)
@@ -97,8 +107,8 @@ class CompositeIdGeneratorTest {
 
     @Test
     void shouldThrowWhenFallbackDisabledAndPrimaryChainEmpty() {
-        CompositeIdGenerator generator = new CompositeIdGenerator(List.of(), bizTag -> 3001L,
-                new RecordingEventPublisher(), false);
+        CompositeIdGenerator generator =
+                new CompositeIdGenerator(List.of(), bizTag -> 3001L, new RecordingEventPublisher(), false);
 
         assertThatThrownBy(() -> generator.nextId("order-id"))
                 .isInstanceOf(IdGeneratorException.class)

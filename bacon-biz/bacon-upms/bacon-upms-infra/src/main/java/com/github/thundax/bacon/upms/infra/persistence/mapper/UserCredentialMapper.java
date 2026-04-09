@@ -5,5 +5,4 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredential
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface UserCredentialMapper extends BaseMapper<UserCredentialDO> {
-}
+public interface UserCredentialMapper extends BaseMapper<UserCredentialDO> {}

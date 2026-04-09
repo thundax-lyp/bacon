@@ -9,6 +9,8 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryAuditReplayTaskAssembler;
 import com.github.thundax.bacon.inventory.application.codec.DeadLetterIdCodec;
 import com.github.thundax.bacon.inventory.application.codec.TaskNoCodec;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -16,8 +18,6 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditRepla
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
-import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
-import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
@@ -33,23 +33,30 @@ public class InventoryAuditReplayTaskApplicationService {
 
     private final InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository;
 
-    public InventoryAuditReplayTaskApplicationService(InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository) {
+    public InventoryAuditReplayTaskApplicationService(
+            InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository) {
         this.inventoryAuditReplayTaskRepository = inventoryAuditReplayTaskRepository;
     }
 
     public InventoryAuditReplayTaskDTO createReplayTask(InventoryAuditReplayTaskCreateDTO createDTO) {
         if (createDTO.getDeadLetterIds() == null || createDTO.getDeadLetterIds().isEmpty()) {
-            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_BAD_REQUEST,
-                    "replay-task-empty-dead-letter-ids");
+            throw new InventoryDomainException(
+                    InventoryErrorCode.INVENTORY_REMOTE_BAD_REQUEST, "replay-task-empty-dead-letter-ids");
         }
         Instant now = Instant.now();
-        TaskNo taskNo = TaskNoCodec.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
+        TaskNo taskNo =
+                TaskNoCodec.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
         // 回放任务只负责“组织一批死信逐条回放”，真正的单条回放语义仍复用 compensation service。
-        InventoryAuditReplayTask task = InventoryAuditReplayTaskAssembler.toDomain(createDTO, taskNo, OPERATOR_TYPE_MANUAL, now);
+        InventoryAuditReplayTask task =
+                InventoryAuditReplayTaskAssembler.toDomain(createDTO, taskNo, OPERATOR_TYPE_MANUAL, now);
         InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
-        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(saved.getId(),
+        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(
+                saved.getId(),
                 saved.getTenantId(),
-                createDTO.getDeadLetterIds().stream().map(DeadLetterIdCodec::toDomain).toList(), now);
+                createDTO.getDeadLetterIds().stream()
+                        .map(DeadLetterIdCodec::toDomain)
+                        .toList(),
+                now);
         Metrics.counter("bacon.inventory.audit.replay.task.created.total").increment();
         return InventoryAuditReplayTaskAssembler.toDto(saved);
     }
@@ -88,8 +95,12 @@ public class InventoryAuditReplayTaskApplicationService {
         return InventoryAuditReplayTaskAssembler.toDto(getTaskById(taskId));
     }
 
-    public void processClaimedTask(InventoryAuditReplayTask task, InventoryAuditCompensationApplicationService compensationService,
-                                   String processingOwner, int batchSize, long leaseSeconds) {
+    public void processClaimedTask(
+            InventoryAuditReplayTask task,
+            InventoryAuditCompensationApplicationService compensationService,
+            String processingOwner,
+            int batchSize,
+            long leaseSeconds) {
         if (task == null || !InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus())) {
             return;
         }
@@ -98,11 +109,11 @@ public class InventoryAuditReplayTaskApplicationService {
         }
         Instant now = Instant.now();
         // Worker 每轮都会续租任务，确保长批次处理时不会因为租约过期被其他节点重复接管。
-        inventoryAuditReplayTaskRepository.renewAuditReplayTaskLease(task.getId(), processingOwner,
-                now.plusSeconds(Math.max(leaseSeconds, 1L)), now);
+        inventoryAuditReplayTaskRepository.renewAuditReplayTaskLease(
+                task.getId(), processingOwner, now.plusSeconds(Math.max(leaseSeconds, 1L)), now);
 
-        List<InventoryAuditReplayTaskItem> items = inventoryAuditReplayTaskRepository.findPendingAuditReplayTaskItems(task.getId(),
-                Math.max(batchSize, 1));
+        List<InventoryAuditReplayTaskItem> items = inventoryAuditReplayTaskRepository.findPendingAuditReplayTaskItems(
+                task.getId(), Math.max(batchSize, 1));
         if (items.isEmpty()) {
             finishTask(task.getId(), processingOwner);
             return;
@@ -117,8 +128,10 @@ public class InventoryAuditReplayTaskApplicationService {
             Instant startedAt = Instant.now();
             try {
                 String replayKey = buildReplayKey(task, item);
-                InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(task.getTenantId(),
-                        DeadLetterIdCodec.toDomain(item.getDeadLetterIdValue()), replayKey,
+                InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(
+                        task.getTenantId(),
+                        DeadLetterIdCodec.toDomain(item.getDeadLetterIdValue()),
+                        replayKey,
                         OperatorIdMapper.toDomain(task.getOperatorId()));
                 InventoryAuditReplayStatus replayStatus = InventoryAuditReplayStatus.from(result.getReplayStatus());
                 InventoryAuditReplayTaskItemStatus itemStatus = InventoryAuditReplayTaskItemStatus.FAILED;
@@ -129,24 +142,37 @@ public class InventoryAuditReplayTaskApplicationService {
                     failedDelta++;
                     lastError = result.getMessage();
                 }
-                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(item.getId(), itemStatus, replayStatus,
-                        result.getReplayKey(), result.getMessage(), startedAt, Instant.now());
+                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(
+                        item.getId(),
+                        itemStatus,
+                        replayStatus,
+                        result.getReplayKey(),
+                        result.getMessage(),
+                        startedAt,
+                        Instant.now());
             } catch (RuntimeException ex) {
                 failedDelta++;
                 lastError = truncateError(ex.getMessage());
-                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(item.getId(),
-                        InventoryAuditReplayTaskItemStatus.FAILED, InventoryAuditReplayStatus.FAILED, null,
-                        "failed:" + lastError, startedAt, Instant.now());
+                inventoryAuditReplayTaskRepository.markAuditReplayTaskItemResult(
+                        item.getId(),
+                        InventoryAuditReplayTaskItemStatus.FAILED,
+                        InventoryAuditReplayStatus.FAILED,
+                        null,
+                        "failed:" + lastError,
+                        startedAt,
+                        Instant.now());
             }
             processedDelta++;
         }
-        inventoryAuditReplayTaskRepository.incrementAuditReplayTaskProgress(task.getId(), processingOwner, processedDelta,
-                successDelta, failedDelta, Instant.now());
+        inventoryAuditReplayTaskRepository.incrementAuditReplayTaskProgress(
+                task.getId(), processingOwner, processedDelta, successDelta, failedDelta, Instant.now());
         if (lastError != null) {
-            Metrics.counter("bacon.inventory.audit.replay.task.item.failed.total").increment(failedDelta);
+            Metrics.counter("bacon.inventory.audit.replay.task.item.failed.total")
+                    .increment(failedDelta);
         }
 
-        List<InventoryAuditReplayTaskItem> remain = inventoryAuditReplayTaskRepository.findPendingAuditReplayTaskItems(task.getId(), 1);
+        List<InventoryAuditReplayTaskItem> remain =
+                inventoryAuditReplayTaskRepository.findPendingAuditReplayTaskItems(task.getId(), 1);
         if (remain.isEmpty()) {
             finishTask(task.getId(), processingOwner);
         }
@@ -158,8 +184,10 @@ public class InventoryAuditReplayTaskApplicationService {
         InventoryAuditReplayTaskStatus status = Integer.valueOf(0).equals(latest.getFailedCount())
                 ? InventoryAuditReplayTaskStatus.SUCCEEDED
                 : InventoryAuditReplayTaskStatus.FAILED;
-        inventoryAuditReplayTaskRepository.finishAuditReplayTask(taskId, processingOwner, status.value(), latest.getLastError(), Instant.now());
-        Metrics.counter("bacon.inventory.audit.replay.task.finished.total", "status", status.value()).increment();
+        inventoryAuditReplayTaskRepository.finishAuditReplayTask(
+                taskId, processingOwner, status.value(), latest.getLastError(), Instant.now());
+        Metrics.counter("bacon.inventory.audit.replay.task.finished.total", "status", status.value())
+                .increment();
     }
 
     private String buildReplayKey(InventoryAuditReplayTask task, InventoryAuditReplayTaskItem item) {
@@ -178,15 +206,17 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     private InventoryAuditReplayTask getTaskById(TaskId taskId) {
-        return inventoryAuditReplayTaskRepository.findAuditReplayTaskById(taskId)
-                .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
+        return inventoryAuditReplayTaskRepository
+                .findAuditReplayTaskById(taskId)
+                .orElseThrow(() -> new InventoryDomainException(
+                        InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND,
                         "replay-task-not-found:" + (taskId == null ? null : taskId.value())));
     }
 
     private void ensureTaskTenant(InventoryAuditReplayTask task, TenantId tenantId) {
         if (!Objects.equals(task.getTenantId(), tenantId)) {
-            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN,
-                    "replay-task-tenant-mismatch");
+            throw new InventoryDomainException(
+                    InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "replay-task-tenant-mismatch");
         }
     }
 
@@ -195,5 +225,4 @@ public class InventoryAuditReplayTaskApplicationService {
                 || InventoryAuditReplayTaskStatus.FAILED.equals(status)
                 || InventoryAuditReplayTaskStatus.CANCELED.equals(status);
     }
-
 }

@@ -5,5 +5,4 @@ import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentCall
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface PaymentCallbackRecordMapper extends BaseMapper<PaymentCallbackRecordDO> {
-}
+public interface PaymentCallbackRecordMapper extends BaseMapper<PaymentCallbackRecordDO> {}

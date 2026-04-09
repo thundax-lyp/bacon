@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.api.enums;
 
 public enum EnableStatusEnum {
-
     ENABLED,
     DISABLED;
 

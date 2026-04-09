@@ -17,18 +17,25 @@ public class InventoryAuditLogDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+
     @TableField("tenant_id")
     private Long tenantId;
+
     @TableField("order_no")
     private String orderNo;
+
     @TableField("reservation_no")
     private String reservationNo;
+
     @TableField("action_type")
     private String actionType;
+
     @TableField("operator_type")
     private String operatorType;
+
     @TableField("operator_id")
     private Long operatorId;
+
     @TableField("occurred_at")
     private Instant occurredAt;
 }

@@ -1,5 +1,9 @@
 package com.github.thundax.bacon.payment.interfaces.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
@@ -14,10 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class PaymentQueryControllerContractTest {
 
@@ -38,8 +38,7 @@ class PaymentQueryControllerContractTest {
 
     @Test
     void shouldReturnWrappedResponseWhenRequestIsValid() throws Exception {
-        mockMvc.perform(get("/payments/PAY-10001")
-                        .param("tenantId", "1001"))
+        mockMvc.perform(get("/payments/PAY-10001").param("tenantId", "1001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.paymentNo").value("PAY-10001"))
                 .andExpect(jsonPath("$.data.orderNo").value("ORD-10001"));
@@ -47,14 +46,12 @@ class PaymentQueryControllerContractTest {
 
     @Test
     void shouldRejectRequestWhenTenantIdMissing() throws Exception {
-        mockMvc.perform(get("/payments/PAY-10001"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/payments/PAY-10001")).andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldExposePaymentErrorCodeWhenBusinessExceptionOccurs() throws Exception {
-        mockMvc.perform(get("/payments/PAY-40401")
-                        .param("tenantId", "1001"))
+        mockMvc.perform(get("/payments/PAY-40401").param("tenantId", "1001"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(PaymentErrorCode.PAYMENT_NOT_FOUND.code()));
     }
@@ -70,10 +67,23 @@ class PaymentQueryControllerContractTest {
             if ("PAY-40401".equals(paymentNo)) {
                 throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
             }
-            return new PaymentDetailDTO(tenantId, paymentNo, "ORD-10001", 2001L, "MOCK", "PAID",
-                    new BigDecimal("88.80"), new BigDecimal("88.80"), Instant.parse("2026-03-27T10:00:00Z"),
-                    Instant.parse("2026-03-27T10:30:00Z"), Instant.parse("2026-03-27T10:01:00Z"),
-                    "test-payment", null, "TXN-10001", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
+            return new PaymentDetailDTO(
+                    tenantId,
+                    paymentNo,
+                    "ORD-10001",
+                    2001L,
+                    "MOCK",
+                    "PAID",
+                    new BigDecimal("88.80"),
+                    new BigDecimal("88.80"),
+                    Instant.parse("2026-03-27T10:00:00Z"),
+                    Instant.parse("2026-03-27T10:30:00Z"),
+                    Instant.parse("2026-03-27T10:01:00Z"),
+                    "test-payment",
+                    null,
+                    "TXN-10001",
+                    "SUCCESS",
+                    "{\"tradeStatus\":\"SUCCESS\"}");
         }
     }
 }

@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.auth.api.dto;
 
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Set;
 
 /**
  * OAuth2 客户端传输对象。

@@ -1,18 +1,17 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.time.Instant;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * 库存预占单领域实体。
@@ -46,20 +45,33 @@ public class InventoryReservation {
     /** 扣减时间。 */
     private Instant deductedAt;
 
-    public static InventoryReservation rehydrate(Long id, Long tenantId, String reservationNo, String orderNo,
-                                                 String warehouseCode, Instant createdAt, List<InventoryReservationItem> items,
-                                                 String reservationStatus, String failureReason, String releaseReason,
-                                                 Instant releasedAt, Instant deductedAt) {
+    public static InventoryReservation rehydrate(
+            Long id,
+            Long tenantId,
+            String reservationNo,
+            String orderNo,
+            String warehouseCode,
+            Instant createdAt,
+            List<InventoryReservationItem> items,
+            String reservationStatus,
+            String failureReason,
+            String releaseReason,
+            Instant releasedAt,
+            Instant deductedAt) {
         // 预占单回写时必须带回终态与原因字段，应用层会基于这些字段判断是否还能继续补偿或回放。
-        return new InventoryReservation(id,
+        return new InventoryReservation(
+                id,
                 tenantId == null ? null : TenantId.of(tenantId),
                 reservationNo == null ? null : ReservationNo.of(reservationNo),
                 orderNo == null ? null : OrderNo.of(orderNo),
                 warehouseCode == null ? null : WarehouseCode.of(warehouseCode),
-                createdAt, items,
+                createdAt,
+                items,
                 reservationStatus == null ? null : InventoryReservationStatus.from(reservationStatus),
-                failureReason, releaseReason == null ? null : InventoryReleaseReason.from(releaseReason),
-                releasedAt, deductedAt);
+                failureReason,
+                releaseReason == null ? null : InventoryReleaseReason.from(releaseReason),
+                releasedAt,
+                deductedAt);
     }
 
     public String getReservationNoValue() {

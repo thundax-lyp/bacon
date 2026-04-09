@@ -11,12 +11,13 @@ import java.util.List;
 
 public final class InventoryReservationAssembler {
 
-    private InventoryReservationAssembler() {
-    }
+    private InventoryReservationAssembler() {}
 
     public static InventoryReservationDTO toDto(InventoryReservation reservation) {
         return new InventoryReservationDTO(
-                reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                reservation.getTenantId() == null
+                        ? null
+                        : reservation.getTenantId().value(),
                 reservation.getOrderNoValue(),
                 reservation.getReservationNoValue(),
                 reservation.getReservationStatusValue(),
@@ -51,13 +52,12 @@ public final class InventoryReservationAssembler {
         }
         return items.stream()
                 .map(item -> new InventoryReservationItemDTO(
-                        item.getSkuId() == null ? null : item.getSkuId().value(),
-                        item.getQuantity()))
+                        item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
                 .toList();
     }
 
-    public static List<InventoryReservationItem> toDomainItems(Long tenantId, String reservationNo,
-                                                               List<InventoryReservationItemDTO> items) {
+    public static List<InventoryReservationItem> toDomainItems(
+            Long tenantId, String reservationNo, List<InventoryReservationItemDTO> items) {
         if (items == null || items.isEmpty()) {
             return List.of();
         }

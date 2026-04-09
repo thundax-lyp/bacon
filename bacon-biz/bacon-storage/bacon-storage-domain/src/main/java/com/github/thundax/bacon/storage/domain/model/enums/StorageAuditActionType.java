@@ -6,7 +6,6 @@ import java.util.Arrays;
  * 存储审计动作类型。
  */
 public enum StorageAuditActionType {
-
     UPLOAD,
     REFERENCE_ADD,
     REFERENCE_CLEAR,

@@ -4,8 +4,8 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
+import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryOrderScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryAuditLogResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,9 +34,11 @@ public class InventoryAuditLogController {
     @Operation(summary = "按订单号查询库存审计日志")
     @HasPermission("inventory:audit:view")
     @GetMapping
-    public List<InventoryAuditLogResponse> listByOrderNo(@CurrentTenant Long tenantId,
-                                                         @Valid @ModelAttribute InventoryOrderScopedRequest request) {
-        return inventoryQueryService.listAuditLogsByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(request.getOrderNo())).stream()
+    public List<InventoryAuditLogResponse> listByOrderNo(
+            @CurrentTenant Long tenantId, @Valid @ModelAttribute InventoryOrderScopedRequest request) {
+        return inventoryQueryService
+                .listAuditLogsByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(request.getOrderNo()))
+                .stream()
                 .map(InventoryAuditLogResponse::from)
                 .toList();
     }

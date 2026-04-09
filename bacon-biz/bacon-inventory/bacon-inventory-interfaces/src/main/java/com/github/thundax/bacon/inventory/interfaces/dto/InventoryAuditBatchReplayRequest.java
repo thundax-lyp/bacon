@@ -6,8 +6,4 @@ import jakarta.validation.constraints.Positive;
 import java.util.List;
 
 public record InventoryAuditBatchReplayRequest(
-        Long operatorId,
-        String replayKeyPrefix,
-        @NotEmpty List<@NotNull @Positive Long> deadLetterIds
-) {
-}
+        Long operatorId, String replayKeyPrefix, @NotEmpty List<@NotNull @Positive Long> deadLetterIds) {}

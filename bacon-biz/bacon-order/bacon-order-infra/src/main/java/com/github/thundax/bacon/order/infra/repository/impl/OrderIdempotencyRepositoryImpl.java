@@ -24,11 +24,13 @@ public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepositor
     }
 
     @Override
-    public boolean claimExpiredProcessing(OrderIdempotencyRecordKey key,
-                                          String processingOwner, Instant leaseUntil, Instant claimedAt,
-                                          Instant updatedAt) {
-        return support.claimExpiredProcessing(key, processingOwner, leaseUntil,
-                claimedAt, updatedAt);
+    public boolean claimExpiredProcessing(
+            OrderIdempotencyRecordKey key,
+            String processingOwner,
+            Instant leaseUntil,
+            Instant claimedAt,
+            Instant updatedAt) {
+        return support.claimExpiredProcessing(key, processingOwner, leaseUntil, claimedAt, updatedAt);
     }
 
     @Override
@@ -52,10 +54,13 @@ public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepositor
     }
 
     @Override
-    public boolean retryFromFailed(OrderIdempotencyRecordKey key,
-                                   String processingOwner, Instant leaseUntil, Instant claimedAt, Instant updatedAt) {
-        return support.retryFromFailed(key, processingOwner, leaseUntil,
-                claimedAt, updatedAt);
+    public boolean retryFromFailed(
+            OrderIdempotencyRecordKey key,
+            String processingOwner,
+            Instant leaseUntil,
+            Instant claimedAt,
+            Instant updatedAt) {
+        return support.retryFromFailed(key, processingOwner, leaseUntil, claimedAt, updatedAt);
     }
 
     @Override

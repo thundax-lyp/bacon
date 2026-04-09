@@ -53,11 +53,28 @@ public record InventoryAuditDeadLetterResponse(
         String replayOperatorId) {
 
     public static InventoryAuditDeadLetterResponse from(InventoryAuditDeadLetterDTO dto) {
-        return new InventoryAuditDeadLetterResponse(dto.getId(), dto.getOutboxId(), dto.getEventCode(), dto.getTenantId(),
-                dto.getOrderNo(), dto.getReservationNo(), dto.getActionType(), dto.getOperatorType(),
-                dto.getOperatorId(), dto.getOccurredAt(), dto.getRetryCount(), dto.getErrorMessage(),
-                dto.getDeadReason(), dto.getDeadAt(), dto.getReplayStatus(), dto.getReplayCount(),
-                dto.getLastReplayAt(), dto.getLastReplayResult(), dto.getLastReplayError(), dto.getReplayKey(),
-                dto.getReplayOperatorType(), dto.getReplayOperatorId());
+        return new InventoryAuditDeadLetterResponse(
+                dto.getId(),
+                dto.getOutboxId(),
+                dto.getEventCode(),
+                dto.getTenantId(),
+                dto.getOrderNo(),
+                dto.getReservationNo(),
+                dto.getActionType(),
+                dto.getOperatorType(),
+                dto.getOperatorId(),
+                dto.getOccurredAt(),
+                dto.getRetryCount(),
+                dto.getErrorMessage(),
+                dto.getDeadReason(),
+                dto.getDeadAt(),
+                dto.getReplayStatus(),
+                dto.getReplayCount(),
+                dto.getLastReplayAt(),
+                dto.getLastReplayResult(),
+                dto.getLastReplayError(),
+                dto.getReplayKey(),
+                dto.getReplayOperatorType(),
+                dto.getReplayOperatorId());
     }
 }

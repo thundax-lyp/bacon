@@ -1,14 +1,13 @@
 package com.github.thundax.bacon.auth.application.command;
 
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
-import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.auth.application.codec.TokenCodec;
+import com.github.thundax.bacon.auth.application.support.AuthAuditApplicationService;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 @Service
 public class SessionApplicationService {
@@ -18,9 +17,11 @@ public class SessionApplicationService {
     private final TokenCodec tokenCodec;
     private final AuthAuditApplicationService authAuditApplicationService;
 
-    public SessionApplicationService(AuthSessionRepository authSessionRepository,
-                                     TokenApplicationService tokenApplicationService, TokenCodec tokenCodec,
-                                     AuthAuditApplicationService authAuditApplicationService) {
+    public SessionApplicationService(
+            AuthSessionRepository authSessionRepository,
+            TokenApplicationService tokenApplicationService,
+            TokenCodec tokenCodec,
+            AuthAuditApplicationService authAuditApplicationService) {
         this.authSessionRepository = authSessionRepository;
         this.tokenApplicationService = tokenApplicationService;
         this.tokenCodec = tokenCodec;
@@ -28,15 +29,18 @@ public class SessionApplicationService {
     }
 
     public CurrentSessionDTO currentSession(String accessToken) {
-        String sessionId = tokenCodec.parseSessionId(accessToken)
+        String sessionId = tokenCodec
+                .parseSessionId(accessToken)
                 .orElseThrow(() -> new IllegalArgumentException("Access token invalid"));
         return tokenApplicationService.getSessionContext(sessionId);
     }
 
     public void logout(String accessToken) {
-        String sessionId = tokenCodec.parseSessionId(accessToken)
+        String sessionId = tokenCodec
+                .parseSessionId(accessToken)
                 .orElseThrow(() -> new IllegalArgumentException("Access token invalid"));
-        AuthSession authSession = authSessionRepository.findSessionBySessionId(sessionId)
+        AuthSession authSession = authSessionRepository
+                .findSessionBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
         authSession.logout(Instant.now());
         authSessionRepository.saveSession(authSession);
@@ -65,7 +69,8 @@ public class SessionApplicationService {
     }
 
     public void invalidateSession(String sessionId, String reason) {
-        AuthSession authSession = authSessionRepository.findSessionBySessionId(sessionId)
+        AuthSession authSession = authSessionRepository
+                .findSessionBySessionId(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found: " + sessionId));
         authSession.invalidate(reason);
         authSessionRepository.saveSession(authSession);

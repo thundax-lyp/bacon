@@ -19,17 +19,23 @@ public class UserPasswordFacadeRemoteImpl implements UserPasswordFacade {
 
     private final RestClient restClient;
 
-    public UserPasswordFacadeRemoteImpl(RestClientFactory restClientFactory,
-                                        @Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl,
-                                        @Value("${bacon.remote.upms.provider-token:}") String providerToken) {
+    public UserPasswordFacadeRemoteImpl(
+            RestClientFactory restClientFactory,
+            @Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl,
+            @Value("${bacon.remote.upms.provider-token:}") String providerToken) {
         this.restClient = restClientFactory.create(baseUrl, PROVIDER_TOKEN_HEADER, providerToken);
     }
 
     @Override
-    public void changePassword(@NonNull TenantId tenantId, @NonNull UserId userId, String oldPassword, String newPassword) {
+    public void changePassword(
+            @NonNull TenantId tenantId, @NonNull UserId userId, String oldPassword, String newPassword) {
         // 改密走 provider 命令端点并携带 body，避免把旧密码/新密码暴露在查询参数或日志里。
-        restClient.post()
-                .uri("/providers/upms/users/{userId}/password/change?tenantId={tenantId}", userId.value(), tenantId.value())
+        restClient
+                .post()
+                .uri(
+                        "/providers/upms/users/{userId}/password/change?tenantId={tenantId}",
+                        userId.value(),
+                        tenantId.value())
                 .body(new UserPasswordChangeDTO(oldPassword, newPassword))
                 .retrieve()
                 .toBodilessEntity();

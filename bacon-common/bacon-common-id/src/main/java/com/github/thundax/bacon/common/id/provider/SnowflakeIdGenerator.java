@@ -27,11 +27,12 @@ public class SnowflakeIdGenerator implements IdGenerator {
 
     public SnowflakeIdGenerator(long workerId, long datacenterId) {
         if (workerId < 0 || workerId > MAX_WORKER_ID) {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
-                    "snowflake worker-id out of range: " + workerId);
+            throw new IdGeneratorException(
+                    IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED, "snowflake worker-id out of range: " + workerId);
         }
         if (datacenterId < 0 || datacenterId > MAX_DATACENTER_ID) {
-            throw new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
+            throw new IdGeneratorException(
+                    IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
                     "snowflake datacenter-id out of range: " + datacenterId);
         }
         this.workerId = workerId;

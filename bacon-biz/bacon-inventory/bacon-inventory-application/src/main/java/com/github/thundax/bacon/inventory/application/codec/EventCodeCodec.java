@@ -4,8 +4,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 
 public final class EventCodeCodec {
 
-    private EventCodeCodec() {
-    }
+    private EventCodeCodec() {}
 
     public static EventCode toDomain(String value) {
         if (value == null || value.isBlank()) {

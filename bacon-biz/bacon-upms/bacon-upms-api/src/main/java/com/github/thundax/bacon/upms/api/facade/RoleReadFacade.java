@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.upms.api.facade;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
-import org.springframework.lang.NonNull;
-
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import java.util.List;
+import org.springframework.lang.NonNull;
 
 public interface RoleReadFacade {
 

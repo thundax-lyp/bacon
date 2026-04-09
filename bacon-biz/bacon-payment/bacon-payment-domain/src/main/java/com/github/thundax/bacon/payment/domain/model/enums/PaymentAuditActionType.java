@@ -6,7 +6,6 @@ import java.util.Arrays;
  * 支付审计动作类型。
  */
 public enum PaymentAuditActionType {
-
     CREATE,
     CALLBACK_PAID,
     CALLBACK_FAILED,

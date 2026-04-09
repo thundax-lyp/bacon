@@ -5,5 +5,4 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface RoleMapper extends BaseMapper<RoleDO> {
-}
+public interface RoleMapper extends BaseMapper<RoleDO> {}

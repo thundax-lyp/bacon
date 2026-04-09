@@ -30,8 +30,9 @@ public class StorageController {
     private final StoredObjectApplicationService storedObjectApplicationService;
     private final StoredObjectQueryApplicationService storedObjectQueryApplicationService;
 
-    public StorageController(StoredObjectApplicationService storedObjectApplicationService,
-                             StoredObjectQueryApplicationService storedObjectQueryApplicationService) {
+    public StorageController(
+            StoredObjectApplicationService storedObjectApplicationService,
+            StoredObjectQueryApplicationService storedObjectQueryApplicationService) {
         this.storedObjectApplicationService = storedObjectApplicationService;
         this.storedObjectQueryApplicationService = storedObjectQueryApplicationService;
     }
@@ -40,12 +41,25 @@ public class StorageController {
     @HasPermission("storage:object:view")
     @GetMapping
     public StoredObjectPageResponse pageObjects(@Valid @ModelAttribute StoredObjectPageRequest request) {
-        return StoredObjectPageResponse.from(storedObjectQueryApplicationService.pageObjects(new StoredObjectPageQueryDTO(
-                request.getTenantCode() == null || request.getTenantCode().isBlank() ? null : Long.parseLong(request.getTenantCode().trim()),
-                request.getStorageType() == null ? null : request.getStorageType().name(),
-                request.getObjectStatus() == null ? null : request.getObjectStatus().name(),
-                request.getReferenceStatus() == null ? null : request.getReferenceStatus().name(),
-                request.getOriginalFilename(), request.getObjectKey(), request.getPageNo(), request.getPageSize())));
+        return StoredObjectPageResponse.from(
+                storedObjectQueryApplicationService.pageObjects(new StoredObjectPageQueryDTO(
+                        request.getTenantCode() == null
+                                        || request.getTenantCode().isBlank()
+                                ? null
+                                : Long.parseLong(request.getTenantCode().trim()),
+                        request.getStorageType() == null
+                                ? null
+                                : request.getStorageType().name(),
+                        request.getObjectStatus() == null
+                                ? null
+                                : request.getObjectStatus().name(),
+                        request.getReferenceStatus() == null
+                                ? null
+                                : request.getReferenceStatus().name(),
+                        request.getOriginalFilename(),
+                        request.getObjectKey(),
+                        request.getPageNo(),
+                        request.getPageSize())));
     }
 
     @Operation(summary = "查询存储对象详情")

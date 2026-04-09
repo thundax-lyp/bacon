@@ -6,7 +6,6 @@ import java.util.Arrays;
  * 支付状态。
  */
 public enum PaymentStatus {
-
     CREATED,
     PAYING,
     PAID,

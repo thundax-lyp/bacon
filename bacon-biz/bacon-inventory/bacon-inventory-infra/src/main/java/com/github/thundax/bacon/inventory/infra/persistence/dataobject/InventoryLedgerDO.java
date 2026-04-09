@@ -17,19 +17,27 @@ public class InventoryLedgerDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+
     @TableField("tenant_id")
     private Long tenantId;
+
     @TableField("order_no")
     private String orderNo;
+
     @TableField("reservation_no")
     private String reservationNo;
+
     @TableField("sku_id")
     private Long skuId;
+
     @TableField("warehouse_code")
     private String warehouseCode;
+
     @TableField("ledger_type")
     private String ledgerType;
+
     private Integer quantity;
+
     @TableField("occurred_at")
     private Instant occurredAt;
 }

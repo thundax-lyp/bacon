@@ -37,13 +37,25 @@ public class OAuthAccessToken {
     /** 令牌状态。 */
     private AccessTokenStatus status;
 
-    public OAuthAccessToken(String tokenId, String tokenHash, String clientId, Long tenantId, Long userId,
-                            List<String> scopes, Instant issuedAt, Instant expireAt) {
-        this(tokenId, tokenHash,
+    public OAuthAccessToken(
+            String tokenId,
+            String tokenHash,
+            String clientId,
+            Long tenantId,
+            Long userId,
+            List<String> scopes,
+            Instant issuedAt,
+            Instant expireAt) {
+        this(
+                tokenId,
+                tokenHash,
                 clientId == null ? null : ClientCode.of(clientId),
                 tenantId == null ? null : TenantId.of(tenantId),
                 userId == null ? null : UserId.of(userId),
-                toLinkedHashSet(scopes), issuedAt, expireAt, AccessTokenStatus.ACTIVE);
+                toLinkedHashSet(scopes),
+                issuedAt,
+                expireAt,
+                AccessTokenStatus.ACTIVE);
     }
 
     private static Set<String> toLinkedHashSet(List<String> values) {

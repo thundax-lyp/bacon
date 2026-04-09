@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.common.web.config;
 
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import java.util.List;
 
 /**
  * 内部 Provider 接口鉴权配置。

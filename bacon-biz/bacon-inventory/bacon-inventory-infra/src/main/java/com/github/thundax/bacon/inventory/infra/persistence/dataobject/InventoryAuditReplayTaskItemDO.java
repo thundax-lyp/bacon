@@ -17,24 +17,34 @@ public class InventoryAuditReplayTaskItemDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+
     @TableField("task_id")
     private Long taskId;
+
     @TableField("tenant_id")
     private Long tenantId;
+
     @TableField("dead_letter_id")
     private Long deadLetterId;
+
     @TableField("item_status")
     private String itemStatus;
+
     @TableField("replay_status")
     private String replayStatus;
+
     @TableField("replay_key")
     private String replayKey;
+
     @TableField("result_message")
     private String resultMessage;
+
     @TableField("started_at")
     private Instant startedAt;
+
     @TableField("finished_at")
     private Instant finishedAt;
+
     @TableField("updated_at")
     private Instant updatedAt;
 }

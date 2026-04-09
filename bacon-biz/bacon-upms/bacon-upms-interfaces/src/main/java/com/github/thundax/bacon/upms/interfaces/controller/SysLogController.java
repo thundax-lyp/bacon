@@ -36,10 +36,15 @@ public class SysLogController {
     @GetMapping("/page")
     public SysLogPageResponse pageLogs(@Valid @ModelAttribute SysLogPageRequest request) {
         return SysLogPageResponse.from(sysLogQueryService.pageLogs(new SysLogQueryDTO(
-                request.getTenantCode() == null || request.getTenantCode().isBlank() ? null : Long.valueOf(request.getTenantCode().trim()),
-                request.getModule(), request.getEventType() == null ? null : request.getEventType().name(),
-                request.getResult(), request.getOperatorName(),
-                request.getPageNo(), request.getPageSize())));
+                request.getTenantCode() == null || request.getTenantCode().isBlank()
+                        ? null
+                        : Long.valueOf(request.getTenantCode().trim()),
+                request.getModule(),
+                request.getEventType() == null ? null : request.getEventType().name(),
+                request.getResult(),
+                request.getOperatorName(),
+                request.getPageNo(),
+                request.getPageSize())));
     }
 
     @Operation(summary = "按日志 ID 查询系统访问日志")

@@ -3,7 +3,6 @@ package com.github.thundax.bacon.inventory.domain.model.enums;
 import java.util.Arrays;
 
 public enum InventoryAuditReplayStatus {
-
     PENDING,
     RUNNING,
     SUCCEEDED,

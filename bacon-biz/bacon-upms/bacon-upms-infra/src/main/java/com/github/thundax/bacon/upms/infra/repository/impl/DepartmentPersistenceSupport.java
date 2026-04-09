@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DepartmentMapper;
 import java.time.LocalDateTime;
@@ -41,7 +41,8 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
         if (departmentIds == null || departmentIds.isEmpty()) {
             return List.of();
         }
-        return departmentMapper.selectList(Wrappers.<DepartmentDO>lambdaQuery()
+        return departmentMapper
+                .selectList(Wrappers.<DepartmentDO>lambdaQuery()
                         .eq(DepartmentDO::getTenantId, tenantId)
                         .in(DepartmentDO::getId, departmentIds)
                         .orderByAsc(DepartmentDO::getId))
@@ -51,7 +52,8 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     List<Department> listDepartmentTree(TenantId tenantId) {
-        return departmentMapper.selectList(Wrappers.<DepartmentDO>lambdaQuery()
+        return departmentMapper
+                .selectList(Wrappers.<DepartmentDO>lambdaQuery()
                         .eq(DepartmentDO::getTenantId, tenantId)
                         .orderByAsc(DepartmentDO::getParentId, DepartmentDO::getSort, DepartmentDO::getId))
                 .stream()
@@ -63,9 +65,11 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
         DepartmentDO dataObject = toDataObject(department);
         LocalDateTime now = LocalDateTime.now();
         DepartmentId departmentId = dataObject.getId();
-        boolean exists = departmentId != null && departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
-                .eq(DepartmentDO::getTenantId, dataObject.getTenantId())
-                .eq(DepartmentDO::getId, departmentId)) != null;
+        boolean exists = departmentId != null
+                && departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
+                                .eq(DepartmentDO::getTenantId, dataObject.getTenantId())
+                                .eq(DepartmentDO::getId, departmentId))
+                        != null;
         if (!exists) {
             dataObject.setCreatedAt(now);
             dataObject.setUpdatedAt(now);
@@ -80,11 +84,19 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
     Department updateDepartmentSort(TenantId tenantId, DepartmentId departmentId, Integer sort) {
         Department currentDepartment = findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
-        return saveDepartment(new Department(currentDepartment.getId(), currentDepartment.getTenantId(),
-                currentDepartment.getCode(), currentDepartment.getName(), currentDepartment.getParentId(),
-                currentDepartment.getLeaderUserId(), sort, currentDepartment.getStatus(),
-                currentDepartment.getCreatedBy(), currentDepartment.getCreatedAt(),
-                currentDepartment.getUpdatedBy(), currentDepartment.getUpdatedAt()));
+        return saveDepartment(new Department(
+                currentDepartment.getId(),
+                currentDepartment.getTenantId(),
+                currentDepartment.getCode(),
+                currentDepartment.getName(),
+                currentDepartment.getParentId(),
+                currentDepartment.getLeaderUserId(),
+                sort,
+                currentDepartment.getStatus(),
+                currentDepartment.getCreatedBy(),
+                currentDepartment.getCreatedAt(),
+                currentDepartment.getUpdatedBy(),
+                currentDepartment.getUpdatedAt()));
     }
 
     void deleteDepartment(TenantId tenantId, DepartmentId departmentId) {
@@ -95,8 +107,9 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     boolean existsChildDepartment(TenantId tenantId, DepartmentId departmentId) {
         return Optional.ofNullable(departmentMapper.selectCount(Wrappers.<DepartmentDO>lambdaQuery()
-                        .eq(DepartmentDO::getTenantId, tenantId)
-                        .eq(DepartmentDO::getParentId, departmentId)))
-                .orElse(0L) > 0L;
+                                .eq(DepartmentDO::getTenantId, tenantId)
+                                .eq(DepartmentDO::getParentId, departmentId)))
+                        .orElse(0L)
+                > 0L;
     }
 }

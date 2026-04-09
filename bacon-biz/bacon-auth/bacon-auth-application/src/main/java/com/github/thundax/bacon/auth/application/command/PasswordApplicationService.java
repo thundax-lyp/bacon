@@ -4,21 +4,19 @@ import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
-import org.springframework.stereotype.Service;
-
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PasswordApplicationService {
 
-    private static final Pattern PASSWORD_PATTERN =
-            Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$");
 
     private final SessionApplicationService sessionApplicationService;
     private final UserPasswordFacade userPasswordFacade;
 
-    public PasswordApplicationService(SessionApplicationService sessionApplicationService,
-                                      UserPasswordFacade userPasswordFacade) {
+    public PasswordApplicationService(
+            SessionApplicationService sessionApplicationService, UserPasswordFacade userPasswordFacade) {
         this.sessionApplicationService = sessionApplicationService;
         this.userPasswordFacade = userPasswordFacade;
     }
@@ -34,10 +32,12 @@ public class PasswordApplicationService {
             throw new IllegalArgumentException("New password must differ from old password");
         }
         CurrentSessionDTO currentSession = sessionApplicationService.currentSession(accessToken);
-        userPasswordFacade.changePassword(TenantId.of(currentSession.getTenantId()), UserId.of(currentSession.getUserId()),
-                oldPassword, newPassword);
-        sessionApplicationService.invalidateUserSessions(currentSession.getTenantId(),
-                currentSession.getUserId(),
-                "SELF_PASSWORD_CHANGED");
+        userPasswordFacade.changePassword(
+                TenantId.of(currentSession.getTenantId()),
+                UserId.of(currentSession.getUserId()),
+                oldPassword,
+                newPassword);
+        sessionApplicationService.invalidateUserSessions(
+                currentSession.getTenantId(), currentSession.getUserId(), "SELF_PASSWORD_CHANGED");
     }
 }

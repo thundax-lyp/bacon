@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums;
 
 public enum EnumFieldFixture {
-
     ENABLED("ENABLED"),
     DISABLED("DISABLED");
 

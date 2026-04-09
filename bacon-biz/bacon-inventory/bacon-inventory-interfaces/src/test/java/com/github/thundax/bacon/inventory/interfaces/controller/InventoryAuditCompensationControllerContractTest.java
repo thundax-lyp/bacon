@@ -1,5 +1,10 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
@@ -9,7 +14,6 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOpera
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
@@ -21,20 +25,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 class InventoryAuditCompensationControllerContractTest {
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        InventoryQueryApplicationService inventoryQueryService = new InventoryQueryApplicationService(
-                null, null, null, new StubAuditDeadLetterRepository());
-        InventoryAuditCompensationController controller = new InventoryAuditCompensationController(
-                inventoryQueryService, null, null);
+        InventoryQueryApplicationService inventoryQueryService =
+                new InventoryQueryApplicationService(null, null, null, new StubAuditDeadLetterRepository());
+        InventoryAuditCompensationController controller =
+                new InventoryAuditCompensationController(inventoryQueryService, null, null);
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
@@ -94,9 +94,8 @@ class InventoryAuditCompensationControllerContractTest {
                 "3001");
 
         @Override
-        public List<InventoryAuditDeadLetter> pageAuditDeadLetters(TenantId tenantId, OrderNo orderNo,
-                                                                   InventoryAuditReplayStatus replayStatus,
-                                                                   int pageNo, int pageSize) {
+        public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
+                TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
             return List.of(deadLetter);
         }
 

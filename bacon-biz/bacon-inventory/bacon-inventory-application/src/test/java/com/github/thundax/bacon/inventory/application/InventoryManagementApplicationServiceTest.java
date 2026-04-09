@@ -1,17 +1,19 @@
 package com.github.thundax.bacon.inventory.application;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -23,8 +25,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class InventoryManagementApplicationServiceTest {
 
     @Test
@@ -32,7 +32,8 @@ class InventoryManagementApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
-        InventoryStockDTO result = service.createInventory(TenantId.of(1001L), SkuId.of(103L), 30, InventoryStatus.ENABLED);
+        InventoryStockDTO result =
+                service.createInventory(TenantId.of(1001L), SkuId.of(103L), 30, InventoryStatus.ENABLED);
 
         assertEquals(103L, result.getSkuId());
         assertEquals(30, result.getOnHandQuantity());
@@ -46,36 +47,44 @@ class InventoryManagementApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
-        InventoryStockDTO result = service.updateInventoryStatus(TenantId.of(1001L), SkuId.of(101L), InventoryStatus.DISABLED);
+        InventoryStockDTO result =
+                service.updateInventoryStatus(TenantId.of(1001L), SkuId.of(101L), InventoryStatus.DISABLED);
 
         assertEquals(InventoryStatus.DISABLED.value(), result.getStatus());
-        assertEquals(InventoryStatus.DISABLED.value(),
-                repository.findInventory(TenantId.of(1001L), SkuId.of(101L)).orElseThrow().getStatus().value());
+        assertEquals(
+                InventoryStatus.DISABLED.value(),
+                repository
+                        .findInventory(TenantId.of(1001L), SkuId.of(101L))
+                        .orElseThrow()
+                        .getStatus()
+                        .value());
     }
 
-    private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,
-            InventoryLogRepository {
+    private static final class TestInventoryRepository
+            implements InventoryStockRepository, InventoryReservationRepository, InventoryLogRepository {
 
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 
         private TestInventoryRepository() {
-            inventories.put(key(1001L, 101L), Inventory.reconstruct(
-                    InventoryId.of(1L),
-                    TenantId.of(1001L),
-                    SkuId.of(101L),
-                    WarehouseCode.of("DEFAULT"),
-                    100,
-                    0,
-                    100,
-                    InventoryStatus.ENABLED,
-                    0L,
-                    Instant.now()));
+            inventories.put(
+                    key(1001L, 101L),
+                    Inventory.reconstruct(
+                            InventoryId.of(1L),
+                            TenantId.of(1001L),
+                            SkuId.of(101L),
+                            WarehouseCode.of("DEFAULT"),
+                            100,
+                            0,
+                            100,
+                            InventoryStatus.ENABLED,
+                            0L,
+                            Instant.now()));
         }
 
         @Override
         public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
-            return Optional.ofNullable(inventories.get(key(tenantId == null ? null : tenantId.value(),
-                    skuId == null ? null : skuId.value())));
+            return Optional.ofNullable(inventories.get(
+                    key(tenantId == null ? null : tenantId.value(), skuId == null ? null : skuId.value())));
         }
 
         @Override
@@ -87,14 +96,16 @@ class InventoryManagementApplicationServiceTest {
 
         @Override
         public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
-            return skuIds.stream().map(skuId -> inventories.get(key(tenantId == null ? null : tenantId.value(),
-                            skuId == null ? null : skuId.value())))
+            return skuIds.stream()
+                    .map(skuId -> inventories.get(
+                            key(tenantId == null ? null : tenantId.value(), skuId == null ? null : skuId.value())))
                     .filter(java.util.Objects::nonNull)
                     .toList();
         }
 
         @Override
-        public List<Inventory> pageInventories(TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        public List<Inventory> pageInventories(
+                TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             return findInventories(tenantId).stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))
@@ -115,8 +126,13 @@ class InventoryManagementApplicationServiceTest {
         public Inventory saveInventory(Inventory inventory) {
             Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
             inventory.markPersisted(version);
-            inventories.put(key(inventory.getTenantId().value(),
-                    inventory.getSkuId() == null ? null : inventory.getSkuId().value()), inventory);
+            inventories.put(
+                    key(
+                            inventory.getTenantId().value(),
+                            inventory.getSkuId() == null
+                                    ? null
+                                    : inventory.getSkuId().value()),
+                    inventory);
             return inventory;
         }
 
@@ -131,8 +147,7 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public void saveLedger(InventoryLedger ledger) {
-        }
+        public void saveLedger(InventoryLedger ledger) {}
 
         @Override
         public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
@@ -140,8 +155,7 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public void saveAuditLog(InventoryAuditLog auditLog) {
-        }
+        public void saveAuditLog(InventoryAuditLog auditLog) {}
 
         @Override
         public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
@@ -151,6 +165,5 @@ class InventoryManagementApplicationServiceTest {
         private static String key(Long tenantId, Long skuId) {
             return tenantId + ":" + skuId;
         }
-
     }
 }

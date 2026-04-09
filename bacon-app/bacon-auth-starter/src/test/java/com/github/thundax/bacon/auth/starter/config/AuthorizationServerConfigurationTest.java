@@ -17,12 +17,11 @@ class AuthorizationServerConfigurationTest {
             .withConfiguration(AutoConfigurations.of(
                     SecurityAutoConfiguration.class,
                     SecurityFilterAutoConfiguration.class,
-                    UserDetailsServiceAutoConfiguration.class
-            ))
+                    UserDetailsServiceAutoConfiguration.class))
             .withUserConfiguration(AuthorizationServerConfiguration.class);
 
-    private final ApplicationContextRunner nonWebContextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(AuthorizationServerConfiguration.class);
+    private final ApplicationContextRunner nonWebContextRunner =
+            new ApplicationContextRunner().withUserConfiguration(AuthorizationServerConfiguration.class);
 
     @Test
     void shouldRegisterSecurityFilterChainInServletWebApplication() {

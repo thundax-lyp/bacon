@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.common.log.annotation;
 
 import com.github.thundax.bacon.common.log.LogEventType;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

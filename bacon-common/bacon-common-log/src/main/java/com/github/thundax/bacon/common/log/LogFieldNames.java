@@ -13,6 +13,5 @@ public final class LogFieldNames {
     public static final String EVENT_RESULT = "eventResult";
     public static final String COST_MS = "costMs";
 
-    private LogFieldNames() {
-    }
+    private LogFieldNames() {}
 }

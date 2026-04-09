@@ -9,5 +9,4 @@ public record ObjectStorageWriteResult(
         /** 对象键。 */
         String objectKey,
         /** 访问端点。 */
-        String accessEndpoint) {
-}
+        String accessEndpoint) {}

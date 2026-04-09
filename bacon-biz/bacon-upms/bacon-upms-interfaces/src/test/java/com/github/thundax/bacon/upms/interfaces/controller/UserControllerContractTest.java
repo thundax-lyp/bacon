@@ -37,12 +37,25 @@ class UserControllerContractTest {
 
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
-        when(userApplicationService.updateAvatar(eq(TENANT_ID), eq(101L), eq("avatar.png"), eq("image/png"), eq(4L),
-                org.mockito.ArgumentMatchers.any()))
-                .thenReturn(new UserDTO(101L, TENANT_ID.value(), "alice", "Alice", 9001L, "13800000001",
-                        11L, "https://cdn.example.com/avatar/9001.png", "ENABLED"));
+        when(userApplicationService.updateAvatar(
+                        eq(TENANT_ID),
+                        eq(101L),
+                        eq("avatar.png"),
+                        eq("image/png"),
+                        eq(4L),
+                        org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new UserDTO(
+                        101L,
+                        TENANT_ID.value(),
+                        "alice",
+                        "Alice",
+                        9001L,
+                        "13800000001",
+                        11L,
+                        "https://cdn.example.com/avatar/9001.png",
+                        "ENABLED"));
 
-        MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[]{1, 2, 3, 4});
+        MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[] {1, 2, 3, 4});
 
         mockMvc.perform(multipart("/upms/users/{userId}/avatar", 101L)
                         .file(file)

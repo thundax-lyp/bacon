@@ -21,16 +21,17 @@ public class LoginSecurityApplicationService {
     private static final Duration CHALLENGE_TTL = Duration.ofMinutes(5);
     private static final int DEFAULT_CACHE_LIMIT = 10_000;
 
-    private final Cache<String, String> loginPasswordPrivateKeyCache = LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
-            .limit(DEFAULT_CACHE_LIMIT)
-            .expireAfterWrite(CHALLENGE_TTL.toSeconds(), TimeUnit.SECONDS)
-            .buildCache();
+    private final Cache<String, String> loginPasswordPrivateKeyCache =
+            LinkedHashMapCacheBuilder.createLinkedHashMapCacheBuilder()
+                    .limit(DEFAULT_CACHE_LIMIT)
+                    .expireAfterWrite(CHALLENGE_TTL.toSeconds(), TimeUnit.SECONDS)
+                    .buildCache();
 
     private final VerificationCodeService verificationCodeService;
     private final RsaCryptoService rsaCryptoService;
 
-    public LoginSecurityApplicationService(VerificationCodeService verificationCodeService,
-                                           RsaCryptoService rsaCryptoService) {
+    public LoginSecurityApplicationService(
+            VerificationCodeService verificationCodeService, RsaCryptoService rsaCryptoService) {
         this.verificationCodeService = verificationCodeService;
         this.rsaCryptoService = rsaCryptoService;
     }
@@ -42,9 +43,15 @@ public class LoginSecurityApplicationService {
                 LOGIN_PASSWORD_CAPTCHA_SCENE, captchaKey, 160, 48, 6, 40, CHALLENGE_TTL);
         RsaKeyPair rsaKeyPair = rsaCryptoService.generateKeyPair();
         // 登录 challenge 把验证码和 RSA 私钥拆开保存：验证码走验证码服务，私钥只做短期一次性解密用途。
-        loginPasswordPrivateKeyCache.put(rsaKeyId, rsaKeyPair.getPrivateKey(), CHALLENGE_TTL.toSeconds(), TimeUnit.SECONDS);
-        return new PasswordLoginChallengeResult(captchaKey, captchaImage.getImageBase64Data(), CHALLENGE_TTL.toSeconds(),
-                rsaKeyId, rsaKeyPair.getPublicKey(), CHALLENGE_TTL.toSeconds());
+        loginPasswordPrivateKeyCache.put(
+                rsaKeyId, rsaKeyPair.getPrivateKey(), CHALLENGE_TTL.toSeconds(), TimeUnit.SECONDS);
+        return new PasswordLoginChallengeResult(
+                captchaKey,
+                captchaImage.getImageBase64Data(),
+                CHALLENGE_TTL.toSeconds(),
+                rsaKeyId,
+                rsaKeyPair.getPublicKey(),
+                CHALLENGE_TTL.toSeconds());
     }
 
     public void verifyPasswordCaptcha(String captchaKey, String captchaCode) {

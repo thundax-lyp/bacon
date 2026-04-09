@@ -18,27 +18,39 @@ public class InventoryDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+
     @TableField("tenant_id")
     private Long tenantId;
+
     @TableField("sku_id")
     private Long skuId;
+
     @TableField("warehouse_code")
     private String warehouseCode;
+
     @TableField("on_hand_quantity")
     private Integer onHandQuantity;
+
     @TableField("reserved_quantity")
     private Integer reservedQuantity;
+
     @TableField("available_quantity")
     private Integer availableQuantity;
+
     private String status;
+
     @Version
     private Long version;
+
     @TableField("created_by")
     private Long createdBy;
+
     @TableField("created_at")
     private Instant createdAt;
+
     @TableField("updated_by")
     private Long updatedBy;
+
     @TableField("updated_at")
     private Instant updatedAt;
 }

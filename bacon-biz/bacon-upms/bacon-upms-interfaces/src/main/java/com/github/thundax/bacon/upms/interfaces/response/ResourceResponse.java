@@ -24,7 +24,14 @@ public record ResourceResponse(
         String status) {
 
     public static ResourceResponse from(ResourceDTO dto) {
-        return new ResourceResponse(dto.getId(), dto.getTenantId(), dto.getCode(), dto.getName(),
-                dto.getResourceType(), dto.getHttpMethod(), dto.getUri(), dto.getStatus());
+        return new ResourceResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getCode(),
+                dto.getName(),
+                dto.getResourceType(),
+                dto.getHttpMethod(),
+                dto.getUri(),
+                dto.getStatus());
     }
 }

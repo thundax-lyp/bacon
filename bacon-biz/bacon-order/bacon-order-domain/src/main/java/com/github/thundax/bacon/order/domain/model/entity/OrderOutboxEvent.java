@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -53,16 +53,42 @@ public class OrderOutboxEvent {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public OrderOutboxEvent(Long id, String eventCode, Long tenantId, String orderNo, OrderOutboxEventType eventType,
-                            String businessKey, String payload, OrderOutboxStatus status, Integer retryCount,
-                            Instant nextRetryAt, String processingOwner, Instant leaseUntil, Instant claimedAt,
-                            String errorMessage, String deadReason, Instant createdAt, Instant updatedAt) {
-        this(id == null ? null : OutboxId.of(id),
+    public OrderOutboxEvent(
+            Long id,
+            String eventCode,
+            Long tenantId,
+            String orderNo,
+            OrderOutboxEventType eventType,
+            String businessKey,
+            String payload,
+            OrderOutboxStatus status,
+            Integer retryCount,
+            Instant nextRetryAt,
+            String processingOwner,
+            Instant leaseUntil,
+            Instant claimedAt,
+            String errorMessage,
+            String deadReason,
+            Instant createdAt,
+            Instant updatedAt) {
+        this(
+                id == null ? null : OutboxId.of(id),
                 eventCode == null ? null : EventCode.of(eventCode),
                 tenantId == null ? null : TenantId.of(tenantId),
                 orderNo == null ? null : OrderNo.of(orderNo),
-                eventType, businessKey, payload, status, retryCount, nextRetryAt, processingOwner, leaseUntil,
-                claimedAt, errorMessage, deadReason, createdAt, updatedAt);
+                eventType,
+                businessKey,
+                payload,
+                status,
+                retryCount,
+                nextRetryAt,
+                processingOwner,
+                leaseUntil,
+                claimedAt,
+                errorMessage,
+                deadReason,
+                createdAt,
+                updatedAt);
     }
 
     public String getEventCodeValue() {

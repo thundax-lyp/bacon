@@ -65,8 +65,11 @@ class BaconMonoTenantConfiguration {
 
         private static final int DEFAULT_EXPIRE_SECONDS = 300;
 
-        @CreateCache(name = "upms:tenant:codeToId:", cacheType = CacheType.BOTH,
-                expire = DEFAULT_EXPIRE_SECONDS, timeUnit = TimeUnit.SECONDS)
+        @CreateCache(
+                name = "upms:tenant:codeToId:",
+                cacheType = CacheType.BOTH,
+                expire = DEFAULT_EXPIRE_SECONDS,
+                timeUnit = TimeUnit.SECONDS)
         private Cache<String, Long> tenantCodeToIdCache;
 
         private final TenantRepository tenantRepository;
@@ -81,10 +84,11 @@ class BaconMonoTenantConfiguration {
             if (cachedTenantId != null) {
                 return cachedTenantId;
             }
-            Long tenantId = tenantRepository.findTenantByCode(normalizedTenantCode)
+            Long tenantId = tenantRepository
+                    .findTenantByCode(normalizedTenantCode)
                     .map(tenant -> tenant.getId().value())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Tenant not found by tenantCode: " + normalizedTenantCode));
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Tenant not found by tenantCode: " + normalizedTenantCode));
             tenantCodeToIdCache.put(normalizedTenantCode, tenantId);
             return tenantId;
         }

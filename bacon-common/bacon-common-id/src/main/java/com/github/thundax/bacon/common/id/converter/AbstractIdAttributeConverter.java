@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.common.id.converter;
 
 import jakarta.persistence.AttributeConverter;
-
 import java.util.Objects;
 import java.util.function.Function;
 

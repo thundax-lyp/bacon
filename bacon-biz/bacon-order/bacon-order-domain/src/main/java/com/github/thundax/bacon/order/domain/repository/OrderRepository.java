@@ -33,12 +33,27 @@ public interface OrderRepository {
 
     List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo);
 
-    long countOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
-                     String inventoryStatus, Instant createdAtFrom, Instant createdAtTo);
+    long countOrders(
+            Long tenantId,
+            Long userId,
+            String orderNo,
+            String orderStatus,
+            String payStatus,
+            String inventoryStatus,
+            Instant createdAtFrom,
+            Instant createdAtTo);
 
-    List<Order> pageOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
-                           String inventoryStatus, Instant createdAtFrom, Instant createdAtTo,
-                           int offset, int limit);
+    List<Order> pageOrders(
+            Long tenantId,
+            Long userId,
+            String orderNo,
+            String orderStatus,
+            String payStatus,
+            String inventoryStatus,
+            Instant createdAtFrom,
+            Instant createdAtTo,
+            int offset,
+            int limit);
 
     List<Order> findAll();
 }

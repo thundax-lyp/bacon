@@ -1,5 +1,11 @@
 package com.github.thundax.bacon.storage.infra.repository.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
@@ -9,21 +15,14 @@ import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionTyp
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxStatus;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StorageAuditOutboxDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.StorageAuditOutboxMapper;
+import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.Instant;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class StorageAuditOutboxRepositoryImplTest {
@@ -40,7 +39,8 @@ class StorageAuditOutboxRepositoryImplTest {
     @Test
     void shouldMapRetryableOutboxFromDataObject() {
         Instant retryBefore = Instant.parse("2026-03-27T10:00:00Z");
-        StorageAuditOutboxDO outbox = buildOutboxDO(101L, StorageAuditOutboxStatus.NEW.value(), retryBefore.minusSeconds(60));
+        StorageAuditOutboxDO outbox =
+                buildOutboxDO(101L, StorageAuditOutboxStatus.NEW.value(), retryBefore.minusSeconds(60));
         when(storageAuditOutboxMapper.selectList(any(Wrapper.class))).thenReturn(List.of(outbox));
 
         List<StorageAuditOutbox> result = storageAuditOutboxRepository.listRetryable(
@@ -64,8 +64,8 @@ class StorageAuditOutboxRepositoryImplTest {
         ArgumentCaptor<StorageAuditOutboxDO> updateCaptor = ArgumentCaptor.forClass(StorageAuditOutboxDO.class);
         ArgumentCaptor<Wrapper<StorageAuditOutboxDO>> wrapperCaptor = ArgumentCaptor.forClass(Wrapper.class);
 
-        storageAuditOutboxRepository.updateForRetry(201L, 2, nextRetryAt, "temporary-error",
-                StorageAuditOutboxStatus.RETRYING, updatedAt);
+        storageAuditOutboxRepository.updateForRetry(
+                201L, 2, nextRetryAt, "temporary-error", StorageAuditOutboxStatus.RETRYING, updatedAt);
 
         verify(storageAuditOutboxMapper).update(updateCaptor.capture(), wrapperCaptor.capture());
         StorageAuditOutboxDO update = updateCaptor.getValue();
@@ -97,9 +97,10 @@ class StorageAuditOutboxRepositoryImplTest {
     @Test
     void shouldDeleteExpiredDeadOutboxBySelectedIds() {
         Instant updatedBefore = Instant.parse("2026-03-27T10:00:00Z");
-        when(storageAuditOutboxMapper.selectList(any(Wrapper.class))).thenReturn(List.of(
-                buildOutboxDO(401L, StorageAuditOutboxStatus.DEAD.value(), updatedBefore.minusSeconds(120)),
-                buildOutboxDO(402L, StorageAuditOutboxStatus.DEAD.value(), updatedBefore.minusSeconds(60))));
+        when(storageAuditOutboxMapper.selectList(any(Wrapper.class)))
+                .thenReturn(List.of(
+                        buildOutboxDO(401L, StorageAuditOutboxStatus.DEAD.value(), updatedBefore.minusSeconds(120)),
+                        buildOutboxDO(402L, StorageAuditOutboxStatus.DEAD.value(), updatedBefore.minusSeconds(60))));
         when(storageAuditOutboxMapper.deleteByIds(List.of(401L, 402L))).thenReturn(2);
 
         int deleted = storageAuditOutboxRepository.deleteExpiredDead(updatedBefore, 20);

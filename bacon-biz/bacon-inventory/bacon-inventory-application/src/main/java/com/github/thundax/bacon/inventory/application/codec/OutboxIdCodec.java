@@ -4,8 +4,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 
 public final class OutboxIdCodec {
 
-    private OutboxIdCodec() {
-    }
+    private OutboxIdCodec() {}
 
     public static OutboxId toDomain(Long value) {
         if (value == null) {

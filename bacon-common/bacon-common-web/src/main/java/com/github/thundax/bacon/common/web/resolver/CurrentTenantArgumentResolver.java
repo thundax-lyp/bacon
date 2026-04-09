@@ -26,8 +26,11 @@ public class CurrentTenantArgumentResolver implements HandlerMethodArgumentResol
     }
 
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-                                  NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+    public Object resolveArgument(
+            MethodParameter parameter,
+            ModelAndViewContainer mavContainer,
+            NativeWebRequest webRequest,
+            WebDataBinderFactory binderFactory) {
         Long tenantId = currentTenantProvider.currentTenantId();
         if (tenantId == null) {
             throw new IllegalArgumentException("tenantId is required for current request");

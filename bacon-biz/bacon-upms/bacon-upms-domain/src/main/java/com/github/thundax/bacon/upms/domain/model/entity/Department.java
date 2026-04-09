@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,14 +40,31 @@ public class Department {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Department(Long id, Long tenantId, String code, String name, Long parentId, Long leaderUserId,
-                      Integer sort, DepartmentStatus status, String createdBy, Instant createdAt, String updatedBy,
-                      Instant updatedAt) {
-        this(id == null ? null : DepartmentId.of(id),
+    public Department(
+            Long id,
+            Long tenantId,
+            String code,
+            String name,
+            Long parentId,
+            Long leaderUserId,
+            Integer sort,
+            DepartmentStatus status,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        this(
+                id == null ? null : DepartmentId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
-                code, name,
+                code,
+                name,
                 parentId == null ? null : DepartmentId.of(parentId),
                 leaderUserId == null ? null : UserId.of(leaderUserId),
-                sort, status, createdBy, createdAt, updatedBy, updatedAt);
+                sort,
+                status,
+                createdBy,
+                createdAt,
+                updatedBy,
+                updatedAt);
     }
 }

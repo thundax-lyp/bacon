@@ -1,18 +1,18 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.context.annotation.Primary;
@@ -71,7 +71,8 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId, String currencyCode) {
+    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(
+            Long tenantId, Long orderId, String currencyCode) {
         OrderPaymentSnapshot snapshot = paymentSnapshotStorage.get(orderId);
         if (snapshot == null || !tenantId.equals(snapshot.tenantIdValue())) {
             return Optional.empty();
@@ -95,8 +96,11 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     @Override
     public void saveAuditLog(OrderAuditLog auditLog) {
-        String key = toTenantIdValue(auditLog.tenantId()) + ":" + auditLog.orderNo().value();
-        auditLogStorage.computeIfAbsent(key, unused -> new java.util.ArrayList<>()).add(auditLog);
+        String key =
+                toTenantIdValue(auditLog.tenantId()) + ":" + auditLog.orderNo().value();
+        auditLogStorage
+                .computeIfAbsent(key, unused -> new java.util.ArrayList<>())
+                .add(auditLog);
     }
 
     @Override
@@ -105,28 +109,48 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public long countOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
-                            String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
-        return filterOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
+    public long countOrders(
+            Long tenantId,
+            Long userId,
+            String orderNo,
+            String orderStatus,
+            String payStatus,
+            String inventoryStatus,
+            Instant createdAtFrom,
+            Instant createdAtTo) {
+        return filterOrders(
+                        tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
                 .size();
     }
 
     @Override
-    public List<Order> pageOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
-                                  String inventoryStatus, Instant createdAtFrom, Instant createdAtTo,
-                                  int offset, int limit) {
-        List<Order> filtered = filterOrders(tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus,
-                createdAtFrom, createdAtTo);
+    public List<Order> pageOrders(
+            Long tenantId,
+            Long userId,
+            String orderNo,
+            String orderStatus,
+            String payStatus,
+            String inventoryStatus,
+            Instant createdAtFrom,
+            Instant createdAtTo,
+            int offset,
+            int limit) {
+        List<Order> filtered = filterOrders(
+                tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
         int normalizedOffset = Math.max(offset, 0);
         int normalizedLimit = Math.max(limit, 1);
-        return filtered.stream()
-                .skip(normalizedOffset)
-                .limit(normalizedLimit)
-                .toList();
+        return filtered.stream().skip(normalizedOffset).limit(normalizedLimit).toList();
     }
 
-    private List<Order> filterOrders(Long tenantId, Long userId, String orderNo, String orderStatus, String payStatus,
-                                     String inventoryStatus, Instant createdAtFrom, Instant createdAtTo) {
+    private List<Order> filterOrders(
+            Long tenantId,
+            Long userId,
+            String orderNo,
+            String orderStatus,
+            String payStatus,
+            String inventoryStatus,
+            Instant createdAtFrom,
+            Instant createdAtTo) {
         List<Order> filtered = storage.values().stream()
                 .filter(order -> tenantId == null || String.valueOf(tenantId).equals(order.getTenantIdValue()))
                 .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
@@ -136,7 +160,8 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
                 .filter(order -> inventoryStatus == null || inventoryStatus.equals(order.getInventoryStatusValue()))
                 .filter(order -> createdAtFrom == null || !order.getCreatedAt().isBefore(createdAtFrom))
                 .filter(order -> createdAtTo == null || !order.getCreatedAt().isAfter(createdAtTo))
-                .sorted(Comparator.comparing(Order::getCreatedAt).reversed()
+                .sorted(Comparator.comparing(Order::getCreatedAt)
+                        .reversed()
                         .thenComparing(this::toOrderIdValue, Comparator.reverseOrder()))
                 .toList();
         return filtered;

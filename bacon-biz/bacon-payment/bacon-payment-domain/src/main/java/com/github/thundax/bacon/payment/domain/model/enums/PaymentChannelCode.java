@@ -8,7 +8,6 @@ import java.util.Arrays;
  * 支付渠道编码。
  */
 public enum PaymentChannelCode {
-
     MOCK;
 
     public String value() {

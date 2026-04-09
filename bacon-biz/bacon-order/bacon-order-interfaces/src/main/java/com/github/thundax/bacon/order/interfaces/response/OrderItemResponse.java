@@ -23,7 +23,12 @@ public record OrderItemResponse(
         @Schema(description = "行金额", example = "10.00") BigDecimal lineAmount) {
 
     public static OrderItemResponse from(OrderItemDTO dto) {
-        return new OrderItemResponse(dto.getSkuId(), dto.getSkuName(), dto.getImageUrl(), dto.getQuantity(), dto.getSalePrice(),
+        return new OrderItemResponse(
+                dto.getSkuId(),
+                dto.getSkuName(),
+                dto.getImageUrl(),
+                dto.getQuantity(),
+                dto.getSalePrice(),
                 dto.getLineAmount());
     }
 }

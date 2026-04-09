@@ -13,8 +13,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class BaconSeataAutoConfigurationTest {
 
-    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(BaconSeataAutoConfiguration.class));
+    private final ApplicationContextRunner contextRunner =
+            new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(BaconSeataAutoConfiguration.class));
 
     @Test
     void shouldNotRegisterSeataBeansWhenDisabled() {
@@ -40,13 +40,10 @@ class BaconSeataAutoConfigurationTest {
     @Test
     void shouldFailWhenDataSourceMissing() {
         contextRunner
-                .withPropertyValues(
-                        "bacon.seata.enabled=true",
-                        "spring.application.name=test-app")
+                .withPropertyValues("bacon.seata.enabled=true", "spring.application.name=test-app")
                 .run(context -> {
                     assertThat(context).hasFailed();
-                    assertThat(context.getStartupFailure())
-                            .hasMessageContaining("baconGlobalTransactionScanner");
+                    assertThat(context.getStartupFailure()).hasMessageContaining("baconGlobalTransactionScanner");
                 });
     }
 
@@ -116,5 +113,4 @@ class BaconSeataAutoConfigurationTest {
                     return null;
                 });
     }
-
 }

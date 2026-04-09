@@ -27,8 +27,8 @@ public class BaconSeataAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(GlobalTransactionScanner.class)
-    public GlobalTransactionScanner baconGlobalTransactionScanner(Environment environment,
-                                                                  BaconSeataProperties properties) {
+    public GlobalTransactionScanner baconGlobalTransactionScanner(
+            Environment environment, BaconSeataProperties properties) {
         String applicationId = environment.getProperty("spring.application.name");
         if (applicationId == null || applicationId.isBlank()) {
             throw new IllegalStateException("spring.application.name must be set when Seata is enabled");

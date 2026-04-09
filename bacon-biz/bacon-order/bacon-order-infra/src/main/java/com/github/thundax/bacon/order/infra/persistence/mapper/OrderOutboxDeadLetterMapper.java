@@ -5,5 +5,4 @@ import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxDe
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface OrderOutboxDeadLetterMapper extends BaseMapper<OrderOutboxDeadLetterDO> {
-}
+public interface OrderOutboxDeadLetterMapper extends BaseMapper<OrderOutboxDeadLetterDO> {}

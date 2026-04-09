@@ -1,24 +1,24 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
-import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationAssembler;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
-import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
-import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import com.github.thundax.bacon.inventory.domain.service.InventoryReservationNoGenerator;
@@ -44,12 +44,13 @@ public class InventoryReservationApplicationService {
     private final InventoryWriteRetrier inventoryWriteRetrier;
 
     @Autowired
-    public InventoryReservationApplicationService(InventoryStockRepository inventoryStockRepository,
-                                                  InventoryReservationRepository inventoryReservationRepository,
-                                                  InventoryOperationLogSupport inventoryOperationLogService,
-                                                  InventoryReservationNoGenerator inventoryReservationNoGenerator,
-                                                  InventoryTransactionExecutor inventoryTransactionExecutor,
-                                                  InventoryWriteRetrier inventoryWriteRetrier) {
+    public InventoryReservationApplicationService(
+            InventoryStockRepository inventoryStockRepository,
+            InventoryReservationRepository inventoryReservationRepository,
+            InventoryOperationLogSupport inventoryOperationLogService,
+            InventoryReservationNoGenerator inventoryReservationNoGenerator,
+            InventoryTransactionExecutor inventoryTransactionExecutor,
+            InventoryWriteRetrier inventoryWriteRetrier) {
         this.inventoryStockRepository = inventoryStockRepository;
         this.inventoryReservationRepository = inventoryReservationRepository;
         this.inventoryOperationLogService = inventoryOperationLogService;
@@ -58,22 +59,34 @@ public class InventoryReservationApplicationService {
         this.inventoryWriteRetrier = inventoryWriteRetrier;
     }
 
-    public InventoryReservationApplicationService(InventoryStockRepository inventoryStockRepository,
-                                                  InventoryReservationRepository inventoryReservationRepository,
-                                                  InventoryOperationLogSupport inventoryOperationLogService,
-                                                  InventoryReservationNoGenerator inventoryReservationNoGenerator) {
-        this(inventoryStockRepository, inventoryReservationRepository, inventoryOperationLogService,
-                inventoryReservationNoGenerator, new InventoryTransactionExecutor(), new InventoryWriteRetrier());
+    public InventoryReservationApplicationService(
+            InventoryStockRepository inventoryStockRepository,
+            InventoryReservationRepository inventoryReservationRepository,
+            InventoryOperationLogSupport inventoryOperationLogService,
+            InventoryReservationNoGenerator inventoryReservationNoGenerator) {
+        this(
+                inventoryStockRepository,
+                inventoryReservationRepository,
+                inventoryOperationLogService,
+                inventoryReservationNoGenerator,
+                new InventoryTransactionExecutor(),
+                new InventoryWriteRetrier());
     }
 
-    public InventoryReservationResultDTO reserveStock(TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
-        return inventoryWriteRetrier.execute("reserve", tenantId + ":" + orderNo, () ->
-                inventoryTransactionExecutor.executeInNewTransaction(() ->
-                        reserveStockOnce(tenantId, orderNo, items)));
+    public InventoryReservationResultDTO reserveStock(
+            TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
+        return inventoryWriteRetrier.execute(
+                "reserve",
+                tenantId + ":" + orderNo,
+                () -> inventoryTransactionExecutor.executeInNewTransaction(
+                        () -> reserveStockOnce(tenantId, orderNo, items)));
     }
 
-    private InventoryReservationResultDTO reserveStockOnce(TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
-        InventoryReservation existingReservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
+    private InventoryReservationResultDTO reserveStockOnce(
+            TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
+        InventoryReservation existingReservation = inventoryReservationRepository
+                .findReservation(tenantId, orderNo)
+                .orElse(null);
         if (existingReservation != null) {
             if (InventoryReservationStatus.CREATED.equals(existingReservation.getReservationStatus())) {
                 return completeCreatedReservation(existingReservation);
@@ -83,8 +96,8 @@ public class InventoryReservationApplicationService {
         return createReservation(tenantId, orderNo, items);
     }
 
-    private InventoryReservationResultDTO createReservation(TenantId tenantId, OrderNo orderNo,
-                                                            List<InventoryReservationItemDTO> items) {
+    private InventoryReservationResultDTO createReservation(
+            TenantId tenantId, OrderNo orderNo, List<InventoryReservationItemDTO> items) {
         String reservationNo = inventoryReservationNoGenerator.nextReservationNo();
         ReservationNo reservationNoValue = ReservationNoCodec.toDomain(reservationNo);
         WarehouseCode warehouseCodeValue = WarehouseCode.DEFAULT;
@@ -93,10 +106,19 @@ public class InventoryReservationApplicationService {
                 tenantId == null ? null : tenantId.value(),
                 reservationNoValue == null ? null : reservationNoValue.value(),
                 normalizedItems);
-        InventoryReservation reservation = new InventoryReservation(null,
+        InventoryReservation reservation = new InventoryReservation(
+                null,
                 tenantId,
-                reservationNoValue, orderNo, warehouseCodeValue, Instant.now(), reservationItems,
-                InventoryReservationStatus.CREATED, null, null, null, null);
+                reservationNoValue,
+                orderNo,
+                warehouseCodeValue,
+                Instant.now(),
+                reservationItems,
+                InventoryReservationStatus.CREATED,
+                null,
+                null,
+                null,
+                null);
 
         ReservationValidationResult validationResult = validateReservation(tenantId, normalizedItems);
         String failureReason = validationResult.failureReason();
@@ -107,7 +129,9 @@ public class InventoryReservationApplicationService {
             return InventoryReservationResultAssembler.fromReservation(reservation);
         }
 
-        InventoryReservation existing = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
+        InventoryReservation existing = inventoryReservationRepository
+                .findReservation(tenantId, orderNo)
+                .orElse(null);
         if (existing != null) {
             return InventoryReservationResultAssembler.fromReservation(existing);
         }
@@ -143,7 +167,8 @@ public class InventoryReservationApplicationService {
                 .toList();
     }
 
-    private ReservationValidationResult validateReservation(TenantId tenantId, List<InventoryReservationItemDTO> items) {
+    private ReservationValidationResult validateReservation(
+            TenantId tenantId, List<InventoryReservationItemDTO> items) {
         if (items.isEmpty()) {
             return ReservationValidationResult.failed(InventoryErrorCode.INVALID_QUANTITY.code());
         }
@@ -151,10 +176,14 @@ public class InventoryReservationApplicationService {
                 .map(InventoryReservationItemDTO::getSkuId)
                 .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toSet());
-        Map<Long, Inventory> inventoryBySku = inventoryStockRepository.findInventories(tenantId,
-                        skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet())).stream()
+        Map<Long, Inventory> inventoryBySku = inventoryStockRepository
+                .findInventories(
+                        tenantId, skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()))
+                .stream()
                 .collect(java.util.stream.Collectors.toMap(
-                        inventory -> inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
+                        inventory -> inventory.getSkuId() == null
+                                ? null
+                                : inventory.getSkuId().value(),
                         inventory -> inventory));
         for (InventoryReservationItemDTO item : items) {
             if (item.getSkuId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
@@ -163,8 +192,8 @@ public class InventoryReservationApplicationService {
             try {
                 Inventory inventory = inventoryBySku.get(item.getSkuId());
                 if (inventory == null) {
-                    throw new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                            String.valueOf(item.getSkuId()));
+                    throw new InventoryDomainException(
+                            InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(item.getSkuId()));
                 }
                 inventory.ensureReservable(item.getQuantity());
             } catch (InventoryDomainException ex) {
@@ -178,21 +207,21 @@ public class InventoryReservationApplicationService {
         try {
             return inventoryReservationRepository.saveReservation(reservation);
         } catch (DuplicateKeyException ex) {
-            return inventoryReservationRepository.findReservation(reservation.getTenantId(),
-                    reservation.getOrderNo())
+            return inventoryReservationRepository
+                    .findReservation(reservation.getTenantId(), reservation.getOrderNo())
                     .orElseThrow(() -> ex);
         }
     }
 
-    private void reserveStockOnce(TenantId tenantId,
-                                  InventoryReservationItem item,
-                                  Instant operatedAt,
-                                  Map<Long, Inventory> inventoryBySku) {
+    private void reserveStockOnce(
+            TenantId tenantId, InventoryReservationItem item, Instant operatedAt, Map<Long, Inventory> inventoryBySku) {
         Long skuId = SkuIdMapper.toValue(item.getSkuId());
         Inventory inventory = inventoryBySku.get(skuId);
         if (inventory == null) {
-            inventory = inventoryStockRepository.findInventory(tenantId, item.getSkuId())
-                    .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
+            inventory = inventoryStockRepository
+                    .findInventory(tenantId, item.getSkuId())
+                    .orElseThrow(() -> new InventoryDomainException(
+                            InventoryErrorCode.INVENTORY_NOT_FOUND,
                             String.valueOf(SkuIdMapper.toValue(item.getSkuId()))));
             inventoryBySku.put(skuId, inventory);
         }

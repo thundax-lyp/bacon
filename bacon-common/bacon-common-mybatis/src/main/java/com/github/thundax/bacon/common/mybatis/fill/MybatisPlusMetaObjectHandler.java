@@ -2,10 +2,9 @@ package com.github.thundax.bacon.common.mybatis.fill;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
-import org.apache.ibatis.reflection.MetaObject;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
+import org.apache.ibatis.reflection.MetaObject;
 
 public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
@@ -45,8 +44,8 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
         return currentUserId == null || currentUserId.isBlank() ? "system" : currentUserId;
     }
 
-    private <T> void fillIfPresent(MetaObject metaObject, String fieldName, Class<T> fieldType,
-                                   T fieldValue, boolean insert) {
+    private <T> void fillIfPresent(
+            MetaObject metaObject, String fieldName, Class<T> fieldType, T fieldValue, boolean insert) {
         if (!metaObject.hasGetter(fieldName) || !metaObject.hasSetter(fieldName)) {
             return;
         }

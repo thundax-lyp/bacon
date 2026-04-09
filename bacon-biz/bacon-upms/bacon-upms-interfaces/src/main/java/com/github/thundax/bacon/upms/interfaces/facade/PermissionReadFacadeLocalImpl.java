@@ -7,12 +7,11 @@ import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
 import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
+import java.util.List;
+import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Set;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
@@ -21,8 +20,9 @@ public class PermissionReadFacadeLocalImpl implements PermissionReadFacade {
     private final PermissionQueryApplicationService permissionQueryService;
     private final TenantApplicationService tenantApplicationService;
 
-    public PermissionReadFacadeLocalImpl(PermissionQueryApplicationService permissionQueryService,
-                                         TenantApplicationService tenantApplicationService) {
+    public PermissionReadFacadeLocalImpl(
+            PermissionQueryApplicationService permissionQueryService,
+            TenantApplicationService tenantApplicationService) {
         this.permissionQueryService = permissionQueryService;
         this.tenantApplicationService = tenantApplicationService;
     }

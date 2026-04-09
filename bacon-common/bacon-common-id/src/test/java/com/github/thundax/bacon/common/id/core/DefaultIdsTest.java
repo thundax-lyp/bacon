@@ -1,13 +1,12 @@
 package com.github.thundax.bacon.common.id.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class DefaultIdsTest {
 
@@ -21,9 +20,7 @@ class DefaultIdsTest {
 
         assertThat(userId).isEqualTo(UserId.of(1001L));
         assertThat(storedObjectId).isEqualTo(StoredObjectId.of(1002L));
-        assertThat(idGenerator.bizTags).containsExactly(
-                "user-id",
-                "stored-object-id");
+        assertThat(idGenerator.bizTags).containsExactly("user-id", "stored-object-id");
     }
 
     private static final class RecordingIdGenerator implements IdGenerator {

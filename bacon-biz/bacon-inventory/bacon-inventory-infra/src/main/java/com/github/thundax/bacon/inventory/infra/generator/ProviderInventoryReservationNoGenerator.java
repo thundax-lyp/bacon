@@ -27,15 +27,15 @@ public class ProviderInventoryReservationNoGenerator implements InventoryReserva
         try {
             long id = idGenerator.nextId(BIZ_TYPE);
             if (id <= 0L) {
-                throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_UNAVAILABLE,
-                        "id-provider-return-invalid");
+                throw new InventoryDomainException(
+                        InventoryErrorCode.INVENTORY_REMOTE_UNAVAILABLE, "id-provider-return-invalid");
             }
             return PREFIX + id;
         } catch (InventoryDomainException ex) {
             throw ex;
         } catch (RuntimeException ex) {
-            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_UNAVAILABLE,
-                    "id-provider-call-failed", ex);
+            throw new InventoryDomainException(
+                    InventoryErrorCode.INVENTORY_REMOTE_UNAVAILABLE, "id-provider-call-failed", ex);
         }
     }
 }

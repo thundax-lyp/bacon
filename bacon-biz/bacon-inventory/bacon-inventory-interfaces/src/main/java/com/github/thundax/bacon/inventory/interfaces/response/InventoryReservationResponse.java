@@ -32,10 +32,19 @@ public record InventoryReservationResponse(
         Instant deductedAt) {
 
     public static InventoryReservationResponse from(InventoryReservationDTO dto) {
-        return new InventoryReservationResponse(dto.getTenantId(), dto.getOrderNo(), dto.getReservationNo(),
-                dto.getReservationStatus(), dto.getWarehouseCode(), dto.getItems().stream()
-                .map(InventoryReservationItemResponse::from)
-                .toList(), dto.getFailureReason(), dto.getReleaseReason(), dto.getCreatedAt(), dto.getReleasedAt(),
+        return new InventoryReservationResponse(
+                dto.getTenantId(),
+                dto.getOrderNo(),
+                dto.getReservationNo(),
+                dto.getReservationStatus(),
+                dto.getWarehouseCode(),
+                dto.getItems().stream()
+                        .map(InventoryReservationItemResponse::from)
+                        .toList(),
+                dto.getFailureReason(),
+                dto.getReleaseReason(),
+                dto.getCreatedAt(),
+                dto.getReleasedAt(),
                 dto.getDeductedAt());
     }
 }

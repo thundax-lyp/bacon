@@ -42,7 +42,9 @@ public class PaymentCallbackRequest {
         return Boolean.TRUE.equals(success);
     }
 
-    @AssertTrue(message = "Successful callback requires channelTransactionNo, channelStatus and rawPayload, and reason must be blank")
+    @AssertTrue(
+            message =
+                    "Successful callback requires channelTransactionNo, channelStatus and rawPayload, and reason must be blank")
     public boolean isSuccessPayloadValid() {
         if (!isSuccess()) {
             return true;

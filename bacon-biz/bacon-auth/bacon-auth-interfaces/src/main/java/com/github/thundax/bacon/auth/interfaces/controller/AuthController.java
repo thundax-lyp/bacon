@@ -1,11 +1,11 @@
 package com.github.thundax.bacon.auth.interfaces.controller;
 
-import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
-import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.application.command.LoginApplicationService;
 import com.github.thundax.bacon.auth.application.command.PasswordApplicationService;
+import com.github.thundax.bacon.auth.application.command.PasswordLoginCommand;
 import com.github.thundax.bacon.auth.application.command.SessionApplicationService;
 import com.github.thundax.bacon.auth.application.command.TokenApplicationService;
+import com.github.thundax.bacon.auth.application.result.PasswordLoginChallengeResult;
 import com.github.thundax.bacon.auth.interfaces.dto.PasswordChangeRequest;
 import com.github.thundax.bacon.auth.interfaces.dto.PasswordLoginRequest;
 import com.github.thundax.bacon.auth.interfaces.dto.SmsLoginRequest;
@@ -17,9 +17,9 @@ import com.github.thundax.bacon.auth.interfaces.response.UserLoginResponse;
 import com.github.thundax.bacon.auth.interfaces.response.UserTokenRefreshResponse;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.common.web.util.BearerTokenUtils;
-import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,10 +39,11 @@ public class AuthController {
     private final SessionApplicationService sessionApplicationService;
     private final PasswordApplicationService passwordApplicationService;
 
-    public AuthController(LoginApplicationService loginApplicationService,
-                          TokenApplicationService tokenApplicationService,
-                          SessionApplicationService sessionApplicationService,
-                          PasswordApplicationService passwordApplicationService) {
+    public AuthController(
+            LoginApplicationService loginApplicationService,
+            TokenApplicationService tokenApplicationService,
+            SessionApplicationService sessionApplicationService,
+            PasswordApplicationService passwordApplicationService) {
         this.loginApplicationService = loginApplicationService;
         this.tokenApplicationService = tokenApplicationService;
         this.sessionApplicationService = sessionApplicationService;
@@ -53,16 +54,25 @@ public class AuthController {
     @PostMapping("/login/password/challenge")
     public PasswordLoginChallengeResponse passwordLoginChallenge() {
         PasswordLoginChallengeResult result = loginApplicationService.issuePasswordLoginChallenge();
-        return new PasswordLoginChallengeResponse(result.getCaptchaKey(), result.getCaptchaImageBase64(),
-                result.getCaptchaExpiresIn(), result.getRsaKeyId(), result.getRsaPublicKey(), result.getRsaExpiresIn());
+        return new PasswordLoginChallengeResponse(
+                result.getCaptchaKey(),
+                result.getCaptchaImageBase64(),
+                result.getCaptchaExpiresIn(),
+                result.getRsaKeyId(),
+                result.getRsaPublicKey(),
+                result.getRsaExpiresIn());
     }
 
     @Operation(summary = "账号密码登录")
     @PostMapping("/login/password")
     public UserLoginResponse passwordLogin(@Valid @RequestBody PasswordLoginRequest request) {
         return UserLoginResponse.from(loginApplicationService.loginByPassword(new PasswordLoginCommand(
-                Long.parseLong(request.getTenantCode().trim()), request.getAccount(), request.getPassword(), request.getRsaKeyId(),
-                request.getCaptchaKey(), request.getCaptchaCode())));
+                Long.parseLong(request.getTenantCode().trim()),
+                request.getAccount(),
+                request.getPassword(),
+                request.getRsaKeyId(),
+                request.getCaptchaKey(),
+                request.getCaptchaCode())));
     }
 
     @Operation(summary = "短信登录")
@@ -97,10 +107,10 @@ public class AuthController {
 
     @Operation(summary = "修改当前用户密码")
     @PostMapping("/password/change")
-    public void changePassword(@RequestHeader("Authorization") String authorization,
-                               @Valid @RequestBody PasswordChangeRequest request) {
-        passwordApplicationService.changePassword(BearerTokenUtils.extractToken(authorization),
-                request.getOldPassword(), request.getNewPassword());
+    public void changePassword(
+            @RequestHeader("Authorization") String authorization, @Valid @RequestBody PasswordChangeRequest request) {
+        passwordApplicationService.changePassword(
+                BearerTokenUtils.extractToken(authorization), request.getOldPassword(), request.getNewPassword());
     }
 
     @Operation(summary = "获取当前会话信息")

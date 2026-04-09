@@ -5,5 +5,4 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface DepartmentMapper extends BaseMapper<DepartmentDO> {
-}
+public interface DepartmentMapper extends BaseMapper<DepartmentDO> {}

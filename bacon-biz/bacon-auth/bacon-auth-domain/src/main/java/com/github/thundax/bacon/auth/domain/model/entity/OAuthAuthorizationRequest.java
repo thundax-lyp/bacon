@@ -40,16 +40,29 @@ public class OAuthAuthorizationRequest {
     /** 是否已使用。 */
     private boolean used;
 
-    public OAuthAuthorizationRequest(String authorizationRequestId, String clientId, String redirectUri,
-                                     List<String> scopes, String state, String codeChallenge,
-                                     String codeChallengeMethod, Long tenantId, Long userId, Instant expireAt) {
-        this(authorizationRequestId,
+    public OAuthAuthorizationRequest(
+            String authorizationRequestId,
+            String clientId,
+            String redirectUri,
+            List<String> scopes,
+            String state,
+            String codeChallenge,
+            String codeChallengeMethod,
+            Long tenantId,
+            Long userId,
+            Instant expireAt) {
+        this(
+                authorizationRequestId,
                 clientId == null ? null : ClientCode.of(clientId),
-                redirectUri, toLinkedHashSet(scopes), state, codeChallenge,
+                redirectUri,
+                toLinkedHashSet(scopes),
+                state,
+                codeChallenge,
                 codeChallengeMethod,
                 tenantId == null ? null : TenantId.of(tenantId),
                 userId == null ? null : UserId.of(userId),
-                expireAt, false);
+                expireAt,
+                false);
     }
 
     private static Set<String> toLinkedHashSet(List<String> values) {

@@ -25,7 +25,14 @@ public record InventoryAuditLogResponse(
         Instant occurredAt) {
 
     public static InventoryAuditLogResponse from(InventoryAuditLogDTO dto) {
-        return new InventoryAuditLogResponse(dto.getId(), dto.getTenantId(), dto.getOrderNo(), dto.getReservationNo(),
-                dto.getActionType(), dto.getOperatorType(), dto.getOperatorId(), dto.getOccurredAt());
+        return new InventoryAuditLogResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getOrderNo(),
+                dto.getReservationNo(),
+                dto.getActionType(),
+                dto.getOperatorType(),
+                dto.getOperatorId(),
+                dto.getOccurredAt());
     }
 }

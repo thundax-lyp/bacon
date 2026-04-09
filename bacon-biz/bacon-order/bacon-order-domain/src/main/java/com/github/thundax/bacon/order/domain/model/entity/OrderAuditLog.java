@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.OperatorType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import java.time.Instant;
 
 /**
@@ -28,6 +28,4 @@ public record OrderAuditLog(
         /** 操作人标识。 */
         String operatorId,
         /** 发生时间。 */
-        Instant occurredAt
-) {
-}
+        Instant occurredAt) {}

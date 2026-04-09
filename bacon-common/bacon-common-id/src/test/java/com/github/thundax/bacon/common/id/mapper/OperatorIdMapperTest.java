@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.common.id.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class OperatorIdMapperTest {
 

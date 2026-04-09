@@ -1,8 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.provider;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
@@ -14,10 +12,11 @@ import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
-import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
-import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
+import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
+import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
@@ -41,11 +40,12 @@ public class UpmsProviderController {
     private final PermissionQueryApplicationService permissionQueryService;
     private final TenantApplicationService tenantApplicationService;
 
-    public UpmsProviderController(UserApplicationService userApplicationService,
-                                  DepartmentApplicationService departmentApplicationService,
-                                  RoleApplicationService roleApplicationService,
-                                  PermissionQueryApplicationService permissionQueryService,
-                                  TenantApplicationService tenantApplicationService) {
+    public UpmsProviderController(
+            UserApplicationService userApplicationService,
+            DepartmentApplicationService departmentApplicationService,
+            RoleApplicationService roleApplicationService,
+            PermissionQueryApplicationService permissionQueryService,
+            TenantApplicationService tenantApplicationService) {
         this.userApplicationService = userApplicationService;
         this.departmentApplicationService = departmentApplicationService;
         this.roleApplicationService = roleApplicationService;
@@ -61,25 +61,28 @@ public class UpmsProviderController {
 
     @Operation(summary = "按身份标识查询用户身份")
     @GetMapping("/user-identities")
-    public UserIdentityDTO getUserIdentity(@RequestParam("tenantId") Long tenantId,
-                                           @RequestParam("identityType") String identityType,
-                                           @RequestParam("identityValue") String identityValue) {
+    public UserIdentityDTO getUserIdentity(
+            @RequestParam("tenantId") Long tenantId,
+            @RequestParam("identityType") String identityType,
+            @RequestParam("identityValue") String identityValue) {
         return userApplicationService.getUserIdentity(tenantId, identityType, identityValue);
     }
 
     @Operation(summary = "按身份标识查询用户登录凭据")
     @GetMapping("/user-credentials")
-    public UserLoginCredentialDTO getUserLoginCredential(@RequestParam("tenantId") Long tenantId,
-                                                         @RequestParam("identityType") String identityType,
-                                                         @RequestParam("identityValue") String identityValue) {
+    public UserLoginCredentialDTO getUserLoginCredential(
+            @RequestParam("tenantId") Long tenantId,
+            @RequestParam("identityType") String identityType,
+            @RequestParam("identityValue") String identityValue) {
         return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
     }
 
     @Operation(summary = "当前用户修改密码")
     @PostMapping("/users/{userId}/password/change")
-    public void changePassword(@RequestParam("tenantId") Long tenantId,
-                               @PathVariable Long userId,
-                               @RequestBody UserPasswordChangeDTO request) {
+    public void changePassword(
+            @RequestParam("tenantId") Long tenantId,
+            @PathVariable Long userId,
+            @RequestBody UserPasswordChangeDTO request) {
         userApplicationService.changePassword(tenantId, userId, request.getOldPassword(), request.getNewPassword());
     }
 
@@ -93,27 +96,30 @@ public class UpmsProviderController {
     @GetMapping("/departments/{departmentId}")
     public DepartmentDTO getDepartmentById(@RequestParam("tenantId") Long tenantId, @PathVariable Long departmentId) {
         return departmentApplicationService.getDepartmentById(
-                requireExistingTenantId(tenantId),
-                DepartmentId.of(departmentId));
+                requireExistingTenantId(tenantId), DepartmentId.of(departmentId));
     }
 
     @Operation(summary = "按部门编码查询部门")
     @GetMapping("/departments/code/{departmentCode}")
-    public DepartmentDTO getDepartmentByCode(@RequestParam("tenantId") Long tenantId, @PathVariable String departmentCode) {
+    public DepartmentDTO getDepartmentByCode(
+            @RequestParam("tenantId") Long tenantId, @PathVariable String departmentCode) {
         return departmentApplicationService.getDepartmentByCode(requireExistingTenantId(tenantId), departmentCode);
     }
 
     @Operation(summary = "批量查询部门")
     @GetMapping("/departments")
-    public List<DepartmentDTO> listDepartmentsByIds(@RequestParam("tenantId") Long tenantId,
-                                                    @RequestParam("departmentIds") Set<String> departmentIds) {
-        Set<DepartmentId> resolvedDepartmentIds = departmentIds == null ? Set.of() : departmentIds.stream()
-                .map(String::trim)
-                .filter(value -> !value.isBlank())
-                .map(Long::parseLong)
-                .map(DepartmentId::of)
-                .collect(java.util.stream.Collectors.toSet());
-        return departmentApplicationService.listDepartmentsByIds(requireExistingTenantId(tenantId), resolvedDepartmentIds);
+    public List<DepartmentDTO> listDepartmentsByIds(
+            @RequestParam("tenantId") Long tenantId, @RequestParam("departmentIds") Set<String> departmentIds) {
+        Set<DepartmentId> resolvedDepartmentIds = departmentIds == null
+                ? Set.of()
+                : departmentIds.stream()
+                        .map(String::trim)
+                        .filter(value -> !value.isBlank())
+                        .map(Long::parseLong)
+                        .map(DepartmentId::of)
+                        .collect(java.util.stream.Collectors.toSet());
+        return departmentApplicationService.listDepartmentsByIds(
+                requireExistingTenantId(tenantId), resolvedDepartmentIds);
     }
 
     @Operation(summary = "按角色 ID 查询角色")
@@ -124,26 +130,32 @@ public class UpmsProviderController {
 
     @Operation(summary = "查询用户角色列表")
     @GetMapping("/roles")
-    public List<RoleDTO> getRolesByUserId(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
+    public List<RoleDTO> getRolesByUserId(
+            @RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
         return roleApplicationService.getRolesByUserId(tenantId, userId);
     }
 
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
-    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
+    public List<UserMenuTreeDTO> getUserMenuTree(
+            @RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserMenuTree(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
-    public Set<String> getUserPermissionCodes(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserPermissionCodes(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
+    public Set<String> getUserPermissionCodes(
+            @RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
+        return permissionQueryService.getUserPermissionCodes(
+                requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @GetMapping("/permissions/data-scope")
-    public UserDataScopeDTO getUserDataScope(@RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserDataScope(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
+    public UserDataScopeDTO getUserDataScope(
+            @RequestParam("tenantId") Long tenantId, @RequestParam("userId") Long userId) {
+        return permissionQueryService.getUserDataScope(
+                requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     private TenantId requireExistingTenantId(Long tenantId) {

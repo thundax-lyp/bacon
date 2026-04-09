@@ -2,6 +2,8 @@ package com.github.thundax.bacon.order.application.command;
 
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
@@ -10,10 +12,8 @@ import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
-import com.github.thundax.bacon.order.domain.repository.OrderRepository;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
@@ -22,63 +22,91 @@ import org.springframework.stereotype.Service;
 public class OrderPaymentResultApplicationService {
 
     private static final OrderAuditActionType ACTION_MARK_PAID = OrderAuditActionType.ORDER_MARK_PAID;
-    private static final OrderAuditActionType ACTION_MARK_PAYMENT_FAILED = OrderAuditActionType.ORDER_MARK_PAYMENT_FAILED;
+    private static final OrderAuditActionType ACTION_MARK_PAYMENT_FAILED =
+            OrderAuditActionType.ORDER_MARK_PAYMENT_FAILED;
 
     private final OrderRepository orderRepository;
     private final InventoryCommandFacade inventoryCommandFacade;
     private final OrderIdempotencyExecutor orderIdempotencyExecutor;
     private final OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport;
 
-    public OrderPaymentResultApplicationService(OrderRepository orderRepository,
-                                                InventoryCommandFacade inventoryCommandFacade,
-                                                OrderIdempotencyExecutor orderIdempotencyExecutor,
-                                                OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport) {
+    public OrderPaymentResultApplicationService(
+            OrderRepository orderRepository,
+            InventoryCommandFacade inventoryCommandFacade,
+            OrderIdempotencyExecutor orderIdempotencyExecutor,
+            OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport) {
         this.orderRepository = orderRepository;
         this.inventoryCommandFacade = inventoryCommandFacade;
         this.orderIdempotencyExecutor = orderIdempotencyExecutor;
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
     }
 
-    public void markPaid(Long tenantId, String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount,
-                         Instant paidTime) {
+    public void markPaid(
+            Long tenantId,
+            String orderNo,
+            String paymentNo,
+            String channelCode,
+            BigDecimal paidAmount,
+            Instant paidTime) {
         // 支付成功回写是跨域回调入口，必须走幂等执行器，避免同一支付结果被重复扣减库存。
-        orderIdempotencyExecutor.execute(OrderIdempotencyExecutor.EVENT_MARK_PAID, tenantId, orderNo, paymentNo,
+        orderIdempotencyExecutor.execute(
+                OrderIdempotencyExecutor.EVENT_MARK_PAID,
+                tenantId,
+                orderNo,
+                paymentNo,
                 () -> doMarkPaid(tenantId, orderNo, paymentNo, channelCode, paidAmount, paidTime));
     }
 
-    public void markPaymentFailed(Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus,
-                                  Instant failedTime) {
+    public void markPaymentFailed(
+            Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
         // 支付失败回写同样需要幂等，避免重复失败通知把释放库存动作执行多次。
-        orderIdempotencyExecutor.execute(OrderIdempotencyExecutor.EVENT_MARK_PAYMENT_FAILED, tenantId, orderNo,
-                paymentNo, () -> doMarkPaymentFailed(tenantId, orderNo, paymentNo, reason, channelStatus, failedTime));
+        orderIdempotencyExecutor.execute(
+                OrderIdempotencyExecutor.EVENT_MARK_PAYMENT_FAILED,
+                tenantId,
+                orderNo,
+                paymentNo,
+                () -> doMarkPaymentFailed(tenantId, orderNo, paymentNo, reason, channelStatus, failedTime));
     }
 
-    private void doMarkPaid(Long tenantId, String orderNo, String paymentNo, String channelCode,
-                            BigDecimal paidAmount, Instant paidTime) {
-        Order order = orderRepository.findByOrderNo(tenantId, orderNo)
+    private void doMarkPaid(
+            Long tenantId,
+            String orderNo,
+            String paymentNo,
+            String channelCode,
+            BigDecimal paidAmount,
+            Instant paidTime) {
+        Order order = orderRepository
+                .findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
-        order.markPaid(toPaymentNo(paymentNo), channelCode, Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCodeValue())),
+        order.markPaid(
+                toPaymentNo(paymentNo),
+                channelCode,
+                Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCodeValue())),
                 paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
         InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(tenantId, orderNo);
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
             String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
-            order.markInventoryFailed(toReservationNo(deductResult.getReservationNo()),
-                    toWarehouseCode(deductResult.getWarehouseCode()), reason);
+            order.markInventoryFailed(
+                    toReservationNo(deductResult.getReservationNo()),
+                    toWarehouseCode(deductResult.getWarehouseCode()),
+                    reason);
             orderRepository.save(order);
             throw new IllegalStateException(reason);
         }
-        order.markInventoryDeducted(toReservationNo(deductResult.getReservationNo()),
+        order.markInventoryDeducted(
+                toReservationNo(deductResult.getReservationNo()),
                 toWarehouseCode(deductResult.getWarehouseCode()),
                 deductResult.getDeductedAt());
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
     }
 
-    private void doMarkPaymentFailed(Long tenantId, String orderNo, String paymentNo, String reason,
-                                     String channelStatus, Instant failedTime) {
-        Order order = orderRepository.findByOrderNo(tenantId, orderNo)
+    private void doMarkPaymentFailed(
+            Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
+        Order order = orderRepository
+                .findByOrderNo(tenantId, orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaymentFailed(toPaymentNo(paymentNo), reason, channelStatus, failedTime);
@@ -92,12 +120,15 @@ public class OrderPaymentResultApplicationService {
 
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
-            order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
+            order.markInventoryReleased(
+                    toReservationNo(releaseResult.getReservationNo()),
                     toWarehouseCode(releaseResult.getWarehouseCode()),
-                    releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
+                    releaseResult.getReleaseReason(),
+                    releaseResult.getReleasedAt());
             return;
         }
-        order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
+        order.markInventoryFailed(
+                toReservationNo(releaseResult.getReservationNo()),
                 toWarehouseCode(releaseResult.getWarehouseCode()),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }

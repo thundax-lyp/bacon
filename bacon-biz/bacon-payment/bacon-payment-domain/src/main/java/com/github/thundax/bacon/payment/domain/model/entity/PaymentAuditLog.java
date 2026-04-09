@@ -1,13 +1,12 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import lombok.Getter;
-
 import java.time.Instant;
+import lombok.Getter;
 
 /**
  * 支付操作审计日志。
@@ -34,9 +33,16 @@ public class PaymentAuditLog {
     /** 发生时间。 */
     private final Instant occurredAt;
 
-    public PaymentAuditLog(Long id, TenantId tenantId, PaymentNo paymentNo, PaymentAuditActionType actionType,
-                           PaymentStatus beforeStatus, PaymentStatus afterStatus, PaymentAuditOperatorType operatorType,
-                           String operatorId, Instant occurredAt) {
+    public PaymentAuditLog(
+            Long id,
+            TenantId tenantId,
+            PaymentNo paymentNo,
+            PaymentAuditActionType actionType,
+            PaymentStatus beforeStatus,
+            PaymentStatus afterStatus,
+            PaymentAuditOperatorType operatorType,
+            String operatorId,
+            Instant occurredAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.paymentNo = paymentNo;

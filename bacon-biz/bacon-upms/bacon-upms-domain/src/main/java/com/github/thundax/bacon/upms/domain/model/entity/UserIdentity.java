@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import java.time.Instant;
@@ -37,12 +37,27 @@ public class UserIdentity {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserIdentity(Long id, Long tenantId, Long userId, UserIdentityType identityType, String identityValue,
-                        UserIdentityStatus status, String createdBy, Instant createdAt, String updatedBy,
-                        Instant updatedAt) {
-        this(id == null ? null : UserIdentityId.of(id),
+    public UserIdentity(
+            Long id,
+            Long tenantId,
+            Long userId,
+            UserIdentityType identityType,
+            String identityValue,
+            UserIdentityStatus status,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        this(
+                id == null ? null : UserIdentityId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
                 userId == null ? null : UserId.of(userId),
-                identityType, identityValue, status, createdBy, createdAt, updatedBy, updatedAt);
+                identityType,
+                identityValue,
+                status,
+                createdBy,
+                createdAt,
+                updatedBy,
+                updatedAt);
     }
 }

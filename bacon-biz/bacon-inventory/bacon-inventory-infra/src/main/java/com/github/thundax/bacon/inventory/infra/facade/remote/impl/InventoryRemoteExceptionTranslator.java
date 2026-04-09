@@ -8,8 +8,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 final class InventoryRemoteExceptionTranslator {
 
-    private InventoryRemoteExceptionTranslator() {
-    }
+    private InventoryRemoteExceptionTranslator() {}
 
     static RuntimeException translate(String operation, Throwable throwable) {
         if (throwable instanceof BaconException baconException) {
@@ -31,8 +30,9 @@ final class InventoryRemoteExceptionTranslator {
                 case 403 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, operation);
                 case 404 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND, operation);
                 case 409 -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_CONFLICT, operation);
-                default -> new InventoryDomainException(InventoryErrorCode.INVENTORY_REMOTE_ERROR,
-                        operation + ", status=" + statusCode);
+                default ->
+                    new InventoryDomainException(
+                            InventoryErrorCode.INVENTORY_REMOTE_ERROR, operation + ", status=" + statusCode);
             };
         }
         // 无法归类的异常统一落到远程不可用，保持上层重试和告警逻辑简单稳定。

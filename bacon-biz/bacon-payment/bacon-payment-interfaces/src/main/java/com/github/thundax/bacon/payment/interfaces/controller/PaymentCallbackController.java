@@ -27,16 +27,26 @@ public class PaymentCallbackController {
 
     @Operation(summary = "处理支付渠道回调")
     @PostMapping("/{channelCode}")
-    public void callback(@PathVariable("channelCode") @NotBlank String channelCode,
-                         @Valid @RequestBody PaymentCallbackRequest request) {
+    public void callback(
+            @PathVariable("channelCode") @NotBlank String channelCode,
+            @Valid @RequestBody PaymentCallbackRequest request) {
         Long tenantId = Long.valueOf(request.getTenantCode());
         if (request.isSuccess()) {
-            paymentCallbackApplicationService.callbackPaid(channelCode, tenantId,
-                    request.getPaymentNo(), request.getChannelTransactionNo(),
-                    request.getChannelStatus(), request.getRawPayload());
+            paymentCallbackApplicationService.callbackPaid(
+                    channelCode,
+                    tenantId,
+                    request.getPaymentNo(),
+                    request.getChannelTransactionNo(),
+                    request.getChannelStatus(),
+                    request.getRawPayload());
             return;
         }
-        paymentCallbackApplicationService.callbackFailed(channelCode, tenantId,
-                request.getPaymentNo(), request.getChannelStatus(), request.getRawPayload(), request.getReason());
+        paymentCallbackApplicationService.callbackFailed(
+                channelCode,
+                tenantId,
+                request.getPaymentNo(),
+                request.getChannelStatus(),
+                request.getRawPayload(),
+                request.getReason());
     }
 }

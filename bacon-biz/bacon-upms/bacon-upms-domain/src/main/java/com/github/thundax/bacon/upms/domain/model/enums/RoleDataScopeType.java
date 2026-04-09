@@ -3,7 +3,6 @@ package com.github.thundax.bacon.upms.domain.model.enums;
 import java.util.Arrays;
 
 public enum RoleDataScopeType {
-
     ALL,
     DEPARTMENT,
     DEPARTMENT_AND_CHILDREN,

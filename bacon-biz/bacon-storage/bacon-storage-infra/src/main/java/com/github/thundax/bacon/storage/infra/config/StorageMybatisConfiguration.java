@@ -5,5 +5,4 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @MapperScan("com.github.thundax.bacon.storage.infra.persistence.mapper")
-public class StorageMybatisConfiguration {
-}
+public class StorageMybatisConfiguration {}

@@ -3,7 +3,6 @@ package com.github.thundax.bacon.auth.domain.model.enums;
 import java.util.Arrays;
 
 public enum SessionStatus {
-
     ACTIVE,
     LOGGED_OUT,
     INVALIDATED,

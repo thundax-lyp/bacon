@@ -1,21 +1,29 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
-import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
-import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
+import org.junit.jupiter.api.Test;
 
 class StoredObjectTest {
 
     @Test
     void shouldBuildUploadedObjectWithDefaultStatuses() {
-        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of(1L), StorageType.LOCAL_FILE,
-                "default", "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", "u-1001");
+        StoredObject storedObject = StoredObject.newUploadedObject(
+                TenantId.of(1L),
+                StorageType.LOCAL_FILE,
+                "default",
+                "avatars/abc.png",
+                "avatar.png",
+                "image/png",
+                1024L,
+                "/files/avatars/abc.png",
+                "u-1001");
 
         assertEquals(StoredObjectStatus.ACTIVE, storedObject.getObjectStatus());
         assertEquals(StoredObjectReferenceStatus.UNREFERENCED, storedObject.getReferenceStatus());
@@ -25,8 +33,16 @@ class StoredObjectTest {
 
     @Test
     void shouldSwitchReferenceAndDeleteStatus() {
-        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of(1L), StorageType.LOCAL_FILE, "default",
-                "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", null);
+        StoredObject storedObject = StoredObject.newUploadedObject(
+                TenantId.of(1L),
+                StorageType.LOCAL_FILE,
+                "default",
+                "avatars/abc.png",
+                "avatar.png",
+                "image/png",
+                1024L,
+                "/files/avatars/abc.png",
+                null);
 
         storedObject.markReferenced();
         assertTrue(storedObject.isReferenced());
@@ -43,8 +59,16 @@ class StoredObjectTest {
 
     @Test
     void shouldRejectReferenceMutationWhenObjectIsDeleting() {
-        StoredObject storedObject = StoredObject.newUploadedObject(TenantId.of(1L), StorageType.LOCAL_FILE, "default",
-                "avatars/abc.png", "avatar.png", "image/png", 1024L, "/files/avatars/abc.png", null);
+        StoredObject storedObject = StoredObject.newUploadedObject(
+                TenantId.of(1L),
+                StorageType.LOCAL_FILE,
+                "default",
+                "avatars/abc.png",
+                "avatar.png",
+                "image/png",
+                1024L,
+                "/files/avatars/abc.png",
+                null);
 
         storedObject.markDeleting();
 

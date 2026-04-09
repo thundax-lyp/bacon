@@ -6,11 +6,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 /**
  * 订单幂等记录业务键。
  */
-public record OrderIdempotencyRecordKey(
-        TenantId tenantId,
-        OrderNo orderNo,
-        String eventType
-) {
+public record OrderIdempotencyRecordKey(TenantId tenantId, OrderNo orderNo, String eventType) {
 
     public OrderIdempotencyRecordKey {
         if (tenantId == null) {

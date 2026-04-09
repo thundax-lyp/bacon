@@ -4,8 +4,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 
 public final class WarehouseCodeCodec {
 
-    private WarehouseCodeCodec() {
-    }
+    private WarehouseCodeCodec() {}
 
     public static WarehouseCode toDomain(String value) {
         if (value == null || value.isBlank()) {

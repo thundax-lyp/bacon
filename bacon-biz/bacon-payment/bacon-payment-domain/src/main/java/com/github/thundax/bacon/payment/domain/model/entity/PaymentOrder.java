@@ -1,17 +1,16 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import lombok.Getter;
-
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import java.time.Instant;
+import lombok.Getter;
 
 /**
  * 支付主单领域实体。
@@ -54,9 +53,17 @@ public class PaymentOrder {
     /** 最近一次回调摘要。 */
     private String callbackSummary;
 
-    public PaymentOrder(PaymentOrderId id, TenantId tenantId, PaymentNo paymentNo, OrderNo orderNo, UserId userId,
-                        PaymentChannelCode channelCode,
-                        Money amount, String subject, Instant expiredAt, Instant createdAt) {
+    public PaymentOrder(
+            PaymentOrderId id,
+            TenantId tenantId,
+            PaymentNo paymentNo,
+            OrderNo orderNo,
+            UserId userId,
+            PaymentChannelCode channelCode,
+            Money amount,
+            String subject,
+            Instant expiredAt,
+            Instant createdAt) {
         this.id = id;
         this.tenantId = tenantId;
         this.paymentNo = paymentNo;
@@ -71,17 +78,27 @@ public class PaymentOrder {
         this.paidAmount = Money.zero();
     }
 
-    public static PaymentOrder rehydrate(PaymentOrderId id, TenantId tenantId, PaymentNo paymentNo, OrderNo orderNo,
-                                         UserId userId,
-                                         PaymentChannelCode channelCode, Money amount, Money paidAmount,
-                                         String subject,
-                                         Instant createdAt, Instant expiredAt, Instant paidAt, Instant closedAt,
-                                         PaymentStatus paymentStatus, String channelTransactionNo,
-                                         PaymentChannelStatus channelStatus,
-                                         String callbackSummary) {
+    public static PaymentOrder rehydrate(
+            PaymentOrderId id,
+            TenantId tenantId,
+            PaymentNo paymentNo,
+            OrderNo orderNo,
+            UserId userId,
+            PaymentChannelCode channelCode,
+            Money amount,
+            Money paidAmount,
+            String subject,
+            Instant createdAt,
+            Instant expiredAt,
+            Instant paidAt,
+            Instant closedAt,
+            PaymentStatus paymentStatus,
+            String channelTransactionNo,
+            PaymentChannelStatus channelStatus,
+            String callbackSummary) {
         // 查询和回调处理依赖主单快照，因此重建时必须带回最新终态、渠道交易号和回调摘要。
-        PaymentOrder paymentOrder = new PaymentOrder(id, tenantId, paymentNo, orderNo, userId, channelCode,
-                amount, subject, expiredAt, createdAt);
+        PaymentOrder paymentOrder = new PaymentOrder(
+                id, tenantId, paymentNo, orderNo, userId, channelCode, amount, subject, expiredAt, createdAt);
         paymentOrder.paidAmount = paidAmount == null ? Money.zero() : paidAmount;
         paymentOrder.paidAt = paidAt;
         paymentOrder.closedAt = closedAt;
@@ -94,17 +111,23 @@ public class PaymentOrder {
 
     public void markPaying() {
         // 创建支付单后允许把 CREATED 推进到 PAYING；终态收到重复指令时静默返回，幂等由主单承担。
-        if (PaymentStatus.PAID == paymentStatus || PaymentStatus.FAILED == paymentStatus
+        if (PaymentStatus.PAID == paymentStatus
+                || PaymentStatus.FAILED == paymentStatus
                 || PaymentStatus.CLOSED == paymentStatus) {
             return;
         }
         this.paymentStatus = PaymentStatus.PAYING;
     }
 
-    public void markPaid(Money paidAmount, Instant paidTime, String channelTransactionNo, PaymentChannelStatus channelStatus,
-                         String callbackSummary) {
+    public void markPaid(
+            Money paidAmount,
+            Instant paidTime,
+            String channelTransactionNo,
+            PaymentChannelStatus channelStatus,
+            String callbackSummary) {
         // 支付成功一旦落主单就不可逆；重复成功回调只应被上层记审计，不应在实体内改写终态。
-        if (PaymentStatus.PAID == paymentStatus || PaymentStatus.FAILED == paymentStatus
+        if (PaymentStatus.PAID == paymentStatus
+                || PaymentStatus.FAILED == paymentStatus
                 || PaymentStatus.CLOSED == paymentStatus) {
             return;
         }
@@ -118,7 +141,8 @@ public class PaymentOrder {
 
     public void markFailed(PaymentChannelStatus channelStatus, String callbackSummary) {
         // 失败与成功、关闭互斥，进入 FAILED 后不再允许回到 PAYING，避免把终态再次暴露给渠道重试。
-        if (PaymentStatus.PAID == paymentStatus || PaymentStatus.FAILED == paymentStatus
+        if (PaymentStatus.PAID == paymentStatus
+                || PaymentStatus.FAILED == paymentStatus
                 || PaymentStatus.CLOSED == paymentStatus) {
             return;
         }
@@ -129,7 +153,8 @@ public class PaymentOrder {
 
     public void close(Instant closeTime) {
         // 关闭只针对未完成支付的主单；已支付/已失败的订单保持原终态，不被关单流程覆盖。
-        if (PaymentStatus.PAID == paymentStatus || PaymentStatus.FAILED == paymentStatus
+        if (PaymentStatus.PAID == paymentStatus
+                || PaymentStatus.FAILED == paymentStatus
                 || PaymentStatus.CLOSED == paymentStatus) {
             return;
         }

@@ -7,5 +7,4 @@ public record ObjectStoragePart(
         /** 分片序号。 */
         Integer partNumber,
         /** 分片校验标识。 */
-        String etag) {
-}
+        String etag) {}

@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.common.mybatis.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import org.junit.jupiter.api.Test;
-
 import java.lang.reflect.Proxy;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -11,8 +11,7 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class BaseIdTypeHandlerTest {
 
@@ -22,7 +21,7 @@ class BaseIdTypeHandlerTest {
         AtomicReference<Object> writtenValue = new AtomicReference<>();
         PreparedStatement preparedStatement = (PreparedStatement) Proxy.newProxyInstance(
                 PreparedStatement.class.getClassLoader(),
-                new Class[]{PreparedStatement.class},
+                new Class[] {PreparedStatement.class},
                 (proxy, method, args) -> {
                     if ("setObject".equals(method.getName())) {
                         writtenValue.set(args[1]);
@@ -58,9 +57,7 @@ class BaseIdTypeHandlerTest {
     private ResultSet resultSet(Map<Object, Object> values) {
         Map<Object, Object> mutableValues = new HashMap<>(values);
         return (ResultSet) Proxy.newProxyInstance(
-                ResultSet.class.getClassLoader(),
-                new Class[]{ResultSet.class},
-                (proxy, method, args) -> {
+                ResultSet.class.getClassLoader(), new Class[] {ResultSet.class}, (proxy, method, args) -> {
                     if ("getObject".equals(method.getName())) {
                         return mutableValues.get(args[0]);
                     }
@@ -72,7 +69,7 @@ class BaseIdTypeHandlerTest {
         Map<Integer, Object> mutableValues = new HashMap<>(values);
         return (CallableStatement) Proxy.newProxyInstance(
                 CallableStatement.class.getClassLoader(),
-                new Class[]{CallableStatement.class},
+                new Class[] {CallableStatement.class},
                 (proxy, method, args) -> {
                     if ("getObject".equals(method.getName())) {
                         return mutableValues.get(args[0]);

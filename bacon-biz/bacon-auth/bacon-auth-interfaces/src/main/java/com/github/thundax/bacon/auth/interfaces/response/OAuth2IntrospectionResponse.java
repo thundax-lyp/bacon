@@ -21,7 +21,7 @@ public record OAuth2IntrospectionResponse(
         long exp) {
 
     public static OAuth2IntrospectionResponse from(OAuth2IntrospectionDTO dto) {
-        return new OAuth2IntrospectionResponse(dto.isActive(), dto.getClientId(), dto.getScope(), dto.getSub(),
-                dto.getTenantId(), dto.getExp());
+        return new OAuth2IntrospectionResponse(
+                dto.isActive(), dto.getClientId(), dto.getScope(), dto.getSub(), dto.getTenantId(), dto.getExp());
     }
 }

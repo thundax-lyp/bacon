@@ -17,9 +17,11 @@ class BaconMonoPersistenceSupportConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(SqlSessionFactory.class)
-    SqlSessionFactory sqlSessionFactory(DataSource dataSource,
-                                        ObjectProvider<MybatisPlusInterceptor> mybatisPlusInterceptor,
-                                        ObjectProvider<MetaObjectHandler> metaObjectHandler) throws Exception {
+    SqlSessionFactory sqlSessionFactory(
+            DataSource dataSource,
+            ObjectProvider<MybatisPlusInterceptor> mybatisPlusInterceptor,
+            ObjectProvider<MetaObjectHandler> metaObjectHandler)
+            throws Exception {
         MybatisSqlSessionFactoryBean factoryBean = new MybatisSqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
         factoryBean.setTypeHandlersPackage("com.github.thundax.bacon.common.mybatis.handler");

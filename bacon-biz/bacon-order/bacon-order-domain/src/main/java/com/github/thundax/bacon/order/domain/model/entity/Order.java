@@ -3,17 +3,17 @@ package com.github.thundax.bacon.order.domain.model.entity;
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.util.MoneyValidator;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -87,15 +87,42 @@ public class Order {
     /** 订单关闭时间。 */
     private Instant closedAt;
 
-    public Order(Long id, Long tenantId, String orderNo, Long userId, CurrencyCode currencyCode, String totalAmount,
-                 String payableAmount, String remark, Instant expiredAt) {
-        this(id, tenantId, orderNo, userId, currencyCode, totalAmount, payableAmount, remark, expiredAt,
+    public Order(
+            Long id,
+            Long tenantId,
+            String orderNo,
+            Long userId,
+            CurrencyCode currencyCode,
+            String totalAmount,
+            String payableAmount,
+            String remark,
+            Instant expiredAt) {
+        this(
+                id,
+                tenantId,
+                orderNo,
+                userId,
+                currencyCode,
+                totalAmount,
+                payableAmount,
+                remark,
+                expiredAt,
                 buildBoundaryInit(currencyCode, totalAmount, payableAmount, expiredAt));
     }
 
-    private Order(Long id, Long tenantId, String orderNo, Long userId, CurrencyCode currencyCode, String totalAmount,
-                  String payableAmount, String remark, Instant expiredAt, BoundaryInit init) {
-        this(id == null ? null : OrderId.of(id),
+    private Order(
+            Long id,
+            Long tenantId,
+            String orderNo,
+            Long userId,
+            CurrencyCode currencyCode,
+            String totalAmount,
+            String payableAmount,
+            String remark,
+            Instant expiredAt,
+            BoundaryInit init) {
+        this(
+                id == null ? null : OrderId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
                 orderNo == null ? null : OrderNo.of(orderNo),
                 userId == null ? null : UserId.of(userId),
@@ -126,15 +153,36 @@ public class Order {
                 null);
     }
 
-    public static Order rehydrate(OrderId id, TenantId tenantId, OrderNo orderNo, UserId userId, OrderStatus orderStatus,
-                                  PayStatus payStatus, InventoryStatus inventoryStatus, PaymentNo paymentNo, ReservationNo reservationNo,
-                                  CurrencyCode currencyCode, Money totalAmount,
-                                  Money payableAmount, String remark, String cancelReason,
-                                  String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,
-                                  Instant closedAt, PaymentChannel paymentChannelCode, Money paidAmount,
-                                  String paymentChannelStatus, String paymentFailureReason, Instant paymentFailedAt,
-                                  WarehouseCode warehouseCode, String inventoryFailureReason, String inventoryReleaseReason,
-                                  Instant inventoryReleasedAt, Instant inventoryDeductedAt) {
+    public static Order rehydrate(
+            OrderId id,
+            TenantId tenantId,
+            OrderNo orderNo,
+            UserId userId,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
+            PaymentNo paymentNo,
+            ReservationNo reservationNo,
+            CurrencyCode currencyCode,
+            Money totalAmount,
+            Money payableAmount,
+            String remark,
+            String cancelReason,
+            String closeReason,
+            Instant createdAt,
+            Instant expiredAt,
+            Instant paidAt,
+            Instant closedAt,
+            PaymentChannel paymentChannelCode,
+            Money paidAmount,
+            String paymentChannelStatus,
+            String paymentFailureReason,
+            Instant paymentFailedAt,
+            WarehouseCode warehouseCode,
+            String inventoryFailureReason,
+            String inventoryReleaseReason,
+            Instant inventoryReleasedAt,
+            Instant inventoryDeductedAt) {
         Instant resolvedCreatedAt = createdAt == null ? Instant.now() : createdAt;
         Instant resolvedExpiredAt = resolveExpiredAt(resolvedCreatedAt, expiredAt);
         Money resolvedTotalAmount = toMoney(totalAmount, currencyCode);
@@ -143,25 +191,51 @@ public class Order {
         MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
         MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
         // 持久化重建必须保留主单与支付/库存派生状态，避免查询和回写时把终态信息重置成初始值。
-        return new Order(id, tenantId, orderNo, userId, orderStatus, payStatus, inventoryStatus, paymentNo,
-                reservationNo, currencyCode, resolvedTotalAmount, resolvedPayableAmount, remark, paymentChannelCode,
-                resolvedPaidAmount, paymentChannelStatus, paymentFailureReason, paymentFailedAt, warehouseCode,
-                inventoryFailureReason, inventoryReleaseReason, cancelReason, closeReason, resolvedCreatedAt,
-                resolvedExpiredAt, paidAt, inventoryReleasedAt, inventoryDeductedAt, closedAt);
+        return new Order(
+                id,
+                tenantId,
+                orderNo,
+                userId,
+                orderStatus,
+                payStatus,
+                inventoryStatus,
+                paymentNo,
+                reservationNo,
+                currencyCode,
+                resolvedTotalAmount,
+                resolvedPayableAmount,
+                remark,
+                paymentChannelCode,
+                resolvedPaidAmount,
+                paymentChannelStatus,
+                paymentFailureReason,
+                paymentFailedAt,
+                warehouseCode,
+                inventoryFailureReason,
+                inventoryReleaseReason,
+                cancelReason,
+                closeReason,
+                resolvedCreatedAt,
+                resolvedExpiredAt,
+                paidAt,
+                inventoryReleasedAt,
+                inventoryDeductedAt,
+                closedAt);
     }
 
     private static Instant resolveExpiredAt(Instant createdAt, Instant expiredAt) {
         return expiredAt == null ? createdAt.plusSeconds(1800) : expiredAt;
     }
 
-    private static BoundaryInit buildBoundaryInit(CurrencyCode currencyCode, String totalAmount, String payableAmount,
-                                                  Instant expiredAt) {
+    private static BoundaryInit buildBoundaryInit(
+            CurrencyCode currencyCode, String totalAmount, String payableAmount, Instant expiredAt) {
         Money resolvedTotalAmount = toMoney(totalAmount, currencyCode);
         Money resolvedPayableAmount = toMoney(payableAmount, currencyCode);
         MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, null);
         MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, null);
         Instant createdAt = Instant.now();
-        return new BoundaryInit(resolvedTotalAmount, resolvedPayableAmount, createdAt, resolveExpiredAt(createdAt, expiredAt));
+        return new BoundaryInit(
+                resolvedTotalAmount, resolvedPayableAmount, createdAt, resolveExpiredAt(createdAt, expiredAt));
     }
 
     private static Money toMoney(String amount, CurrencyCode currencyCode) {
@@ -172,8 +246,7 @@ public class Order {
         return amount == null ? null : Money.of(amount.value(), currencyCode);
     }
 
-    private record BoundaryInit(Money totalAmount, Money payableAmount, Instant createdAt, Instant expiredAt) {
-    }
+    private record BoundaryInit(Money totalAmount, Money payableAmount, Instant createdAt, Instant expiredAt) {}
 
     public String getCurrencyCodeValue() {
         return currencyCode == null ? null : currencyCode.value();
@@ -234,7 +307,8 @@ public class Order {
         this.inventoryStatus = InventoryStatus.RESERVED;
     }
 
-    public void markInventoryReleased(ReservationNo reservationNo, WarehouseCode warehouseCode, String releaseReason, Instant releasedAt) {
+    public void markInventoryReleased(
+            ReservationNo reservationNo, WarehouseCode warehouseCode, String releaseReason, Instant releasedAt) {
         // 释放库存可能发生在取消、超时或支付失败之后，因此这里不再约束主单状态，只回写库存派生结果。
         this.reservationNo = reservationNo;
         this.warehouseCode = warehouseCode;
@@ -336,5 +410,4 @@ public class Order {
         }
         throw new IllegalStateException("Invalid order status: " + getOrderStatusValue());
     }
-
 }

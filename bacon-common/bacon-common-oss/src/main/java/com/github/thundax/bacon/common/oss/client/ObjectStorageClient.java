@@ -2,7 +2,6 @@ package com.github.thundax.bacon.common.oss.client;
 
 import com.github.thundax.bacon.common.oss.model.ObjectStoragePart;
 import com.github.thundax.bacon.common.oss.model.ObjectStorageWriteResult;
-
 import java.io.InputStream;
 import java.util.List;
 

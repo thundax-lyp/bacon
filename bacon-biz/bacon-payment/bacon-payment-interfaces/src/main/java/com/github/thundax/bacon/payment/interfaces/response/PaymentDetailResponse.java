@@ -38,5 +38,4 @@ public record PaymentDetailResponse(
         /** 支付渠道状态。 */
         String channelStatus,
         /** 最近一次回调摘要。 */
-        String callbackSummary) {
-}
+        String callbackSummary) {}

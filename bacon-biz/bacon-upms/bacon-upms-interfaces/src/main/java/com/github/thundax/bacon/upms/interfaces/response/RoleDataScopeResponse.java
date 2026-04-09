@@ -9,5 +9,4 @@ public record RoleDataScopeResponse(
         /** 数据范围类型。 */
         String dataScopeType,
         /** 已分配部门主键集合。 */
-        Set<Long> departmentIds) {
-}
+        Set<Long> departmentIds) {}

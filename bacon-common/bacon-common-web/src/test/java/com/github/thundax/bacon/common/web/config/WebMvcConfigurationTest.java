@@ -9,11 +9,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 class WebMvcConfigurationTest {
 
-    private final WebApplicationContextRunner webContextRunner = new WebApplicationContextRunner()
-            .withUserConfiguration(WebMvcConfiguration.class);
+    private final WebApplicationContextRunner webContextRunner =
+            new WebApplicationContextRunner().withUserConfiguration(WebMvcConfiguration.class);
 
-    private final ApplicationContextRunner nonWebContextRunner = new ApplicationContextRunner()
-            .withUserConfiguration(WebMvcConfiguration.class);
+    private final ApplicationContextRunner nonWebContextRunner =
+            new ApplicationContextRunner().withUserConfiguration(WebMvcConfiguration.class);
 
     @Test
     void shouldRegisterWebMvcConfigurerInServletWebApplication() {

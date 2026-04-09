@@ -1,5 +1,11 @@
 package com.github.thundax.bacon.inventory.interfaces.provider;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
@@ -15,12 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 class InventoryProviderControllerContractTest {
 
     private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
@@ -28,8 +28,8 @@ class InventoryProviderControllerContractTest {
 
     @Test
     void shouldKeepRawProviderPayloadWithoutResponseEnvelope() throws Exception {
-        InventoryProviderController controller = new InventoryProviderController(new StubInventoryQueryApplicationService(),
-                new InventoryApplicationService(null, null, null));
+        InventoryProviderController controller = new InventoryProviderController(
+                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
@@ -47,8 +47,8 @@ class InventoryProviderControllerContractTest {
 
     @Test
     void shouldReturnBadRequestWhenProviderRequiredParamMissing() throws Exception {
-        InventoryProviderController controller = new InventoryProviderController(new StubInventoryQueryApplicationService(),
-                new InventoryApplicationService(null, null, null));
+        InventoryProviderController controller = new InventoryProviderController(
+                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
@@ -61,14 +61,15 @@ class InventoryProviderControllerContractTest {
 
     @Test
     void shouldExposeRawExceptionSemanticForProvider() {
-        InventoryProviderController controller = new InventoryProviderController(new StubInventoryQueryApplicationService(),
-                new InventoryApplicationService(null, null, null));
+        InventoryProviderController controller = new InventoryProviderController(
+                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
 
-        ServletException exception = assertThrows(ServletException.class, () -> mockMvc.perform(
-                get("/providers/inventory/stocks")
+        ServletException exception = assertThrows(
+                ServletException.class,
+                () -> mockMvc.perform(get("/providers/inventory/stocks")
                         .param("tenantId", "9999")
                         .param("skuIds", "101")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
@@ -77,8 +78,8 @@ class InventoryProviderControllerContractTest {
 
     @Test
     void shouldRejectProviderCallWhenTokenMissing() throws Exception {
-        InventoryProviderController controller = new InventoryProviderController(new StubInventoryQueryApplicationService(),
-                new InventoryApplicationService(null, null, null));
+        InventoryProviderController controller = new InventoryProviderController(
+                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
@@ -91,8 +92,8 @@ class InventoryProviderControllerContractTest {
 
     @Test
     void shouldRejectProviderCallWhenTokenInvalid() throws Exception {
-        InventoryProviderController controller = new InventoryProviderController(new StubInventoryQueryApplicationService(),
-                new InventoryApplicationService(null, null, null));
+        InventoryProviderController controller = new InventoryProviderController(
+                new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
@@ -125,8 +126,8 @@ class InventoryProviderControllerContractTest {
             if (Long.valueOf(9999L).equals(tenantIdValue)) {
                 throw new IllegalArgumentException("Invalid tenant: " + tenantIdValue);
             }
-            return List.of(new InventoryStockDTO(tenantIdValue, 101L, "DEFAULT",
-                    100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
+            return List.of(new InventoryStockDTO(
+                    tenantIdValue, 101L, "DEFAULT", 100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
         }
     }
 }

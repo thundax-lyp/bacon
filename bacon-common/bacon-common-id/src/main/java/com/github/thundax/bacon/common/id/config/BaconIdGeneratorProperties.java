@@ -17,6 +17,7 @@ public class BaconIdGeneratorProperties {
      * Primary provider chain. When empty, falls back to legacy provider, then default tinyid.
      */
     private List<String> providers = new ArrayList<>();
+
     private boolean fallbackEnabled = true;
     private final TinyId tinyId = new TinyId();
     private final Snowflake snowflake = new Snowflake();

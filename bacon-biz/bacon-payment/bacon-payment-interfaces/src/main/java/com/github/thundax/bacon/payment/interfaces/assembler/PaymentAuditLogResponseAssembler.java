@@ -6,13 +6,18 @@ import java.util.List;
 
 public final class PaymentAuditLogResponseAssembler {
 
-    private PaymentAuditLogResponseAssembler() {
-    }
+    private PaymentAuditLogResponseAssembler() {}
 
     public static List<PaymentAuditLogResponse> from(List<PaymentAuditLogDTO> auditLogs) {
         return auditLogs.stream()
-                .map(dto -> new PaymentAuditLogResponse(dto.tenantId(), dto.paymentNo(), dto.actionType(),
-                        dto.beforeStatus(), dto.afterStatus(), dto.operatorType(), dto.operatorId(),
+                .map(dto -> new PaymentAuditLogResponse(
+                        dto.tenantId(),
+                        dto.paymentNo(),
+                        dto.actionType(),
+                        dto.beforeStatus(),
+                        dto.afterStatus(),
+                        dto.operatorType(),
+                        dto.operatorId(),
                         dto.occurredAt()))
                 .toList();
     }

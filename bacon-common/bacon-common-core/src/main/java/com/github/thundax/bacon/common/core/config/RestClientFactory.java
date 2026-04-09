@@ -20,8 +20,7 @@ public class RestClientFactory {
     }
 
     public RestClient create(String baseUrl) {
-        return builder().baseUrl(baseUrl)
-                .build();
+        return builder().baseUrl(baseUrl).build();
     }
 
     public RestClient create(String baseUrl, String headerName, String headerValue) {
@@ -30,16 +29,18 @@ public class RestClientFactory {
     }
 
     public RestClient create(String baseUrl, Duration connectTimeout, Duration readTimeout) {
-        return builder().baseUrl(baseUrl)
+        return builder()
+                .baseUrl(baseUrl)
                 .requestFactory(createRequestFactory(connectTimeout, readTimeout))
                 .build();
     }
 
-    public RestClient create(String baseUrl, Duration connectTimeout, Duration readTimeout,
-                             String headerName, String headerValue) {
-        return applyDefaultHeader(builder().baseUrl(baseUrl)
-                        .requestFactory(createRequestFactory(connectTimeout, readTimeout)),
-                headerName, headerValue)
+    public RestClient create(
+            String baseUrl, Duration connectTimeout, Duration readTimeout, String headerName, String headerValue) {
+        return applyDefaultHeader(
+                        builder().baseUrl(baseUrl).requestFactory(createRequestFactory(connectTimeout, readTimeout)),
+                        headerName,
+                        headerValue)
                 .build();
     }
 

@@ -3,7 +3,6 @@ package com.github.thundax.bacon.upms.domain.model.enums;
 import java.util.Arrays;
 
 public enum UserIdentityType {
-
     ACCOUNT,
     EMAIL,
     PHONE,

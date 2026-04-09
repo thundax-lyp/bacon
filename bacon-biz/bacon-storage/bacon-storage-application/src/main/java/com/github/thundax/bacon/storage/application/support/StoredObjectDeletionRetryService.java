@@ -6,10 +6,9 @@ import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
 import io.micrometer.core.instrument.Metrics;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * 存储对象删除补偿重试服务。
@@ -23,10 +22,11 @@ public class StoredObjectDeletionRetryService {
     private final StoredObjectDeletionTransactionService storedObjectDeletionTransactionService;
     private final StorageDeletionRetryProperties properties;
 
-    public StoredObjectDeletionRetryService(StoredObjectRepository storedObjectRepository,
-                                            StoredObjectStorageRepository storedObjectStorageRepository,
-                                            StoredObjectDeletionTransactionService storedObjectDeletionTransactionService,
-                                            StorageDeletionRetryProperties properties) {
+    public StoredObjectDeletionRetryService(
+            StoredObjectRepository storedObjectRepository,
+            StoredObjectStorageRepository storedObjectStorageRepository,
+            StoredObjectDeletionTransactionService storedObjectDeletionTransactionService,
+            StorageDeletionRetryProperties properties) {
         this.storedObjectRepository = storedObjectRepository;
         this.storedObjectStorageRepository = storedObjectStorageRepository;
         this.storedObjectDeletionTransactionService = storedObjectDeletionTransactionService;
@@ -48,8 +48,12 @@ public class StoredObjectDeletionRetryService {
                 completedCount++;
             } catch (RuntimeException ex) {
                 Metrics.counter("bacon.storage.deletion.retry.fail.total").increment();
-                log.warn("Stored object deletion retry failed, objectId={}, objectKey={}, storageType={}",
-                        storedObject.getId(), storedObject.getObjectKey(), storedObject.getStorageType(), ex);
+                log.warn(
+                        "Stored object deletion retry failed, objectId={}, objectKey={}, storageType={}",
+                        storedObject.getId(),
+                        storedObject.getObjectKey(),
+                        storedObject.getStorageType(),
+                        ex);
             }
         }
         return completedCount;

@@ -6,8 +6,7 @@ public final class PageParamNormalizer {
     public static final int DEFAULT_PAGE_SIZE = 20;
     public static final int MAX_PAGE_SIZE = 200;
 
-    private PageParamNormalizer() {
-    }
+    private PageParamNormalizer() {}
 
     public static int normalizePageNo(Integer pageNo) {
         return pageNo == null || pageNo < 1 ? DEFAULT_PAGE_NO : pageNo;

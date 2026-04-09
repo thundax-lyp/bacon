@@ -1,14 +1,14 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleDO;
@@ -44,13 +44,14 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     private final DataPermissionRuleMapper dataPermissionRuleMapper;
     private final RoleDataScopeRelMapper roleDataScopeRelMapper;
 
-    RolePersistenceSupport(RoleMapper roleMapper,
-                           ResourceMapper resourceMapper,
-                           UserRoleRelMapper userRoleRelMapper,
-                           RoleMenuRelMapper roleMenuRelMapper,
-                           RoleResourceRelMapper roleResourceRelMapper,
-                           DataPermissionRuleMapper dataPermissionRuleMapper,
-                           RoleDataScopeRelMapper roleDataScopeRelMapper) {
+    RolePersistenceSupport(
+            RoleMapper roleMapper,
+            ResourceMapper resourceMapper,
+            UserRoleRelMapper userRoleRelMapper,
+            RoleMenuRelMapper roleMenuRelMapper,
+            RoleResourceRelMapper roleResourceRelMapper,
+            DataPermissionRuleMapper dataPermissionRuleMapper,
+            RoleDataScopeRelMapper roleDataScopeRelMapper) {
         this.roleMapper = roleMapper;
         this.resourceMapper = resourceMapper;
         this.userRoleRelMapper = userRoleRelMapper;
@@ -68,7 +69,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     List<Role> findRolesByUserId(TenantId tenantId, UserId userId) {
-        List<RoleId> roleIds = userRoleRelMapper.selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
+        List<RoleId> roleIds = userRoleRelMapper
+                .selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
                         .eq(UserRoleRelDO::getTenantId, tenantId)
                         .eq(UserRoleRelDO::getUserId, userId))
                 .stream()
@@ -77,7 +79,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         if (roleIds.isEmpty()) {
             return List.of();
         }
-        return roleMapper.selectList(Wrappers.<RoleDO>lambdaQuery()
+        return roleMapper
+                .selectList(Wrappers.<RoleDO>lambdaQuery()
                         .eq(RoleDO::getTenantId, tenantId)
                         .in(RoleDO::getId, roleIds)
                         .orderByAsc(RoleDO::getId))
@@ -87,7 +90,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     List<UserId> findAssignedUserIds(TenantId tenantId, RoleId roleId) {
-        return userRoleRelMapper.selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
+        return userRoleRelMapper
+                .selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
                         .eq(UserRoleRelDO::getTenantId, tenantId)
                         .eq(UserRoleRelDO::getRoleId, roleId))
                 .stream()
@@ -96,9 +100,10 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    List<Role> listRoles(TenantId tenantId, String code, String name, String roleType, String status, int pageNo,
-                         int pageSize) {
-        return roleMapper.selectList(Wrappers.<RoleDO>lambdaQuery()
+    List<Role> listRoles(
+            TenantId tenantId, String code, String name, String roleType, String status, int pageNo, int pageSize) {
+        return roleMapper
+                .selectList(Wrappers.<RoleDO>lambdaQuery()
                         .eq(RoleDO::getTenantId, tenantId)
                         .like(hasText(code), RoleDO::getCode, code)
                         .like(hasText(name), RoleDO::getName, name)
@@ -135,14 +140,14 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             roleDO.setUpdatedAt(now);
             roleMapper.updateById(roleDO);
         }
-        upsertDataPermissionRule(roleDO.getTenantId(), roleDO.getId(), RoleDataScopeType.from(roleDO.getDataScopeType()), now);
+        upsertDataPermissionRule(
+                roleDO.getTenantId(), roleDO.getId(), RoleDataScopeType.from(roleDO.getDataScopeType()), now);
         return toDomain(roleDO);
     }
 
     void deleteRole(TenantId tenantId, RoleId roleId) {
-        roleMapper.delete(Wrappers.<RoleDO>lambdaQuery()
-                .eq(RoleDO::getTenantId, tenantId)
-                .eq(RoleDO::getId, roleId));
+        roleMapper.delete(
+                Wrappers.<RoleDO>lambdaQuery().eq(RoleDO::getTenantId, tenantId).eq(RoleDO::getId, roleId));
         userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery()
                 .eq(UserRoleRelDO::getTenantId, tenantId)
                 .eq(UserRoleRelDO::getRoleId, roleId));
@@ -179,7 +184,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Set<MenuId> getAssignedMenuIds(TenantId tenantId, RoleId roleId) {
-        return roleMenuRelMapper.selectList(Wrappers.<RoleMenuRelDO>lambdaQuery()
+        return roleMenuRelMapper
+                .selectList(Wrappers.<RoleMenuRelDO>lambdaQuery()
                         .eq(RoleMenuRelDO::getTenantId, tenantId)
                         .eq(RoleMenuRelDO::getRoleId, roleId))
                 .stream()
@@ -200,7 +206,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Set<String> getAssignedResourceCodes(TenantId tenantId, RoleId roleId) {
-        List<ResourceId> resourceIds = roleResourceRelMapper.selectList(Wrappers.<RoleResourceRelDO>lambdaQuery()
+        List<ResourceId> resourceIds = roleResourceRelMapper
+                .selectList(Wrappers.<RoleResourceRelDO>lambdaQuery()
                         .eq(RoleResourceRelDO::getTenantId, tenantId)
                         .eq(RoleResourceRelDO::getRoleId, roleId))
                 .stream()
@@ -209,7 +216,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         if (resourceIds.isEmpty()) {
             return Set.of();
         }
-        return resourceMapper.selectList(Wrappers.<ResourceDO>lambdaQuery()
+        return resourceMapper
+                .selectList(Wrappers.<ResourceDO>lambdaQuery()
                         .eq(ResourceDO::getTenantId, tenantId)
                         .in(ResourceDO::getId, resourceIds))
                 .stream()
@@ -241,7 +249,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, RoleId roleId) {
-        return roleDataScopeRelMapper.selectList(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
+        return roleDataScopeRelMapper
+                .selectList(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
                         .eq(RoleDataScopeRelDO::getTenantId, tenantId)
                         .eq(RoleDataScopeRelDO::getRoleId, roleId))
                 .stream()
@@ -249,8 +258,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
     }
 
-    void replaceRoleDataScope(TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType,
-                              Collection<DepartmentId> departmentIds) {
+    void replaceRoleDataScope(
+            TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType, Collection<DepartmentId> departmentIds) {
         LocalDateTime now = LocalDateTime.now();
         upsertDataPermissionRule(tenantId, roleId, dataScopeType, now);
         roleDataScopeRelMapper.delete(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
@@ -270,14 +279,21 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .eq(RoleMenuRelDO::getMenuId, menuId));
     }
 
-    private void upsertDataPermissionRule(TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType, LocalDateTime now) {
+    private void upsertDataPermissionRule(
+            TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType, LocalDateTime now) {
         DataPermissionRuleDO existing = dataPermissionRuleMapper.selectOne(Wrappers.<DataPermissionRuleDO>lambdaQuery()
                 .eq(DataPermissionRuleDO::getTenantId, tenantId)
                 .eq(DataPermissionRuleDO::getRoleId, roleId));
         if (existing == null) {
-            dataPermissionRuleMapper.insert(new DataPermissionRuleDO(null, tenantId, roleId,
+            dataPermissionRuleMapper.insert(new DataPermissionRuleDO(
+                    null,
+                    tenantId,
+                    roleId,
                     dataScopeType == null ? null : dataScopeType.value(),
-                    null, now, null, now));
+                    null,
+                    now,
+                    null,
+                    now));
             return;
         }
         existing.setDataScopeType(dataScopeType == null ? null : dataScopeType.value());

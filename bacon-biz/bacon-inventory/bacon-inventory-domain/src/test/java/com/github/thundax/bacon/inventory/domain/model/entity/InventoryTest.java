@@ -1,27 +1,23 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 class InventoryTest {
 
     @Test
     void createShouldInitializeDefaultState() {
-        Inventory inventory = Inventory.create(
-                TenantId.of(1001L),
-                SkuId.of(101L),
-                WarehouseCode.DEFAULT,
-                30);
+        Inventory inventory = Inventory.create(TenantId.of(1001L), SkuId.of(101L), WarehouseCode.DEFAULT, 30);
 
         assertNull(inventory.getId());
         assertEquals(30, inventory.getOnHandQuantity());

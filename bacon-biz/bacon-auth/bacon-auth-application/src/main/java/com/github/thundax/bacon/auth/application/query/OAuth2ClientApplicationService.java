@@ -15,9 +15,15 @@ public class OAuth2ClientApplicationService {
     }
 
     public OAuthClientDTO getClientByClientId(String clientId) {
-        OAuthClient client = oAuthClientRepository.findByClientCode(clientId)
+        OAuthClient client = oAuthClientRepository
+                .findByClientCode(clientId)
                 .orElseThrow(() -> new IllegalArgumentException("OAuth client not found: " + clientId));
-        return new OAuthClientDTO(client.getClientCodeValue(), client.getClientName(), client.getGrantTypes(),
-                client.getScopes(), client.getRedirectUris(), client.isEnabled());
+        return new OAuthClientDTO(
+                client.getClientCodeValue(),
+                client.getClientName(),
+                client.getGrantTypes(),
+                client.getScopes(),
+                client.getRedirectUris(),
+                client.isEnabled());
     }
 }

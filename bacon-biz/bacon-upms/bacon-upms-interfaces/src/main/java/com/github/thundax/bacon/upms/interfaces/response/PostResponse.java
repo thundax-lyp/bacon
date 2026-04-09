@@ -20,7 +20,7 @@ public record PostResponse(
         String status) {
 
     public static PostResponse from(PostDTO dto) {
-        return new PostResponse(dto.getId(), dto.getTenantId(), dto.getCode(), dto.getName(),
-                dto.getDepartmentId(), dto.getStatus());
+        return new PostResponse(
+                dto.getId(), dto.getTenantId(), dto.getCode(), dto.getName(), dto.getDepartmentId(), dto.getStatus());
     }
 }

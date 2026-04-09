@@ -15,8 +15,7 @@ import org.springframework.stereotype.Component;
         consumerGroup = "${bacon.log.sys.consumer-group:bacon-upms-sys-log-group}",
         selectorExpression = "${bacon.log.sys.tag:sys-log}",
         messageModel = MessageModel.CLUSTERING,
-        consumeMode = ConsumeMode.ORDERLY
-)
+        consumeMode = ConsumeMode.ORDERLY)
 public class RocketMqSysLogConsumer implements RocketMQListener<SysLogDTO> {
 
     private final SysLogMqConsumer sysLogMqConsumer;

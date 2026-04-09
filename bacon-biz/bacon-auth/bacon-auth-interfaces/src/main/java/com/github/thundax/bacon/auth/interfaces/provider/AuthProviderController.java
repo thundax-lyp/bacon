@@ -3,9 +3,9 @@ package com.github.thundax.bacon.auth.interfaces.provider;
 import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
 import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
 import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
-import com.github.thundax.bacon.auth.application.query.OAuth2ClientApplicationService;
 import com.github.thundax.bacon.auth.application.command.SessionApplicationService;
 import com.github.thundax.bacon.auth.application.command.TokenApplicationService;
+import com.github.thundax.bacon.auth.application.query.OAuth2ClientApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,9 +24,10 @@ public class AuthProviderController {
     private final SessionApplicationService sessionApplicationService;
     private final OAuth2ClientApplicationService oAuth2ClientApplicationService;
 
-    public AuthProviderController(TokenApplicationService tokenApplicationService,
-                                  SessionApplicationService sessionApplicationService,
-                                  OAuth2ClientApplicationService oAuth2ClientApplicationService) {
+    public AuthProviderController(
+            TokenApplicationService tokenApplicationService,
+            SessionApplicationService sessionApplicationService,
+            OAuth2ClientApplicationService oAuth2ClientApplicationService) {
         this.tokenApplicationService = tokenApplicationService;
         this.sessionApplicationService = sessionApplicationService;
         this.oAuth2ClientApplicationService = oAuth2ClientApplicationService;
@@ -46,16 +47,17 @@ public class AuthProviderController {
 
     @Operation(summary = "失效指定用户会话")
     @PostMapping("/sessions/invalidate/user")
-    public void invalidateUserSessions(@RequestParam("tenantId") Long tenantId,
-                                       @RequestParam("userId") Long userId,
-                                       @RequestParam("reason") String reason) {
+    public void invalidateUserSessions(
+            @RequestParam("tenantId") Long tenantId,
+            @RequestParam("userId") Long userId,
+            @RequestParam("reason") String reason) {
         sessionApplicationService.invalidateUserSessions(tenantId, userId, reason);
     }
 
     @Operation(summary = "失效指定租户会话")
     @PostMapping("/sessions/invalidate/tenant")
-    public void invalidateTenantSessions(@RequestParam("tenantId") Long tenantId,
-                                         @RequestParam("reason") String reason) {
+    public void invalidateTenantSessions(
+            @RequestParam("tenantId") Long tenantId, @RequestParam("reason") String reason) {
         sessionApplicationService.invalidateTenantSessions(tenantId, reason);
     }
 

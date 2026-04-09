@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
@@ -10,16 +9,16 @@ import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Comparator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DepartmentApplicationService {
@@ -35,12 +34,14 @@ public class DepartmentApplicationService {
     }
 
     public DepartmentDTO getDepartmentById(TenantId tenantId, DepartmentId departmentId) {
-        return toDto(departmentRepository.findDepartmentById(tenantId, departmentId)
+        return toDto(departmentRepository
+                .findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId)));
     }
 
     public DepartmentDTO getDepartmentByCode(TenantId tenantId, String departmentCode) {
-        return toDto(departmentRepository.findDepartmentByCode(tenantId, departmentCode)
+        return toDto(departmentRepository
+                .findDepartmentByCode(tenantId, departmentCode)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentCode)));
     }
 
@@ -59,7 +60,8 @@ public class DepartmentApplicationService {
 
         departments.forEach(department -> {
             if (hasParent(department.getParentId())) {
-                DepartmentTreeDTO parent = treeNodeMap.get(department.getParentId().value());
+                DepartmentTreeDTO parent =
+                        treeNodeMap.get(department.getParentId().value());
                 if (parent != null) {
                     parent.getChildren().add(treeNodeMap.get(department.getId().value()));
                 }
@@ -75,8 +77,8 @@ public class DepartmentApplicationService {
     }
 
     @Transactional
-    public DepartmentDTO createDepartment(TenantId tenantId, String code, String name, String parentId, String leaderUserId,
-                                          Integer sort) {
+    public DepartmentDTO createDepartment(
+            TenantId tenantId, String code, String name, String parentId, String leaderUserId, Integer sort) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         DepartmentId parentDepartmentId = normalizeParentId(parentId);
@@ -98,9 +100,16 @@ public class DepartmentApplicationService {
     }
 
     @Transactional
-    public DepartmentDTO updateDepartment(TenantId tenantId, DepartmentId departmentId, String code, String name, String parentId,
-                                          String leaderUserId, Integer sort) {
-        Department currentDepartment = departmentRepository.findDepartmentById(tenantId, departmentId)
+    public DepartmentDTO updateDepartment(
+            TenantId tenantId,
+            DepartmentId departmentId,
+            String code,
+            String name,
+            String parentId,
+            String leaderUserId,
+            Integer sort) {
+        Department currentDepartment = departmentRepository
+                .findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -134,7 +143,8 @@ public class DepartmentApplicationService {
 
     @Transactional
     public void deleteDepartment(TenantId tenantId, DepartmentId departmentId) {
-        departmentRepository.findDepartmentById(tenantId, departmentId)
+        departmentRepository
+                .findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
         if (departmentRepository.existsChildDepartment(tenantId, departmentId)) {
             throw new IllegalArgumentException("Department has child departments: " + departmentId);
@@ -150,11 +160,19 @@ public class DepartmentApplicationService {
     }
 
     private DepartmentDTO toDto(Department department, Long tenantIdValue) {
-        return new DepartmentDTO(department.getId().value(), tenantIdValue,
-                department.getCode(), department.getName(),
-                department.getParentId() == null ? null : department.getParentId().value(),
-                department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
-                department.getSort(), toStatusEnum(department.getStatus()));
+        return new DepartmentDTO(
+                department.getId().value(),
+                tenantIdValue,
+                department.getCode(),
+                department.getName(),
+                department.getParentId() == null
+                        ? null
+                        : department.getParentId().value(),
+                department.getLeaderUserId() == null
+                        ? null
+                        : department.getLeaderUserId().value(),
+                department.getSort(),
+                toStatusEnum(department.getStatus()));
     }
 
     private DepartmentTreeDTO toTreeDto(Department department) {
@@ -162,11 +180,20 @@ public class DepartmentApplicationService {
     }
 
     private DepartmentTreeDTO toTreeDto(Department department, Long tenantIdValue) {
-        return new DepartmentTreeDTO(department.getId().value(), tenantIdValue,
-                department.getCode(), department.getName(),
-                department.getParentId() == null ? null : department.getParentId().value(),
-                department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
-                department.getSort(), toStatusEnum(department.getStatus()), new java.util.ArrayList<>());
+        return new DepartmentTreeDTO(
+                department.getId().value(),
+                tenantIdValue,
+                department.getCode(),
+                department.getName(),
+                department.getParentId() == null
+                        ? null
+                        : department.getParentId().value(),
+                department.getLeaderUserId() == null
+                        ? null
+                        : department.getLeaderUserId().value(),
+                department.getSort(),
+                toStatusEnum(department.getStatus()),
+                new java.util.ArrayList<>());
     }
 
     private Comparator<DepartmentTreeDTO> treeComparator() {
@@ -190,7 +217,8 @@ public class DepartmentApplicationService {
         if (!hasParent(parentId)) {
             return;
         }
-        departmentRepository.findDepartmentById(tenantId, parentId)
+        departmentRepository
+                .findDepartmentById(tenantId, parentId)
                 .orElseThrow(() -> new IllegalArgumentException("Parent department not found: " + parentId));
     }
 

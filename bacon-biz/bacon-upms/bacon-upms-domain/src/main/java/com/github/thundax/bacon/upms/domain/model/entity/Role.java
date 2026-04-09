@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,10 +39,29 @@ public class Role {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Role(Long id, Long tenantId, String code, String name, RoleType roleType, RoleDataScopeType dataScopeType,
-                RoleStatus status, String createdBy, Instant createdAt, String updatedBy, Instant updatedAt) {
-        this(id == null ? null : RoleId.of(id),
+    public Role(
+            Long id,
+            Long tenantId,
+            String code,
+            String name,
+            RoleType roleType,
+            RoleDataScopeType dataScopeType,
+            RoleStatus status,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        this(
+                id == null ? null : RoleId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
-                code, name, roleType, dataScopeType, status, createdBy, createdAt, updatedBy, updatedAt);
+                code,
+                name,
+                roleType,
+                dataScopeType,
+                status,
+                createdBy,
+                createdAt,
+                updatedBy,
+                updatedAt);
     }
 }

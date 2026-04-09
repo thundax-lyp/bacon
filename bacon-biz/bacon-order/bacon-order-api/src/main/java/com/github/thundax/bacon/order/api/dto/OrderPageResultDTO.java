@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.order.api.dto;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 /**
  * 订单分页结果。

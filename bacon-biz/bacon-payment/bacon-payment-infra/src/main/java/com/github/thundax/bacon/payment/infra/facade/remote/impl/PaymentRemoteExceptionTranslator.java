@@ -8,8 +8,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 public final class PaymentRemoteExceptionTranslator {
 
-    private PaymentRemoteExceptionTranslator() {
-    }
+    private PaymentRemoteExceptionTranslator() {}
 
     public static RuntimeException translate(String operation, Throwable throwable) {
         if (throwable instanceof BaconException baconException) {
@@ -31,8 +30,9 @@ public final class PaymentRemoteExceptionTranslator {
                 case 403 -> new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_FORBIDDEN, operation);
                 case 404 -> new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_NOT_FOUND, operation);
                 case 409 -> new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_CONFLICT, operation);
-                default -> new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_ERROR,
-                        operation + ", status=" + statusCode);
+                default ->
+                    new PaymentDomainException(
+                            PaymentErrorCode.PAYMENT_REMOTE_ERROR, operation + ", status=" + statusCode);
             };
         }
         // 其余异常统一按“远程不可用”处理，交由上层决定重试、熔断或失败返回。

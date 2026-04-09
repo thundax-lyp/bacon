@@ -1,17 +1,16 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryDO;
 
 public final class InventoryPersistenceAssembler {
 
-    private InventoryPersistenceAssembler() {
-    }
+    private InventoryPersistenceAssembler() {}
 
     public static Inventory toDomain(InventoryDO dataObject) {
         return Inventory.reconstruct(
@@ -28,13 +27,21 @@ public final class InventoryPersistenceAssembler {
     }
 
     public static InventoryDO toDataObject(Inventory inventory) {
-        return new InventoryDO(inventory.getId() == null ? null : inventory.getId().value(),
+        return new InventoryDO(
+                inventory.getId() == null ? null : inventory.getId().value(),
                 inventory.getTenantId() == null ? null : inventory.getTenantId().value(),
                 inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
-                inventory.getWarehouseCode() == null ? null : inventory.getWarehouseCode().value(),
-                inventory.getOnHandQuantity(), inventory.getReservedQuantity(),
-                inventory.getAvailableQuantity(), inventory.getStatus().value(), inventory.getVersion(), null,
-                inventory.getUpdatedAt(), null,
+                inventory.getWarehouseCode() == null
+                        ? null
+                        : inventory.getWarehouseCode().value(),
+                inventory.getOnHandQuantity(),
+                inventory.getReservedQuantity(),
+                inventory.getAvailableQuantity(),
+                inventory.getStatus().value(),
+                inventory.getVersion(),
+                null,
+                inventory.getUpdatedAt(),
+                null,
                 inventory.getUpdatedAt());
     }
 }

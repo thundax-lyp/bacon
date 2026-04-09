@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
@@ -22,10 +22,11 @@ public class MenuRepositoryImpl implements MenuRepository {
     private final UpmsPermissionCacheSupport cacheSupport;
     private final IdGenerator idGenerator;
 
-    public MenuRepositoryImpl(MenuPersistenceSupport support,
-                              RoleRepositoryImpl roleRepository,
-                              UpmsPermissionCacheSupport cacheSupport,
-                              IdGenerator idGenerator) {
+    public MenuRepositoryImpl(
+            MenuPersistenceSupport support,
+            RoleRepositoryImpl roleRepository,
+            UpmsPermissionCacheSupport cacheSupport,
+            IdGenerator idGenerator) {
         this.support = support;
         this.roleRepository = roleRepository;
         this.cacheSupport = cacheSupport;
@@ -67,9 +68,18 @@ public class MenuRepositoryImpl implements MenuRepository {
     public Menu updateSort(TenantId tenantId, MenuId menuId, Integer sort) {
         Menu currentMenu = findMenuById(tenantId, menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
-        return support.saveMenu(new Menu(currentMenu.getId(), currentMenu.getTenantId(), currentMenu.getMenuType(),
-                currentMenu.getName(), currentMenu.getParentId(), currentMenu.getRoutePath(), currentMenu.getComponentName(),
-                currentMenu.getIcon(), sort, currentMenu.getPermissionCode(), List.of()));
+        return support.saveMenu(new Menu(
+                currentMenu.getId(),
+                currentMenu.getTenantId(),
+                currentMenu.getMenuType(),
+                currentMenu.getName(),
+                currentMenu.getParentId(),
+                currentMenu.getRoutePath(),
+                currentMenu.getComponentName(),
+                currentMenu.getIcon(),
+                sort,
+                currentMenu.getPermissionCode(),
+                List.of()));
     }
 
     @Override

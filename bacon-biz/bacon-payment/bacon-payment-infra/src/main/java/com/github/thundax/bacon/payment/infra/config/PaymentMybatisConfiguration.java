@@ -7,5 +7,4 @@ import org.springframework.context.annotation.Profile;
 @Configuration(proxyBeanMethods = false)
 @Profile("!test")
 @MapperScan("com.github.thundax.bacon.payment.infra.persistence.mapper")
-public class PaymentMybatisConfiguration {
-}
+public class PaymentMybatisConfiguration {}

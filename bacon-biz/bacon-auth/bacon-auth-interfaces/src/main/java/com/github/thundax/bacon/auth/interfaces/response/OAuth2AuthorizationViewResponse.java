@@ -18,7 +18,11 @@ public record OAuth2AuthorizationViewResponse(
         String state) {
 
     public static OAuth2AuthorizationViewResponse from(AuthorizationView view) {
-        return new OAuth2AuthorizationViewResponse(view.getAuthorizationRequestId(), view.getClientId(),
-                view.getClientName(), view.getScope(), view.getState());
+        return new OAuth2AuthorizationViewResponse(
+                view.getAuthorizationRequestId(),
+                view.getClientId(),
+                view.getClientName(),
+                view.getScope(),
+                view.getState());
     }
 }

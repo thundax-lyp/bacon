@@ -10,17 +10,24 @@ import com.github.thundax.bacon.inventory.infra.persistence.dataobject.Inventory
 
 public final class InventoryAuditReplayTaskItemPersistenceAssembler {
 
-    private InventoryAuditReplayTaskItemPersistenceAssembler() {
-    }
+    private InventoryAuditReplayTaskItemPersistenceAssembler() {}
 
     public static InventoryAuditReplayTaskItem toDomain(InventoryAuditReplayTaskItemDO dataObject) {
-        return new InventoryAuditReplayTaskItem(dataObject.getId(),
+        return new InventoryAuditReplayTaskItem(
+                dataObject.getId(),
                 dataObject.getTaskId() == null ? null : TaskId.of(dataObject.getTaskId()),
                 dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getDeadLetterId() == null ? null : DeadLetterId.of(dataObject.getDeadLetterId()),
-                dataObject.getItemStatus() == null ? null : InventoryAuditReplayTaskItemStatus.from(dataObject.getItemStatus()),
-                dataObject.getReplayStatus() == null ? null : InventoryAuditReplayStatus.from(dataObject.getReplayStatus()),
-                dataObject.getReplayKey(), dataObject.getResultMessage(), dataObject.getStartedAt(),
-                dataObject.getFinishedAt(), dataObject.getUpdatedAt());
+                dataObject.getItemStatus() == null
+                        ? null
+                        : InventoryAuditReplayTaskItemStatus.from(dataObject.getItemStatus()),
+                dataObject.getReplayStatus() == null
+                        ? null
+                        : InventoryAuditReplayStatus.from(dataObject.getReplayStatus()),
+                dataObject.getReplayKey(),
+                dataObject.getResultMessage(),
+                dataObject.getStartedAt(),
+                dataObject.getFinishedAt(),
+                dataObject.getUpdatedAt());
     }
 }

@@ -5,5 +5,4 @@ import com.github.thundax.bacon.storage.infra.persistence.dataobject.StorageAudi
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface StorageAuditOutboxMapper extends BaseMapper<StorageAuditOutboxDO> {
-}
+public interface StorageAuditOutboxMapper extends BaseMapper<StorageAuditOutboxDO> {}

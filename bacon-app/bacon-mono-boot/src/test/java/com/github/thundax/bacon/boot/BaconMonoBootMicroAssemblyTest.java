@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.boot;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.thundax.bacon.auth.api.facade.OAuthClientReadFacade;
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.auth.api.facade.TokenVerifyFacade;
@@ -33,35 +35,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-@SpringBootTest(classes = BaconMonoAssemblyTestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE,
+@SpringBootTest(
+        classes = BaconMonoAssemblyTestApplication.class,
+        webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
-                "bacon.runtime.mode=micro",
-                "spring.profiles.active=test",
-                "spring.cloud.nacos.discovery.enabled=false",
-                "spring.cloud.nacos.config.enabled=false",
-                "spring.boot.admin.client.enabled=false",
-                "spring.main.lazy-initialization=true",
-                "spring.autoconfigure.exclude="
-                        + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
-                        + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"
-                        + "org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration,"
-                        + "org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration,"
-                        + "com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration",
-                "bacon.remote.auth-base-url=http://127.0.0.1:18083",
-                "bacon.remote.upms-base-url=http://127.0.0.1:18082",
-                "bacon.remote.order-base-url=http://127.0.0.1:18084",
-                "bacon.remote.inventory-base-url=http://127.0.0.1:18085",
-                "bacon.remote.payment-base-url=http://127.0.0.1:18086"
+            "bacon.runtime.mode=micro",
+            "spring.profiles.active=test",
+            "spring.cloud.nacos.discovery.enabled=false",
+            "spring.cloud.nacos.config.enabled=false",
+            "spring.boot.admin.client.enabled=false",
+            "spring.main.lazy-initialization=true",
+            "spring.autoconfigure.exclude="
+                    + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
+                    + "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration,"
+                    + "org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration,"
+                    + "org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration,"
+                    + "com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration",
+            "bacon.remote.auth-base-url=http://127.0.0.1:18083",
+            "bacon.remote.upms-base-url=http://127.0.0.1:18082",
+            "bacon.remote.order-base-url=http://127.0.0.1:18084",
+            "bacon.remote.inventory-base-url=http://127.0.0.1:18085",
+            "bacon.remote.payment-base-url=http://127.0.0.1:18086"
         })
 @Import({
-        OrderRepositoryTestConfiguration.class,
-        PaymentRepositoryTestConfiguration.class,
-        AuthRepositoryTestConfiguration.class,
-        UpmsRepositoryTestConfiguration.class,
-        StorageRepositoryTestConfiguration.class,
-        MybatisMapperTestConfiguration.class
+    OrderRepositoryTestConfiguration.class,
+    PaymentRepositoryTestConfiguration.class,
+    AuthRepositoryTestConfiguration.class,
+    UpmsRepositoryTestConfiguration.class,
+    StorageRepositoryTestConfiguration.class,
+    MybatisMapperTestConfiguration.class
 })
 class BaconMonoBootMicroAssemblyTest extends BaconSpringBootTest {
 

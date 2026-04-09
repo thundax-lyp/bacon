@@ -44,41 +44,51 @@ public class OAuth2Controller {
             @RequestParam(value = "code_challenge", required = false) String codeChallenge,
             @RequestParam(value = "code_challenge_method", required = false) String codeChallengeMethod) {
         return OAuth2AuthorizationViewResponse.from(oAuth2AuthorizationApplicationService.authorize(
-                BearerTokenUtils.extractToken(authorization), clientId, redirectUri, scope, state,
-                codeChallenge, codeChallengeMethod));
+                BearerTokenUtils.extractToken(authorization),
+                clientId,
+                redirectUri,
+                scope,
+                state,
+                codeChallenge,
+                codeChallengeMethod));
     }
 
     @Operation(summary = "提交 OAuth2 授权决策")
     @PostMapping("/authorize/decision")
     public OAuth2AuthorizationDecisionResponse decide(@Valid @RequestBody OAuth2DecisionRequest request) {
-        return OAuth2AuthorizationDecisionResponse.from(
-                oAuth2AuthorizationApplicationService.decide(request.getAuthorizationRequestId(),
-                        request.getDecision()));
+        return OAuth2AuthorizationDecisionResponse.from(oAuth2AuthorizationApplicationService.decide(
+                request.getAuthorizationRequestId(), request.getDecision()));
     }
 
     @Operation(summary = "换取 OAuth2 访问令牌")
     @PostMapping("/token")
     public OAuth2TokenResponse token(@RequestParam MultiValueMap<String, String> request) {
         return OAuth2TokenResponse.from(oAuth2AuthorizationApplicationService.token(
-                request.getFirst("grant_type"), request.getFirst("code"), request.getFirst("redirect_uri"),
-                request.getFirst("client_id"), request.getFirst("client_secret"),
-                request.getFirst("code_verifier"), request.getFirst("refresh_token")));
+                request.getFirst("grant_type"),
+                request.getFirst("code"),
+                request.getFirst("redirect_uri"),
+                request.getFirst("client_id"),
+                request.getFirst("client_secret"),
+                request.getFirst("code_verifier"),
+                request.getFirst("refresh_token")));
     }
 
     @Operation(summary = "校验 OAuth2 令牌")
     @PostMapping("/introspect")
-    public OAuth2IntrospectionResponse introspect(@RequestParam("token") String token,
-                                                  @RequestParam("client_id") String clientId,
-                                                  @RequestParam("client_secret") String clientSecret) {
+    public OAuth2IntrospectionResponse introspect(
+            @RequestParam("token") String token,
+            @RequestParam("client_id") String clientId,
+            @RequestParam("client_secret") String clientSecret) {
         return OAuth2IntrospectionResponse.from(
                 oAuth2AuthorizationApplicationService.introspect(token, clientId, clientSecret));
     }
 
     @Operation(summary = "撤销 OAuth2 令牌")
     @PostMapping("/revoke")
-    public void revoke(@RequestParam("token") String token,
-                       @RequestParam("client_id") String clientId,
-                       @RequestParam("client_secret") String clientSecret) {
+    public void revoke(
+            @RequestParam("token") String token,
+            @RequestParam("client_id") String clientId,
+            @RequestParam("client_secret") String clientSecret) {
         oAuth2AuthorizationApplicationService.revoke(token, clientId, clientSecret);
     }
 

@@ -6,7 +6,6 @@ import java.util.Arrays;
  * 分段上传状态。
  */
 public enum UploadStatusEnum {
-
     INITIATED,
     UPLOADING,
     COMPLETED,

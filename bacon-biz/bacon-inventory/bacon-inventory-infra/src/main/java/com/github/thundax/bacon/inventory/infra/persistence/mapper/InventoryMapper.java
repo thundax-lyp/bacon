@@ -9,7 +9,8 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface InventoryMapper extends BaseMapper<InventoryDO> {
 
-    @Select("""
+    @Select(
+            """
             <script>
             select id, tenant_id, sku_id, warehouse_code, on_hand_quantity, reserved_quantity, available_quantity,
                    status, version, created_by, created_at, updated_by, updated_at
@@ -25,13 +26,15 @@ public interface InventoryMapper extends BaseMapper<InventoryDO> {
             limit #{offset}, #{pageSize}
             </script>
             """)
-    java.util.List<InventoryDO> selectPageByCondition(@Param("tenantId") Long tenantId,
-                                                      @Param("skuId") Long skuId,
-                                                      @Param("status") String status,
-                                                      @Param("offset") long offset,
-                                                      @Param("pageSize") int pageSize);
+    java.util.List<InventoryDO> selectPageByCondition(
+            @Param("tenantId") Long tenantId,
+            @Param("skuId") Long skuId,
+            @Param("status") String status,
+            @Param("offset") long offset,
+            @Param("pageSize") int pageSize);
 
-    @Select("""
+    @Select(
+            """
             <script>
             select count(1)
             from bacon_inventory_inventory
@@ -44,7 +47,5 @@ public interface InventoryMapper extends BaseMapper<InventoryDO> {
             </if>
             </script>
             """)
-    long countByCondition(@Param("tenantId") Long tenantId,
-                          @Param("skuId") Long skuId,
-                          @Param("status") String status);
+    long countByCondition(@Param("tenantId") Long tenantId, @Param("skuId") Long skuId, @Param("status") String status);
 }

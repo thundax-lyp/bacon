@@ -25,7 +25,14 @@ public record DepartmentResponse(
         EnableStatusEnum status) {
 
     public static DepartmentResponse from(DepartmentDTO dto) {
-        return new DepartmentResponse(dto.getId(), dto.getTenantId(), dto.getCode(), dto.getName(), dto.getParentId(),
-                dto.getLeaderUserId(), dto.getSort(), dto.getStatus());
+        return new DepartmentResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getCode(),
+                dto.getName(),
+                dto.getParentId(),
+                dto.getLeaderUserId(),
+                dto.getSort(),
+                dto.getStatus());
     }
 }

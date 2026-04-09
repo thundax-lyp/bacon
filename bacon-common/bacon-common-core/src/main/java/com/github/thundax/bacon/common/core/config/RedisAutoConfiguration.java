@@ -22,8 +22,8 @@ public class RedisAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(name = "redisTemplate")
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory,
-                                                       ObjectMapper objectMapper) {
+    public RedisTemplate<String, Object> redisTemplate(
+            RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
         StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
         GenericJackson2JsonRedisSerializer jsonRedisSerializer =
                 new GenericJackson2JsonRedisSerializer(objectMapper.copy());

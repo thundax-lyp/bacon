@@ -1,7 +1,5 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
@@ -10,6 +8,8 @@ import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
 import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleDataScopeAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleMenuAssignRequest;
@@ -53,10 +53,13 @@ public class RoleController {
     @GetMapping("/page")
     public RolePageResponse pageRoles(@CurrentTenant Long tenantId, @Valid @ModelAttribute RolePageRequest request) {
         return RolePageResponse.from(roleApplicationService.pageRoles(new RolePageQueryDTO(
-                TenantId.of(tenantId), request.getCode(), request.getName(),
+                TenantId.of(tenantId),
+                request.getCode(),
+                request.getName(),
                 request.getRoleType() == null ? null : request.getRoleType().name(),
                 request.getStatus() == null ? null : request.getStatus().name(),
-                request.getPageNo(), request.getPageSize())));
+                request.getPageNo(),
+                request.getPageSize())));
     }
 
     @Operation(summary = "创建角色")
@@ -72,11 +75,15 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "修改角色", eventType = LogEventType.UPDATE)
     @PutMapping("/{roleId}")
-    public RoleResponse updateRole(@CurrentTenant Long tenantId, @PathVariable String roleId,
-                                   @RequestBody RoleUpdateRequest request) {
+    public RoleResponse updateRole(
+            @CurrentTenant Long tenantId, @PathVariable String roleId, @RequestBody RoleUpdateRequest request) {
         return RoleResponse.from(roleApplicationService.updateRole(
-                TenantId.of(tenantId), roleId, request.code(), request.name(),
-                request.roleType(), request.dataScopeType()));
+                TenantId.of(tenantId),
+                roleId,
+                request.code(),
+                request.name(),
+                request.roleType(),
+                request.dataScopeType()));
     }
 
     @Operation(summary = "按角色 ID 查询角色")
@@ -84,17 +91,18 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "查询角色详情", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}")
     public RoleResponse getRoleById(@CurrentTenant Long tenantId, @PathVariable String roleId) {
-        return RoleResponse.from(roleApplicationService.getRoleById(TenantId.of(tenantId), RoleId.of(Long.parseLong(roleId.trim()))));
+        return RoleResponse.from(
+                roleApplicationService.getRoleById(TenantId.of(tenantId), RoleId.of(Long.parseLong(roleId.trim()))));
     }
 
     @Operation(summary = "启用或停用角色")
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "变更角色状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{roleId}/status")
-    public RoleResponse updateRoleStatus(@CurrentTenant Long tenantId, @PathVariable String roleId,
-                                         @RequestBody RoleStatusUpdateRequest request) {
-        return RoleResponse.from(roleApplicationService.updateRoleStatus(
-                TenantId.of(tenantId), roleId, request.status()));
+    public RoleResponse updateRoleStatus(
+            @CurrentTenant Long tenantId, @PathVariable String roleId, @RequestBody RoleStatusUpdateRequest request) {
+        return RoleResponse.from(
+                roleApplicationService.updateRoleStatus(TenantId.of(tenantId), roleId, request.status()));
     }
 
     @Operation(summary = "删除角色")
@@ -117,8 +125,8 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/menus")
-    public Set<String> assignMenus(@CurrentTenant Long tenantId, @PathVariable String roleId,
-                                   @RequestBody RoleMenuAssignRequest request) {
+    public Set<String> assignMenus(
+            @CurrentTenant Long tenantId, @PathVariable String roleId, @RequestBody RoleMenuAssignRequest request) {
         return roleApplicationService.assignMenus(TenantId.of(tenantId), roleId, request.menuIds());
     }
 
@@ -134,8 +142,8 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色资源", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/resources")
-    public Set<String> assignResources(@CurrentTenant Long tenantId, @PathVariable String roleId,
-                                       @RequestBody RoleResourceAssignRequest request) {
+    public Set<String> assignResources(
+            @CurrentTenant Long tenantId, @PathVariable String roleId, @RequestBody RoleResourceAssignRequest request) {
         return roleApplicationService.assignResources(TenantId.of(tenantId), roleId, request.resourceCodes());
     }
 
@@ -149,18 +157,20 @@ public class RoleController {
                 roleApplicationService.getAssignedDataScopeType(currentTenantId, roleId),
                 roleApplicationService.getAssignedDataScopeDepartments(currentTenantId, roleId).stream()
                         .map(DepartmentId::value)
-                        .collect(Collectors.toSet())
-        );
+                        .collect(Collectors.toSet()));
     }
 
     @Operation(summary = "配置角色数据权限")
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "配置角色数据权限", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/data-scope")
-    public Set<Long> assignDataScope(@CurrentTenant Long tenantId, @PathVariable String roleId,
-                                     @RequestBody RoleDataScopeAssignRequest request) {
-        return roleApplicationService.assignDataScope(
-                        TenantId.of(tenantId), roleId, request.dataScopeType(), request.departmentIds()).stream()
+    public Set<Long> assignDataScope(
+            @CurrentTenant Long tenantId,
+            @PathVariable String roleId,
+            @RequestBody RoleDataScopeAssignRequest request) {
+        return roleApplicationService
+                .assignDataScope(TenantId.of(tenantId), roleId, request.dataScopeType(), request.departmentIds())
+                .stream()
                 .map(DepartmentId::value)
                 .collect(Collectors.toSet());
     }

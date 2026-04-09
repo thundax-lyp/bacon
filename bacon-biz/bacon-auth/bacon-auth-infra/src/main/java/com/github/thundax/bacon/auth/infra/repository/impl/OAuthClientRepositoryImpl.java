@@ -3,8 +3,8 @@ package com.github.thundax.bacon.auth.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
+import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import com.github.thundax.bacon.auth.domain.repository.OAuthClientRepository;
 import com.github.thundax.bacon.auth.infra.persistence.dataobject.OAuthClientDO;
 import com.github.thundax.bacon.auth.infra.persistence.mapper.OAuthClientMapper;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Repository;
 @Profile("!test")
 public class OAuthClientRepositoryImpl implements OAuthClientRepository {
 
-    private static final TypeReference<LinkedHashSet<String>> STRING_SET_TYPE = new TypeReference<>() { };
+    private static final TypeReference<LinkedHashSet<String>> STRING_SET_TYPE = new TypeReference<>() {};
 
     private final OAuthClientMapper oAuthClientMapper;
     private final ObjectMapper objectMapper;
@@ -33,18 +33,28 @@ public class OAuthClientRepositoryImpl implements OAuthClientRepository {
     @Override
     public Optional<OAuthClient> findByClientCode(String clientId) {
         return Optional.ofNullable(oAuthClientMapper.selectOne(Wrappers.<OAuthClientDO>lambdaQuery()
-                .eq(OAuthClientDO::getClientId, clientId)
-                .last("limit 1"))).map(this::toDomain);
+                        .eq(OAuthClientDO::getClientId, clientId)
+                        .last("limit 1")))
+                .map(this::toDomain);
     }
 
     private OAuthClient toDomain(OAuthClientDO dataObject) {
-        return new OAuthClient(dataObject.getId(), dataObject.getClientId(), dataObject.getClientSecretHash(),
-                dataObject.getClientName(), dataObject.getClientType(), readStringSet(dataObject.getGrantTypes()).stream().toList(),
-                readStringSet(dataObject.getScopes()).stream().toList(), readStringSet(dataObject.getRedirectUris()).stream().toList(),
-                dataObject.getAccessTokenTtlSeconds(), dataObject.getRefreshTokenTtlSeconds(),
+        return new OAuthClient(
+                dataObject.getId(),
+                dataObject.getClientId(),
+                dataObject.getClientSecretHash(),
+                dataObject.getClientName(),
+                dataObject.getClientType(),
+                readStringSet(dataObject.getGrantTypes()).stream().toList(),
+                readStringSet(dataObject.getScopes()).stream().toList(),
+                readStringSet(dataObject.getRedirectUris()).stream().toList(),
+                dataObject.getAccessTokenTtlSeconds(),
+                dataObject.getRefreshTokenTtlSeconds(),
                 Boolean.TRUE.equals(dataObject.getEnabled()) ? ClientStatus.ENABLED : ClientStatus.DISABLED,
-                dataObject.getContact(), dataObject.getRemark(),
-                defaultInstant(dataObject.getCreatedAt()), defaultInstant(dataObject.getUpdatedAt()));
+                dataObject.getContact(),
+                dataObject.getRemark(),
+                defaultInstant(dataObject.getCreatedAt()),
+                defaultInstant(dataObject.getUpdatedAt()));
     }
 
     private Set<String> readStringSet(String json) {

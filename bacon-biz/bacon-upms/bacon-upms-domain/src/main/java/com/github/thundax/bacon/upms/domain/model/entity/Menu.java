@@ -1,11 +1,10 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.List;
 
 /**
  * 菜单领域实体。
@@ -37,12 +36,29 @@ public class Menu {
     /** 子菜单列表。 */
     private List<Menu> children;
 
-    public Menu(Long id, Long tenantId, String menuType, String name, Long parentId, String routePath,
-                String componentName, String icon, Integer sort, String permissionCode, List<Menu> children) {
-        this(id == null ? null : MenuId.of(id),
+    public Menu(
+            Long id,
+            Long tenantId,
+            String menuType,
+            String name,
+            Long parentId,
+            String routePath,
+            String componentName,
+            String icon,
+            Integer sort,
+            String permissionCode,
+            List<Menu> children) {
+        this(
+                id == null ? null : MenuId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
-                menuType, name,
+                menuType,
+                name,
                 parentId == null ? null : MenuId.of(parentId),
-                routePath, componentName, icon, sort, permissionCode, children);
+                routePath,
+                componentName,
+                icon,
+                sort,
+                permissionCode,
+                children);
     }
 }

@@ -19,8 +19,7 @@ public class StoredObjectDeletionRetryScheduler {
 
     @Scheduled(
             fixedDelayString = "${bacon.storage.deletion-retry.fixed-delay-millis:60000}",
-            initialDelayString = "${bacon.storage.deletion-retry.fixed-delay-millis:60000}"
-    )
+            initialDelayString = "${bacon.storage.deletion-retry.fixed-delay-millis:60000}")
     public void retryDeletingObjects() {
         int completedCount = storedObjectDeletionRetryService.retryDeletingObjects();
         if (completedCount > 0) {

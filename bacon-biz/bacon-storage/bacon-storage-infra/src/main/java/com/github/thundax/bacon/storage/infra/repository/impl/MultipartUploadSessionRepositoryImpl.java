@@ -7,11 +7,10 @@ import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.MultipartUploadSessionDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.MultipartUploadSessionMapper;
-import org.springframework.stereotype.Repository;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class MultipartUploadSessionRepositoryImpl implements MultipartUploadSessionRepository {
@@ -21,8 +20,8 @@ public class MultipartUploadSessionRepositoryImpl implements MultipartUploadSess
     private final MultipartUploadSessionMapper multipartUploadSessionMapper;
     private final IdGenerator idGenerator;
 
-    public MultipartUploadSessionRepositoryImpl(MultipartUploadSessionMapper multipartUploadSessionMapper,
-                                                IdGenerator idGenerator) {
+    public MultipartUploadSessionRepositoryImpl(
+            MultipartUploadSessionMapper multipartUploadSessionMapper, IdGenerator idGenerator) {
         this.multipartUploadSessionMapper = multipartUploadSessionMapper;
         this.idGenerator = idGenerator;
     }
@@ -41,13 +40,17 @@ public class MultipartUploadSessionRepositoryImpl implements MultipartUploadSess
 
     @Override
     public Optional<MultipartUploadSession> findByUploadId(String uploadId) {
-        return Optional.ofNullable(multipartUploadSessionMapper.selectOne(Wrappers.<MultipartUploadSessionDO>lambdaQuery()
-                .eq(MultipartUploadSessionDO::getUploadId, uploadId))).map(this::toDomain);
+        return Optional.ofNullable(
+                        multipartUploadSessionMapper.selectOne(Wrappers.<MultipartUploadSessionDO>lambdaQuery()
+                                .eq(MultipartUploadSessionDO::getUploadId, uploadId)))
+                .map(this::toDomain);
     }
 
     @Override
-    public List<MultipartUploadSession> listExpiredSessions(List<UploadStatus> uploadStatuses, Instant expireBefore, int limit) {
-        return multipartUploadSessionMapper.selectList(Wrappers.<MultipartUploadSessionDO>lambdaQuery()
+    public List<MultipartUploadSession> listExpiredSessions(
+            List<UploadStatus> uploadStatuses, Instant expireBefore, int limit) {
+        return multipartUploadSessionMapper
+                .selectList(Wrappers.<MultipartUploadSessionDO>lambdaQuery()
                         .in(MultipartUploadSessionDO::getUploadStatus, uploadStatuses)
                         .lt(MultipartUploadSessionDO::getUpdatedAt, expireBefore)
                         .orderByAsc(MultipartUploadSessionDO::getUpdatedAt)
@@ -58,19 +61,46 @@ public class MultipartUploadSessionRepositoryImpl implements MultipartUploadSess
     }
 
     private MultipartUploadSessionDO toDataObject(MultipartUploadSession session) {
-        return new MultipartUploadSessionDO(session.getId(), session.getUploadId(), session.getTenantId(),
-                session.getOwnerType(), session.getOwnerId(), session.getCategory(), session.getOriginalFilename(), session.getContentType(),
-                session.getObjectKey(), session.getProviderUploadId(), session.getTotalSize(), session.getPartSize(),
-                session.getUploadedPartCount(), session.getUploadStatus(), session.getCreatedAt(),
-                session.getUpdatedAt(), session.getCompletedAt(), session.getAbortedAt());
+        return new MultipartUploadSessionDO(
+                session.getId(),
+                session.getUploadId(),
+                session.getTenantId(),
+                session.getOwnerType(),
+                session.getOwnerId(),
+                session.getCategory(),
+                session.getOriginalFilename(),
+                session.getContentType(),
+                session.getObjectKey(),
+                session.getProviderUploadId(),
+                session.getTotalSize(),
+                session.getPartSize(),
+                session.getUploadedPartCount(),
+                session.getUploadStatus(),
+                session.getCreatedAt(),
+                session.getUpdatedAt(),
+                session.getCompletedAt(),
+                session.getAbortedAt());
     }
 
     private MultipartUploadSession toDomain(MultipartUploadSessionDO dataObject) {
-        return new MultipartUploadSession(dataObject.getId(), dataObject.getUploadId(), dataObject.getTenantId(),
-                dataObject.getOwnerType(), dataObject.getOwnerId(), dataObject.getCategory(), dataObject.getOriginalFilename(),
-                dataObject.getContentType(), dataObject.getObjectKey(), dataObject.getProviderUploadId(),
-                dataObject.getTotalSize(), dataObject.getPartSize(), dataObject.getUploadedPartCount(),
-                dataObject.getUploadStatus(), dataObject.getCreatedAt(), dataObject.getUpdatedAt(),
-                dataObject.getCompletedAt(), dataObject.getAbortedAt());
+        return new MultipartUploadSession(
+                dataObject.getId(),
+                dataObject.getUploadId(),
+                dataObject.getTenantId(),
+                dataObject.getOwnerType(),
+                dataObject.getOwnerId(),
+                dataObject.getCategory(),
+                dataObject.getOriginalFilename(),
+                dataObject.getContentType(),
+                dataObject.getObjectKey(),
+                dataObject.getProviderUploadId(),
+                dataObject.getTotalSize(),
+                dataObject.getPartSize(),
+                dataObject.getUploadedPartCount(),
+                dataObject.getUploadStatus(),
+                dataObject.getCreatedAt(),
+                dataObject.getUpdatedAt(),
+                dataObject.getCompletedAt(),
+                dataObject.getAbortedAt());
     }
 }

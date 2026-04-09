@@ -8,7 +8,11 @@ public class IdFallbackAlertListener {
 
     @EventListener
     public void onFallback(IdFallbackEvent event) {
-        log.error("ALERT id provider degraded, bizTag={}, operation={}, reason={}, occurredAt={}",
-                event.bizTag(), event.operation(), event.reason(), event.occurredAt());
+        log.error(
+                "ALERT id provider degraded, bizTag={}, operation={}, reason={}, occurredAt={}",
+                event.bizTag(),
+                event.operation(),
+                event.reason(),
+                event.occurredAt());
     }
 }

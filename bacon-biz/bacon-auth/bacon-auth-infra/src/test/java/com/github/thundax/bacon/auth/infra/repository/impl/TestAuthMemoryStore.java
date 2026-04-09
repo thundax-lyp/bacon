@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.auth.infra.repository.impl;
 
-import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAccessToken;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthAuthorizationRequest;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthClient;
 import com.github.thundax.bacon.auth.domain.model.entity.OAuthRefreshToken;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
+import com.github.thundax.bacon.auth.domain.model.enums.ClientStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -28,13 +28,22 @@ public class TestAuthMemoryStore {
 
     public TestAuthMemoryStore() {
         Instant now = Instant.now();
-        OAuthClient demoClient = new OAuthClient(1L, "demo-client", "demo-secret", "Demo OAuth Client",
-                "CONFIDENTIAL", List.of("authorization_code", "refresh_token"), List.of("openid", "profile"),
-                List.of(
-                        "http://127.0.0.1:3000/callback",
-                        "http://127.0.0.1:8080/api/swagger-ui/oauth2-redirect.html"
-                ), 1800L, 2592000L, ClientStatus.ENABLED,
-                "dev@bacon.local", "demo", now, now);
+        OAuthClient demoClient = new OAuthClient(
+                1L,
+                "demo-client",
+                "demo-secret",
+                "Demo OAuth Client",
+                "CONFIDENTIAL",
+                List.of("authorization_code", "refresh_token"),
+                List.of("openid", "profile"),
+                List.of("http://127.0.0.1:3000/callback", "http://127.0.0.1:8080/api/swagger-ui/oauth2-redirect.html"),
+                1800L,
+                2592000L,
+                ClientStatus.ENABLED,
+                "dev@bacon.local",
+                "demo",
+                now,
+                now);
         clients.put(demoClient.getClientCodeValue(), demoClient);
     }
 

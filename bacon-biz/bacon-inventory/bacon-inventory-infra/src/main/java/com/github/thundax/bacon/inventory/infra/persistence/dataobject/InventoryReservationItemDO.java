@@ -16,11 +16,15 @@ public class InventoryReservationItemDO {
 
     @TableId(type = IdType.AUTO)
     private Long id;
+
     @TableField("tenant_id")
     private Long tenantId;
+
     @TableField("reservation_no")
     private String reservationNo;
+
     @TableField("sku_id")
     private Long skuId;
+
     private Integer quantity;
 }

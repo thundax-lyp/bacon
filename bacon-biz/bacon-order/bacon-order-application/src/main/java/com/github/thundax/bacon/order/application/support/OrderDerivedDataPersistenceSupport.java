@@ -2,19 +2,19 @@ package com.github.thundax.bacon.order.application.support;
 
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.enums.OperatorType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
-import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
-import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
 
@@ -32,20 +32,40 @@ public class OrderDerivedDataPersistenceSupport {
     public void persist(Order order, OrderAuditActionType actionType, OrderStatus beforeStatus) {
         Instant now = Instant.now();
         if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
-            orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(null, order.getTenantId(), toOrderId(order),
-                    toPaymentNo(order.getPaymentNoValue()), toPaymentChannel(order.getPaymentChannelCodeValue()),
+            orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(
+                    null,
+                    order.getTenantId(),
+                    toOrderId(order),
+                    toPaymentNo(order.getPaymentNoValue()),
+                    toPaymentChannel(order.getPaymentChannelCodeValue()),
                     toPayStatus(order.getPayStatusValue()),
                     toMoney(order.getPaidAmount(), order.getCurrencyCodeValue()),
-                    order.getPaidAt(), order.getPaymentFailureReason(),
-                    toPaymentChannelStatus(order.getPaymentChannelStatus()), now));
+                    order.getPaidAt(),
+                    order.getPaymentFailureReason(),
+                    toPaymentChannelStatus(order.getPaymentChannelStatus()),
+                    now));
         }
-        if (order.getReservationNoValue() != null && !order.getReservationNoValue().isBlank()) {
-            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(order.getTenantId(), order.getOrderNo(),
-                    order.getReservationNo(), order.getInventoryStatus(), order.getWarehouseCode(),
-                    order.getInventoryFailureReason(), now));
+        if (order.getReservationNoValue() != null
+                && !order.getReservationNoValue().isBlank()) {
+            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(
+                    order.getTenantId(),
+                    order.getOrderNo(),
+                    order.getReservationNo(),
+                    order.getInventoryStatus(),
+                    order.getWarehouseCode(),
+                    order.getInventoryFailureReason(),
+                    now));
         }
-        orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNo(), actionType,
-                beforeStatus, order.getOrderStatus(), OperatorType.SYSTEM, OPERATOR_ID_SYSTEM, now));
+        orderRepository.saveAuditLog(new OrderAuditLog(
+                null,
+                order.getTenantId(),
+                order.getOrderNo(),
+                actionType,
+                beforeStatus,
+                order.getOrderStatus(),
+                OperatorType.SYSTEM,
+                OPERATOR_ID_SYSTEM,
+                now));
     }
 
     private OrderId toOrderId(Order order) {

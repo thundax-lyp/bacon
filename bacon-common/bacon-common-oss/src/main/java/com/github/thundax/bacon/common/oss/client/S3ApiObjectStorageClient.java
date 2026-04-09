@@ -4,6 +4,10 @@ import com.github.thundax.bacon.common.core.exception.SystemException;
 import com.github.thundax.bacon.common.oss.config.CommonOssProperties;
 import com.github.thundax.bacon.common.oss.model.ObjectStoragePart;
 import com.github.thundax.bacon.common.oss.model.ObjectStorageWriteResult;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -20,11 +24,6 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
 
 /**
  * 基于 S3 API 的对象存储客户端。
@@ -51,7 +50,8 @@ public class S3ApiObjectStorageClient implements ObjectStorageClient {
     public ObjectStorageWriteResult putObject(String objectKey, String contentType, InputStream inputStream) {
         try {
             byte[] content = inputStream.readAllBytes();
-            s3Client.putObject(PutObjectRequest.builder()
+            s3Client.putObject(
+                    PutObjectRequest.builder()
                             .bucket(properties.getBucketName())
                             .key(objectKey)
                             .contentType(contentType)
@@ -74,27 +74,27 @@ public class S3ApiObjectStorageClient implements ObjectStorageClient {
     }
 
     @Override
-    public String uploadPart(String objectKey, String uploadId, Integer partNumber, Long size, InputStream inputStream) {
-        return s3Client.uploadPart(UploadPartRequest.builder()
-                        .bucket(properties.getBucketName())
-                        .key(objectKey)
-                        .uploadId(uploadId)
-                        .partNumber(partNumber)
-                        .contentLength(size)
-                        .build(),
-                RequestBody.fromInputStream(inputStream, size))
+    public String uploadPart(
+            String objectKey, String uploadId, Integer partNumber, Long size, InputStream inputStream) {
+        return s3Client.uploadPart(
+                        UploadPartRequest.builder()
+                                .bucket(properties.getBucketName())
+                                .key(objectKey)
+                                .uploadId(uploadId)
+                                .partNumber(partNumber)
+                                .contentLength(size)
+                                .build(),
+                        RequestBody.fromInputStream(inputStream, size))
                 .eTag();
     }
 
     @Override
-    public ObjectStorageWriteResult completeMultipartUpload(String objectKey, String uploadId,
-                                                            List<ObjectStoragePart> parts) {
-        List<CompletedPart> completedParts = parts.stream()
-                .map(this::toCompletedPart)
-                .toList();
-        CompletedMultipartUpload multipartUpload = CompletedMultipartUpload.builder()
-                .parts(completedParts)
-                .build();
+    public ObjectStorageWriteResult completeMultipartUpload(
+            String objectKey, String uploadId, List<ObjectStoragePart> parts) {
+        List<CompletedPart> completedParts =
+                parts.stream().map(this::toCompletedPart).toList();
+        CompletedMultipartUpload multipartUpload =
+                CompletedMultipartUpload.builder().parts(completedParts).build();
         s3Client.completeMultipartUpload(CompleteMultipartUploadRequest.builder()
                 .bucket(properties.getBucketName())
                 .key(objectKey)
@@ -113,7 +113,11 @@ public class S3ApiObjectStorageClient implements ObjectStorageClient {
                     .uploadId(uploadId)
                     .build());
         } catch (S3Exception ex) {
-            if ("NoSuchUpload".equals(ex.awsErrorDetails() == null ? null : ex.awsErrorDetails().errorCode())) {
+            if ("NoSuchUpload"
+                    .equals(
+                            ex.awsErrorDetails() == null
+                                    ? null
+                                    : ex.awsErrorDetails().errorCode())) {
                 return;
             }
             throw ex;
@@ -131,7 +135,8 @@ public class S3ApiObjectStorageClient implements ObjectStorageClient {
     @Override
     public String buildAccessEndpoint(String objectKey) {
         String baseUrl = StringUtils.hasText(properties.getPublicBaseUrl())
-                ? properties.getPublicBaseUrl() : properties.getEndpoint() + "/" + properties.getBucketName();
+                ? properties.getPublicBaseUrl()
+                : properties.getEndpoint() + "/" + properties.getBucketName();
         String normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         return normalizedBaseUrl + "/" + objectKey;
     }

@@ -17,8 +17,7 @@ public class KafkaSysLogConsumer {
 
     @KafkaListener(
             topics = "${bacon.log.sys.topic:bacon-sys-log}",
-            groupId = "${bacon.log.sys.consumer-group:bacon-upms-sys-log-group}"
-    )
+            groupId = "${bacon.log.sys.consumer-group:bacon-upms-sys-log-group}")
     public void onMessage(SysLogDTO sysLogDTO) {
         sysLogMqConsumer.consume(sysLogDTO);
     }

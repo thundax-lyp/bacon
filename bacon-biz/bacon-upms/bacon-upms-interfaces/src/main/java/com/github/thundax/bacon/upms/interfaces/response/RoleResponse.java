@@ -22,7 +22,13 @@ public record RoleResponse(
         String status) {
 
     public static RoleResponse from(RoleDTO dto) {
-        return new RoleResponse(dto.getId(), dto.getTenantId(), dto.getCode(), dto.getName(), dto.getRoleType(),
-                dto.getDataScopeType(), dto.getStatus());
+        return new RoleResponse(
+                dto.getId(),
+                dto.getTenantId(),
+                dto.getCode(),
+                dto.getName(),
+                dto.getRoleType(),
+                dto.getDataScopeType(),
+                dto.getStatus());
     }
 }

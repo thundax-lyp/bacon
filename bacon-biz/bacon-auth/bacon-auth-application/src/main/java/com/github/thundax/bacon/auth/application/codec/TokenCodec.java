@@ -1,8 +1,6 @@
 package com.github.thundax.bacon.auth.application.codec;
 
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
-import org.springframework.stereotype.Component;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -10,14 +8,16 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.stereotype.Component;
 
 @Component
 public class TokenCodec {
 
     public String issueUserAccessToken(AuthSession authSession) {
-        String payload = authSession.getSessionId() + ":" + authSession.getExpireAt().getEpochSecond();
-        return "bacon-user." + Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(payload.getBytes(StandardCharsets.UTF_8));
+        String payload =
+                authSession.getSessionId() + ":" + authSession.getExpireAt().getEpochSecond();
+        return "bacon-user."
+                + Base64.getUrlEncoder().withoutPadding().encodeToString(payload.getBytes(StandardCharsets.UTF_8));
     }
 
     public Optional<String> parseSessionId(String accessToken) {

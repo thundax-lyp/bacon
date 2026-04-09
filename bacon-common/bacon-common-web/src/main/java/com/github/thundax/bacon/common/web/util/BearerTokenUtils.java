@@ -4,8 +4,7 @@ public final class BearerTokenUtils {
 
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private BearerTokenUtils() {
-    }
+    private BearerTokenUtils() {}
 
     public static String extractToken(String authorization) {
         return authorization != null && authorization.startsWith(BEARER_PREFIX)

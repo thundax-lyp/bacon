@@ -1,15 +1,15 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
@@ -33,15 +33,26 @@ public class PostApplicationService {
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         Long tenantIdValue = query.getTenantId().value();
         return new PageResultDTO<>(
-                postRepository.pagePosts(query.getTenantId(), query.getCode(), query.getName(),
-                        query.getDepartmentId(), query.getStatus(), pageNo, pageSize).stream()
+                postRepository
+                        .pagePosts(
+                                query.getTenantId(),
+                                query.getCode(),
+                                query.getName(),
+                                query.getDepartmentId(),
+                                query.getStatus(),
+                                pageNo,
+                                pageSize)
+                        .stream()
                         .map(post -> toDto(post, tenantIdValue))
                         .toList(),
-                postRepository.countPosts(query.getTenantId(), query.getCode(), query.getName(),
-                        query.getDepartmentId(), query.getStatus()),
+                postRepository.countPosts(
+                        query.getTenantId(),
+                        query.getCode(),
+                        query.getName(),
+                        query.getDepartmentId(),
+                        query.getStatus()),
                 pageNo,
-                pageSize
-        );
+                pageSize);
     }
 
     public PostDTO getPostById(TenantId tenantId, PostId postId) {
@@ -67,7 +78,8 @@ public class PostApplicationService {
     }
 
     @Transactional
-    public PostDTO updatePost(TenantId tenantId, PostId postId, String code, String name, String departmentId, String status) {
+    public PostDTO updatePost(
+            TenantId tenantId, PostId postId, String code, String name, String departmentId, String status) {
         Post currentPost = requirePost(tenantId, postId);
         validateRequired(code, "code");
         validateRequired(name, "name");
@@ -91,7 +103,8 @@ public class PostApplicationService {
     }
 
     private Post requirePost(TenantId tenantId, PostId postId) {
-        return postRepository.findById(tenantId, postId)
+        return postRepository
+                .findById(tenantId, postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
     }
 
@@ -100,13 +113,19 @@ public class PostApplicationService {
     }
 
     private PostDTO toDto(Post post, Long tenantIdValue) {
-        return new PostDTO(post.getId() == null ? null : post.getId().value(), tenantIdValue, post.getCode(), post.getName(),
+        return new PostDTO(
+                post.getId() == null ? null : post.getId().value(),
+                tenantIdValue,
+                post.getCode(),
+                post.getName(),
                 post.getDepartmentId() == null ? null : post.getDepartmentId().value(),
                 post.getStatus() == null ? null : post.getStatus().value());
     }
 
     private DepartmentId toDepartmentId(String departmentId) {
-        return departmentId == null || departmentId.isBlank() ? null : DepartmentId.of(Long.parseLong(departmentId.trim()));
+        return departmentId == null || departmentId.isBlank()
+                ? null
+                : DepartmentId.of(Long.parseLong(departmentId.trim()));
     }
 
     private void validateRequired(String value, String fieldName) {
@@ -125,5 +144,4 @@ public class PostApplicationService {
         }
         return PostStatus.from(normalize(value).toUpperCase(Locale.ROOT));
     }
-
 }

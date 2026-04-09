@@ -16,10 +16,11 @@ public class CompositeIdGenerator implements IdGenerator {
     private final ApplicationEventPublisher eventPublisher;
     private final boolean fallbackEnabled;
 
-    public CompositeIdGenerator(List<NamedIdGenerator> primaryGenerators,
-                                IdGenerator snowflakeFallback,
-                                ApplicationEventPublisher eventPublisher,
-                                boolean fallbackEnabled) {
+    public CompositeIdGenerator(
+            List<NamedIdGenerator> primaryGenerators,
+            IdGenerator snowflakeFallback,
+            ApplicationEventPublisher eventPublisher,
+            boolean fallbackEnabled) {
         this.primaryGenerators = primaryGenerators == null ? Collections.emptyList() : List.copyOf(primaryGenerators);
         this.snowflakeFallback = snowflakeFallback;
         this.eventPublisher = eventPublisher;
@@ -43,14 +44,13 @@ public class CompositeIdGenerator implements IdGenerator {
                     NamedIdGenerator nextCandidate = primaryGenerators.get(i + 1);
                     publishFallbackEvent(
                             bizTag,
-                            "provider " + candidate.name() + " failed: " + ex.getMessage()
-                                    + ", fallback to " + nextCandidate.name());
+                            "provider " + candidate.name() + " failed: " + ex.getMessage() + ", fallback to "
+                                    + nextCandidate.name());
                 } else {
                     eventPublisher.publishEvent(new IdFallbackEvent(
                             bizTag,
                             "nextId",
-                            "provider " + candidate.name() + " failed: " + ex.getMessage()
-                                    + ", fallback to snowflake",
+                            "provider " + candidate.name() + " failed: " + ex.getMessage() + ", fallback to snowflake",
                             Instant.now()));
                 }
             }
@@ -61,8 +61,9 @@ public class CompositeIdGenerator implements IdGenerator {
     private long fallbackOrThrow(String bizTag, IdGeneratorException lastException) {
         if (!fallbackEnabled) {
             throw lastException == null
-                    ? new IdGeneratorException(IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
-                    "no primary id generators configured and fallback disabled")
+                    ? new IdGeneratorException(
+                            IdGeneratorErrorCode.ID_PROVIDER_NOT_SUPPORTED,
+                            "no primary id generators configured and fallback disabled")
                     : lastException;
         }
         try {
@@ -74,13 +75,8 @@ public class CompositeIdGenerator implements IdGenerator {
     }
 
     private void publishFallbackEvent(String bizTag, String reason) {
-        eventPublisher.publishEvent(new IdFallbackEvent(
-                bizTag,
-                "nextId",
-                reason,
-                Instant.now()));
+        eventPublisher.publishEvent(new IdFallbackEvent(bizTag, "nextId", reason, Instant.now()));
     }
 
-    public record NamedIdGenerator(String name, IdGenerator generator) {
-    }
+    public record NamedIdGenerator(String name, IdGenerator generator) {}
 }

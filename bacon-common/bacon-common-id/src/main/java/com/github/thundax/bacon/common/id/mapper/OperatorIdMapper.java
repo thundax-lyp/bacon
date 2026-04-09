@@ -14,7 +14,7 @@ public final class OperatorIdMapper {
         return OperatorId.of(value);
     }
 
-    public static OperatorId toDomain(Long value) {
+    public static OperatorId toDomainFromLong(Long value) {
         if (value == null) {
             return null;
         }

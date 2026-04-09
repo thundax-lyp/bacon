@@ -8,8 +8,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OperatorIdMapperTest {
 
     @Test
-    void shouldReturnNullWhenValueIsNull() {
-        assertThat(OperatorIdMapper.toDomain(null)).isNull();
+    void shouldReturnNullWhenLongValueIsNull() {
+        assertThat(OperatorIdMapper.toDomainFromLong(null)).isNull();
     }
 
     @Test
@@ -24,7 +24,7 @@ class OperatorIdMapperTest {
 
     @Test
     void shouldConvertLongValueToOperatorId() {
-        assertThat(OperatorIdMapper.toDomain(9001L)).isEqualTo(OperatorId.of("9001"));
+        assertThat(OperatorIdMapper.toDomainFromLong(9001L)).isEqualTo(OperatorId.of("9001"));
     }
 
     @Test

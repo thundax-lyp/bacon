@@ -25,7 +25,7 @@ public class SysLogConsumeApplicationService {
                 sysLogDTO.getAction(),
                 sysLogDTO.getEventType().name(),
                 sysLogDTO.getResult().name(),
-                OperatorIdMapper.toDomain(sysLogDTO.getOperatorId()),
+                OperatorIdMapper.toDomainFromLong(sysLogDTO.getOperatorId()),
                 sysLogDTO.getOperatorName(),
                 sysLogDTO.getClientIp(),
                 sysLogDTO.getRequestUri(),

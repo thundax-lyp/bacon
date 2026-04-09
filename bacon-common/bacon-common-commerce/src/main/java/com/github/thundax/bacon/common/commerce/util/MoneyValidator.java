@@ -1,7 +1,7 @@
-package com.github.thundax.bacon.common.core.util;
+package com.github.thundax.bacon.common.commerce.util;
 
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
-import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.Money;
 
 public final class MoneyValidator {
 

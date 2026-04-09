@@ -2,7 +2,7 @@ package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
-import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -22,7 +22,7 @@ import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderAuditLogDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderInventorySnapshotDO;

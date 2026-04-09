@@ -28,7 +28,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
-import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;

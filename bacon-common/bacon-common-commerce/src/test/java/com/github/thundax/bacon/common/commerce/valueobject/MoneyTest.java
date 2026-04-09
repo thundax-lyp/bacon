@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.common.core.valueobject;
+package com.github.thundax.bacon.common.commerce.valueobject;
 
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
 import java.math.BigDecimal;

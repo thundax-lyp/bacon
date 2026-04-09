@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
-import com.github.thundax.bacon.common.core.util.MoneyValidator;
-import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.util.MoneyValidator;
+import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -13,7 +13,7 @@ import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.AllArgsConstructor;

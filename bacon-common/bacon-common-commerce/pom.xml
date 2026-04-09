@@ -3,34 +3,30 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>com.github.thundax</groupId>
-        <artifactId>bacon-payment</artifactId>
+        <artifactId>bacon-common</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>bacon-payment-domain</artifactId>
+
+    <artifactId>bacon-common-commerce</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>com.github.thundax</groupId>
-            <artifactId>bacon-common-commerce</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.github.thundax</groupId>
             <artifactId>bacon-common-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.thundax</groupId>
-            <artifactId>bacon-common-id</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

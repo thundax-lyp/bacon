@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.payment.application.command;
 
-import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;

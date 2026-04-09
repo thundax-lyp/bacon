@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.common.core.valueobject;
+package com.github.thundax.bacon.common.commerce.valueobject;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import java.util.Objects;

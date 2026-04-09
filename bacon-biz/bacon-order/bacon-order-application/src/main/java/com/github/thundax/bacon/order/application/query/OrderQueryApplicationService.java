@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.order.application.query;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
-import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;

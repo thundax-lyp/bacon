@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.order.application.support;
 
 import com.github.thundax.bacon.common.core.enums.CurrencyCode;
-import com.github.thundax.bacon.common.core.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.OrderId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;

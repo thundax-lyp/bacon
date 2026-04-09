@@ -3,7 +3,6 @@ package com.github.thundax.bacon.inventory.application;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
-import com.github.thundax.bacon.inventory.api.dto.InventoryPageQueryDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
@@ -33,8 +32,8 @@ class InventoryQueryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryQueryApplicationService service = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryPageResultDTO result = service.pageInventories(new InventoryPageQueryDTO(1001L, null,
-                InventoryStatus.ENABLED.value(), 1, 2));
+        InventoryPageResultDTO result = service.pageInventories(TenantId.of(1001L), null,
+                InventoryStatus.ENABLED, 1, 2);
 
         assertEquals(2, result.getRecords().size());
         assertEquals(3, result.getTotal());
@@ -47,8 +46,8 @@ class InventoryQueryApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryQueryApplicationService service = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryPageResultDTO result = service.pageInventories(new InventoryPageQueryDTO(1001L, 104L,
-                null, 0, 0));
+        InventoryPageResultDTO result = service.pageInventories(TenantId.of(1001L), SkuId.of(104L),
+                null, 0, 0);
 
         assertEquals(1, result.getRecords().size());
         assertEquals(1, result.getTotal());

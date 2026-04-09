@@ -5,9 +5,9 @@ import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.api.dto.InventoryPageQueryDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.interfaces.dto.CreateInventoryRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryBatchQueryRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryPageRequest;
@@ -81,9 +81,15 @@ public class InventoryController {
     @GetMapping("/page")
     public InventoryPageResponse pageInventories(@CurrentTenant Long tenantId,
                                                  @Valid @ModelAttribute InventoryPageRequest request) {
-        return InventoryPageResponse.from(inventoryQueryService.pageInventories(new InventoryPageQueryDTO(
-                tenantId, request.getSkuId(), request.getStatus() == null ? null : request.getStatus().name(), request.getPageNo(),
-                request.getPageSize())));
+        InventoryStatus status = request.getStatus() == null || request.getStatus().isBlank()
+                ? null
+                : InventoryStatus.from(request.getStatus());
+        return InventoryPageResponse.from(inventoryQueryService.pageInventories(
+                TenantId.of(tenantId),
+                SkuIdMapper.toDomain(request.getSkuId()),
+                status,
+                request.getPageNo(),
+                request.getPageSize()));
     }
 
     @Operation(summary = "修改库存状态")

@@ -5,13 +5,14 @@ import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageQueryDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.mapper.DeadLetterIdMapper;
+import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
 import com.github.thundax.bacon.inventory.application.mapper.TaskIdMapper;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryAuditBatchReplayRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryAuditDeadLetterPageRequest;
 import com.github.thundax.bacon.inventory.interfaces.dto.InventoryAuditReplayRequest;
@@ -59,9 +60,15 @@ public class InventoryAuditCompensationController {
     @GetMapping
     public InventoryAuditDeadLetterPageResponse pageDeadLetters(@CurrentTenant Long tenantId,
                                                                 @Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
+        InventoryAuditReplayStatus replayStatus = request.getReplayStatus() == null || request.getReplayStatus().isBlank()
+                ? null
+                : InventoryAuditReplayStatus.from(request.getReplayStatus());
         return InventoryAuditDeadLetterPageResponse.from(inventoryQueryService.pageAuditDeadLetters(
-                new InventoryAuditDeadLetterPageQueryDTO(tenantId, request.getOrderNo(),
-                        request.getReplayStatus(), request.getPageNo(), request.getPageSize())));
+                TenantId.of(tenantId),
+                OrderNoMapper.toDomain(request.getOrderNo()),
+                replayStatus,
+                request.getPageNo(),
+                request.getPageSize()));
     }
 
     @Operation(summary = "重放单条库存审计死信")

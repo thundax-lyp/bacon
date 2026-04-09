@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
+import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationAssembler;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.mapper.ReservationNoMapper;
@@ -90,11 +91,10 @@ public class InventoryReservationApplicationService {
         ReservationNo reservationNoValue = ReservationNoMapper.toDomain(reservationNo);
         WarehouseNo warehouseNoValue = WarehouseNoMapper.toDomain(Inventory.DEFAULT_WAREHOUSE_NO.value());
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
-        List<InventoryReservationItem> reservationItems = normalizedItems.stream()
-                .map(item -> new InventoryReservationItem(null, tenantId,
-                        reservationNoValue, SkuIdMapper.toDomain(item.getSkuId()),
-                        item.getQuantity()))
-                .toList();
+        List<InventoryReservationItem> reservationItems = InventoryReservationAssembler.toDomainItems(
+                tenantId == null ? null : tenantId.value(),
+                reservationNoValue == null ? null : reservationNoValue.value(),
+                normalizedItems);
         InventoryReservation reservation = new InventoryReservation(null,
                 tenantId,
                 reservationNoValue, orderNo, warehouseNoValue, Instant.now(), reservationItems,
@@ -204,10 +204,7 @@ public class InventoryReservationApplicationService {
     }
 
     private InventoryReservationResultDTO completeCreatedReservation(InventoryReservation reservation) {
-        List<InventoryReservationItemDTO> items = reservation.getItems().stream()
-                .map(item -> new InventoryReservationItemDTO(SkuIdMapper.toValue(item.getSkuId()),
-                        item.getQuantity()))
-                .toList();
+        List<InventoryReservationItemDTO> items = InventoryReservationAssembler.toItemDtos(reservation.getItems());
         ReservationValidationResult validationResult = validateReservation(reservation.getTenantId(), items);
         String failureReason = validationResult.failureReason();
         if (failureReason != null) {

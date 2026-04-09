@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
@@ -39,6 +40,8 @@ import org.junit.jupiter.api.Test;
 
 class InventoryAuditReplayTaskApplicationServiceTest {
 
+    private static final IdGenerator ID_GENERATOR = bizTag -> 1L;
+
     @Test
     void shouldCreateAndProcessReplayTask() {
         TestLogRepository repository = new TestLogRepository();
@@ -64,7 +67,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                 new InventoryAuditCompensationApplicationService(
                         repository,
                         new InventoryAuditReplayTransactionExecutor(
-                                repository, repository, new InventoryTransactionExecutor()));
+                                repository, repository, new InventoryTransactionExecutor(), ID_GENERATOR));
 
         var created = taskService.createReplayTask(
                 new InventoryAuditReplayTaskCreateDTO(3001L, 9001L, "TASK-BATCH", List.of(101L)));

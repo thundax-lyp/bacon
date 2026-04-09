@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -58,10 +59,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 class InventoryWorkflowIntegrationTest {
 
+    private static final IdGenerator ID_GENERATOR = bizTag -> 1L;
+
     @Test
     void shouldHandleConcurrentReserveWithOptimisticRetry() throws Exception {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(false);
-        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
+        InventoryOperationLogSupport operationLogService =
+                new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryReservationApplicationService service = new InventoryReservationApplicationService(
                 repository, repository, operationLogService, new SequenceInventoryReservationNoGenerator());
 

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
@@ -18,17 +19,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class InventoryAuditReplayTransactionExecutor {
 
+    private static final String AUDIT_LOG_ID_BIZ_TAG = "inventory-audit-log-id";
+
     private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
     private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
     private final InventoryTransactionExecutor inventoryTransactionExecutor;
+    private final IdGenerator idGenerator;
 
     public InventoryAuditReplayTransactionExecutor(
             InventoryAuditRecordRepository inventoryAuditRecordRepository,
             InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
-            InventoryTransactionExecutor inventoryTransactionExecutor) {
+            InventoryTransactionExecutor inventoryTransactionExecutor,
+            IdGenerator idGenerator) {
         this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;
         this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
         this.inventoryTransactionExecutor = inventoryTransactionExecutor;
+        this.idGenerator = idGenerator;
     }
 
     public InventoryAuditReplayResultDTO replayClaimedDeadLetter(
@@ -59,6 +65,7 @@ public class InventoryAuditReplayTransactionExecutor {
                     error,
                     replayAt);
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
+                    idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     deadLetter.getTenantId(),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
@@ -79,6 +86,7 @@ public class InventoryAuditReplayTransactionExecutor {
         try {
             // 回放不是重放原业务动作，而是补写丢失的审计日志，并把死信改成已回放成功。
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
+                    idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     deadLetter.getTenantId(),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
@@ -93,6 +101,7 @@ public class InventoryAuditReplayTransactionExecutor {
                     operatorId,
                     replayAt);
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
+                    idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     deadLetter.getTenantId(),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
@@ -115,6 +124,7 @@ public class InventoryAuditReplayTransactionExecutor {
                     truncateError(ex.getMessage()),
                     replayAt);
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
+                    idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     deadLetter.getTenantId(),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),

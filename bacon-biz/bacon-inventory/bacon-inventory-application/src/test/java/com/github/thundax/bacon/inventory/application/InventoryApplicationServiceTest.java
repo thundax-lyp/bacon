@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -44,11 +45,13 @@ class InventoryApplicationServiceTest {
 
     private static final InventoryReservationNoGenerator RESERVATION_NO_GENERATOR =
             new SequenceInventoryReservationNoGenerator();
+    private static final IdGenerator ID_GENERATOR = bizTag -> 1L;
 
     @Test
     void reserveStockShouldBeIdempotentAndUpdateAvailableQuantity() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
+        InventoryOperationLogSupport operationLogService =
+                new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
                         repository, repository, operationLogService, RESERVATION_NO_GENERATOR),
@@ -84,7 +87,8 @@ class InventoryApplicationServiceTest {
     @Test
     void reserveStockShouldReturnFailedWhenStockIsInsufficient() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
+        InventoryOperationLogSupport operationLogService =
+                new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
                         repository, repository, operationLogService, RESERVATION_NO_GENERATOR),
@@ -113,7 +117,8 @@ class InventoryApplicationServiceTest {
     @Test
     void releaseReservedStockShouldBeIdempotent() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
+        InventoryOperationLogSupport operationLogService =
+                new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
                         repository, repository, operationLogService, RESERVATION_NO_GENERATOR),
@@ -150,7 +155,8 @@ class InventoryApplicationServiceTest {
     @Test
     void deductReservedStockShouldBeIdempotent() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
+        InventoryOperationLogSupport operationLogService =
+                new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
                         repository, repository, operationLogService, RESERVATION_NO_GENERATOR),
@@ -188,7 +194,8 @@ class InventoryApplicationServiceTest {
     @Test
     void reserveStockShouldBatchLoadInventoriesWithoutPerSkuPreRead() {
         TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryOperationLogSupport operationLogService = new InventoryOperationLogSupport(repository, repository);
+        InventoryOperationLogSupport operationLogService =
+                new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
                         repository, repository, operationLogService, RESERVATION_NO_GENERATOR),

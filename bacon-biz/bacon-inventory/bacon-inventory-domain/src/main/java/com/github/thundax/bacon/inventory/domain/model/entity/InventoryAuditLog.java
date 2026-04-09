@@ -22,7 +22,7 @@ public class InventoryAuditLog {
 
     public static final OperatorId OPERATOR_ID_SYSTEM = OperatorId.of("0");
 
-    /** 审计日志主键。 */
+    /** 审计日志主键，使用雪花 ID 保持系统内审计事件标识生成方式一致。 */
     private Long id;
     /** 所属租户主键。 */
     private TenantId tenantId;
@@ -40,6 +40,7 @@ public class InventoryAuditLog {
     private Instant occurredAt;
 
     public static InventoryAuditLog create(
+            Long id,
             TenantId tenantId,
             OrderNo orderNo,
             ReservationNo reservationNo,
@@ -47,8 +48,7 @@ public class InventoryAuditLog {
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant occurredAt) {
-        return new InventoryAuditLog(
-                null, tenantId, orderNo, reservationNo, actionType, operatorType, operatorId, occurredAt);
+        return new InventoryAuditLog(id, tenantId, orderNo, reservationNo, actionType, operatorType, operatorId, occurredAt);
     }
 
     public static InventoryAuditLog reconstruct(

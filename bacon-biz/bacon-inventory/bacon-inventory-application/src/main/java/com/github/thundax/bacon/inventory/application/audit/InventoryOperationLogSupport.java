@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -23,14 +24,19 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 public class InventoryOperationLogSupport {
 
+    private static final String AUDIT_LOG_ID_BIZ_TAG = "inventory-audit-log-id";
+
     private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
     private final InventoryAuditOutboxRepository inventoryAuditOutboxRepository;
+    private final IdGenerator idGenerator;
 
     public InventoryOperationLogSupport(
             InventoryAuditRecordRepository inventoryAuditRecordRepository,
-            InventoryAuditOutboxRepository inventoryAuditOutboxRepository) {
+            InventoryAuditOutboxRepository inventoryAuditOutboxRepository,
+            IdGenerator idGenerator) {
         this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;
         this.inventoryAuditOutboxRepository = inventoryAuditOutboxRepository;
+        this.idGenerator = idGenerator;
     }
 
     public void recordReserveSuccess(InventoryReservation reservation, Instant occurredAt) {
@@ -90,6 +96,7 @@ public class InventoryOperationLogSupport {
             InventoryReservation reservation, InventoryAuditActionType actionType, Instant occurredAt) {
         try {
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
+                    idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     reservation.getTenantId(),
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),

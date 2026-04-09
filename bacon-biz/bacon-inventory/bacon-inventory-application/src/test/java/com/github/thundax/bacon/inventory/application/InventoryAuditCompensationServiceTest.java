@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
@@ -31,6 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 class InventoryAuditCompensationApplicationServiceTest {
+
+    private static final IdGenerator ID_GENERATOR = bizTag -> 1L;
 
     @Test
     void shouldReplayDeadLetterSuccessfully() {
@@ -156,7 +159,8 @@ class InventoryAuditCompensationApplicationServiceTest {
     private InventoryAuditCompensationApplicationService createService(
             TestLogRepository repository, InventoryTransactionExecutor transactionExecutor) {
         InventoryAuditReplayTransactionExecutor service =
-                new InventoryAuditReplayTransactionExecutor(repository, repository, transactionExecutor);
+                new InventoryAuditReplayTransactionExecutor(
+                        repository, repository, transactionExecutor, ID_GENERATOR);
         return new InventoryAuditCompensationApplicationService(repository, service);
     }
 

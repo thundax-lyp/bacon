@@ -25,6 +25,7 @@ public class InventoryAuditOutboxRetrier {
 
     private static final int MAX_EXPONENT = 20;
     private static final String DEAD_LETTER_ID_BIZ_TAG = "inventory-dead-letter-id";
+    private static final String AUDIT_LOG_ID_BIZ_TAG = "inventory-audit-log-id";
 
     private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
     private final InventoryAuditOutboxRepository inventoryAuditOutboxRepository;
@@ -91,6 +92,7 @@ public class InventoryAuditOutboxRetrier {
         try {
             // outbox 重试的目标很单一：把原始审计事件补写回正式审计表，成功后立即删除 outbox。
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
+                    idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     item.getTenantId(),
                     item.getOrderNo(),
                     item.getReservationNo(),

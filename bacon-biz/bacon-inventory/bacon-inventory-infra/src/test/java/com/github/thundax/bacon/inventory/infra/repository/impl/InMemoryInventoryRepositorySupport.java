@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
-import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
@@ -112,11 +111,17 @@ public class InMemoryInventoryRepositorySupport {
 
     public Inventory saveInventory(Inventory inventory) {
         if (inventory.getId() == null) {
-            inventory = new Inventory(InventoryId.of(inventoryIdGenerator.getAndIncrement()), inventory.getTenantId(),
-                    inventory.getSkuId(), inventory.getWarehouseCode(),
+            inventory = Inventory.reconstruct(
+                    InventoryId.of(inventoryIdGenerator.getAndIncrement()),
+                    inventory.getTenantId(),
+                    inventory.getSkuId(),
+                    inventory.getWarehouseCode(),
                     inventory.getOnHandQuantity(),
-                    inventory.getReservedQuantity(), inventory.getAvailableQuantity(), inventory.getStatus(),
-                    inventory.getVersion(), inventory.getUpdatedAt());
+                    inventory.getReservedQuantity(),
+                    inventory.getAvailableQuantity(),
+                    inventory.getStatus(),
+                    inventory.getVersion(),
+                    inventory.getUpdatedAt());
         }
         Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
         inventory.markPersisted(version);
@@ -365,7 +370,9 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item -> orderNo == null || orderNo.equals(item.getOrderNo()))
                 .filter(item -> replayStatus == null || replayStatus.equals(item.getReplayStatus()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditDeadLetter::getDeadAt).reversed()
-                        .thenComparing(item -> OutboxIdCodec.toValue(item.getOutboxId()), java.util.Comparator.reverseOrder()))
+                        .thenComparing(
+                                item -> item.getOutboxId() == null ? null : item.getOutboxId().value(),
+                                java.util.Comparator.reverseOrder()))
                 .skip((long) (pageNo - 1) * pageSize)
                 .limit(pageSize)
                 .toList();
@@ -383,7 +390,9 @@ public class InMemoryInventoryRepositorySupport {
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> java.util.Objects.equals(OutboxIdCodec.toValue(item.getOutboxId()), id == null ? null : id.value()))
+                .filter(item -> java.util.Objects.equals(
+                        item.getOutboxId() == null ? null : item.getOutboxId().value(),
+                        id == null ? null : id.value()))
                 .findFirst();
     }
 

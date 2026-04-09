@@ -5,6 +5,7 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -166,6 +167,22 @@ public final class LayeredArchitectureRuleSupport {
                 .because("infra 只能作为实现层依赖 domain.repository");
     }
 
+    public static ArchRule domainEntityCreateShouldOnlyBeCalledByApplication(String basePackage) {
+        return noClassesOutsidePackageShouldCallDomainEntityStaticFactory(
+                basePackage,
+                basePackage + ".application..",
+                "create",
+                "domain entity 只能由 application 创建");
+    }
+
+    public static ArchRule domainEntityReconstructShouldOnlyBeCalledByInfra(String basePackage) {
+        return noClassesOutsidePackageShouldCallDomainEntityStaticFactory(
+                basePackage,
+                basePackage + ".infra..",
+                "reconstruct",
+                "domain entity 只能由 infra 重建");
+    }
+
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {
         return DOMAIN_FORBIDDEN_TECH_PACKAGES.stream().anyMatch(packageName::startsWith);
     }
@@ -190,6 +207,28 @@ public final class LayeredArchitectureRuleSupport {
                                 events.add(SimpleConditionEvent.violated(
                                         codeUnit,
                                         codeUnit.getFullName() + " is annotated with " + annotationDescription));
+                            }
+                        }
+                    }
+                })
+                .because(because);
+    }
+
+    private static ArchRule noClassesOutsidePackageShouldCallDomainEntityStaticFactory(
+            String basePackage,
+            String allowedPackage,
+            String methodName,
+            String because) {
+        return ArchRuleDefinition.noClasses()
+                .that().resideOutsideOfPackage(allowedPackage)
+                .should(new ArchCondition<>("call domain entity static method " + methodName) {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (JavaMethodCall methodCall : item.getMethodCallsFromSelf()) {
+                            JavaClass targetOwner = methodCall.getTargetOwner();
+                            if (targetOwner.getPackageName().startsWith(basePackage + ".domain.model.entity.")
+                                    && methodName.equals(methodCall.getName())) {
+                                events.add(SimpleConditionEvent.violated(item, methodCall.getDescription()));
                             }
                         }
                     }

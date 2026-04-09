@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
@@ -89,14 +90,13 @@ public class InventoryAuditOutboxRetrier {
     private void retryOne(InventoryAuditOutbox item, Instant now, String owner) {
         try {
             // outbox 重试的目标很单一：把原始审计事件补写回正式审计表，成功后立即删除 outbox。
-            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(
-                    null,
+            inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
                     item.getTenantId(),
                     item.getOrderNo(),
                     item.getReservationNo(),
                     item.getActionType(),
                     item.getOperatorType(),
-                    item.getOperatorIdValue(),
+                    item.getOperatorId() == null ? null : OperatorId.of(item.getOperatorId()),
                     item.getOccurredAt()));
             if (!inventoryAuditOutboxRepository.deleteAuditOutboxClaimed(item.getId(), owner)) {
                 Metrics.counter(

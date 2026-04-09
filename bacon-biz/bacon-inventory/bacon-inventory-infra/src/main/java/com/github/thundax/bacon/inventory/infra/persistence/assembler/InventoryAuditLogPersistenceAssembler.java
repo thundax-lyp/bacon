@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
@@ -13,7 +14,7 @@ public final class InventoryAuditLogPersistenceAssembler {
     private InventoryAuditLogPersistenceAssembler() {}
 
     public static InventoryAuditLog toDomain(InventoryAuditLogDO dataObject) {
-        return new InventoryAuditLog(
+        return InventoryAuditLog.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),
@@ -22,7 +23,7 @@ public final class InventoryAuditLogPersistenceAssembler {
                 dataObject.getOperatorType() == null
                         ? null
                         : InventoryAuditOperatorType.from(dataObject.getOperatorType()),
-                dataObject.getOperatorId(),
+                OperatorIdMapper.toDomainFromLong(dataObject.getOperatorId()),
                 dataObject.getOccurredAt());
     }
 
@@ -34,7 +35,7 @@ public final class InventoryAuditLogPersistenceAssembler {
                 auditLog.getReservationNoValue(),
                 auditLog.getActionTypeValue(),
                 auditLog.getOperatorTypeValue(),
-                auditLog.getOperatorId(),
+                OperatorIdMapper.toLongValue(auditLog.getOperatorId()),
                 auditLog.getOccurredAt());
     }
 }

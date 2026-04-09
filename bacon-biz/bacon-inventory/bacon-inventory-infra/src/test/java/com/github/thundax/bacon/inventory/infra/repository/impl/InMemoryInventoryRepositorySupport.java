@@ -203,7 +203,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public void saveAuditLog(InventoryAuditLog auditLog) {
         if (auditLog.getId() == null) {
-            auditLog = new InventoryAuditLog(
+            auditLog = InventoryAuditLog.reconstruct(
                     auditLogIdGenerator.getAndIncrement(),
                     auditLog.getTenantId(),
                     auditLog.getOrderNo(),

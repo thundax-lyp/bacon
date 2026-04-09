@@ -89,8 +89,7 @@ public class InventoryOperationLogSupport {
     private void saveAuditSafely(
             InventoryReservation reservation, InventoryAuditActionType actionType, Instant occurredAt) {
         try {
-            inventoryAuditRecordRepository.saveAuditLog(new InventoryAuditLog(
-                    null,
+            inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
                     reservation.getTenantId(),
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),

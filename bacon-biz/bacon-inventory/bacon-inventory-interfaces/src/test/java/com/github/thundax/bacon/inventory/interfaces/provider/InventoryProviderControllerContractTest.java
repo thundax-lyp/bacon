@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.provider;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
@@ -118,11 +120,12 @@ class InventoryProviderControllerContractTest {
         }
 
         @Override
-        public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
-            if (Long.valueOf(9999L).equals(tenantId)) {
-                throw new IllegalArgumentException("Invalid tenant: " + tenantId);
+        public List<InventoryStockDTO> batchGetAvailableStock(TenantId tenantId, Set<SkuId> skuIds) {
+            Long tenantIdValue = tenantId == null ? null : tenantId.value();
+            if (Long.valueOf(9999L).equals(tenantIdValue)) {
+                throw new IllegalArgumentException("Invalid tenant: " + tenantIdValue);
             }
-            return List.of(new InventoryStockDTO(tenantId, 101L, "DEFAULT",
+            return List.of(new InventoryStockDTO(tenantIdValue, 101L, "DEFAULT",
                     100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
         }
     }

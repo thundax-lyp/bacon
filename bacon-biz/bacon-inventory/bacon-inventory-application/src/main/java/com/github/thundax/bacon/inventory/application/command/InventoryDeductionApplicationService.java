@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
-import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
@@ -67,7 +67,7 @@ public class InventoryDeductionApplicationService {
 
         Instant deductedAt = Instant.now();
         reservation.getItems().forEach(item -> {
-            deductStockOnce(tenantId, SkuIdMapper.toValue(item.getSkuId()), item.getQuantity(), deductedAt);
+            deductStockOnce(tenantId, item.getSkuId(), item.getQuantity(), deductedAt);
         });
         reservation.deduct(deductedAt);
         inventoryReservationRepository.saveReservation(reservation);
@@ -75,8 +75,8 @@ public class InventoryDeductionApplicationService {
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
-    private void deductStockOnce(TenantId tenantId, Long skuId, int quantity, Instant operatedAt) {
-        Inventory inventory = inventoryStockRepository.findInventory(tenantId, SkuIdMapper.toDomain(skuId))
+    private void deductStockOnce(TenantId tenantId, SkuId skuId, int quantity, Instant operatedAt) {
+        Inventory inventory = inventoryStockRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
         inventory.deduct(quantity, operatedAt);

@@ -17,6 +17,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
@@ -110,8 +111,10 @@ class InventoryApplicationServiceTest {
         InventoryQueryApplicationService queryService = new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         service.reserveStock(TenantId.of(1001L), OrderNo.of("ORDER-3"), List.of(new InventoryReservationItemDTO(101L, 5)));
-        InventoryReservationResultDTO firstRelease = service.releaseReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-3"), "USER_CANCELLED");
-        InventoryReservationResultDTO secondRelease = service.releaseReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-3"), "USER_CANCELLED");
+        InventoryReservationResultDTO firstRelease = service.releaseReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-3"),
+                InventoryReleaseReason.USER_CANCELLED);
+        InventoryReservationResultDTO secondRelease = service.releaseReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-3"),
+                InventoryReleaseReason.USER_CANCELLED);
         InventoryStockDTO stock = queryService.getAvailableStock(TenantId.of(1001L), SkuId.of(101L));
 
         assertEquals(InventoryReservationStatus.RELEASED.value(), firstRelease.getReservationStatus());

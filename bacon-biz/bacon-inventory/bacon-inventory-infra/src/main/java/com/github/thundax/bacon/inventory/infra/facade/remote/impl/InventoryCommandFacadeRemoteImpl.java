@@ -5,6 +5,9 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReserveCommandDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReleaseCommandDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -45,7 +48,7 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
     public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
         return restClient.post()
                 .uri("/providers/inventory/reservations/{orderNo}/release?tenantId={tenantId}", orderNo, tenantId)
-                .body(new InventoryReleaseCommandDTO(reason))
+                .body(new InventoryReleaseCommandDTO(toReleaseReason(reason)))
                 .retrieve()
                 .body(InventoryReservationResultDTO.class);
     }
@@ -83,5 +86,13 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
                                                                       String orderNo,
                                                                       Throwable throwable) {
         throw InventoryRemoteExceptionTranslator.translate("deductReservedStock", throwable);
+    }
+
+    private InventoryReleaseReason toReleaseReason(String reason) {
+        try {
+            return InventoryReleaseReason.from(reason);
+        } catch (IllegalArgumentException ex) {
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_RELEASE_REASON, reason);
+        }
     }
 }

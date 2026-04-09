@@ -2,7 +2,6 @@ package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -11,6 +10,7 @@ import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainExcept
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
+import java.util.Objects;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,49 +25,36 @@ public class InventoryManagementApplicationService {
     }
 
     @Transactional
-    public InventoryStockDTO createInventory(TenantId tenantId, SkuId skuId, Integer onHandQuantity, String status) {
+    public InventoryStockDTO createInventory(TenantId tenantId, SkuId skuId, Integer onHandQuantity, InventoryStatus status) {
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Objects.requireNonNull(skuId, "skuId must not be null");
+        Objects.requireNonNull(onHandQuantity, "onHandQuantity must not be null");
+        Objects.requireNonNull(status, "status must not be null");
         inventoryRepository.findInventory(tenantId, skuId).ifPresent(inventory -> {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId));
         });
-        validateInventoryKey(tenantId, skuId);
-        validateOnHandQuantity(skuId, onHandQuantity);
-        InventoryStatus normalizedStatus = normalizeStatus(status);
         Instant now = Instant.now();
         Inventory inventory = new Inventory(null, tenantId, skuId, Inventory.DEFAULT_WAREHOUSE_NO,
-                onHandQuantity, 0, onHandQuantity, normalizedStatus, 0L, now);
+                onHandQuantity, 0, onHandQuantity, status, 0L, now);
         try {
-            return InventoryStockAssembler.fromInventory(inventoryRepository.saveInventory(inventory));
+            Inventory savedInventory = inventoryRepository.saveInventory(inventory);
+            return InventoryStockAssembler.fromInventory(savedInventory);
         } catch (DuplicateKeyException ex) {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId), ex);
         }
     }
 
     @Transactional
-    public InventoryStockDTO updateInventoryStatus(TenantId tenantId, SkuId skuId, String status) {
+    public InventoryStockDTO updateInventoryStatus(TenantId tenantId, SkuId skuId, InventoryStatus status) {
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Objects.requireNonNull(skuId, "skuId must not be null");
+        Objects.requireNonNull(status, "status must not be null");
         Inventory inventory = inventoryRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
-        inventory.updateStatus(normalizeStatus(status), Instant.now());
-        return InventoryStockAssembler.fromInventory(inventoryRepository.saveInventory(inventory));
+        inventory.updateStatus(status, Instant.now());
+        Inventory savedInventory = inventoryRepository.saveInventory(inventory);
+        return InventoryStockAssembler.fromInventory(savedInventory);
     }
 
-    private void validateInventoryKey(TenantId tenantId, SkuId skuId) {
-        if (tenantId == null || skuId == null) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
-        }
-    }
-
-    private void validateOnHandQuantity(SkuId skuId, Integer onHandQuantity) {
-        if (onHandQuantity == null || onHandQuantity < 0) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_ON_HAND_QUANTITY, String.valueOf(skuId));
-        }
-    }
-
-    private InventoryStatus normalizeStatus(String status) {
-        try {
-            return InventoryStatus.from(status);
-        } catch (IllegalArgumentException ex) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_STATUS, String.valueOf(status));
-        }
-    }
 }

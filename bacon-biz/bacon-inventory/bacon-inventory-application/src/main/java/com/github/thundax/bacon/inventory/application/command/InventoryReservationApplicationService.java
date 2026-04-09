@@ -109,7 +109,7 @@ public class InventoryReservationApplicationService {
             return InventoryReservationResultAssembler.fromReservation(reservation);
         }
 
-        InventoryReservation existing = tryFindExistingReservation(tenantId, orderNo);
+        InventoryReservation existing = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (existing != null) {
             return InventoryReservationResultAssembler.fromReservation(existing);
         }
@@ -184,10 +184,6 @@ public class InventoryReservationApplicationService {
                     reservation.getOrderNo())
                     .orElseThrow(() -> ex);
         }
-    }
-
-    private InventoryReservation tryFindExistingReservation(TenantId tenantId, OrderNo orderNo) {
-        return inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
     }
 
     private void reserveStockOnce(TenantId tenantId,

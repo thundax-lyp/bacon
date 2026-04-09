@@ -17,6 +17,7 @@ import com.github.thundax.bacon.inventory.interfaces.response.InventoryStockResp
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +50,7 @@ public class InventoryController {
     @Operation(summary = "新增库存主数据")
     @HasPermission("inventory:stock:create")
     @PostMapping
-    public InventoryStockResponse createInventory(@CurrentTenant Long tenantId,
+    public InventoryStockResponse createInventory(@CurrentTenant @NotNull @Positive Long tenantId,
                                                   @Valid @RequestBody CreateInventoryRequest request) {
         return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(TenantId.of(tenantId),
                 SkuIdMapper.toDomain(request.skuId()), request.onHandQuantity(), request.status()));
@@ -88,7 +89,7 @@ public class InventoryController {
     @Operation(summary = "修改库存状态")
     @HasPermission("inventory:stock:update")
     @PutMapping("/{skuId}/status")
-    public InventoryStockResponse updateInventoryStatus(@CurrentTenant Long tenantId,
+    public InventoryStockResponse updateInventoryStatus(@CurrentTenant @NotNull @Positive Long tenantId,
                                                         @PathVariable @Positive Long skuId,
                                                         @Valid @RequestBody InventoryStatusUpdateRequest request) {
         return InventoryStockResponse.from(inventoryManagementApplicationService.updateInventoryStatus(

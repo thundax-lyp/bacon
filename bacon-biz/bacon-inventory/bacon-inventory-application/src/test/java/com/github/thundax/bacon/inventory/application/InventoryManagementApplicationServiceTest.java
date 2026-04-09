@@ -4,8 +4,6 @@ import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
-import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
-import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -26,7 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class InventoryManagementApplicationServiceTest {
 
@@ -35,7 +32,7 @@ class InventoryManagementApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
-        InventoryStockDTO result = service.createInventory(TenantId.of(1001L), SkuId.of(103L), 30, InventoryStatus.ENABLED.value());
+        InventoryStockDTO result = service.createInventory(TenantId.of(1001L), SkuId.of(103L), 30, InventoryStatus.ENABLED);
 
         assertEquals(103L, result.getSkuId());
         assertEquals(30, result.getOnHandQuantity());
@@ -49,33 +46,11 @@ class InventoryManagementApplicationServiceTest {
         TestInventoryRepository repository = new TestInventoryRepository();
         InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
 
-        InventoryStockDTO result = service.updateInventoryStatus(TenantId.of(1001L), SkuId.of(101L), InventoryStatus.DISABLED.value());
+        InventoryStockDTO result = service.updateInventoryStatus(TenantId.of(1001L), SkuId.of(101L), InventoryStatus.DISABLED);
 
         assertEquals(InventoryStatus.DISABLED.value(), result.getStatus());
         assertEquals(InventoryStatus.DISABLED.value(),
                 repository.findInventory(TenantId.of(1001L), SkuId.of(101L)).orElseThrow().getStatus().value());
-    }
-
-    @Test
-    void createInventoryShouldRejectInvalidOnHandQuantityInApplication() {
-        TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
-
-        InventoryDomainException exception = assertThrows(InventoryDomainException.class,
-                () -> service.createInventory(TenantId.of(1001L), SkuId.of(103L), -1, InventoryStatus.ENABLED.value()));
-
-        assertEquals(InventoryErrorCode.INVALID_ON_HAND_QUANTITY.code(), exception.getCode());
-    }
-
-    @Test
-    void updateInventoryStatusShouldRejectInvalidStatusInApplication() {
-        TestInventoryRepository repository = new TestInventoryRepository();
-        InventoryManagementApplicationService service = new InventoryManagementApplicationService(repository);
-
-        InventoryDomainException exception = assertThrows(InventoryDomainException.class,
-                () -> service.updateInventoryStatus(TenantId.of(1001L), SkuId.of(101L), "UNKNOWN"));
-
-        assertEquals(InventoryErrorCode.INVALID_INVENTORY_STATUS.code(), exception.getCode());
     }
 
     private static final class TestInventoryRepository implements InventoryStockRepository, InventoryReservationRepository,

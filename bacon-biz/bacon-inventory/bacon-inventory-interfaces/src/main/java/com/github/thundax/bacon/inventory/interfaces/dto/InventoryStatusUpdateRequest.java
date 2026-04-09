@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.inventory.interfaces.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import jakarta.validation.constraints.NotNull;
 
 public record InventoryStatusUpdateRequest(
-        @NotBlank String status
+        @NotNull InventoryStatus status
 ) {
 }

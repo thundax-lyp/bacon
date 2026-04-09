@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.inventory.application.command;
 
+import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
-import com.github.thundax.bacon.common.id.mapper.SkuIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
@@ -18,6 +18,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,13 +51,16 @@ public class InventoryReleaseApplicationService {
                 new InventoryTransactionExecutor(), new InventoryWriteRetrier());
     }
 
-    public InventoryReservationResultDTO releaseReservedStock(TenantId tenantId, OrderNo orderNo, String reason) {
+    public InventoryReservationResultDTO releaseReservedStock(TenantId tenantId, OrderNo orderNo, InventoryReleaseReason reason) {
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Objects.requireNonNull(orderNo, "orderNo must not be null");
+        Objects.requireNonNull(reason, "reason must not be null");
         return inventoryWriteRetrier.execute("release", tenantId + ":" + orderNo, () ->
                 inventoryTransactionExecutor.executeInNewTransaction(() ->
                         releaseReservedStockOnce(tenantId, orderNo, reason)));
     }
 
-    private InventoryReservationResultDTO releaseReservedStockOnce(TenantId tenantId, OrderNo orderNo, String reason) {
+    private InventoryReservationResultDTO releaseReservedStockOnce(TenantId tenantId, OrderNo orderNo, InventoryReleaseReason reason) {
         InventoryReservation reservation = inventoryReservationRepository.findReservation(tenantId, orderNo).orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(TenantIdMapper.toValue(tenantId),
@@ -67,29 +71,21 @@ public class InventoryReleaseApplicationService {
         }
 
         Instant releasedAt = Instant.now();
-        InventoryReleaseReason releaseReason = toReleaseReason(reason);
         reservation.getItems().forEach(item -> {
-            releaseStockOnce(tenantId, SkuIdMapper.toValue(item.getSkuId()), item.getQuantity(), releasedAt);
+            releaseStockOnce(tenantId, item.getSkuId(), item.getQuantity(), releasedAt);
         });
-        reservation.release(releaseReason, releasedAt);
+        reservation.release(reason, releasedAt);
         inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReleaseSuccess(reservation, releasedAt);
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
-    private void releaseStockOnce(TenantId tenantId, Long skuId, int quantity, Instant operatedAt) {
-        Inventory inventory = inventoryStockRepository.findInventory(tenantId, SkuIdMapper.toDomain(skuId))
+    private void releaseStockOnce(TenantId tenantId, SkuId skuId, int quantity, Instant operatedAt) {
+        Inventory inventory = inventoryStockRepository.findInventory(tenantId, skuId)
                 .orElseThrow(() -> new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.valueOf(skuId)));
         inventory.release(quantity, operatedAt);
         inventoryStockRepository.saveInventory(inventory);
     }
 
-    private InventoryReleaseReason toReleaseReason(String reason) {
-        try {
-            return InventoryReleaseReason.from(reason);
-        } catch (IllegalArgumentException ex) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_RELEASE_REASON, reason);
-        }
-    }
 }

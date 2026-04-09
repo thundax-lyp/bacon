@@ -6,6 +6,9 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.application.mapper.OrderNoMapper;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
+import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +31,16 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
 
     @Override
     public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        return inventoryApplicationService.releaseReservedStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo), reason);
+        return inventoryApplicationService.releaseReservedStock(TenantId.of(tenantId), OrderNoMapper.toDomain(orderNo),
+                toReleaseReason(reason));
+    }
+
+    private InventoryReleaseReason toReleaseReason(String reason) {
+        try {
+            return InventoryReleaseReason.from(reason);
+        } catch (IllegalArgumentException ex) {
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_RELEASE_REASON, reason);
+        }
     }
 
     @Override

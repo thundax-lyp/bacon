@@ -11,7 +11,7 @@ public interface InventoryMapper extends BaseMapper<InventoryDO> {
 
     @Select("""
             <script>
-            select id, tenant_id, sku_id, warehouse_no, on_hand_quantity, reserved_quantity, available_quantity,
+            select id, tenant_id, sku_id, warehouse_code, on_hand_quantity, reserved_quantity, available_quantity,
                    status, version, created_by, created_at, updated_by, updated_at
             from bacon_inventory_inventory
             where tenant_id = #{tenantId}

@@ -7,7 +7,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseRea
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -29,8 +29,8 @@ public class InventoryReservation {
     private final ReservationNo reservationNo;
     /** 订单号。 */
     private final OrderNo orderNo;
-    /** 仓库业务编号。 */
-    private final WarehouseNo warehouseNo;
+    /** 仓库业务编码。 */
+    private final WarehouseCode warehouseCode;
     /** 创建时间。 */
     private final Instant createdAt;
     /** 预占明细列表。 */
@@ -47,7 +47,7 @@ public class InventoryReservation {
     private Instant deductedAt;
 
     public static InventoryReservation rehydrate(Long id, Long tenantId, String reservationNo, String orderNo,
-                                                 String warehouseNo, Instant createdAt, List<InventoryReservationItem> items,
+                                                 String warehouseCode, Instant createdAt, List<InventoryReservationItem> items,
                                                  String reservationStatus, String failureReason, String releaseReason,
                                                  Instant releasedAt, Instant deductedAt) {
         // 预占单回写时必须带回终态与原因字段，应用层会基于这些字段判断是否还能继续补偿或回放。
@@ -55,7 +55,7 @@ public class InventoryReservation {
                 tenantId == null ? null : TenantId.of(tenantId),
                 reservationNo == null ? null : ReservationNo.of(reservationNo),
                 orderNo == null ? null : OrderNo.of(orderNo),
-                warehouseNo == null ? null : WarehouseNo.of(warehouseNo),
+                warehouseCode == null ? null : WarehouseCode.of(warehouseCode),
                 createdAt, items,
                 reservationStatus == null ? null : InventoryReservationStatus.from(reservationStatus),
                 failureReason, releaseReason == null ? null : InventoryReleaseReason.from(releaseReason),
@@ -70,8 +70,8 @@ public class InventoryReservation {
         return orderNo == null ? null : orderNo.value();
     }
 
-    public String getWarehouseNoValue() {
-        return warehouseNo == null ? null : warehouseNo.value();
+    public String getWarehouseCodeValue() {
+        return warehouseCode == null ? null : warehouseCode.value();
     }
 
     public String getReservationStatusValue() {

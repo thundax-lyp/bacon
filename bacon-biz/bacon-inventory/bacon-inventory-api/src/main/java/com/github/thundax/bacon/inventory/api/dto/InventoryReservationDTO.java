@@ -23,8 +23,8 @@ public class InventoryReservationDTO {
     private String reservationNo;
     /** 预占状态。 */
     private String reservationStatus;
-    /** 仓库业务编号。 */
-    private String warehouseNo;
+    /** 仓库业务编码。 */
+    private String warehouseCode;
     /** 预占明细列表。 */
     private List<InventoryReservationItemDTO> items;
     /** 失败原因。 */

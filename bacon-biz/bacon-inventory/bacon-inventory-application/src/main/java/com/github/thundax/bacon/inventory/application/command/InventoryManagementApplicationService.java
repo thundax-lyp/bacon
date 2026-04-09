@@ -34,7 +34,7 @@ public class InventoryManagementApplicationService {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId));
         });
         Instant now = Instant.now();
-        Inventory inventory = new Inventory(null, tenantId, skuId, Inventory.DEFAULT_WAREHOUSE_NO,
+        Inventory inventory = new Inventory(null, tenantId, skuId, Inventory.DEFAULT_WAREHOUSE_CODE,
                 onHandQuantity, 0, onHandQuantity, status, 0L, now);
         try {
             Inventory savedInventory = inventoryRepository.saveInventory(inventory);

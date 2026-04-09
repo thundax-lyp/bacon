@@ -13,7 +13,7 @@ public final class InventoryReservationPersistenceAssembler {
     public static InventoryReservation toDomain(InventoryReservationDO reservation, List<InventoryReservationItem> items) {
         return InventoryReservation.rehydrate(reservation.getId(), reservation.getTenantId(),
                 reservation.getReservationNo(), reservation.getOrderNo(),
-                reservation.getWarehouseNo(),
+                reservation.getWarehouseCode(),
                 reservation.getCreatedAt(), items, reservation.getReservationStatus(), reservation.getFailureReason(),
                 reservation.getReleaseReason(), reservation.getReleasedAt(), reservation.getDeductedAt());
     }
@@ -21,7 +21,7 @@ public final class InventoryReservationPersistenceAssembler {
     public static InventoryReservationDO toDataObject(InventoryReservation reservation) {
         return new InventoryReservationDO(reservation.getId(), reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
                 reservation.getReservationNoValue(), reservation.getOrderNoValue(), reservation.getReservationStatusValue(),
-                reservation.getWarehouseNoValue(), reservation.getFailureReason(), reservation.getReleaseReasonValue(),
+                reservation.getWarehouseCodeValue(), reservation.getFailureReason(), reservation.getReleaseReasonValue(),
                 reservation.getCreatedAt(), reservation.getReleasedAt(), reservation.getDeductedAt());
     }
 }

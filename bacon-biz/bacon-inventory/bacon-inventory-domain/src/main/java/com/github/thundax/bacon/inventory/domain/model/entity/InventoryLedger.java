@@ -5,7 +5,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,8 +27,8 @@ public class InventoryLedger {
     private ReservationNo reservationNo;
     /** 商品 SKU 主键。 */
     private SkuId skuId;
-    /** 仓库业务编号。 */
-    private WarehouseNo warehouseNo;
+    /** 仓库业务编码。 */
+    private WarehouseCode warehouseCode;
     /** 流水类型。 */
     private InventoryLedgerType ledgerType;
     /** 变更数量。 */
@@ -44,8 +44,8 @@ public class InventoryLedger {
         return reservationNo == null ? null : reservationNo.value();
     }
 
-    public String getWarehouseNoValue() {
-        return warehouseNo == null ? null : warehouseNo.value();
+    public String getWarehouseCodeValue() {
+        return warehouseCode == null ? null : warehouseCode.value();
     }
 
     public String getLedgerTypeValue() {

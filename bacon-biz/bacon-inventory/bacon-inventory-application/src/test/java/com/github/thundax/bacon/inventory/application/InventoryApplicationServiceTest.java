@@ -22,7 +22,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservatio
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -183,7 +183,7 @@ class InventoryApplicationServiceTest {
         private int batchFindInventoriesCallCount;
 
         private TestInventoryRepository() {
-            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseNo.of("DEFAULT"), 100, 0, 100,
+            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseCode.of("DEFAULT"), 100, 0, 100,
                     InventoryStatus.ENABLED, 0L, Instant.now()));
         }
 

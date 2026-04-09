@@ -26,7 +26,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -208,7 +208,7 @@ class InventoryWorkflowIntegrationTest {
 
         private OptimisticInventoryRepository(boolean failAuditPersist) {
             this.failAuditPersist = failAuditPersist;
-            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseNo.of("DEFAULT"),
+            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseCode.of("DEFAULT"),
                     100, 0, 100, InventoryStatus.ENABLED, 0L,
                     Instant.parse("2026-03-26T09:59:00Z")));
         }
@@ -474,7 +474,7 @@ class InventoryWorkflowIntegrationTest {
 
         private Inventory copy(Inventory source) {
             return new Inventory(source.getId(), source.getTenantId(),
-                    source.getSkuId(), source.getWarehouseNo(),
+                    source.getSkuId(), source.getWarehouseCode(),
                     source.getOnHandQuantity(), source.getReservedQuantity(), source.getAvailableQuantity(),
                     source.getStatus(), source.getVersion(), source.getUpdatedAt());
         }

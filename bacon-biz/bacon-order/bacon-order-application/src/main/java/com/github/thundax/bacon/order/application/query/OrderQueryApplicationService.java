@@ -116,12 +116,12 @@ public class OrderQueryApplicationService {
         String reservationNo = Objects.toString(
                 inventorySnapshot == null ? order.getReservationNoValue() : inventorySnapshot.reservationNoValue(), "N/A");
         String inventoryStatus = inventorySnapshot == null ? order.getInventoryStatusValue() : inventorySnapshot.inventoryStatusValue();
-        String warehouseNo = inventorySnapshot == null ? order.getWarehouseNoValue() : inventorySnapshot.warehouseNoValue();
+        String warehouseCode = inventorySnapshot == null ? order.getWarehouseCodeValue() : inventorySnapshot.warehouseCodeValue();
         String failureReason = inventorySnapshot == null
                 ? order.getInventoryFailureReason() : inventorySnapshot.failureReason();
         return "reservationNo=" + reservationNo
                 + ",inventoryStatus=" + inventoryStatus
-                + ",warehouseNo=" + Objects.toString(warehouseNo, "N/A")
+                + ",warehouseCode=" + Objects.toString(warehouseCode, "N/A")
                 + ",failureReason=" + Objects.toString(failureReason, "N/A");
     }
 }

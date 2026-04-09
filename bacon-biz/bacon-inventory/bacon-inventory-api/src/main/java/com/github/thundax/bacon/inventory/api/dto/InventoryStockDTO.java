@@ -18,8 +18,8 @@ public class InventoryStockDTO {
     private Long tenantId;
     /** 商品 SKU 主键。 */
     private Long skuId;
-    /** 仓库业务编号。 */
-    private String warehouseNo;
+    /** 仓库业务编码。 */
+    private String warehouseCode;
     /** 在库数量。 */
     private Integer onHandQuantity;
     /** 预占数量。 */

@@ -6,7 +6,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryLedgerDO;
 
 public final class InventoryLedgerPersistenceAssembler {
@@ -20,7 +20,7 @@ public final class InventoryLedgerPersistenceAssembler {
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),
                 dataObject.getReservationNo() == null ? null : ReservationNo.of(dataObject.getReservationNo()),
                 dataObject.getSkuId() == null ? null : SkuId.of(dataObject.getSkuId()),
-                dataObject.getWarehouseNo() == null ? null : WarehouseNo.of(dataObject.getWarehouseNo()),
+                dataObject.getWarehouseCode() == null ? null : WarehouseCode.of(dataObject.getWarehouseCode()),
                 InventoryLedgerType.from(dataObject.getLedgerType()), dataObject.getQuantity(),
                 dataObject.getOccurredAt());
     }
@@ -28,7 +28,7 @@ public final class InventoryLedgerPersistenceAssembler {
     public static InventoryLedgerDO toDataObject(InventoryLedger ledger) {
         return new InventoryLedgerDO(ledger.getId(), ledger.getTenantId() == null ? null : ledger.getTenantId().value(), ledger.getOrderNoValue(),
                 ledger.getReservationNoValue(), ledger.getSkuId() == null ? null : ledger.getSkuId().value(),
-                ledger.getWarehouseNoValue(),
+                ledger.getWarehouseCodeValue(),
                 ledger.getLedgerTypeValue(),
                 ledger.getQuantity(), ledger.getOccurredAt());
     }

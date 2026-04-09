@@ -28,7 +28,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -112,7 +112,7 @@ public class InMemoryInventoryRepositorySupport {
     public Inventory saveInventory(Inventory inventory) {
         if (inventory.getId() == null) {
             inventory = new Inventory(InventoryId.of(inventoryIdGenerator.getAndIncrement()), inventory.getTenantId(),
-                    inventory.getSkuId(), inventory.getWarehouseNo(),
+                    inventory.getSkuId(), inventory.getWarehouseCode(),
                     inventory.getOnHandQuantity(),
                     inventory.getReservedQuantity(), inventory.getAvailableQuantity(), inventory.getStatus(),
                     inventory.getVersion(), inventory.getUpdatedAt());
@@ -128,7 +128,7 @@ public class InMemoryInventoryRepositorySupport {
         if (reservation.getId() == null) {
             reservation = InventoryReservation.rehydrate(reservationIdGenerator.getAndIncrement(),
                     reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
-                    reservation.getReservationNoValue(), reservation.getOrderNoValue(), reservation.getWarehouseNoValue(),
+                    reservation.getReservationNoValue(), reservation.getOrderNoValue(), reservation.getWarehouseCodeValue(),
                     reservation.getCreatedAt(), reservation.getItems().stream()
                             .map(item -> new InventoryReservationItem(
                                     item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
@@ -155,7 +155,7 @@ public class InMemoryInventoryRepositorySupport {
                     ledger.getTenantId(),
                     ledger.getOrderNo(), ledger.getReservationNo(),
                     ledger.getSkuId(),
-                    ledger.getWarehouseNo(), ledger.getLedgerType(),
+                    ledger.getWarehouseCode(), ledger.getLedgerType(),
                     ledger.getQuantity(), ledger.getOccurredAt());
         }
         ledgers.computeIfAbsent(reservationKey(ledger.getTenantId() == null ? null : ledger.getTenantId().value(),

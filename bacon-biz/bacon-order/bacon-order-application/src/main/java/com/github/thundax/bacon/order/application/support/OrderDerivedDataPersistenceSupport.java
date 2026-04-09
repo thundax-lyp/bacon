@@ -41,7 +41,7 @@ public class OrderDerivedDataPersistenceSupport {
         }
         if (order.getReservationNoValue() != null && !order.getReservationNoValue().isBlank()) {
             orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(order.getTenantId(), order.getOrderNo(),
-                    order.getReservationNo(), order.getInventoryStatus(), order.getWarehouseNo(),
+                    order.getReservationNo(), order.getInventoryStatus(), order.getWarehouseCode(),
                     order.getInventoryFailureReason(), now));
         }
         orderRepository.saveAuditLog(new OrderAuditLog(null, order.getTenantId(), order.getOrderNo(), actionType,

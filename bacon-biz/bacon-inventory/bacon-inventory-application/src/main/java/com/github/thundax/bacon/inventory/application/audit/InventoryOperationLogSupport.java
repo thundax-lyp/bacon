@@ -57,7 +57,7 @@ public class InventoryOperationLogSupport {
             inventoryAuditRecordRepository.saveLedger(new InventoryLedger(null, reservation.getTenantId(), reservation.getOrderNo(),
                     reservation.getReservationNo(),
                     item.getSkuId(),
-                    reservation.getWarehouseNo(), ledgerType, item.getQuantity(), occurredAt));
+                    reservation.getWarehouseCode(), ledgerType, item.getQuantity(), occurredAt));
         }
     }
 

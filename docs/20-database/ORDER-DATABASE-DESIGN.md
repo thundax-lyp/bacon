@@ -75,7 +75,7 @@
 - `action_type`: `varchar(64)`
 - `operator_type`: `varchar(32)`
 - `operator_id`: `varchar(64)`
-- `warehouse_no`: `varchar(64)`
+- `warehouse_code`: `varchar(64)`
 
 ## 6. Table Mapping
 
@@ -209,7 +209,7 @@
 | `order_no` | `varchar(64)` | N | 订单业务键 |
 | `reservation_no` | `varchar(64)` | N | 预占单号，全局唯一 |
 | `inventory_status` | `varchar(16)` | N | 库存状态，取值见 `inventory_status` |
-| `warehouse_no` | `varchar(64)` | Y | 仓库业务编号 |
+| `warehouse_code` | `varchar(64)` | Y | 仓库业务编码 |
 | `failure_reason` | `varchar(255)` | Y | 库存失败原因摘要 |
 | `updated_at` | `datetime(3)` | N | 快照更新时间 |
 

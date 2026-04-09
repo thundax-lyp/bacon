@@ -22,7 +22,7 @@ import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderAuditLogDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderInventorySnapshotDO;
@@ -309,9 +309,9 @@ public class OrderRepositorySupport {
                 paymentSnapshot == null ? null : paymentSnapshot.getChannelStatus(),
                 paymentSnapshot == null ? null : paymentSnapshot.getFailureReason(),
                 null,
-                inventorySnapshot == null || inventorySnapshot.getWarehouseNo() == null
+                inventorySnapshot == null || inventorySnapshot.getWarehouseCode() == null
                         ? null
-                        : WarehouseNo.of(inventorySnapshot.getWarehouseNo()),
+                        : WarehouseCode.of(inventorySnapshot.getWarehouseCode()),
                 inventorySnapshot == null ? null : inventorySnapshot.getFailureReason(),
                 null, null, null);
     }
@@ -381,7 +381,7 @@ public class OrderRepositorySupport {
     private OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {
         return new OrderInventorySnapshotDO(null, snapshot.tenantIdValue(), snapshot.orderNoValue(),
                 snapshot.reservationNoValue(), snapshot.inventoryStatusValue(),
-                snapshot.warehouseNo() == null ? null : snapshot.warehouseNo().value(),
+                snapshot.warehouseCode() == null ? null : snapshot.warehouseCode().value(),
                 snapshot.failureReason(),
                 snapshot.updatedAt());
     }
@@ -390,7 +390,7 @@ public class OrderRepositorySupport {
         return new OrderInventorySnapshot(toDomainOrderTenantId(dataObject.getTenantId()), toDomainOrderNo(dataObject.getOrderNo()),
                 dataObject.getReservationNo() == null ? null : ReservationNo.of(dataObject.getReservationNo()),
                 dataObject.getInventoryStatus() == null ? null : InventoryStatus.from(dataObject.getInventoryStatus()),
-                dataObject.getWarehouseNo() == null ? null : WarehouseNo.of(dataObject.getWarehouseNo()),
+                dataObject.getWarehouseCode() == null ? null : WarehouseCode.of(dataObject.getWarehouseCode()),
                 dataObject.getFailureReason(), dataObject.getUpdatedAt());
     }
 

@@ -13,7 +13,7 @@ import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplic
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -93,7 +93,7 @@ class InventoryControllerContractTest {
     private static final class StubInventoryRepository implements InventoryStockRepository,
             InventoryReservationRepository, InventoryLogRepository {
 
-        private final Inventory stock = new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseNo.of("DEFAULT"), 100,
+        private final Inventory stock = new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseCode.of("DEFAULT"), 100,
                 10, 90, InventoryStatus.ENABLED, 1L, Instant.parse("2026-03-26T10:00:00Z"));
 
         @Override

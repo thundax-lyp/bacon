@@ -13,7 +13,7 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import java.math.BigDecimal;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
@@ -65,12 +65,12 @@ public class OrderPaymentResultApplicationService {
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
             String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
             order.markInventoryFailed(toReservationNo(deductResult.getReservationNo()),
-                    toWarehouseNo(deductResult.getWarehouseNo()), reason);
+                    toWarehouseCode(deductResult.getWarehouseCode()), reason);
             orderRepository.save(order);
             throw new IllegalStateException(reason);
         }
         order.markInventoryDeducted(toReservationNo(deductResult.getReservationNo()),
-                toWarehouseNo(deductResult.getWarehouseNo()),
+                toWarehouseCode(deductResult.getWarehouseCode()),
                 deductResult.getDeductedAt());
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
@@ -93,12 +93,12 @@ public class OrderPaymentResultApplicationService {
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseNo(releaseResult.getWarehouseNo()),
+                    toWarehouseCode(releaseResult.getWarehouseCode()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
         order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
-                toWarehouseNo(releaseResult.getWarehouseNo()),
+                toWarehouseCode(releaseResult.getWarehouseCode()),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
@@ -114,7 +114,7 @@ public class OrderPaymentResultApplicationService {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 
-    private WarehouseNo toWarehouseNo(String warehouseNo) {
-        return warehouseNo == null ? null : WarehouseNo.of(warehouseNo);
+    private WarehouseCode toWarehouseCode(String warehouseCode) {
+        return warehouseCode == null ? null : WarehouseCode.of(warehouseCode);
     }
 }

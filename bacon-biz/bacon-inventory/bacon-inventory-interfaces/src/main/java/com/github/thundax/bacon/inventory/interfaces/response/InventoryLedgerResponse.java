@@ -17,8 +17,8 @@ public record InventoryLedgerResponse(
         String reservationNo,
         /** 商品 SKU 主键。 */
         Long skuId,
-        /** 仓库业务编号。 */
-        String warehouseNo,
+        /** 仓库业务编码。 */
+        String warehouseCode,
         /** 流水类型。 */
         String ledgerType,
         /** 变更数量。 */
@@ -28,6 +28,6 @@ public record InventoryLedgerResponse(
 
     public static InventoryLedgerResponse from(InventoryLedgerDTO dto) {
         return new InventoryLedgerResponse(dto.getId(), dto.getTenantId(), dto.getOrderNo(), dto.getReservationNo(),
-                dto.getSkuId(), dto.getWarehouseNo(), dto.getLedgerType(), dto.getQuantity(), dto.getOccurredAt());
+                dto.getSkuId(), dto.getWarehouseCode(), dto.getLedgerType(), dto.getQuantity(), dto.getOccurredAt());
     }
 }

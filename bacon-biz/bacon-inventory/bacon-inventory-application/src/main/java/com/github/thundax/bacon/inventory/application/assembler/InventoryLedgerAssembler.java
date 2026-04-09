@@ -7,7 +7,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 
 public final class InventoryLedgerAssembler {
 
@@ -21,7 +21,7 @@ public final class InventoryLedgerAssembler {
                 ledger.getOrderNoValue(),
                 ledger.getReservationNoValue(),
                 ledger.getSkuId() == null ? null : ledger.getSkuId().value(),
-                ledger.getWarehouseNoValue(),
+                ledger.getWarehouseCodeValue(),
                 ledger.getLedgerTypeValue(),
                 ledger.getQuantity(),
                 ledger.getOccurredAt());
@@ -34,7 +34,7 @@ public final class InventoryLedgerAssembler {
                 dto.getOrderNo() == null ? null : OrderNo.of(dto.getOrderNo()),
                 dto.getReservationNo() == null ? null : ReservationNo.of(dto.getReservationNo()),
                 dto.getSkuId() == null ? null : SkuId.of(dto.getSkuId()),
-                dto.getWarehouseNo() == null ? null : WarehouseNo.of(dto.getWarehouseNo()),
+                dto.getWarehouseCode() == null ? null : WarehouseCode.of(dto.getWarehouseCode()),
                 dto.getLedgerType() == null ? null : InventoryLedgerType.from(dto.getLedgerType()),
                 dto.getQuantity(),
                 dto.getOccurredAt());

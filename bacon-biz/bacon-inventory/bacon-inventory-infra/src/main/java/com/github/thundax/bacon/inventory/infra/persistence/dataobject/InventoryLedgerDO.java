@@ -25,8 +25,8 @@ public class InventoryLedgerDO {
     private String reservationNo;
     @TableField("sku_id")
     private Long skuId;
-    @TableField("warehouse_no")
-    private String warehouseNo;
+    @TableField("warehouse_code")
+    private String warehouseCode;
     @TableField("ledger_type")
     private String ledgerType;
     private Integer quantity;

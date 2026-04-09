@@ -24,7 +24,7 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
@@ -93,7 +93,7 @@ class OrderCreateApplicationServiceTest {
                 List.of(new CreateOrderItemCommand(103L, "item-3", "https://cdn.example.com/103.png", 1,
                         BigDecimal.valueOf(30)))));
         Order paidOrder = repository.findByOrderNo(1001L, paid.getOrderNo()).orElseThrow();
-        paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseNo.of("1"));
+        paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseCode.of("1"));
         paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
         repository.save(paidOrder);
         paymentResultService.markPaid(1001L, paid.getOrderNo(), "PAY-1", "MOCK", BigDecimal.valueOf(20),

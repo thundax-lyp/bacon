@@ -9,7 +9,7 @@ import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import org.springframework.stereotype.Service;
@@ -61,13 +61,13 @@ public class OrderTimeoutApplicationService {
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseNo(releaseResult.getWarehouseNo()),
+                    toWarehouseCode(releaseResult.getWarehouseCode()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
             return;
         }
         // 库存释放异常只体现在派生状态上，主订单仍保持 CLOSED，等待后续补偿或人工处理。
         order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
-                toWarehouseNo(releaseResult.getWarehouseNo()),
+                toWarehouseCode(releaseResult.getWarehouseCode()),
                 resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
     }
 
@@ -79,7 +79,7 @@ public class OrderTimeoutApplicationService {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 
-    private WarehouseNo toWarehouseNo(String warehouseNo) {
-        return warehouseNo == null ? null : WarehouseNo.of(warehouseNo);
+    private WarehouseCode toWarehouseCode(String warehouseCode) {
+        return warehouseCode == null ? null : WarehouseCode.of(warehouseCode);
     }
 }

@@ -13,7 +13,7 @@ import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -64,8 +64,8 @@ public class Order {
     private String paymentFailureReason;
     /** 支付失败时间。 */
     private Instant paymentFailedAt;
-    /** 仓库业务编号。 */
-    private WarehouseNo warehouseNo;
+    /** 仓库业务编码。 */
+    private WarehouseCode warehouseCode;
     /** 库存失败原因。 */
     private String inventoryFailureReason;
     /** 库存释放原因。 */
@@ -133,7 +133,7 @@ public class Order {
                                   String closeReason, Instant createdAt, Instant expiredAt, Instant paidAt,
                                   Instant closedAt, PaymentChannel paymentChannelCode, Money paidAmount,
                                   String paymentChannelStatus, String paymentFailureReason, Instant paymentFailedAt,
-                                  WarehouseNo warehouseNo, String inventoryFailureReason, String inventoryReleaseReason,
+                                  WarehouseCode warehouseCode, String inventoryFailureReason, String inventoryReleaseReason,
                                   Instant inventoryReleasedAt, Instant inventoryDeductedAt) {
         Instant resolvedCreatedAt = createdAt == null ? Instant.now() : createdAt;
         Instant resolvedExpiredAt = resolveExpiredAt(resolvedCreatedAt, expiredAt);
@@ -145,7 +145,7 @@ public class Order {
         // 持久化重建必须保留主单与支付/库存派生状态，避免查询和回写时把终态信息重置成初始值。
         return new Order(id, tenantId, orderNo, userId, orderStatus, payStatus, inventoryStatus, paymentNo,
                 reservationNo, currencyCode, resolvedTotalAmount, resolvedPayableAmount, remark, paymentChannelCode,
-                resolvedPaidAmount, paymentChannelStatus, paymentFailureReason, paymentFailedAt, warehouseNo,
+                resolvedPaidAmount, paymentChannelStatus, paymentFailureReason, paymentFailedAt, warehouseCode,
                 inventoryFailureReason, inventoryReleaseReason, cancelReason, closeReason, resolvedCreatedAt,
                 resolvedExpiredAt, paidAt, inventoryReleasedAt, inventoryDeductedAt, closedAt);
     }
@@ -222,39 +222,39 @@ public class Order {
         this.inventoryStatus = InventoryStatus.RESERVING;
     }
 
-    public String getWarehouseNoValue() {
-        return warehouseNo == null ? null : warehouseNo.value();
+    public String getWarehouseCodeValue() {
+        return warehouseCode == null ? null : warehouseCode.value();
     }
 
-    public void markInventoryReserved(ReservationNo reservationNo, WarehouseNo warehouseNo) {
+    public void markInventoryReserved(ReservationNo reservationNo, WarehouseCode warehouseCode) {
         // 预占成功只更新库存侧派生状态，主单仍停留在 RESERVING_STOCK，等待创建支付单后再切到待支付。
         ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.reservationNo = reservationNo;
-        this.warehouseNo = warehouseNo;
+        this.warehouseCode = warehouseCode;
         this.inventoryStatus = InventoryStatus.RESERVED;
     }
 
-    public void markInventoryReleased(ReservationNo reservationNo, WarehouseNo warehouseNo, String releaseReason, Instant releasedAt) {
+    public void markInventoryReleased(ReservationNo reservationNo, WarehouseCode warehouseCode, String releaseReason, Instant releasedAt) {
         // 释放库存可能发生在取消、超时或支付失败之后，因此这里不再约束主单状态，只回写库存派生结果。
         this.reservationNo = reservationNo;
-        this.warehouseNo = warehouseNo;
+        this.warehouseCode = warehouseCode;
         this.inventoryReleaseReason = releaseReason;
         this.inventoryReleasedAt = releasedAt;
         this.inventoryStatus = InventoryStatus.RELEASED;
     }
 
-    public void markInventoryDeducted(ReservationNo reservationNo, WarehouseNo warehouseNo, Instant deductedAt) {
+    public void markInventoryDeducted(ReservationNo reservationNo, WarehouseCode warehouseCode, Instant deductedAt) {
         // 扣减库存同样属于支付成功后的派生结果回写，不反向改变订单主状态。
         this.reservationNo = reservationNo;
-        this.warehouseNo = warehouseNo;
+        this.warehouseCode = warehouseCode;
         this.inventoryDeductedAt = deductedAt;
         this.inventoryStatus = InventoryStatus.DEDUCTED;
     }
 
-    public void markInventoryFailed(ReservationNo reservationNo, WarehouseNo warehouseNo, String failureReason) {
+    public void markInventoryFailed(ReservationNo reservationNo, WarehouseCode warehouseCode, String failureReason) {
         // 这里记录的是库存侧最终失败事实，调用方会基于该结果决定是否补偿，不在实体内隐式关闭订单。
         this.reservationNo = reservationNo;
-        this.warehouseNo = warehouseNo;
+        this.warehouseCode = warehouseCode;
         this.inventoryFailureReason = failureReason;
         this.inventoryStatus = InventoryStatus.FAILED;
     }

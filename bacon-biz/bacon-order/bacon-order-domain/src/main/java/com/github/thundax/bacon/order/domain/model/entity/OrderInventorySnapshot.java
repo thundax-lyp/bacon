@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import java.time.Instant;
 
 /**
@@ -19,8 +19,8 @@ public record OrderInventorySnapshot(
         ReservationNo reservationNo,
         /** 库存状态。 */
         InventoryStatus inventoryStatus,
-        /** 仓库业务编号。 */
-        WarehouseNo warehouseNo,
+        /** 仓库业务编码。 */
+        WarehouseCode warehouseCode,
         /** 失败原因。 */
         String failureReason,
         /** 最后更新时间。 */
@@ -43,7 +43,7 @@ public record OrderInventorySnapshot(
         return inventoryStatus == null ? null : inventoryStatus.value();
     }
 
-    public String warehouseNoValue() {
-        return warehouseNo == null ? null : warehouseNo.value();
+    public String warehouseCodeValue() {
+        return warehouseCode == null ? null : warehouseCode.value();
     }
 }

@@ -9,7 +9,7 @@ import com.github.thundax.bacon.inventory.application.assembler.InventoryReserva
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
-import com.github.thundax.bacon.inventory.application.codec.WarehouseNoCodec;
+import com.github.thundax.bacon.inventory.application.codec.WarehouseCodeCodec;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -18,7 +18,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
@@ -89,7 +89,7 @@ public class InventoryReservationApplicationService {
                                                             List<InventoryReservationItemDTO> items) {
         String reservationNo = inventoryReservationNoGenerator.nextReservationNo();
         ReservationNo reservationNoValue = ReservationNoCodec.toDomain(reservationNo);
-        WarehouseNo warehouseNoValue = WarehouseNoCodec.toDomain(Inventory.DEFAULT_WAREHOUSE_NO.value());
+        WarehouseCode warehouseCodeValue = WarehouseCodeCodec.toDomain(Inventory.DEFAULT_WAREHOUSE_CODE.value());
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
         List<InventoryReservationItem> reservationItems = InventoryReservationAssembler.toDomainItems(
                 tenantId == null ? null : tenantId.value(),
@@ -97,7 +97,7 @@ public class InventoryReservationApplicationService {
                 normalizedItems);
         InventoryReservation reservation = new InventoryReservation(null,
                 tenantId,
-                reservationNoValue, orderNo, warehouseNoValue, Instant.now(), reservationItems,
+                reservationNoValue, orderNo, warehouseCodeValue, Instant.now(), reservationItems,
                 InventoryReservationStatus.CREATED, null, null, null, null);
 
         ReservationValidationResult validationResult = validateReservation(tenantId, normalizedItems);

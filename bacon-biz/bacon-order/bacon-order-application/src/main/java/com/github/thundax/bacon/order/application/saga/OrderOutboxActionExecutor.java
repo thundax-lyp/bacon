@@ -20,7 +20,7 @@ import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
-import com.github.thundax.bacon.order.domain.model.valueobject.WarehouseNo;
+import com.github.thundax.bacon.common.core.valueobject.WarehouseCode;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import java.time.Instant;
@@ -94,7 +94,7 @@ public class OrderOutboxActionExecutor {
         if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
             String reason = resolveFailureReason(reserveResult.getFailureReason(), "inventory reserve failed");
             order.markInventoryFailed(toReservationNo(reserveResult.getReservationNo()),
-                    toWarehouseNo(reserveResult.getWarehouseNo()), reason);
+                    toWarehouseCode(reserveResult.getWarehouseCode()), reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
             orderRepository.save(order);
             orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RESERVE_FAILED,
@@ -102,7 +102,7 @@ public class OrderOutboxActionExecutor {
             return;
         }
         order.markInventoryReserved(toReservationNo(reserveResult.getReservationNo()),
-                toWarehouseNo(reserveResult.getWarehouseNo()));
+                toWarehouseCode(reserveResult.getWarehouseCode()));
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RESERVE_OK,
                 OrderStatus.RESERVING_STOCK);
@@ -158,11 +158,11 @@ public class OrderOutboxActionExecutor {
         // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseNo(releaseResult.getWarehouseNo()),
+                    toWarehouseCode(releaseResult.getWarehouseCode()),
                     releaseResult.getReleaseReason(), releaseResult.getReleasedAt());
         } else {
             order.markInventoryFailed(toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseNo(releaseResult.getWarehouseNo()),
+                    toWarehouseCode(releaseResult.getWarehouseCode()),
                     resolveFailureReason(releaseResult.getFailureReason(), reason));
         }
         orderRepository.save(order);
@@ -182,8 +182,8 @@ public class OrderOutboxActionExecutor {
         return reservationNo == null ? null : ReservationNo.of(reservationNo);
     }
 
-    private WarehouseNo toWarehouseNo(String warehouseNo) {
-        return warehouseNo == null ? null : WarehouseNo.of(warehouseNo);
+    private WarehouseCode toWarehouseCode(String warehouseCode) {
+        return warehouseCode == null ? null : WarehouseCode.of(warehouseCode);
     }
 
     private TenantId toTenantId(Long tenantId) {

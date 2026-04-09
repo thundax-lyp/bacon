@@ -86,15 +86,7 @@ public class InventoryAuditDeadLetter {
             Integer retryCount,
             String errorMessage,
             String deadReason,
-            Instant deadAt,
-            InventoryAuditReplayStatus replayStatus,
-            Integer replayCount,
-            Instant lastReplayAt,
-            String lastReplayResult,
-            String lastReplayError,
-            String replayKey,
-            String replayOperatorType,
-            String replayOperatorId) {
+            Instant deadAt) {
         Objects.requireNonNull(id, "id must not be null");
         return new InventoryAuditDeadLetter(
                 id,
@@ -111,14 +103,14 @@ public class InventoryAuditDeadLetter {
                 errorMessage,
                 deadReason,
                 deadAt,
-                replayStatus,
-                replayCount,
-                lastReplayAt,
-                lastReplayResult,
-                lastReplayError,
-                replayKey,
-                replayOperatorType,
-                replayOperatorId);
+                InventoryAuditReplayStatus.PENDING,
+                0,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 
     public static InventoryAuditDeadLetter reconstruct(

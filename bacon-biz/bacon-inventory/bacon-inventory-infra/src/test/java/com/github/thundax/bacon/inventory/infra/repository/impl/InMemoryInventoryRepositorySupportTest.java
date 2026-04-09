@@ -75,15 +75,7 @@ class InMemoryInventoryRepositorySupportTest {
                 6,
                 "RETRY_FAIL",
                 "MAX_RETRIES_EXCEEDED",
-                now.plusSeconds(600),
-                InventoryAuditReplayStatus.PENDING,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null));
+                now.plusSeconds(600)));
 
         repository.deleteAuditOutbox(outboxId);
         assertTrue(

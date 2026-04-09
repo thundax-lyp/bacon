@@ -50,15 +50,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                 3,
                 "FAIL",
                 "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditReplayStatus.PENDING,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null));
+                Instant.parse("2026-03-26T00:01:00Z")));
 
         InventoryAuditReplayResultDTO result = service.replayDeadLetter(
                 TenantId.of(3001L), DeadLetterId.of(1001L), "MANUAL-REPLAY-1001", OperatorId.of("9001"));
@@ -92,15 +84,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                 2,
                 "FAIL",
                 "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditReplayStatus.PENDING,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null));
+                Instant.parse("2026-03-26T00:01:00Z")));
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 DeadLetterId.of(1003L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1003L),
@@ -115,15 +99,8 @@ class InventoryAuditCompensationApplicationServiceTest {
                 2,
                 "FAIL",
                 "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditReplayStatus.RUNNING,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null));
+                Instant.parse("2026-03-26T00:01:00Z")));
+        repository.deadLetters.get(1003L).markReplayRunning("RUNNING-1003", InventoryAuditOperatorType.SYSTEM, "0", Instant.parse("2026-03-26T00:02:00Z"));
 
         List<InventoryAuditReplayResultDTO> results = service.replayDeadLettersBatch(
                 TenantId.of(3001L),
@@ -156,15 +133,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                 1,
                 "FAIL",
                 "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditReplayStatus.PENDING,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null));
+                Instant.parse("2026-03-26T00:01:00Z")));
 
         InventoryAuditReplayResultDTO result = service.replayDeadLetter(
                 TenantId.of(3001L), DeadLetterId.of(1004L), "MANUAL-REPLAY-1004", OperatorId.of("9001"));

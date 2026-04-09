@@ -56,15 +56,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                 1,
                 "FAIL",
                 "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"),
-                InventoryAuditReplayStatus.PENDING,
-                0,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null));
+                Instant.parse("2026-03-26T00:01:00Z")));
 
         InventoryAuditReplayTaskApplicationService taskService =
                 new InventoryAuditReplayTaskApplicationService(repository);

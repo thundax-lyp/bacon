@@ -150,15 +150,7 @@ public class InventoryAuditOutboxRetrier {
                     nextRetryCount,
                     errorMessage,
                     deadReason,
-                    now,
-                    InventoryAuditReplayStatus.PENDING,
-                    0,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null));
+                    now));
             Metrics.counter("bacon.inventory.audit.retry.dead.total", "actionType", item.getActionTypeValue())
                     .increment();
             log.error(

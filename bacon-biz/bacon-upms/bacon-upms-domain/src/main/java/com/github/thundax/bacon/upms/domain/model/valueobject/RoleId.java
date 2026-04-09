@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.common.id.domain;
+package com.github.thundax.bacon.upms.domain.model.valueobject;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.github.thundax.bacon.common.id.core.BaseLongId;

@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.common.id.core;
 
-import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.domain.UserIdentityId;
@@ -20,17 +19,14 @@ class DefaultIdsTest {
 
         UserId userId = ids.userId();
         UserIdentityId userIdentityId = ids.userIdentityId();
-        RoleId roleId = ids.roleId();
         StoredObjectId storedObjectId = ids.storedObjectId();
 
         assertThat(userId).isEqualTo(UserId.of(1001L));
         assertThat(userIdentityId).isEqualTo(UserIdentityId.of(1002L));
-        assertThat(roleId).isEqualTo(RoleId.of(1003L));
-        assertThat(storedObjectId).isEqualTo(StoredObjectId.of(1004L));
+        assertThat(storedObjectId).isEqualTo(StoredObjectId.of(1003L));
         assertThat(idGenerator.bizTags).containsExactly(
                 "user-id",
                 "user-identity-id",
-                "role-id",
                 "stored-object-id");
     }
 

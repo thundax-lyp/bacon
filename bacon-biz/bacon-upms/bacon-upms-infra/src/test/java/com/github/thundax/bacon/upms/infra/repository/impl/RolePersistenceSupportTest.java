@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.github.thundax.bacon.common.id.domain.DepartmentId;
-import com.github.thundax.bacon.common.id.domain.RoleId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;

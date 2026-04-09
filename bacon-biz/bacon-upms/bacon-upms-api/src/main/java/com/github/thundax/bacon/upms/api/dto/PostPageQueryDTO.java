@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.api.dto;
 
-import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.infra.persistence.dataobject;
 
-import com.github.thundax.bacon.common.id.domain.MenuId;
-import com.github.thundax.bacon.common.id.domain.RoleId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

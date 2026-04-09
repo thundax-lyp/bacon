@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
@@ -24,12 +24,14 @@ import java.util.stream.Collectors;
 @Service
 public class DepartmentApplicationService {
 
-    private final DepartmentRepository departmentRepository;
-    private final Ids ids;
+    private static final String DEPARTMENT_ID_BIZ_TAG = "department-id";
 
-    public DepartmentApplicationService(DepartmentRepository departmentRepository, Ids ids) {
+    private final DepartmentRepository departmentRepository;
+    private final IdGenerator idGenerator;
+
+    public DepartmentApplicationService(DepartmentRepository departmentRepository, IdGenerator idGenerator) {
         this.departmentRepository = departmentRepository;
-        this.ids = ids;
+        this.idGenerator = idGenerator;
     }
 
     public DepartmentDTO getDepartmentById(TenantId tenantId, DepartmentId departmentId) {
@@ -80,10 +82,19 @@ public class DepartmentApplicationService {
         DepartmentId parentDepartmentId = normalizeParentId(parentId);
         validateParent(tenantId, parentDepartmentId);
         UserId leaderId = toUserId(leaderUserId);
-        return toDto(departmentRepository.save(new Department(ids.departmentId().value(), tenantId.value(), normalize(code),
-                normalize(name), parentDepartmentId == null ? null : parentDepartmentId.value(),
-                leaderId == null ? null : leaderId.value(), defaultSort(sort), DepartmentStatus.ENABLED,
-                null, null, null, null)));
+        return toDto(departmentRepository.save(new Department(
+                idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG),
+                tenantId.value(),
+                normalize(code),
+                normalize(name),
+                parentDepartmentId == null ? null : parentDepartmentId.value(),
+                leaderId == null ? null : leaderId.value(),
+                defaultSort(sort),
+                DepartmentStatus.ENABLED,
+                null,
+                null,
+                null,
+                null)));
     }
 
     @Transactional

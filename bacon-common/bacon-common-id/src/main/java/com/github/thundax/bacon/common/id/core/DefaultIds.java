@@ -1,10 +1,6 @@
 package com.github.thundax.bacon.common.id.core;
 
-import com.github.thundax.bacon.common.id.domain.DepartmentId;
-import com.github.thundax.bacon.common.id.domain.MenuId;
-import com.github.thundax.bacon.common.id.domain.PostId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
-import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserCredentialId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -12,35 +8,16 @@ import com.github.thundax.bacon.common.id.domain.UserIdentityId;
 
 public class DefaultIds implements Ids {
 
-    private static final String DEPARTMENT_ID_BIZ_TAG = "department-id";
-    private static final String MENU_ID_BIZ_TAG = "menu-id";
-    private static final String POST_ID_BIZ_TAG = "post-id";
     private static final String RESOURCE_ID_BIZ_TAG = "resource-id";
     private static final String USER_CREDENTIAL_ID_BIZ_TAG = "user-credential-id";
     private static final String USER_ID_BIZ_TAG = "user-id";
     private static final String USER_IDENTITY_ID_BIZ_TAG = "user-identity-id";
-    private static final String ROLE_ID_BIZ_TAG = "role-id";
     private static final String STORED_OBJECT_ID_BIZ_TAG = "stored-object-id";
 
     private final IdGenerator idGenerator;
 
     public DefaultIds(IdGenerator idGenerator) {
         this.idGenerator = idGenerator;
-    }
-
-    @Override
-    public DepartmentId departmentId() {
-        return DepartmentId.of(idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG));
-    }
-
-    @Override
-    public MenuId menuId() {
-        return MenuId.of(idGenerator.nextId(MENU_ID_BIZ_TAG));
-    }
-
-    @Override
-    public PostId postId() {
-        return PostId.of(idGenerator.nextId(POST_ID_BIZ_TAG));
     }
 
     @Override
@@ -61,11 +38,6 @@ public class DefaultIds implements Ids {
     @Override
     public UserIdentityId userIdentityId() {
         return UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG));
-    }
-
-    @Override
-    public RoleId roleId() {
-        return RoleId.of(idGenerator.nextId(ROLE_ID_BIZ_TAG));
     }
 
     @Override

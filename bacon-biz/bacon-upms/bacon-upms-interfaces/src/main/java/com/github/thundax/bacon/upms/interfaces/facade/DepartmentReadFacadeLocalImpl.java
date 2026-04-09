@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.facade;
 
-import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;

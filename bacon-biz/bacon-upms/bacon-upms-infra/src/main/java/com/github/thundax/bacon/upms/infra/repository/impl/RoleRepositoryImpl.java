@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.common.id.domain.DepartmentId;
-import com.github.thundax.bacon.common.id.domain.MenuId;
-import com.github.thundax.bacon.common.id.domain.RoleId;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -21,14 +21,18 @@ import org.springframework.stereotype.Repository;
 @Profile("!test")
 public class RoleRepositoryImpl implements RoleRepository {
 
+    private static final String ROLE_ID_BIZ_TAG = "role-id";
+
     private final RolePersistenceSupport support;
     private final UpmsPermissionCacheSupport cacheSupport;
-    private final Ids ids;
+    private final IdGenerator idGenerator;
 
-    public RoleRepositoryImpl(RolePersistenceSupport support, UpmsPermissionCacheSupport cacheSupport, Ids ids) {
+    public RoleRepositoryImpl(RolePersistenceSupport support,
+                              UpmsPermissionCacheSupport cacheSupport,
+                              IdGenerator idGenerator) {
         this.support = support;
         this.cacheSupport = cacheSupport;
-        this.ids = ids;
+        this.idGenerator = idGenerator;
     }
 
     @Override
@@ -55,9 +59,18 @@ public class RoleRepositoryImpl implements RoleRepository {
     @Override
     public Role save(Role role) {
         Role roleToSave = role.getId() == null
-                ? new Role(ids.roleId(), role.getTenantId(), role.getCode(), role.getName(), role.getRoleType(),
-                role.getDataScopeType(), role.getStatus(), role.getCreatedBy(), role.getCreatedAt(),
-                role.getUpdatedBy(), role.getUpdatedAt())
+                ? new Role(
+                        RoleId.of(idGenerator.nextId(ROLE_ID_BIZ_TAG)),
+                        role.getTenantId(),
+                        role.getCode(),
+                        role.getName(),
+                        role.getRoleType(),
+                        role.getDataScopeType(),
+                        role.getStatus(),
+                        role.getCreatedBy(),
+                        role.getCreatedAt(),
+                        role.getUpdatedBy(),
+                        role.getUpdatedAt())
                 : role;
         Role savedRole = support.saveRole(roleToSave);
         cacheSupport.evictUsersPermission(savedRole.getTenantId(), support.findAssignedUserIds(savedRole.getTenantId(), savedRole.getId()));

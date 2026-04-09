@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.common.id.domain.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
-import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.common.id.domain.PostId;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
@@ -18,12 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PostApplicationService {
 
-    private final PostRepository postRepository;
-    private final Ids ids;
+    private static final String POST_ID_BIZ_TAG = "post-id";
 
-    public PostApplicationService(PostRepository postRepository, Ids ids) {
+    private final PostRepository postRepository;
+    private final IdGenerator idGenerator;
+
+    public PostApplicationService(PostRepository postRepository, IdGenerator idGenerator) {
         this.postRepository = postRepository;
-        this.ids = ids;
+        this.idGenerator = idGenerator;
     }
 
     public PageResultDTO<PostDTO> pagePosts(PostPageQueryDTO query) {
@@ -51,8 +53,17 @@ public class PostApplicationService {
         validateRequired(code, "code");
         validateRequired(name, "name");
         DepartmentId domainDepartmentId = toDepartmentId(departmentId);
-        return toDto(postRepository.save(new Post(ids.postId().value(), tenantId.value(), normalize(code), normalize(name),
-                domainDepartmentId == null ? null : domainDepartmentId.value(), PostStatus.ENABLED, null, null, null, null)));
+        return toDto(postRepository.save(new Post(
+                idGenerator.nextId(POST_ID_BIZ_TAG),
+                tenantId.value(),
+                normalize(code),
+                normalize(name),
+                domainDepartmentId == null ? null : domainDepartmentId.value(),
+                PostStatus.ENABLED,
+                null,
+                null,
+                null,
+                null)));
     }
 
     @Transactional

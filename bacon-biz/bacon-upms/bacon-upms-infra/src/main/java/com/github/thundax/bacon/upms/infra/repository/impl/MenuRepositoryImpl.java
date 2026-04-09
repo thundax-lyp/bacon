@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.common.id.domain.MenuId;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
@@ -15,19 +15,21 @@ import org.springframework.stereotype.Repository;
 @Profile("!test")
 public class MenuRepositoryImpl implements MenuRepository {
 
+    private static final String MENU_ID_BIZ_TAG = "menu-id";
+
     private final MenuPersistenceSupport support;
     private final RoleRepositoryImpl roleRepository;
     private final UpmsPermissionCacheSupport cacheSupport;
-    private final Ids ids;
+    private final IdGenerator idGenerator;
 
     public MenuRepositoryImpl(MenuPersistenceSupport support,
                               RoleRepositoryImpl roleRepository,
                               UpmsPermissionCacheSupport cacheSupport,
-                              Ids ids) {
+                              IdGenerator idGenerator) {
         this.support = support;
         this.roleRepository = roleRepository;
         this.cacheSupport = cacheSupport;
-        this.ids = ids;
+        this.idGenerator = idGenerator;
     }
 
     @Override
@@ -43,9 +45,18 @@ public class MenuRepositoryImpl implements MenuRepository {
     @Override
     public Menu save(Menu menu) {
         Menu menuToSave = menu.getId() == null
-                ? new Menu(ids.menuId(), menu.getTenantId(), menu.getMenuType(), menu.getName(), menu.getParentId(),
-                menu.getRoutePath(), menu.getComponentName(), menu.getIcon(), menu.getSort(), menu.getPermissionCode(),
-                menu.getChildren())
+                ? new Menu(
+                        MenuId.of(idGenerator.nextId(MENU_ID_BIZ_TAG)),
+                        menu.getTenantId(),
+                        menu.getMenuType(),
+                        menu.getName(),
+                        menu.getParentId(),
+                        menu.getRoutePath(),
+                        menu.getComponentName(),
+                        menu.getIcon(),
+                        menu.getSort(),
+                        menu.getPermissionCode(),
+                        menu.getChildren())
                 : menu;
         Menu savedMenu = support.saveMenu(menuToSave);
         cacheSupport.evictTenantPermission(savedMenu.getTenantId());

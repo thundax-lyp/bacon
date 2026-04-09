@@ -1,10 +1,12 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.alicp.jetcache.embedded.LinkedHashMapCacheBuilder;
 import com.alicp.jetcache.Cache;
-import com.github.thundax.bacon.common.id.domain.DepartmentId;
-import com.github.thundax.bacon.common.id.domain.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -21,6 +23,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.common.id.core.DefaultIds;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
@@ -32,6 +35,10 @@ import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
+import com.github.thundax.bacon.upms.infra.persistence.handler.DepartmentIdTypeHandler;
+import com.github.thundax.bacon.upms.infra.persistence.handler.MenuIdTypeHandler;
+import com.github.thundax.bacon.upms.infra.persistence.handler.PostIdTypeHandler;
+import com.github.thundax.bacon.upms.infra.persistence.handler.RoleIdTypeHandler;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DataPermissionRuleMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DepartmentMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.MenuMapper;
@@ -470,6 +477,13 @@ class UpmsRepositoryIntegrationTest {
             MybatisSqlSessionFactoryBean factoryBean = new MybatisSqlSessionFactoryBean();
             factoryBean.setDataSource(dataSource);
             factoryBean.setTypeHandlersPackage("com.github.thundax.bacon.common.mybatis.handler");
+            MybatisConfiguration configuration = new MybatisConfiguration();
+            configuration.getTypeHandlerRegistry().register(DepartmentId.class, DepartmentIdTypeHandler.class);
+            configuration.getTypeHandlerRegistry().register(MenuId.class, MenuIdTypeHandler.class);
+            configuration.getTypeHandlerRegistry().register(PostId.class, PostIdTypeHandler.class);
+            configuration.getTypeHandlerRegistry().register(com.github.thundax.bacon.upms.domain.model.valueobject.RoleId.class,
+                    RoleIdTypeHandler.class);
+            factoryBean.setConfiguration(configuration);
             return factoryBean.getObject();
         }
 
@@ -544,8 +558,8 @@ class UpmsRepositoryIntegrationTest {
         @Bean
         RoleRepositoryImpl roleRepository(RolePersistenceSupport rolePersistenceSupport,
                                           UpmsPermissionCacheSupport upmsPermissionCacheSupport,
-                                          Ids ids) {
-            return new RoleRepositoryImpl(rolePersistenceSupport, upmsPermissionCacheSupport, ids);
+                                          IdGenerator idGenerator) {
+            return new RoleRepositoryImpl(rolePersistenceSupport, upmsPermissionCacheSupport, idGenerator);
         }
 
         @Bean
@@ -572,9 +586,14 @@ class UpmsRepositoryIntegrationTest {
         }
 
         @Bean
-        Ids ids() {
+        IdGenerator idGenerator() {
             AtomicLong sequence = new AtomicLong(100L);
-            return new DefaultIds(bizTag -> sequence.incrementAndGet());
+            return bizTag -> sequence.incrementAndGet();
+        }
+
+        @Bean
+        Ids ids(IdGenerator idGenerator) {
+            return new DefaultIds(idGenerator);
         }
 
         @Bean
@@ -588,8 +607,8 @@ class UpmsRepositoryIntegrationTest {
         MenuRepositoryImpl menuRepositoryImpl(MenuPersistenceSupport menuPersistenceSupport,
                                               RoleRepositoryImpl roleRepository,
                                               UpmsPermissionCacheSupport upmsPermissionCacheSupport,
-                                              Ids ids) {
-            return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport, ids);
+                                              IdGenerator idGenerator) {
+            return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport, idGenerator);
         }
     }
 

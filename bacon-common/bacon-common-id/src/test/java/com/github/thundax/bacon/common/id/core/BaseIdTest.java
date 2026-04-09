@@ -2,7 +2,6 @@ package com.github.thundax.bacon.common.id.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.domain.RoleId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import org.junit.jupiter.api.Test;
@@ -18,11 +17,11 @@ class BaseIdTest {
     void shouldKeepTypeSafetyWhenComparingIds() {
         UserId userId = UserId.of(1001L);
         UserId sameUserId = UserId.of(1001L);
-        RoleId roleId = RoleId.of(1001L);
+        TenantId tenantId = TenantId.of(1001L);
 
         assertThat(userId).isEqualTo(sameUserId);
         assertThat(userId.hashCode()).isEqualTo(sameUserId.hashCode());
-        assertThat(userId).isNotEqualTo(roleId);
+        assertThat(userId).isNotEqualTo(tenantId);
         assertThat(userId.asString()).isEqualTo("1001");
     }
 
@@ -45,7 +44,7 @@ class BaseIdTest {
 
     @Test
     void shouldRejectNonPositiveLongValue() {
-        assertThatThrownBy(() -> RoleId.of(0L))
+        assertThatThrownBy(() -> UserId.of(0L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("id must be positive");
     }

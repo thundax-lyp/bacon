@@ -1,13 +1,13 @@
-package com.github.thundax.bacon.common.mybatis.handler;
+package com.github.thundax.bacon.upms.infra.persistence.handler;
 
-import com.github.thundax.bacon.common.id.domain.RoleId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedJdbcTypes;
 import org.apache.ibatis.type.MappedTypes;
 
 @MappedTypes(RoleId.class)
 @MappedJdbcTypes({JdbcType.BIGINT, JdbcType.INTEGER, JdbcType.VARCHAR, JdbcType.LONGVARCHAR})
-public class RoleIdTypeHandler extends AbstractLongBaseIdTypeHandler<RoleId> {
+public class RoleIdTypeHandler extends AbstractLongUpmsIdTypeHandler<RoleId> {
 
     public RoleIdTypeHandler() {
         super(RoleId::of);

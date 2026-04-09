@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.interfaces.dto;
 
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -8,6 +7,6 @@ import jakarta.validation.constraints.PositiveOrZero;
 public record CreateInventoryRequest(
         @NotNull @Positive Long skuId,
         @NotNull @PositiveOrZero Integer onHandQuantity,
-        @NotNull InventoryStatus status
+        @NotNull String status
 ) {
 }

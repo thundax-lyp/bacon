@@ -52,8 +52,11 @@ public class InventoryController {
     @PostMapping
     public InventoryStockResponse createInventory(@CurrentTenant @NotNull @Positive Long tenantId,
                                                   @Valid @RequestBody CreateInventoryRequest request) {
+        InventoryStatus status = request.status() == null || request.status().isBlank()
+                ? null
+                : InventoryStatus.from(request.status());
         return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(TenantId.of(tenantId),
-                SkuIdMapper.toDomain(request.skuId()), request.onHandQuantity(), request.status()));
+                SkuIdMapper.toDomain(request.skuId()), request.onHandQuantity(), status));
     }
 
     @Operation(summary = "查询 SKU 可用库存")
@@ -98,7 +101,10 @@ public class InventoryController {
     public InventoryStockResponse updateInventoryStatus(@CurrentTenant @NotNull @Positive Long tenantId,
                                                         @PathVariable @Positive Long skuId,
                                                         @Valid @RequestBody InventoryStatusUpdateRequest request) {
+        InventoryStatus status = request.status() == null || request.status().isBlank()
+                ? null
+                : InventoryStatus.from(request.status());
         return InventoryStockResponse.from(inventoryManagementApplicationService.updateInventoryStatus(
-                TenantId.of(tenantId), SkuIdMapper.toDomain(skuId), request.status()));
+                TenantId.of(tenantId), SkuIdMapper.toDomain(skuId), status));
     }
 }

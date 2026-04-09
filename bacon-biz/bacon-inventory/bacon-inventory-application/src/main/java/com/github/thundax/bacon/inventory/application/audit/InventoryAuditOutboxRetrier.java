@@ -130,8 +130,7 @@ public class InventoryAuditOutboxRetrier {
                         owner);
                 return;
             }
-            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(new InventoryAuditDeadLetter(
-                    null,
+            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                     item.getId(),
                     item.getEventCode(),
                     item.getTenantId(),

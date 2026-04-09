@@ -10,16 +10,17 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 库存审计死信记录。
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class InventoryAuditDeadLetter {
 
     /** 死信记录主键。 */
@@ -66,4 +67,148 @@ public class InventoryAuditDeadLetter {
     private String replayOperatorType;
     /** 回放操作人主键。 */
     private String replayOperatorId;
+
+    public static InventoryAuditDeadLetter create(
+            OutboxId outboxId,
+            EventCode eventCode,
+            TenantId tenantId,
+            OrderNo orderNo,
+            ReservationNo reservationNo,
+            InventoryAuditActionType actionType,
+            InventoryAuditOperatorType operatorType,
+            String operatorId,
+            Instant occurredAt,
+            Integer retryCount,
+            String errorMessage,
+            String deadReason,
+            Instant deadAt,
+            InventoryAuditReplayStatus replayStatus,
+            Integer replayCount,
+            Instant lastReplayAt,
+            String lastReplayResult,
+            String lastReplayError,
+            String replayKey,
+            String replayOperatorType,
+            String replayOperatorId) {
+        return new InventoryAuditDeadLetter(
+                null,
+                outboxId,
+                eventCode,
+                tenantId,
+                orderNo,
+                reservationNo,
+                actionType,
+                operatorType,
+                operatorId,
+                occurredAt,
+                retryCount,
+                errorMessage,
+                deadReason,
+                deadAt,
+                replayStatus,
+                replayCount,
+                lastReplayAt,
+                lastReplayResult,
+                lastReplayError,
+                replayKey,
+                replayOperatorType,
+                replayOperatorId);
+    }
+
+    public static InventoryAuditDeadLetter reconstruct(
+            DeadLetterId id,
+            OutboxId outboxId,
+            EventCode eventCode,
+            TenantId tenantId,
+            OrderNo orderNo,
+            ReservationNo reservationNo,
+            InventoryAuditActionType actionType,
+            InventoryAuditOperatorType operatorType,
+            String operatorId,
+            Instant occurredAt,
+            Integer retryCount,
+            String errorMessage,
+            String deadReason,
+            Instant deadAt,
+            InventoryAuditReplayStatus replayStatus,
+            Integer replayCount,
+            Instant lastReplayAt,
+            String lastReplayResult,
+            String lastReplayError,
+            String replayKey,
+            String replayOperatorType,
+            String replayOperatorId) {
+        return new InventoryAuditDeadLetter(
+                id,
+                outboxId,
+                eventCode,
+                tenantId,
+                orderNo,
+                reservationNo,
+                actionType,
+                operatorType,
+                operatorId,
+                occurredAt,
+                retryCount,
+                errorMessage,
+                deadReason,
+                deadAt,
+                replayStatus,
+                replayCount,
+                lastReplayAt,
+                lastReplayResult,
+                lastReplayError,
+                replayKey,
+                replayOperatorType,
+                replayOperatorId);
+    }
+
+    public void assignOutboxId(OutboxId outboxId) {
+        this.outboxId = outboxId;
+    }
+
+    public void markReplayRunning(
+            String replayKey,
+            InventoryAuditOperatorType operatorType,
+            String operatorId,
+            Instant replayAt) {
+        this.replayStatus = InventoryAuditReplayStatus.RUNNING;
+        this.replayKey = replayKey;
+        this.replayOperatorType = operatorType == null ? null : operatorType.value();
+        this.replayOperatorId = operatorId;
+        this.lastReplayAt = replayAt;
+        this.lastReplayResult = "RUNNING";
+        this.lastReplayError = null;
+    }
+
+    public void markReplaySucceeded(
+            String replayKey,
+            InventoryAuditOperatorType operatorType,
+            String operatorId,
+            Instant replayAt) {
+        this.replayStatus = InventoryAuditReplayStatus.SUCCEEDED;
+        this.replayCount = (replayCount == null ? 0 : replayCount) + 1;
+        this.replayKey = replayKey;
+        this.replayOperatorType = operatorType == null ? null : operatorType.value();
+        this.replayOperatorId = operatorId;
+        this.lastReplayAt = replayAt;
+        this.lastReplayResult = "SUCCEEDED";
+        this.lastReplayError = null;
+    }
+
+    public void markReplayFailed(
+            String replayKey,
+            InventoryAuditOperatorType operatorType,
+            String operatorId,
+            String replayError,
+            Instant replayAt) {
+        this.replayStatus = InventoryAuditReplayStatus.FAILED;
+        this.replayCount = (replayCount == null ? 0 : replayCount) + 1;
+        this.replayKey = replayKey;
+        this.replayOperatorType = operatorType == null ? null : operatorType.value();
+        this.replayOperatorId = operatorId;
+        this.lastReplayAt = replayAt;
+        this.lastReplayResult = "FAILED";
+        this.lastReplayError = replayError;
+    }
 }

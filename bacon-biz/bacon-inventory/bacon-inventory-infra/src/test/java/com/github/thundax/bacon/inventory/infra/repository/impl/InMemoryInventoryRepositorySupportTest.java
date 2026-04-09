@@ -60,8 +60,7 @@ class InMemoryInventoryRepositorySupportTest {
         repository.markAuditOutboxDead(outboxId, 6, "MAX_RETRIES_EXCEEDED", now.plusSeconds(600));
         assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(601), 10).isEmpty());
 
-        repository.saveAuditDeadLetter(new InventoryAuditDeadLetter(
-                null,
+        repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 outboxId,
                 retryable.get(0).getEventCode(),
                 TenantId.of(1001L),

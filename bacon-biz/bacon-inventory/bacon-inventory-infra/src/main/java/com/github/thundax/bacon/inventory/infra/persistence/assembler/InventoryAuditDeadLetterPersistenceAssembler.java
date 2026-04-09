@@ -57,7 +57,7 @@ public final class InventoryAuditDeadLetterPersistenceAssembler {
     }
 
     public static InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
-        return new InventoryAuditDeadLetter(
+        return InventoryAuditDeadLetter.reconstruct(
                 dataObject.getId() == null ? null : DeadLetterId.of(dataObject.getId()),
                 dataObject.getOutboxId() == null ? null : OutboxId.of(dataObject.getOutboxId()),
                 dataObject.getEventCode() == null ? null : EventCode.of(dataObject.getEventCode()),

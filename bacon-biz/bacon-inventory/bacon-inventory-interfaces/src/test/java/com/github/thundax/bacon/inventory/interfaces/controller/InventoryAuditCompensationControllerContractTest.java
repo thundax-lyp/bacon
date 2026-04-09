@@ -69,7 +69,7 @@ class InventoryAuditCompensationControllerContractTest {
 
     private static final class StubAuditDeadLetterRepository implements InventoryAuditDeadLetterRepository {
 
-        private final InventoryAuditDeadLetter deadLetter = new InventoryAuditDeadLetter(
+        private final InventoryAuditDeadLetter deadLetter = InventoryAuditDeadLetter.reconstruct(
                 DeadLetterId.of(1001L),
                 OutboxId.of(2001L),
                 EventCode.of("INV-AUDIT-001"),

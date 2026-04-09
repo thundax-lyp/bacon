@@ -531,7 +531,7 @@ class InventoryWorkflowIntegrationTest {
             OutboxId outboxId = deadLetter.getOutboxId();
             if (outboxId == null) {
                 outboxId = OutboxId.of(deadLetterIdGenerator.incrementAndGet());
-                deadLetter.setOutboxId(outboxId);
+                deadLetter.assignOutboxId(outboxId);
             }
             deadLetterMap.put(outboxId, deadLetter);
         }

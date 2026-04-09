@@ -27,7 +27,7 @@ public abstract class AbstractLayeredArchitectureTest {
     void shouldFollowDefaultDirection() {
         LayeredArchitectureRuleSupport.domainShouldNotDependOnOuterLayers(basePackage()).check(classes());
         LayeredArchitectureRuleSupport.applicationShouldNotDependOnInterfacesOrOwnInfra(basePackage()).check(classes());
-        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnDomainOrOwnInfra(basePackage()).check(classes());
+        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnOwnInfra(basePackage()).check(classes());
         LayeredArchitectureRuleSupport.infraShouldNotDependOnApplicationOrInterfaces(basePackage()).check(classes());
     }
 

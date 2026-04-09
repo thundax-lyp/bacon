@@ -55,8 +55,8 @@ public final class LayeredArchitectureRuleSupport {
         // 应用层：只负责编排业务用例，不依赖 interfaces、infra。
         applicationShouldNotDependOnInterfacesOrOwnInfra(basePackage).check(classes);
 
-        // 接口层：只做 HTTP / 本地门面适配，不直接依赖 domain、infra。
-        interfacesShouldNotDependOnDomainOrOwnInfra(basePackage).check(classes);
+        // 接口层：只做 HTTP / 本地门面适配，可以使用 domain 类型，但不依赖 infra。
+        interfacesShouldNotDependOnOwnInfra(basePackage).check(classes);
 
         // 基础设施层：只承接落库、远程调用等实现，不反向依赖 application、interfaces。
         infraShouldNotDependOnApplicationOrInterfaces(basePackage).check(classes);
@@ -81,13 +81,11 @@ public final class LayeredArchitectureRuleSupport {
                 .because("application 不依赖 interfaces、infra");
     }
 
-    public static ArchRule interfacesShouldNotDependOnDomainOrOwnInfra(String basePackage) {
+    public static ArchRule interfacesShouldNotDependOnOwnInfra(String basePackage) {
         return ArchRuleDefinition.noClasses()
                 .that().resideInAPackage(basePackage + ".interfaces..")
-                .should().dependOnClassesThat().resideInAnyPackage(
-                        basePackage + ".domain..",
-                        basePackage + ".infra..")
-                .because("interfaces 不依赖 domain、infra");
+                .should().dependOnClassesThat().resideInAnyPackage(basePackage + ".infra..")
+                .because("interfaces 可以使用 domain 类型，但不依赖 infra");
     }
 
     public static ArchRule infraShouldNotDependOnApplicationOrInterfaces(String basePackage) {

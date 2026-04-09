@@ -22,7 +22,7 @@ public final class PageParamNormalizer {
     }
 
     public static int normalizePageSize(Integer pageSize, int defaultPageSize, int maxPageSize) {
-        int normalizedDefaultPageSize = defaultPageSize < 1 ? 1 : defaultPageSize;
+        int normalizedDefaultPageSize = Math.max(defaultPageSize, 1);
         int normalizedMaxPageSize = Math.max(maxPageSize, normalizedDefaultPageSize);
         if (pageSize == null || pageSize < 1) {
             return normalizedDefaultPageSize;

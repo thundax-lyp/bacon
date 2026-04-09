@@ -3,40 +3,23 @@ package com.github.thundax.bacon.common.test.architecture;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
-import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
-import java.lang.reflect.Field;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class NamingAndPlacementRuleSupport {
-
-    private static final Set<String> BOUNDARY_CONSTRUCTOR_TYPES = Set.of(
-            String.class.getName(),
-            Long.class.getName(),
-            Integer.class.getName(),
-            Instant.class.getName(),
-            List.class.getName()
-    );
 
     private NamingAndPlacementRuleSupport() {
     }
@@ -258,56 +241,6 @@ public final class NamingAndPlacementRuleSupport {
                 .because("configured simple enums must expose value() -> name() and from(String)");
     }
 
-    public static ArchRule entityShouldUseSingleExplicitBoundaryConstructor(String... fullyQualifiedClassNames) {
-        Set<String> classNamePatterns = Set.of(fullyQualifiedClassNames);
-        return ArchRuleDefinition.classes()
-                .that(new DescribedPredicate<>("match configured entity classes") {
-                    @Override
-                    public boolean test(JavaClass input) {
-                        return classNamePatterns.stream()
-                                .anyMatch(pattern -> matchesClassNamePattern(pattern, input.getFullName()));
-                    }
-                })
-                .and(new DescribedPredicate<>("are not records") {
-                    @Override
-                    public boolean test(JavaClass input) {
-                        return !input.isRecord();
-                    }
-                })
-                .should(new ArchCondition<>("use @AllArgsConstructor and declare no explicit constructor") {
-                    @Override
-                    public void check(JavaClass item, ConditionEvents events) {
-                        boolean hasAllArgsConstructorAnnotation = hasAllArgsConstructorAnnotation(item);
-                        List<JavaConstructor> publicConstructors = item.getConstructors().stream()
-                                .filter(constructor -> constructor.getModifiers().contains(JavaModifier.PUBLIC))
-                                .toList();
-                        List<String> allFieldTypes = nonStaticFieldTypeNames(item);
-                        List<JavaConstructor> explicitConstructors = publicConstructors.stream()
-                                .filter(constructor -> !constructor.getRawParameterTypes().isEmpty())
-                                .filter(constructor -> !sameSignature(constructor, allFieldTypes))
-                                .toList();
-                        boolean satisfied = hasAllArgsConstructorAnnotation
-                                && explicitConstructors.isEmpty();
-                        String detail = satisfied
-                                ? item.getFullName() + " entity constructor rule check passed"
-                                : buildBoundaryConstructorFailureMessage(
-                                        item,
-                                        hasAllArgsConstructorAnnotation,
-                                        explicitConstructors);
-                        events.add(new SimpleConditionEvent(item, satisfied, detail));
-                    }
-                })
-                .allowEmptyShould(false)
-                .because("entity constructors must stay stable: use @AllArgsConstructor for all fields and keep boundary conversion outside the entity");
-    }
-
-    private static boolean sameSignature(JavaConstructor constructor, List<String> fieldTypeNames) {
-        List<String> parameterTypeNames = constructor.getRawParameterTypes().stream()
-                .map(JavaClass::getFullName)
-                .toList();
-        return parameterTypeNames.equals(fieldTypeNames);
-    }
-
     private static boolean matchesClassNamePattern(String pattern, String fullName) {
         if (!pattern.contains("*")) {
             return pattern.equals(fullName);
@@ -327,30 +260,6 @@ public final class NamingAndPlacementRuleSupport {
         return method.getMethodCallsFromSelf().stream()
                 .map(JavaMethodCall::getTarget)
                 .anyMatch(target -> methodName.equals(target.getName()));
-    }
-
-    private static boolean hasAllArgsConstructorAnnotation(JavaClass item) {
-        return item.isAnnotatedWith("lombok.AllArgsConstructor") || hasAllArgsConstructorInSource(item);
-    }
-
-    private static boolean hasAllArgsConstructorInSource(JavaClass item) {
-        try {
-            Optional<Path> sourceFile = resolveSourceFilePath(item.getSource(), item);
-            if (sourceFile.isEmpty() || !Files.exists(sourceFile.get())) {
-                return false;
-            }
-            String content = Files.readString(sourceFile.get(), StandardCharsets.UTF_8);
-            String classDeclaration = "class " + item.getSimpleName();
-            int classIndex = content.indexOf(classDeclaration);
-            if (classIndex < 0) {
-                return false;
-            }
-            int fromIndex = Math.max(0, classIndex - 300);
-            String prefix = content.substring(fromIndex, classIndex);
-            return prefix.contains("@AllArgsConstructor") || prefix.contains("@lombok.AllArgsConstructor");
-        } catch (Exception ignored) {
-            return false;
-        }
     }
 
     static Optional<Path> resolveSourceFilePath(Optional<Source> source, JavaClass item) {
@@ -464,138 +373,4 @@ public final class NamingAndPlacementRuleSupport {
         return method.getModifiers().contains(JavaModifier.STATIC) ? "static " + methodName : methodName;
     }
 
-    static boolean isBoundaryConstructorType(JavaClass parameterType) {
-        return BOUNDARY_CONSTRUCTOR_TYPES.contains(parameterType.getFullName()) || parameterType.isEnum();
-    }
-
-    private static String buildBoundaryConstructorFailureMessage(
-            JavaClass item,
-            boolean hasAllArgsConstructorAnnotation,
-            List<JavaConstructor> explicitConstructors) {
-        List<String> reasons = new ArrayList<>();
-        if (!hasAllArgsConstructorAnnotation) {
-            reasons.add("Class must be annotated with @AllArgsConstructor");
-        }
-        if (!explicitConstructors.isEmpty()) {
-            reasons.add("Found " + explicitConstructors.size() + " explicit constructors"
-                    + formatConstructors(explicitConstructors) + "; expected 0 explicit constructors");
-        }
-        return item.getFullName() + " violation: " + String.join("; ", reasons)
-                + ". Fix: keep only @AllArgsConstructor and move boundary conversion outside the entity";
-    }
-
-    private static String formatConstructors(List<JavaConstructor> constructors) {
-        if (constructors.isEmpty()) {
-            return "";
-        }
-        return ": " + constructors.stream()
-                .map(NamingAndPlacementRuleSupport::formatConstructor)
-                .collect(Collectors.joining(" / "));
-    }
-
-    private static String formatConstructor(JavaConstructor constructor) {
-        return constructor.getOwner().getSimpleName() + "(" + constructor.getRawParameterTypes().stream()
-                .map(JavaClass::getSimpleName)
-                .collect(Collectors.joining(", ")) + ")";
-    }
-
-    private static String inferBoundaryParameterTypeName(Class<?> fieldType) {
-        Class<?> normalizedType = wrapPrimitiveType(fieldType);
-        if (isBoundaryConstructorTypeName(normalizedType.getName()) || normalizedType.isEnum()) {
-            return normalizedType.getSimpleName();
-        }
-        if (inheritsFrom(normalizedType, "com.github.thundax.bacon.common.id.core.BaseLongId")) {
-            return Long.class.getSimpleName();
-        }
-        if (inheritsFrom(normalizedType, "com.github.thundax.bacon.common.id.core.BaseStringId")) {
-            return String.class.getSimpleName();
-        }
-        return findPreferredBoundaryFactoryParameterType(normalizedType)
-                .map(Class::getSimpleName)
-                .orElse(normalizedType.getSimpleName());
-    }
-
-    private static Optional<Class<?>> findPreferredBoundaryFactoryParameterType(Class<?> fieldType) {
-        Class<?> bestMatch = null;
-        for (java.lang.reflect.Method method : fieldType.getDeclaredMethods()) {
-            if (!java.lang.reflect.Modifier.isStatic(method.getModifiers())) {
-                continue;
-            }
-            if (method.getParameterCount() != 1) {
-                continue;
-            }
-            if (!fieldType.equals(method.getReturnType())) {
-                continue;
-            }
-            Class<?> parameterType = wrapPrimitiveType(method.getParameterTypes()[0]);
-            if (!isBoundaryConstructorTypeName(parameterType.getName()) && !parameterType.isEnum()) {
-                continue;
-            }
-            if (bestMatch == null
-                    || boundaryParameterPriority(parameterType) < boundaryParameterPriority(bestMatch)) {
-                bestMatch = parameterType;
-            }
-        }
-        return Optional.ofNullable(bestMatch);
-    }
-
-    private static int boundaryParameterPriority(Class<?> parameterType) {
-        if (Long.class.equals(parameterType)) {
-            return 0;
-        }
-        if (Integer.class.equals(parameterType)) {
-            return 1;
-        }
-        if (Instant.class.equals(parameterType)) {
-            return 2;
-        }
-        if (parameterType.isEnum()) {
-            return 3;
-        }
-        if (String.class.equals(parameterType)) {
-            return 4;
-        }
-        return 5;
-    }
-
-    private static boolean inheritsFrom(Class<?> fieldType, String expectedSuperclassName) {
-        Class<?> current = fieldType;
-        while (current != null) {
-            if (expectedSuperclassName.equals(current.getName())) {
-                return true;
-            }
-            current = current.getSuperclass();
-        }
-        return false;
-    }
-
-    private static boolean isBoundaryConstructorTypeName(String typeName) {
-        return BOUNDARY_CONSTRUCTOR_TYPES.contains(typeName);
-    }
-
-    private static Class<?> wrapPrimitiveType(Class<?> type) {
-        if (!type.isPrimitive()) {
-            return type;
-        }
-        if (Long.TYPE.equals(type)) {
-            return Long.class;
-        }
-        if (Integer.TYPE.equals(type)) {
-            return Integer.class;
-        }
-        return type;
-    }
-
-    private static List<String> nonStaticFieldTypeNames(JavaClass javaClass) {
-        return nonStaticFields(javaClass).stream()
-                .map(Field::getType)
-                .map(Class::getName)
-                .collect(Collectors.toList());
-    }
-
-    private static List<Field> nonStaticFields(JavaClass javaClass) {
-        return Arrays.stream(javaClass.reflect().getDeclaredFields())
-                .filter(field -> !java.lang.reflect.Modifier.isStatic(field.getModifiers()))
-                .toList();
-    }
 }

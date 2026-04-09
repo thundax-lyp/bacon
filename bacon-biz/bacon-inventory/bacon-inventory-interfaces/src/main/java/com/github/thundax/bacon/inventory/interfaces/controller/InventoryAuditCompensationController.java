@@ -28,6 +28,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
 
 @Validated
 @RestController
@@ -60,9 +62,7 @@ public class InventoryAuditCompensationController {
     @GetMapping
     public InventoryAuditDeadLetterPageResponse pageDeadLetters(@CurrentTenant Long tenantId,
                                                                 @Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
-        InventoryAuditReplayStatus replayStatus = request.getReplayStatus() == null || request.getReplayStatus().isBlank()
-                ? null
-                : InventoryAuditReplayStatus.from(request.getReplayStatus());
+        InventoryAuditReplayStatus replayStatus = parseReplayStatus(request.getReplayStatus());
         return InventoryAuditDeadLetterPageResponse.from(inventoryQueryService.pageAuditDeadLetters(
                 TenantId.of(tenantId),
                 OrderNoCodec.toDomain(request.getOrderNo()),
@@ -134,5 +134,16 @@ public class InventoryAuditCompensationController {
                                                              @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
         return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.resumeReplayTask(
                 TenantId.of(tenantId), TaskIdCodec.toDomain(taskId), OperatorIdMapper.toDomainFromLong(request.operatorId())));
+    }
+
+    private InventoryAuditReplayStatus parseReplayStatus(String replayStatus) {
+        if (replayStatus == null || replayStatus.isBlank()) {
+            return null;
+        }
+        try {
+            return InventoryAuditReplayStatus.from(replayStatus);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
+        }
     }
 }

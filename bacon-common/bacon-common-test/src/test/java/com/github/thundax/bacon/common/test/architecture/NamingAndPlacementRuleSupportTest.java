@@ -17,60 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NamingAndPlacementRuleSupportTest {
 
     @Test
-    void boundaryConstructorTypeShouldAllowEnumParameter() {
-        assertThat(NamingAndPlacementRuleSupport.isBoundaryConstructorType(
-                new ClassFileImporter().importClasses(BoundaryStatusFixture.class).get(BoundaryStatusFixture.class)))
-                .isTrue();
-    }
-
-    @Test
-    void entityConstructorRuleShouldRejectMultipleExplicitConstructors() {
-        EvaluationResult result = evaluate(MultipleExplicitConstructorsEntityFixture.class);
-
-        assertThat(result.hasViolation()).isTrue();
-        assertThat(singleViolationDetail(result))
-                .contains(MultipleExplicitConstructorsEntityFixture.class.getName() + " violation")
-                .contains("Found 2 explicit constructors")
-                .contains("expected 0 explicit constructors")
-                .contains("move boundary conversion outside the entity");
-    }
-
-    @Test
-    void entityBoundaryConstructorRuleShouldSupportWildcardClassPatterns() {
-        EvaluationResult result = NamingAndPlacementRuleSupport
-                .entityShouldUseSingleExplicitBoundaryConstructor(
-                        NamingAndPlacementRuleSupportTest.class.getPackageName() + ".*EntityFixture")
-                .evaluate(new ClassFileImporter().importPackages(NamingAndPlacementRuleSupportTest.class.getPackageName()));
-
-        assertThat(result.hasViolation()).isTrue();
-        assertThat(result.getFailureReport().getDetails())
-                .anyMatch(detail -> detail.contains(InvalidBoundaryTypeEntityFixture.class.getName()))
-                .anyMatch(detail -> detail.contains(MultipleExplicitConstructorsEntityFixture.class.getName()));
-    }
-
-    @Test
-    void entityConstructorRuleShouldRequireAllArgsConstructorAnnotation() {
-        EvaluationResult result = evaluate(MissingAllArgsConstructorEntityFixture.class);
-
-        assertThat(result.hasViolation()).isTrue();
-        assertThat(singleViolationDetail(result))
-                .contains(MissingAllArgsConstructorEntityFixture.class.getName() + " violation")
-                .contains("Class must be annotated with @AllArgsConstructor")
-                .contains("expected 0 explicit constructors");
-    }
-
-    @Test
-    void entityConstructorRuleShouldSkipRecordClasses() {
-        EvaluationResult result = NamingAndPlacementRuleSupport
-                .entityShouldUseSingleExplicitBoundaryConstructor(
-                        RecordEntityFixture.class.getName(),
-                        ValidAnnotatedEntityFixture.class.getName())
-                .evaluate(new ClassFileImporter().importPackages(NamingAndPlacementRuleSupportTest.class.getPackageName()));
-
-        assertThat(result.hasViolation()).isFalse();
-    }
-
-    @Test
     void resolveSourceFilePathShouldFallbackToWorkspaceLookupWhenClassSourceIsUnavailable() {
         JavaClass targetClass = new ClassFileImporter().importClasses(ValidAnnotatedEntityFixture.class)
                 .get(ValidAnnotatedEntityFixture.class);

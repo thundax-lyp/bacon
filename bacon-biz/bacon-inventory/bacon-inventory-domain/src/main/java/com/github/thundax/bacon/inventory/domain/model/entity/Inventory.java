@@ -8,17 +8,19 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import java.time.Instant;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 库存主数据领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Inventory {
-
-    public static final WarehouseCode DEFAULT_WAREHOUSE_CODE = WarehouseCode.of("DEFAULT");
 
     /** 库存主键。 */
     private InventoryId id;
@@ -40,6 +42,56 @@ public class Inventory {
     private Long version;
     /** 最后更新时间。 */
     private Instant updatedAt;
+
+    public static Inventory create(
+            TenantId tenantId,
+            SkuId skuId,
+            WarehouseCode warehouseCode,
+            Integer onHandQuantity) {
+        if (Objects.isNull(tenantId) || Objects.isNull(skuId) || Objects.isNull(warehouseCode)) {
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
+        }
+        if (Objects.isNull(onHandQuantity) || onHandQuantity < 0) {
+            throw new InventoryDomainException(
+                    InventoryErrorCode.INVALID_ON_HAND_QUANTITY,
+                    String.valueOf(onHandQuantity));
+        }
+        return new Inventory(
+                null,
+                tenantId,
+                skuId,
+                warehouseCode,
+                onHandQuantity,
+                0,
+                onHandQuantity,
+                InventoryStatus.ENABLED,
+                0L,
+                Instant.now());
+    }
+
+    public static Inventory reconstruct(
+            InventoryId id,
+            TenantId tenantId,
+            SkuId skuId,
+            WarehouseCode warehouseCode,
+            Integer onHandQuantity,
+            Integer reservedQuantity,
+            Integer availableQuantity,
+            InventoryStatus status,
+            Long version,
+            Instant updatedAt) {
+        return new Inventory(
+                id,
+                tenantId,
+                skuId,
+                warehouseCode,
+                onHandQuantity,
+                reservedQuantity,
+                availableQuantity,
+                status,
+                version,
+                updatedAt);
+    }
 
     public void reserve(int quantity, Instant operatedAt) {
         // 预占只减少可用量，不减少实物在库量；真正扣减要等订单支付成功后单独执行。

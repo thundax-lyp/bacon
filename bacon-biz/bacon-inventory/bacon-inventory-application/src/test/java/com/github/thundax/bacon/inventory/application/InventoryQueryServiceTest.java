@@ -61,14 +61,50 @@ class InventoryQueryApplicationServiceTest {
         private final Map<String, Inventory> inventories = new ConcurrentHashMap<>();
 
         private TestInventoryRepository() {
-            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseCode.of("DEFAULT"), 100, 0, 100,
-                    InventoryStatus.ENABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 102L), new Inventory(InventoryId.of(2L), TenantId.of(1001L), SkuId.of(102L), WarehouseCode.of("DEFAULT"), 80, 0, 80,
-                    InventoryStatus.DISABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 103L), new Inventory(InventoryId.of(3L), TenantId.of(1001L), SkuId.of(103L), WarehouseCode.of("DEFAULT"), 60, 0, 60,
-                    InventoryStatus.ENABLED, 0L, Instant.now()));
-            inventories.put(key(1001L, 104L), new Inventory(InventoryId.of(4L), TenantId.of(1001L), SkuId.of(104L), WarehouseCode.of("DEFAULT"), 40, 0, 40,
-                    InventoryStatus.ENABLED, 0L, Instant.now()));
+            inventories.put(key(1001L, 101L), Inventory.reconstruct(
+                    InventoryId.of(1L),
+                    TenantId.of(1001L),
+                    SkuId.of(101L),
+                    WarehouseCode.of("DEFAULT"),
+                    100,
+                    0,
+                    100,
+                    InventoryStatus.ENABLED,
+                    0L,
+                    Instant.now()));
+            inventories.put(key(1001L, 102L), Inventory.reconstruct(
+                    InventoryId.of(2L),
+                    TenantId.of(1001L),
+                    SkuId.of(102L),
+                    WarehouseCode.of("DEFAULT"),
+                    80,
+                    0,
+                    80,
+                    InventoryStatus.DISABLED,
+                    0L,
+                    Instant.now()));
+            inventories.put(key(1001L, 103L), Inventory.reconstruct(
+                    InventoryId.of(3L),
+                    TenantId.of(1001L),
+                    SkuId.of(103L),
+                    WarehouseCode.of("DEFAULT"),
+                    60,
+                    0,
+                    60,
+                    InventoryStatus.ENABLED,
+                    0L,
+                    Instant.now()));
+            inventories.put(key(1001L, 104L), Inventory.reconstruct(
+                    InventoryId.of(4L),
+                    TenantId.of(1001L),
+                    SkuId.of(104L),
+                    WarehouseCode.of("DEFAULT"),
+                    40,
+                    0,
+                    40,
+                    InventoryStatus.ENABLED,
+                    0L,
+                    Instant.now()));
         }
 
         @Override

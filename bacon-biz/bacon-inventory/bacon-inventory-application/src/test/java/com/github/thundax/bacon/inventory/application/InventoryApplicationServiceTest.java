@@ -183,8 +183,17 @@ class InventoryApplicationServiceTest {
         private int batchFindInventoriesCallCount;
 
         private TestInventoryRepository() {
-            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseCode.of("DEFAULT"), 100, 0, 100,
-                    InventoryStatus.ENABLED, 0L, Instant.now()));
+            inventories.put(key(1001L, 101L), Inventory.reconstruct(
+                    InventoryId.of(1L),
+                    TenantId.of(1001L),
+                    SkuId.of(101L),
+                    WarehouseCode.of("DEFAULT"),
+                    100,
+                    0,
+                    100,
+                    InventoryStatus.ENABLED,
+                    0L,
+                    Instant.now()));
         }
 
         @Override

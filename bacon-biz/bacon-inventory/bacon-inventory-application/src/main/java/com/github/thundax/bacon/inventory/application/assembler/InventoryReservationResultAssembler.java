@@ -12,16 +12,31 @@ public final class InventoryReservationResultAssembler {
     }
 
     public static InventoryReservationResultDTO fromReservation(InventoryReservation reservation) {
-        return new InventoryReservationResultDTO(reservation.getTenantId() == null ? null : reservation.getTenantId().value(), reservation.getOrderNoValue(),
-                reservation.getReservationNoValue(), reservation.getReservationStatusValue(),
-                toInventoryStatus(reservation.getReservationStatus()), reservation.getWarehouseCodeValue(),
-                reservation.getFailureReason(), reservation.getReleaseReasonValue(), reservation.getReleasedAt(),
+        return new InventoryReservationResultDTO(
+                reservation.getTenantId() == null ? null : reservation.getTenantId().value(),
+                reservation.getOrderNoValue(),
+                reservation.getReservationNoValue(),
+                reservation.getReservationStatusValue(),
+                toInventoryStatus(reservation.getReservationStatus()),
+                reservation.getWarehouseCodeValue(),
+                reservation.getFailureReason(),
+                reservation.getReleaseReasonValue(),
+                reservation.getReleasedAt(),
                 reservation.getDeductedAt());
     }
 
     public static InventoryReservationResultDTO failed(Long tenantId, String orderNo, String failureReason) {
-        return new InventoryReservationResultDTO(tenantId, orderNo, null, InventoryReservationStatus.FAILED.value(),
-                toInventoryStatus(InventoryReservationStatus.FAILED), null, failureReason, null, null, null);
+        return new InventoryReservationResultDTO(
+                tenantId,
+                orderNo,
+                null,
+                InventoryReservationStatus.FAILED.value(),
+                toInventoryStatus(InventoryReservationStatus.FAILED),
+                null,
+                failureReason,
+                null,
+                null,
+                null);
     }
 
     public static String toInventoryStatus(InventoryReservationStatus reservationStatus) {

@@ -14,12 +14,16 @@ public final class InventoryPersistenceAssembler {
     }
 
     public static Inventory toDomain(InventoryDO dataObject) {
-        return new Inventory(dataObject.getId() == null ? null : InventoryId.of(dataObject.getId()),
+        return Inventory.reconstruct(
+                dataObject.getId() == null ? null : InventoryId.of(dataObject.getId()),
                 dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getSkuId() == null ? null : SkuId.of(dataObject.getSkuId()),
                 dataObject.getWarehouseCode() == null ? null : WarehouseCode.of(dataObject.getWarehouseCode()),
-                dataObject.getOnHandQuantity(), dataObject.getReservedQuantity(), dataObject.getAvailableQuantity(),
-                InventoryStatus.from(dataObject.getStatus()), dataObject.getVersion(),
+                dataObject.getOnHandQuantity(),
+                dataObject.getReservedQuantity(),
+                dataObject.getAvailableQuantity(),
+                InventoryStatus.from(dataObject.getStatus()),
+                dataObject.getVersion(),
                 dataObject.getUpdatedAt() == null ? dataObject.getCreatedAt() : dataObject.getUpdatedAt());
     }
 

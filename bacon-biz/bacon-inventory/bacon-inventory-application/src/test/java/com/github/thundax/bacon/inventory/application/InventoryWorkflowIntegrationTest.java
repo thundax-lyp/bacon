@@ -208,8 +208,16 @@ class InventoryWorkflowIntegrationTest {
 
         private OptimisticInventoryRepository(boolean failAuditPersist) {
             this.failAuditPersist = failAuditPersist;
-            inventories.put(key(1001L, 101L), new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseCode.of("DEFAULT"),
-                    100, 0, 100, InventoryStatus.ENABLED, 0L,
+            inventories.put(key(1001L, 101L), Inventory.reconstruct(
+                    InventoryId.of(1L),
+                    TenantId.of(1001L),
+                    SkuId.of(101L),
+                    WarehouseCode.of("DEFAULT"),
+                    100,
+                    0,
+                    100,
+                    InventoryStatus.ENABLED,
+                    0L,
                     Instant.parse("2026-03-26T09:59:00Z")));
         }
 
@@ -473,10 +481,17 @@ class InventoryWorkflowIntegrationTest {
         }
 
         private Inventory copy(Inventory source) {
-            return new Inventory(source.getId(), source.getTenantId(),
-                    source.getSkuId(), source.getWarehouseCode(),
-                    source.getOnHandQuantity(), source.getReservedQuantity(), source.getAvailableQuantity(),
-                    source.getStatus(), source.getVersion(), source.getUpdatedAt());
+            return Inventory.reconstruct(
+                    source.getId(),
+                    source.getTenantId(),
+                    source.getSkuId(),
+                    source.getWarehouseCode(),
+                    source.getOnHandQuantity(),
+                    source.getReservedQuantity(),
+                    source.getAvailableQuantity(),
+                    source.getStatus(),
+                    source.getVersion(),
+                    source.getUpdatedAt());
         }
 
         private static String key(Long tenantId, Long skuId) {

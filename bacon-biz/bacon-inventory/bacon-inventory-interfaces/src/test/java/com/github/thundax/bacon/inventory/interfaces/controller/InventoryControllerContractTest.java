@@ -93,8 +93,17 @@ class InventoryControllerContractTest {
     private static final class StubInventoryRepository implements InventoryStockRepository,
             InventoryReservationRepository, InventoryLogRepository {
 
-        private final Inventory stock = new Inventory(InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseCode.of("DEFAULT"), 100,
-                10, 90, InventoryStatus.ENABLED, 1L, Instant.parse("2026-03-26T10:00:00Z"));
+        private final Inventory stock = Inventory.reconstruct(
+                InventoryId.of(1L),
+                TenantId.of(1001L),
+                SkuId.of(101L),
+                WarehouseCode.of("DEFAULT"),
+                100,
+                10,
+                90,
+                InventoryStatus.ENABLED,
+                1L,
+                Instant.parse("2026-03-26T10:00:00Z"));
 
         @Override
         public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {

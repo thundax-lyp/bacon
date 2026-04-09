@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.application.command;
 
-import com.github.thundax.bacon.common.id.domain.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -9,7 +8,6 @@ import com.github.thundax.bacon.inventory.application.assembler.InventoryReserva
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
-import com.github.thundax.bacon.inventory.application.codec.WarehouseCodeCodec;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -89,7 +87,7 @@ public class InventoryReservationApplicationService {
                                                             List<InventoryReservationItemDTO> items) {
         String reservationNo = inventoryReservationNoGenerator.nextReservationNo();
         ReservationNo reservationNoValue = ReservationNoCodec.toDomain(reservationNo);
-        WarehouseCode warehouseCodeValue = WarehouseCodeCodec.toDomain(Inventory.DEFAULT_WAREHOUSE_CODE.value());
+        WarehouseCode warehouseCodeValue = WarehouseCode.DEFAULT;
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
         List<InventoryReservationItem> reservationItems = InventoryReservationAssembler.toDomainItems(
                 tenantId == null ? null : tenantId.value(),

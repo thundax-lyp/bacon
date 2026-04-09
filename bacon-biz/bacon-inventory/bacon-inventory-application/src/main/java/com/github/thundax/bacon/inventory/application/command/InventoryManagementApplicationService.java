@@ -9,6 +9,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import java.time.Instant;
 import java.util.Objects;
 import org.springframework.dao.DuplicateKeyException;
@@ -34,8 +35,14 @@ public class InventoryManagementApplicationService {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId));
         });
         Instant now = Instant.now();
-        Inventory inventory = new Inventory(null, tenantId, skuId, Inventory.DEFAULT_WAREHOUSE_CODE,
-                onHandQuantity, 0, onHandQuantity, status, 0L, now);
+        Inventory inventory = Inventory.create(
+                tenantId,
+                skuId,
+                WarehouseCode.DEFAULT,
+                onHandQuantity);
+        if (!InventoryStatus.ENABLED.equals(status)) {
+            inventory.updateStatus(status, now);
+        }
         try {
             Inventory savedInventory = inventoryRepository.saveInventory(inventory);
             return InventoryStockAssembler.fromInventory(savedInventory);

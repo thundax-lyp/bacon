@@ -5,6 +5,8 @@ import java.util.Objects;
 
 public record WarehouseCode(String value) {
 
+    public static final WarehouseCode DEFAULT = new WarehouseCode("DEFAULT");
+
     public WarehouseCode {
         Objects.requireNonNull(value, "warehouseCode must not be null");
         if (value.isBlank()) {

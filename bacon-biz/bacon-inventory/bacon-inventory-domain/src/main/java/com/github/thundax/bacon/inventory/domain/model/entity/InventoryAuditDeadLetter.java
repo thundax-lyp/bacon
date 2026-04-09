@@ -10,6 +10,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import java.time.Instant;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -68,7 +69,11 @@ public class InventoryAuditDeadLetter {
     /** 回放操作人主键。 */
     private String replayOperatorId;
 
+    /**
+     * 出站重试耗尽后，创建一条死信。
+     */
     public static InventoryAuditDeadLetter create(
+            DeadLetterId id,
             OutboxId outboxId,
             EventCode eventCode,
             TenantId tenantId,
@@ -90,8 +95,9 @@ public class InventoryAuditDeadLetter {
             String replayKey,
             String replayOperatorType,
             String replayOperatorId) {
+        Objects.requireNonNull(id, "id must not be null");
         return new InventoryAuditDeadLetter(
-                null,
+                id,
                 outboxId,
                 eventCode,
                 tenantId,

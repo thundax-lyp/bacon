@@ -37,6 +37,7 @@ class InventoryAuditCompensationApplicationServiceTest {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                DeadLetterId.of(1001L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1001L),
                 EventCode.of("EVT20260326000000-001001"),
                 TenantId.of(3001L),
@@ -78,6 +79,7 @@ class InventoryAuditCompensationApplicationServiceTest {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                DeadLetterId.of(1002L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1002L),
                 EventCode.of("EVT20260326000000-001002"),
                 TenantId.of(3001L),
@@ -100,6 +102,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                 null,
                 null));
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                DeadLetterId.of(1003L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1003L),
                 EventCode.of("EVT20260326000000-001003"),
                 TenantId.of(3001L),
@@ -140,6 +143,7 @@ class InventoryAuditCompensationApplicationServiceTest {
         InventoryAuditCompensationApplicationService service =
                 createService(repository, new FailingOnceTransactionExecutor());
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                DeadLetterId.of(1004L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1004L),
                 EventCode.of("EVT20260326000000-001004"),
                 TenantId.of(3001L),

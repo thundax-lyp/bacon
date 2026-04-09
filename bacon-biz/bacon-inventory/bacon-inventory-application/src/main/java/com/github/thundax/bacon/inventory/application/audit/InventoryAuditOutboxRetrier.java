@@ -1,9 +1,11 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -21,10 +23,12 @@ import org.springframework.stereotype.Service;
 public class InventoryAuditOutboxRetrier {
 
     private static final int MAX_EXPONENT = 20;
+    private static final String DEAD_LETTER_ID_BIZ_TAG = "inventory-dead-letter-id";
 
     private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
     private final InventoryAuditOutboxRepository inventoryAuditOutboxRepository;
     private final InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository;
+    private final IdGenerator idGenerator;
 
     @Value("${bacon.inventory.audit.retry.batch-size:100}")
     private int batchSize;
@@ -52,10 +56,12 @@ public class InventoryAuditOutboxRetrier {
     public InventoryAuditOutboxRetrier(
             InventoryAuditRecordRepository inventoryAuditRecordRepository,
             InventoryAuditOutboxRepository inventoryAuditOutboxRepository,
-            InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository) {
+            InventoryAuditDeadLetterRepository inventoryAuditDeadLetterRepository,
+            IdGenerator idGenerator) {
         this.inventoryAuditRecordRepository = inventoryAuditRecordRepository;
         this.inventoryAuditOutboxRepository = inventoryAuditOutboxRepository;
         this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
+        this.idGenerator = idGenerator;
     }
 
     @Scheduled(fixedDelayString = "${bacon.inventory.audit.retry.fixed-delay-ms:10000}")
@@ -131,6 +137,7 @@ public class InventoryAuditOutboxRetrier {
                 return;
             }
             inventoryAuditDeadLetterRepository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                    DeadLetterId.of(idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG)),
                     item.getId(),
                     item.getEventCode(),
                     item.getTenantId(),

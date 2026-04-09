@@ -26,6 +26,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOpera
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
@@ -114,7 +115,8 @@ class InventoryWorkflowIntegrationTest {
     @Test
     void shouldMoveOutboxToDeadLetterAfterRetryExhausted() {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(true);
-        InventoryAuditOutboxRetrier retryService = new InventoryAuditOutboxRetrier(repository, repository, repository);
+        InventoryAuditOutboxRetrier retryService =
+                new InventoryAuditOutboxRetrier(repository, repository, repository, bizTag -> 2001L);
         ReflectionTestUtils.setField(retryService, "enabled", true);
         ReflectionTestUtils.setField(retryService, "batchSize", 10);
         ReflectionTestUtils.setField(retryService, "maxRetries", 1);
@@ -154,7 +156,8 @@ class InventoryWorkflowIntegrationTest {
     @Test
     void shouldDeleteOutboxAfterRetrySuccess() {
         OptimisticInventoryRepository repository = new OptimisticInventoryRepository(false);
-        InventoryAuditOutboxRetrier retryService = new InventoryAuditOutboxRetrier(repository, repository, repository);
+        InventoryAuditOutboxRetrier retryService =
+                new InventoryAuditOutboxRetrier(repository, repository, repository, bizTag -> 2001L);
         ReflectionTestUtils.setField(retryService, "enabled", true);
         ReflectionTestUtils.setField(retryService, "batchSize", 10);
         ReflectionTestUtils.setField(retryService, "maxRetries", 3);
@@ -528,12 +531,7 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-            OutboxId outboxId = deadLetter.getOutboxId();
-            if (outboxId == null) {
-                outboxId = OutboxId.of(deadLetterIdGenerator.incrementAndGet());
-                deadLetter.assignOutboxId(outboxId);
-            }
-            deadLetterMap.put(outboxId, deadLetter);
+            deadLetterMap.put(deadLetter.getOutboxId(), deadLetter);
         }
 
         private int deadLetterCount() {

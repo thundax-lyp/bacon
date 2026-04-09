@@ -43,6 +43,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
     void shouldCreateAndProcessReplayTask() {
         TestLogRepository repository = new TestLogRepository();
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                DeadLetterId.of(101L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L),
                 EventCode.of("EVT20260326000000-000101"),
                 TenantId.of(3001L),

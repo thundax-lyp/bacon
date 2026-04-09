@@ -88,10 +88,11 @@ bacon
 │       ├── bacon-payment-domain/
 │       └── bacon-payment-infra/
 │
-├── bacon-common/                    # 平台公共能力
+├── bacon-common/                    # 公共能力层
 │   ├── pom.xml
 │   ├── bacon-common-bom/            # 统一版本管理
 │   ├── bacon-common-core/           # 异常 / 枚举 / 常量 / 工具
+│   ├── bacon-common-commerce/       # 商城共享值对象 / 校验辅助 / 业务公共模型
 │   ├── bacon-common-id/             # 统一 ID 类型 / 发号 / 转换器
 │   ├── bacon-common-log/            # 日志字段 / 事件类型 / 日志基础定义
 │   ├── bacon-common-web/            # 统一返回 / 全局异常 / Web 拦截
@@ -355,6 +356,7 @@ bacon-biz/bacon-order
 - provider 接口如需对内请求模型，使用 `interfaces.dto` 下的 `*Request`；如直接复用简单参数或 `api.dto`，不得再额外派生一套 provider response
 - HTTP DTO、HTTP Response、跨域 DTO、领域对象默认不复用，避免协议层和领域层互相污染
 - 枚举、异常码、通用常量优先沉淀到 `bacon-common-core`，业务私有的留在各自域内。
+- `order`、`inventory`、`payment` 共享的商城业务值对象、金额模型、仓库编码等，优先沉淀到 `bacon-common-commerce`。
 
 ### 可读性规则
 
@@ -626,6 +628,10 @@ bacon-biz/bacon-<domain>/
 ### 公共模块归属
 - `bacon-common-core`
     - `hutool`
+- `bacon-common-commerce`
+    - 商城业务公共值对象
+    - 商城业务共享校验辅助
+    - 只允许被 `order`、`inventory`、`payment` 及其 starter 依赖
 - `bacon-common-mybatis`
     - `mybatis-plus`
 - `bacon-common-cache`

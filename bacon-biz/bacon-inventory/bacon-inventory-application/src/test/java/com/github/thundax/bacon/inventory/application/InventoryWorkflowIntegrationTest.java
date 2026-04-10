@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.AsyncTaskWrapper;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -56,6 +57,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -75,23 +77,27 @@ class InventoryWorkflowIntegrationTest {
         CountDownLatch start = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(2);
         try {
-            CompletableFuture<InventoryReservationResultDTO> first = CompletableFuture.supplyAsync(
-                    () -> {
+            Supplier<InventoryReservationResultDTO> firstTask = AsyncTaskWrapper.wrap(
+                    (Supplier<InventoryReservationResultDTO>) () -> {
                         await(start);
                         return service.reserveStock(
                                 TenantId.of(1001L),
                                 OrderNo.of("ORDER-C1"),
                                 List.of(new InventoryReservationItemDTO(101L, 40)));
-                    },
+                    });
+            CompletableFuture<InventoryReservationResultDTO> first = CompletableFuture.supplyAsync(
+                    firstTask,
                     pool);
-            CompletableFuture<InventoryReservationResultDTO> second = CompletableFuture.supplyAsync(
-                    () -> {
+            Supplier<InventoryReservationResultDTO> secondTask = AsyncTaskWrapper.wrap(
+                    (Supplier<InventoryReservationResultDTO>) () -> {
                         await(start);
                         return service.reserveStock(
                                 TenantId.of(1001L),
                                 OrderNo.of("ORDER-C2"),
                                 List.of(new InventoryReservationItemDTO(101L, 40)));
-                    },
+                    });
+            CompletableFuture<InventoryReservationResultDTO> second = CompletableFuture.supplyAsync(
+                    secondTask,
                     pool);
 
             start.countDown();

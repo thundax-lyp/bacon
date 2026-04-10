@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.AsyncTaskWrapper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
@@ -87,7 +88,7 @@ class OrderIdempotencyExecutorTest {
         ExecutorService pool = Executors.newFixedThreadPool(threadCount);
         try {
             for (int i = 0; i < threadCount; i++) {
-                pool.execute(() -> {
+                pool.execute(AsyncTaskWrapper.wrap(() -> {
                     ready.countDown();
                     try {
                         start.await();
@@ -102,7 +103,7 @@ class OrderIdempotencyExecutorTest {
                     } finally {
                         done.countDown();
                     }
-                });
+                }));
             }
             ready.await(2, TimeUnit.SECONDS);
             start.countDown();

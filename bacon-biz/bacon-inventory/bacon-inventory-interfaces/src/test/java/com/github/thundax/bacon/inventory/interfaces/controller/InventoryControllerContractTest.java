@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
@@ -28,6 +30,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,10 +40,17 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 class InventoryControllerContractTest {
 
     private MockMvc mockMvc;
+    private StubInventoryRepository repository;
+
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
+    }
 
     @BeforeEach
     void setUp() {
-        StubInventoryRepository repository = new StubInventoryRepository();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
+        repository = new StubInventoryRepository();
         InventoryQueryApplicationService inventoryQueryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
         InventoryController controller = new InventoryController(null, inventoryQueryService);
@@ -49,7 +59,7 @@ class InventoryControllerContractTest {
         validator.afterPropertiesSet();
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver(() -> 1001L))
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .setValidator(validator)
                 .build();
     }
@@ -90,8 +100,20 @@ class InventoryControllerContractTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void shouldExposeTenantAndUserContextToRepositoryLayer() throws Exception {
+        mockMvc.perform(get("/inventories/page").param("pageNo", "1").param("pageSize", "20"))
+                .andExpect(status().isOk());
+
+        org.assertj.core.api.Assertions.assertThat(repository.capturedTenantId).isEqualTo(1001L);
+        org.assertj.core.api.Assertions.assertThat(repository.capturedUserId).isEqualTo(2001L);
+    }
+
     private static final class StubInventoryRepository
             implements InventoryStockRepository, InventoryReservationRepository, InventoryLogRepository {
+
+        private Long capturedTenantId;
+        private Long capturedUserId;
 
         private final Inventory stock = Inventory.reconstruct(
                 InventoryId.of(1L),
@@ -106,27 +128,32 @@ class InventoryControllerContractTest {
 
         @Override
         public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
+            captureContext();
             return Optional.of(stock);
         }
 
         @Override
         public List<Inventory> findInventories(TenantId tenantId) {
+            captureContext();
             return List.of(stock);
         }
 
         @Override
         public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
+            captureContext();
             return List.of(stock);
         }
 
         @Override
         public List<Inventory> pageInventories(
                 TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+            captureContext();
             return List.of(stock);
         }
 
         @Override
         public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
+            captureContext();
             return 1;
         }
 
@@ -142,6 +169,7 @@ class InventoryControllerContractTest {
 
         @Override
         public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+            captureContext();
             return Optional.empty();
         }
 
@@ -150,6 +178,7 @@ class InventoryControllerContractTest {
 
         @Override
         public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+            captureContext();
             return List.of();
         }
 
@@ -158,6 +187,7 @@ class InventoryControllerContractTest {
 
         @Override
         public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+            captureContext();
             return List.of();
         }
 
@@ -166,5 +196,10 @@ class InventoryControllerContractTest {
 
         @Override
         public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
+
+        private void captureContext() {
+            capturedTenantId = BaconContextHolder.currentTenantId();
+            capturedUserId = BaconContextHolder.currentUserId();
+        }
     }
 }

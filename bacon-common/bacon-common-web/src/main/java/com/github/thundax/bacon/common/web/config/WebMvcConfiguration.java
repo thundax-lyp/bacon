@@ -1,12 +1,17 @@
 package com.github.thundax.bacon.common.web.config;
 
-import com.github.thundax.bacon.common.security.context.CurrentTenantProvider;
+import com.github.thundax.bacon.common.web.context.BaconContextFilter;
+import com.github.thundax.bacon.common.web.context.BaconContextResolver;
+import com.github.thundax.bacon.common.web.context.DefaultBaconContextResolver;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -19,22 +24,28 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableConfigurationProperties(InternalApiGuardProperties.class)
 public class WebMvcConfiguration implements WebMvcConfigurer {
 
-    private final ObjectProvider<CurrentTenantProvider> currentTenantProvider;
     private final ObjectProvider<InternalApiGuardProperties> internalApiGuardProperties;
 
-    public WebMvcConfiguration(
-            ObjectProvider<CurrentTenantProvider> currentTenantProvider,
-            ObjectProvider<InternalApiGuardProperties> internalApiGuardProperties) {
-        this.currentTenantProvider = currentTenantProvider;
+    public WebMvcConfiguration(ObjectProvider<InternalApiGuardProperties> internalApiGuardProperties) {
         this.internalApiGuardProperties = internalApiGuardProperties;
+    }
+
+    @Bean
+    public BaconContextResolver defaultBaconContextResolver() {
+        return new DefaultBaconContextResolver();
+    }
+
+    @Bean
+    public FilterRegistrationBean<BaconContextFilter> baconContextFilterRegistration(BaconContextResolver resolver) {
+        FilterRegistrationBean<BaconContextFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new BaconContextFilter(resolver));
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return registration;
     }
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        CurrentTenantProvider provider = currentTenantProvider.getIfAvailable();
-        if (provider != null) {
-            resolvers.add(new CurrentTenantArgumentResolver(provider));
-        }
+        resolvers.add(new CurrentTenantArgumentResolver());
     }
 
     @Override

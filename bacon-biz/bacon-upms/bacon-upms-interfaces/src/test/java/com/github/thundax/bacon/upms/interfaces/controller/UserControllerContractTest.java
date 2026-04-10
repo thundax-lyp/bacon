@@ -9,11 +9,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -27,11 +30,17 @@ class UserControllerContractTest {
     private UserApplicationService userApplicationService;
     private MockMvc mockMvc;
 
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
+    }
+
     @BeforeEach
     void setUp() {
+        BaconContextHolder.set(new BaconContext(TENANT_ID.value(), 2001L));
         userApplicationService = mock(UserApplicationService.class);
         mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService))
-                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver(() -> TENANT_ID.value()))
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
     }
 

@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
@@ -19,6 +21,7 @@ import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import java.time.Instant;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,8 +32,14 @@ class InventoryAuditCompensationControllerContractTest {
 
     private MockMvc mockMvc;
 
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
+    }
+
     @BeforeEach
     void setUp() {
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
         InventoryQueryApplicationService inventoryQueryService =
                 new InventoryQueryApplicationService(null, null, null, new StubAuditDeadLetterRepository());
         InventoryAuditCompensationController controller =
@@ -40,7 +49,7 @@ class InventoryAuditCompensationControllerContractTest {
         validator.afterPropertiesSet();
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver(() -> 1001L))
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .setValidator(validator)
                 .build();
     }

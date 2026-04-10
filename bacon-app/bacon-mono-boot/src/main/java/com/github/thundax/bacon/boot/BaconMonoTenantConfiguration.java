@@ -3,9 +3,12 @@ package com.github.thundax.bacon.boot;
 import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.CreateCache;
-import com.github.thundax.bacon.common.security.context.CurrentTenantProvider;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
+import com.github.thundax.bacon.common.web.context.DefaultBaconContextResolver;
+import com.github.thundax.bacon.common.web.context.BaconContextResolver;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.concurrent.TimeUnit;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -20,8 +23,8 @@ class BaconMonoTenantConfiguration {
     @Bean
     @Primary
     @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
-    CurrentTenantProvider currentTenantProvider(MonoTenantLookupService monoTenantLookupService) {
-        return new HeaderTenantCodeCurrentTenantProvider(monoTenantLookupService);
+    BaconContextResolver baconContextResolver(MonoTenantLookupService monoTenantLookupService) {
+        return new HeaderTenantCodeBaconContextResolver(monoTenantLookupService);
     }
 
     @Bean
@@ -30,21 +33,26 @@ class BaconMonoTenantConfiguration {
         return new MonoTenantLookupService(tenantRepository);
     }
 
-    static final class HeaderTenantCodeCurrentTenantProvider implements CurrentTenantProvider {
+    static final class HeaderTenantCodeBaconContextResolver extends DefaultBaconContextResolver {
 
         private static final String TENANT_CODE_HEADER = "X-Tenant-Code";
 
         private final MonoTenantLookupService monoTenantLookupService;
 
-        HeaderTenantCodeCurrentTenantProvider(MonoTenantLookupService monoTenantLookupService) {
+        HeaderTenantCodeBaconContextResolver(MonoTenantLookupService monoTenantLookupService) {
             this.monoTenantLookupService = monoTenantLookupService;
         }
 
         @Override
-        public Long currentTenantId() {
+        public BaconContext resolve(HttpServletRequest request) {
+            return new BaconContext(resolveTenantId(request), resolveUserId(request));
+        }
+
+        @Override
+        protected Long resolveTenantId(HttpServletRequest request) {
             String tenantCode = currentTenantCode();
             if (tenantCode == null) {
-                return null;
+                return super.resolveTenantId(request);
             }
             return monoTenantLookupService.findTenantIdByCode(tenantCode);
         }

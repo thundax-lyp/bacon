@@ -1,9 +1,6 @@
 package com.github.thundax.bacon.common.mybatis.fill;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.mybatis.tenant.TenantIsolationSupport;
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -13,7 +10,6 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
     private static final String CREATED_BY = "createdBy";
     private static final String CREATED_AT = "createdAt";
-    private static final String TENANT_ID = "tenantId";
     private static final String UPDATED_BY = "updatedBy";
     private static final String UPDATED_AT = "updatedAt";
 
@@ -29,7 +25,6 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
     public void insertFill(MetaObject metaObject) {
         LocalDateTime now = LocalDateTime.now(clock);
         String currentUserId = currentUserId();
-        fillTenantIdIfNecessary(metaObject);
         fillIfPresent(metaObject, CREATED_BY, String.class, currentUserId, true);
         fillIfPresent(metaObject, CREATED_AT, LocalDateTime.class, now, true);
         fillIfPresent(metaObject, UPDATED_BY, String.class, currentUserId, true);
@@ -47,29 +42,6 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
     private String currentUserId() {
         String currentUserId = currentUserProvider.currentUserId();
         return currentUserId == null || currentUserId.isBlank() ? "system" : currentUserId;
-    }
-
-    private void fillTenantIdIfNecessary(MetaObject metaObject) {
-        Object originalObject = metaObject.getOriginalObject();
-        if (originalObject == null || !TenantIsolationSupport.isTenantIsolated(originalObject.getClass())) {
-            return;
-        }
-        Long currentTenantId = BaconContextHolder.currentTenantId();
-        if (currentTenantId == null || !metaObject.hasGetter(TENANT_ID) || !metaObject.hasSetter(TENANT_ID)) {
-            return;
-        }
-        Object currentValue = getFieldValByName(TENANT_ID, metaObject);
-        if (currentValue != null) {
-            return;
-        }
-        Class<?> tenantIdType = metaObject.getGetterType(TENANT_ID);
-        if (Long.class.equals(tenantIdType)) {
-            setFieldValByName(TENANT_ID, currentTenantId, metaObject);
-            return;
-        }
-        if (TenantId.class.equals(tenantIdType)) {
-            setFieldValByName(TENANT_ID, TenantId.of(currentTenantId), metaObject);
-        }
     }
 
     private <T> void fillIfPresent(

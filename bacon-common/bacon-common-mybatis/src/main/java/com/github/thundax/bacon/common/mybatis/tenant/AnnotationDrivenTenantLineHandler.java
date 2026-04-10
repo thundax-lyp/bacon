@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.extension.plugins.handler.TenantLineHandler;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.mybatis.annotation.EnableTenantIsolation;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.sf.jsqlparser.expression.Expression;
@@ -39,6 +40,6 @@ public class AnnotationDrivenTenantLineHandler implements TenantLineHandler {
         if (tableInfo == null || tableInfo.getEntityType() == null) {
             return false;
         }
-        return TenantIsolationSupport.isTenantIsolated(tableInfo.getEntityType());
+        return tableInfo.getEntityType().isAnnotationPresent(EnableTenantIsolation.class);
     }
 }

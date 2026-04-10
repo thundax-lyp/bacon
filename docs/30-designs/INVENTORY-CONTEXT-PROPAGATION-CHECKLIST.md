@@ -51,9 +51,9 @@
   - `source`
   - `traceId`
 - `AuditData`
-  - `createdBy` (`String`)
+  - `createdBy`
   - `createdAt`
-  - `updatedBy` (`String`)
+  - `updatedBy`
   - `updatedAt`
 
 # Global Constraints
@@ -62,7 +62,6 @@
 - `domain` 不再新增对 `userId`、`tenantId` 的直接字段依赖
 - `tenantId` 仅在确认不参与领域规则后，才允许从既有聚合中移除
 - `AuditData` 是只读信息对象，`domain` 不得在行为方法中写入或修改
-- `AuditData.createdBy`、`AuditData.updatedBy` 使用 `String`
 - `createdBy`、`createdAt`、`updatedBy`、`updatedAt` 的写入责任固定归属 `infra`
 - `thread`、`mq`、`scheduled/retry/replay` 不得依赖隐式线程状态碰运气获取上下文
 - 所有新透传链路必须优先走显式对象，不允许继续散落传 `String userId`、`Long tenantId`

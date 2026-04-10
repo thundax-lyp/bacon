@@ -9,7 +9,7 @@ public class MonoCurrentUserProvider implements CurrentUserProvider {
     }
 
     @Override
-    public Long currentUserId() {
+    public String currentUserId() {
         return currentUserResolver.currentUserId();
     }
 }

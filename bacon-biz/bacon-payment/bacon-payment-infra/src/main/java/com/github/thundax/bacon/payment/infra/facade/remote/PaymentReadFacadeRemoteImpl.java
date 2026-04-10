@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.infra.facade.remote;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
 import com.github.thundax.bacon.payment.infra.facade.remote.impl.PaymentRemoteExceptionTranslator;
@@ -27,11 +28,13 @@ public class PaymentReadFacadeRemoteImpl implements PaymentReadFacade {
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getByPaymentNoFallback")
     public PaymentDetailDTO getByPaymentNo(Long tenantId, String paymentNo) {
         // 查询链路也沿用同一套 resilience + translator 规则，避免读写远程调用产生不同的失败语义。
-        return restClient
-                .get()
-                .uri("/providers/payment/{paymentNo}?tenantId={tenantId}", paymentNo, tenantId)
-                .retrieve()
-                .body(PaymentDetailDTO.class);
+        return BaconContextHolder.callWithTenantId(
+                tenantId,
+                () -> restClient
+                        .get()
+                        .uri("/providers/payment/{paymentNo}", paymentNo)
+                        .retrieve()
+                        .body(PaymentDetailDTO.class));
     }
 
     @Override
@@ -39,11 +42,13 @@ public class PaymentReadFacadeRemoteImpl implements PaymentReadFacade {
     @CircuitBreaker(name = "paymentRemote", fallbackMethod = "getByOrderNoFallback")
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getByOrderNoFallback")
     public PaymentDetailDTO getByOrderNo(Long tenantId, String orderNo) {
-        return restClient
-                .get()
-                .uri("/providers/payment?tenantId={tenantId}&orderNo={orderNo}", tenantId, orderNo)
-                .retrieve()
-                .body(PaymentDetailDTO.class);
+        return BaconContextHolder.callWithTenantId(
+                tenantId,
+                () -> restClient
+                        .get()
+                        .uri("/providers/payment?orderNo={orderNo}", orderNo)
+                        .retrieve()
+                        .body(PaymentDetailDTO.class));
     }
 
     @SuppressWarnings("unused")

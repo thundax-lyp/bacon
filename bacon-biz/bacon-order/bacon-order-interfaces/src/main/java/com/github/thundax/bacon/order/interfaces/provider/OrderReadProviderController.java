@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.interfaces.provider;
 
+import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -35,23 +36,24 @@ public class OrderReadProviderController {
     }
 
     @GetMapping("/{orderId}")
-    public OrderDetailDTO getById(@RequestParam("tenantId") Long tenantId, @PathVariable Long orderId) {
+    public OrderDetailDTO getById(@CurrentTenant Long tenantId, @PathVariable Long orderId) {
         return orderQueryService.getById(tenantId, orderId);
     }
 
     @GetMapping("/by-order-no/{orderNo}")
-    public OrderDetailDTO getByOrderNo(@RequestParam("tenantId") Long tenantId, @PathVariable String orderNo) {
+    public OrderDetailDTO getByOrderNo(@CurrentTenant Long tenantId, @PathVariable String orderNo) {
         return orderQueryService.getByOrderNo(tenantId, orderNo);
     }
 
     @GetMapping
-    public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
+    public OrderPageResultDTO pageOrders(@CurrentTenant Long tenantId, OrderPageQueryDTO query) {
+        query.setTenantId(tenantId);
         return orderQueryService.pageOrders(query);
     }
 
     @PostMapping("/mark-paid")
     public void markPaid(
-            @RequestParam("tenantId") Long tenantId,
+            @CurrentTenant Long tenantId,
             @RequestParam("orderNo") String orderNo,
             @RequestParam("paymentNo") String paymentNo,
             @RequestParam("channelCode") String channelCode,
@@ -62,7 +64,7 @@ public class OrderReadProviderController {
 
     @PostMapping("/mark-payment-failed")
     public void markPaymentFailed(
-            @RequestParam("tenantId") Long tenantId,
+            @CurrentTenant Long tenantId,
             @RequestParam("orderNo") String orderNo,
             @RequestParam("paymentNo") String paymentNo,
             @RequestParam("reason") String reason,
@@ -73,10 +75,7 @@ public class OrderReadProviderController {
     }
 
     @PostMapping("/close-expired")
-    public void closeExpired(
-            @RequestParam("tenantId") Long tenantId,
-            @RequestParam("orderNo") String orderNo,
-            @RequestParam("reason") String reason) {
+    public void closeExpired(@CurrentTenant Long tenantId, @RequestParam("orderNo") String orderNo, @RequestParam("reason") String reason) {
         orderTimeoutApplicationService.closeExpiredOrder(tenantId, orderNo, reason);
     }
 }

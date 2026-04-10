@@ -6,8 +6,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
+import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentAuditQueryApplicationService;
@@ -38,10 +41,11 @@ class PaymentProviderControllerContractTest {
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/providers/payment/PAY-10001")
-                        .param("tenantId", "1001")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paymentNo").value("PAY-10001"))
@@ -58,7 +62,9 @@ class PaymentProviderControllerContractTest {
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.clear();
 
         mockMvc.perform(get("/providers/payment/PAY-10001").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isBadRequest());
@@ -73,12 +79,13 @@ class PaymentProviderControllerContractTest {
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(9999L, 2001L));
 
         ServletException exception = assertThrows(
                 ServletException.class,
                 () -> mockMvc.perform(get("/providers/payment/PAY-10001")
-                        .param("tenantId", "9999")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
         assertEquals(PaymentDomainException.class, exception.getCause().getClass());
         assertEquals(
@@ -94,10 +101,11 @@ class PaymentProviderControllerContractTest {
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/providers/payment/PAY-10001/audit-logs")
-                        .param("tenantId", "1001")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].paymentNo").value("PAY-10001"))
@@ -113,9 +121,11 @@ class PaymentProviderControllerContractTest {
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/payment/PAY-10001").param("tenantId", "1001"))
+        mockMvc.perform(get("/providers/payment/PAY-10001"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -128,10 +138,11 @@ class PaymentProviderControllerContractTest {
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/providers/payment/PAY-10001")
-                        .param("tenantId", "1001")
                         .header(PROVIDER_TOKEN_HEADER, "wrong-token"))
                 .andExpect(status().isForbidden());
     }

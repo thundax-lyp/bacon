@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -30,14 +31,11 @@ public class UserPasswordFacadeRemoteImpl implements UserPasswordFacade {
     public void changePassword(
             @NonNull TenantId tenantId, @NonNull UserId userId, String oldPassword, String newPassword) {
         // 改密走 provider 命令端点并携带 body，避免把旧密码/新密码暴露在查询参数或日志里。
-        restClient
+        BaconContextHolder.runWithTenantId(tenantId.value(), () -> restClient
                 .post()
-                .uri(
-                        "/providers/upms/users/{userId}/password/change?tenantId={tenantId}",
-                        userId.value(),
-                        tenantId.value())
+                .uri("/providers/upms/users/{userId}/password/change", userId.value())
                 .body(new UserPasswordChangeDTO(oldPassword, newPassword))
                 .retrieve()
-                .toBodilessEntity();
+                .toBodilessEntity());
     }
 }

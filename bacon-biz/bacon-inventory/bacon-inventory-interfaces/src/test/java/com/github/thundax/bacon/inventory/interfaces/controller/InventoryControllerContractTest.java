@@ -10,7 +10,6 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.core.valueobject.Version;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -117,7 +116,6 @@ class InventoryControllerContractTest {
 
         private final Inventory stock = Inventory.reconstruct(
                 InventoryId.of(1L),
-                TenantId.of(1001L),
                 SkuId.of(101L),
                 WarehouseCode.of("DEFAULT"),
                 new OnHandQuantity(100),

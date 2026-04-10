@@ -10,7 +10,6 @@ public final class InventoryStockAssembler {
 
     public static InventoryStockDTO fromInventory(Inventory inventory) {
         return new InventoryStockDTO(
-                inventory.getTenantId() == null ? null : inventory.getTenantId().value(),
                 inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
                 WarehouseCodeCodec.toValue(inventory.getWarehouseCode()),
                 inventory.getOnHandQuantity() == null ? null : inventory.getOnHandQuantity().value(),

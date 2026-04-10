@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.valueobject.Version;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
@@ -22,11 +21,7 @@ class InventoryTest {
     void createShouldInitializeDefaultState() {
         Inventory inventory =
                 Inventory.create(
-                        InventoryId.of(1L),
-                        TenantId.of(1001L),
-                        SkuId.of(101L),
-                        WarehouseCode.DEFAULT,
-                        new OnHandQuantity(30));
+                        InventoryId.of(1L), SkuId.of(101L), WarehouseCode.DEFAULT, new OnHandQuantity(30));
 
         assertEquals(InventoryId.of(1L), inventory.getId());
         assertEquals(new OnHandQuantity(30), inventory.getOnHandQuantity());
@@ -42,11 +37,7 @@ class InventoryTest {
         InventoryDomainException exception = assertThrows(
                 InventoryDomainException.class,
                 () -> Inventory.create(
-                        null,
-                        TenantId.of(1001L),
-                        SkuId.of(101L),
-                        WarehouseCode.DEFAULT,
-                        new OnHandQuantity(30)));
+                        null, SkuId.of(101L), WarehouseCode.DEFAULT, new OnHandQuantity(30)));
 
         assertEquals(InventoryErrorCode.INVALID_INVENTORY_KEY.code(), exception.getCode());
     }
@@ -55,8 +46,7 @@ class InventoryTest {
     void createShouldRejectNullOnHandQuantity() {
         InventoryDomainException exception = assertThrows(
                 InventoryDomainException.class,
-                () -> Inventory.create(
-                        InventoryId.of(1L), TenantId.of(1001L), SkuId.of(101L), WarehouseCode.DEFAULT, null));
+                () -> Inventory.create(InventoryId.of(1L), SkuId.of(101L), WarehouseCode.DEFAULT, null));
 
         assertEquals(InventoryErrorCode.INVALID_ON_HAND_QUANTITY.code(), exception.getCode());
     }
@@ -66,11 +56,7 @@ class InventoryTest {
         InventoryDomainException exception = assertThrows(
                 InventoryDomainException.class,
                 () -> Inventory.create(
-                        InventoryId.of(1L),
-                        TenantId.of(1001L),
-                        SkuId.of(101L),
-                        WarehouseCode.DEFAULT,
-                        OnHandQuantity.of(-1)));
+                        InventoryId.of(1L), SkuId.of(101L), WarehouseCode.DEFAULT, OnHandQuantity.of(-1)));
 
         assertEquals(InventoryErrorCode.INVALID_ON_HAND_QUANTITY.code(), exception.getCode());
     }

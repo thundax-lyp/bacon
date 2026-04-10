@@ -7,8 +7,6 @@ import java.time.Instant;
  * 库存主数据响应对象。
  */
 public record InventoryStockResponse(
-        /** 所属租户主键。 */
-        Long tenantId,
         /** 商品 SKU 主键。 */
         Long skuId,
         /** 仓库业务编码。 */
@@ -26,7 +24,6 @@ public record InventoryStockResponse(
 
     public static InventoryStockResponse from(InventoryStockDTO dto) {
         return new InventoryStockResponse(
-                dto.getTenantId(),
                 dto.getSkuId(),
                 dto.getWarehouseCode(),
                 dto.getOnHandQuantity(),

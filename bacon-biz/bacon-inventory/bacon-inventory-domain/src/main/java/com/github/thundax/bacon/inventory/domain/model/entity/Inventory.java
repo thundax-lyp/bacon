@@ -3,7 +3,6 @@ package com.github.thundax.bacon.inventory.domain.model.entity;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.valueobject.Version;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
@@ -28,8 +27,6 @@ public class Inventory {
 
     /** 库存主键。 */
     private InventoryId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 商品 SKU 主键。 */
     private SkuId skuId;
     /** 仓库业务编码。 */
@@ -47,11 +44,10 @@ public class Inventory {
 
     public static Inventory create(
             InventoryId id,
-            TenantId tenantId,
             SkuId skuId,
             WarehouseCode warehouseCode,
             OnHandQuantity onHandQuantity) {
-        if (Objects.isNull(id) || Objects.isNull(tenantId) || Objects.isNull(skuId) || Objects.isNull(warehouseCode)) {
+        if (Objects.isNull(id) || Objects.isNull(skuId) || Objects.isNull(warehouseCode)) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
         }
         if (Objects.isNull(onHandQuantity)) {
@@ -59,7 +55,6 @@ public class Inventory {
         }
         return new Inventory(
                 id,
-                tenantId,
                 skuId,
                 warehouseCode,
                 onHandQuantity,
@@ -71,7 +66,6 @@ public class Inventory {
 
     public static Inventory reconstruct(
             InventoryId id,
-            TenantId tenantId,
             SkuId skuId,
             WarehouseCode warehouseCode,
             OnHandQuantity onHandQuantity,
@@ -95,7 +89,6 @@ public class Inventory {
         }
         return new Inventory(
                 id,
-                tenantId,
                 skuId,
                 warehouseCode,
                 onHandQuantity,

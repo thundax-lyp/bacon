@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InventoryStockDTO {
 
-    /** 所属租户主键。 */
-    private Long tenantId;
     /** 商品 SKU 主键。 */
     private Long skuId;
     /** 仓库业务编码。 */

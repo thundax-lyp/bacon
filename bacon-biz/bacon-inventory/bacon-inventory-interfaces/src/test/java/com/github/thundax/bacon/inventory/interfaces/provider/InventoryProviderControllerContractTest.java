@@ -135,7 +135,7 @@ class InventoryProviderControllerContractTest {
                 throw new IllegalArgumentException("Invalid tenant: " + tenantIdValue);
             }
             return List.of(new InventoryStockDTO(
-                    tenantIdValue, 101L, "DEFAULT", 100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
+                    101L, "DEFAULT", 100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
         }
 
         @Override
@@ -145,7 +145,7 @@ class InventoryProviderControllerContractTest {
                 throw new IllegalArgumentException("Invalid tenant: " + tenantIdValue);
             }
             return new InventoryStockDTO(
-                    tenantIdValue, 101L, "DEFAULT", 100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
+                    101L, "DEFAULT", 100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
         }
     }
 }

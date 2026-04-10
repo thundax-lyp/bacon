@@ -45,7 +45,6 @@ public class InventoryManagementApplicationService {
         });
         Inventory inventory = Inventory.create(
                 InventoryId.of(idGenerator.nextId(INVENTORY_ID_BIZ_TAG)),
-                tenantId,
                 skuId,
                 WarehouseCode.DEFAULT,
                 OnHandQuantity.of(onHandQuantity));

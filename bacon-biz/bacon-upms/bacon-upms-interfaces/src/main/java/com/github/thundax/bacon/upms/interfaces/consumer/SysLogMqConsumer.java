@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.consumer;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.application.audit.SysLogConsumeApplicationService;
 import org.springframework.stereotype.Component;
@@ -18,5 +19,9 @@ public class SysLogMqConsumer {
      */
     public void consume(SysLogDTO sysLogDTO) {
         sysLogConsumeApplicationService.consume(sysLogDTO);
+    }
+
+    public void consume(Long tenantId, SysLogDTO sysLogDTO) {
+        BaconContextHolder.runWithTenantId(tenantId, () -> sysLogConsumeApplicationService.consume(sysLogDTO));
     }
 }

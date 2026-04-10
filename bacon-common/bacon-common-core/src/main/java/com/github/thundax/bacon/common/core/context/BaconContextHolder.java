@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.common.core.context;
 
+import java.util.function.Supplier;
+
 public final class BaconContextHolder {
 
     private static final ThreadLocal<BaconContext> HOLDER = new ThreadLocal<>();
@@ -39,6 +41,24 @@ public final class BaconContextHolder {
 
     public static void clear() {
         HOLDER.remove();
+    }
+
+    public static void runWithTenantId(Long tenantId, Runnable action) {
+        callWithTenantId(tenantId, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    public static <T> T callWithTenantId(Long tenantId, Supplier<T> supplier) {
+        BaconContext previous = snapshot();
+        Long userId = previous == null ? null : previous.userId();
+        try {
+            set(new BaconContext(tenantId, userId));
+            return supplier.get();
+        } finally {
+            restore(previous);
+        }
     }
 
     public record BaconContext(Long tenantId, Long userId) {}

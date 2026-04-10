@@ -1,11 +1,13 @@
 package com.github.thundax.bacon.upms.interfaces.consumer;
 
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
+import com.github.thundax.bacon.common.mq.BaconMqHeaders;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,7 +18,7 @@ import org.springframework.stereotype.Component;
         selectorExpression = "${bacon.log.sys.tag:sys-log}",
         messageModel = MessageModel.CLUSTERING,
         consumeMode = ConsumeMode.ORDERLY)
-public class RocketMqSysLogConsumer implements RocketMQListener<SysLogDTO> {
+public class RocketMqSysLogConsumer implements RocketMQListener<Message<SysLogDTO>> {
 
     private final SysLogMqConsumer sysLogMqConsumer;
 
@@ -25,7 +27,9 @@ public class RocketMqSysLogConsumer implements RocketMQListener<SysLogDTO> {
     }
 
     @Override
-    public void onMessage(SysLogDTO sysLogDTO) {
-        sysLogMqConsumer.consume(sysLogDTO);
+    public void onMessage(Message<SysLogDTO> message) {
+        Object tenantId = message.getHeaders().get(BaconMqHeaders.TENANT_ID);
+        Long tenantIdValue = tenantId == null ? null : Long.valueOf(String.valueOf(tenantId));
+        sysLogMqConsumer.consume(tenantIdValue, message.getPayload());
     }
 }

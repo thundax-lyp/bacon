@@ -1,8 +1,11 @@
 package com.github.thundax.bacon.upms.interfaces.consumer;
 
+import com.github.thundax.bacon.common.mq.BaconMqHeaders;
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +21,7 @@ public class KafkaSysLogConsumer {
     @KafkaListener(
             topics = "${bacon.log.sys.topic:bacon-sys-log}",
             groupId = "${bacon.log.sys.consumer-group:bacon-upms-sys-log-group}")
-    public void onMessage(SysLogDTO sysLogDTO) {
-        sysLogMqConsumer.consume(sysLogDTO);
+    public void onMessage(@Payload SysLogDTO sysLogDTO, @Header(name = BaconMqHeaders.TENANT_ID, required = false) Long tenantId) {
+        sysLogMqConsumer.consume(tenantId, sysLogDTO);
     }
 }

@@ -59,9 +59,9 @@ public final class InventoryAuditDeadLetterPersistenceAssembler {
     public static InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
         return InventoryAuditDeadLetter.reconstruct(
                 dataObject.getId() == null ? null : DeadLetterId.of(dataObject.getId()),
+                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getOutboxId() == null ? null : OutboxId.of(dataObject.getOutboxId()),
                 dataObject.getEventCode() == null ? null : EventCode.of(dataObject.getEventCode()),
-                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),
                 dataObject.getReservationNo() == null ? null : ReservationNo.of(dataObject.getReservationNo()),
                 dataObject.getActionType() == null ? null : InventoryAuditActionType.from(dataObject.getActionType()),

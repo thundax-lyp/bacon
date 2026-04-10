@@ -75,9 +75,9 @@ class InventoryAuditCompensationApplicationServiceTest {
         InventoryAuditCompensationApplicationService service = createService(repository);
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 DeadLetterId.of(1002L),
+                TenantId.of(3001L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1002L),
                 EventCode.of("EVT20260326000000-001002"),
-                TenantId.of(3001L),
                 OrderNo.of("ORDER-2"),
                 ReservationNo.of("RSV-2"),
                 InventoryAuditActionType.RELEASE,
@@ -90,9 +90,9 @@ class InventoryAuditCompensationApplicationServiceTest {
                 Instant.parse("2026-03-26T00:01:00Z")));
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 DeadLetterId.of(1003L),
+                TenantId.of(3001L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1003L),
                 EventCode.of("EVT20260326000000-001003"),
-                TenantId.of(3001L),
                 OrderNo.of("ORDER-3"),
                 ReservationNo.of("RSV-3"),
                 InventoryAuditActionType.DEDUCT,
@@ -124,9 +124,9 @@ class InventoryAuditCompensationApplicationServiceTest {
                 createService(repository, new FailingOnceTransactionExecutor());
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 DeadLetterId.of(1004L),
+                TenantId.of(3001L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1004L),
                 EventCode.of("EVT20260326000000-001004"),
-                TenantId.of(3001L),
                 OrderNo.of("ORDER-4"),
                 ReservationNo.of("RSV-4"),
                 InventoryAuditActionType.RESERVE,

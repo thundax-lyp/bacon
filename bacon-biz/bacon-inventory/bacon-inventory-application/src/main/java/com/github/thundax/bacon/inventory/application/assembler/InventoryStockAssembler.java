@@ -13,9 +13,9 @@ public final class InventoryStockAssembler {
                 inventory.getTenantId() == null ? null : inventory.getTenantId().value(),
                 inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
                 WarehouseCodeCodec.toValue(inventory.getWarehouseCode()),
-                inventory.getOnHandQuantity(),
-                inventory.getReservedQuantity(),
-                inventory.getAvailableQuantity(),
+                inventory.getOnHandQuantity() == null ? null : inventory.getOnHandQuantity().value(),
+                inventory.getReservedQuantity() == null ? null : inventory.getReservedQuantity().value(),
+                inventory.availableQuantity().value(),
                 inventory.getStatus().value(),
                 inventory.getUpdatedAt());
     }

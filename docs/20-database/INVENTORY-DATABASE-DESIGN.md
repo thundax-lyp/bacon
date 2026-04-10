@@ -103,7 +103,6 @@
 | `warehouse_code` | `varchar(64)` | N | 仓库业务编码，固定为默认仓 |
 | `on_hand_quantity` | `int` | N | 现存量 |
 | `reserved_quantity` | `int` | N | 预占量 |
-| `available_quantity` | `int` | N | 可售量 |
 | `status` | `varchar(32)` | N | 库存状态，取值见 `status` |
 | `version` | `bigint` | N | 乐观锁版本号 |
 | `created_by` | `bigint` | Y | 创建人用户主键 |
@@ -405,7 +404,7 @@
 - `InventoryReservation.reservation_no` 必须由 `Inventory` 模块内发号组件生成，发号 provider 通过配置显式选择（`tinyid/leaf/snowflake`）
 - 默认发号策略必须为 `strict`：发号失败时库存预占必须直接失败，不得自动降级到本地号段
 - `InventoryReservationItem` 必须保证 `(tenant_id, reservation_no, sku_id)` 唯一
-- `available_quantity` 必须始终等于 `on_hand_quantity - reserved_quantity`
+- `availableQuantity` 为读模型派生值，不单独持久化；读取时按 `on_hand_quantity - reserved_quantity` 计算
 - 任意时刻不得出现负库存
 - `Inventory.version` 用于乐观锁控制，库存写入必须带版本条件更新
 - 正式持久化实现优先使用 `MyBatis-Plus BaseMapper + DO`

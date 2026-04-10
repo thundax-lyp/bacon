@@ -34,9 +34,6 @@ public class InventoryDO {
     @TableField("reserved_quantity")
     private Integer reservedQuantity;
 
-    @TableField("available_quantity")
-    private Integer availableQuantity;
-
     private String status;
 
     @Version

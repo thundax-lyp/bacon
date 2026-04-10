@@ -216,7 +216,7 @@ Inventory 是 Bacon 的统一库存业务域。
 
 ## 5.3 Fixed Fields
 
-- `Inventory` 至少包含 `id`、`tenantId`、`skuId`、`warehouseCode`、`onHandQuantity`、`reservedQuantity`、`availableQuantity`、`status`、`updatedAt`
+- `Inventory` 至少包含 `id`、`tenantId`、`skuId`、`warehouseCode`、`onHandQuantity`、`reservedQuantity`、`status`、`updatedAt`
 - `InventoryReservation` 至少包含 `id`、`tenantId`、`reservationNo`、`orderNo`、`reservationStatus`、`warehouseCode`、`failureReason`、`releaseReason`、`createdAt`、`releasedAt`、`deductedAt`
 - `InventoryReservationItem` 至少包含 `id`、`tenantId`、`reservationNo`、`skuId`、`quantity`
 - `InventoryLedger` 至少包含 `id`、`tenantId`、`orderNo`、`reservationNo`、`skuId`、`warehouseCode`、`ledgerType`、`quantity`、`occurredAt`
@@ -265,6 +265,7 @@ Inventory 是 Bacon 的统一库存业务域。
 - `warehouseCode` 必须使用系统固定默认仓编号
 - `onHandQuantity` 不得小于 `0`
 - `reservedQuantity` 不得小于 `0`
+- `availableQuantity` 是读模型派生值，不作为 `Inventory` 持久化字段
 - `availableQuantity` 不得小于 `0`
 - `availableQuantity` 必须始终等于 `onHandQuantity - reservedQuantity`
 - 预占成功后，必须增加 `reservedQuantity`

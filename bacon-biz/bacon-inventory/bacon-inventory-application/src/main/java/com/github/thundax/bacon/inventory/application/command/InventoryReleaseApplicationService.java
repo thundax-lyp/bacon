@@ -99,7 +99,7 @@ public class InventoryReleaseApplicationService {
                 .findInventory(tenantId, skuId)
                 .orElseThrow(() ->
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
-        inventory.release(quantity, operatedAt);
+        inventory.release(quantity);
         inventoryStockRepository.saveInventory(inventory);
     }
 }

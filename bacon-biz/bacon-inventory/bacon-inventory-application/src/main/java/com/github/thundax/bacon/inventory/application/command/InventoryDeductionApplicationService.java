@@ -92,7 +92,7 @@ public class InventoryDeductionApplicationService {
                 .findInventory(tenantId, skuId)
                 .orElseThrow(() ->
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
-        inventory.deduct(quantity, operatedAt);
+        inventory.deduct(quantity);
         inventoryStockRepository.saveInventory(inventory);
     }
 }

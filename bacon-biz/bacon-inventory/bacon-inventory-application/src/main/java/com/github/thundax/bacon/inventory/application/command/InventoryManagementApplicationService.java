@@ -11,6 +11,7 @@ import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
 import java.util.Objects;
@@ -42,15 +43,14 @@ public class InventoryManagementApplicationService {
         inventoryRepository.findInventory(tenantId, skuId).ifPresent(inventory -> {
             throw new InventoryDomainException(InventoryErrorCode.INVENTORY_ALREADY_EXISTS, String.valueOf(skuId));
         });
-        Instant now = Instant.now();
         Inventory inventory = Inventory.create(
                 InventoryId.of(idGenerator.nextId(INVENTORY_ID_BIZ_TAG)),
                 tenantId,
                 skuId,
                 WarehouseCode.DEFAULT,
-                onHandQuantity);
+                OnHandQuantity.of(onHandQuantity));
         if (!InventoryStatus.ENABLED.equals(status)) {
-            inventory.updateStatus(status, now);
+            inventory.updateStatus(status);
         }
         try {
             Inventory savedInventory = inventoryRepository.saveInventory(inventory);
@@ -69,7 +69,7 @@ public class InventoryManagementApplicationService {
                 .findInventory(tenantId, skuId)
                 .orElseThrow(() ->
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
-        inventory.updateStatus(status, Instant.now());
+        inventory.updateStatus(status);
         Inventory savedInventory = inventoryRepository.saveInventory(inventory);
         return InventoryStockAssembler.fromInventory(savedInventory);
     }

@@ -2,11 +2,15 @@ package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.AvailableQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
 import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -31,15 +35,13 @@ public class Inventory {
     /** 仓库业务编码。 */
     private WarehouseCode warehouseCode;
     /** 在库数量。 */
-    private Integer onHandQuantity;
+    private OnHandQuantity onHandQuantity;
     /** 预占数量。 */
-    private Integer reservedQuantity;
-    /** 可用数量。 */
-    private Integer availableQuantity;
+    private ReservedQuantity reservedQuantity;
     /** 库存状态。 */
     private InventoryStatus status;
     /** 乐观锁版本号。 */
-    private Long version;
+    private Version version;
     /** 最后更新时间。 */
     private Instant updatedAt;
 
@@ -48,13 +50,12 @@ public class Inventory {
             TenantId tenantId,
             SkuId skuId,
             WarehouseCode warehouseCode,
-            Integer onHandQuantity) {
+            OnHandQuantity onHandQuantity) {
         if (Objects.isNull(id) || Objects.isNull(tenantId) || Objects.isNull(skuId) || Objects.isNull(warehouseCode)) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
         }
-        if (Objects.isNull(onHandQuantity) || onHandQuantity < 0) {
-            throw new InventoryDomainException(
-                    InventoryErrorCode.INVALID_ON_HAND_QUANTITY, String.valueOf(onHandQuantity));
+        if (Objects.isNull(onHandQuantity)) {
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_ON_HAND_QUANTITY, "null");
         }
         return new Inventory(
                 id,
@@ -62,10 +63,9 @@ public class Inventory {
                 skuId,
                 warehouseCode,
                 onHandQuantity,
-                0,
-                onHandQuantity,
+                new ReservedQuantity(0),
                 InventoryStatus.ENABLED,
-                0L,
+                new Version(0L),
                 Instant.now());
     }
 
@@ -74,12 +74,25 @@ public class Inventory {
             TenantId tenantId,
             SkuId skuId,
             WarehouseCode warehouseCode,
-            Integer onHandQuantity,
-            Integer reservedQuantity,
-            Integer availableQuantity,
+            OnHandQuantity onHandQuantity,
+            ReservedQuantity reservedQuantity,
             InventoryStatus status,
-            Long version,
+            Version version,
             Instant updatedAt) {
+        if (Objects.isNull(onHandQuantity)) {
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_ON_HAND_QUANTITY, "null");
+        }
+        if (Objects.isNull(reservedQuantity)) {
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_QUANTITY, "null");
+        }
+        if (!onHandQuantity.isEnough(reservedQuantity.value())) {
+            throw new InventoryDomainException(
+                    InventoryErrorCode.RESERVED_QUANTITY_NOT_ENOUGH,
+                    onHandQuantity.value() + " < " + reservedQuantity.value());
+        }
+        if (Objects.isNull(version)) {
+            throw new IllegalArgumentException("version must not be null");
+        }
         return new Inventory(
                 id,
                 tenantId,
@@ -87,78 +100,66 @@ public class Inventory {
                 warehouseCode,
                 onHandQuantity,
                 reservedQuantity,
-                availableQuantity,
                 status,
                 version,
                 updatedAt);
     }
 
-    public void reserve(int quantity, Instant operatedAt) {
-        // 预占只减少可用量，不减少实物在库量；真正扣减要等订单支付成功后单独执行。
-        ensureReservable(quantity);
-        reservedQuantity += quantity;
-        refreshAvailableQuantity(operatedAt);
+    public AvailableQuantity availableQuantity() {
+        return new AvailableQuantity(onHandQuantity.value() - reservedQuantity.value());
     }
 
-    public void ensureReservable(int quantity) {
-        // 预校验单独暴露给应用层，用于在批量预占前尽早失败，而不是部分修改后再回滚。
-        validateQuantity(quantity);
-        ensureEnabled();
-        if (availableQuantity < quantity) {
+    public void increaseStock(int delta) {
+        onHandQuantity = onHandQuantity.increase(delta);
+        refreshUpdatedAt();
+    }
+
+    public void reserve(int quantity) {
+        // 预占只减少可用量，不减少实物在库量；真正扣减要等订单支付成功后单独执行。
+        if (InventoryStatus.DISABLED.equals(status)) {
+            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_DISABLED, String.valueOf(skuId.value()));
+        }
+        if (!availableQuantity().isEnough(quantity)) {
             throw new InventoryDomainException(InventoryErrorCode.INSUFFICIENT_STOCK, String.valueOf(skuId));
         }
+        reservedQuantity = reservedQuantity.increase(quantity);
+        refreshUpdatedAt();
     }
 
-    public void release(int quantity, Instant operatedAt) {
+    public void release(int quantity) {
         // 释放库存只归还已预占量，不能把尚未预占的数量“释放”回去。
-        validateQuantity(quantity);
-        if (reservedQuantity < quantity) {
+        if (!reservedQuantity.isEnough(quantity)) {
             throw new InventoryDomainException(InventoryErrorCode.RESERVED_QUANTITY_NOT_ENOUGH, String.valueOf(skuId));
         }
-        reservedQuantity -= quantity;
-        refreshAvailableQuantity(operatedAt);
+        reservedQuantity = reservedQuantity.decrease(quantity);
+        refreshUpdatedAt();
     }
 
-    public void deduct(int quantity, Instant operatedAt) {
+    public void deduct(int quantity) {
         // 扣减要求同时满足“已预占”和“在库足够”，避免支付成功后把未锁定库存直接扣成负数。
-        validateQuantity(quantity);
-        if (reservedQuantity < quantity) {
+        if (!reservedQuantity.isEnough(quantity)) {
             throw new InventoryDomainException(InventoryErrorCode.RESERVED_QUANTITY_NOT_ENOUGH, String.valueOf(skuId));
         }
-        if (onHandQuantity < quantity) {
+        if (!onHandQuantity.isEnough(quantity)) {
             throw new InventoryDomainException(InventoryErrorCode.ON_HAND_QUANTITY_NOT_ENOUGH, String.valueOf(skuId));
         }
-        reservedQuantity -= quantity;
-        onHandQuantity -= quantity;
-        refreshAvailableQuantity(operatedAt);
+        reservedQuantity = reservedQuantity.decrease(quantity);
+        onHandQuantity = onHandQuantity.decrease(quantity);
+        refreshUpdatedAt();
     }
 
-    public void updateStatus(InventoryStatus targetStatus, Instant operatedAt) {
+    public void updateStatus(InventoryStatus targetStatus) {
         // 启停库存是运维级操作，不改数量，只更新状态和时间戳。
         this.status = targetStatus;
-        this.updatedAt = operatedAt;
+        refreshUpdatedAt();
     }
 
-    public void markPersisted(Long persistedVersion) {
+    public void markPersisted(Version persistedVersion) {
         // 乐观锁版本由持久化层写回，领域对象本身不自增，避免和数据库版本漂移。
         this.version = persistedVersion;
     }
 
-    private void ensureEnabled() {
-        if (InventoryStatus.DISABLED.equals(status)) {
-            throw new InventoryDomainException(InventoryErrorCode.INVENTORY_DISABLED, String.valueOf(skuId.value()));
-        }
-    }
-
-    private void validateQuantity(int quantity) {
-        if (quantity <= 0) {
-            throw new InventoryDomainException(InventoryErrorCode.INVALID_QUANTITY, String.valueOf(skuId.value()));
-        }
-    }
-
-    private void refreshAvailableQuantity(Instant operatedAt) {
-        // availableQuantity 始终由 onHand - reserved 推导，禁止在其他地方直接赋值。
-        availableQuantity = onHandQuantity - reservedQuantity;
-        updatedAt = operatedAt;
+    private void refreshUpdatedAt() {
+        updatedAt = Instant.now();
     }
 }

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
@@ -14,6 +15,8 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -69,11 +72,10 @@ class InventoryQueryApplicationServiceTest {
                             TenantId.of(1001L),
                             SkuId.of(101L),
                             WarehouseCode.of("DEFAULT"),
-                            100,
-                            0,
-                            100,
+                            new OnHandQuantity(100),
+                            new ReservedQuantity(0),
                             InventoryStatus.ENABLED,
-                            0L,
+                            new Version(0L),
                             Instant.now()));
             inventories.put(
                     key(1001L, 102L),
@@ -82,11 +84,10 @@ class InventoryQueryApplicationServiceTest {
                             TenantId.of(1001L),
                             SkuId.of(102L),
                             WarehouseCode.of("DEFAULT"),
-                            80,
-                            0,
-                            80,
+                            new OnHandQuantity(80),
+                            new ReservedQuantity(0),
                             InventoryStatus.DISABLED,
-                            0L,
+                            new Version(0L),
                             Instant.now()));
             inventories.put(
                     key(1001L, 103L),
@@ -95,11 +96,10 @@ class InventoryQueryApplicationServiceTest {
                             TenantId.of(1001L),
                             SkuId.of(103L),
                             WarehouseCode.of("DEFAULT"),
-                            60,
-                            0,
-                            60,
+                            new OnHandQuantity(60),
+                            new ReservedQuantity(0),
                             InventoryStatus.ENABLED,
-                            0L,
+                            new Version(0L),
                             Instant.now()));
             inventories.put(
                     key(1001L, 104L),
@@ -108,11 +108,10 @@ class InventoryQueryApplicationServiceTest {
                             TenantId.of(1001L),
                             SkuId.of(104L),
                             WarehouseCode.of("DEFAULT"),
-                            40,
-                            0,
-                            40,
+                            new OnHandQuantity(40),
+                            new ReservedQuantity(0),
                             InventoryStatus.ENABLED,
-                            0L,
+                            new Version(0L),
                             Instant.now()));
         }
 
@@ -162,7 +161,7 @@ class InventoryQueryApplicationServiceTest {
 
         @Override
         public Inventory saveInventory(Inventory inventory) {
-            Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
+            Version version = inventory.getVersion() == null ? new Version(0L) : inventory.getVersion().next();
             inventory.markPersisted(version);
             inventories.put(
                     key(

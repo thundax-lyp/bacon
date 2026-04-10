@@ -6,7 +6,10 @@ import org.springframework.http.HttpStatus;
 public enum InventoryErrorCode implements ErrorCode {
     INVALID_INVENTORY_KEY("INV-400001", "Invalid inventory key", HttpStatus.BAD_REQUEST),
     INVALID_ON_HAND_QUANTITY("INV-400002", "Invalid on hand quantity", HttpStatus.BAD_REQUEST),
+    INVALID_REQUIRED_QUANTITY("INV-400008", "Invalid required quantity", HttpStatus.BAD_REQUEST),
+    INVALID_DELTA_QUANTITY("INV-400007", "Invalid delta quantity", HttpStatus.BAD_REQUEST),
     INSUFFICIENT_STOCK("INV-409001", "Insufficient stock", HttpStatus.CONFLICT),
+    INSUFFICIENT_AVAILABLE_STOCK("INV-409008", "Insufficient available stock", HttpStatus.CONFLICT),
     RESERVED_QUANTITY_NOT_ENOUGH("INV-409002", "Reserved quantity not enough", HttpStatus.CONFLICT),
     ON_HAND_QUANTITY_NOT_ENOUGH("INV-409003", "On hand quantity not enough", HttpStatus.CONFLICT),
     INVENTORY_DISABLED("INV-409004", "Inventory is disabled", HttpStatus.CONFLICT),

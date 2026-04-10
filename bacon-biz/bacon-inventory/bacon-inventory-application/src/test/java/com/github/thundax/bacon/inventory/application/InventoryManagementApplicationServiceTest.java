@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
@@ -14,6 +15,8 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryLogRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -75,11 +78,10 @@ class InventoryManagementApplicationServiceTest {
                             TenantId.of(1001L),
                             SkuId.of(101L),
                             WarehouseCode.of("DEFAULT"),
-                            100,
-                            0,
-                            100,
+                            new OnHandQuantity(100),
+                            new ReservedQuantity(0),
                             InventoryStatus.ENABLED,
-                            0L,
+                            new Version(0L),
                             Instant.now()));
         }
 
@@ -126,7 +128,7 @@ class InventoryManagementApplicationServiceTest {
 
         @Override
         public Inventory saveInventory(Inventory inventory) {
-            Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
+            Version version = inventory.getVersion() == null ? new Version(0L) : inventory.getVersion().next();
             inventory.markPersisted(version);
             inventories.put(
                     key(

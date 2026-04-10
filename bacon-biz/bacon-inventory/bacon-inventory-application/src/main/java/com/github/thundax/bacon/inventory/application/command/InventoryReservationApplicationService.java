@@ -18,6 +18,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -195,7 +196,14 @@ public class InventoryReservationApplicationService {
                     throw new InventoryDomainException(
                             InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(item.getSkuId()));
                 }
-                inventory.ensureReservable(item.getQuantity());
+                if (InventoryStatus.DISABLED.equals(inventory.getStatus())) {
+                    throw new InventoryDomainException(
+                            InventoryErrorCode.INVENTORY_DISABLED, String.valueOf(item.getSkuId()));
+                }
+                if (!inventory.availableQuantity().isEnough(item.getQuantity())) {
+                    throw new InventoryDomainException(
+                            InventoryErrorCode.INSUFFICIENT_STOCK, String.valueOf(item.getSkuId()));
+                }
             } catch (InventoryDomainException ex) {
                 return ReservationValidationResult.failed(ex.getCode());
             }
@@ -225,7 +233,7 @@ public class InventoryReservationApplicationService {
                             String.valueOf(SkuIdMapper.toValue(item.getSkuId()))));
             inventoryBySku.put(skuId, inventory);
         }
-        inventory.reserve(item.getQuantity(), operatedAt);
+        inventory.reserve(item.getQuantity());
         Inventory persistedInventory = inventoryStockRepository.saveInventory(inventory);
         inventoryBySku.put(skuId, persistedInventory);
     }

@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -23,7 +24,9 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -115,12 +118,11 @@ public class InMemoryInventoryRepositorySupport {
                     inventory.getWarehouseCode(),
                     inventory.getOnHandQuantity(),
                     inventory.getReservedQuantity(),
-                    inventory.getAvailableQuantity(),
                     inventory.getStatus(),
                     inventory.getVersion(),
                     inventory.getUpdatedAt());
         }
-        Long version = inventory.getVersion() == null ? 0L : inventory.getVersion() + 1L;
+        Version version = inventory.getVersion() == null ? new Version(0L) : inventory.getVersion().next();
         inventory.markPersisted(version);
         inventories.put(
                 key(

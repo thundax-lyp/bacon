@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
@@ -30,7 +31,9 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
@@ -101,9 +104,9 @@ class InventoryWorkflowIntegrationTest {
 
             Inventory inventory =
                     repository.findInventory(TenantId.of(1001L), SkuId.of(101L)).orElseThrow();
-            assertEquals(80, inventory.getReservedQuantity());
-            assertEquals(20, inventory.getAvailableQuantity());
-            assertTrue(inventory.getVersion() >= 2);
+            assertEquals(80, inventory.getReservedQuantity().value());
+            assertEquals(20, inventory.availableQuantity().value());
+            assertTrue(inventory.getVersion().value() >= 2);
 
             assertNotNull(repository
                     .findReservation(TenantId.of(1001L), OrderNo.of("ORDER-C1"))
@@ -237,11 +240,10 @@ class InventoryWorkflowIntegrationTest {
                             TenantId.of(1001L),
                             SkuId.of(101L),
                             WarehouseCode.of("DEFAULT"),
-                            100,
-                            0,
-                            100,
+                            new OnHandQuantity(100),
+                            new ReservedQuantity(0),
                             InventoryStatus.ENABLED,
-                            0L,
+                            new Version(0L),
                             Instant.parse("2026-03-26T09:59:00Z")));
         }
 
@@ -309,7 +311,7 @@ class InventoryWorkflowIntegrationTest {
                                         : inventory.getSkuId().value()));
             }
             Inventory persisted = copy(inventory);
-            persisted.markPersisted(current.getVersion() + 1);
+            persisted.markPersisted(current.getVersion().next());
             inventories.put(
                     key(
                             persisted.getTenantId().value(),
@@ -550,7 +552,6 @@ class InventoryWorkflowIntegrationTest {
                     source.getWarehouseCode(),
                     source.getOnHandQuantity(),
                     source.getReservedQuantity(),
-                    source.getAvailableQuantity(),
                     source.getStatus(),
                     source.getVersion(),
                     source.getUpdatedAt());

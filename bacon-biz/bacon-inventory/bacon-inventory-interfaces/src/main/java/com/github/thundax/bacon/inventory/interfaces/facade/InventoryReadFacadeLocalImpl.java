@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.facade;
 
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
@@ -24,17 +23,14 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
     }
 
     @Override
-    public InventoryStockDTO getAvailableStock(Long tenantId, Long skuId) {
-        return inventoryQueryService.getAvailableStock(TenantId.of(tenantId), SkuIdMapper.toDomain(skuId));
+    public InventoryStockDTO getAvailableStock(Long skuId) {
+        return inventoryQueryService.getAvailableStock(SkuIdMapper.toDomain(skuId));
     }
 
     @Override
-    public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
+    public List<InventoryStockDTO> batchGetAvailableStock(Set<Long> skuIds) {
         return inventoryQueryService.batchGetAvailableStock(
-                TenantId.of(tenantId),
-                skuIds == null
-                        ? Set.of()
-                        : skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
+                skuIds == null ? Set.of() : skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
     }
 
     @Override

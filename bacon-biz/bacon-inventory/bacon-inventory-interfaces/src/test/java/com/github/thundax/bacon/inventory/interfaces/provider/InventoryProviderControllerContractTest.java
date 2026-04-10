@@ -7,9 +7,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
+import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
@@ -32,10 +34,11 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/providers/inventory/stocks")
-                        .param("tenantId", "1001")
                         .param("skuIds", "101")
                         .param("skuIds", "102")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
@@ -51,7 +54,9 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.clear();
 
         mockMvc.perform(get("/providers/inventory/stocks")
                         .param("skuIds", "101")
@@ -65,12 +70,13 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(9999L, 2001L));
 
         ServletException exception = assertThrows(
                 ServletException.class,
                 () -> mockMvc.perform(get("/providers/inventory/stocks")
-                        .param("tenantId", "9999")
                         .param("skuIds", "101")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
         assertEquals("Invalid tenant: 9999", exception.getCause().getMessage());
@@ -82,10 +88,11 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/providers/inventory/stocks")
-                        .param("tenantId", "1001")
                         .param("skuIds", "101"))
                 .andExpect(status().isUnauthorized());
     }
@@ -96,10 +103,11 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/providers/inventory/stocks")
-                        .param("tenantId", "1001")
                         .param("skuIds", "101")
                         .header(PROVIDER_TOKEN_HEADER, "wrong-token"))
                 .andExpect(status().isForbidden());
@@ -121,12 +129,22 @@ class InventoryProviderControllerContractTest {
         }
 
         @Override
-        public List<InventoryStockDTO> batchGetAvailableStock(TenantId tenantId, Set<SkuId> skuIds) {
-            Long tenantIdValue = tenantId == null ? null : tenantId.value();
+        public List<InventoryStockDTO> batchGetAvailableStock(Set<SkuId> skuIds) {
+            Long tenantIdValue = BaconContextHolder.currentTenantId();
             if (Long.valueOf(9999L).equals(tenantIdValue)) {
                 throw new IllegalArgumentException("Invalid tenant: " + tenantIdValue);
             }
             return List.of(new InventoryStockDTO(
+                    tenantIdValue, 101L, "DEFAULT", 100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
+        }
+
+        @Override
+        public InventoryStockDTO getAvailableStock(SkuId skuId) {
+            Long tenantIdValue = BaconContextHolder.currentTenantId();
+            if (Long.valueOf(9999L).equals(tenantIdValue)) {
+                throw new IllegalArgumentException("Invalid tenant: " + tenantIdValue);
+            }
+            return new InventoryStockDTO(
                     tenantIdValue, 101L, "DEFAULT", 100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
         }
     }

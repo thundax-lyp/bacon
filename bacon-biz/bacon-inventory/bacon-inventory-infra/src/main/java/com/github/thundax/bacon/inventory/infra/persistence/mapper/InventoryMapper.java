@@ -15,7 +15,7 @@ public interface InventoryMapper extends BaseMapper<InventoryDO> {
             select id, tenant_id, sku_id, warehouse_code, on_hand_quantity, reserved_quantity,
                    status, version, created_by, created_at, updated_by, updated_at
             from bacon_inventory_inventory
-            where tenant_id = #{tenantId}
+            where 1 = 1
             <if test="skuId != null">
                 and sku_id = #{skuId}
             </if>
@@ -27,7 +27,6 @@ public interface InventoryMapper extends BaseMapper<InventoryDO> {
             </script>
             """)
     java.util.List<InventoryDO> selectPageByCondition(
-            @Param("tenantId") Long tenantId,
             @Param("skuId") Long skuId,
             @Param("status") String status,
             @Param("offset") long offset,
@@ -38,7 +37,7 @@ public interface InventoryMapper extends BaseMapper<InventoryDO> {
             <script>
             select count(1)
             from bacon_inventory_inventory
-            where tenant_id = #{tenantId}
+            where 1 = 1
             <if test="skuId != null">
                 and sku_id = #{skuId}
             </if>
@@ -47,5 +46,5 @@ public interface InventoryMapper extends BaseMapper<InventoryDO> {
             </if>
             </script>
             """)
-    long countByCondition(@Param("tenantId") Long tenantId, @Param("skuId") Long skuId, @Param("status") String status);
+    long countByCondition(@Param("skuId") Long skuId, @Param("status") String status);
 }

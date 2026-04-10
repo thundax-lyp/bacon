@@ -127,32 +127,31 @@ class InventoryControllerContractTest {
                 Instant.parse("2026-03-26T10:00:00Z"));
 
         @Override
-        public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
+        public Optional<Inventory> findInventory(SkuId skuId) {
             captureContext();
             return Optional.of(stock);
         }
 
         @Override
-        public List<Inventory> findInventories(TenantId tenantId) {
+        public List<Inventory> findInventories() {
             captureContext();
             return List.of(stock);
         }
 
         @Override
-        public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
+        public List<Inventory> findInventories(Set<SkuId> skuIds) {
             captureContext();
             return List.of(stock);
         }
 
         @Override
-        public List<Inventory> pageInventories(
-                TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
             captureContext();
             return List.of(stock);
         }
 
         @Override
-        public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
+        public long countInventories(SkuId skuId, InventoryStatus status) {
             captureContext();
             return 1;
         }

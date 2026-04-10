@@ -59,7 +59,7 @@ class InventoryManagementApplicationServiceTest {
         assertEquals(
                 InventoryStatus.DISABLED.value(),
                 repository
-                        .findInventory(TenantId.of(1001L), SkuId.of(101L))
+                        .findInventory(SkuId.of(101L))
                         .orElseThrow()
                         .getStatus()
                         .value());
@@ -86,31 +86,29 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
-            return Optional.ofNullable(inventories.get(
-                    key(tenantId == null ? null : tenantId.value(), skuId == null ? null : skuId.value())));
+        public Optional<Inventory> findInventory(SkuId skuId) {
+            return Optional.ofNullable(inventories.values().stream()
+                    .filter(inventory -> java.util.Objects.equals(inventory.getSkuId(), skuId))
+                    .findFirst()
+                    .orElse(null));
         }
 
         @Override
-        public List<Inventory> findInventories(TenantId tenantId) {
-            return inventories.values().stream()
-                    .filter(inventory -> java.util.Objects.equals(inventory.getTenantId(), tenantId))
-                    .toList();
+        public List<Inventory> findInventories() {
+            return inventories.values().stream().toList();
         }
 
         @Override
-        public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
+        public List<Inventory> findInventories(Set<SkuId> skuIds) {
             return skuIds.stream()
-                    .map(skuId -> inventories.get(
-                            key(tenantId == null ? null : tenantId.value(), skuId == null ? null : skuId.value())))
-                    .filter(java.util.Objects::nonNull)
+                    .map(this::findInventory)
+                    .flatMap(Optional::stream)
                     .toList();
         }
 
         @Override
-        public List<Inventory> pageInventories(
-                TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
-            return findInventories(tenantId).stream()
+        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+            return findInventories().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                     .skip((long) (pageNo - 1) * pageSize)
@@ -119,8 +117,8 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
-            return findInventories(tenantId).stream()
+        public long countInventories(SkuId skuId, InventoryStatus status) {
+            return findInventories().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                     .count();

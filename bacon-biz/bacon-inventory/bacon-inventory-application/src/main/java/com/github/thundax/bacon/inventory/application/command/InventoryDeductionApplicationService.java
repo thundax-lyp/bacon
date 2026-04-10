@@ -89,7 +89,7 @@ public class InventoryDeductionApplicationService {
 
     private void deductStockOnce(TenantId tenantId, SkuId skuId, int quantity, Instant operatedAt) {
         Inventory inventory = inventoryStockRepository
-                .findInventory(tenantId, skuId)
+                .findInventory(skuId)
                 .orElseThrow(() ->
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
         inventory.deduct(quantity);

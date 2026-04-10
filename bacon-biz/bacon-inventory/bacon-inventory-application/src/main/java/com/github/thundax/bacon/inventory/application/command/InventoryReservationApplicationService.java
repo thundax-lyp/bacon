@@ -178,8 +178,7 @@ public class InventoryReservationApplicationService {
                 .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toSet());
         Map<Long, Inventory> inventoryBySku = inventoryStockRepository
-                .findInventories(
-                        tenantId, skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()))
+                .findInventories(skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()))
                 .stream()
                 .collect(java.util.stream.Collectors.toMap(
                         inventory -> inventory.getSkuId() == null
@@ -227,7 +226,7 @@ public class InventoryReservationApplicationService {
         Inventory inventory = inventoryBySku.get(skuId);
         if (inventory == null) {
             inventory = inventoryStockRepository
-                    .findInventory(tenantId, item.getSkuId())
+                    .findInventory(item.getSkuId())
                     .orElseThrow(() -> new InventoryDomainException(
                             InventoryErrorCode.INVENTORY_NOT_FOUND,
                             String.valueOf(SkuIdMapper.toValue(item.getSkuId()))));

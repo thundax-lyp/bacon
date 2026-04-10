@@ -64,8 +64,7 @@ public class InventoryController {
     @HasPermission("inventory:stock:view")
     @GetMapping("/{skuId}")
     public InventoryStockResponse getInventory(@CurrentTenant Long tenantId, @PathVariable @Positive Long skuId) {
-        return InventoryStockResponse.from(
-                inventoryQueryService.getAvailableStock(TenantId.of(tenantId), SkuIdMapper.toDomain(skuId)));
+        return InventoryStockResponse.from(inventoryQueryService.getAvailableStock(SkuIdMapper.toDomain(skuId)));
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
@@ -75,7 +74,6 @@ public class InventoryController {
             @CurrentTenant Long tenantId, @Valid @ModelAttribute InventoryBatchQueryRequest request) {
         return inventoryQueryService
                 .batchGetAvailableStock(
-                        TenantId.of(tenantId),
                         request.getSkuIds() == null
                                 ? java.util.Set.of()
                                 : request.getSkuIds().stream()
@@ -93,7 +91,6 @@ public class InventoryController {
             @CurrentTenant Long tenantId, @Valid @ModelAttribute InventoryPageRequest request) {
         InventoryStatus status = parseInventoryStatus(request.getStatus());
         return InventoryPageResponse.from(inventoryQueryService.pageInventories(
-                TenantId.of(tenantId),
                 SkuIdMapper.toDomain(request.getSkuId()),
                 status,
                 request.getPageNo(),

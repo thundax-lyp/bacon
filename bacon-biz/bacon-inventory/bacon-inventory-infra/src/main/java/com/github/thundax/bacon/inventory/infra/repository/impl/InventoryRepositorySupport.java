@@ -108,24 +108,22 @@ public class InventoryRepositorySupport {
         log.info("Using MyBatis-Plus inventory repository");
     }
 
-    public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
+    public Optional<Inventory> findInventory(SkuId skuId) {
         return Optional.ofNullable(inventoryMapper.selectOne(Wrappers.<InventoryDO>lambdaQuery()
-                        .eq(InventoryDO::getTenantId, tenantId == null ? null : tenantId.value())
                         .eq(InventoryDO::getSkuId, skuId == null ? null : skuId.value())))
                 .map(InventoryPersistenceAssembler::toDomain);
     }
 
-    public List<Inventory> findInventories(TenantId tenantId) {
+    public List<Inventory> findInventories() {
         return inventoryMapper
                 .selectList(Wrappers.<InventoryDO>lambdaQuery()
-                        .eq(InventoryDO::getTenantId, tenantId == null ? null : tenantId.value())
                         .orderByAsc(InventoryDO::getSkuId))
                 .stream()
                 .map(InventoryPersistenceAssembler::toDomain)
                 .toList();
     }
 
-    public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
+    public List<Inventory> findInventories(Set<SkuId> skuIds) {
         if (skuIds == null || skuIds.isEmpty()) {
             return List.of();
         }
@@ -138,7 +136,6 @@ public class InventoryRepositorySupport {
         }
         return inventoryMapper
                 .selectList(Wrappers.<InventoryDO>lambdaQuery()
-                        .eq(InventoryDO::getTenantId, tenantId == null ? null : tenantId.value())
                         .in(InventoryDO::getSkuId, skuIdValues)
                         .orderByAsc(InventoryDO::getSkuId))
                 .stream()
@@ -146,12 +143,10 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public List<Inventory> pageInventories(
-            TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+    public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
         long offset = (long) (pageNo - 1) * pageSize;
         return inventoryMapper
                 .selectPageByCondition(
-                        tenantId == null ? null : tenantId.value(),
                         skuId == null ? null : skuId.value(),
                         status == null ? null : status.value(),
                         offset,
@@ -161,11 +156,9 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
+    public long countInventories(SkuId skuId, InventoryStatus status) {
         return inventoryMapper.countByCondition(
-                tenantId == null ? null : tenantId.value(),
-                skuId == null ? null : skuId.value(),
-                status == null ? null : status.value());
+                skuId == null ? null : skuId.value(), status == null ? null : status.value());
     }
 
     public Inventory saveInventory(Inventory inventory) {

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
@@ -18,6 +19,7 @@ import com.github.thundax.bacon.common.mybatis.handler.StoredObjectIdTypeHandler
 import com.github.thundax.bacon.common.mybatis.handler.StringArrayTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.TenantIdTypeHandler;
 import com.github.thundax.bacon.common.mybatis.handler.UserIdTypeHandler;
+import com.github.thundax.bacon.common.mybatis.tenant.AnnotationDrivenTenantLineHandler;
 import com.github.thundax.bacon.common.security.context.CurrentUserProvider;
 import java.time.Clock;
 import org.apache.ibatis.type.TypeHandlerRegistry;
@@ -33,6 +35,7 @@ public class MybatisPlusAutoConfiguration {
     @ConditionalOnMissingBean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(new AnnotationDrivenTenantLineHandler()));
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
         return interceptor;
     }

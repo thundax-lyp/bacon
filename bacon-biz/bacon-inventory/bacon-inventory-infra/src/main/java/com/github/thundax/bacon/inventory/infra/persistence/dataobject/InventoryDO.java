@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
+import com.github.thundax.bacon.common.mybatis.annotation.EnableTenantIsolation;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_inventory_inventory")
+@EnableTenantIsolation
 public class InventoryDO {
 
     @TableId(type = IdType.AUTO)

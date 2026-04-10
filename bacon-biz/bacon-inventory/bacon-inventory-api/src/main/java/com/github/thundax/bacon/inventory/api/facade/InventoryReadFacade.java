@@ -7,9 +7,9 @@ import java.util.Set;
 
 public interface InventoryReadFacade {
 
-    InventoryStockDTO getAvailableStock(Long tenantId, Long skuId);
+    InventoryStockDTO getAvailableStock(Long skuId);
 
-    List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds);
+    List<InventoryStockDTO> batchGetAvailableStock(Set<Long> skuIds);
 
     InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo);
 }

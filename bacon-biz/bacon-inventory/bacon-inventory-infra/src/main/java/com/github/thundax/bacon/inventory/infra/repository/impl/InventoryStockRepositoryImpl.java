@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
@@ -22,29 +21,28 @@ public class InventoryStockRepositoryImpl implements InventoryStockRepository {
     }
 
     @Override
-    public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
-        return support.findInventory(tenantId, skuId);
+    public Optional<Inventory> findInventory(SkuId skuId) {
+        return support.findInventory(skuId);
     }
 
     @Override
-    public List<Inventory> findInventories(TenantId tenantId) {
-        return support.findInventories(tenantId);
+    public List<Inventory> findInventories() {
+        return support.findInventories();
     }
 
     @Override
-    public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
-        return support.findInventories(tenantId, skuIds);
+    public List<Inventory> findInventories(Set<SkuId> skuIds) {
+        return support.findInventories(skuIds);
     }
 
     @Override
-    public List<Inventory> pageInventories(
-            TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
-        return support.pageInventories(tenantId, skuId, status, pageNo, pageSize);
+    public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+        return support.pageInventories(skuId, status, pageNo, pageSize);
     }
 
     @Override
-    public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
-        return support.countInventories(tenantId, skuId, status);
+    public long countInventories(SkuId skuId, InventoryStatus status) {
+        return support.countInventories(skuId, status);
     }
 
     @Override

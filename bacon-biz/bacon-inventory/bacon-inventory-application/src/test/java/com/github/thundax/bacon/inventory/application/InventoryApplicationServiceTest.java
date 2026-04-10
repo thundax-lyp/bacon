@@ -67,7 +67,7 @@ class InventoryApplicationServiceTest {
                 TenantId.of(1001L), OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
         InventoryReservationResultDTO second = service.reserveStock(
                 TenantId.of(1001L), OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
-        InventoryStockDTO stock = queryService.getAvailableStock(TenantId.of(1001L), SkuId.of(101L));
+        InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
         assertEquals(InventoryReservationStatus.RESERVED.value(), first.getReservationStatus());
         assertEquals("RESERVED", first.getInventoryStatus());
@@ -102,7 +102,7 @@ class InventoryApplicationServiceTest {
 
         InventoryReservationResultDTO result = service.reserveStock(
                 TenantId.of(1001L), OrderNo.of("ORDER-2"), List.of(new InventoryReservationItemDTO(101L, 1000)));
-        InventoryStockDTO stock = queryService.getAvailableStock(TenantId.of(1001L), SkuId.of(101L));
+        InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
         assertEquals(InventoryReservationStatus.FAILED.value(), result.getReservationStatus());
         assertEquals("FAILED", result.getInventoryStatus());
@@ -136,7 +136,7 @@ class InventoryApplicationServiceTest {
                 TenantId.of(1001L), OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
         InventoryReservationResultDTO secondRelease = service.releaseReservedStock(
                 TenantId.of(1001L), OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
-        InventoryStockDTO stock = queryService.getAvailableStock(TenantId.of(1001L), SkuId.of(101L));
+        InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
         assertEquals(InventoryReservationStatus.RELEASED.value(), firstRelease.getReservationStatus());
         assertEquals(InventoryReservationStatus.RELEASED.value(), secondRelease.getReservationStatus());
@@ -174,7 +174,7 @@ class InventoryApplicationServiceTest {
                 service.deductReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-4"));
         InventoryReservationResultDTO secondDeduct =
                 service.deductReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-4"));
-        InventoryStockDTO stock = queryService.getAvailableStock(TenantId.of(1001L), SkuId.of(101L));
+        InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
         assertEquals(InventoryReservationStatus.DEDUCTED.value(), firstDeduct.getReservationStatus());
         assertEquals(InventoryReservationStatus.DEDUCTED.value(), secondDeduct.getReservationStatus());
@@ -244,33 +244,33 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
+        public Optional<Inventory> findInventory(SkuId skuId) {
             singleFindInventoryCallCount++;
-            return Optional.ofNullable(inventories.get(
-                    key(tenantId == null ? null : tenantId.value(), skuId == null ? null : skuId.value())));
+            return Optional.ofNullable(inventories.values().stream()
+                    .filter(inventory -> java.util.Objects.equals(inventory.getSkuId(), skuId))
+                    .findFirst()
+                    .orElse(null));
         }
 
         @Override
-        public List<Inventory> findInventories(TenantId tenantId) {
+        public List<Inventory> findInventories() {
             return inventories.values().stream()
-                    .filter(inventory -> java.util.Objects.equals(inventory.getTenantId(), tenantId))
                     .toList();
         }
 
         @Override
-        public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
+        public List<Inventory> findInventories(Set<SkuId> skuIds) {
             batchFindInventoriesCallCount++;
             return skuIds.stream()
-                    .map(skuId -> inventories.get(
-                            key(tenantId == null ? null : tenantId.value(), skuId == null ? null : skuId.value())))
+                    .map(this::findInventory)
+                    .flatMap(Optional::stream)
                     .filter(java.util.Objects::nonNull)
                     .toList();
         }
 
         @Override
-        public List<Inventory> pageInventories(
-                TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
-            return findInventories(tenantId).stream()
+        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+            return findInventories().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                     .skip((long) (pageNo - 1) * pageSize)
@@ -279,8 +279,8 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
-            return findInventories(tenantId).stream()
+        public long countInventories(SkuId skuId, InventoryStatus status) {
+            return findInventories().stream()
                     .filter(inventory -> skuId == null || java.util.Objects.equals(inventory.getSkuId(), skuId))
                     .filter(inventory -> status == null || status.equals(inventory.getStatus()))
                     .count();

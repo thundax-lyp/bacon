@@ -108,8 +108,7 @@ class InventoryWorkflowIntegrationTest {
             assertEquals(InventoryReservationStatus.RESERVED.value(), firstResult.getReservationStatus());
             assertEquals(InventoryReservationStatus.RESERVED.value(), secondResult.getReservationStatus());
 
-            Inventory inventory =
-                    repository.findInventory(TenantId.of(1001L), SkuId.of(101L)).orElseThrow();
+            Inventory inventory = repository.findInventory(SkuId.of(101L)).orElseThrow();
             assertEquals(80, inventory.getReservedQuantity().value());
             assertEquals(20, inventory.availableQuantity().value());
             assertTrue(inventory.getVersion().value() >= 2);
@@ -254,34 +253,32 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public Optional<Inventory> findInventory(TenantId tenantId, SkuId skuId) {
-            return Optional.ofNullable(inventories.get(
-                            key(tenantId == null ? null : tenantId.value(), skuId == null ? null : skuId.value())))
+        public Optional<Inventory> findInventory(SkuId skuId) {
+            return Optional.ofNullable(inventories.values().stream()
+                            .filter(item -> java.util.Objects.equals(item.getSkuId(), skuId))
+                            .findFirst()
+                            .orElse(null))
                     .map(this::copy);
         }
 
         @Override
-        public List<Inventory> findInventories(TenantId tenantId) {
+        public List<Inventory> findInventories() {
             return inventories.values().stream()
-                    .filter(item -> java.util.Objects.equals(item.getTenantId(), tenantId))
                     .map(this::copy)
                     .toList();
         }
 
         @Override
-        public List<Inventory> findInventories(TenantId tenantId, Set<SkuId> skuIds) {
+        public List<Inventory> findInventories(Set<SkuId> skuIds) {
             return skuIds.stream()
-                    .map(skuId -> inventories.get(
-                            key(tenantId == null ? null : tenantId.value(), skuId == null ? null : skuId.value())))
-                    .filter(java.util.Objects::nonNull)
-                    .map(this::copy)
+                    .map(this::findInventory)
+                    .flatMap(Optional::stream)
                     .toList();
         }
 
         @Override
-        public List<Inventory> pageInventories(
-                TenantId tenantId, SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
-            return findInventories(tenantId).stream()
+        public List<Inventory> pageInventories(SkuId skuId, InventoryStatus status, int pageNo, int pageSize) {
+            return findInventories().stream()
                     .filter(item -> skuId == null || java.util.Objects.equals(item.getSkuId(), skuId))
                     .filter(item -> status == null || status.equals(item.getStatus()))
                     .skip((long) (pageNo - 1) * pageSize)
@@ -290,9 +287,8 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public long countInventories(TenantId tenantId, SkuId skuId, InventoryStatus status) {
-            return pageInventories(tenantId, skuId, status, 1, Integer.MAX_VALUE)
-                    .size();
+        public long countInventories(SkuId skuId, InventoryStatus status) {
+            return pageInventories(skuId, status, 1, Integer.MAX_VALUE).size();
         }
 
         @Override

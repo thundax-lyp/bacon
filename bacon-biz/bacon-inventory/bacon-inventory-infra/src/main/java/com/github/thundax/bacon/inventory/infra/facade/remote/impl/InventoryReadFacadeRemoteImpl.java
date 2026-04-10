@@ -31,11 +31,11 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
     @Retry(name = "inventoryRemote", fallbackMethod = "getAvailableStockFallback")
     @CircuitBreaker(name = "inventoryRemote", fallbackMethod = "getAvailableStockFallback")
     @Bulkhead(name = "inventoryRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getAvailableStockFallback")
-    public InventoryStockDTO getAvailableStock(Long tenantId, Long skuId) {
+    public InventoryStockDTO getAvailableStock(Long skuId) {
         // 查询链路沿用和命令链路一致的 resilience/fallback 规则，避免读接口出现另一套异常语义。
         return restClient
                 .get()
-                .uri("/providers/inventory/stocks/{skuId}?tenantId={tenantId}", skuId, tenantId)
+                .uri("/providers/inventory/stocks/{skuId}", skuId)
                 .retrieve()
                 .body(InventoryStockDTO.class);
     }
@@ -47,12 +47,11 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
             name = "inventoryRemote",
             type = Bulkhead.Type.SEMAPHORE,
             fallbackMethod = "batchGetAvailableStockFallback")
-    public List<InventoryStockDTO> batchGetAvailableStock(Long tenantId, Set<Long> skuIds) {
+    public List<InventoryStockDTO> batchGetAvailableStock(Set<Long> skuIds) {
         return restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/providers/inventory/stocks")
-                        .queryParam("tenantId", tenantId)
                         .queryParam("skuIds", skuIds.toArray())
                         .build())
                 .retrieve()
@@ -75,13 +74,12 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
     }
 
     @SuppressWarnings("unused")
-    private InventoryStockDTO getAvailableStockFallback(Long tenantId, Long skuId, Throwable throwable) {
+    private InventoryStockDTO getAvailableStockFallback(Long skuId, Throwable throwable) {
         throw InventoryRemoteExceptionTranslator.translate("getAvailableStock", throwable);
     }
 
     @SuppressWarnings("unused")
-    private List<InventoryStockDTO> batchGetAvailableStockFallback(
-            Long tenantId, Set<Long> skuIds, Throwable throwable) {
+    private List<InventoryStockDTO> batchGetAvailableStockFallback(Set<Long> skuIds, Throwable throwable) {
         throw InventoryRemoteExceptionTranslator.translate("batchGetAvailableStock", throwable);
     }
 

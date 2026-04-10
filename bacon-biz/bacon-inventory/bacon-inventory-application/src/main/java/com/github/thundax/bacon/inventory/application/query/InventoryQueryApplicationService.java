@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
@@ -50,30 +49,29 @@ public class InventoryQueryApplicationService {
         this.inventoryAuditDeadLetterRepository = inventoryAuditDeadLetterRepository;
     }
 
-    public InventoryStockDTO getAvailableStock(TenantId tenantId, SkuId skuId) {
+    public InventoryStockDTO getAvailableStock(SkuId skuId) {
         return InventoryStockAssembler.fromInventory(inventoryStockRepository
-                .findInventory(tenantId, skuId)
+                .findInventory(skuId)
                 .orElseThrow(() -> new InventoryDomainException(
                         InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(SkuIdMapper.toValue(skuId)))));
     }
 
-    public List<InventoryStockDTO> batchGetAvailableStock(TenantId tenantId, Set<SkuId> skuIds) {
-        return inventoryStockRepository.findInventories(tenantId, skuIds == null ? Set.of() : skuIds).stream()
+    public List<InventoryStockDTO> batchGetAvailableStock(Set<SkuId> skuIds) {
+        return inventoryStockRepository.findInventories(skuIds == null ? Set.of() : skuIds).stream()
                 .map(InventoryStockAssembler::fromInventory)
                 .toList();
     }
 
-    public InventoryPageResultDTO pageInventories(
-            TenantId tenantId, SkuId skuId, InventoryStatus status, Integer pageNo, Integer pageSize) {
+    public InventoryPageResultDTO pageInventories(SkuId skuId, InventoryStatus status, Integer pageNo, Integer pageSize) {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         List<InventoryStockDTO> records =
                 inventoryStockRepository
-                        .pageInventories(tenantId, skuId, status, normalizedPageNo, normalizedPageSize)
+                        .pageInventories(skuId, status, normalizedPageNo, normalizedPageSize)
                         .stream()
                         .map(InventoryStockAssembler::fromInventory)
                         .toList();
-        long total = inventoryStockRepository.countInventories(tenantId, skuId, status);
+        long total = inventoryStockRepository.countInventories(skuId, status);
         return new InventoryPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
     }
 

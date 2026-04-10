@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.interfaces.provider;
 
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReleaseCommandDTO;
@@ -52,17 +53,16 @@ public class InventoryProviderController {
     @Operation(summary = "查询 SKU 可用库存")
     @GetMapping("/stocks/{skuId}")
     public InventoryStockDTO getAvailableStock(
-            @RequestParam("tenantId") @NotNull @Positive Long tenantId, @PathVariable @NotNull @Positive Long skuId) {
-        return inventoryQueryService.getAvailableStock(TenantId.of(tenantId), SkuIdMapper.toDomain(skuId));
+            @CurrentTenant Long tenantId, @PathVariable @NotNull @Positive Long skuId) {
+        return inventoryQueryService.getAvailableStock(SkuIdMapper.toDomain(skuId));
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
     @GetMapping("/stocks")
     public List<InventoryStockDTO> batchGetAvailableStock(
-            @RequestParam("tenantId") @NotNull @Positive Long tenantId,
+            @CurrentTenant Long tenantId,
             @RequestParam("skuIds") @NotNull Set<@NotNull @Positive Long> skuIds) {
         return inventoryQueryService.batchGetAvailableStock(
-                TenantId.of(tenantId),
                 skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
     }
 

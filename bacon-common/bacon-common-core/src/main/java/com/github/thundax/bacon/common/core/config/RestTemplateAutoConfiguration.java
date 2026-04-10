@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.common.core.config;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import java.time.Duration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -23,6 +24,7 @@ public class RestTemplateAutoConfiguration {
 
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration READ_TIMEOUT = Duration.ofSeconds(30);
+    private static final String TENANT_ID_HEADER = "X-Tenant-Id";
 
     /**
      * 创建 RestTemplate Bean，供业务代码发起 HTTP 请求时复用统一的连接与读取超时配置。
@@ -46,7 +48,15 @@ public class RestTemplateAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(value = "spring.cloud.nacos.discovery.enabled", havingValue = "true", matchIfMissing = true)
     public RestClient.Builder restClientBuilder() {
-        return RestClient.builder().requestFactory(createRequestFactory());
+        return RestClient.builder()
+                .requestFactory(createRequestFactory())
+                .requestInterceptor((request, body, execution) -> {
+                    Long tenantId = BaconContextHolder.currentTenantId();
+                    if (tenantId != null) {
+                        request.getHeaders().set(TENANT_ID_HEADER, String.valueOf(tenantId));
+                    }
+                    return execution.execute(request, body);
+                });
     }
 
     @Bean

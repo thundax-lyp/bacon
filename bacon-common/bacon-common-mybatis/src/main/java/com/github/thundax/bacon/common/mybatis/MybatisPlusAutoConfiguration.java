@@ -47,7 +47,7 @@ public class MybatisPlusAutoConfiguration {
     @ConditionalOnMissingBean
     public CurrentUserProvider mybatisFallbackCurrentUserProvider(
             ObjectProvider<CurrentUserProvider> currentUserProvider) {
-        return currentUserProvider.getIfAvailable(() -> () -> "system");
+        return currentUserProvider.getIfAvailable(() -> () -> 0L);
     }
 
     @Bean

@@ -8,26 +8,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public class SecurityContextCurrentUserResolver implements CurrentUserResolver {
 
-    private static final String DEFAULT_AUDITOR = "system";
-
     @Override
-    public String currentUserId() {
+    public Long currentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            return DEFAULT_AUDITOR;
+            return null;
         }
 
         Object principal = authentication.getPrincipal();
-        String auditor = extractUserId(principal);
-        if (auditor != null && !auditor.isBlank()) {
-            return auditor;
+        Long userId = extractUserId(principal);
+        if (userId != null) {
+            return userId;
         }
 
-        String name = authentication.getName();
-        return name == null || name.isBlank() ? DEFAULT_AUDITOR : name;
+        return toLong(authentication.getName());
     }
 
-    private String extractUserId(Object principal) {
+    private Long extractUserId(Object principal) {
         if (principal == null) {
             return null;
         }
@@ -35,28 +32,52 @@ public class SecurityContextCurrentUserResolver implements CurrentUserResolver {
             if ("anonymousUser".equalsIgnoreCase(principalText)) {
                 return null;
             }
-            return principalText;
+            return toLong(principalText);
         }
         if (principal instanceof UserDetails userDetails) {
-            return userDetails.getUsername();
+            return toLong(userDetails.getUsername());
         }
         if (principal instanceof Principal securityPrincipal) {
-            return securityPrincipal.getName();
+            return toLong(securityPrincipal.getName());
         }
 
-        String userId = invokeStringMethod(principal, "getUserId");
-        if (userId != null && !userId.isBlank()) {
+        Long userId = invokeLongMethod(principal, "getUserId");
+        if (userId != null) {
             return userId;
         }
-        return invokeStringMethod(principal, "getId");
+        return invokeLongMethod(principal, "getId");
     }
 
-    private String invokeStringMethod(Object target, String methodName) {
+    private Long invokeLongMethod(Object target, String methodName) {
         try {
             Method method = target.getClass().getMethod(methodName);
             Object value = method.invoke(target);
-            return value == null ? null : String.valueOf(value);
+            return toLong(value);
         } catch (ReflectiveOperationException ex) {
+            return null;
+        }
+    }
+
+    private Long toLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long longValue) {
+            return longValue;
+        }
+        if (value instanceof Integer integerValue) {
+            return integerValue.longValue();
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        String text = String.valueOf(value);
+        if (text.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(text);
+        } catch (NumberFormatException ex) {
             return null;
         }
     }

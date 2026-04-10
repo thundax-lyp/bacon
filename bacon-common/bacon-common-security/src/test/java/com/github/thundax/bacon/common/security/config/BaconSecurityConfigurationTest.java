@@ -56,26 +56,25 @@ class BaconSecurityConfigurationTest {
     }
 
     @Test
-    void shouldWireMonoCurrentUserProviderInMonoMode() {
+    void shouldWireMonoCurrentProvidersInMonoMode() {
         SecurityContextHolder.getContext()
-                .setAuthentication(new TestingAuthenticationToken("mono-user", "N/A", "ROLE_USER"));
+                .setAuthentication(new TestingAuthenticationToken("1001", "N/A", "ROLE_USER"));
 
         contextRunner.withPropertyValues("bacon.runtime.mode=mono").run(context -> {
             CurrentUserProvider currentUserProvider = context.getBean(CurrentUserProvider.class);
             MonoCurrentUserProvider monoCurrentUserProvider = context.getBean(MonoCurrentUserProvider.class);
             CurrentTenantProvider currentTenantProvider = context.getBean(CurrentTenantProvider.class);
             MonoCurrentTenantProvider monoCurrentTenantProvider = context.getBean(MonoCurrentTenantProvider.class);
-
             assertThat(currentUserProvider).isInstanceOf(MonoCurrentUserProvider.class);
             assertThat(monoCurrentUserProvider).isSameAs(currentUserProvider);
-            assertThat(currentUserProvider.currentUserId()).isEqualTo("mono-user");
+            assertThat(currentUserProvider.currentUserId()).isEqualTo(1001L);
             assertThat(currentTenantProvider).isInstanceOf(MonoCurrentTenantProvider.class);
             assertThat(monoCurrentTenantProvider).isSameAs(currentTenantProvider);
         });
     }
 
     @Test
-    void shouldWireSpringContextCurrentUserProviderInMicroMode() {
+    void shouldWireSpringContextCurrentProvidersInMicroMode() {
         contextRunner
                 .withPropertyValues("bacon.runtime.mode=micro")
                 .withUserConfiguration(MicroResolverConfiguration.class)
@@ -86,7 +85,6 @@ class BaconSecurityConfigurationTest {
                     CurrentTenantProvider currentTenantProvider = context.getBean(CurrentTenantProvider.class);
                     SpringContextCurrentTenantProvider springContextCurrentTenantProvider =
                             context.getBean(SpringContextCurrentTenantProvider.class);
-
                     assertThat(currentUserProvider).isInstanceOf(SpringContextCurrentUserProvider.class);
                     assertThat(springContextCurrentUserProvider).isSameAs(currentUserProvider);
                     assertThat(currentTenantProvider).isInstanceOf(SpringContextCurrentTenantProvider.class);
@@ -95,14 +93,14 @@ class BaconSecurityConfigurationTest {
     }
 
     @Test
-    void shouldResolveCurrentUserFromResolverBackedMicroProvider() {
+    void shouldResolveCurrentUserIdFromResolverBackedMicroProvider() {
         CurrentUserProvider currentUserProvider =
                 new SpringContextCurrentUserProvider(new SingleObjectProvider<>(new StubCurrentUserResolver()));
-        assertThat(currentUserProvider.currentUserId()).isEqualTo("micro-user");
+        assertThat(currentUserProvider.currentUserId()).isEqualTo(2001L);
     }
 
     @Test
-    void shouldResolveCurrentTenantFromResolverBackedMicroProvider() {
+    void shouldResolveCurrentTenantIdFromResolverBackedMicroProvider() {
         CurrentTenantProvider currentTenantProvider =
                 new SpringContextCurrentTenantProvider(new SingleObjectProvider<>(new StubCurrentTenantResolver()));
         assertThat(currentTenantProvider.currentTenantId()).isEqualTo(1001L);
@@ -123,15 +121,15 @@ class BaconSecurityConfigurationTest {
 
         @Bean
         CurrentUserResolver currentUserResolver() {
-            return () -> "micro-user";
+            return () -> 2001L;
         }
     }
 
     public static class StubCurrentUserResolver implements CurrentUserResolver {
 
         @Override
-        public String currentUserId() {
-            return "micro-user";
+        public Long currentUserId() {
+            return 2001L;
         }
     }
 

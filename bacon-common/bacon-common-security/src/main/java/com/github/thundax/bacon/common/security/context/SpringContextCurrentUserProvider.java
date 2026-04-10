@@ -4,7 +4,6 @@ import org.springframework.beans.factory.ObjectProvider;
 
 public class SpringContextCurrentUserProvider implements CurrentUserProvider {
 
-    private static final String DEFAULT_AUDITOR = "system";
     private final ObjectProvider<CurrentUserResolver> currentUserResolver;
 
     public SpringContextCurrentUserProvider(ObjectProvider<CurrentUserResolver> currentUserResolver) {
@@ -12,12 +11,12 @@ public class SpringContextCurrentUserProvider implements CurrentUserProvider {
     }
 
     @Override
-    public String currentUserId() {
+    public Long currentUserId() {
         CurrentUserResolver resolver = currentUserResolver.getIfAvailable();
         if (resolver == null) {
-            return DEFAULT_AUDITOR;
+            return 0L;
         }
-        String currentUserId = resolver.currentUserId();
-        return currentUserId == null || currentUserId.isBlank() ? DEFAULT_AUDITOR : currentUserId;
+        Long currentUserId = resolver.currentUserId();
+        return currentUserId == null ? 0L : currentUserId;
     }
 }

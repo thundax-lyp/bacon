@@ -40,8 +40,8 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
     }
 
     private String currentUserId() {
-        String currentUserId = currentUserProvider.currentUserId();
-        return currentUserId == null || currentUserId.isBlank() ? "system" : currentUserId;
+        Long currentUserId = currentUserProvider.currentUserId();
+        return currentUserId == null ? "system" : String.valueOf(currentUserId);
     }
 
     private <T> void fillIfPresent(

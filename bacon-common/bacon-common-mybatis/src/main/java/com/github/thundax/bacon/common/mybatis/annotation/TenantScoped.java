@@ -7,4 +7,11 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface EnableTenantIsolation {}
+public @interface TenantScoped {
+
+    boolean read() default true;
+
+    boolean insert() default true;
+
+    boolean verifyOnUpdate() default true;
+}

@@ -127,8 +127,8 @@ public class InventoryOperationLogSupport {
         try {
             inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(
                     null,
-                    null,
                     reservation.getTenantId(),
+                    null,
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
                     actionType,

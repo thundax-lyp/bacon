@@ -240,8 +240,8 @@ public class InMemoryInventoryRepositorySupport {
         if (outbox.getId() == null) {
             outbox = new InventoryAuditOutbox(
                     OutboxId.of(auditOutboxIdGenerator.getAndIncrement()),
-                    EventCode.of(eventCode),
                     outbox.getTenantId(),
+                    EventCode.of(eventCode),
                     outbox.getOrderNo(),
                     outbox.getReservationNo(),
                     outbox.getActionType(),
@@ -531,8 +531,8 @@ public class InMemoryInventoryRepositorySupport {
         for (DeadLetterId deadLetterId : deadLetterIds) {
             items.add(new InventoryAuditReplayTaskItem(
                     auditReplayTaskItemIdGenerator.getAndIncrement(),
-                    taskId,
                     tenantId,
+                    taskId,
                     deadLetterId,
                     InventoryAuditReplayTaskItemStatus.PENDING,
                     null,

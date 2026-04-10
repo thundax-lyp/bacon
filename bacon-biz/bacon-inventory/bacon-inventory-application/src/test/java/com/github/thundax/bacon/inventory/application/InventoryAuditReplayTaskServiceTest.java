@@ -47,9 +47,9 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         TestLogRepository repository = new TestLogRepository();
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 DeadLetterId.of(101L),
+                TenantId.of(3001L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L),
                 EventCode.of("EVT20260326000000-000101"),
-                TenantId.of(3001L),
                 OrderNo.of("ORDER-1"),
                 ReservationNo.of("RSV-1"),
                 InventoryAuditActionType.RESERVE,
@@ -187,8 +187,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             for (DeadLetterId deadLetterId : deadLetterIds) {
                 items.add(new InventoryAuditReplayTaskItem(
                         taskItemIdGenerator.getAndIncrement(),
-                        taskId,
                         tenantId,
+                        taskId,
                         deadLetterId,
                         InventoryAuditReplayTaskItemStatus.PENDING,
                         null,

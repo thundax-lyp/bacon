@@ -41,9 +41,9 @@ class InventoryAuditCompensationApplicationServiceTest {
         InventoryAuditCompensationApplicationService service = createService(repository);
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 DeadLetterId.of(1001L),
+                TenantId.of(3001L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1001L),
                 EventCode.of("EVT20260326000000-001001"),
-                TenantId.of(3001L),
                 OrderNo.of("ORDER-1"),
                 ReservationNo.of("RSV-1"),
                 InventoryAuditActionType.RESERVE,

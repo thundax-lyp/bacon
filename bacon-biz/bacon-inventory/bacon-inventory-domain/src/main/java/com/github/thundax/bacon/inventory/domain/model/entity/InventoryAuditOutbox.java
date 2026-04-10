@@ -23,10 +23,10 @@ public class InventoryAuditOutbox {
 
     /** 出站事件主键。 */
     private OutboxId id;
-    /** 出站事件业务标识。 */
-    private EventCode eventCode;
     /** 所属租户主键。 */
     private TenantId tenantId;
+    /** 出站事件业务标识。 */
+    private EventCode eventCode;
     /** 订单号。 */
     private OrderNo orderNo;
     /** 预占单号。 */

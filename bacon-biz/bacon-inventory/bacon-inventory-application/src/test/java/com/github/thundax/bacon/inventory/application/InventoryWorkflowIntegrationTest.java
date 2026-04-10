@@ -133,8 +133,8 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                null,
                 TenantId.of(1001L),
+                null,
                 OrderNo.of("ORDER-DEAD"),
                 ReservationNo.of("RSV-DEAD"),
                 InventoryAuditActionType.RESERVE,
@@ -174,8 +174,8 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                null,
                 TenantId.of(1001L),
+                null,
                 OrderNo.of("ORDER-OK"),
                 ReservationNo.of("RSV-OK"),
                 InventoryAuditActionType.RESERVE,

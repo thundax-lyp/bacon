@@ -20,10 +20,10 @@ public class InventoryAuditReplayTaskItem {
 
     /** 明细主键。 */
     private Long id;
-    /** 回放任务主键。 */
-    private TaskId taskId;
     /** 所属租户主键。 */
     private TenantId tenantId;
+    /** 回放任务主键。 */
+    private TaskId taskId;
     /** 死信记录主键。 */
     private DeadLetterId deadLetterId;
     /** 明细状态。 */

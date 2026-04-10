@@ -26,12 +26,12 @@ public class InventoryAuditDeadLetter {
 
     /** 死信记录主键。 */
     private DeadLetterId id;
+    /** 所属租户主键。 */
+    private TenantId tenantId;
     /** 审计出站主键。 */
     private OutboxId outboxId;
     /** 出站事件业务标识。 */
     private EventCode eventCode;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 订单号。 */
     private OrderNo orderNo;
     /** 预占单号。 */
@@ -74,9 +74,9 @@ public class InventoryAuditDeadLetter {
      */
     public static InventoryAuditDeadLetter create(
             DeadLetterId id,
+            TenantId tenantId,
             OutboxId outboxId,
             EventCode eventCode,
-            TenantId tenantId,
             OrderNo orderNo,
             ReservationNo reservationNo,
             InventoryAuditActionType actionType,
@@ -90,9 +90,9 @@ public class InventoryAuditDeadLetter {
         Objects.requireNonNull(id, "id must not be null");
         return new InventoryAuditDeadLetter(
                 id,
+                tenantId,
                 outboxId,
                 eventCode,
-                tenantId,
                 orderNo,
                 reservationNo,
                 actionType,
@@ -115,9 +115,9 @@ public class InventoryAuditDeadLetter {
 
     public static InventoryAuditDeadLetter reconstruct(
             DeadLetterId id,
+            TenantId tenantId,
             OutboxId outboxId,
             EventCode eventCode,
-            TenantId tenantId,
             OrderNo orderNo,
             ReservationNo reservationNo,
             InventoryAuditActionType actionType,
@@ -138,9 +138,9 @@ public class InventoryAuditDeadLetter {
             String replayOperatorId) {
         return new InventoryAuditDeadLetter(
                 id,
+                tenantId,
                 outboxId,
                 eventCode,
-                tenantId,
                 orderNo,
                 reservationNo,
                 actionType,

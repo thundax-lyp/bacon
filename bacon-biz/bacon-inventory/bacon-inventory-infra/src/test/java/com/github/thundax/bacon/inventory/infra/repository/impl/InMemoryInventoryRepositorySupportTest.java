@@ -28,8 +28,8 @@ class InMemoryInventoryRepositorySupportTest {
 
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                null,
                 TenantId.of(1001L),
+                null,
                 OrderNo.of("ORDER-1"),
                 ReservationNo.of("RSV-1"),
                 InventoryAuditActionType.RESERVE,
@@ -63,9 +63,9 @@ class InMemoryInventoryRepositorySupportTest {
 
         repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 DeadLetterId.of(2001L),
+                TenantId.of(1001L),
                 outboxId,
                 retryable.get(0).getEventCode(),
-                TenantId.of(1001L),
                 OrderNo.of("ORDER-1"),
                 ReservationNo.of("RSV-1"),
                 InventoryAuditActionType.RESERVE,
@@ -88,8 +88,8 @@ class InMemoryInventoryRepositorySupportTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                null,
                 TenantId.of(1001L),
+                null,
                 OrderNo.of("ORDER-2"),
                 ReservationNo.of("RSV-2"),
                 InventoryAuditActionType.RESERVE,
@@ -126,8 +126,8 @@ class InMemoryInventoryRepositorySupportTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                null,
                 TenantId.of(1001L),
+                null,
                 OrderNo.of("ORDER-3"),
                 ReservationNo.of("RSV-3"),
                 InventoryAuditActionType.RESERVE,

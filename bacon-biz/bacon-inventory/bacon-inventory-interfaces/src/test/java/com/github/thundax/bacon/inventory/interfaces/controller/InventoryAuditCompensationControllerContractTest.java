@@ -71,9 +71,9 @@ class InventoryAuditCompensationControllerContractTest {
 
         private final InventoryAuditDeadLetter deadLetter = InventoryAuditDeadLetter.reconstruct(
                 DeadLetterId.of(1001L),
+                TenantId.of(1001L),
                 OutboxId.of(2001L),
                 EventCode.of("INV-AUDIT-001"),
-                TenantId.of(1001L),
                 OrderNo.of("ORDER-001"),
                 ReservationNo.of("RSV-001"),
                 InventoryAuditActionType.RESERVE,

@@ -568,16 +568,15 @@ class OrderCreateApplicationServiceTest {
     private static class SuccessInventoryCommandFacade implements InventoryCommandFacade {
 
         @Override
-        public InventoryReservationResultDTO reserveStock(
-                Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
+        public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
             return new InventoryReservationResultDTO(
-                    tenantId, orderNo, "RSV-" + orderNo, "RESERVED", "RESERVED", "DEFAULT", null, null, null, null);
+                    1001L, orderNo, "RSV-" + orderNo, "RESERVED", "RESERVED", "DEFAULT", null, null, null, null);
         }
 
         @Override
-        public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
+        public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
             return new InventoryReservationResultDTO(
-                    tenantId,
+                    1001L,
                     orderNo,
                     "RSV-" + orderNo,
                     "RELEASED",
@@ -590,9 +589,9 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
+        public InventoryReservationResultDTO deductReservedStock(String orderNo) {
             return new InventoryReservationResultDTO(
-                    tenantId,
+                    1001L,
                     orderNo,
                     "RSV-" + orderNo,
                     "DEDUCTED",
@@ -610,19 +609,18 @@ class OrderCreateApplicationServiceTest {
         private String lastReleaseReason;
 
         @Override
-        public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
+        public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
             this.lastReleaseReason = reason;
-            return super.releaseReservedStock(tenantId, orderNo, reason);
+            return super.releaseReservedStock(orderNo, reason);
         }
     }
 
     private static final class FailedInventoryCommandFacade extends SuccessInventoryCommandFacade {
 
         @Override
-        public InventoryReservationResultDTO reserveStock(
-                Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
+        public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
             return new InventoryReservationResultDTO(
-                    tenantId,
+                    1001L,
                     orderNo,
                     "RSV-" + orderNo,
                     "FAILED",
@@ -639,7 +637,6 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public PaymentCreateResultDTO createPayment(
-                Long tenantId,
                 String orderNo,
                 Long userId,
                 BigDecimal amount,
@@ -647,7 +644,7 @@ class OrderCreateApplicationServiceTest {
                 String subject,
                 Instant expiredAt) {
             return new PaymentCreateResultDTO(
-                    tenantId,
+                    1001L,
                     "PAY-" + orderNo,
                     orderNo,
                     channelCode,
@@ -658,8 +655,8 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public PaymentCloseResultDTO closePayment(Long tenantId, String paymentNo, String reason) {
-            return new PaymentCloseResultDTO(tenantId, paymentNo, null, "CLOSED", "SUCCESS", reason, null);
+        public PaymentCloseResultDTO closePayment(String paymentNo, String reason) {
+            return new PaymentCloseResultDTO(1001L, paymentNo, null, "CLOSED", "SUCCESS", reason, null);
         }
     }
 
@@ -667,7 +664,6 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public PaymentCreateResultDTO createPayment(
-                Long tenantId,
                 String orderNo,
                 Long userId,
                 BigDecimal amount,
@@ -675,7 +671,7 @@ class OrderCreateApplicationServiceTest {
                 String subject,
                 Instant expiredAt) {
             return new PaymentCreateResultDTO(
-                    tenantId, null, orderNo, channelCode, "FAILED", null, expiredAt, "payment channel unavailable");
+                    1001L, null, orderNo, channelCode, "FAILED", null, expiredAt, "payment channel unavailable");
         }
     }
 }

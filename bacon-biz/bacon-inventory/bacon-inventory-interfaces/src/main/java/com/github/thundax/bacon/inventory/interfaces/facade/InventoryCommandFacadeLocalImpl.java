@@ -25,19 +25,16 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
     }
 
     @Override
-    public InventoryReservationResultDTO reserveStock(
-            Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), items));
+    public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
+        Long tenantId = requireTenantId();
+        return inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), items);
     }
 
     @Override
-    public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> inventoryApplicationService.releaseReservedStock(
-                        TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), toReleaseReason(reason)));
+    public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
+        Long tenantId = requireTenantId();
+        return inventoryApplicationService.releaseReservedStock(
+                TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), toReleaseReason(reason));
     }
 
     private InventoryReleaseReason toReleaseReason(String reason) {
@@ -49,9 +46,16 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
     }
 
     @Override
-    public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo)));
+    public InventoryReservationResultDTO deductReservedStock(String orderNo) {
+        Long tenantId = requireTenantId();
+        return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+    }
+
+    private Long requireTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        if (tenantId == null) {
+            throw new IllegalStateException("tenantId must not be null");
+        }
+        return tenantId;
     }
 }

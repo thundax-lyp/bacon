@@ -8,7 +8,6 @@ import java.time.Instant;
 public interface PaymentCommandFacade {
 
     PaymentCreateResultDTO createPayment(
-            Long tenantId,
             String orderNo,
             Long userId,
             BigDecimal amount,
@@ -16,5 +15,5 @@ public interface PaymentCommandFacade {
             String subject,
             Instant expiredAt);
 
-    PaymentCloseResultDTO closePayment(Long tenantId, String paymentNo, String reason);
+    PaymentCloseResultDTO closePayment(String paymentNo, String reason);
 }

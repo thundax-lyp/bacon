@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.payment.infra.facade.remote;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
@@ -30,7 +29,6 @@ public class PaymentCommandFacadeRemoteImpl implements PaymentCommandFacade {
     @CircuitBreaker(name = "paymentRemote", fallbackMethod = "createPaymentFallback")
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "createPaymentFallback")
     public PaymentCreateResultDTO createPayment(
-            Long tenantId,
             String orderNo,
             Long userId,
             BigDecimal amount,
@@ -38,40 +36,35 @@ public class PaymentCommandFacadeRemoteImpl implements PaymentCommandFacade {
             String subject,
             Instant expiredAt) {
         // remote facade 只负责协议转发，不在这里做支付业务兜底；一切失败都交给 fallback 统一翻译。
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> restClient
-                        .post()
-                        .uri(
-                                "/providers/payment/create?orderNo={orderNo}&userId={userId}"
-                                        + "&amount={amount}&channelCode={channelCode}&subject={subject}&expiredAt={expiredAt}",
-                                orderNo,
-                                userId,
-                                amount,
-                                channelCode,
-                                subject,
-                                expiredAt)
-                        .retrieve()
-                        .body(PaymentCreateResultDTO.class));
+        return restClient
+                .post()
+                .uri(
+                        "/providers/payment/create?orderNo={orderNo}&userId={userId}"
+                                + "&amount={amount}&channelCode={channelCode}&subject={subject}&expiredAt={expiredAt}",
+                        orderNo,
+                        userId,
+                        amount,
+                        channelCode,
+                        subject,
+                        expiredAt)
+                .retrieve()
+                .body(PaymentCreateResultDTO.class);
     }
 
     @Override
     @Retry(name = "paymentRemote", fallbackMethod = "closePaymentFallback")
     @CircuitBreaker(name = "paymentRemote", fallbackMethod = "closePaymentFallback")
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "closePaymentFallback")
-    public PaymentCloseResultDTO closePayment(Long tenantId, String paymentNo, String reason) {
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> restClient
-                        .post()
-                        .uri("/providers/payment/close?paymentNo={paymentNo}&reason={reason}", paymentNo, reason)
-                        .retrieve()
-                        .body(PaymentCloseResultDTO.class));
+    public PaymentCloseResultDTO closePayment(String paymentNo, String reason) {
+        return restClient
+                .post()
+                .uri("/providers/payment/close?paymentNo={paymentNo}&reason={reason}", paymentNo, reason)
+                .retrieve()
+                .body(PaymentCloseResultDTO.class);
     }
 
     @SuppressWarnings("unused")
     private PaymentCreateResultDTO createPaymentFallback(
-            Long tenantId,
             String orderNo,
             Long userId,
             BigDecimal amount,
@@ -84,8 +77,7 @@ public class PaymentCommandFacadeRemoteImpl implements PaymentCommandFacade {
     }
 
     @SuppressWarnings("unused")
-    private PaymentCloseResultDTO closePaymentFallback(
-            Long tenantId, String paymentNo, String reason, Throwable throwable) {
+    private PaymentCloseResultDTO closePaymentFallback(String paymentNo, String reason, Throwable throwable) {
         throw PaymentRemoteExceptionTranslator.translate("closePayment", throwable);
     }
 }

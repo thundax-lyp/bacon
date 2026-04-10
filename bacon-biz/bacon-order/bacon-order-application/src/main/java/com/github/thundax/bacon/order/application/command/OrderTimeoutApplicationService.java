@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.application.command;
 
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
@@ -56,10 +57,11 @@ public class OrderTimeoutApplicationService {
         order.closeExpired(reason);
         // 超时关单的资源回收顺序固定为“先关支付，再释放库存”，与订单生命周期的依赖方向保持一致。
         if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
-            paymentCommandFacade.closePayment(tenantId, order.getPaymentNoValue(), reason);
+            BaconContextHolder.runWithTenantId(tenantId, () -> paymentCommandFacade.closePayment(
+                    order.getPaymentNoValue(), reason));
         }
-        InventoryReservationResultDTO releaseResult =
-                inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);
+        InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
+                tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, reason));
         applyReleaseResult(order, releaseResult, reason);
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CLOSE_EXPIRED, beforeStatus);

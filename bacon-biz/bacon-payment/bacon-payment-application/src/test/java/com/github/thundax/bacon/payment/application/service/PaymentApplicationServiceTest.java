@@ -382,7 +382,6 @@ class PaymentApplicationServiceTest {
 
         @Override
         public void markPaid(
-                Long tenantId,
                 String orderNo,
                 String paymentNo,
                 String channelCode,
@@ -393,7 +392,6 @@ class PaymentApplicationServiceTest {
 
         @Override
         public void markPaymentFailed(
-                Long tenantId,
                 String orderNo,
                 String paymentNo,
                 String reason,
@@ -403,7 +401,7 @@ class PaymentApplicationServiceTest {
         }
 
         @Override
-        public void closeExpiredOrder(Long tenantId, String orderNo, String reason) {
+        public void closeExpiredOrder(String orderNo, String reason) {
             // not used by payment tests
         }
     }

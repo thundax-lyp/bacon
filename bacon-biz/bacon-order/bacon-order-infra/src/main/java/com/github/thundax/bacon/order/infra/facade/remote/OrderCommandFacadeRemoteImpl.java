@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.order.infra.facade.remote;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import java.math.BigDecimal;
@@ -26,15 +25,9 @@ public class OrderCommandFacadeRemoteImpl implements OrderCommandFacade {
     }
 
     @Override
-    public void markPaid(
-            Long tenantId,
-            String orderNo,
-            String paymentNo,
-            String channelCode,
-            BigDecimal paidAmount,
-            Instant paidTime) {
+    public void markPaid(String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
         // 支付结果回写是命令语义；远程失败必须显式暴露，否则 payment 无法感知 order 侧未完成收口。
-        BaconContextHolder.runWithTenantId(tenantId, () -> restClient
+        restClient
                 .post()
                 .uri(
                         "/providers/orders/mark-paid?orderNo={orderNo}&paymentNo={paymentNo}"
@@ -45,14 +38,13 @@ public class OrderCommandFacadeRemoteImpl implements OrderCommandFacade {
                         paidAmount,
                         paidTime)
                 .retrieve()
-                .toBodilessEntity());
+                .toBodilessEntity();
     }
 
     @Override
-    public void markPaymentFailed(
-            Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
+    public void markPaymentFailed(String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
         // 失败回写与成功回写对称处理，保持 payment 对 order 的远程语义一致。
-        BaconContextHolder.runWithTenantId(tenantId, () -> restClient
+        restClient
                 .post()
                 .uri(
                         "/providers/orders/mark-payment-failed?orderNo={orderNo}&paymentNo={paymentNo}"
@@ -63,16 +55,16 @@ public class OrderCommandFacadeRemoteImpl implements OrderCommandFacade {
                         channelStatus,
                         failedTime)
                 .retrieve()
-                .toBodilessEntity());
+                .toBodilessEntity();
     }
 
     @Override
-    public void closeExpiredOrder(Long tenantId, String orderNo, String reason) {
+    public void closeExpiredOrder(String orderNo, String reason) {
         // 超时关单是后台补偿命令，不返回 DTO；只要远端未明确成功，就让调用方继续保留重试机会。
-        BaconContextHolder.runWithTenantId(tenantId, () -> restClient
+        restClient
                 .post()
                 .uri("/providers/orders/close-expired?orderNo={orderNo}&reason={reason}", orderNo, reason)
                 .retrieve()
-                .toBodilessEntity());
+                .toBodilessEntity();
     }
 }

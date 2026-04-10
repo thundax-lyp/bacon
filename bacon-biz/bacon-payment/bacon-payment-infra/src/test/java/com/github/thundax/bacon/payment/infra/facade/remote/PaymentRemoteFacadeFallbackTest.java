@@ -18,7 +18,6 @@ class PaymentRemoteFacadeFallbackTest {
         PaymentCommandFacadeRemoteImpl facade = new PaymentCommandFacadeRemoteImpl(null);
         Method method = PaymentCommandFacadeRemoteImpl.class.getDeclaredMethod(
                 "createPaymentFallback",
-                Long.class,
                 String.class,
                 Long.class,
                 BigDecimal.class,
@@ -32,7 +31,6 @@ class PaymentRemoteFacadeFallbackTest {
                 InvocationTargetException.class,
                 () -> method.invoke(
                         facade,
-                        1001L,
                         "ORD-10001",
                         2001L,
                         BigDecimal.TEN,
@@ -49,12 +47,12 @@ class PaymentRemoteFacadeFallbackTest {
     void readFacadeFallbackShouldTranslateToDomainError() throws Exception {
         PaymentReadFacadeRemoteImpl facade = new PaymentReadFacadeRemoteImpl(null);
         Method method = PaymentReadFacadeRemoteImpl.class.getDeclaredMethod(
-                "getByPaymentNoFallback", Long.class, String.class, Throwable.class);
+                "getByPaymentNoFallback", String.class, Throwable.class);
         method.setAccessible(true);
 
         InvocationTargetException thrown = assertThrows(
                 InvocationTargetException.class,
-                () -> method.invoke(facade, 1001L, "PAY-10001", new RuntimeException("boom")));
+                () -> method.invoke(facade, "PAY-10001", new RuntimeException("boom")));
 
         Throwable cause = thrown.getTargetException();
         assertEquals(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE.code(), ((PaymentDomainException) cause).getCode());

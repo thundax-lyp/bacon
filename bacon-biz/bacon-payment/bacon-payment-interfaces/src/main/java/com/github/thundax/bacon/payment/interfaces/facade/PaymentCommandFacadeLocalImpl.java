@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.interfaces.facade;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
@@ -26,19 +27,28 @@ public class PaymentCommandFacadeLocalImpl implements PaymentCommandFacade {
 
     @Override
     public PaymentCreateResultDTO createPayment(
-            Long tenantId,
             String orderNo,
             Long userId,
             BigDecimal amount,
             String channelCode,
             String subject,
             Instant expiredAt) {
+        Long tenantId = requireTenantId();
         return paymentCreateApplicationService.createPayment(
                 tenantId, orderNo, userId, amount, channelCode, subject, expiredAt);
     }
 
     @Override
-    public PaymentCloseResultDTO closePayment(Long tenantId, String paymentNo, String reason) {
+    public PaymentCloseResultDTO closePayment(String paymentNo, String reason) {
+        Long tenantId = requireTenantId();
         return paymentCloseApplicationService.closePayment(tenantId, paymentNo, reason);
+    }
+
+    private Long requireTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        if (tenantId == null) {
+            throw new IllegalStateException("tenantId must not be null");
+        }
+        return tenantId;
     }
 }

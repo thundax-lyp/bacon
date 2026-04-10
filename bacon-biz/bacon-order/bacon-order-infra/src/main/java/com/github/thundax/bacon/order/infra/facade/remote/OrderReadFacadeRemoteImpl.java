@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.order.infra.facade.remote;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -27,26 +27,18 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
     }
 
     @Override
-    public OrderDetailDTO getById(Long tenantId, Long orderId) {
+    public OrderDetailDTO getById(Long orderId) {
         // provider 查询返回内部 DTO，remote facade 不再包装，保持跨服务读取模型稳定。
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> restClient
-                        .get()
-                        .uri("/providers/orders/{orderId}", orderId)
-                        .retrieve()
-                        .body(OrderDetailDTO.class));
+        return restClient.get().uri("/providers/orders/{orderId}", orderId).retrieve().body(OrderDetailDTO.class);
     }
 
     @Override
-    public OrderDetailDTO getByOrderNo(Long tenantId, String orderNo) {
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> restClient
-                        .get()
-                        .uri("/providers/orders/by-order-no/{orderNo}", orderNo)
-                        .retrieve()
-                        .body(OrderDetailDTO.class));
+    public OrderDetailDTO getByOrderNo(String orderNo) {
+        return restClient
+                .get()
+                .uri("/providers/orders/by-order-no/{orderNo}", orderNo)
+                .retrieve()
+                .body(OrderDetailDTO.class);
     }
 
     @Override

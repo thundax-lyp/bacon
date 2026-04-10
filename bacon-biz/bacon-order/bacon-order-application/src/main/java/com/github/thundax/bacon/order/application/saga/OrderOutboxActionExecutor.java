@@ -3,6 +3,7 @@ package com.github.thundax.bacon.order.application.saga;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -102,8 +103,9 @@ public class OrderOutboxActionExecutor {
                 .map(item -> new InventoryReservationItemDTO(
                         item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
                 .toList();
-        InventoryReservationResultDTO reserveResult =
-                inventoryCommandFacade.reserveStock(order.getTenantIdValue(), order.getOrderNoValue(), reserveItems);
+        InventoryReservationResultDTO reserveResult = BaconContextHolder.callWithTenantId(
+                order.getTenantIdValue(),
+                () -> inventoryCommandFacade.reserveStock(order.getOrderNoValue(), reserveItems));
         // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
         if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
             String reason = resolveFailureReason(reserveResult.getFailureReason(), "inventory reserve failed");
@@ -152,14 +154,15 @@ public class OrderOutboxActionExecutor {
         Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
-        PaymentCreateResultDTO paymentResult = paymentCommandFacade.createPayment(
+        PaymentCreateResultDTO paymentResult = BaconContextHolder.callWithTenantId(
                 order.getTenantIdValue(),
-                order.getOrderNoValue(),
-                order.getUserId() == null ? null : order.getUserId().value(),
-                order.getPayableAmount().value(),
-                channelCode,
-                "order:" + order.getOrderNoValue(),
-                order.getExpiredAt());
+                () -> paymentCommandFacade.createPayment(
+                        order.getOrderNoValue(),
+                        order.getUserId() == null ? null : order.getUserId().value(),
+                        order.getPayableAmount().value(),
+                        channelCode,
+                        "order:" + order.getOrderNoValue(),
+                        order.getExpiredAt()));
         // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
         if (paymentResult.getPaymentNo() == null
                 || paymentResult.getPaymentNo().isBlank()
@@ -200,8 +203,9 @@ public class OrderOutboxActionExecutor {
     private void executeReleaseStock(OrderOutboxEvent event) {
         Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
         String reason = OrderOutboxPayloadCodec.decode(event.getPayload()).getOrDefault("reason", "SYSTEM_CANCELLED");
-        InventoryReservationResultDTO releaseResult =
-                inventoryCommandFacade.releaseReservedStock(order.getTenantIdValue(), order.getOrderNoValue(), reason);
+        InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
+                order.getTenantIdValue(),
+                () -> inventoryCommandFacade.releaseReservedStock(order.getOrderNoValue(), reason));
         // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(

@@ -5,16 +5,9 @@ import java.time.Instant;
 
 public interface OrderCommandFacade {
 
-    void markPaid(
-            Long tenantId,
-            String orderNo,
-            String paymentNo,
-            String channelCode,
-            BigDecimal paidAmount,
-            Instant paidTime);
+    void markPaid(String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime);
 
-    void markPaymentFailed(
-            Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime);
+    void markPaymentFailed(String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime);
 
-    void closeExpiredOrder(Long tenantId, String orderNo, String reason);
+    void closeExpiredOrder(String orderNo, String reason);
 }

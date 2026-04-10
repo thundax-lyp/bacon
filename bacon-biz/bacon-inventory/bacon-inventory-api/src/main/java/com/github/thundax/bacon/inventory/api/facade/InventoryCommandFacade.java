@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface InventoryCommandFacade {
 
-    InventoryReservationResultDTO reserveStock(Long tenantId, String orderNo, List<InventoryReservationItemDTO> items);
+    InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items);
 
-    InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason);
+    InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason);
 
-    InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo);
+    InventoryReservationResultDTO deductReservedStock(String orderNo);
 }

@@ -4,7 +4,7 @@ import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 
 public interface PaymentReadFacade {
 
-    PaymentDetailDTO getByPaymentNo(Long tenantId, String paymentNo);
+    PaymentDetailDTO getByPaymentNo(String paymentNo);
 
-    PaymentDetailDTO getByOrderNo(Long tenantId, String orderNo);
+    PaymentDetailDTO getByOrderNo(String orderNo);
 }

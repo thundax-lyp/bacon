@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.application.command;
 
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
@@ -56,11 +57,12 @@ public class OrderCancelApplicationService {
         OrderStatus beforeStatus = order.getOrderStatus();
         order.cancel(reason);
         // 同步主流程里先改订单主状态，再尝试释放库存和关闭支付；即使后续远程动作部分失败，主单也已明确进入取消态。
-        InventoryReservationResultDTO releaseResult =
-                inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, reason);
+        InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
+                tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, reason));
         applyReleaseResult(order, releaseResult, reason);
         if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
-            paymentCommandFacade.closePayment(tenantId, order.getPaymentNoValue(), reason);
+            BaconContextHolder.runWithTenantId(tenantId, () -> paymentCommandFacade.closePayment(
+                    order.getPaymentNoValue(), reason));
         }
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CANCEL, beforeStatus);

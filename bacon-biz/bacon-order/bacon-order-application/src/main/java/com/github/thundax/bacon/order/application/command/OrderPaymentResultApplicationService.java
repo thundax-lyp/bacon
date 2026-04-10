@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
@@ -85,7 +86,8 @@ public class OrderPaymentResultApplicationService {
                 Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCodeValue())),
                 paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
-        InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(tenantId, orderNo);
+        InventoryReservationResultDTO deductResult =
+                BaconContextHolder.callWithTenantId(tenantId, () -> inventoryCommandFacade.deductReservedStock(orderNo));
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
             String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
             order.markInventoryFailed(
@@ -111,8 +113,8 @@ public class OrderPaymentResultApplicationService {
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaymentFailed(toPaymentNo(paymentNo), reason, channelStatus, failedTime);
         // 支付失败后的主目标是回收预占库存，因此这里固定走 releaseReservedStock，而不是尝试别的库存路径。
-        InventoryReservationResultDTO releaseResult =
-                inventoryCommandFacade.releaseReservedStock(tenantId, orderNo, "PAYMENT_FAILED");
+        InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
+                tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, "PAYMENT_FAILED"));
         applyReleaseResult(order, releaseResult, "PAYMENT_FAILED");
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAYMENT_FAILED, beforeStatus);

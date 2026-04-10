@@ -65,14 +65,12 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
             name = "inventoryRemote",
             type = Bulkhead.Type.SEMAPHORE,
             fallbackMethod = "getReservationByOrderNoFallback")
-    public InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo) {
-        return com.github.thundax.bacon.common.core.context.BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> restClient
-                        .get()
-                        .uri("/providers/inventory/reservations/{orderNo}", orderNo)
-                        .retrieve()
-                        .body(InventoryReservationDTO.class));
+    public InventoryReservationDTO getReservationByOrderNo(String orderNo) {
+        return restClient
+                .get()
+                .uri("/providers/inventory/reservations/{orderNo}", orderNo)
+                .retrieve()
+                .body(InventoryReservationDTO.class);
     }
 
     @SuppressWarnings("unused")
@@ -86,8 +84,7 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
     }
 
     @SuppressWarnings("unused")
-    private InventoryReservationDTO getReservationByOrderNoFallback(
-            Long tenantId, String orderNo, Throwable throwable) {
+    private InventoryReservationDTO getReservationByOrderNoFallback(String orderNo, Throwable throwable) {
         throw InventoryRemoteExceptionTranslator.translate("getReservationByOrderNo", throwable);
     }
 }

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.interfaces.facade;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -19,17 +20,27 @@ public class OrderReadFacadeLocalImpl implements OrderReadFacade {
     }
 
     @Override
-    public OrderDetailDTO getById(Long tenantId, Long orderId) {
+    public OrderDetailDTO getById(Long orderId) {
+        Long tenantId = requireTenantId();
         return orderQueryService.getById(tenantId, orderId);
     }
 
     @Override
-    public OrderDetailDTO getByOrderNo(Long tenantId, String orderNo) {
+    public OrderDetailDTO getByOrderNo(String orderNo) {
+        Long tenantId = requireTenantId();
         return orderQueryService.getByOrderNo(tenantId, orderNo);
     }
 
     @Override
     public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
         return orderQueryService.pageOrders(query);
+    }
+
+    private Long requireTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        if (tenantId == null) {
+            throw new IllegalStateException("tenantId must not be null");
+        }
+        return tenantId;
     }
 }

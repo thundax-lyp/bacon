@@ -6,9 +6,9 @@ import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 
 public interface OrderReadFacade {
 
-    OrderDetailDTO getById(Long tenantId, Long orderId);
+    OrderDetailDTO getById(Long orderId);
 
-    OrderDetailDTO getByOrderNo(Long tenantId, String orderNo);
+    OrderDetailDTO getByOrderNo(String orderNo);
 
     OrderPageResultDTO pageOrders(OrderPageQueryDTO query);
 }

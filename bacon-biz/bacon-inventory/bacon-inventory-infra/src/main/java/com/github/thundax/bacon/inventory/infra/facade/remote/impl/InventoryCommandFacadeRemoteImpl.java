@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.infra.facade.remote.impl;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReleaseCommandDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -29,64 +28,56 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
     @Retry(name = "inventoryRemote", fallbackMethod = "reserveStockFallback")
     @CircuitBreaker(name = "inventoryRemote", fallbackMethod = "reserveStockFallback")
     @Bulkhead(name = "inventoryRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "reserveStockFallback")
-    public InventoryReservationResultDTO reserveStock(
-            Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
+    public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
         // reserve/release/deduct 都只转发 provider 契约，不在 remote facade 里实现任何库存业务降级。
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> restClient
-                        .post()
-                        .uri("/providers/inventory/reservations/{orderNo}/reserve", orderNo)
-                        .body(new InventoryReserveCommandDTO(items))
-                        .retrieve()
-                        .body(InventoryReservationResultDTO.class));
+        return restClient
+                .post()
+                .uri("/providers/inventory/reservations/{orderNo}/reserve", orderNo)
+                .body(new InventoryReserveCommandDTO(items))
+                .retrieve()
+                .body(InventoryReservationResultDTO.class);
     }
 
     @Override
     @Retry(name = "inventoryRemote", fallbackMethod = "releaseReservedStockFallback")
     @CircuitBreaker(name = "inventoryRemote", fallbackMethod = "releaseReservedStockFallback")
     @Bulkhead(name = "inventoryRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "releaseReservedStockFallback")
-    public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> restClient
-                        .post()
-                        .uri("/providers/inventory/reservations/{orderNo}/release", orderNo)
-                        .body(new InventoryReleaseCommandDTO(reason))
-                        .retrieve()
-                        .body(InventoryReservationResultDTO.class));
+    public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
+        return restClient
+                .post()
+                .uri("/providers/inventory/reservations/{orderNo}/release", orderNo)
+                .body(new InventoryReleaseCommandDTO(reason))
+                .retrieve()
+                .body(InventoryReservationResultDTO.class);
     }
 
     @Override
     @Retry(name = "inventoryRemote", fallbackMethod = "deductReservedStockFallback")
     @CircuitBreaker(name = "inventoryRemote", fallbackMethod = "deductReservedStockFallback")
     @Bulkhead(name = "inventoryRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "deductReservedStockFallback")
-    public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
-        return BaconContextHolder.callWithTenantId(
-                tenantId,
-                () -> restClient
-                        .post()
-                        .uri("/providers/inventory/reservations/{orderNo}/deduct", orderNo)
-                        .retrieve()
-                        .body(InventoryReservationResultDTO.class));
+    public InventoryReservationResultDTO deductReservedStock(String orderNo) {
+        return restClient
+                .post()
+                .uri("/providers/inventory/reservations/{orderNo}/deduct", orderNo)
+                .retrieve()
+                .body(InventoryReservationResultDTO.class);
     }
 
     @SuppressWarnings("unused")
     private InventoryReservationResultDTO reserveStockFallback(
-            Long tenantId, String orderNo, List<InventoryReservationItemDTO> items, Throwable throwable) {
+            String orderNo, List<InventoryReservationItemDTO> items, Throwable throwable) {
         // fallback 统一收敛为库存领域异常，调用方据此决定走补偿、重试还是主流程失败。
         throw InventoryRemoteExceptionTranslator.translate("reserveStock", throwable);
     }
 
     @SuppressWarnings("unused")
     private InventoryReservationResultDTO releaseReservedStockFallback(
-            Long tenantId, String orderNo, String reason, Throwable throwable) {
+            String orderNo, String reason, Throwable throwable) {
         throw InventoryRemoteExceptionTranslator.translate("releaseReservedStock", throwable);
     }
 
     @SuppressWarnings("unused")
-    private InventoryReservationResultDTO deductReservedStockFallback(
-            Long tenantId, String orderNo, Throwable throwable) {
+    private InventoryReservationResultDTO deductReservedStockFallback(String orderNo, Throwable throwable) {
         throw InventoryRemoteExceptionTranslator.translate("deductReservedStock", throwable);
     }
 }

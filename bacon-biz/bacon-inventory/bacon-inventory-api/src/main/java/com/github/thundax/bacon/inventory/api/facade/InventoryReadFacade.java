@@ -11,5 +11,5 @@ public interface InventoryReadFacade {
 
     List<InventoryStockDTO> batchGetAvailableStock(Set<Long> skuIds);
 
-    InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo);
+    InventoryReservationDTO getReservationByOrderNo(String orderNo);
 }

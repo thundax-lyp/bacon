@@ -36,6 +36,8 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
 
     @Override
     public InventoryReservationDTO getReservationByOrderNo(Long tenantId, String orderNo) {
-        return inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+        return com.github.thundax.bacon.common.core.context.BaconContextHolder.callWithTenantId(
+                tenantId,
+                () -> inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo)));
     }
 }

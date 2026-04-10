@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.facade;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
@@ -26,13 +27,17 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
     @Override
     public InventoryReservationResultDTO reserveStock(
             Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
-        return inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), items);
+        return BaconContextHolder.callWithTenantId(
+                tenantId,
+                () -> inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), items));
     }
 
     @Override
     public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        return inventoryApplicationService.releaseReservedStock(
-                TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), toReleaseReason(reason));
+        return BaconContextHolder.callWithTenantId(
+                tenantId,
+                () -> inventoryApplicationService.releaseReservedStock(
+                        TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), toReleaseReason(reason)));
     }
 
     private InventoryReleaseReason toReleaseReason(String reason) {
@@ -45,6 +50,8 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
 
     @Override
     public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
-        return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+        return BaconContextHolder.callWithTenantId(
+                tenantId,
+                () -> inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo)));
     }
 }

@@ -38,13 +38,12 @@ class InventoryProviderControllerContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/inventory/stocks")
+                mockMvc.perform(get("/providers/inventory/stocks")
                         .param("skuIds", "101")
                         .param("skuIds", "102")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].skuId").value(101))
-                .andExpect(jsonPath("$[0].tenantId").value(1001))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 

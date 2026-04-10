@@ -69,32 +69,28 @@ public class InventoryProviderController {
     @Operation(summary = "按订单号查询库存预占结果")
     @GetMapping("/reservations/{orderNo}")
     public InventoryReservationDTO getReservation(
-            @RequestParam("tenantId") @NotNull @Positive Long tenantId, @PathVariable @NotBlank String orderNo) {
+            @CurrentTenant Long tenantId, @PathVariable @NotBlank String orderNo) {
         return inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
     }
 
     @Operation(summary = "按订单号查询库存流水")
     @GetMapping("/ledgers")
     public List<InventoryLedgerDTO> listLedgers(
-            @RequestParam("tenantId") @NotNull @Positive Long tenantId,
-            @RequestParam("orderNo") @NotBlank String orderNo) {
+            @CurrentTenant Long tenantId, @RequestParam("orderNo") @NotBlank String orderNo) {
         return inventoryQueryService.listLedgersByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
     }
 
     @Operation(summary = "按订单号查询库存审计日志")
     @GetMapping("/audit-logs")
     public List<InventoryAuditLogDTO> listAuditLogs(
-            @RequestParam("tenantId") @NotNull @Positive Long tenantId,
-            @RequestParam("orderNo") @NotBlank String orderNo) {
+            @CurrentTenant Long tenantId, @RequestParam("orderNo") @NotBlank String orderNo) {
         return inventoryQueryService.listAuditLogsByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
     }
 
     @Operation(summary = "预占库存")
     @PostMapping("/reservations/{orderNo}/reserve")
     public InventoryReservationResultDTO reserve(
-            @RequestParam("tenantId") @NotNull @Positive Long tenantId,
-            @PathVariable @NotBlank String orderNo,
-            @Valid @RequestBody InventoryReserveCommandDTO request) {
+            @CurrentTenant Long tenantId, @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReserveCommandDTO request) {
         return inventoryApplicationService.reserveStock(
                 TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), request.getItems());
     }
@@ -102,9 +98,7 @@ public class InventoryProviderController {
     @Operation(summary = "释放预占库存")
     @PostMapping("/reservations/{orderNo}/release")
     public InventoryReservationResultDTO release(
-            @RequestParam("tenantId") @NotNull @Positive Long tenantId,
-            @PathVariable @NotBlank String orderNo,
-            @Valid @RequestBody InventoryReleaseCommandDTO request) {
+            @CurrentTenant Long tenantId, @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReleaseCommandDTO request) {
         return inventoryApplicationService.releaseReservedStock(
                 TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), toReleaseReason(request.getReason()));
     }
@@ -112,7 +106,7 @@ public class InventoryProviderController {
     @Operation(summary = "扣减预占库存")
     @PostMapping("/reservations/{orderNo}/deduct")
     public InventoryReservationResultDTO deduct(
-            @RequestParam("tenantId") @NotNull @Positive Long tenantId, @PathVariable @NotBlank String orderNo) {
+            @CurrentTenant Long tenantId, @PathVariable @NotBlank String orderNo) {
         return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
     }
 

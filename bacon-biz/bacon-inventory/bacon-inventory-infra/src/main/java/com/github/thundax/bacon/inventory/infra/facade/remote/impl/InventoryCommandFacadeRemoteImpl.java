@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.infra.facade.remote.impl;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReleaseCommandDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -31,12 +32,14 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
     public InventoryReservationResultDTO reserveStock(
             Long tenantId, String orderNo, List<InventoryReservationItemDTO> items) {
         // reserve/release/deduct 都只转发 provider 契约，不在 remote facade 里实现任何库存业务降级。
-        return restClient
-                .post()
-                .uri("/providers/inventory/reservations/{orderNo}/reserve?tenantId={tenantId}", orderNo, tenantId)
-                .body(new InventoryReserveCommandDTO(items))
-                .retrieve()
-                .body(InventoryReservationResultDTO.class);
+        return BaconContextHolder.callWithTenantId(
+                tenantId,
+                () -> restClient
+                        .post()
+                        .uri("/providers/inventory/reservations/{orderNo}/reserve", orderNo)
+                        .body(new InventoryReserveCommandDTO(items))
+                        .retrieve()
+                        .body(InventoryReservationResultDTO.class));
     }
 
     @Override
@@ -44,12 +47,14 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
     @CircuitBreaker(name = "inventoryRemote", fallbackMethod = "releaseReservedStockFallback")
     @Bulkhead(name = "inventoryRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "releaseReservedStockFallback")
     public InventoryReservationResultDTO releaseReservedStock(Long tenantId, String orderNo, String reason) {
-        return restClient
-                .post()
-                .uri("/providers/inventory/reservations/{orderNo}/release?tenantId={tenantId}", orderNo, tenantId)
-                .body(new InventoryReleaseCommandDTO(reason))
-                .retrieve()
-                .body(InventoryReservationResultDTO.class);
+        return BaconContextHolder.callWithTenantId(
+                tenantId,
+                () -> restClient
+                        .post()
+                        .uri("/providers/inventory/reservations/{orderNo}/release", orderNo)
+                        .body(new InventoryReleaseCommandDTO(reason))
+                        .retrieve()
+                        .body(InventoryReservationResultDTO.class));
     }
 
     @Override
@@ -57,11 +62,13 @@ public class InventoryCommandFacadeRemoteImpl implements InventoryCommandFacade 
     @CircuitBreaker(name = "inventoryRemote", fallbackMethod = "deductReservedStockFallback")
     @Bulkhead(name = "inventoryRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "deductReservedStockFallback")
     public InventoryReservationResultDTO deductReservedStock(Long tenantId, String orderNo) {
-        return restClient
-                .post()
-                .uri("/providers/inventory/reservations/{orderNo}/deduct?tenantId={tenantId}", orderNo, tenantId)
-                .retrieve()
-                .body(InventoryReservationResultDTO.class);
+        return BaconContextHolder.callWithTenantId(
+                tenantId,
+                () -> restClient
+                        .post()
+                        .uri("/providers/inventory/reservations/{orderNo}/deduct", orderNo)
+                        .retrieve()
+                        .body(InventoryReservationResultDTO.class));
     }
 
     @SuppressWarnings("unused")

@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
@@ -112,8 +112,7 @@ public class InventoryAuditCompensationApplicationService {
     }
 
     private void requireTenantContext() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        java.util.Objects.requireNonNull(tenantId, "tenantId must not be null");
+        BaconIdContextHelper.requireTenantId();
     }
 
     private String resolveReplayKey(InventoryAuditDeadLetter deadLetter, String replayKey) {

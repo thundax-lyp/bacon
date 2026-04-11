@@ -3,7 +3,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -178,7 +178,7 @@ public class InventoryRepositorySupport {
     }
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
-        Long tenantId = BaconContextHolder.currentTenantId();
+        Long tenantId = currentTenantId();
         InventoryReservationDO reservationDataObject =
                 InventoryReservationPersistenceAssembler.toDataObject(reservation);
         if (reservationDataObject.getId() == null) {
@@ -200,7 +200,7 @@ public class InventoryRepositorySupport {
     }
 
     public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
-        Long tenantId = BaconContextHolder.currentTenantId();
+        Long tenantId = currentTenantId();
         InventoryReservationDO reservation = reservationMapper.selectOne(Wrappers.<InventoryReservationDO>lambdaQuery()
                 .eq(InventoryReservationDO::getTenantId, tenantId)
                 .eq(InventoryReservationDO::getOrderNo, orderNo == null ? null : orderNo.value()));
@@ -223,7 +223,7 @@ public class InventoryRepositorySupport {
     }
 
     public List<InventoryLedger> findLedgers(OrderNo orderNo) {
-        Long tenantId = BaconContextHolder.currentTenantId();
+        Long tenantId = currentTenantId();
         return ledgerMapper
                 .selectList(Wrappers.<InventoryLedgerDO>lambdaQuery()
                         .eq(InventoryLedgerDO::getTenantId, tenantId)
@@ -239,7 +239,7 @@ public class InventoryRepositorySupport {
     }
 
     public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
-        Long tenantId = BaconContextHolder.currentTenantId();
+        Long tenantId = currentTenantId();
         return auditLogMapper
                 .selectList(Wrappers.<InventoryAuditLogDO>lambdaQuery()
                         .eq(InventoryAuditLogDO::getTenantId, tenantId)
@@ -552,8 +552,7 @@ public class InventoryRepositorySupport {
     }
 
     private Long currentTenantId() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        return Objects.requireNonNull(tenantId, "tenantId must not be null");
+        return BaconIdContextHelper.requireTenantId().value();
     }
 
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {

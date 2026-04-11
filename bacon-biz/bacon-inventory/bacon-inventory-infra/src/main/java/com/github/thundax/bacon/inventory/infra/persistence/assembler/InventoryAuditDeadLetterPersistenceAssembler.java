@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
@@ -25,7 +25,7 @@ public final class InventoryAuditDeadLetterPersistenceAssembler {
                 deadLetter.getEventCode() == null
                         ? null
                         : deadLetter.getEventCode().value(),
-                BaconContextHolder.currentTenantId(),
+                BaconIdContextHelper.requireTenantId().value(),
                 deadLetter.getOrderNo() == null ? null : deadLetter.getOrderNo().value(),
                 deadLetter.getReservationNo() == null
                         ? null

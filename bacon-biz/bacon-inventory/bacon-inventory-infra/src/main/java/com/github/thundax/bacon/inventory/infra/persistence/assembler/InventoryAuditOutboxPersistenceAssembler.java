@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
@@ -19,7 +19,7 @@ public final class InventoryAuditOutboxPersistenceAssembler {
         return new InventoryAuditOutboxDO(
                 outbox.getId() == null ? null : outbox.getId().value(),
                 outbox.getEventCode() == null ? null : outbox.getEventCode().value(),
-                BaconContextHolder.currentTenantId(),
+                BaconIdContextHelper.requireTenantId().value(),
                 outbox.getOrderNo() == null ? null : outbox.getOrderNo().value(),
                 outbox.getReservationNo() == null ? null : outbox.getReservationNo().value(),
                 outbox.getActionType() == null ? null : outbox.getActionType().value(),

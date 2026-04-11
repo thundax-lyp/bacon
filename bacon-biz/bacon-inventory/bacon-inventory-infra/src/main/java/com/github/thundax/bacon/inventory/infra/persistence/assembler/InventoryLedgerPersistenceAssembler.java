@@ -3,7 +3,7 @@ package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
@@ -28,7 +28,7 @@ public final class InventoryLedgerPersistenceAssembler {
     public static InventoryLedgerDO toDataObject(InventoryLedger ledger) {
         return new InventoryLedgerDO(
                 ledger.getId(),
-                BaconContextHolder.currentTenantId(),
+                BaconIdContextHelper.requireTenantId().value(),
                 ledger.getOrderNo() == null ? null : ledger.getOrderNo().value(),
                 ledger.getReservationNo() == null ? null : ledger.getReservationNo().value(),
                 ledger.getSkuId() == null ? null : ledger.getSkuId().value(),

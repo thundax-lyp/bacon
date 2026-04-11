@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.facade;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
@@ -50,13 +50,7 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
     }
 
     private void requireContext() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        if (tenantId == null) {
-            throw new IllegalStateException("tenantId must not be null");
-        }
-        Long userId = BaconContextHolder.currentUserId();
-        if (userId == null) {
-            throw new IllegalStateException("userId must not be null");
-        }
+        BaconIdContextHelper.requireTenantId();
+        BaconIdContextHelper.requireUserId();
     }
 }

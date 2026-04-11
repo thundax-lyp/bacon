@@ -11,7 +11,6 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -59,7 +58,6 @@ class InventoryControllerContractTest {
         validator.afterPropertiesSet();
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .setValidator(validator)
                 .build();
     }

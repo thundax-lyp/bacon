@@ -82,14 +82,16 @@ public class InventoryProviderController {
     @Operation(summary = "预占库存")
     @PostMapping("/reservations/{orderNo}/reserve")
     public InventoryReservationResultDTO reserve(
-            @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReserveCommandDTO request) {
+            @PathVariable @NotBlank String orderNo,
+            @Valid @RequestBody InventoryReserveCommandDTO request) {
         return inventoryApplicationService.reserveStock(OrderNoCodec.toDomain(orderNo), request.getItems());
     }
 
     @Operation(summary = "释放预占库存")
     @PostMapping("/reservations/{orderNo}/release")
     public InventoryReservationResultDTO release(
-            @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReleaseCommandDTO request) {
+            @PathVariable @NotBlank String orderNo,
+            @Valid @RequestBody InventoryReleaseCommandDTO request) {
         return inventoryApplicationService.releaseReservedStock(
                 OrderNoCodec.toDomain(orderNo), toReleaseReason(request.getReason()));
     }

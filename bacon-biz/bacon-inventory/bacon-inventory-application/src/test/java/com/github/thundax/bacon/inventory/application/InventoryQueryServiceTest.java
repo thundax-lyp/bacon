@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -36,7 +36,8 @@ class InventoryQueryApplicationServiceTest {
         InventoryQueryApplicationService service =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryPageResultDTO result = service.pageInventories(null, InventoryStatus.ENABLED, 1, 2);
+        InventoryPageResultDTO result =
+                BaconContextHolder.callWithTenantId(1001L, () -> service.pageInventories(null, InventoryStatus.ENABLED, 1, 2));
 
         assertEquals(2, result.getRecords().size());
         assertEquals(3, result.getTotal());
@@ -50,7 +51,8 @@ class InventoryQueryApplicationServiceTest {
         InventoryQueryApplicationService service =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryPageResultDTO result = service.pageInventories(SkuId.of(104L), null, 0, 0);
+        InventoryPageResultDTO result =
+                BaconContextHolder.callWithTenantId(1001L, () -> service.pageInventories(SkuId.of(104L), null, 0, 0));
 
         assertEquals(1, result.getRecords().size());
         assertEquals(1, result.getTotal());

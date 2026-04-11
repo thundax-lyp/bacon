@@ -1,9 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
@@ -53,25 +51,23 @@ public class InventoryController {
     @Operation(summary = "新增库存主数据")
     @HasPermission("inventory:stock:create")
     @PostMapping
-    public InventoryStockResponse createInventory(
-            @CurrentTenant @NotNull @Positive Long tenantId, @Valid @RequestBody CreateInventoryRequest request) {
+    public InventoryStockResponse createInventory(@Valid @RequestBody CreateInventoryRequest request) {
         InventoryStatus status = parseInventoryStatus(request.status());
         return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(
-                TenantId.of(tenantId), SkuIdMapper.toDomain(request.skuId()), request.onHandQuantity(), status));
+                SkuIdMapper.toDomain(request.skuId()), request.onHandQuantity(), status));
     }
 
     @Operation(summary = "查询 SKU 可用库存")
     @HasPermission("inventory:stock:view")
     @GetMapping("/{skuId}")
-    public InventoryStockResponse getInventory(@CurrentTenant Long tenantId, @PathVariable @Positive Long skuId) {
+    public InventoryStockResponse getInventory(@PathVariable @Positive Long skuId) {
         return InventoryStockResponse.from(inventoryQueryService.getAvailableStock(SkuIdMapper.toDomain(skuId)));
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
     @HasPermission("inventory:stock:view")
     @GetMapping
-    public List<InventoryStockResponse> listInventories(
-            @CurrentTenant Long tenantId, @Valid @ModelAttribute InventoryBatchQueryRequest request) {
+    public List<InventoryStockResponse> listInventories(@Valid @ModelAttribute InventoryBatchQueryRequest request) {
         return inventoryQueryService
                 .batchGetAvailableStock(
                         request.getSkuIds() == null
@@ -87,8 +83,7 @@ public class InventoryController {
     @Operation(summary = "分页查询库存主数据")
     @HasPermission("inventory:stock:view")
     @GetMapping("/page")
-    public InventoryPageResponse pageInventories(
-            @CurrentTenant Long tenantId, @Valid @ModelAttribute InventoryPageRequest request) {
+    public InventoryPageResponse pageInventories(@Valid @ModelAttribute InventoryPageRequest request) {
         InventoryStatus status = parseInventoryStatus(request.getStatus());
         return InventoryPageResponse.from(inventoryQueryService.pageInventories(
                 SkuIdMapper.toDomain(request.getSkuId()),
@@ -101,12 +96,11 @@ public class InventoryController {
     @HasPermission("inventory:stock:update")
     @PutMapping("/{skuId}/status")
     public InventoryStockResponse updateInventoryStatus(
-            @CurrentTenant @NotNull @Positive Long tenantId,
             @PathVariable @Positive Long skuId,
             @Valid @RequestBody InventoryStatusUpdateRequest request) {
         InventoryStatus status = parseInventoryStatus(request.status());
         return InventoryStockResponse.from(inventoryManagementApplicationService.updateInventoryStatus(
-                TenantId.of(tenantId), SkuIdMapper.toDomain(skuId), status));
+                SkuIdMapper.toDomain(skuId), status));
     }
 
     private InventoryStatus parseInventoryStatus(String status) {

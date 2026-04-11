@@ -11,7 +11,6 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
-import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
@@ -34,7 +33,6 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
-                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
@@ -53,7 +51,6 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
-                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
         BaconContextHolder.clear();
 
@@ -62,7 +59,7 @@ class InventoryProviderControllerContractTest {
                 () -> mockMvc.perform(get("/providers/inventory/stocks")
                         .param("skuIds", "101")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
-        assertEquals("tenantId is required for current request", exception.getCause().getMessage());
+        assertEquals("tenantId must not be null", exception.getCause().getMessage());
     }
 
     @Test
@@ -71,7 +68,6 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
-                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
         BaconContextHolder.set(new BaconContext(9999L, 2001L));
 
@@ -89,7 +85,6 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
-                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
@@ -104,7 +99,6 @@ class InventoryProviderControllerContractTest {
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
-                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
@@ -132,6 +126,9 @@ class InventoryProviderControllerContractTest {
         @Override
         public List<InventoryStockDTO> batchGetAvailableStock(Set<SkuId> skuIds) {
             Long tenantIdValue = BaconContextHolder.currentTenantId();
+            if (tenantIdValue == null) {
+                throw new IllegalArgumentException("tenantId must not be null");
+            }
             if (Long.valueOf(9999L).equals(tenantIdValue)) {
                 throw new IllegalArgumentException("Invalid tenant: " + tenantIdValue);
             }
@@ -142,6 +139,9 @@ class InventoryProviderControllerContractTest {
         @Override
         public InventoryStockDTO getAvailableStock(SkuId skuId) {
             Long tenantIdValue = BaconContextHolder.currentTenantId();
+            if (tenantIdValue == null) {
+                throw new IllegalArgumentException("tenantId must not be null");
+            }
             if (Long.valueOf(9999L).equals(tenantIdValue)) {
                 throw new IllegalArgumentException("Invalid tenant: " + tenantIdValue);
             }

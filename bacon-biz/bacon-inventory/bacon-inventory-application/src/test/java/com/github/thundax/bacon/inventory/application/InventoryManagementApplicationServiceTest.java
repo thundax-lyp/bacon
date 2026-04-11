@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -36,8 +36,8 @@ class InventoryManagementApplicationServiceTest {
         InventoryManagementApplicationService service =
                 new InventoryManagementApplicationService(repository, bizTag -> 10001L);
 
-        InventoryStockDTO result =
-                service.createInventory(TenantId.of(1001L), SkuId.of(103L), 30, InventoryStatus.ENABLED);
+        InventoryStockDTO result = BaconContextHolder.callWithTenantId(
+                1001L, () -> service.createInventory(SkuId.of(103L), 30, InventoryStatus.ENABLED));
 
         assertEquals(103L, result.getSkuId());
         assertEquals(30, result.getOnHandQuantity());
@@ -52,8 +52,9 @@ class InventoryManagementApplicationServiceTest {
         InventoryManagementApplicationService service =
                 new InventoryManagementApplicationService(repository, bizTag -> 10001L);
 
-        InventoryStockDTO result =
-                service.updateInventoryStatus(TenantId.of(1001L), SkuId.of(101L), InventoryStatus.DISABLED);
+        InventoryStockDTO result = BaconContextHolder.callWithTenantId(
+                1001L,
+                () -> service.updateInventoryStatus(SkuId.of(101L), InventoryStatus.DISABLED));
 
         assertEquals(InventoryStatus.DISABLED.value(), result.getStatus());
         assertEquals(

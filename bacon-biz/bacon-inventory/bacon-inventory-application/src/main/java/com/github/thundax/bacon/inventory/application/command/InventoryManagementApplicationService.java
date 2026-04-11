@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -34,8 +35,8 @@ public class InventoryManagementApplicationService {
     }
 
     @Transactional
-    public InventoryStockDTO createInventory(
-            TenantId tenantId, SkuId skuId, Integer onHandQuantity, InventoryStatus status) {
+    public InventoryStockDTO createInventory(SkuId skuId, Integer onHandQuantity, InventoryStatus status) {
+        TenantId tenantId = currentTenantId();
         Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(skuId, "skuId must not be null");
         Objects.requireNonNull(onHandQuantity, "onHandQuantity must not be null");
@@ -60,7 +61,8 @@ public class InventoryManagementApplicationService {
     }
 
     @Transactional
-    public InventoryStockDTO updateInventoryStatus(TenantId tenantId, SkuId skuId, InventoryStatus status) {
+    public InventoryStockDTO updateInventoryStatus(SkuId skuId, InventoryStatus status) {
+        TenantId tenantId = currentTenantId();
         Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(skuId, "skuId must not be null");
         Objects.requireNonNull(status, "status must not be null");
@@ -71,5 +73,11 @@ public class InventoryManagementApplicationService {
         inventory.updateStatus(status);
         Inventory savedInventory = inventoryRepository.saveInventory(inventory);
         return InventoryStockAssembler.fromInventory(savedInventory);
+    }
+
+    private TenantId currentTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        return TenantId.of(tenantId);
     }
 }

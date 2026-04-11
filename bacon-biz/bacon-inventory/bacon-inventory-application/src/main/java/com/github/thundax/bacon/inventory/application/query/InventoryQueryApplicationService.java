@@ -29,6 +29,7 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecord
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,7 @@ public class InventoryQueryApplicationService {
     }
 
     public InventoryStockDTO getAvailableStock(SkuId skuId) {
+        currentTenantId();
         return InventoryStockAssembler.fromInventory(inventoryStockRepository
                 .findInventory(skuId)
                 .orElseThrow(() -> new InventoryDomainException(
@@ -59,12 +61,14 @@ public class InventoryQueryApplicationService {
     }
 
     public List<InventoryStockDTO> batchGetAvailableStock(Set<SkuId> skuIds) {
+        currentTenantId();
         return inventoryStockRepository.findInventories(skuIds == null ? Set.of() : skuIds).stream()
                 .map(InventoryStockAssembler::fromInventory)
                 .toList();
     }
 
     public InventoryPageResultDTO pageInventories(SkuId skuId, InventoryStatus status, Integer pageNo, Integer pageSize) {
+        currentTenantId();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         List<InventoryStockDTO> records =
@@ -87,14 +91,14 @@ public class InventoryQueryApplicationService {
     }
 
     public List<InventoryLedgerDTO> listLedgersByOrderNo(OrderNo orderNo) {
-        Long tenantId = BaconContextHolder.currentTenantId();
+        Long tenantId = currentTenantId().value();
         return inventoryAuditRecordRepository.findLedgers(orderNo).stream()
                 .map(ledger -> InventoryLedgerAssembler.toDto(tenantId, ledger))
                 .toList();
     }
 
     public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(OrderNo orderNo) {
-        Long tenantId = BaconContextHolder.currentTenantId();
+        Long tenantId = currentTenantId().value();
         return inventoryAuditRecordRepository.findAuditLogs(orderNo).stream()
                 .map(auditLog -> InventoryAuditLogAssembler.toDto(tenantId, auditLog))
                 .toList();
@@ -121,6 +125,7 @@ public class InventoryQueryApplicationService {
 
     private TenantId currentTenantId() {
         Long tenantId = BaconContextHolder.currentTenantId();
-        return tenantId == null ? null : TenantId.of(tenantId);
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        return TenantId.of(tenantId);
     }
 }

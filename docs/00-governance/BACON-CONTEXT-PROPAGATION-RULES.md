@@ -95,6 +95,7 @@
 - HTTP 请求必须基于 `TenantCode` 解析 `TenantId`
 - 必须在建立上下文前完成“`UserId` 是否有 `TenantId` 权限”的校验
 - 校验通过后必须把 `TenantId` 与 `UserId` 一起放入 `BaconContextHolder`
+- 请求处理完成后必须清理 `BaconContextHolder`
 - provider controller 使用与 controller 完全一致的上下文规则
 - MQ 消费端处理消息前必须先恢复上下文
 
@@ -126,6 +127,8 @@ application 层默认运行在已建立的 `BaconContextHolder` 中。
 - 本地 facade 必须从 `BaconContextHolder` 读取当前上下文
 - 读取到空值时必须立即失败，不允许静默降级
 - 远程 facade 调用前必须先把当前上下文放到远程边界可消费的位置
+- 远程边界默认必须同时透传 `TenantId` 与 `UserId`
+- 远程边界任一关键上下文字段缺失时必须立即失败，不允许静默降级
 
 ### 6.5 Async Rule
 
@@ -229,6 +232,12 @@ repository 分两类。
 - 当前链路正确建立并延续了 `BaconContextHolder`
 - repository / MyBatis / 非 MyBatis 访问层最终消费了正确的上下文租户信息
 
+最低要求：
+
+- `TenantId` 与 `UserId` 必须被成对建立、成对延续、成对恢复
+- 不允许只透传 `TenantId` 而丢失 `UserId`
+- 不允许只透传 `UserId` 而丢失 `TenantId`
+
 第二种口径，显式透传已完成。
 
 必须同时满足：
@@ -250,6 +259,7 @@ repository 分两类。
 - 系统必须在写入 `BaconContextHolder` 前完成用户与租户权限校验
 - 权限校验失败时必须直接拒绝请求
 - 权限校验通过后必须把 `TenantId` 与 `UserId` 一起写入 `BaconContextHolder`
+- 请求处理完成后必须清理 `BaconContextHolder`
 
 ### 7.2 Controller And Provider
 
@@ -268,6 +278,7 @@ repository 分两类。
 ### 7.4 Remote Facade
 
 - 远程 facade 调用前必须把当前上下文带到远程边界
+- 远程边界默认必须同时带出 `TenantId` 与 `UserId`
 - 远程 HTTP 头部透传依赖统一客户端设施，不允许每个业务域重复拼接
 - 远程 facade 不允许遗漏上下文后直接调用对端 provider
 
@@ -277,6 +288,8 @@ repository 分两类。
 - 消费消息时必须优先从 MQ header 恢复 `BaconContextHolder`
 - 消费端进入 application 前，线程上下文中必须已经存在正确的 `TenantId` 与 `UserId`
 - MQ 场景默认先恢复上下文，再进入 application
+- MQ header 默认必须同时包含 `TenantId` 与 `UserId`
+- 上下文消费完成后必须清理 `BaconContextHolder`
 
 ### 7.6 Async
 
@@ -301,6 +314,7 @@ repository 分两类。
 
 - 先鉴权，再建上下文
 - `TenantId` 与 `UserId` 必须同时进入 `BaconContextHolder`
+- 请求结束后必须清理 `BaconContextHolder`
 
 ### 8.2 HTTP Flow
 
@@ -311,6 +325,7 @@ repository 分两类。
 - 请求进入业务方法前必须已建立上下文
 - application 默认依赖当前上下文
 - repository 若依赖 MyBatis 插件透传，则 DO 必须为 `TenantScoped`
+- 请求结束后必须清理上下文
 
 ### 8.3 Local Facade Flow
 
@@ -329,6 +344,7 @@ repository 分两类。
 要求：
 
 - 远程边界前必须显式带出上下文
+- 远程边界默认必须同时带出 `TenantId` 与 `UserId`
 - 对端 provider 必须恢复上下文后再进入业务
 
 ### 8.5 MQ Flow
@@ -339,6 +355,7 @@ repository 分两类。
 
 - 消息跨线程、跨进程后，上下文仍然必须可恢复
 - 仅有消息体业务参数，不等于上下文透传完成
+- 消费完成后必须清理上下文
 
 ### 8.6 Async Flow
 
@@ -356,8 +373,10 @@ repository 分两类。
 - 代码评审时必须检查“上下文模式”“显式透传”“MyBatis 插件透传”是否被混淆
 - 代码评审时必须检查异步任务是否使用受控 `Executor`、`TaskDecorator` 或 `AsyncTaskWrapper`
 - 代码评审时必须检查缓存值是否在写入前已经完成租户过滤
+- 代码评审时必须检查 `TenantId` 与 `UserId` 是否被成对透传
 - 测试必须至少覆盖一种入口场景，验证 `TenantId` 与 `UserId` 已被正确建立到 `BaconContextHolder`
 - 测试必须至少覆盖一种异步场景，验证跨线程后上下文仍能恢复且执行后被清理
+- 测试必须至少覆盖一种远程或消息场景，验证 `TenantId` 与 `UserId` 能被成对恢复
 - 如果 repository 依赖 MyBatis 插件透传，测试必须证明查询或更新在有上下文时不会跨租户读写
 
 ## 10. Open Items

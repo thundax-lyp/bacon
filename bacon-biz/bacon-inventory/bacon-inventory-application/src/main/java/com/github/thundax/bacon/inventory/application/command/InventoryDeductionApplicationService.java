@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
@@ -62,10 +61,10 @@ public class InventoryDeductionApplicationService {
                 "deduct",
                 tenantId + ":" + orderNo,
                 () -> inventoryTransactionExecutor.executeInNewTransaction(
-                        () -> deductReservedStockOnce(tenantId, orderNo)));
+                        () -> deductReservedStockOnce(orderNo)));
     }
 
-    private InventoryReservationResultDTO deductReservedStockOnce(TenantId tenantId, OrderNo orderNo) {
+    private InventoryReservationResultDTO deductReservedStockOnce(OrderNo orderNo) {
         InventoryReservation reservation = inventoryReservationRepository
                 .findReservation(orderNo)
                 .orElse(null);
@@ -80,15 +79,15 @@ public class InventoryDeductionApplicationService {
 
         Instant deductedAt = Instant.now();
         reservation.getItems().forEach(item -> {
-            deductStockOnce(tenantId, item.getSkuId(), item.getQuantity(), deductedAt);
+            deductStockOnce(item.getSkuId(), item.getQuantity(), deductedAt);
         });
         reservation.deduct(deductedAt);
         inventoryReservationRepository.saveReservation(reservation);
-        inventoryOperationLogService.recordDeductSuccess(tenantId, reservation, deductedAt);
+        inventoryOperationLogService.recordDeductSuccess(reservation, deductedAt);
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
-    private void deductStockOnce(TenantId tenantId, SkuId skuId, int quantity, Instant operatedAt) {
+    private void deductStockOnce(SkuId skuId, int quantity, Instant operatedAt) {
         Inventory inventory = inventoryStockRepository
                 .findInventory(skuId)
                 .orElseThrow(() ->

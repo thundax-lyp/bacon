@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
@@ -67,11 +66,10 @@ public class InventoryReleaseApplicationService {
                 "release",
                 tenantId + ":" + orderNo,
                 () -> inventoryTransactionExecutor.executeInNewTransaction(
-                        () -> releaseReservedStockOnce(tenantId, orderNo, reason)));
+                        () -> releaseReservedStockOnce(orderNo, reason)));
     }
 
-    private InventoryReservationResultDTO releaseReservedStockOnce(
-            TenantId tenantId, OrderNo orderNo, InventoryReleaseReason reason) {
+    private InventoryReservationResultDTO releaseReservedStockOnce(OrderNo orderNo, InventoryReleaseReason reason) {
         InventoryReservation reservation = inventoryReservationRepository
                 .findReservation(orderNo)
                 .orElse(null);
@@ -86,15 +84,15 @@ public class InventoryReleaseApplicationService {
 
         Instant releasedAt = Instant.now();
         reservation.getItems().forEach(item -> {
-            releaseStockOnce(tenantId, item.getSkuId(), item.getQuantity(), releasedAt);
+            releaseStockOnce(item.getSkuId(), item.getQuantity(), releasedAt);
         });
         reservation.release(reason, releasedAt);
         inventoryReservationRepository.saveReservation(reservation);
-        inventoryOperationLogService.recordReleaseSuccess(tenantId, reservation, releasedAt);
+        inventoryOperationLogService.recordReleaseSuccess(reservation, releasedAt);
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
-    private void releaseStockOnce(TenantId tenantId, SkuId skuId, int quantity, Instant operatedAt) {
+    private void releaseStockOnce(SkuId skuId, int quantity, Instant operatedAt) {
         Inventory inventory = inventoryStockRepository
                 .findInventory(skuId)
                 .orElseThrow(() ->

@@ -105,7 +105,6 @@ public class InventoryReservationApplicationService {
         WarehouseCode warehouseCodeValue = WarehouseCode.DEFAULT;
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
         List<InventoryReservationItem> reservationItems = InventoryReservationAssembler.toDomainItems(
-                tenantId == null ? null : tenantId.value(),
                 reservationNoValue == null ? null : reservationNoValue.value(),
                 normalizedItems);
         InventoryReservation reservation = new InventoryReservation(

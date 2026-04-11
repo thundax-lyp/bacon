@@ -153,7 +153,6 @@ public class InMemoryInventoryRepositorySupport {
                     reservation.getItems().stream()
                             .map(item -> new InventoryReservationItem(
                                     item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
-                                    item.getTenantId(),
                                     item.getReservationNo(),
                                     item.getSkuId(),
                                     item.getQuantity()))

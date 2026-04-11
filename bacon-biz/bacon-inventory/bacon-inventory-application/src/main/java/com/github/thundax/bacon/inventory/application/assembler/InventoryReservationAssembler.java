@@ -40,7 +40,7 @@ public final class InventoryReservationAssembler {
                 dto.getOrderNo(),
                 dto.getWarehouseCode(),
                 dto.getCreatedAt(),
-                toDomainItems(dto.getTenantId(), dto.getReservationNo(), dto.getItems()),
+                toDomainItems(dto.getReservationNo(), dto.getItems()),
                 dto.getReservationStatus(),
                 dto.getFailureReason(),
                 dto.getReleaseReason(),
@@ -59,16 +59,14 @@ public final class InventoryReservationAssembler {
     }
 
     public static List<InventoryReservationItem> toDomainItems(
-            Long tenantId, String reservationNo, List<InventoryReservationItemDTO> items) {
+            String reservationNo, List<InventoryReservationItemDTO> items) {
         if (items == null || items.isEmpty()) {
             return List.of();
         }
-        TenantId tenantIdValue = tenantId == null ? null : TenantId.of(tenantId);
         ReservationNo reservationNoValue = reservationNo == null ? null : ReservationNo.of(reservationNo);
         return items.stream()
                 .map(item -> new InventoryReservationItem(
                         null,
-                        tenantIdValue,
                         reservationNoValue,
                         item.getSkuId() == null ? null : SkuId.of(item.getSkuId()),
                         item.getQuantity()))

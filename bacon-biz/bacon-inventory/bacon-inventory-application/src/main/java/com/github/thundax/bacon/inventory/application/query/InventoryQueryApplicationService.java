@@ -87,8 +87,9 @@ public class InventoryQueryApplicationService {
     }
 
     public List<InventoryLedgerDTO> listLedgersByOrderNo(OrderNo orderNo) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         return inventoryAuditRecordRepository.findLedgers(orderNo).stream()
-                .map(InventoryLedgerAssembler::toDto)
+                .map(ledger -> InventoryLedgerAssembler.toDto(tenantId, ledger))
                 .toList();
     }
 

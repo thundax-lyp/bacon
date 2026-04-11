@@ -182,7 +182,6 @@ public class InMemoryInventoryRepositorySupport {
         if (ledger.getId() == null) {
             ledger = new InventoryLedger(
                     ledgerIdGenerator.getAndIncrement(),
-                    ledger.getTenantId(),
                     ledger.getOrderNo(),
                     ledger.getReservationNo(),
                     ledger.getSkuId(),
@@ -193,9 +192,7 @@ public class InMemoryInventoryRepositorySupport {
         }
         ledgers.computeIfAbsent(
                         reservationKey(
-                                ledger.getTenantId() == null
-                                        ? null
-                                        : ledger.getTenantId().value(),
+                                BaconContextHolder.currentTenantId(),
                                 ledger.getOrderNo() == null ? null : ledger.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(ledger);

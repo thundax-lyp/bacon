@@ -345,10 +345,8 @@ class InventoryWorkflowIntegrationTest {
         public void saveLedger(InventoryLedger ledger) {
             ledgers.computeIfAbsent(
                             reservationKey(
-                                    ledger.getTenantId() == null
-                                            ? null
-                                            : ledger.getTenantId().value(),
-                                    ledger.getOrderNoValue()),
+                                    BaconContextHolder.currentTenantId(),
+                                    ledger.getOrderNo() == null ? null : ledger.getOrderNo().value()),
                             ignored -> new ArrayList<>())
                     .add(ledger);
         }

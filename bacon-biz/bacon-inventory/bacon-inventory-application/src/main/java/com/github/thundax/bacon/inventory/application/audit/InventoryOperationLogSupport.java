@@ -70,7 +70,6 @@ public class InventoryOperationLogSupport {
         for (InventoryReservationItem item : items) {
             inventoryAuditRecordRepository.saveLedger(new InventoryLedger(
                     null,
-                    tenantId,
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
                     item.getSkuId(),

@@ -66,7 +66,6 @@ public class InventoryAuditReplayTransactionExecutor {
                     replayAt);
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
-                    deadLetter.getTenantId(),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
                     InventoryAuditActionType.AUDIT_REPLAY_FAILED,
@@ -87,7 +86,6 @@ public class InventoryAuditReplayTransactionExecutor {
             // 回放不是重放原业务动作，而是补写丢失的审计日志，并把死信改成已回放成功。
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
-                    deadLetter.getTenantId(),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
                     deadLetter.getActionType(),
@@ -102,7 +100,6 @@ public class InventoryAuditReplayTransactionExecutor {
                     replayAt);
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
-                    deadLetter.getTenantId(),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
                     InventoryAuditActionType.AUDIT_REPLAY_SUCCEEDED,
@@ -125,7 +122,6 @@ public class InventoryAuditReplayTransactionExecutor {
                     replayAt);
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
-                    deadLetter.getTenantId(),
                     deadLetter.getOrderNo(),
                     deadLetter.getReservationNo(),
                     InventoryAuditActionType.AUDIT_REPLAY_FAILED,

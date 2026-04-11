@@ -102,7 +102,6 @@ public class InventoryOperationLogSupport {
         try {
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
-                    tenantId,
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
                     actionType,

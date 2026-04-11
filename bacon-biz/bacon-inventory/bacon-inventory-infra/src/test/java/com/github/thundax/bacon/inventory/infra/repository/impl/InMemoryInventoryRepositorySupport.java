@@ -208,7 +208,6 @@ public class InMemoryInventoryRepositorySupport {
         if (auditLog.getId() == null) {
             auditLog = InventoryAuditLog.reconstruct(
                     auditLogIdGenerator.getAndIncrement(),
-                    auditLog.getTenantId(),
                     auditLog.getOrderNo(),
                     auditLog.getReservationNo(),
                     auditLog.getActionType(),
@@ -219,9 +218,7 @@ public class InMemoryInventoryRepositorySupport {
         auditLogs
                 .computeIfAbsent(
                         reservationKey(
-                                auditLog.getTenantId() == null
-                                        ? null
-                                        : auditLog.getTenantId().value(),
+                                BaconContextHolder.currentTenantId(),
                                 auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(auditLog);

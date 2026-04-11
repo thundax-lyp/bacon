@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
@@ -16,7 +16,6 @@ public final class InventoryAuditLogPersistenceAssembler {
     public static InventoryAuditLog toDomain(InventoryAuditLogDO dataObject) {
         return InventoryAuditLog.reconstruct(
                 dataObject.getId(),
-                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),
                 dataObject.getReservationNo() == null ? null : ReservationNo.of(dataObject.getReservationNo()),
                 dataObject.getActionType() == null ? null : InventoryAuditActionType.from(dataObject.getActionType()),
@@ -30,11 +29,11 @@ public final class InventoryAuditLogPersistenceAssembler {
     public static InventoryAuditLogDO toDataObject(InventoryAuditLog auditLog) {
         return new InventoryAuditLogDO(
                 auditLog.getId(),
-                auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(),
-                auditLog.getOrderNoValue(),
-                auditLog.getReservationNoValue(),
-                auditLog.getActionTypeValue(),
-                auditLog.getOperatorTypeValue(),
+                BaconContextHolder.currentTenantId(),
+                auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value(),
+                auditLog.getReservationNo() == null ? null : auditLog.getReservationNo().value(),
+                auditLog.getActionType() == null ? null : auditLog.getActionType().value(),
+                auditLog.getOperatorType() == null ? null : auditLog.getOperatorType().value(),
                 OperatorIdMapper.toLongValue(auditLog.getOperatorId()),
                 auditLog.getOccurredAt());
     }

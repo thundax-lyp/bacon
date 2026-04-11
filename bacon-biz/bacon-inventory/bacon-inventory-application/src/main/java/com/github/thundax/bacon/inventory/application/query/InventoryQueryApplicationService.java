@@ -94,8 +94,9 @@ public class InventoryQueryApplicationService {
     }
 
     public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(OrderNo orderNo) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         return inventoryAuditRecordRepository.findAuditLogs(orderNo).stream()
-                .map(InventoryAuditLogAssembler::toDto)
+                .map(auditLog -> InventoryAuditLogAssembler.toDto(tenantId, auditLog))
                 .toList();
     }
 

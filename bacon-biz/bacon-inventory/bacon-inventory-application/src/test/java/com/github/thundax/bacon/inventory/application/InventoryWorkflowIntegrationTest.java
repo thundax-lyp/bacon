@@ -366,10 +366,8 @@ class InventoryWorkflowIntegrationTest {
             auditLogs
                     .computeIfAbsent(
                             reservationKey(
-                                    auditLog.getTenantId() == null
-                                            ? null
-                                            : auditLog.getTenantId().value(),
-                                    auditLog.getOrderNoValue()),
+                                    BaconContextHolder.currentTenantId(),
+                                    auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value()),
                             ignored -> new ArrayList<>())
                     .add(auditLog);
         }

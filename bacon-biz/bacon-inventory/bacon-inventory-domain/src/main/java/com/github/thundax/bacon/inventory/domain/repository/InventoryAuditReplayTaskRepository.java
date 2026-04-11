@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.domain.repository;
 
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -14,18 +13,17 @@ import java.util.Optional;
 
 public interface InventoryAuditReplayTaskRepository {
 
-    default InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
+    default InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         return task;
     }
 
-    default void batchSaveAuditReplayTaskItems(
-            TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds, Instant createdAt) {}
+    default void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {}
 
     default Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
         return Optional.empty();
     }
 
-    default TenantId findAuditReplayTaskTenant(TaskId taskId) {
+    default Long findAuditReplayTaskTenantId(TaskId taskId) {
         return null;
     }
 
@@ -61,11 +59,11 @@ public interface InventoryAuditReplayTaskRepository {
     default void finishAuditReplayTask(
             TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {}
 
-    default boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
+    default boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
         return false;
     }
 
-    default boolean resumeAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant updatedAt) {
+    default boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
         return false;
     }
 }

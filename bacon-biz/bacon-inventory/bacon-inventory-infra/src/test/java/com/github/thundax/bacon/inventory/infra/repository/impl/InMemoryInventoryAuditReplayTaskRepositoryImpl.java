@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -28,14 +27,13 @@ public class InMemoryInventoryAuditReplayTaskRepositoryImpl implements Inventory
     }
 
     @Override
-    public InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
-        return support.saveAuditReplayTask(tenantId, task);
+    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+        return support.saveAuditReplayTask(task);
     }
 
     @Override
-    public void batchSaveAuditReplayTaskItems(
-            TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
-        support.batchSaveAuditReplayTaskItems(taskId, tenantId, deadLetterIds, createdAt);
+    public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
+        support.batchSaveAuditReplayTaskItems(taskId, deadLetterIds, createdAt);
     }
 
     @Override
@@ -44,8 +42,8 @@ public class InMemoryInventoryAuditReplayTaskRepositoryImpl implements Inventory
     }
 
     @Override
-    public TenantId findAuditReplayTaskTenant(TaskId taskId) {
-        return support.findAuditReplayTaskTenant(taskId);
+    public Long findAuditReplayTaskTenantId(TaskId taskId) {
+        return support.findAuditReplayTaskTenantId(taskId);
     }
 
     @Override
@@ -97,12 +95,12 @@ public class InMemoryInventoryAuditReplayTaskRepositoryImpl implements Inventory
     }
 
     @Override
-    public boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
-        return support.pauseAuditReplayTask(taskId, tenantId, operatorId, pausedAt);
+    public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
+        return support.pauseAuditReplayTask(taskId, operatorId, pausedAt);
     }
 
     @Override
-    public boolean resumeAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant updatedAt) {
-        return support.resumeAuditReplayTask(taskId, tenantId, operatorId, updatedAt);
+    public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
+        return support.resumeAuditReplayTask(taskId, operatorId, updatedAt);
     }
 }

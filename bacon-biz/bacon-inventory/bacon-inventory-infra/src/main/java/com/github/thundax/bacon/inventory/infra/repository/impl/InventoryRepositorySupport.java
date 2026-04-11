@@ -556,9 +556,9 @@ public class InventoryRepositorySupport {
         return Objects.requireNonNull(tenantId, "tenantId must not be null");
     }
 
-    public InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
+    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         InventoryAuditReplayTaskDO dataObject =
-                InventoryAuditReplayTaskPersistenceAssembler.toDataObject(tenantId, task);
+                InventoryAuditReplayTaskPersistenceAssembler.toDataObject(currentTenantId(), task);
         if (dataObject.getId() == null) {
             auditReplayTaskMapper.insert(dataObject);
         } else {
@@ -567,8 +567,8 @@ public class InventoryRepositorySupport {
         return InventoryAuditReplayTaskPersistenceAssembler.toDomain(dataObject);
     }
 
-    public void batchSaveAuditReplayTaskItems(
-            TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
+    public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
+        Long tenantId = currentTenantId();
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             return;
         }
@@ -576,7 +576,7 @@ public class InventoryRepositorySupport {
             auditReplayTaskItemMapper.insert(new InventoryAuditReplayTaskItemDO(
                     null,
                     taskId == null ? null : taskId.value(),
-                    tenantId == null ? null : tenantId.value(),
+                    tenantId,
                     deadLetterId == null ? null : deadLetterId.value(),
                     InventoryAuditReplayTaskItemStatus.PENDING.value(),
                     null,
@@ -593,9 +593,9 @@ public class InventoryRepositorySupport {
                 .map(InventoryAuditReplayTaskPersistenceAssembler::toDomain);
     }
 
-    public TenantId findAuditReplayTaskTenant(TaskId taskId) {
+    public Long findAuditReplayTaskTenantId(TaskId taskId) {
         InventoryAuditReplayTaskDO dataObject = auditReplayTaskMapper.selectById(taskId == null ? null : taskId.value());
-        return dataObject == null || dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId());
+        return dataObject == null ? null : dataObject.getTenantId();
     }
 
     public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(
@@ -735,12 +735,13 @@ public class InventoryRepositorySupport {
                         .set(InventoryAuditReplayTaskDO::getUpdatedAt, finishedAt));
     }
 
-    public boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
+    public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
+        Long tenantId = currentTenantId();
         return auditReplayTaskMapper.update(
                         null,
                         Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
                                 .eq(InventoryAuditReplayTaskDO::getId, taskId == null ? null : taskId.value())
-                                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId == null ? null : tenantId.value())
+                                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId)
                                 .in(
                                         InventoryAuditReplayTaskDO::getStatus,
                                         InventoryAuditReplayTaskStatus.PENDING,
@@ -753,12 +754,13 @@ public class InventoryRepositorySupport {
                 > 0;
     }
 
-    public boolean resumeAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant updatedAt) {
+    public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
+        Long tenantId = currentTenantId();
         return auditReplayTaskMapper.update(
                         null,
                         Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
                                 .eq(InventoryAuditReplayTaskDO::getId, taskId == null ? null : taskId.value())
-                                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId == null ? null : tenantId.value())
+                                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId)
                                 .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.PAUSED)
                                 .set(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.PENDING)
                                 .set(InventoryAuditReplayTaskDO::getPausedAt, null)

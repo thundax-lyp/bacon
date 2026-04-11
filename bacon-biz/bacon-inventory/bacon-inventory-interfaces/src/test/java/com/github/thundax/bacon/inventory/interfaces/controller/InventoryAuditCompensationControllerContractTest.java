@@ -146,29 +146,28 @@ class InventoryAuditCompensationControllerContractTest {
         }
     }
 
-    private static final class StubReplayTaskRepository implements InventoryAuditReplayTaskRepository {
+        private static final class StubReplayTaskRepository implements InventoryAuditReplayTaskRepository {
 
         private final AtomicLong taskIdGenerator = new AtomicLong(1000L);
         private final AtomicLong taskItemIdGenerator = new AtomicLong(2000L);
         private final Map<Long, InventoryAuditReplayTask> tasks = new ConcurrentHashMap<>();
-        private final Map<Long, TenantId> taskTenants = new ConcurrentHashMap<>();
+        private final Map<Long, Long> taskTenants = new ConcurrentHashMap<>();
         private final Map<Long, List<InventoryAuditReplayTaskItem>> taskItems = new ConcurrentHashMap<>();
 
         @Override
-        public InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
+        public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
             if (task.getId() == null) {
                 task.setId(TaskId.of(taskIdGenerator.getAndIncrement()));
             }
             tasks.put(task.getIdValue(), task);
-            if (tenantId != null) {
-                taskTenants.put(task.getIdValue(), tenantId);
-            }
+            taskTenants.put(
+                    task.getIdValue(),
+                    java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null"));
             return task;
         }
 
         @Override
-        public void batchSaveAuditReplayTaskItems(
-                TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
+        public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
             List<InventoryAuditReplayTaskItem> items =
                     taskItems.computeIfAbsent(taskId == null ? null : taskId.value(), key -> new ArrayList<>());
             for (DeadLetterId deadLetterId : deadLetterIds) {
@@ -192,12 +191,13 @@ class InventoryAuditCompensationControllerContractTest {
         }
 
         @Override
-        public TenantId findAuditReplayTaskTenant(TaskId taskId) {
+        public Long findAuditReplayTaskTenantId(TaskId taskId) {
             return taskTenants.get(taskId == null ? null : taskId.value());
         }
 
         @Override
-        public boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
+        public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
+            Long tenantId = java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
             return findAuditReplayTaskById(taskId)
                     .filter(task -> java.util.Objects.equals(tenantId, taskTenants.get(task.getIdValue())))
                     .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
@@ -212,7 +212,8 @@ class InventoryAuditCompensationControllerContractTest {
         }
 
         @Override
-        public boolean resumeAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant updatedAt) {
+        public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
+            Long tenantId = java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
             return findAuditReplayTaskById(taskId)
                     .filter(task -> java.util.Objects.equals(tenantId, taskTenants.get(task.getIdValue())))
                     .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))

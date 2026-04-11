@@ -2,7 +2,6 @@ package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
@@ -44,17 +43,16 @@ public class InventoryAuditReplayTaskApplicationService {
             throw new InventoryDomainException(
                     InventoryErrorCode.INVENTORY_REMOTE_BAD_REQUEST, "replay-task-empty-dead-letter-ids");
         }
-        TenantId tenantId = currentTenantId();
+        currentTenantId();
         Instant now = Instant.now();
         TaskNo taskNo =
                 TaskNoCodec.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
         // 回放任务只负责“组织一批死信逐条回放”，真正的单条回放语义仍复用 compensation service。
         InventoryAuditReplayTask task =
                 InventoryAuditReplayTaskAssembler.toDomain(createDTO, taskNo, OPERATOR_TYPE_MANUAL, now);
-        InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(tenantId, task);
+        InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
         inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(
                 saved.getId(),
-                tenantId,
                 createDTO.getDeadLetterIds().stream()
                         .map(DeadLetterIdCodec::toDomain)
                         .toList(),
@@ -70,14 +68,14 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     public InventoryAuditReplayTaskDTO pauseReplayTask(TaskId taskId, OperatorId operatorId) {
-        TenantId tenantId = currentTenantId();
+        Long tenantId = currentTenantId();
         InventoryAuditReplayTask task = getTaskById(taskId);
         ensureTaskTenant(taskId, tenantId);
         if (isTerminal(task.getStatus())) {
             return InventoryAuditReplayTaskAssembler.toDto(task);
         }
         Instant now = Instant.now();
-        boolean paused = inventoryAuditReplayTaskRepository.pauseAuditReplayTask(taskId, tenantId, operatorId, now);
+        boolean paused = inventoryAuditReplayTaskRepository.pauseAuditReplayTask(taskId, operatorId, now);
         if (paused) {
             Metrics.counter("bacon.inventory.audit.replay.task.paused.total").increment();
         }
@@ -85,14 +83,14 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     public InventoryAuditReplayTaskDTO resumeReplayTask(TaskId taskId, OperatorId operatorId) {
-        TenantId tenantId = currentTenantId();
+        Long tenantId = currentTenantId();
         InventoryAuditReplayTask task = getTaskById(taskId);
         ensureTaskTenant(taskId, tenantId);
         if (isTerminal(task.getStatus())) {
             return InventoryAuditReplayTaskAssembler.toDto(task);
         }
         Instant now = Instant.now();
-        boolean resumed = inventoryAuditReplayTaskRepository.resumeAuditReplayTask(taskId, tenantId, operatorId, now);
+        boolean resumed = inventoryAuditReplayTaskRepository.resumeAuditReplayTask(taskId, operatorId, now);
         if (resumed) {
             Metrics.counter("bacon.inventory.audit.replay.task.resumed.total").increment();
         }
@@ -112,7 +110,7 @@ public class InventoryAuditReplayTaskApplicationService {
             return;
         }
         Instant now = Instant.now();
-        TenantId tenantId = Objects.requireNonNull(loadTaskTenant(task.getId()), "tenantId must not be null");
+        Long tenantId = Objects.requireNonNull(loadTaskTenantId(task.getId()), "tenantId must not be null");
         // Worker 每轮都会续租任务，确保长批次处理时不会因为租约过期被其他节点重复接管。
         inventoryAuditReplayTaskRepository.renewAuditReplayTaskLease(
                 task.getId(), processingOwner, now.plusSeconds(Math.max(leaseSeconds, 1L)), now);
@@ -134,7 +132,7 @@ public class InventoryAuditReplayTaskApplicationService {
             try {
                 String replayKey = buildReplayKey(task, item);
                 InventoryAuditReplayResultDTO result = BaconContextHolder.callWithTenantId(
-                        tenantId == null ? null : tenantId.value(),
+                        tenantId,
                         () -> compensationService.replayDeadLetter(
                                 DeadLetterIdCodec.toDomain(item.getDeadLetterIdValue()),
                                 replayKey,
@@ -219,21 +217,21 @@ public class InventoryAuditReplayTaskApplicationService {
                         "replay-task-not-found:" + (taskId == null ? null : taskId.value())));
     }
 
-    private void ensureTaskTenant(TaskId taskId, TenantId tenantId) {
-        if (!Objects.equals(loadTaskTenant(taskId), tenantId)) {
+    private void ensureTaskTenant(TaskId taskId, Long tenantId) {
+        if (!Objects.equals(loadTaskTenantId(taskId), tenantId)) {
             throw new InventoryDomainException(
                     InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "replay-task-tenant-mismatch");
         }
     }
 
-    private TenantId loadTaskTenant(TaskId taskId) {
-        return inventoryAuditReplayTaskRepository.findAuditReplayTaskTenant(taskId);
+    private Long loadTaskTenantId(TaskId taskId) {
+        return inventoryAuditReplayTaskRepository.findAuditReplayTaskTenantId(taskId);
     }
 
-    private TenantId currentTenantId() {
+    private Long currentTenantId() {
         Long tenantId = BaconContextHolder.currentTenantId();
         Objects.requireNonNull(tenantId, "tenantId must not be null");
-        return TenantId.of(tenantId);
+        return tenantId;
     }
 
     private boolean isTerminal(InventoryAuditReplayTaskStatus status) {

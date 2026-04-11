@@ -68,7 +68,7 @@ public class InMemoryInventoryRepositorySupport {
     private final Map<String, List<InventoryAuditOutbox>> auditOutbox = new ConcurrentHashMap<>();
     private final Map<String, List<InventoryAuditDeadLetter>> auditDeadLetters = new ConcurrentHashMap<>();
     private final Map<Long, InventoryAuditReplayTask> auditReplayTasks = new ConcurrentHashMap<>();
-    private final Map<Long, TenantId> auditReplayTaskTenants = new ConcurrentHashMap<>();
+    private final Map<Long, Long> auditReplayTaskTenants = new ConcurrentHashMap<>();
     private final Map<Long, List<InventoryAuditReplayTaskItem>> auditReplayTaskItems = new ConcurrentHashMap<>();
 
     public InMemoryInventoryRepositorySupport() {
@@ -500,7 +500,7 @@ public class InMemoryInventoryRepositorySupport {
         });
     }
 
-    public InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
+    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         if (task.getId() == null) {
             task = new InventoryAuditReplayTask(
                     TaskId.of(auditReplayTaskIdGenerator.getAndIncrement()),
@@ -523,14 +523,11 @@ public class InMemoryInventoryRepositorySupport {
                     task.getUpdatedAt());
         }
         auditReplayTasks.put(task.getIdValue(), task);
-        if (tenantId != null) {
-            auditReplayTaskTenants.put(task.getIdValue(), tenantId);
-        }
+        auditReplayTaskTenants.put(task.getIdValue(), requireTenantIdValue());
         return task;
     }
 
-    public void batchSaveAuditReplayTaskItems(
-            TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
+    public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
         List<InventoryAuditReplayTaskItem> items =
                 auditReplayTaskItems.computeIfAbsent(taskId == null ? null : taskId.value(), key -> new ArrayList<>());
         for (DeadLetterId deadLetterId : deadLetterIds) {
@@ -552,7 +549,7 @@ public class InMemoryInventoryRepositorySupport {
         return Optional.ofNullable(auditReplayTasks.get(taskId == null ? null : taskId.value()));
     }
 
-    public TenantId findAuditReplayTaskTenant(TaskId taskId) {
+    public Long findAuditReplayTaskTenantId(TaskId taskId) {
         return auditReplayTaskTenants.get(taskId == null ? null : taskId.value());
     }
 
@@ -658,9 +655,10 @@ public class InMemoryInventoryRepositorySupport {
                 });
     }
 
-    public boolean pauseAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant pausedAt) {
+    public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
+        Long tenantId = requireTenantIdValue();
         return findAuditReplayTaskById(taskId)
-                .filter(task -> java.util.Objects.equals(findAuditReplayTaskTenant(task.getId()), tenantId))
+                .filter(task -> java.util.Objects.equals(findAuditReplayTaskTenantId(task.getId()), tenantId))
                 .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
                         || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .map(task -> {
@@ -674,9 +672,10 @@ public class InMemoryInventoryRepositorySupport {
                 .orElse(false);
     }
 
-    public boolean resumeAuditReplayTask(TaskId taskId, TenantId tenantId, OperatorId operatorId, Instant updatedAt) {
+    public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
+        Long tenantId = requireTenantIdValue();
         return findAuditReplayTaskById(taskId)
-                .filter(task -> java.util.Objects.equals(findAuditReplayTaskTenant(task.getId()), tenantId))
+                .filter(task -> java.util.Objects.equals(findAuditReplayTaskTenantId(task.getId()), tenantId))
                 .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))
                 .map(task -> {
                     task.setStatus(InventoryAuditReplayTaskStatus.PENDING);
@@ -701,6 +700,10 @@ public class InMemoryInventoryRepositorySupport {
 
     private static String reservationKey(String tenantId, String orderNo) {
         return tenantId + ":" + orderNo;
+    }
+
+    private Long requireTenantIdValue() {
+        return java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
     }
 
     private TenantId currentTenantId() {

@@ -7,7 +7,6 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
@@ -95,7 +94,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         private final AtomicLong taskItemIdGenerator = new AtomicLong(2000L);
         private final Map<Long, InventoryAuditDeadLetter> deadLetters = new ConcurrentHashMap<>();
         private final Map<Long, InventoryAuditReplayTask> tasks = new ConcurrentHashMap<>();
-        private final Map<Long, TenantId> taskTenants = new ConcurrentHashMap<>();
+        private final Map<Long, Long> taskTenants = new ConcurrentHashMap<>();
         private final Map<Long, List<InventoryAuditReplayTaskItem>> taskItems = new ConcurrentHashMap<>();
         private final List<InventoryAuditLog> auditLogs = new ArrayList<>();
 
@@ -173,20 +172,19 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
+        public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
             if (task.getId() == null) {
                 task.setId(TaskId.of(taskIdGenerator.getAndIncrement()));
             }
             tasks.put(task.getIdValue(), task);
-            if (tenantId != null) {
-                taskTenants.put(task.getIdValue(), tenantId);
-            }
+            taskTenants.put(
+                    task.getIdValue(),
+                    java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null"));
             return task;
         }
 
         @Override
-        public void batchSaveAuditReplayTaskItems(
-                TaskId taskId, TenantId tenantId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
+        public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
             List<InventoryAuditReplayTaskItem> items =
                     taskItems.computeIfAbsent(taskId == null ? null : taskId.value(), key -> new ArrayList<>());
             for (DeadLetterId deadLetterId : deadLetterIds) {
@@ -210,7 +208,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public TenantId findAuditReplayTaskTenant(TaskId taskId) {
+        public Long findAuditReplayTaskTenantId(TaskId taskId) {
             return taskTenants.get(taskId == null ? null : taskId.value());
         }
 

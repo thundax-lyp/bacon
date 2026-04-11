@@ -26,8 +26,8 @@ public class InventoryAuditReplayTaskRepositoryImpl implements InventoryAuditRep
     }
 
     @Override
-    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
-        return support.saveAuditReplayTask(task);
+    public InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
+        return support.saveAuditReplayTask(tenantId, task);
     }
 
     @Override
@@ -39,6 +39,11 @@ public class InventoryAuditReplayTaskRepositoryImpl implements InventoryAuditRep
     @Override
     public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
         return support.findAuditReplayTaskById(taskId);
+    }
+
+    @Override
+    public TenantId findAuditReplayTaskTenant(TaskId taskId) {
+        return support.findAuditReplayTaskTenant(taskId);
     }
 
     @Override

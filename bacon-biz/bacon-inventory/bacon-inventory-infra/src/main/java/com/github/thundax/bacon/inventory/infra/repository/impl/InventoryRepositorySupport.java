@@ -553,8 +553,9 @@ public class InventoryRepositorySupport {
                         .set(InventoryAuditDeadLetterDO::getLastReplayError, replayError));
     }
 
-    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
-        InventoryAuditReplayTaskDO dataObject = InventoryAuditReplayTaskPersistenceAssembler.toDataObject(task);
+    public InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
+        InventoryAuditReplayTaskDO dataObject =
+                InventoryAuditReplayTaskPersistenceAssembler.toDataObject(tenantId, task);
         if (dataObject.getId() == null) {
             auditReplayTaskMapper.insert(dataObject);
         } else {
@@ -587,6 +588,11 @@ public class InventoryRepositorySupport {
     public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
         return Optional.ofNullable(auditReplayTaskMapper.selectById(taskId == null ? null : taskId.value()))
                 .map(InventoryAuditReplayTaskPersistenceAssembler::toDomain);
+    }
+
+    public TenantId findAuditReplayTaskTenant(TaskId taskId) {
+        InventoryAuditReplayTaskDO dataObject = auditReplayTaskMapper.selectById(taskId == null ? null : taskId.value());
+        return dataObject == null || dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId());
     }
 
     public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(

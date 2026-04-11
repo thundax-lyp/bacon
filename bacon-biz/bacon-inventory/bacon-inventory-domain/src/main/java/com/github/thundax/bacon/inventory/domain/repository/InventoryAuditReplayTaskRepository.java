@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public interface InventoryAuditReplayTaskRepository {
 
-    default InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+    default InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
         return task;
     }
 
@@ -23,6 +23,10 @@ public interface InventoryAuditReplayTaskRepository {
 
     default Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
         return Optional.empty();
+    }
+
+    default TenantId findAuditReplayTaskTenant(TaskId taskId) {
+        return null;
     }
 
     default List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(

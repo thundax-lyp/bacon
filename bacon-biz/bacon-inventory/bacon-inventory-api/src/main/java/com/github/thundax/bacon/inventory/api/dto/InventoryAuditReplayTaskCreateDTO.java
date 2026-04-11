@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InventoryAuditReplayTaskCreateDTO {
 
-    /** 所属租户主键。 */
-    private Long tenantId;
     /** 操作人主键。 */
     private Long operatorId;
     /** 回放幂等键前缀。 */

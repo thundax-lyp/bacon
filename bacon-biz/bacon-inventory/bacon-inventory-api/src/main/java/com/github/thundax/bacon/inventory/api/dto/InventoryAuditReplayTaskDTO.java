@@ -15,8 +15,6 @@ public class InventoryAuditReplayTaskDTO {
 
     /** 回放任务主键。 */
     private Long taskId;
-    /** 所属租户主键。 */
-    private Long tenantId;
     /** 任务编号。 */
     private String taskNo;
     /** 任务状态。 */

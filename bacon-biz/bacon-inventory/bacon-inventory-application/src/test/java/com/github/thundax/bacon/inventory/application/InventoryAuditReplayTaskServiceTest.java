@@ -69,8 +69,10 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                         new InventoryAuditReplayTransactionExecutor(
                                 repository, repository, new InventoryTransactionExecutor(), ID_GENERATOR));
 
-        var created = taskService.createReplayTask(
-                new InventoryAuditReplayTaskCreateDTO(3001L, 9001L, "TASK-BATCH", List.of(101L)));
+        var created = BaconContextHolder.callWithTenantId(
+                3001L,
+                () -> taskService.createReplayTask(new InventoryAuditReplayTaskCreateDTO(
+                        9001L, "TASK-BATCH", List.of(101L))));
         assertNotNull(created.getTaskId());
 
         String owner = "test-owner";
@@ -93,6 +95,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         private final AtomicLong taskItemIdGenerator = new AtomicLong(2000L);
         private final Map<Long, InventoryAuditDeadLetter> deadLetters = new ConcurrentHashMap<>();
         private final Map<Long, InventoryAuditReplayTask> tasks = new ConcurrentHashMap<>();
+        private final Map<Long, TenantId> taskTenants = new ConcurrentHashMap<>();
         private final Map<Long, List<InventoryAuditReplayTaskItem>> taskItems = new ConcurrentHashMap<>();
         private final List<InventoryAuditLog> auditLogs = new ArrayList<>();
 
@@ -176,11 +179,14 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+        public InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {
             if (task.getId() == null) {
                 task.setId(TaskId.of(taskIdGenerator.getAndIncrement()));
             }
             tasks.put(task.getIdValue(), task);
+            if (tenantId != null) {
+                taskTenants.put(task.getIdValue(), tenantId);
+            }
             return task;
         }
 
@@ -192,7 +198,6 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             for (DeadLetterId deadLetterId : deadLetterIds) {
                 items.add(new InventoryAuditReplayTaskItem(
                         taskItemIdGenerator.getAndIncrement(),
-                        tenantId,
                         taskId,
                         deadLetterId,
                         InventoryAuditReplayTaskItemStatus.PENDING,
@@ -208,6 +213,11 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         @Override
         public Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
             return Optional.ofNullable(tasks.get(taskId == null ? null : taskId.value()));
+        }
+
+        @Override
+        public TenantId findAuditReplayTaskTenant(TaskId taskId) {
+            return taskTenants.get(taskId == null ? null : taskId.value());
         }
 
         @Override

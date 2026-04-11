@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
-import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
 import com.github.thundax.bacon.inventory.application.codec.TaskIdCodec;
@@ -18,7 +17,6 @@ public final class InventoryAuditReplayTaskAssembler {
             InventoryAuditReplayTaskCreateDTO createDTO, TaskNo taskNo, String operatorType, Instant now) {
         return new InventoryAuditReplayTask(
                 null,
-                TenantIdMapper.toDomain(createDTO.getTenantId()),
                 taskNo,
                 InventoryAuditReplayTaskStatus.PENDING,
                 createDTO.getDeadLetterIds().size(),
@@ -41,7 +39,6 @@ public final class InventoryAuditReplayTaskAssembler {
     public static InventoryAuditReplayTaskDTO toDto(InventoryAuditReplayTask task) {
         return new InventoryAuditReplayTaskDTO(
                 TaskIdCodec.toValue(task.getId()),
-                TenantIdMapper.toValue(task.getTenantId()),
                 TaskNoCodec.toValue(task.getTaskNo()),
                 task.getStatus().value(),
                 task.getTotalCount(),

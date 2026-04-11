@@ -12,9 +12,13 @@ public final class InventoryAuditReplayTaskPersistenceAssembler {
     private InventoryAuditReplayTaskPersistenceAssembler() {}
 
     public static InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {
+        return toDataObject(null, task);
+    }
+
+    public static InventoryAuditReplayTaskDO toDataObject(TenantId tenantId, InventoryAuditReplayTask task) {
         return new InventoryAuditReplayTaskDO(
                 task.getIdValue(),
-                task.getTenantId() == null ? null : task.getTenantId().value(),
+                tenantId == null ? null : tenantId.value(),
                 task.getTaskNoValue(),
                 task.getStatus().value(),
                 task.getTotalCount(),
@@ -37,7 +41,6 @@ public final class InventoryAuditReplayTaskPersistenceAssembler {
     public static InventoryAuditReplayTask toDomain(InventoryAuditReplayTaskDO dataObject) {
         return new InventoryAuditReplayTask(
                 dataObject.getId() == null ? null : TaskId.of(dataObject.getId()),
-                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getTaskNo() == null ? null : TaskNo.of(dataObject.getTaskNo()),
                 InventoryAuditReplayTaskStatus.from(dataObject.getStatus()),
                 dataObject.getTotalCount(),

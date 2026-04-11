@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
@@ -107,7 +106,7 @@ public class InventoryAuditCompensationController {
             @CurrentTenant Long tenantId, @Valid @RequestBody InventoryAuditReplayTaskCreateRequest request) {
         return InventoryAuditReplayTaskResponse.from(
                 inventoryAuditReplayTaskService.createReplayTask(new InventoryAuditReplayTaskCreateDTO(
-                        tenantId, request.operatorId(), request.replayKeyPrefix(), request.deadLetterIds())));
+                        request.operatorId(), request.replayKeyPrefix(), request.deadLetterIds())));
     }
 
     @Operation(summary = "查询库存审计死信批量重放任务进度")
@@ -116,7 +115,7 @@ public class InventoryAuditCompensationController {
     public InventoryAuditReplayTaskResponse getReplayTask(
             @CurrentTenant Long tenantId, @PathVariable @NotNull @Positive Long taskId) {
         return InventoryAuditReplayTaskResponse.from(
-                inventoryAuditReplayTaskService.getReplayTask(TenantId.of(tenantId), TaskIdCodec.toDomain(taskId)));
+                inventoryAuditReplayTaskService.getReplayTask(TaskIdCodec.toDomain(taskId)));
     }
 
     @Operation(summary = "暂停库存审计死信批量重放任务")
@@ -127,7 +126,6 @@ public class InventoryAuditCompensationController {
             @PathVariable @NotNull @Positive Long taskId,
             @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
         return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.pauseReplayTask(
-                TenantId.of(tenantId),
                 TaskIdCodec.toDomain(taskId),
                 OperatorIdMapper.toDomainFromLong(request.operatorId())));
     }
@@ -140,7 +138,6 @@ public class InventoryAuditCompensationController {
             @PathVariable @NotNull @Positive Long taskId,
             @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
         return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.resumeReplayTask(
-                TenantId.of(tenantId),
                 TaskIdCodec.toDomain(taskId),
                 OperatorIdMapper.toDomainFromLong(request.operatorId())));
     }

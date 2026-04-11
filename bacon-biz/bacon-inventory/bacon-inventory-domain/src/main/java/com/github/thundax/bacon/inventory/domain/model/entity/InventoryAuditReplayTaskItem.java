@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
@@ -20,8 +19,6 @@ public class InventoryAuditReplayTaskItem {
 
     /** 明细主键。 */
     private Long id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 回放任务主键。 */
     private TaskId taskId;
     /** 死信记录主键。 */

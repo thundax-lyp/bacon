@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
@@ -19,8 +18,6 @@ public class InventoryAuditReplayTask {
 
     /** 回放任务主键。 */
     private TaskId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 任务编号。 */
     private TaskNo taskNo;
     /** 任务状态。 */

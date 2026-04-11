@@ -143,7 +143,7 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+        public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
             return Optional.empty();
         }
 
@@ -151,7 +151,7 @@ class InventoryManagementApplicationServiceTest {
         public void saveLedger(InventoryLedger ledger) {}
 
         @Override
-        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+        public List<InventoryLedger> findLedgers(OrderNo orderNo) {
             return List.of();
         }
 
@@ -159,7 +159,7 @@ class InventoryManagementApplicationServiceTest {
         public void saveAuditLog(InventoryAuditLog auditLog) {}
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+        public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
             return List.of();
         }
 

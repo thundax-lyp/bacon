@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
+import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -39,26 +42,27 @@ public class InventoryOperationLogSupport {
         this.idGenerator = idGenerator;
     }
 
-    public void recordReserveSuccess(InventoryReservation reservation, Instant occurredAt) {
-        recordLedgerBatch(reservation, reservation.getItems(), InventoryLedgerType.RESERVE, occurredAt);
-        recordAuditAfterCommit(reservation, InventoryAuditActionType.RESERVE, occurredAt);
+    public void recordReserveSuccess(TenantId tenantId, InventoryReservation reservation, Instant occurredAt) {
+        recordLedgerBatch(tenantId, reservation, reservation.getItems(), InventoryLedgerType.RESERVE, occurredAt);
+        recordAuditAfterCommit(tenantId, reservation, InventoryAuditActionType.RESERVE, occurredAt);
     }
 
-    public void recordReserveFailed(InventoryReservation reservation, Instant occurredAt) {
-        recordAuditAfterCommit(reservation, InventoryAuditActionType.RESERVE_FAILED, occurredAt);
+    public void recordReserveFailed(TenantId tenantId, InventoryReservation reservation, Instant occurredAt) {
+        recordAuditAfterCommit(tenantId, reservation, InventoryAuditActionType.RESERVE_FAILED, occurredAt);
     }
 
-    public void recordReleaseSuccess(InventoryReservation reservation, Instant occurredAt) {
-        recordLedgerBatch(reservation, reservation.getItems(), InventoryLedgerType.RELEASE, occurredAt);
-        recordAuditAfterCommit(reservation, InventoryAuditActionType.RELEASE, occurredAt);
+    public void recordReleaseSuccess(TenantId tenantId, InventoryReservation reservation, Instant occurredAt) {
+        recordLedgerBatch(tenantId, reservation, reservation.getItems(), InventoryLedgerType.RELEASE, occurredAt);
+        recordAuditAfterCommit(tenantId, reservation, InventoryAuditActionType.RELEASE, occurredAt);
     }
 
-    public void recordDeductSuccess(InventoryReservation reservation, Instant occurredAt) {
-        recordLedgerBatch(reservation, reservation.getItems(), InventoryLedgerType.DEDUCT, occurredAt);
-        recordAuditAfterCommit(reservation, InventoryAuditActionType.DEDUCT, occurredAt);
+    public void recordDeductSuccess(TenantId tenantId, InventoryReservation reservation, Instant occurredAt) {
+        recordLedgerBatch(tenantId, reservation, reservation.getItems(), InventoryLedgerType.DEDUCT, occurredAt);
+        recordAuditAfterCommit(tenantId, reservation, InventoryAuditActionType.DEDUCT, occurredAt);
     }
 
     private void recordLedgerBatch(
+            TenantId tenantId,
             InventoryReservation reservation,
             List<InventoryReservationItem> items,
             InventoryLedgerType ledgerType,
@@ -66,7 +70,7 @@ public class InventoryOperationLogSupport {
         for (InventoryReservationItem item : items) {
             inventoryAuditRecordRepository.saveLedger(new InventoryLedger(
                     null,
-                    reservation.getTenantId(),
+                    tenantId,
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
                     item.getSkuId(),
@@ -78,8 +82,9 @@ public class InventoryOperationLogSupport {
     }
 
     private void recordAuditAfterCommit(
+            TenantId tenantId,
             InventoryReservation reservation, InventoryAuditActionType actionType, Instant occurredAt) {
-        Runnable task = () -> saveAuditSafely(reservation, actionType, occurredAt);
+        Runnable task = () -> saveAuditSafely(tenantId, reservation, actionType, occurredAt);
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             task.run();
             return;
@@ -93,11 +98,12 @@ public class InventoryOperationLogSupport {
     }
 
     private void saveAuditSafely(
+            TenantId tenantId,
             InventoryReservation reservation, InventoryAuditActionType actionType, Instant occurredAt) {
         try {
             inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
-                    reservation.getTenantId(),
+                    tenantId,
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
                     actionType,
@@ -109,17 +115,18 @@ public class InventoryOperationLogSupport {
         } catch (RuntimeException ex) {
             Metrics.counter("bacon.inventory.audit.write.fail.total", "actionType", actionType.value())
                     .increment();
-            saveAuditOutboxSafely(reservation, actionType, occurredAt, ex);
+            saveAuditOutboxSafely(tenantId, reservation, actionType, occurredAt, ex);
             log.error(
                     "ALERT inventory audit write failed, orderNo={}, reservationNo={}, actionType={}",
-                    reservation.getOrderNoValue(),
-                    reservation.getReservationNoValue(),
+                    OrderNoCodec.toValue(reservation.getOrderNo()),
+                    ReservationNoCodec.toValue(reservation.getReservationNo()),
                     actionType.value(),
                     ex);
         }
     }
 
     private void saveAuditOutboxSafely(
+            TenantId tenantId,
             InventoryReservation reservation,
             InventoryAuditActionType actionType,
             Instant occurredAt,
@@ -127,7 +134,7 @@ public class InventoryOperationLogSupport {
         try {
             inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(
                     null,
-                    reservation.getTenantId(),
+                    tenantId,
                     null,
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
@@ -152,8 +159,8 @@ public class InventoryOperationLogSupport {
                     .increment();
             log.error(
                     "ALERT inventory audit outbox persist failed, orderNo={}, reservationNo={}, actionType={}",
-                    reservation.getOrderNoValue(),
-                    reservation.getReservationNoValue(),
+                    OrderNoCodec.toValue(reservation.getOrderNo()),
+                    ReservationNoCodec.toValue(reservation.getReservationNo()),
                     actionType.value(),
                     outboxEx);
         }

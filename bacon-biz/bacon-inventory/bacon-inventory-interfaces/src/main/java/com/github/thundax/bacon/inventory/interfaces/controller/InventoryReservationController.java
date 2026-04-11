@@ -1,8 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
@@ -32,9 +30,7 @@ public class InventoryReservationController {
     @Operation(summary = "按订单号查询库存预占结果")
     @HasPermission("inventory:reservation:view")
     @GetMapping("/{orderNo}")
-    public InventoryReservationResponse getReservation(
-            @CurrentTenant Long tenantId, @PathVariable @NotBlank String orderNo) {
-        return InventoryReservationResponse.from(
-                inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo)));
+    public InventoryReservationResponse getReservation(@PathVariable @NotBlank String orderNo) {
+        return InventoryReservationResponse.from(inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(orderNo)));
     }
 }

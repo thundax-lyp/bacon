@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -57,8 +58,8 @@ public class InventoryReleaseApplicationService {
                 new InventoryWriteRetrier());
     }
 
-    public InventoryReservationResultDTO releaseReservedStock(
-            TenantId tenantId, OrderNo orderNo, InventoryReleaseReason reason) {
+    public InventoryReservationResultDTO releaseReservedStock(OrderNo orderNo, InventoryReleaseReason reason) {
+        TenantId tenantId = currentTenantId();
         Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(orderNo, "orderNo must not be null");
         Objects.requireNonNull(reason, "reason must not be null");
@@ -72,7 +73,7 @@ public class InventoryReleaseApplicationService {
     private InventoryReservationResultDTO releaseReservedStockOnce(
             TenantId tenantId, OrderNo orderNo, InventoryReleaseReason reason) {
         InventoryReservation reservation = inventoryReservationRepository
-                .findReservation(tenantId, orderNo)
+                .findReservation(orderNo)
                 .orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(
@@ -81,7 +82,7 @@ public class InventoryReleaseApplicationService {
                     InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
-            return InventoryReservationResultAssembler.fromReservation(reservation);
+            return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
         }
 
         Instant releasedAt = Instant.now();
@@ -90,8 +91,8 @@ public class InventoryReleaseApplicationService {
         });
         reservation.release(reason, releasedAt);
         inventoryReservationRepository.saveReservation(reservation);
-        inventoryOperationLogService.recordReleaseSuccess(reservation, releasedAt);
-        return InventoryReservationResultAssembler.fromReservation(reservation);
+        inventoryOperationLogService.recordReleaseSuccess(tenantId, reservation, releasedAt);
+        return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
     }
 
     private void releaseStockOnce(TenantId tenantId, SkuId skuId, int quantity, Instant operatedAt) {
@@ -101,5 +102,10 @@ public class InventoryReleaseApplicationService {
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
         inventory.release(quantity);
         inventoryStockRepository.saveInventory(inventory);
+    }
+
+    private TenantId currentTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 }

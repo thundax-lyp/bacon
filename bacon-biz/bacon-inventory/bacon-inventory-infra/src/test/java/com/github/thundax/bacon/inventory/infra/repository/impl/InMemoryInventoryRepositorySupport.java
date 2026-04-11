@@ -138,15 +138,17 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         if (reservation.getId() == null) {
             reservation = InventoryReservation.rehydrate(
                     reservationIdGenerator.getAndIncrement(),
-                    reservation.getTenantId() == null
+                    reservation.getReservationNo() == null
                             ? null
-                            : reservation.getTenantId().value(),
-                    reservation.getReservationNoValue(),
-                    reservation.getOrderNoValue(),
-                    reservation.getWarehouseCodeValue(),
+                            : reservation.getReservationNo().value(),
+                    reservation.getOrderNo() == null ? null : reservation.getOrderNo().value(),
+                    reservation.getWarehouseCode() == null
+                            ? null
+                            : reservation.getWarehouseCode().value(),
                     reservation.getCreatedAt(),
                     reservation.getItems().stream()
                             .map(item -> new InventoryReservationItem(
@@ -156,25 +158,25 @@ public class InMemoryInventoryRepositorySupport {
                                     item.getSkuId(),
                                     item.getQuantity()))
                             .toList(),
-                    reservation.getReservationStatusValue(),
+                    reservation.getReservationStatus() == null
+                            ? null
+                            : reservation.getReservationStatus().value(),
                     reservation.getFailureReason(),
-                    reservation.getReleaseReasonValue(),
+                    reservation.getReleaseReason() == null ? null : reservation.getReleaseReason().value(),
                     reservation.getReleasedAt(),
                     reservation.getDeductedAt());
         }
         reservations.put(
                 reservationKey(
-                        reservation.getTenantId() == null
-                                ? null
-                                : reservation.getTenantId().value(),
-                        reservation.getOrderNoValue()),
+                        tenantId,
+                        reservation.getOrderNo() == null ? null : reservation.getOrderNo().value()),
                 reservation);
         return reservation;
     }
 
-    public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+    public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
         return Optional.ofNullable(reservations.get(
-                reservationKey(tenantId == null ? null : tenantId.value(), orderNo == null ? null : orderNo.value())));
+                reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value())));
     }
 
     public void saveLedger(InventoryLedger ledger) {
@@ -195,14 +197,14 @@ public class InMemoryInventoryRepositorySupport {
                                 ledger.getTenantId() == null
                                         ? null
                                         : ledger.getTenantId().value(),
-                                ledger.getOrderNoValue()),
+                                ledger.getOrderNo() == null ? null : ledger.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(ledger);
     }
 
-    public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+    public List<InventoryLedger> findLedgers(OrderNo orderNo) {
         return List.copyOf(ledgers.getOrDefault(
-                reservationKey(tenantId == null ? null : tenantId.value(), orderNo == null ? null : orderNo.value()),
+                reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value()),
                 List.of()));
     }
 
@@ -224,14 +226,14 @@ public class InMemoryInventoryRepositorySupport {
                                 auditLog.getTenantId() == null
                                         ? null
                                         : auditLog.getTenantId().value(),
-                                auditLog.getOrderNoValue()),
+                                auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(auditLog);
     }
 
-    public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+    public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
         return List.copyOf(auditLogs.getOrDefault(
-                reservationKey(tenantId == null ? null : tenantId.value(), orderNo == null ? null : orderNo.value()),
+                reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value()),
                 List.of()));
     }
 

@@ -2,7 +2,6 @@ package com.github.thundax.bacon.inventory.interfaces.facade;
 
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
@@ -39,8 +38,8 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
 
     @Override
     public InventoryReservationDTO getReservationByOrderNo(String orderNo) {
-        Long tenantId = requireContext();
-        return inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+        requireContext();
+        return inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(orderNo));
     }
 
     private Long requireContext() {

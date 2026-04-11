@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.domain.repository;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import java.util.List;
@@ -10,9 +9,9 @@ public interface InventoryAuditRecordRepository {
 
     void saveLedger(InventoryLedger ledger);
 
-    List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo);
+    List<InventoryLedger> findLedgers(OrderNo orderNo);
 
     void saveAuditLog(InventoryAuditLog auditLog);
 
-    List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo);
+    List<InventoryAuditLog> findAuditLogs(OrderNo orderNo);
 }

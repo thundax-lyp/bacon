@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageResultDTO;
@@ -76,22 +77,23 @@ public class InventoryQueryApplicationService {
         return new InventoryPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
     }
 
-    public InventoryReservationDTO getReservationByOrderNo(TenantId tenantId, OrderNo orderNo) {
+    public InventoryReservationDTO getReservationByOrderNo(OrderNo orderNo) {
+        TenantId tenantId = currentTenantId();
         InventoryReservation reservation = inventoryReservationRepository
-                .findReservation(tenantId, orderNo)
+                .findReservation(orderNo)
                 .orElseThrow(() -> new InventoryDomainException(
                         InventoryErrorCode.RESERVATION_NOT_FOUND, OrderNoCodec.toValue(orderNo)));
-        return InventoryReservationAssembler.toDto(reservation);
+        return InventoryReservationAssembler.toDto(tenantId, reservation);
     }
 
-    public List<InventoryLedgerDTO> listLedgersByOrderNo(TenantId tenantId, OrderNo orderNo) {
-        return inventoryAuditRecordRepository.findLedgers(tenantId, orderNo).stream()
+    public List<InventoryLedgerDTO> listLedgersByOrderNo(OrderNo orderNo) {
+        return inventoryAuditRecordRepository.findLedgers(orderNo).stream()
                 .map(InventoryLedgerAssembler::toDto)
                 .toList();
     }
 
-    public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(TenantId tenantId, OrderNo orderNo) {
-        return inventoryAuditRecordRepository.findAuditLogs(tenantId, orderNo).stream()
+    public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(OrderNo orderNo) {
+        return inventoryAuditRecordRepository.findAuditLogs(orderNo).stream()
                 .map(InventoryAuditLogAssembler::toDto)
                 .toList();
     }
@@ -112,5 +114,10 @@ public class InventoryQueryApplicationService {
                         .toList();
         long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(tenantId, orderNo, replayStatus);
         return new InventoryAuditDeadLetterPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
+    }
+
+    private TenantId currentTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 }

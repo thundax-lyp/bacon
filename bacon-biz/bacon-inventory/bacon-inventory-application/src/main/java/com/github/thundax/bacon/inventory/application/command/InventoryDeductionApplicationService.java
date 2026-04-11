@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -55,7 +56,8 @@ public class InventoryDeductionApplicationService {
                 new InventoryWriteRetrier());
     }
 
-    public InventoryReservationResultDTO deductReservedStock(TenantId tenantId, OrderNo orderNo) {
+    public InventoryReservationResultDTO deductReservedStock(OrderNo orderNo) {
+        TenantId tenantId = currentTenantId();
         return inventoryWriteRetrier.execute(
                 "deduct",
                 tenantId + ":" + orderNo,
@@ -65,7 +67,7 @@ public class InventoryDeductionApplicationService {
 
     private InventoryReservationResultDTO deductReservedStockOnce(TenantId tenantId, OrderNo orderNo) {
         InventoryReservation reservation = inventoryReservationRepository
-                .findReservation(tenantId, orderNo)
+                .findReservation(orderNo)
                 .orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(
@@ -74,7 +76,7 @@ public class InventoryDeductionApplicationService {
                     InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
-            return InventoryReservationResultAssembler.fromReservation(reservation);
+            return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
         }
 
         Instant deductedAt = Instant.now();
@@ -83,8 +85,8 @@ public class InventoryDeductionApplicationService {
         });
         reservation.deduct(deductedAt);
         inventoryReservationRepository.saveReservation(reservation);
-        inventoryOperationLogService.recordDeductSuccess(reservation, deductedAt);
-        return InventoryReservationResultAssembler.fromReservation(reservation);
+        inventoryOperationLogService.recordDeductSuccess(tenantId, reservation, deductedAt);
+        return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
     }
 
     private void deductStockOnce(TenantId tenantId, SkuId skuId, int quantity, Instant operatedAt) {
@@ -94,5 +96,10 @@ public class InventoryDeductionApplicationService {
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
         inventory.deduct(quantity);
         inventoryStockRepository.saveInventory(inventory);
+    }
+
+    private TenantId currentTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        return tenantId == null ? null : TenantId.of(tenantId);
     }
 }

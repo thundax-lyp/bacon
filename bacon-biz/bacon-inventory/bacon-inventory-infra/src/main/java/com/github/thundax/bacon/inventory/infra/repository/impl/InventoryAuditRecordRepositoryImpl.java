@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -25,8 +24,8 @@ public class InventoryAuditRecordRepositoryImpl implements InventoryAuditRecordR
     }
 
     @Override
-    public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
-        return support.findLedgers(tenantId, orderNo);
+    public List<InventoryLedger> findLedgers(OrderNo orderNo) {
+        return support.findLedgers(orderNo);
     }
 
     @Override
@@ -35,7 +34,7 @@ public class InventoryAuditRecordRepositoryImpl implements InventoryAuditRecordR
     }
 
     @Override
-    public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
-        return support.findAuditLogs(tenantId, orderNo);
+    public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
+        return support.findAuditLogs(orderNo);
     }
 }

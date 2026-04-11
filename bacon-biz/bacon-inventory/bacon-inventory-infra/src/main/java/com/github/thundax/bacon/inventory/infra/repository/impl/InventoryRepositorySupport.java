@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -175,6 +176,7 @@ public class InventoryRepositorySupport {
     }
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         InventoryReservationDO reservationDataObject =
                 InventoryReservationPersistenceAssembler.toDataObject(reservation);
         if (reservationDataObject.getId() == null) {
@@ -182,29 +184,30 @@ public class InventoryRepositorySupport {
             List<InventoryReservationItemDO> itemDataObjects = reservation.getItems().stream()
                     .map(item -> InventoryReservationItemPersistenceAssembler.toDataObject(
                             item,
-                            reservation.getTenantId() == null
+                            tenantId,
+                            reservation.getReservationNo() == null
                                     ? null
-                                    : reservation.getTenantId().value(),
-                            reservation.getReservationNoValue()))
+                                    : reservation.getReservationNo().value()))
                     .toList();
             itemDataObjects.forEach(reservationItemMapper::insert);
         } else {
             reservationMapper.updateById(reservationDataObject);
         }
-        return findReservation(reservation.getTenantId(), reservation.getOrderNo())
+        return findReservation(reservation.getOrderNo())
                 .orElseThrow();
     }
 
-    public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+    public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         InventoryReservationDO reservation = reservationMapper.selectOne(Wrappers.<InventoryReservationDO>lambdaQuery()
-                .eq(InventoryReservationDO::getTenantId, tenantId == null ? null : tenantId.value())
+                .eq(InventoryReservationDO::getTenantId, tenantId)
                 .eq(InventoryReservationDO::getOrderNo, orderNo == null ? null : orderNo.value()));
         if (reservation == null) {
             return Optional.empty();
         }
         List<InventoryReservationItem> items = reservationItemMapper
                 .selectList(Wrappers.<InventoryReservationItemDO>lambdaQuery()
-                        .eq(InventoryReservationItemDO::getTenantId, tenantId == null ? null : tenantId.value())
+                        .eq(InventoryReservationItemDO::getTenantId, tenantId)
                         .eq(InventoryReservationItemDO::getReservationNo, reservation.getReservationNo())
                         .orderByAsc(InventoryReservationItemDO::getSkuId))
                 .stream()
@@ -217,10 +220,11 @@ public class InventoryRepositorySupport {
         ledgerMapper.insert(InventoryLedgerPersistenceAssembler.toDataObject(ledger));
     }
 
-    public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+    public List<InventoryLedger> findLedgers(OrderNo orderNo) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         return ledgerMapper
                 .selectList(Wrappers.<InventoryLedgerDO>lambdaQuery()
-                        .eq(InventoryLedgerDO::getTenantId, tenantId == null ? null : tenantId.value())
+                        .eq(InventoryLedgerDO::getTenantId, tenantId)
                         .eq(InventoryLedgerDO::getOrderNo, orderNo == null ? null : orderNo.value())
                         .orderByAsc(InventoryLedgerDO::getOccurredAt, InventoryLedgerDO::getId))
                 .stream()
@@ -232,10 +236,11 @@ public class InventoryRepositorySupport {
         auditLogMapper.insert(InventoryAuditLogPersistenceAssembler.toDataObject(auditLog));
     }
 
-    public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+    public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         return auditLogMapper
                 .selectList(Wrappers.<InventoryAuditLogDO>lambdaQuery()
-                        .eq(InventoryAuditLogDO::getTenantId, tenantId == null ? null : tenantId.value())
+                        .eq(InventoryAuditLogDO::getTenantId, tenantId)
                         .eq(InventoryAuditLogDO::getOrderNo, orderNo == null ? null : orderNo.value())
                         .orderByAsc(InventoryAuditLogDO::getOccurredAt, InventoryAuditLogDO::getId))
                 .stream()

@@ -4,6 +4,9 @@ import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
+import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
+import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
+import com.github.thundax.bacon.inventory.application.codec.WarehouseCodeCodec;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
@@ -13,18 +16,18 @@ public final class InventoryReservationAssembler {
 
     private InventoryReservationAssembler() {}
 
-    public static InventoryReservationDTO toDto(InventoryReservation reservation) {
+    public static InventoryReservationDTO toDto(TenantId tenantId, InventoryReservation reservation) {
         return new InventoryReservationDTO(
-                reservation.getTenantId() == null
+                tenantId == null ? null : tenantId.value(),
+                OrderNoCodec.toValue(reservation.getOrderNo()),
+                ReservationNoCodec.toValue(reservation.getReservationNo()),
+                reservation.getReservationStatus() == null
                         ? null
-                        : reservation.getTenantId().value(),
-                reservation.getOrderNoValue(),
-                reservation.getReservationNoValue(),
-                reservation.getReservationStatusValue(),
-                reservation.getWarehouseCodeValue(),
+                        : reservation.getReservationStatus().value(),
+                WarehouseCodeCodec.toValue(reservation.getWarehouseCode()),
                 toItemDtos(reservation.getItems()),
                 reservation.getFailureReason(),
-                reservation.getReleaseReasonValue(),
+                reservation.getReleaseReason() == null ? null : reservation.getReleaseReason().value(),
                 reservation.getCreatedAt(),
                 reservation.getReleasedAt(),
                 reservation.getDeductedAt());
@@ -33,7 +36,6 @@ public final class InventoryReservationAssembler {
     public static InventoryReservation toDomain(InventoryReservationDTO dto) {
         return InventoryReservation.rehydrate(
                 null,
-                dto.getTenantId(),
                 dto.getReservationNo(),
                 dto.getOrderNo(),
                 dto.getWarehouseCode(),

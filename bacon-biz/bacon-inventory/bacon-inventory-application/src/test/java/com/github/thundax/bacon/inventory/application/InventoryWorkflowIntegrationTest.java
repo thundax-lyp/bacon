@@ -8,6 +8,7 @@ import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.AsyncTaskWrapper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -77,25 +78,25 @@ class InventoryWorkflowIntegrationTest {
         CountDownLatch start = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(2);
         try {
-            Supplier<InventoryReservationResultDTO> firstTask = AsyncTaskWrapper.wrap(
-                    (Supplier<InventoryReservationResultDTO>) () -> {
+            Supplier<InventoryReservationResultDTO> firstTask = BaconContextHolder.callWithTenantId(
+                    1001L,
+                    () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResultDTO>) () -> {
                         await(start);
                         return service.reserveStock(
-                                TenantId.of(1001L),
                                 OrderNo.of("ORDER-C1"),
                                 List.of(new InventoryReservationItemDTO(101L, 40)));
-                    });
+                    }));
             CompletableFuture<InventoryReservationResultDTO> first = CompletableFuture.supplyAsync(
                     firstTask,
                     pool);
-            Supplier<InventoryReservationResultDTO> secondTask = AsyncTaskWrapper.wrap(
-                    (Supplier<InventoryReservationResultDTO>) () -> {
+            Supplier<InventoryReservationResultDTO> secondTask = BaconContextHolder.callWithTenantId(
+                    1001L,
+                    () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResultDTO>) () -> {
                         await(start);
                         return service.reserveStock(
-                                TenantId.of(1001L),
                                 OrderNo.of("ORDER-C2"),
                                 List.of(new InventoryReservationItemDTO(101L, 40)));
-                    });
+                    }));
             CompletableFuture<InventoryReservationResultDTO> second = CompletableFuture.supplyAsync(
                     secondTask,
                     pool);
@@ -113,12 +114,10 @@ class InventoryWorkflowIntegrationTest {
             assertEquals(20, inventory.availableQuantity().value());
             assertTrue(inventory.getVersion().value() >= 2);
 
-            assertNotNull(repository
-                    .findReservation(TenantId.of(1001L), OrderNo.of("ORDER-C1"))
-                    .orElse(null));
-            assertNotNull(repository
-                    .findReservation(TenantId.of(1001L), OrderNo.of("ORDER-C2"))
-                    .orElse(null));
+            BaconContextHolder.runWithTenantId(
+                    1001L, () -> assertNotNull(repository.findReservation(OrderNo.of("ORDER-C1")).orElse(null)));
+            BaconContextHolder.runWithTenantId(
+                    1001L, () -> assertNotNull(repository.findReservation(OrderNo.of("ORDER-C2")).orElse(null)));
         } finally {
             pool.shutdownNow();
         }
@@ -326,10 +325,8 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public InventoryReservation saveReservation(InventoryReservation reservation) {
             String key = reservationKey(
-                    reservation.getTenantId() == null
-                            ? null
-                            : reservation.getTenantId().value(),
-                    reservation.getOrderNoValue());
+                    BaconContextHolder.currentTenantId(),
+                    reservation.getOrderNo() == null ? null : reservation.getOrderNo().value());
             InventoryReservation existing = reservations.get(key);
             if (existing != null && !existing.getReservationNo().equals(reservation.getReservationNo())) {
                 throw new DuplicateKeyException("duplicate orderNo");
@@ -339,9 +336,9 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+        public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
             return Optional.ofNullable(reservations.get(reservationKey(
-                    tenantId == null ? null : tenantId.value(), orderNo == null ? null : orderNo.value())));
+                    BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value())));
         }
 
         @Override
@@ -357,10 +354,9 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+        public List<InventoryLedger> findLedgers(OrderNo orderNo) {
             return List.copyOf(ledgers.getOrDefault(
-                    reservationKey(
-                            tenantId == null ? null : tenantId.value(), orderNo == null ? null : orderNo.value()),
+                    reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value()),
                     List.of()));
         }
 
@@ -381,10 +377,9 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+        public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
             return List.copyOf(auditLogs.getOrDefault(
-                    reservationKey(
-                            tenantId == null ? null : tenantId.value(), orderNo == null ? null : orderNo.value()),
+                    reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value()),
                     List.of()));
         }
 

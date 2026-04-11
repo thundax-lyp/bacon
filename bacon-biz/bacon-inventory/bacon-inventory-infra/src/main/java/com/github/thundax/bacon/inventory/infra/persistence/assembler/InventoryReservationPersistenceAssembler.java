@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationDO;
@@ -13,7 +14,6 @@ public final class InventoryReservationPersistenceAssembler {
             InventoryReservationDO reservation, List<InventoryReservationItem> items) {
         return InventoryReservation.rehydrate(
                 reservation.getId(),
-                reservation.getTenantId(),
                 reservation.getReservationNo(),
                 reservation.getOrderNo(),
                 reservation.getWarehouseCode(),
@@ -29,15 +29,15 @@ public final class InventoryReservationPersistenceAssembler {
     public static InventoryReservationDO toDataObject(InventoryReservation reservation) {
         return new InventoryReservationDO(
                 reservation.getId(),
-                reservation.getTenantId() == null
+                BaconContextHolder.currentTenantId(),
+                reservation.getReservationNo() == null ? null : reservation.getReservationNo().value(),
+                reservation.getOrderNo() == null ? null : reservation.getOrderNo().value(),
+                reservation.getReservationStatus() == null
                         ? null
-                        : reservation.getTenantId().value(),
-                reservation.getReservationNoValue(),
-                reservation.getOrderNoValue(),
-                reservation.getReservationStatusValue(),
-                reservation.getWarehouseCodeValue(),
+                        : reservation.getReservationStatus().value(),
+                reservation.getWarehouseCode() == null ? null : reservation.getWarehouseCode().value(),
                 reservation.getFailureReason(),
-                reservation.getReleaseReasonValue(),
+                reservation.getReleaseReason() == null ? null : reservation.getReleaseReason().value(),
                 reservation.getCreatedAt(),
                 reservation.getReleasedAt(),
                 reservation.getDeductedAt());

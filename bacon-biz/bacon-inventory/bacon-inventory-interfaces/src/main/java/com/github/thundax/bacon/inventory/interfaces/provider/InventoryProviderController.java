@@ -1,8 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.provider;
 
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReleaseCommandDTO;
@@ -52,62 +50,54 @@ public class InventoryProviderController {
 
     @Operation(summary = "查询 SKU 可用库存")
     @GetMapping("/stocks/{skuId}")
-    public InventoryStockDTO getAvailableStock(
-            @CurrentTenant Long tenantId, @PathVariable @NotNull @Positive Long skuId) {
+    public InventoryStockDTO getAvailableStock(@PathVariable @NotNull @Positive Long skuId) {
         return inventoryQueryService.getAvailableStock(SkuIdMapper.toDomain(skuId));
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
     @GetMapping("/stocks")
-    public List<InventoryStockDTO> batchGetAvailableStock(
-            @CurrentTenant Long tenantId,
-            @RequestParam("skuIds") @NotNull Set<@NotNull @Positive Long> skuIds) {
+    public List<InventoryStockDTO> batchGetAvailableStock(@RequestParam("skuIds") @NotNull Set<@NotNull @Positive Long> skuIds) {
         return inventoryQueryService.batchGetAvailableStock(
                 skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
     }
 
     @Operation(summary = "按订单号查询库存预占结果")
     @GetMapping("/reservations/{orderNo}")
-    public InventoryReservationDTO getReservation(
-            @CurrentTenant Long tenantId, @PathVariable @NotBlank String orderNo) {
-        return inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+    public InventoryReservationDTO getReservation(@PathVariable @NotBlank String orderNo) {
+        return inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(orderNo));
     }
 
     @Operation(summary = "按订单号查询库存流水")
     @GetMapping("/ledgers")
-    public List<InventoryLedgerDTO> listLedgers(
-            @CurrentTenant Long tenantId, @RequestParam("orderNo") @NotBlank String orderNo) {
-        return inventoryQueryService.listLedgersByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+    public List<InventoryLedgerDTO> listLedgers(@RequestParam("orderNo") @NotBlank String orderNo) {
+        return inventoryQueryService.listLedgersByOrderNo(OrderNoCodec.toDomain(orderNo));
     }
 
     @Operation(summary = "按订单号查询库存审计日志")
     @GetMapping("/audit-logs")
-    public List<InventoryAuditLogDTO> listAuditLogs(
-            @CurrentTenant Long tenantId, @RequestParam("orderNo") @NotBlank String orderNo) {
-        return inventoryQueryService.listAuditLogsByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+    public List<InventoryAuditLogDTO> listAuditLogs(@RequestParam("orderNo") @NotBlank String orderNo) {
+        return inventoryQueryService.listAuditLogsByOrderNo(OrderNoCodec.toDomain(orderNo));
     }
 
     @Operation(summary = "预占库存")
     @PostMapping("/reservations/{orderNo}/reserve")
     public InventoryReservationResultDTO reserve(
-            @CurrentTenant Long tenantId, @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReserveCommandDTO request) {
-        return inventoryApplicationService.reserveStock(
-                TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), request.getItems());
+            @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReserveCommandDTO request) {
+        return inventoryApplicationService.reserveStock(OrderNoCodec.toDomain(orderNo), request.getItems());
     }
 
     @Operation(summary = "释放预占库存")
     @PostMapping("/reservations/{orderNo}/release")
     public InventoryReservationResultDTO release(
-            @CurrentTenant Long tenantId, @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReleaseCommandDTO request) {
+            @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReleaseCommandDTO request) {
         return inventoryApplicationService.releaseReservedStock(
-                TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), toReleaseReason(request.getReason()));
+                OrderNoCodec.toDomain(orderNo), toReleaseReason(request.getReason()));
     }
 
     @Operation(summary = "扣减预占库存")
     @PostMapping("/reservations/{orderNo}/deduct")
-    public InventoryReservationResultDTO deduct(
-            @CurrentTenant Long tenantId, @PathVariable @NotBlank String orderNo) {
-        return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+    public InventoryReservationResultDTO deduct(@PathVariable @NotBlank String orderNo) {
+        return inventoryApplicationService.deductReservedStock(OrderNoCodec.toDomain(orderNo));
     }
 
     private InventoryReleaseReason toReleaseReason(String reason) {

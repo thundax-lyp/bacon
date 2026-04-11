@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -63,28 +64,23 @@ class InventoryApplicationServiceTest {
         InventoryQueryApplicationService queryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryReservationResultDTO first = service.reserveStock(
-                TenantId.of(1001L), OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
-        InventoryReservationResultDTO second = service.reserveStock(
-                TenantId.of(1001L), OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
-        InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
+        BaconContextHolder.runWithTenantId(1001L, () -> {
+            InventoryReservationResultDTO first =
+                    service.reserveStock(OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
+            InventoryReservationResultDTO second =
+                    service.reserveStock(OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
+            InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
-        assertEquals(InventoryReservationStatus.RESERVED.value(), first.getReservationStatus());
-        assertEquals("RESERVED", first.getInventoryStatus());
-        assertEquals(first.getReservationNo(), second.getReservationNo());
-        assertEquals(10, stock.getReservedQuantity());
-        assertEquals(90, stock.getAvailableQuantity());
-        assertEquals(
-                1,
-                queryService
-                        .listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-1"))
-                        .size());
-        assertEquals(
-                InventoryLedgerType.RESERVE.value(),
-                queryService
-                        .listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-1"))
-                        .get(0)
-                        .getLedgerType());
+            assertEquals(InventoryReservationStatus.RESERVED.value(), first.getReservationStatus());
+            assertEquals("RESERVED", first.getInventoryStatus());
+            assertEquals(first.getReservationNo(), second.getReservationNo());
+            assertEquals(10, stock.getReservedQuantity());
+            assertEquals(90, stock.getAvailableQuantity());
+            assertEquals(1, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-1")).size());
+            assertEquals(
+                    InventoryLedgerType.RESERVE.value(),
+                    queryService.listLedgersByOrderNo(OrderNo.of("ORDER-1")).get(0).getLedgerType());
+        });
     }
 
     @Test
@@ -100,21 +96,20 @@ class InventoryApplicationServiceTest {
         InventoryQueryApplicationService queryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryReservationResultDTO result = service.reserveStock(
-                TenantId.of(1001L), OrderNo.of("ORDER-2"), List.of(new InventoryReservationItemDTO(101L, 1000)));
-        InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
+        BaconContextHolder.runWithTenantId(1001L, () -> {
+            InventoryReservationResultDTO result =
+                    service.reserveStock(OrderNo.of("ORDER-2"), List.of(new InventoryReservationItemDTO(101L, 1000)));
+            InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
-        assertEquals(InventoryReservationStatus.FAILED.value(), result.getReservationStatus());
-        assertEquals("FAILED", result.getInventoryStatus());
-        assertNotNull(result.getFailureReason());
-        assertEquals(0, stock.getReservedQuantity());
-        assertEquals(100, stock.getAvailableQuantity());
-        assertEquals(
-                InventoryAuditActionType.RESERVE_FAILED.value(),
-                queryService
-                        .listAuditLogsByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-2"))
-                        .get(0)
-                        .getActionType());
+            assertEquals(InventoryReservationStatus.FAILED.value(), result.getReservationStatus());
+            assertEquals("FAILED", result.getInventoryStatus());
+            assertNotNull(result.getFailureReason());
+            assertEquals(0, stock.getReservedQuantity());
+            assertEquals(100, stock.getAvailableQuantity());
+            assertEquals(
+                    InventoryAuditActionType.RESERVE_FAILED.value(),
+                    queryService.listAuditLogsByOrderNo(OrderNo.of("ORDER-2")).get(0).getActionType());
+        });
     }
 
     @Test
@@ -130,29 +125,23 @@ class InventoryApplicationServiceTest {
         InventoryQueryApplicationService queryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        service.reserveStock(
-                TenantId.of(1001L), OrderNo.of("ORDER-3"), List.of(new InventoryReservationItemDTO(101L, 5)));
-        InventoryReservationResultDTO firstRelease = service.releaseReservedStock(
-                TenantId.of(1001L), OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
-        InventoryReservationResultDTO secondRelease = service.releaseReservedStock(
-                TenantId.of(1001L), OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
-        InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
+        BaconContextHolder.runWithTenantId(1001L, () -> {
+            service.reserveStock(OrderNo.of("ORDER-3"), List.of(new InventoryReservationItemDTO(101L, 5)));
+            InventoryReservationResultDTO firstRelease =
+                    service.releaseReservedStock(OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
+            InventoryReservationResultDTO secondRelease =
+                    service.releaseReservedStock(OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
+            InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
-        assertEquals(InventoryReservationStatus.RELEASED.value(), firstRelease.getReservationStatus());
-        assertEquals(InventoryReservationStatus.RELEASED.value(), secondRelease.getReservationStatus());
-        assertEquals(0, stock.getReservedQuantity());
-        assertEquals(100, stock.getAvailableQuantity());
-        assertEquals(
-                2,
-                queryService
-                        .listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-3"))
-                        .size());
-        assertEquals(
-                InventoryAuditActionType.RELEASE.value(),
-                queryService
-                        .listAuditLogsByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-3"))
-                        .get(1)
-                        .getActionType());
+            assertEquals(InventoryReservationStatus.RELEASED.value(), firstRelease.getReservationStatus());
+            assertEquals(InventoryReservationStatus.RELEASED.value(), secondRelease.getReservationStatus());
+            assertEquals(0, stock.getReservedQuantity());
+            assertEquals(100, stock.getAvailableQuantity());
+            assertEquals(2, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-3")).size());
+            assertEquals(
+                    InventoryAuditActionType.RELEASE.value(),
+                    queryService.listAuditLogsByOrderNo(OrderNo.of("ORDER-3")).get(1).getActionType());
+        });
     }
 
     @Test
@@ -168,30 +157,22 @@ class InventoryApplicationServiceTest {
         InventoryQueryApplicationService queryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        service.reserveStock(
-                TenantId.of(1001L), OrderNo.of("ORDER-4"), List.of(new InventoryReservationItemDTO(101L, 7)));
-        InventoryReservationResultDTO firstDeduct =
-                service.deductReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-4"));
-        InventoryReservationResultDTO secondDeduct =
-                service.deductReservedStock(TenantId.of(1001L), OrderNo.of("ORDER-4"));
-        InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
+        BaconContextHolder.runWithTenantId(1001L, () -> {
+            service.reserveStock(OrderNo.of("ORDER-4"), List.of(new InventoryReservationItemDTO(101L, 7)));
+            InventoryReservationResultDTO firstDeduct = service.deductReservedStock(OrderNo.of("ORDER-4"));
+            InventoryReservationResultDTO secondDeduct = service.deductReservedStock(OrderNo.of("ORDER-4"));
+            InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
-        assertEquals(InventoryReservationStatus.DEDUCTED.value(), firstDeduct.getReservationStatus());
-        assertEquals(InventoryReservationStatus.DEDUCTED.value(), secondDeduct.getReservationStatus());
-        assertEquals(0, stock.getReservedQuantity());
-        assertEquals(93, stock.getOnHandQuantity());
-        assertEquals(93, stock.getAvailableQuantity());
-        assertEquals(
-                2,
-                queryService
-                        .listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-4"))
-                        .size());
-        assertEquals(
-                InventoryLedgerType.DEDUCT.value(),
-                queryService
-                        .listLedgersByOrderNo(TenantId.of(1001L), OrderNo.of("ORDER-4"))
-                        .get(1)
-                        .getLedgerType());
+            assertEquals(InventoryReservationStatus.DEDUCTED.value(), firstDeduct.getReservationStatus());
+            assertEquals(InventoryReservationStatus.DEDUCTED.value(), secondDeduct.getReservationStatus());
+            assertEquals(0, stock.getReservedQuantity());
+            assertEquals(93, stock.getOnHandQuantity());
+            assertEquals(93, stock.getAvailableQuantity());
+            assertEquals(2, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-4")).size());
+            assertEquals(
+                    InventoryLedgerType.DEDUCT.value(),
+                    queryService.listLedgersByOrderNo(OrderNo.of("ORDER-4")).get(1).getLedgerType());
+        });
     }
 
     @Test
@@ -205,10 +186,11 @@ class InventoryApplicationServiceTest {
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService));
 
-        service.reserveStock(
-                TenantId.of(1001L),
-                OrderNo.of("ORDER-5"),
-                List.of(new InventoryReservationItemDTO(101L, 2), new InventoryReservationItemDTO(101L, 3)));
+        BaconContextHolder.runWithTenantId(
+                1001L,
+                () -> service.reserveStock(
+                        OrderNo.of("ORDER-5"),
+                        List.of(new InventoryReservationItemDTO(101L, 2), new InventoryReservationItemDTO(101L, 3))));
 
         assertEquals(1, repository.getBatchFindInventoriesCallCount());
         assertEquals(0, repository.getSingleFindInventoryCallCount());
@@ -302,18 +284,16 @@ class InventoryApplicationServiceTest {
         public InventoryReservation saveReservation(InventoryReservation reservation) {
             reservations.put(
                     reservationKey(
-                            reservation.getTenantId() == null
-                                    ? null
-                                    : reservation.getTenantId().value(),
-                            reservation.getOrderNoValue()),
+                            BaconContextHolder.currentTenantId(),
+                            reservation.getOrderNo() == null ? null : reservation.getOrderNo().value()),
                     reservation);
             return reservation;
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+        public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
             return Optional.ofNullable(reservations.get(reservationKey(
-                    tenantId == null ? null : tenantId.value(), orderNo == null ? null : orderNo.value())));
+                    BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value())));
         }
 
         @Override
@@ -329,10 +309,9 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+        public List<InventoryLedger> findLedgers(OrderNo orderNo) {
             return List.copyOf(ledgers.getOrDefault(
-                    reservationKey(
-                            tenantId == null ? null : tenantId.value(), orderNo == null ? null : orderNo.value()),
+                    reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value()),
                     List.of()));
         }
 
@@ -350,10 +329,9 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+        public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
             return List.copyOf(auditLogs.getOrDefault(
-                    reservationKey(
-                            tenantId == null ? null : tenantId.value(), orderNo == null ? null : orderNo.value()),
+                    reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value()),
                     List.of()));
         }
 

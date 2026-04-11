@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.inventory.interfaces.facade;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -26,15 +25,14 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
 
     @Override
     public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
-        Long tenantId = requireContext();
-        return inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), items);
+        requireContext();
+        return inventoryApplicationService.reserveStock(OrderNoCodec.toDomain(orderNo), items);
     }
 
     @Override
     public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
-        Long tenantId = requireContext();
-        return inventoryApplicationService.releaseReservedStock(
-                TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), toReleaseReason(reason));
+        requireContext();
+        return inventoryApplicationService.releaseReservedStock(OrderNoCodec.toDomain(orderNo), toReleaseReason(reason));
     }
 
     private InventoryReleaseReason toReleaseReason(String reason) {
@@ -47,8 +45,8 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
 
     @Override
     public InventoryReservationResultDTO deductReservedStock(String orderNo) {
-        Long tenantId = requireContext();
-        return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+        requireContext();
+        return inventoryApplicationService.deductReservedStock(OrderNoCodec.toDomain(orderNo));
     }
 
     private Long requireContext() {

@@ -2,7 +2,6 @@ package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
@@ -22,8 +21,6 @@ public class InventoryReservation {
 
     /** 预占单主键。 */
     private final Long id;
-    /** 所属租户主键。 */
-    private final TenantId tenantId;
     /** 预占单号。 */
     private final ReservationNo reservationNo;
     /** 订单号。 */
@@ -47,7 +44,6 @@ public class InventoryReservation {
 
     public static InventoryReservation rehydrate(
             Long id,
-            Long tenantId,
             String reservationNo,
             String orderNo,
             String warehouseCode,
@@ -61,7 +57,6 @@ public class InventoryReservation {
         // 预占单回写时必须带回终态与原因字段，应用层会基于这些字段判断是否还能继续补偿或回放。
         return new InventoryReservation(
                 id,
-                tenantId == null ? null : TenantId.of(tenantId),
                 reservationNo == null ? null : ReservationNo.of(reservationNo),
                 orderNo == null ? null : OrderNo.of(orderNo),
                 warehouseCode == null ? null : WarehouseCode.of(warehouseCode),
@@ -72,26 +67,6 @@ public class InventoryReservation {
                 releaseReason == null ? null : InventoryReleaseReason.from(releaseReason),
                 releasedAt,
                 deductedAt);
-    }
-
-    public String getReservationNoValue() {
-        return reservationNo == null ? null : reservationNo.value();
-    }
-
-    public String getOrderNoValue() {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    public String getWarehouseCodeValue() {
-        return warehouseCode == null ? null : warehouseCode.value();
-    }
-
-    public String getReservationStatusValue() {
-        return reservationStatus == null ? null : reservationStatus.value();
-    }
-
-    public String getReleaseReasonValue() {
-        return releaseReason == null ? null : releaseReason.value();
     }
 
     public void reserve() {
@@ -149,6 +124,8 @@ public class InventoryReservation {
                 return;
             }
         }
-        throw new InventoryDomainException(InventoryErrorCode.INVALID_RESERVATION_STATUS, getReservationStatusValue());
+        throw new InventoryDomainException(
+                InventoryErrorCode.INVALID_RESERVATION_STATUS,
+                reservationStatus == null ? null : reservationStatus.value());
     }
 }

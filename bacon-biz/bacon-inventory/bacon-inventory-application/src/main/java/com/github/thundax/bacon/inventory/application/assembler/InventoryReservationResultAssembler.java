@@ -1,6 +1,10 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
+import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
+import com.github.thundax.bacon.inventory.application.codec.WarehouseCodeCodec;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
@@ -10,18 +14,18 @@ public final class InventoryReservationResultAssembler {
 
     private InventoryReservationResultAssembler() {}
 
-    public static InventoryReservationResultDTO fromReservation(InventoryReservation reservation) {
+    public static InventoryReservationResultDTO fromReservation(TenantId tenantId, InventoryReservation reservation) {
         return new InventoryReservationResultDTO(
-                reservation.getTenantId() == null
+                tenantId == null ? null : tenantId.value(),
+                OrderNoCodec.toValue(reservation.getOrderNo()),
+                ReservationNoCodec.toValue(reservation.getReservationNo()),
+                reservation.getReservationStatus() == null
                         ? null
-                        : reservation.getTenantId().value(),
-                reservation.getOrderNoValue(),
-                reservation.getReservationNoValue(),
-                reservation.getReservationStatusValue(),
+                        : reservation.getReservationStatus().value(),
                 toInventoryStatus(reservation.getReservationStatus()),
-                reservation.getWarehouseCodeValue(),
+                WarehouseCodeCodec.toValue(reservation.getWarehouseCode()),
                 reservation.getFailureReason(),
-                reservation.getReleaseReasonValue(),
+                reservation.getReleaseReason() == null ? null : reservation.getReleaseReason().value(),
                 reservation.getReleasedAt(),
                 reservation.getDeductedAt());
     }

@@ -166,7 +166,7 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public Optional<InventoryReservation> findReservation(TenantId tenantId, OrderNo orderNo) {
+        public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
             captureContext();
             return Optional.empty();
         }
@@ -175,7 +175,7 @@ class InventoryControllerContractTest {
         public void saveLedger(InventoryLedger ledger) {}
 
         @Override
-        public List<InventoryLedger> findLedgers(TenantId tenantId, OrderNo orderNo) {
+        public List<InventoryLedger> findLedgers(OrderNo orderNo) {
             captureContext();
             return List.of();
         }
@@ -184,7 +184,7 @@ class InventoryControllerContractTest {
         public void saveAuditLog(InventoryAuditLog auditLog) {}
 
         @Override
-        public List<InventoryAuditLog> findAuditLogs(TenantId tenantId, OrderNo orderNo) {
+        public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
             captureContext();
             return List.of();
         }

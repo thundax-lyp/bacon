@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import java.time.Instant;
@@ -7,13 +8,15 @@ import java.util.List;
 
 public interface InventoryAuditOutboxRepository {
 
+    record TenantScopedAuditOutbox(TenantId tenantId, InventoryAuditOutbox outbox) {}
+
     default void saveAuditOutbox(InventoryAuditOutbox outbox) {}
 
     default List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
         return List.of();
     }
 
-    default List<InventoryAuditOutbox> claimRetryableAuditOutbox(
+    default List<TenantScopedAuditOutbox> claimRetryableAuditOutbox(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return List.of();
     }

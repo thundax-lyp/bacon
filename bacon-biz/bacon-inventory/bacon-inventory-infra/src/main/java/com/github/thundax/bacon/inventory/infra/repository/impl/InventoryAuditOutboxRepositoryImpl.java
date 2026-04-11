@@ -29,7 +29,7 @@ public class InventoryAuditOutboxRepositoryImpl implements InventoryAuditOutboxR
     }
 
     @Override
-    public List<InventoryAuditOutbox> claimRetryableAuditOutbox(
+    public List<TenantScopedAuditOutbox> claimRetryableAuditOutbox(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return support.claimRetryableAuditOutbox(now, limit, processingOwner, leaseUntil);
     }

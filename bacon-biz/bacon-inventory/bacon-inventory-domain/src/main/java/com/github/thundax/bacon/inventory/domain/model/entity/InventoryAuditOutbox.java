@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
@@ -23,8 +22,6 @@ public class InventoryAuditOutbox {
 
     /** 出站事件主键。 */
     private OutboxId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 出站事件业务标识。 */
     private EventCode eventCode;
     /** 订单号。 */
@@ -59,36 +56,4 @@ public class InventoryAuditOutbox {
     private Instant failedAt;
     /** 最后更新时间。 */
     private Instant updatedAt;
-
-    public Long getIdValue() {
-        return id == null ? null : id.value();
-    }
-
-    public String getEventCodeValue() {
-        return eventCode == null ? null : eventCode.value();
-    }
-
-    public String getOrderNoValue() {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    public String getReservationNoValue() {
-        return reservationNo == null ? null : reservationNo.value();
-    }
-
-    public String getActionTypeValue() {
-        return actionType == null ? null : actionType.value();
-    }
-
-    public String getOperatorTypeValue() {
-        return operatorType == null ? null : operatorType.value();
-    }
-
-    public String getStatusValue() {
-        return status == null ? null : status.value();
-    }
-
-    public Long getOperatorIdValue() {
-        return operatorId == null ? null : Long.valueOf(operatorId);
-    }
 }

@@ -18,6 +18,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -275,7 +276,7 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public List<InventoryAuditOutbox> claimRetryableAuditOutbox(
+    public List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> claimRetryableAuditOutbox(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
         List<InventoryAuditOutboxDO> candidates = auditOutboxMapper
                 .selectList(Wrappers.<InventoryAuditOutboxDO>lambdaQuery()
@@ -293,7 +294,7 @@ public class InventoryRepositorySupport {
         if (candidates.isEmpty()) {
             return List.of();
         }
-        List<InventoryAuditOutbox> claimed = new java.util.ArrayList<>(limit);
+        List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> claimed = new java.util.ArrayList<>(limit);
         for (InventoryAuditOutboxDO candidate : candidates) {
             if (claimed.size() >= limit) {
                 break;
@@ -319,7 +320,11 @@ public class InventoryRepositorySupport {
             }
             InventoryAuditOutboxDO claimedDataObject = auditOutboxMapper.selectById(candidate.getId());
             if (claimedDataObject != null) {
-                claimed.add(InventoryAuditOutboxPersistenceAssembler.toDomain(claimedDataObject));
+                claimed.add(new InventoryAuditOutboxRepository.TenantScopedAuditOutbox(
+                        claimedDataObject.getTenantId() == null
+                                ? null
+                                : com.github.thundax.bacon.common.id.domain.TenantId.of(claimedDataObject.getTenantId()),
+                        InventoryAuditOutboxPersistenceAssembler.toDomain(claimedDataObject)));
             }
         }
         return List.copyOf(claimed);

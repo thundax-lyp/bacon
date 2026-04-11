@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
@@ -15,6 +16,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditRepla
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -26,9 +28,8 @@ class InMemoryInventoryRepositorySupportTest {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
 
-        repository.saveAuditOutbox(new InventoryAuditOutbox(
+        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                TenantId.of(1001L),
                 null,
                 OrderNo.of("ORDER-1"),
                 ReservationNo.of("RSV-1"),
@@ -45,7 +46,7 @@ class InMemoryInventoryRepositorySupportTest {
                 null,
                 null,
                 now,
-                now));
+                now)));
 
         List<InventoryAuditOutbox> retryable = repository.findRetryableAuditOutbox(now.plusSeconds(1), 10);
         assertEquals(1, retryable.size());
@@ -86,9 +87,8 @@ class InMemoryInventoryRepositorySupportTest {
     void shouldClaimOutboxOnceAndRecycleExpiredLease() {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        repository.saveAuditOutbox(new InventoryAuditOutbox(
+        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                TenantId.of(1001L),
                 null,
                 OrderNo.of("ORDER-2"),
                 ReservationNo.of("RSV-2"),
@@ -105,11 +105,11 @@ class InMemoryInventoryRepositorySupportTest {
                 null,
                 null,
                 now,
-                now));
+                now)));
 
-        List<InventoryAuditOutbox> firstClaim =
+        List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> firstClaim =
                 repository.claimRetryableAuditOutbox(now, 10, "owner-a", now.plusSeconds(30));
-        List<InventoryAuditOutbox> secondClaim =
+        List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> secondClaim =
                 repository.claimRetryableAuditOutbox(now, 10, "owner-b", now.plusSeconds(30));
 
         assertEquals(1, firstClaim.size());
@@ -124,9 +124,8 @@ class InMemoryInventoryRepositorySupportTest {
     void shouldRequireOwnerMatchWhenUpdatingClaimedOutbox() {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        repository.saveAuditOutbox(new InventoryAuditOutbox(
+        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                TenantId.of(1001L),
                 null,
                 OrderNo.of("ORDER-3"),
                 ReservationNo.of("RSV-3"),
@@ -143,11 +142,11 @@ class InMemoryInventoryRepositorySupportTest {
                 null,
                 null,
                 now,
-                now));
+                now)));
 
-        List<InventoryAuditOutbox> claimed =
+        List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> claimed =
                 repository.claimRetryableAuditOutbox(now, 1, "owner-a", now.plusSeconds(30));
-        OutboxId outboxId = claimed.get(0).getId();
+        OutboxId outboxId = claimed.get(0).outbox().getId();
         boolean wrongOwnerUpdated = repository.updateAuditOutboxForRetryClaimed(
                 outboxId, "owner-b", 1, now.plusSeconds(60), "ERR", now.plusSeconds(5));
         boolean rightOwnerUpdated = repository.updateAuditOutboxForRetryClaimed(

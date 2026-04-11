@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
@@ -17,17 +17,17 @@ public final class InventoryAuditOutboxPersistenceAssembler {
 
     public static InventoryAuditOutboxDO toDataObject(InventoryAuditOutbox outbox) {
         return new InventoryAuditOutboxDO(
-                outbox.getIdValue(),
-                outbox.getEventCodeValue(),
-                outbox.getTenantId() == null ? null : outbox.getTenantId().value(),
-                outbox.getOrderNoValue(),
-                outbox.getReservationNoValue(),
-                outbox.getActionTypeValue(),
-                outbox.getOperatorTypeValue(),
-                outbox.getOperatorIdValue(),
+                outbox.getId() == null ? null : outbox.getId().value(),
+                outbox.getEventCode() == null ? null : outbox.getEventCode().value(),
+                BaconContextHolder.currentTenantId(),
+                outbox.getOrderNo() == null ? null : outbox.getOrderNo().value(),
+                outbox.getReservationNo() == null ? null : outbox.getReservationNo().value(),
+                outbox.getActionType() == null ? null : outbox.getActionType().value(),
+                outbox.getOperatorType() == null ? null : outbox.getOperatorType().value(),
+                outbox.getOperatorId() == null ? null : Long.valueOf(outbox.getOperatorId()),
                 outbox.getOccurredAt(),
                 outbox.getErrorMessage(),
-                outbox.getStatusValue(),
+                outbox.getStatus() == null ? null : outbox.getStatus().value(),
                 outbox.getRetryCount(),
                 outbox.getNextRetryAt(),
                 outbox.getProcessingOwner(),
@@ -41,7 +41,6 @@ public final class InventoryAuditOutboxPersistenceAssembler {
     public static InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
         return new InventoryAuditOutbox(
                 dataObject.getId() == null ? null : OutboxId.of(dataObject.getId()),
-                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getEventCode() == null ? null : EventCode.of(dataObject.getEventCode()),
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),
                 dataObject.getReservationNo() == null ? null : ReservationNo.of(dataObject.getReservationNo()),

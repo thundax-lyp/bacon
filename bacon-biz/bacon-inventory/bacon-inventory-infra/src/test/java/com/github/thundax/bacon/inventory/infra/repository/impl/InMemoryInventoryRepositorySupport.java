@@ -16,6 +16,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -231,14 +232,13 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public void saveAuditOutbox(InventoryAuditOutbox outbox) {
-        String eventCode = outbox.getEventCodeValue();
+        String eventCode = outbox.getEventCode() == null ? null : outbox.getEventCode().value();
         if (eventCode == null) {
             eventCode = generateEventCode().value();
         }
         if (outbox.getId() == null) {
             outbox = new InventoryAuditOutbox(
                     OutboxId.of(auditOutboxIdGenerator.getAndIncrement()),
-                    outbox.getTenantId(),
                     EventCode.of(eventCode),
                     outbox.getOrderNo(),
                     outbox.getReservationNo(),
@@ -262,10 +262,8 @@ public class InMemoryInventoryRepositorySupport {
         auditOutbox
                 .computeIfAbsent(
                         reservationKey(
-                                outbox.getTenantId() == null
-                                        ? null
-                                        : outbox.getTenantId().value(),
-                                outbox.getOrderNoValue()),
+                                BaconContextHolder.currentTenantId(),
+                                outbox.getOrderNo() == null ? null : outbox.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(outbox);
     }
@@ -278,14 +276,14 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item ->
                         item.getNextRetryAt() == null || !item.getNextRetryAt().isAfter(now))
                 .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt)
-                        .thenComparing(InventoryAuditOutbox::getIdValue))
+                        .thenComparing(item -> item.getId() == null ? null : item.getId().value()))
                 .limit(limit)
                 .toList();
     }
 
-    public List<InventoryAuditOutbox> claimRetryableAuditOutbox(
+    public List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> claimRetryableAuditOutbox(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {
-        List<InventoryAuditOutbox> claimed = new ArrayList<>(Math.max(limit, 0));
+        List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> claimed = new ArrayList<>(Math.max(limit, 0));
         List<InventoryAuditOutbox> candidates = findRetryableAuditOutbox(now, Math.max(limit * 3, limit));
         for (InventoryAuditOutbox candidate : candidates) {
             if (claimed.size() >= limit) {
@@ -294,7 +292,8 @@ public class InMemoryInventoryRepositorySupport {
             if (!tryClaim(candidate.getId(), now, processingOwner, leaseUntil)) {
                 continue;
             }
-            findAuditOutboxById(candidate.getId()).ifPresent(claimed::add);
+            findAuditOutboxById(candidate.getId()).ifPresent(item -> claimed.add(
+                    new InventoryAuditOutboxRepository.TenantScopedAuditOutbox(findAuditOutboxTenant(item), item)));
         }
         return List.copyOf(claimed);
     }
@@ -698,6 +697,23 @@ public class InMemoryInventoryRepositorySupport {
                 .flatMap(List::stream)
                 .filter(item -> item.getId().equals(outboxId))
                 .findFirst();
+    }
+
+    private TenantId findAuditOutboxTenant(InventoryAuditOutbox target) {
+        return auditOutbox.entrySet().stream()
+                .filter(entry -> entry.getValue().contains(target))
+                .map(java.util.Map.Entry::getKey)
+                .findFirst()
+                .map(this::tenantIdFromReservationKey)
+                .orElse(null);
+    }
+
+    private TenantId tenantIdFromReservationKey(String reservationKey) {
+        int separator = reservationKey.indexOf(':');
+        if (separator <= 0) {
+            return null;
+        }
+        return TenantId.of(Long.parseLong(reservationKey.substring(0, separator)));
     }
 
     private boolean tryClaim(OutboxId outboxId, Instant now, String processingOwner, Instant leaseUntil) {

@@ -135,9 +135,8 @@ class InventoryWorkflowIntegrationTest {
         ReflectionTestUtils.setField(retryService, "maxDelaySeconds", 10L);
 
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        repository.saveAuditOutbox(new InventoryAuditOutbox(
+        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                TenantId.of(1001L),
                 null,
                 OrderNo.of("ORDER-DEAD"),
                 ReservationNo.of("RSV-DEAD"),
@@ -154,7 +153,7 @@ class InventoryWorkflowIntegrationTest {
                 null,
                 null,
                 now,
-                now));
+                now)));
 
         retryService.retryAuditOutbox();
 
@@ -176,9 +175,8 @@ class InventoryWorkflowIntegrationTest {
         ReflectionTestUtils.setField(retryService, "maxDelaySeconds", 10L);
 
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        repository.saveAuditOutbox(new InventoryAuditOutbox(
+        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
                 null,
-                TenantId.of(1001L),
                 null,
                 OrderNo.of("ORDER-OK"),
                 ReservationNo.of("RSV-OK"),
@@ -195,7 +193,7 @@ class InventoryWorkflowIntegrationTest {
                 null,
                 null,
                 now,
-                now));
+                now)));
 
         retryService.retryAuditOutbox();
 
@@ -229,6 +227,7 @@ class InventoryWorkflowIntegrationTest {
         private final Map<String, List<InventoryLedger>> ledgers = new ConcurrentHashMap<>();
         private final Map<String, List<InventoryAuditLog>> auditLogs = new ConcurrentHashMap<>();
         private final Map<OutboxId, InventoryAuditOutbox> outboxMap = new ConcurrentHashMap<>();
+        private final Map<OutboxId, TenantId> outboxTenantMap = new ConcurrentHashMap<>();
         private final Map<OutboxId, InventoryAuditDeadLetter> deadLetterMap = new ConcurrentHashMap<>();
         private final AtomicLong outboxIdGenerator = new AtomicLong(1000L);
         private final AtomicLong outboxEventCodeGenerator = new AtomicLong(1000L);
@@ -388,6 +387,10 @@ class InventoryWorkflowIntegrationTest {
                 outbox.setEventCode(generateEventCode());
             }
             outboxMap.put(outbox.getId(), outbox);
+            Long tenantId = BaconContextHolder.currentTenantId();
+            if (tenantId != null) {
+                outboxTenantMap.put(outbox.getId(), TenantId.of(tenantId));
+            }
         }
 
         @Override
@@ -398,15 +401,15 @@ class InventoryWorkflowIntegrationTest {
                     .filter(item -> item.getNextRetryAt() == null
                             || !item.getNextRetryAt().isAfter(now))
                     .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt)
-                            .thenComparing(InventoryAuditOutbox::getIdValue))
+                            .thenComparing(item -> item.getId() == null ? null : item.getId().value()))
                     .limit(limit)
                     .toList();
         }
 
         @Override
-        public List<InventoryAuditOutbox> claimRetryableAuditOutbox(
+        public List<TenantScopedAuditOutbox> claimRetryableAuditOutbox(
                 Instant now, int limit, String processingOwner, Instant leaseUntil) {
-            List<InventoryAuditOutbox> claimed = new ArrayList<>();
+            List<TenantScopedAuditOutbox> claimed = new ArrayList<>();
             for (InventoryAuditOutbox item : findRetryableAuditOutbox(now, Math.max(limit * 3, limit))) {
                 if (claimed.size() >= limit) {
                     break;
@@ -416,7 +419,7 @@ class InventoryWorkflowIntegrationTest {
                 }
                 InventoryAuditOutbox current = outboxMap.get(item.getId());
                 if (current != null) {
-                    claimed.add(current);
+                    claimed.add(new TenantScopedAuditOutbox(outboxTenantMap.get(current.getId()), current));
                 }
             }
             return List.copyOf(claimed);

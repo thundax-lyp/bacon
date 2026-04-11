@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InventoryPageQueryDTO {
 
-    /** 所属租户主键。 */
-    private Long tenantId;
     /** 商品 SKU 主键。 */
     private Long skuId;
     /** 库存状态。 */

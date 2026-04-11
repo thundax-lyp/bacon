@@ -9,8 +9,6 @@ import java.time.Instant;
 public record InventoryAuditLogResponse(
         /** 审计日志主键。 */
         Long id,
-        /** 所属租户主键。 */
-        Long tenantId,
         /** 订单号。 */
         String orderNo,
         /** 预占单号。 */
@@ -27,7 +25,6 @@ public record InventoryAuditLogResponse(
     public static InventoryAuditLogResponse from(InventoryAuditLogDTO dto) {
         return new InventoryAuditLogResponse(
                 dto.getId(),
-                dto.getTenantId(),
                 dto.getOrderNo(),
                 dto.getReservationNo(),
                 dto.getActionType(),

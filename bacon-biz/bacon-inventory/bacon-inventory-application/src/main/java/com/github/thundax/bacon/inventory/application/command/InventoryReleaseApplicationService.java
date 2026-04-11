@@ -77,12 +77,11 @@ public class InventoryReleaseApplicationService {
                 .orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(
-                    TenantIdMapper.toValue(tenantId),
                     OrderNoCodec.toValue(orderNo),
                     InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
-            return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
+            return InventoryReservationResultAssembler.fromReservation(reservation);
         }
 
         Instant releasedAt = Instant.now();
@@ -92,7 +91,7 @@ public class InventoryReleaseApplicationService {
         reservation.release(reason, releasedAt);
         inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReleaseSuccess(tenantId, reservation, releasedAt);
-        return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
+        return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
     private void releaseStockOnce(TenantId tenantId, SkuId skuId, int quantity, Instant operatedAt) {

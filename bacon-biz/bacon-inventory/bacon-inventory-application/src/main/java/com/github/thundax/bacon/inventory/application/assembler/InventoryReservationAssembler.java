@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
@@ -16,9 +15,8 @@ public final class InventoryReservationAssembler {
 
     private InventoryReservationAssembler() {}
 
-    public static InventoryReservationDTO toDto(TenantId tenantId, InventoryReservation reservation) {
+    public static InventoryReservationDTO toDto(InventoryReservation reservation) {
         return new InventoryReservationDTO(
-                tenantId == null ? null : tenantId.value(),
                 OrderNoCodec.toValue(reservation.getOrderNo()),
                 ReservationNoCodec.toValue(reservation.getReservationNo()),
                 reservation.getReservationStatus() == null

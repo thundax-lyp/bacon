@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InventoryAuditDeadLetterPageQueryDTO {
 
-    /** 所属租户主键。 */
-    private Long tenantId;
     /** 订单号。 */
     private String orderNo;
     /** 回放状态。 */

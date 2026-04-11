@@ -93,7 +93,7 @@ public class InventoryReservationApplicationService {
             if (InventoryReservationStatus.CREATED.equals(existingReservation.getReservationStatus())) {
                 return completeCreatedReservation(tenantId, existingReservation);
             }
-            return InventoryReservationResultAssembler.fromReservation(tenantId, existingReservation);
+            return InventoryReservationResultAssembler.fromReservation(existingReservation);
         }
         return createReservation(tenantId, orderNo, items);
     }
@@ -126,14 +126,14 @@ public class InventoryReservationApplicationService {
             reservation.fail(failureReason);
             reservation = saveReservationWithIdempotentFallback(reservation);
             inventoryOperationLogService.recordReserveFailed(tenantId, reservation, Instant.now());
-            return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
+            return InventoryReservationResultAssembler.fromReservation(reservation);
         }
 
         InventoryReservation existing = inventoryReservationRepository
                 .findReservation(orderNo)
                 .orElse(null);
         if (existing != null) {
-            return InventoryReservationResultAssembler.fromReservation(tenantId, existing);
+            return InventoryReservationResultAssembler.fromReservation(existing);
         }
 
         Instant operatedAt = Instant.now();
@@ -142,7 +142,7 @@ public class InventoryReservationApplicationService {
             if (InventoryReservationStatus.CREATED.equals(reservation.getReservationStatus())) {
                 return completeCreatedReservation(tenantId, reservation);
             }
-            return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
+            return InventoryReservationResultAssembler.fromReservation(reservation);
         }
         Map<Long, Inventory> inventoryBySku = new HashMap<>(validationResult.inventoryBySku());
         for (InventoryReservationItem item : reservationItems) {
@@ -151,7 +151,7 @@ public class InventoryReservationApplicationService {
         reservation.reserve();
         reservation = inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(tenantId, reservation, operatedAt);
-        return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
+        return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
     private List<InventoryReservationItemDTO> normalizeItems(List<InventoryReservationItemDTO> items) {
@@ -244,7 +244,7 @@ public class InventoryReservationApplicationService {
             reservation.fail(failureReason);
             InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);
             inventoryOperationLogService.recordReserveFailed(tenantId, persisted, Instant.now());
-            return InventoryReservationResultAssembler.fromReservation(tenantId, persisted);
+            return InventoryReservationResultAssembler.fromReservation(persisted);
         }
         Instant operatedAt = Instant.now();
         Map<Long, Inventory> inventoryBySku = new HashMap<>(validationResult.inventoryBySku());
@@ -254,7 +254,7 @@ public class InventoryReservationApplicationService {
         reservation.reserve();
         InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(tenantId, persisted, operatedAt);
-        return InventoryReservationResultAssembler.fromReservation(tenantId, persisted);
+        return InventoryReservationResultAssembler.fromReservation(persisted);
     }
 
     private TenantId currentTenantId() {

@@ -71,12 +71,11 @@ public class InventoryDeductionApplicationService {
                 .orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(
-                    TenantIdMapper.toValue(tenantId),
                     OrderNoCodec.toValue(orderNo),
                     InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
-            return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
+            return InventoryReservationResultAssembler.fromReservation(reservation);
         }
 
         Instant deductedAt = Instant.now();
@@ -86,7 +85,7 @@ public class InventoryDeductionApplicationService {
         reservation.deduct(deductedAt);
         inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordDeductSuccess(tenantId, reservation, deductedAt);
-        return InventoryReservationResultAssembler.fromReservation(tenantId, reservation);
+        return InventoryReservationResultAssembler.fromReservation(reservation);
     }
 
     private void deductStockOnce(TenantId tenantId, SkuId skuId, int quantity, Instant operatedAt) {

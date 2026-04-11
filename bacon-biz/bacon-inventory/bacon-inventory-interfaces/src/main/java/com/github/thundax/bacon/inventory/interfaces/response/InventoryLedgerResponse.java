@@ -9,8 +9,6 @@ import java.time.Instant;
 public record InventoryLedgerResponse(
         /** 流水主键。 */
         Long id,
-        /** 所属租户主键。 */
-        Long tenantId,
         /** 订单号。 */
         String orderNo,
         /** 预占单号。 */
@@ -29,7 +27,6 @@ public record InventoryLedgerResponse(
     public static InventoryLedgerResponse from(InventoryLedgerDTO dto) {
         return new InventoryLedgerResponse(
                 dto.getId(),
-                dto.getTenantId(),
                 dto.getOrderNo(),
                 dto.getReservationNo(),
                 dto.getSkuId(),

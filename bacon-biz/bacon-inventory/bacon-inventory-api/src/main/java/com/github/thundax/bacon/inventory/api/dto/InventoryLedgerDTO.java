@@ -15,8 +15,6 @@ public class InventoryLedgerDTO {
 
     /** 流水主键。 */
     private Long id;
-    /** 所属租户主键。 */
-    private Long tenantId;
     /** 订单号。 */
     private String orderNo;
     /** 预占单号。 */

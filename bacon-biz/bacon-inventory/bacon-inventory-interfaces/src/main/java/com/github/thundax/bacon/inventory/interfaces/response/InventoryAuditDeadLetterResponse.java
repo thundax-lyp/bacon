@@ -13,8 +13,6 @@ public record InventoryAuditDeadLetterResponse(
         Long outboxId,
         /** 出站事件业务标识。 */
         String eventCode,
-        /** 所属租户主键。 */
-        Long tenantId,
         /** 订单号。 */
         String orderNo,
         /** 预占单号。 */
@@ -57,7 +55,6 @@ public record InventoryAuditDeadLetterResponse(
                 dto.getId(),
                 dto.getOutboxId(),
                 dto.getEventCode(),
-                dto.getTenantId(),
                 dto.getOrderNo(),
                 dto.getReservationNo(),
                 dto.getActionType(),

@@ -82,25 +82,25 @@ public class InventoryQueryApplicationService {
     }
 
     public InventoryReservationDTO getReservationByOrderNo(OrderNo orderNo) {
-        TenantId tenantId = currentTenantId();
+        currentTenantId();
         InventoryReservation reservation = inventoryReservationRepository
                 .findReservation(orderNo)
                 .orElseThrow(() -> new InventoryDomainException(
                         InventoryErrorCode.RESERVATION_NOT_FOUND, OrderNoCodec.toValue(orderNo)));
-        return InventoryReservationAssembler.toDto(tenantId, reservation);
+        return InventoryReservationAssembler.toDto(reservation);
     }
 
     public List<InventoryLedgerDTO> listLedgersByOrderNo(OrderNo orderNo) {
-        Long tenantId = currentTenantId().value();
+        currentTenantId();
         return inventoryAuditRecordRepository.findLedgers(orderNo).stream()
-                .map(ledger -> InventoryLedgerAssembler.toDto(tenantId, ledger))
+                .map(InventoryLedgerAssembler::toDto)
                 .toList();
     }
 
     public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(OrderNo orderNo) {
-        Long tenantId = currentTenantId().value();
+        currentTenantId();
         return inventoryAuditRecordRepository.findAuditLogs(orderNo).stream()
-                .map(auditLog -> InventoryAuditLogAssembler.toDto(tenantId, auditLog))
+                .map(InventoryAuditLogAssembler::toDto)
                 .toList();
     }
 
@@ -116,8 +116,7 @@ public class InventoryQueryApplicationService {
                 inventoryAuditDeadLetterRepository
                         .pageAuditDeadLetters(tenantId, orderNo, replayStatus, normalizedPageNo, normalizedPageSize)
                         .stream()
-                        .map(deadLetter -> InventoryAuditDeadLetterAssembler.toDto(
-                                tenantId == null ? null : tenantId.value(), deadLetter))
+                        .map(InventoryAuditDeadLetterAssembler::toDto)
                         .toList();
         long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(tenantId, orderNo, replayStatus);
         return new InventoryAuditDeadLetterPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);

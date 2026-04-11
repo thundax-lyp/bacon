@@ -12,10 +12,9 @@ public final class InventoryLedgerAssembler {
 
     private InventoryLedgerAssembler() {}
 
-    public static InventoryLedgerDTO toDto(Long tenantId, InventoryLedger ledger) {
+    public static InventoryLedgerDTO toDto(InventoryLedger ledger) {
         return new InventoryLedgerDTO(
                 ledger.getId(),
-                tenantId,
                 ledger.getOrderNo() == null ? null : ledger.getOrderNo().value(),
                 ledger.getReservationNo() == null ? null : ledger.getReservationNo().value(),
                 ledger.getSkuId() == null ? null : ledger.getSkuId().value(),

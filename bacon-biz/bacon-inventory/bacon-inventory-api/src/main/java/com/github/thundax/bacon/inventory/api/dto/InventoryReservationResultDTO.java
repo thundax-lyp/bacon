@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InventoryReservationResultDTO {
 
-    /** 所属租户主键。 */
-    private Long tenantId;
     /** 订单号。 */
     private String orderNo;
     /** 预占单号。 */

@@ -12,10 +12,9 @@ public final class InventoryAuditLogAssembler {
 
     private InventoryAuditLogAssembler() {}
 
-    public static InventoryAuditLogDTO toDto(Long tenantId, InventoryAuditLog auditLog) {
+    public static InventoryAuditLogDTO toDto(InventoryAuditLog auditLog) {
         return new InventoryAuditLogDTO(
                 auditLog.getId(),
-                tenantId,
                 auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value(),
                 auditLog.getReservationNo() == null ? null : auditLog.getReservationNo().value(),
                 auditLog.getActionType() == null ? null : auditLog.getActionType().value(),

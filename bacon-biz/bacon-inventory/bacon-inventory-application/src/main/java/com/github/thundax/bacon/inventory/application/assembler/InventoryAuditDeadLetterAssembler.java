@@ -20,12 +20,11 @@ public final class InventoryAuditDeadLetterAssembler {
 
     private InventoryAuditDeadLetterAssembler() {}
 
-    public static InventoryAuditDeadLetterDTO toDto(Long tenantId, InventoryAuditDeadLetter deadLetter) {
+    public static InventoryAuditDeadLetterDTO toDto(InventoryAuditDeadLetter deadLetter) {
         return new InventoryAuditDeadLetterDTO(
                 DeadLetterIdCodec.toValue(deadLetter.getId()),
                 OutboxIdCodec.toValue(deadLetter.getOutboxId()),
                 EventCodeCodec.toValue(deadLetter.getEventCode()),
-                tenantId,
                 OrderNoCodec.toValue(deadLetter.getOrderNo()),
                 ReservationNoCodec.toValue(deadLetter.getReservationNo()),
                 deadLetter.getActionType() == null

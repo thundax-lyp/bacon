@@ -8,8 +8,6 @@ import java.util.List;
  * 库存预占响应对象。
  */
 public record InventoryReservationResponse(
-        /** 所属租户主键。 */
-        Long tenantId,
         /** 订单号。 */
         String orderNo,
         /** 预占单号。 */
@@ -33,7 +31,6 @@ public record InventoryReservationResponse(
 
     public static InventoryReservationResponse from(InventoryReservationDTO dto) {
         return new InventoryReservationResponse(
-                dto.getTenantId(),
                 dto.getOrderNo(),
                 dto.getReservationNo(),
                 dto.getReservationStatus(),

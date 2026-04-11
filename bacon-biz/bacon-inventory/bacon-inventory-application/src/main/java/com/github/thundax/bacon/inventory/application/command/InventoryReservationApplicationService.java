@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationAssembler;
@@ -29,6 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +76,7 @@ public class InventoryReservationApplicationService {
     }
 
     public InventoryReservationResultDTO reserveStock(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
-        TenantId tenantId = currentTenantId();
+        Long tenantId = currentTenantId();
         return inventoryWriteRetrier.execute(
                 "reserve",
                 tenantId + ":" + orderNo,
@@ -253,9 +253,10 @@ public class InventoryReservationApplicationService {
         return InventoryReservationResultAssembler.fromReservation(persisted);
     }
 
-    private TenantId currentTenantId() {
+    private Long currentTenantId() {
         Long tenantId = BaconContextHolder.currentTenantId();
-        return tenantId == null ? null : TenantId.of(tenantId);
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        return tenantId;
     }
 
     private record ReservationValidationResult(String failureReason, Map<Long, Inventory> inventoryBySku) {

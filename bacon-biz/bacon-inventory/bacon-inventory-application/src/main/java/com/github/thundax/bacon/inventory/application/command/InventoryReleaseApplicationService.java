@@ -3,7 +3,6 @@ package com.github.thundax.bacon.inventory.application.command;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
@@ -58,8 +57,7 @@ public class InventoryReleaseApplicationService {
     }
 
     public InventoryReservationResultDTO releaseReservedStock(OrderNo orderNo, InventoryReleaseReason reason) {
-        TenantId tenantId = currentTenantId();
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Long tenantId = currentTenantId();
         Objects.requireNonNull(orderNo, "orderNo must not be null");
         Objects.requireNonNull(reason, "reason must not be null");
         return inventoryWriteRetrier.execute(
@@ -101,8 +99,9 @@ public class InventoryReleaseApplicationService {
         inventoryStockRepository.saveInventory(inventory);
     }
 
-    private TenantId currentTenantId() {
+    private Long currentTenantId() {
         Long tenantId = BaconContextHolder.currentTenantId();
-        return tenantId == null ? null : TenantId.of(tenantId);
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        return tenantId;
     }
 }

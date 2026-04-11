@@ -3,7 +3,6 @@ package com.github.thundax.bacon.inventory.application.command;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
@@ -17,6 +16,7 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,7 +56,7 @@ public class InventoryDeductionApplicationService {
     }
 
     public InventoryReservationResultDTO deductReservedStock(OrderNo orderNo) {
-        TenantId tenantId = currentTenantId();
+        Long tenantId = currentTenantId();
         return inventoryWriteRetrier.execute(
                 "deduct",
                 tenantId + ":" + orderNo,
@@ -96,8 +96,9 @@ public class InventoryDeductionApplicationService {
         inventoryStockRepository.saveInventory(inventory);
     }
 
-    private TenantId currentTenantId() {
+    private Long currentTenantId() {
         Long tenantId = BaconContextHolder.currentTenantId();
-        return tenantId == null ? null : TenantId.of(tenantId);
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        return tenantId;
     }
 }

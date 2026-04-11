@@ -1,10 +1,9 @@
 package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
@@ -36,8 +35,7 @@ public class InventoryManagementApplicationService {
 
     @Transactional
     public InventoryStockDTO createInventory(SkuId skuId, Integer onHandQuantity, InventoryStatus status) {
-        TenantId tenantId = currentTenantId();
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        requireTenantContext();
         Objects.requireNonNull(skuId, "skuId must not be null");
         Objects.requireNonNull(onHandQuantity, "onHandQuantity must not be null");
         Objects.requireNonNull(status, "status must not be null");
@@ -62,8 +60,7 @@ public class InventoryManagementApplicationService {
 
     @Transactional
     public InventoryStockDTO updateInventoryStatus(SkuId skuId, InventoryStatus status) {
-        TenantId tenantId = currentTenantId();
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        requireTenantContext();
         Objects.requireNonNull(skuId, "skuId must not be null");
         Objects.requireNonNull(status, "status must not be null");
         Inventory inventory = inventoryRepository
@@ -75,9 +72,8 @@ public class InventoryManagementApplicationService {
         return InventoryStockAssembler.fromInventory(savedInventory);
     }
 
-    private TenantId currentTenantId() {
+    private void requireTenantContext() {
         Long tenantId = BaconContextHolder.currentTenantId();
         Objects.requireNonNull(tenantId, "tenantId must not be null");
-        return TenantId.of(tenantId);
     }
 }

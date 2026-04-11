@@ -42,7 +42,7 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
         return inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(orderNo));
     }
 
-    private Long requireContext() {
+    private void requireContext() {
         Long tenantId = BaconContextHolder.currentTenantId();
         if (tenantId == null) {
             throw new IllegalStateException("tenantId must not be null");
@@ -51,6 +51,5 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
         if (userId == null) {
             throw new IllegalStateException("userId must not be null");
         }
-        return tenantId;
     }
 }

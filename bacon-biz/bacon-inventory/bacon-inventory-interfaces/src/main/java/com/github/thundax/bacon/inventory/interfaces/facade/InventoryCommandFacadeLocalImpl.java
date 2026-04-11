@@ -49,7 +49,7 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
         return inventoryApplicationService.deductReservedStock(OrderNoCodec.toDomain(orderNo));
     }
 
-    private Long requireContext() {
+    private void requireContext() {
         Long tenantId = BaconContextHolder.currentTenantId();
         if (tenantId == null) {
             throw new IllegalStateException("tenantId must not be null");
@@ -58,6 +58,5 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
         if (userId == null) {
             throw new IllegalStateException("userId must not be null");
         }
-        return tenantId;
     }
 }

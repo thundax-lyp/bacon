@@ -26,21 +26,32 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
 
     @Override
     public InventoryStockDTO getAvailableStock(Long skuId) {
+        requireContext();
         return inventoryQueryService.getAvailableStock(SkuIdMapper.toDomain(skuId));
     }
 
     @Override
     public List<InventoryStockDTO> batchGetAvailableStock(Set<Long> skuIds) {
+        requireContext();
         return inventoryQueryService.batchGetAvailableStock(
                 skuIds == null ? Set.of() : skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
     }
 
     @Override
     public InventoryReservationDTO getReservationByOrderNo(String orderNo) {
+        Long tenantId = requireContext();
+        return inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+    }
+
+    private Long requireContext() {
         Long tenantId = BaconContextHolder.currentTenantId();
         if (tenantId == null) {
             throw new IllegalStateException("tenantId must not be null");
         }
-        return inventoryQueryService.getReservationByOrderNo(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
+        Long userId = BaconContextHolder.currentUserId();
+        if (userId == null) {
+            throw new IllegalStateException("userId must not be null");
+        }
+        return tenantId;
     }
 }

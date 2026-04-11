@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
+import org.springframework.http.HttpHeaders;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +26,7 @@ public class RestTemplateAutoConfiguration {
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
     private static final Duration READ_TIMEOUT = Duration.ofSeconds(30);
     private static final String TENANT_ID_HEADER = "X-Tenant-Id";
+    private static final String USER_ID_HEADER = "X-User-Id";
 
     /**
      * 创建 RestTemplate Bean，供业务代码发起 HTTP 请求时复用统一的连接与读取超时配置。
@@ -51,10 +53,7 @@ public class RestTemplateAutoConfiguration {
         return RestClient.builder()
                 .requestFactory(createRequestFactory())
                 .requestInterceptor((request, body, execution) -> {
-                    Long tenantId = BaconContextHolder.currentTenantId();
-                    if (tenantId != null) {
-                        request.getHeaders().set(TENANT_ID_HEADER, String.valueOf(tenantId));
-                    }
+                    applyContextHeaders(request.getHeaders());
                     return execution.execute(request, body);
                 });
     }
@@ -69,5 +68,16 @@ public class RestTemplateAutoConfiguration {
                 .withConnectTimeout(CONNECT_TIMEOUT)
                 .withReadTimeout(READ_TIMEOUT);
         return ClientHttpRequestFactoryBuilder.detect().build(settings);
+    }
+
+    static void applyContextHeaders(HttpHeaders headers) {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        if (tenantId != null) {
+            headers.set(TENANT_ID_HEADER, String.valueOf(tenantId));
+        }
+        Long userId = BaconContextHolder.currentUserId();
+        if (userId != null) {
+            headers.set(USER_ID_HEADER, String.valueOf(userId));
+        }
     }
 }

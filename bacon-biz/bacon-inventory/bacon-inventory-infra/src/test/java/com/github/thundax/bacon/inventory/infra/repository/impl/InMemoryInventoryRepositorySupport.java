@@ -3,6 +3,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -78,8 +79,10 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public List<Inventory> findInventories(TenantId tenantId) {
-        return inventories.values().stream()
-                .filter(inventory -> java.util.Objects.equals(inventory.getTenantId(), tenantId))
+        String tenantPrefix = tenantKeyPrefix(tenantId);
+        return inventories.entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(tenantPrefix))
+                .map(Map.Entry::getValue)
                 .sorted(java.util.Comparator.comparing(inventory -> SkuIdMapper.toValue(inventory.getSkuId())))
                 .toList();
     }
@@ -110,10 +113,10 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public Inventory saveInventory(Inventory inventory) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         if (inventory.getId() == null) {
             inventory = Inventory.reconstruct(
                     InventoryId.of(inventoryIdGenerator.getAndIncrement()),
-                    inventory.getTenantId(),
                     inventory.getSkuId(),
                     inventory.getWarehouseCode(),
                     inventory.getOnHandQuantity(),
@@ -126,7 +129,7 @@ public class InMemoryInventoryRepositorySupport {
         inventory.markPersisted(version);
         inventories.put(
                 key(
-                        inventory.getTenantId().value(),
+                        tenantId,
                         inventory.getSkuId() == null
                                 ? null
                                 : inventory.getSkuId().value()),
@@ -681,6 +684,10 @@ public class InMemoryInventoryRepositorySupport {
 
     private static String key(Long tenantId, Long skuId) {
         return tenantId + ":" + skuId;
+    }
+
+    private static String tenantKeyPrefix(TenantId tenantId) {
+        return (tenantId == null ? "null" : tenantId.value()) + ":";
     }
 
     private static String reservationKey(Long tenantId, String orderNo) {

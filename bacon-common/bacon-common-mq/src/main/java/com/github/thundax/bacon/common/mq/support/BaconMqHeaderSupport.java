@@ -16,6 +16,10 @@ public final class BaconMqHeaderSupport {
         if (tenantId != null) {
             headers.putIfAbsent(BaconMqHeaders.TENANT_ID, String.valueOf(tenantId));
         }
+        Long userId = BaconContextHolder.currentUserId();
+        if (userId != null) {
+            headers.putIfAbsent(BaconMqHeaders.USER_ID, String.valueOf(userId));
+        }
         return headers;
     }
 }

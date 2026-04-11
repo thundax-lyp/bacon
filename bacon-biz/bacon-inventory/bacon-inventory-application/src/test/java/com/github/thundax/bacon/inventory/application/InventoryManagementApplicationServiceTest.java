@@ -75,7 +75,6 @@ class InventoryManagementApplicationServiceTest {
                     key(1001L, 101L),
                     Inventory.reconstruct(
                             InventoryId.of(1L),
-                            TenantId.of(1001L),
                             SkuId.of(101L),
                             WarehouseCode.of("DEFAULT"),
                             new OnHandQuantity(100),
@@ -130,7 +129,7 @@ class InventoryManagementApplicationServiceTest {
             inventory.markPersisted(version);
             inventories.put(
                     key(
-                            inventory.getTenantId().value(),
+                            1001L,
                             inventory.getSkuId() == null
                                     ? null
                                     : inventory.getSkuId().value()),

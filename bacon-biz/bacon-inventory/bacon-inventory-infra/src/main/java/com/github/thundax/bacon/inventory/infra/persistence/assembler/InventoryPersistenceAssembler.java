@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
@@ -29,7 +30,7 @@ public final class InventoryPersistenceAssembler {
     public static InventoryDO toDataObject(Inventory inventory) {
         return new InventoryDO(
                 inventory.getId() == null ? null : inventory.getId().value(),
-                null,
+                BaconContextHolder.currentTenantId(),
                 inventory.getSkuId() == null ? null : inventory.getSkuId().value(),
                 inventory.getWarehouseCode() == null
                         ? null

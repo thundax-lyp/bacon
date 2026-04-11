@@ -26,13 +26,13 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
 
     @Override
     public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
-        Long tenantId = requireTenantId();
+        Long tenantId = requireContext();
         return inventoryApplicationService.reserveStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), items);
     }
 
     @Override
     public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
-        Long tenantId = requireTenantId();
+        Long tenantId = requireContext();
         return inventoryApplicationService.releaseReservedStock(
                 TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo), toReleaseReason(reason));
     }
@@ -47,14 +47,18 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
 
     @Override
     public InventoryReservationResultDTO deductReservedStock(String orderNo) {
-        Long tenantId = requireTenantId();
+        Long tenantId = requireContext();
         return inventoryApplicationService.deductReservedStock(TenantId.of(tenantId), OrderNoCodec.toDomain(orderNo));
     }
 
-    private Long requireTenantId() {
+    private Long requireContext() {
         Long tenantId = BaconContextHolder.currentTenantId();
         if (tenantId == null) {
             throw new IllegalStateException("tenantId must not be null");
+        }
+        Long userId = BaconContextHolder.currentUserId();
+        if (userId == null) {
+            throw new IllegalStateException("userId must not be null");
         }
         return tenantId;
     }

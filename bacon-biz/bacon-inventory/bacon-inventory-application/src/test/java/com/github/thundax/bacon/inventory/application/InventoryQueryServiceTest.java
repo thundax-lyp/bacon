@@ -68,7 +68,6 @@ class InventoryQueryApplicationServiceTest {
                     key(1001L, 101L),
                     Inventory.reconstruct(
                             InventoryId.of(1L),
-                            TenantId.of(1001L),
                             SkuId.of(101L),
                             WarehouseCode.of("DEFAULT"),
                             new OnHandQuantity(100),
@@ -80,7 +79,6 @@ class InventoryQueryApplicationServiceTest {
                     key(1001L, 102L),
                     Inventory.reconstruct(
                             InventoryId.of(2L),
-                            TenantId.of(1001L),
                             SkuId.of(102L),
                             WarehouseCode.of("DEFAULT"),
                             new OnHandQuantity(80),
@@ -92,7 +90,6 @@ class InventoryQueryApplicationServiceTest {
                     key(1001L, 103L),
                     Inventory.reconstruct(
                             InventoryId.of(3L),
-                            TenantId.of(1001L),
                             SkuId.of(103L),
                             WarehouseCode.of("DEFAULT"),
                             new OnHandQuantity(60),
@@ -104,7 +101,6 @@ class InventoryQueryApplicationServiceTest {
                     key(1001L, 104L),
                     Inventory.reconstruct(
                             InventoryId.of(4L),
-                            TenantId.of(1001L),
                             SkuId.of(104L),
                             WarehouseCode.of("DEFAULT"),
                             new OnHandQuantity(40),
@@ -164,9 +160,7 @@ class InventoryQueryApplicationServiceTest {
             inventory.markPersisted(version);
             inventories.put(
                     key(
-                            inventory.getTenantId() == null
-                                    ? null
-                                    : inventory.getTenantId().value(),
+                            1001L,
                             inventory.getSkuId() == null
                                     ? null
                                     : inventory.getSkuId().value()),

@@ -233,7 +233,6 @@ class InventoryApplicationServiceTest {
                     key(1001L, 101L),
                     Inventory.reconstruct(
                             InventoryId.of(1L),
-                            TenantId.of(1001L),
                             SkuId.of(101L),
                             WarehouseCode.of("DEFAULT"),
                             new OnHandQuantity(100),
@@ -261,9 +260,8 @@ class InventoryApplicationServiceTest {
         @Override
         public List<Inventory> findInventories(Set<SkuId> skuIds) {
             batchFindInventoriesCallCount++;
-            return skuIds.stream()
-                    .map(this::findInventory)
-                    .flatMap(Optional::stream)
+            return inventories.values().stream()
+                    .filter(inventory -> skuIds.contains(inventory.getSkuId()))
                     .filter(java.util.Objects::nonNull)
                     .toList();
         }
@@ -292,7 +290,7 @@ class InventoryApplicationServiceTest {
             inventory.markPersisted(version);
             inventories.put(
                     key(
-                            inventory.getTenantId().value(),
+                            1001L,
                             inventory.getSkuId() == null
                                     ? null
                                     : inventory.getSkuId().value()),

@@ -48,7 +48,7 @@ class InventoryProviderControllerContractTest {
     }
 
     @Test
-    void shouldReturnBadRequestWhenProviderRequiredParamMissing() throws Exception {
+    void shouldExposeRawExceptionWhenTenantContextMissing() {
         InventoryProviderController controller = new InventoryProviderController(
                 new StubInventoryQueryApplicationService(), new InventoryApplicationService(null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -57,10 +57,12 @@ class InventoryProviderControllerContractTest {
                 .build();
         BaconContextHolder.clear();
 
-        mockMvc.perform(get("/providers/inventory/stocks")
+        ServletException exception = assertThrows(
+                ServletException.class,
+                () -> mockMvc.perform(get("/providers/inventory/stocks")
                         .param("skuIds", "101")
-                        .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
-                .andExpect(status().isBadRequest());
+                        .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
+        assertEquals("tenantId is required for current request", exception.getCause().getMessage());
     }
 
     @Test
@@ -144,7 +146,7 @@ class InventoryProviderControllerContractTest {
                 throw new IllegalArgumentException("Invalid tenant: " + tenantIdValue);
             }
             return new InventoryStockDTO(
-                    101L, "DEFAULT", 100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z")));
+                    101L, "DEFAULT", 100, 0, 100, "ENABLED", Instant.parse("2026-03-26T10:00:00Z"));
         }
     }
 }

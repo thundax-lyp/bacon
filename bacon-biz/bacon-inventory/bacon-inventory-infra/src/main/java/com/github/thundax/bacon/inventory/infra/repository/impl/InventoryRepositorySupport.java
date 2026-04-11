@@ -60,6 +60,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -426,11 +427,12 @@ public class InventoryRepositorySupport {
     }
 
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
-            TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
+            OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
+        Long tenantId = currentTenantId();
         long offset = (long) (pageNo - 1) * pageSize;
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
                 Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
-                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value());
+                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId);
         if (orderNo != null) {
             query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo.value());
         }
@@ -446,10 +448,11 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+    public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+        Long tenantId = currentTenantId();
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
                 Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
-                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value());
+                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId);
         if (orderNo != null) {
             query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo.value());
         }
@@ -460,30 +463,25 @@ public class InventoryRepositorySupport {
     }
 
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
-        return Optional.ofNullable(auditDeadLetterMapper.selectOne(Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
-                        .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())))
-                .map(InventoryAuditDeadLetterPersistenceAssembler::toDomain);
-    }
-
-    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
+        Long tenantId = currentTenantId();
         return Optional.ofNullable(auditDeadLetterMapper.selectOne(Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
                         .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
-                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value())))
+                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId)))
                 .map(InventoryAuditDeadLetterPersistenceAssembler::toDomain);
     }
 
     public boolean claimAuditDeadLetterForReplay(
             DeadLetterId id,
-            TenantId tenantId,
             String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
+        Long tenantId = currentTenantId();
         return auditDeadLetterMapper.update(
                         null,
                         Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
                                 .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
-                                .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value())
+                                .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId)
                                 .in(
                                         InventoryAuditDeadLetterDO::getReplayStatus,
                                         InventoryAuditReplayStatus.PENDING.value(),
@@ -551,6 +549,11 @@ public class InventoryRepositorySupport {
                         .set(InventoryAuditDeadLetterDO::getLastReplayAt, replayAt)
                         .set(InventoryAuditDeadLetterDO::getLastReplayMessage, "FAILED")
                         .set(InventoryAuditDeadLetterDO::getLastReplayError, replayError));
+    }
+
+    private Long currentTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        return Objects.requireNonNull(tenantId, "tenantId must not be null");
     }
 
     public InventoryAuditReplayTask saveAuditReplayTask(TenantId tenantId, InventoryAuditReplayTask task) {

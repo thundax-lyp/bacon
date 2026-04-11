@@ -417,7 +417,8 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
-            TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
+            OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
+        TenantId tenantId = currentTenantId();
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -435,7 +436,8 @@ public class InMemoryInventoryRepositorySupport {
                 .toList();
     }
 
-    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+    public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+        TenantId tenantId = currentTenantId();
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -445,14 +447,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
-        return auditDeadLetters.values().stream()
-                .flatMap(List::stream)
-                .filter(item -> java.util.Objects.equals(
-                        item.getOutboxId() == null ? null : item.getOutboxId().value(), id == null ? null : id.value()))
-                .findFirst();
-    }
-
-    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
+        TenantId tenantId = currentTenantId();
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -463,11 +458,11 @@ public class InMemoryInventoryRepositorySupport {
 
     public boolean claimAuditDeadLetterForReplay(
             DeadLetterId id,
-            TenantId tenantId,
             String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
+        TenantId tenantId = currentTenantId();
         return findAuditDeadLetterById(id)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
                 .filter(item -> InventoryAuditReplayStatus.PENDING.equals(item.getReplayStatus())
@@ -706,6 +701,12 @@ public class InMemoryInventoryRepositorySupport {
 
     private static String reservationKey(String tenantId, String orderNo) {
         return tenantId + ":" + orderNo;
+    }
+
+    private TenantId currentTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        java.util.Objects.requireNonNull(tenantId, "tenantId must not be null");
+        return TenantId.of(tenantId);
     }
 
     private Optional<InventoryAuditOutbox> findAuditOutboxById(OutboxId outboxId) {

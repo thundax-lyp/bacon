@@ -128,14 +128,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
-            return findAuditDeadLetterById(id);
-        }
-
-        @Override
         public boolean claimAuditDeadLetterForReplay(
                 DeadLetterId id,
-                TenantId tenantId,
                 String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,

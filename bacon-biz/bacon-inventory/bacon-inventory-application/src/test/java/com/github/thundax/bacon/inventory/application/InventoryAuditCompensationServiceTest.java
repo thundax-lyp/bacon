@@ -7,7 +7,6 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTransactionExecutor;
@@ -211,14 +210,8 @@ class InventoryAuditCompensationApplicationServiceTest {
         }
 
         @Override
-        public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
-            return findAuditDeadLetterById(id);
-        }
-
-        @Override
         public boolean claimAuditDeadLetterForReplay(
                 DeadLetterId id,
-                TenantId tenantId,
                 String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,

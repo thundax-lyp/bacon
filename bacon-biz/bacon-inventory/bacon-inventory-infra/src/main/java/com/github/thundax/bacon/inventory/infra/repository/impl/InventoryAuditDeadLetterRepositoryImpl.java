@@ -2,7 +2,6 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -31,13 +30,13 @@ public class InventoryAuditDeadLetterRepositoryImpl implements InventoryAuditDea
 
     @Override
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
-            TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
-        return support.pageAuditDeadLetters(tenantId, orderNo, replayStatus, pageNo, pageSize);
+            OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
+        return support.pageAuditDeadLetters(orderNo, replayStatus, pageNo, pageSize);
     }
 
     @Override
-    public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
-        return support.countAuditDeadLetters(tenantId, orderNo, replayStatus);
+    public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+        return support.countAuditDeadLetters(orderNo, replayStatus);
     }
 
     @Override
@@ -46,19 +45,13 @@ public class InventoryAuditDeadLetterRepositoryImpl implements InventoryAuditDea
     }
 
     @Override
-    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
-        return support.findAuditDeadLetterById(id, tenantId);
-    }
-
-    @Override
     public boolean claimAuditDeadLetterForReplay(
             DeadLetterId id,
-            TenantId tenantId,
             String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
-        return support.claimAuditDeadLetterForReplay(id, tenantId, replayKey, operatorType, operatorId, replayAt);
+        return support.claimAuditDeadLetterForReplay(id, replayKey, operatorType, operatorId, replayAt);
     }
 
     @Override

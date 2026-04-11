@@ -136,12 +136,12 @@ class InventoryAuditCompensationControllerContractTest {
 
         @Override
         public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
-                TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
+                OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
             return List.of(deadLetter);
         }
 
         @Override
-        public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+        public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
             return 1L;
         }
     }

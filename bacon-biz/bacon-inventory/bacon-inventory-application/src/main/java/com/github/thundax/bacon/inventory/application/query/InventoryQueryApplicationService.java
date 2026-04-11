@@ -5,7 +5,6 @@ import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
@@ -109,16 +108,16 @@ public class InventoryQueryApplicationService {
             InventoryAuditReplayStatus replayStatus,
             Integer pageNo,
             Integer pageSize) {
-        TenantId tenantId = currentTenantId();
+        requireTenantContext();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         List<InventoryAuditDeadLetterDTO> records =
                 inventoryAuditDeadLetterRepository
-                        .pageAuditDeadLetters(tenantId, orderNo, replayStatus, normalizedPageNo, normalizedPageSize)
+                        .pageAuditDeadLetters(orderNo, replayStatus, normalizedPageNo, normalizedPageSize)
                         .stream()
                         .map(InventoryAuditDeadLetterAssembler::toDto)
                         .toList();
-        long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(tenantId, orderNo, replayStatus);
+        long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(orderNo, replayStatus);
         return new InventoryAuditDeadLetterPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
     }
 
@@ -127,9 +126,4 @@ public class InventoryQueryApplicationService {
         Objects.requireNonNull(tenantId, "tenantId must not be null");
     }
 
-    private TenantId currentTenantId() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
-        return TenantId.of(tenantId);
-    }
 }

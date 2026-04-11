@@ -2,7 +2,6 @@ package com.github.thundax.bacon.inventory.domain.repository;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -16,11 +15,11 @@ public interface InventoryAuditDeadLetterRepository {
     default void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
 
     default List<InventoryAuditDeadLetter> pageAuditDeadLetters(
-            TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
+            OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
         return List.of();
     }
 
-    default long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
+    default long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         return 0L;
     }
 
@@ -28,13 +27,8 @@ public interface InventoryAuditDeadLetterRepository {
         return Optional.empty();
     }
 
-    default Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
-        return Optional.empty();
-    }
-
     default boolean claimAuditDeadLetterForReplay(
             DeadLetterId id,
-            TenantId tenantId,
             String replayKey,
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,

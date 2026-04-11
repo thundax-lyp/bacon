@@ -465,6 +465,13 @@ public class InventoryRepositorySupport {
                 .map(InventoryAuditDeadLetterPersistenceAssembler::toDomain);
     }
 
+    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
+        return Optional.ofNullable(auditDeadLetterMapper.selectOne(Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
+                        .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
+                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId == null ? null : tenantId.value())))
+                .map(InventoryAuditDeadLetterPersistenceAssembler::toDomain);
+    }
+
     public boolean claimAuditDeadLetterForReplay(
             DeadLetterId id,
             TenantId tenantId,

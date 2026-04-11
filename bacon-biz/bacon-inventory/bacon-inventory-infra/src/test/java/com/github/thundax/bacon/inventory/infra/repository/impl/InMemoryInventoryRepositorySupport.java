@@ -405,11 +405,12 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         auditDeadLetters
                 .computeIfAbsent(
                         reservationKey(
-                                deadLetter.getTenantId().value(),
-                                deadLetter.getOrderNo().value()),
+                                tenantId,
+                                deadLetter.getOrderNo() == null ? null : deadLetter.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(deadLetter);
     }
@@ -418,7 +419,7 @@ public class InMemoryInventoryRepositorySupport {
             TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> tenantId.equals(item.getTenantId()))
+                .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
                 .filter(item -> orderNo == null || orderNo.equals(item.getOrderNo()))
                 .filter(item -> replayStatus == null || replayStatus.equals(item.getReplayStatus()))
                 .sorted(java.util.Comparator.comparing(InventoryAuditDeadLetter::getDeadAt)
@@ -436,7 +437,7 @@ public class InMemoryInventoryRepositorySupport {
     public long countAuditDeadLetters(TenantId tenantId, OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
-                .filter(item -> tenantId.equals(item.getTenantId()))
+                .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
                 .filter(item -> orderNo == null || orderNo.equals(item.getOrderNo()))
                 .filter(item -> replayStatus == null || replayStatus.equals(item.getReplayStatus()))
                 .count();
@@ -450,6 +451,15 @@ public class InMemoryInventoryRepositorySupport {
                 .findFirst();
     }
 
+    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
+        return auditDeadLetters.values().stream()
+                .flatMap(List::stream)
+                .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
+                .filter(item -> java.util.Objects.equals(
+                        item.getOutboxId() == null ? null : item.getOutboxId().value(), id == null ? null : id.value()))
+                .findFirst();
+    }
+
     public boolean claimAuditDeadLetterForReplay(
             DeadLetterId id,
             TenantId tenantId,
@@ -458,7 +468,7 @@ public class InMemoryInventoryRepositorySupport {
             OperatorId operatorId,
             Instant replayAt) {
         return findAuditDeadLetterById(id)
-                .filter(item -> tenantId.equals(item.getTenantId()))
+                .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
                 .filter(item -> InventoryAuditReplayStatus.PENDING.equals(item.getReplayStatus())
                         || InventoryAuditReplayStatus.FAILED.equals(item.getReplayStatus()))
                 .map(item -> {
@@ -705,6 +715,15 @@ public class InMemoryInventoryRepositorySupport {
                 .map(java.util.Map.Entry::getKey)
                 .findFirst()
                 .map(this::tenantIdFromReservationKey)
+                .orElse(null);
+    }
+
+    private TenantId findAuditDeadLetterTenant(InventoryAuditDeadLetter target) {
+        return auditDeadLetters.entrySet().stream()
+                .filter(entry -> entry.getValue().stream().anyMatch(item -> item == target))
+                .map(Map.Entry::getKey)
+                .map(this::tenantIdFromReservationKey)
+                .findFirst()
                 .orElse(null);
     }
 

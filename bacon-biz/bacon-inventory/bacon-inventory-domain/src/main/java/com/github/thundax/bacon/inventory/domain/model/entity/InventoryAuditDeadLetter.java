@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -26,8 +25,6 @@ public class InventoryAuditDeadLetter {
 
     /** 死信记录主键。 */
     private DeadLetterId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 审计出站主键。 */
     private OutboxId outboxId;
     /** 出站事件业务标识。 */
@@ -74,7 +71,6 @@ public class InventoryAuditDeadLetter {
      */
     public static InventoryAuditDeadLetter create(
             DeadLetterId id,
-            TenantId tenantId,
             OutboxId outboxId,
             EventCode eventCode,
             OrderNo orderNo,
@@ -90,7 +86,6 @@ public class InventoryAuditDeadLetter {
         Objects.requireNonNull(id, "id must not be null");
         return new InventoryAuditDeadLetter(
                 id,
-                tenantId,
                 outboxId,
                 eventCode,
                 orderNo,
@@ -115,7 +110,6 @@ public class InventoryAuditDeadLetter {
 
     public static InventoryAuditDeadLetter reconstruct(
             DeadLetterId id,
-            TenantId tenantId,
             OutboxId outboxId,
             EventCode eventCode,
             OrderNo orderNo,
@@ -138,7 +132,6 @@ public class InventoryAuditDeadLetter {
             String replayOperatorId) {
         return new InventoryAuditDeadLetter(
                 id,
-                tenantId,
                 outboxId,
                 eventCode,
                 orderNo,

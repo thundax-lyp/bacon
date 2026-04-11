@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
@@ -25,9 +25,7 @@ public final class InventoryAuditDeadLetterPersistenceAssembler {
                 deadLetter.getEventCode() == null
                         ? null
                         : deadLetter.getEventCode().value(),
-                deadLetter.getTenantId() == null
-                        ? null
-                        : deadLetter.getTenantId().value(),
+                BaconContextHolder.currentTenantId(),
                 deadLetter.getOrderNo() == null ? null : deadLetter.getOrderNo().value(),
                 deadLetter.getReservationNo() == null
                         ? null
@@ -59,7 +57,6 @@ public final class InventoryAuditDeadLetterPersistenceAssembler {
     public static InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDO dataObject) {
         return InventoryAuditDeadLetter.reconstruct(
                 dataObject.getId() == null ? null : DeadLetterId.of(dataObject.getId()),
-                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 dataObject.getOutboxId() == null ? null : OutboxId.of(dataObject.getOutboxId()),
                 dataObject.getEventCode() == null ? null : EventCode.of(dataObject.getEventCode()),
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),

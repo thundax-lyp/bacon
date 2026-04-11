@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
 import com.github.thundax.bacon.inventory.application.codec.DeadLetterIdCodec;
 import com.github.thundax.bacon.inventory.application.codec.EventCodeCodec;
@@ -21,14 +20,12 @@ public final class InventoryAuditDeadLetterAssembler {
 
     private InventoryAuditDeadLetterAssembler() {}
 
-    public static InventoryAuditDeadLetterDTO toDto(InventoryAuditDeadLetter deadLetter) {
+    public static InventoryAuditDeadLetterDTO toDto(Long tenantId, InventoryAuditDeadLetter deadLetter) {
         return new InventoryAuditDeadLetterDTO(
                 DeadLetterIdCodec.toValue(deadLetter.getId()),
                 OutboxIdCodec.toValue(deadLetter.getOutboxId()),
                 EventCodeCodec.toValue(deadLetter.getEventCode()),
-                deadLetter.getTenantId() == null
-                        ? null
-                        : deadLetter.getTenantId().value(),
+                tenantId,
                 OrderNoCodec.toValue(deadLetter.getOrderNo()),
                 ReservationNoCodec.toValue(deadLetter.getReservationNo()),
                 deadLetter.getActionType() == null
@@ -58,7 +55,6 @@ public final class InventoryAuditDeadLetterAssembler {
     public static InventoryAuditDeadLetter toDomain(InventoryAuditDeadLetterDTO dto) {
         return InventoryAuditDeadLetter.reconstruct(
                 dto.getId() == null ? null : DeadLetterId.of(dto.getId()),
-                dto.getTenantId() == null ? null : TenantId.of(dto.getTenantId()),
                 dto.getOutboxId() == null ? null : OutboxId.of(dto.getOutboxId()),
                 dto.getEventCode() == null ? null : EventCode.of(dto.getEventCode()),
                 dto.getOrderNo() == null ? null : OrderNo.of(dto.getOrderNo()),

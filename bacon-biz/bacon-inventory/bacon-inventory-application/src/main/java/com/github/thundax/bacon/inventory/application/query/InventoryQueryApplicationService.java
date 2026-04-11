@@ -101,18 +101,19 @@ public class InventoryQueryApplicationService {
     }
 
     public InventoryAuditDeadLetterPageResultDTO pageAuditDeadLetters(
-            TenantId tenantId,
             OrderNo orderNo,
             InventoryAuditReplayStatus replayStatus,
             Integer pageNo,
             Integer pageSize) {
+        TenantId tenantId = currentTenantId();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         List<InventoryAuditDeadLetterDTO> records =
                 inventoryAuditDeadLetterRepository
                         .pageAuditDeadLetters(tenantId, orderNo, replayStatus, normalizedPageNo, normalizedPageSize)
                         .stream()
-                        .map(InventoryAuditDeadLetterAssembler::toDto)
+                        .map(deadLetter -> InventoryAuditDeadLetterAssembler.toDto(
+                                tenantId == null ? null : tenantId.value(), deadLetter))
                         .toList();
         long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(tenantId, orderNo, replayStatus);
         return new InventoryAuditDeadLetterPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);

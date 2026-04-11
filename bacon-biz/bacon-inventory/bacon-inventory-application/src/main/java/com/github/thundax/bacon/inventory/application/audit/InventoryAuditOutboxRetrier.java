@@ -147,7 +147,6 @@ public class InventoryAuditOutboxRetrier {
             }
             inventoryAuditDeadLetterRepository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                     DeadLetterId.of(idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG)),
-                    scopedItem.tenantId(),
                     item.getId(),
                     item.getEventCode(),
                     item.getOrderNo(),

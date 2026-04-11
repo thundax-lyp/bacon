@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
@@ -128,11 +129,12 @@ public class InventoryAuditReplayTaskApplicationService {
             Instant startedAt = Instant.now();
             try {
                 String replayKey = buildReplayKey(task, item);
-                InventoryAuditReplayResultDTO result = compensationService.replayDeadLetter(
-                        task.getTenantId(),
-                        DeadLetterIdCodec.toDomain(item.getDeadLetterIdValue()),
-                        replayKey,
-                        OperatorIdMapper.toDomain(task.getOperatorId()));
+                InventoryAuditReplayResultDTO result = BaconContextHolder.callWithTenantId(
+                        task.getTenantId() == null ? null : task.getTenantId().value(),
+                        () -> compensationService.replayDeadLetter(
+                                DeadLetterIdCodec.toDomain(item.getDeadLetterIdValue()),
+                                replayKey,
+                                OperatorIdMapper.toDomain(task.getOperatorId())));
                 InventoryAuditReplayStatus replayStatus = InventoryAuditReplayStatus.from(result.getReplayStatus());
                 InventoryAuditReplayTaskItemStatus itemStatus = InventoryAuditReplayTaskItemStatus.FAILED;
                 if (InventoryAuditReplayStatus.SUCCEEDED.equals(replayStatus)) {

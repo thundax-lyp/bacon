@@ -48,6 +48,11 @@ public class InMemoryInventoryAuditDeadLetterRepositoryImpl implements Inventory
     }
 
     @Override
+    public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
+        return support.findAuditDeadLetterById(id, tenantId);
+    }
+
+    @Override
     public boolean claimAuditDeadLetterForReplay(
             DeadLetterId id,
             TenantId tenantId,

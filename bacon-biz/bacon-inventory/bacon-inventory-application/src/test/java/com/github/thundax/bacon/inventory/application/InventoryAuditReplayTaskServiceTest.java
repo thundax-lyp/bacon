@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -45,9 +46,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
     @Test
     void shouldCreateAndProcessReplayTask() {
         TestLogRepository repository = new TestLogRepository();
-        repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+        BaconContextHolder.runWithTenantId(3001L, () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 DeadLetterId.of(101L),
-                TenantId.of(3001L),
                 com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L),
                 EventCode.of("EVT20260326000000-000101"),
                 OrderNo.of("ORDER-1"),
@@ -59,7 +59,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                 1,
                 "FAIL",
                 "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z")));
+                Instant.parse("2026-03-26T00:01:00Z"))));
 
         InventoryAuditReplayTaskApplicationService taskService =
                 new InventoryAuditReplayTaskApplicationService(repository);
@@ -125,15 +125,20 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
+        public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
+            return findAuditDeadLetterById(id);
+        }
+
+        @Override
         public boolean claimAuditDeadLetterForReplay(
                 DeadLetterId id,
                 TenantId tenantId,
                 String replayKey,
-                InventoryAuditOperatorType operatorType,
-                OperatorId operatorId,
-                Instant replayAt) {
+            InventoryAuditOperatorType operatorType,
+            OperatorId operatorId,
+            Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
-            if (deadLetter == null || !tenantId.equals(deadLetter.getTenantId())) {
+            if (deadLetter == null) {
                 return false;
             }
             if (!InventoryAuditReplayStatus.PENDING.equals(deadLetter.getReplayStatus())

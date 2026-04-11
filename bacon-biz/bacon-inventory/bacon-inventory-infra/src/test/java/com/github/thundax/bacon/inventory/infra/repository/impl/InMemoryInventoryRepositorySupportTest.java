@@ -62,9 +62,8 @@ class InMemoryInventoryRepositorySupportTest {
         repository.markAuditOutboxDead(outboxId, 6, "MAX_RETRIES_EXCEEDED", now.plusSeconds(600));
         assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(601), 10).isEmpty());
 
-        repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
                 DeadLetterId.of(2001L),
-                TenantId.of(1001L),
                 outboxId,
                 retryable.get(0).getEventCode(),
                 OrderNo.of("ORDER-1"),
@@ -76,7 +75,7 @@ class InMemoryInventoryRepositorySupportTest {
                 6,
                 "RETRY_FAIL",
                 "MAX_RETRIES_EXCEEDED",
-                now.plusSeconds(600)));
+                now.plusSeconds(600))));
 
         repository.deleteAuditOutbox(outboxId);
         assertTrue(

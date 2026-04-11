@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
@@ -15,7 +16,6 @@ import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -35,16 +35,12 @@ public class InventoryAuditCompensationApplicationService {
         this.inventoryAuditReplayTransactionService = inventoryAuditReplayTransactionService;
     }
 
-    public InventoryAuditReplayResultDTO replayDeadLetter(
-            TenantId tenantId, DeadLetterId deadLetterId, String replayKey, OperatorId operatorId) {
+    public InventoryAuditReplayResultDTO replayDeadLetter(DeadLetterId deadLetterId, String replayKey, OperatorId operatorId) {
+        TenantId tenantId = currentTenantId();
         InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository
-                .findAuditDeadLetterById(deadLetterId)
+                .findAuditDeadLetterById(deadLetterId, tenantId)
                 .orElseThrow(() -> new InventoryDomainException(
                         InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND, "dead-letter-not-found:" + deadLetterId));
-        if (!Objects.equals(tenantId, deadLetter.getTenantId())) {
-            throw new InventoryDomainException(
-                    InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "dead-letter-tenant-mismatch");
-        }
         if (InventoryAuditReplayStatus.SUCCEEDED.equals(deadLetter.getReplayStatus())) {
             return new InventoryAuditReplayResultDTO(
                     deadLetterId.value(),
@@ -101,7 +97,7 @@ public class InventoryAuditCompensationApplicationService {
     }
 
     public List<InventoryAuditReplayResultDTO> replayDeadLettersBatch(
-            TenantId tenantId, List<DeadLetterId> deadLetterIds, String replayKeyPrefix, OperatorId operatorId) {
+            List<DeadLetterId> deadLetterIds, String replayKeyPrefix, OperatorId operatorId) {
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             return List.of();
         }
@@ -111,9 +107,15 @@ public class InventoryAuditCompensationApplicationService {
             String replayKey = replayKeyPrefix == null || replayKeyPrefix.isBlank()
                     ? null
                     : replayKeyPrefix + "-" + deadLetterId.value();
-            results.add(replayDeadLetter(tenantId, deadLetterId, replayKey, operatorId));
+            results.add(replayDeadLetter(deadLetterId, replayKey, operatorId));
         }
         return List.copyOf(results);
+    }
+
+    private TenantId currentTenantId() {
+        Long tenantId = BaconContextHolder.currentTenantId();
+        java.util.Objects.requireNonNull(tenantId, "tenantId must not be null");
+        return TenantId.of(tenantId);
     }
 
     private String resolveReplayKey(InventoryAuditDeadLetter deadLetter, String replayKey) {

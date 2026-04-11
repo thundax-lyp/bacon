@@ -28,6 +28,10 @@ public interface InventoryAuditDeadLetterRepository {
         return Optional.empty();
     }
 
+    default Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id, TenantId tenantId) {
+        return Optional.empty();
+    }
+
     default boolean claimAuditDeadLetterForReplay(
             DeadLetterId id,
             TenantId tenantId,

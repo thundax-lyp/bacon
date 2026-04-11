@@ -61,11 +61,9 @@ public class InventoryAuditCompensationController {
     @Operation(summary = "分页查询库存审计死信")
     @HasPermission("inventory:audit:dead:view")
     @GetMapping
-    public InventoryAuditDeadLetterPageResponse pageDeadLetters(
-            @CurrentTenant Long tenantId, @Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
+    public InventoryAuditDeadLetterPageResponse pageDeadLetters(@Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
         InventoryAuditReplayStatus replayStatus = parseReplayStatus(request.getReplayStatus());
         return InventoryAuditDeadLetterPageResponse.from(inventoryQueryService.pageAuditDeadLetters(
-                TenantId.of(tenantId),
                 OrderNoCodec.toDomain(request.getOrderNo()),
                 replayStatus,
                 request.getPageNo(),
@@ -76,11 +74,9 @@ public class InventoryAuditCompensationController {
     @HasPermission("inventory:audit:dead:replay")
     @PostMapping("/{deadLetterId}/replay")
     public InventoryAuditReplayResultResponse replayOne(
-            @CurrentTenant Long tenantId,
             @PathVariable @NotNull @Positive Long deadLetterId,
             @Valid @RequestBody InventoryAuditReplayRequest request) {
         return InventoryAuditReplayResultResponse.from(inventoryAuditCompensationService.replayDeadLetter(
-                TenantId.of(tenantId),
                 DeadLetterIdCodec.toDomain(deadLetterId),
                 request.replayKey(),
                 OperatorIdMapper.toDomain(request.operatorId() == null ? null : String.valueOf(request.operatorId()))));
@@ -89,11 +85,9 @@ public class InventoryAuditCompensationController {
     @Operation(summary = "批量重放库存审计死信")
     @HasPermission("inventory:audit:dead:replay")
     @PostMapping("/replay-batch")
-    public List<InventoryAuditReplayResultResponse> replayBatch(
-            @CurrentTenant Long tenantId, @Valid @RequestBody InventoryAuditBatchReplayRequest request) {
+    public List<InventoryAuditReplayResultResponse> replayBatch(@Valid @RequestBody InventoryAuditBatchReplayRequest request) {
         return inventoryAuditCompensationService
                 .replayDeadLettersBatch(
-                        TenantId.of(tenantId),
                         request.deadLetterIds() == null
                                 ? List.of()
                                 : request.deadLetterIds().stream()

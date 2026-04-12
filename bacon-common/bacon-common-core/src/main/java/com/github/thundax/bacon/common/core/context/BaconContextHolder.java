@@ -39,6 +39,22 @@ public final class BaconContextHolder {
         return context == null ? null : context.userId();
     }
 
+    public static Long requireTenantId() {
+        Long tenantId = currentTenantId();
+        if (tenantId == null) {
+            throw new IllegalStateException("tenantId must not be null");
+        }
+        return tenantId;
+    }
+
+    public static Long requireUserId() {
+        Long userId = currentUserId();
+        if (userId == null) {
+            throw new IllegalStateException("userId must not be null");
+        }
+        return userId;
+    }
+
     public static void clear() {
         HOLDER.remove();
     }

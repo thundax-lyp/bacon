@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
@@ -230,7 +229,7 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     private long requireTenantIdValue() {
-        return BaconIdContextHelper.requireTenantId().value();
+        return BaconContextHolder.requireTenantId();
     }
 
     private boolean isTerminal(InventoryAuditReplayTaskStatus status) {

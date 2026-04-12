@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
-import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryReservationDO;
@@ -29,7 +29,7 @@ public final class InventoryReservationPersistenceAssembler {
     public static InventoryReservationDO toDataObject(InventoryReservation reservation) {
         return new InventoryReservationDO(
                 reservation.getId(),
-                BaconIdContextHelper.requireTenantId().value(),
+                BaconContextHolder.requireTenantId(),
                 reservation.getReservationNo() == null ? null : reservation.getReservationNo().value(),
                 reservation.getOrderNo() == null ? null : reservation.getOrderNo().value(),
                 reservation.getReservationStatus() == null

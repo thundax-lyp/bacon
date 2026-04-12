@@ -3,7 +3,7 @@ package com.github.thundax.bacon.inventory.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -552,7 +552,7 @@ public class InventoryRepositorySupport {
     }
 
     private Long currentTenantId() {
-        return BaconIdContextHelper.requireTenantId().value();
+        return BaconContextHolder.requireTenantId();
     }
 
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {

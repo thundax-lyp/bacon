@@ -2,7 +2,7 @@ package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
@@ -100,6 +100,6 @@ public class InventoryReleaseApplicationService {
     }
 
     private Long currentTenantId() {
-        return BaconIdContextHelper.requireTenantId().value();
+        return BaconContextHolder.requireTenantId();
     }
 }

@@ -19,18 +19,10 @@ public final class BaconIdContextHelper {
     }
 
     public static TenantId requireTenantId() {
-        TenantId tenantId = currentTenantId();
-        if (tenantId == null) {
-            throw new IllegalStateException("tenantId must not be null");
-        }
-        return tenantId;
+        return TenantIdMapper.toDomain(BaconContextHolder.requireTenantId());
     }
 
     public static UserId requireUserId() {
-        UserId userId = currentUserId();
-        if (userId == null) {
-            throw new IllegalStateException("userId must not be null");
-        }
-        return userId;
+        return UserIdMapper.toDomain(BaconContextHolder.requireUserId());
     }
 }

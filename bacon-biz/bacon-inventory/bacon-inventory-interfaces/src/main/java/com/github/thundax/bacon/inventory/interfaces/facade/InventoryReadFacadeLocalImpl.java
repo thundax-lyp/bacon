@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.interfaces.facade;
 
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
-import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
@@ -43,7 +43,7 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
     }
 
     private void requireContext() {
-        BaconIdContextHelper.requireTenantId();
-        BaconIdContextHelper.requireUserId();
+        BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireUserId();
     }
 }

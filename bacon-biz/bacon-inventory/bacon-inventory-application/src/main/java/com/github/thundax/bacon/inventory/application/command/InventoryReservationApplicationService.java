@@ -3,7 +3,7 @@ package com.github.thundax.bacon.inventory.application.command;
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
-import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationAssembler;
@@ -254,7 +254,7 @@ public class InventoryReservationApplicationService {
     }
 
     private Long currentTenantId() {
-        return BaconIdContextHelper.requireTenantId().value();
+        return BaconContextHolder.requireTenantId();
     }
 
     private record ReservationValidationResult(String failureReason, Map<Long, Inventory> inventoryBySku) {

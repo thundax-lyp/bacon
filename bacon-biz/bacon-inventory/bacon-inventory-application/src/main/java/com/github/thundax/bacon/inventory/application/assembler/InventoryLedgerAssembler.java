@@ -29,7 +29,7 @@ public final class InventoryLedgerAssembler {
     }
 
     public static InventoryLedger toDomain(InventoryLedgerDTO dto) {
-        return new InventoryLedger(
+        return InventoryLedger.reconstruct(
                 dto.getId(),
                 dto.getOrderNo() == null ? null : OrderNo.of(dto.getOrderNo()),
                 dto.getReservationNo() == null ? null : ReservationNo.of(dto.getReservationNo()),

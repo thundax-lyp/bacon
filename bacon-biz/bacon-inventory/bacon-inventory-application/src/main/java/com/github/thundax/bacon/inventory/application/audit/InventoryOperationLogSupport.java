@@ -68,7 +68,7 @@ public class InventoryOperationLogSupport {
             InventoryLedgerType ledgerType,
             Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryAuditRecordRepository.saveLedger(new InventoryLedger(
+            inventoryAuditRecordRepository.saveLedger(InventoryLedger.create(
                     idGenerator.nextId(LEDGER_ID_BIZ_TAG),
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),

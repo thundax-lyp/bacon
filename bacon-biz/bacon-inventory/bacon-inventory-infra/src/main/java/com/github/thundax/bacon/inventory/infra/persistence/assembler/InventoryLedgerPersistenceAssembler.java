@@ -14,7 +14,7 @@ public final class InventoryLedgerPersistenceAssembler {
     private InventoryLedgerPersistenceAssembler() {}
 
     public static InventoryLedger toDomain(InventoryLedgerDO dataObject) {
-        return new InventoryLedger(
+        return InventoryLedger.reconstruct(
                 dataObject.getId(),
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),
                 dataObject.getReservationNo() == null ? null : ReservationNo.of(dataObject.getReservationNo()),

@@ -30,8 +30,8 @@ jobs:
       - name: Run unit tests
         run: mvn -q test
 
-      - name: Run checkstyle
-        run: mvn -q checkstyle:check
+      - name: Run spotless check
+        run: mvn -q spotless:check
 
       - name: Run verify
         run: mvn -q verify
@@ -46,14 +46,3 @@ jobs:
           path: |
             **/target/surefire-reports/*.xml
             **/target/surefire-reports/*.txt
-
-      - name: Upload checkstyle reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: checkstyle-reports
-          if-no-files-found: warn
-          retention-days: 14
-          path: |
-            **/target/checkstyle-result.xml
-            **/target/checkstyle-checker.xml

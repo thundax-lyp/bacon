@@ -75,7 +75,7 @@ public class InventoryReservationApplicationService {
     }
 
     public InventoryReservationResultDTO reserveStock(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return inventoryWriteRetrier.execute(
                 "reserve",
                 tenantId + ":" + orderNo,
@@ -249,10 +249,6 @@ public class InventoryReservationApplicationService {
         InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(persisted, operatedAt);
         return InventoryReservationResultAssembler.fromReservation(persisted);
-    }
-
-    private Long currentTenantId() {
-        return BaconContextHolder.requireTenantId();
     }
 
     private record ReservationValidationResult(String failureReason, Map<Long, Inventory> inventoryBySku) {

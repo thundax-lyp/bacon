@@ -435,7 +435,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
-        TenantId tenantId = currentTenantId();
+        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -454,7 +454,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
-        TenantId tenantId = currentTenantId();
+        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -464,7 +464,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
-        TenantId tenantId = currentTenantId();
+        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -479,7 +479,7 @@ public class InMemoryInventoryRepositorySupport {
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
-        TenantId tenantId = currentTenantId();
+        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return findAuditDeadLetterById(id)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
                 .filter(item -> InventoryAuditReplayStatus.PENDING.equals(item.getReplayStatus())
@@ -539,7 +539,7 @@ public class InMemoryInventoryRepositorySupport {
                     task.getUpdatedAt());
         }
         auditReplayTasks.put(task.getIdValue(), task);
-        auditReplayTaskTenants.put(task.getIdValue(), requireTenantIdValue());
+        auditReplayTaskTenants.put(task.getIdValue(), BaconContextHolder.requireTenantId());
         return task;
     }
 
@@ -672,7 +672,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
-        Long tenantId = requireTenantIdValue();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return findAuditReplayTaskById(taskId)
                 .filter(task -> java.util.Objects.equals(findAuditReplayTaskTenantId(task.getId()), tenantId))
                 .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
@@ -689,7 +689,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
-        Long tenantId = requireTenantIdValue();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return findAuditReplayTaskById(taskId)
                 .filter(task -> java.util.Objects.equals(findAuditReplayTaskTenantId(task.getId()), tenantId))
                 .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))
@@ -716,16 +716,6 @@ public class InMemoryInventoryRepositorySupport {
 
     private static String reservationKey(String tenantId, String orderNo) {
         return tenantId + ":" + orderNo;
-    }
-
-    private Long requireTenantIdValue() {
-        return java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
-    }
-
-    private TenantId currentTenantId() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        java.util.Objects.requireNonNull(tenantId, "tenantId must not be null");
-        return TenantId.of(tenantId);
     }
 
     private Optional<InventoryAuditOutbox> findAuditOutboxById(OutboxId outboxId) {

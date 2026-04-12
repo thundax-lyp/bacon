@@ -19,21 +19,13 @@ public class PaymentReadFacadeLocalImpl implements PaymentReadFacade {
 
     @Override
     public PaymentDetailDTO getByPaymentNo(String paymentNo) {
-        Long tenantId = requireTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return paymentQueryService.getByPaymentNo(tenantId, paymentNo);
     }
 
     @Override
     public PaymentDetailDTO getByOrderNo(String orderNo) {
-        Long tenantId = requireTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return paymentQueryService.getByOrderNo(tenantId, orderNo);
-    }
-
-    private Long requireTenantId() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        if (tenantId == null) {
-            throw new IllegalStateException("tenantId must not be null");
-        }
-        return tenantId;
     }
 }

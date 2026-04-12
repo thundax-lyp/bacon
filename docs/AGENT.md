@@ -1,65 +1,61 @@
 # Docs Agent
 
-此文件只给 AI / harness 读，用于定义 `docs/` 的最小加载路径。
+只给 AI / harness 读。目标：少读，快读，读对。
 
-规则：
+## Core Rules
 
-- 只读完成当前任务所需的最少文档
-- 先读工程级规则，再读业务域文档
-- 不把 `docs/` 当成必须全量遍历的目录
-- 工程级规则优先级高于业务域文档
+- 只加载完成当前任务必需的文档。
+- 先读治理文档，再读业务文档。
+- `docs/` 不是默认全量输入目录。
+- 工程级规则优先于业务域文档。
+- `STORY.md` 永不默认加载。
 
-## 1. Start Here
+## Mandatory Entry
 
-实现、修改、评审代码前，固定先读：
+实现、修改、评审代码前固定先读：
 
 1. [`00-governance/ARCHITECTURE.md`](./00-governance/ARCHITECTURE.md)
 
-按任务补充：
+## Task Router
 
-- 业务实现：读取对应 [`10-requirements/*-REQUIREMENTS.md`](./10-requirements)
-- 新增类、重命名、目录调整、分层判断：再读 [`00-governance/NAMING-AND-PLACEMENT-RULES.md`](./00-governance/NAMING-AND-PLACEMENT-RULES.md)
-- 数据库相关：再读 [`00-governance/DATABASE-RULES.md`](./00-governance/DATABASE-RULES.md) 和对应 [`20-database/*-DATABASE-DESIGN.md`](./20-database)
-- 统一 ID 相关：再读 [`00-governance/UNIFIED-ID-DESIGN.md`](./00-governance/UNIFIED-ID-DESIGN.md)
-- 文档编写相关：再读 [`00-governance/DOCUMENT-RULES.md`](./00-governance/DOCUMENT-RULES.md)
-- 上线准备、运行手册、发布清单：读取 [`40-readiness/`](./40-readiness)
-- 专项方案或规划：读取 [`30-designs/`](./30-designs)
+- 纯实现、修 bug、重构业务逻辑：
+  读 `ARCHITECTURE.md`，再读对应 `10-requirements/*-REQUIREMENTS.md`
+- 新增类、改类名、改目录、判断分层：
+  再读 `00-governance/NAMING-AND-PLACEMENT-RULES.md`
+- 数据库、DO、Mapper、持久化查询：
+  再读 `00-governance/DATABASE-RULES.md`
+  再读对应 `20-database/*-DATABASE-DESIGN.md`
+- 统一 ID、发号、ID 落库：
+  再读 `00-governance/UNIFIED-ID-DESIGN.md`
+- 改文档：
+  再读 `00-governance/DOCUMENT-RULES.md`
+- 上线准备、运维、发布：
+  读 `40-readiness/`
+- 专项方案、路线图、跨域设计：
+  按需读 `30-designs/`
 
-明确排除：
+## Domain Router
 
-- [`STORY.md`](./STORY.md) 是消遣文档，不是工程规则，不是实现依据，不作为 AI 输入默认加载
+- `Auth` -> [`10-requirements/AUTH-REQUIREMENTS.md`](./10-requirements/AUTH-REQUIREMENTS.md)
+- `UPMS` -> [`10-requirements/UPMS-REQUIREMENTS.md`](./10-requirements/UPMS-REQUIREMENTS.md)
+- `Order` -> [`10-requirements/ORDER-REQUIREMENTS.md`](./10-requirements/ORDER-REQUIREMENTS.md)
+- `Inventory` -> [`10-requirements/INVENTORY-REQUIREMENTS.md`](./10-requirements/INVENTORY-REQUIREMENTS.md)
+- `Payment` -> [`10-requirements/PAYMENT-REQUIREMENTS.md`](./10-requirements/PAYMENT-REQUIREMENTS.md)
+- `Storage` -> [`10-requirements/STORAGE-REQUIREMENTS.md`](./10-requirements/STORAGE-REQUIREMENTS.md)
 
-## 2. Directory Map
+## Load Limits
 
-- `00-governance/`: architecture, global rules, shared constraints
-- `10-requirements/`: domain requirements
-- `20-database/`: database designs
-- `30-designs/`: cross-cutting designs and roadmaps
-- `40-readiness/`: readiness, runbooks, release checklists
+- 单域任务：不要默认加载其他域文档。
+- 数据库任务：不要顺手加载全部需求文档。
+- 跨域任务：只加载涉及的域。
+- commit 整理、纯格式调整、无实现判断的机械修改：
+  不额外加载业务需求文档。
+- 只有当当前文档明确引用下一个文档时，才继续向下追。
 
-## 3. Domain Docs
+## Directory Map
 
-- `Auth`: [`10-requirements/AUTH-REQUIREMENTS.md`](./10-requirements/AUTH-REQUIREMENTS.md)
-- `UPMS`: [`10-requirements/UPMS-REQUIREMENTS.md`](./10-requirements/UPMS-REQUIREMENTS.md)
-- `Order`: [`10-requirements/ORDER-REQUIREMENTS.md`](./10-requirements/ORDER-REQUIREMENTS.md)
-- `Inventory`: [`10-requirements/INVENTORY-REQUIREMENTS.md`](./10-requirements/INVENTORY-REQUIREMENTS.md)
-- `Payment`: [`10-requirements/PAYMENT-REQUIREMENTS.md`](./10-requirements/PAYMENT-REQUIREMENTS.md)
-- `Storage`: [`10-requirements/STORAGE-REQUIREMENTS.md`](./10-requirements/STORAGE-REQUIREMENTS.md)
-
-## 4. Database Docs
-
-- `Auth`: [`20-database/AUTH-DATABASE-DESIGN.md`](./20-database/AUTH-DATABASE-DESIGN.md)
-- `UPMS`: [`20-database/UPMS-DATABASE-DESIGN.md`](./20-database/UPMS-DATABASE-DESIGN.md)
-- `Order`: [`20-database/ORDER-DATABASE-DESIGN.md`](./20-database/ORDER-DATABASE-DESIGN.md)
-- `Inventory`: [`20-database/INVENTORY-DATABASE-DESIGN.md`](./20-database/INVENTORY-DATABASE-DESIGN.md)
-- `Payment`: [`20-database/PAYMENT-DATABASE-DESIGN.md`](./20-database/PAYMENT-DATABASE-DESIGN.md)
-- `Storage`: [`20-database/STORAGE-DATABASE-DESIGN.md`](./20-database/STORAGE-DATABASE-DESIGN.md)
-
-## 5. Load Policy
-
-- Single-domain task: do not load other domain requirements by default
-- Database-only task: do not load all requirements by default
-- Cross-domain workflow: load only the involved domains
-- Class creation, renaming, placement, or layering tasks: load naming and placement rules on demand
-- If a design or readiness doc is referenced by the active requirement, load it on demand
-- Never load `STORY.md` unless the user explicitly asks for that file itself
+- `00-governance/`: 全局规则
+- `10-requirements/`: 业务需求
+- `20-database/`: 数据库设计
+- `30-designs/`: 专项设计
+- `40-readiness/`: 上线与运维

@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.SysLogRecordDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.SysLogRecordMapper;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;
@@ -22,13 +21,9 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     void saveSysLog(SysLogRecord sysLogRecord) {
         SysLogRecordDO dataObject = toDataObject(sysLogRecord);
-        LocalDateTime now = LocalDateTime.now();
         if (dataObject.getId() == null) {
-            dataObject.setCreatedAt(now);
-            dataObject.setUpdatedAt(now);
             sysLogRecordMapper.insert(dataObject);
         } else {
-            dataObject.setUpdatedAt(now);
             sysLogRecordMapper.updateById(dataObject);
         }
     }

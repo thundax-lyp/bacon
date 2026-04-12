@@ -63,11 +63,7 @@ public class PostApplicationService {
                 normalize(code),
                 normalize(name),
                 domainDepartmentId,
-                PostStatus.ENABLED,
-                null,
-                null,
-                null,
-                null)));
+                PostStatus.ENABLED)));
     }
 
     @Transactional
@@ -82,11 +78,7 @@ public class PostApplicationService {
                 normalize(code),
                 normalize(name),
                 toDepartmentId(departmentId),
-                toPostStatus(status, currentPost.getStatus()),
-                currentPost.getCreatedBy(),
-                currentPost.getCreatedAt(),
-                currentPost.getUpdatedBy(),
-                currentPost.getUpdatedAt())));
+                toPostStatus(status, currentPost.getStatus()))));
     }
 
     @Transactional

@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
 public record MenuCreateRequest(
-        String tenantCode,
         String menuType,
         String name,
         String parentId,

@@ -7,7 +7,6 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.PostDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.PostMapper;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;
@@ -55,13 +54,9 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Post savePost(Post post) {
         PostDO dataObject = toDataObject(post);
-        LocalDateTime now = LocalDateTime.now();
         if (dataObject.getId() == null) {
-            dataObject.setCreatedAt(now);
-            dataObject.setUpdatedAt(now);
             postMapper.insert(dataObject);
         } else {
-            dataObject.setUpdatedAt(now);
             postMapper.updateById(dataObject);
         }
         return toDomain(dataObject);

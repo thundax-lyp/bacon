@@ -52,14 +52,6 @@ public class UserCredential {
     private Instant expiresAt;
     /** 最近验证时间。 */
     private Instant lastVerifiedAt;
-    /** 创建人。 */
-    private String createdBy;
-    /** 创建时间。 */
-    private Instant createdAt;
-    /** 最后更新人。 */
-    private String updatedBy;
-    /** 最后更新时间。 */
-    private Instant updatedAt;
 
     public static UserCredential create(
             UserCredentialId id,
@@ -76,11 +68,7 @@ public class UserCredential {
             String lockReason,
             Instant lockedUntil,
             Instant expiresAt,
-            Instant lastVerifiedAt,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
+            Instant lastVerifiedAt) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(userId, "userId must not be null");
@@ -103,45 +91,7 @@ public class UserCredential {
                 lockReason,
                 lockedUntil,
                 expiresAt,
-                lastVerifiedAt,
-                createdBy,
-                createdAt,
-                updatedBy,
-                updatedAt);
-    }
-
-    public static UserCredential create(
-            UserCredentialId id,
-            TenantId tenantId,
-            UserId userId,
-            UserIdentityId identityId,
-            UserCredentialType credentialType,
-            UserCredentialFactorLevel factorLevel,
-            String credentialValue,
-            UserCredentialStatus status,
-            boolean needChangePassword,
-            int failedCount,
-            int failedLimit) {
-        return create(
-                id,
-                tenantId,
-                userId,
-                identityId,
-                credentialType,
-                factorLevel,
-                credentialValue,
-                status,
-                needChangePassword,
-                failedCount,
-                failedLimit,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
+                lastVerifiedAt);
     }
 
     public static UserCredential reconstruct(
@@ -159,11 +109,7 @@ public class UserCredential {
             String lockReason,
             Instant lockedUntil,
             Instant expiresAt,
-            Instant lastVerifiedAt,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
+            Instant lastVerifiedAt) {
         return new UserCredential(
                 id,
                 tenantId,
@@ -179,44 +125,6 @@ public class UserCredential {
                 lockReason,
                 lockedUntil,
                 expiresAt,
-                lastVerifiedAt,
-                createdBy,
-                createdAt,
-                updatedBy,
-                updatedAt);
-    }
-
-    public static UserCredential reconstruct(
-            UserCredentialId id,
-            TenantId tenantId,
-            UserId userId,
-            UserIdentityId identityId,
-            UserCredentialType credentialType,
-            UserCredentialFactorLevel factorLevel,
-            String credentialValue,
-            UserCredentialStatus status,
-            boolean needChangePassword,
-            int failedCount,
-            int failedLimit) {
-        return reconstruct(
-                id,
-                tenantId,
-                userId,
-                identityId,
-                credentialType,
-                factorLevel,
-                credentialValue,
-                status,
-                needChangePassword,
-                failedCount,
-                failedLimit,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
+                lastVerifiedAt);
     }
 }

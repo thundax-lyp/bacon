@@ -48,14 +48,6 @@ public class SysLogRecord {
     private String errorMessage;
     /** 事件发生时间。 */
     private Instant occurredAt;
-    /** 创建人。 */
-    private String createdBy;
-    /** 创建时间。 */
-    private Instant createdAt;
-    /** 最后更新人。 */
-    private String updatedBy;
-    /** 最后更新时间。 */
-    private Instant updatedAt;
 
     public static SysLogRecord create(
             Long id,
@@ -73,11 +65,7 @@ public class SysLogRecord {
             String httpMethod,
             Long costMs,
             String errorMessage,
-            Instant occurredAt,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
+            Instant occurredAt) {
         Objects.requireNonNull(id, "id must not be null");
         return new SysLogRecord(
                 id,
@@ -95,51 +83,7 @@ public class SysLogRecord {
                 httpMethod,
                 costMs,
                 errorMessage,
-                occurredAt,
-                createdBy,
-                createdAt,
-                updatedBy,
-                updatedAt);
-    }
-
-    public static SysLogRecord create(
-            Long id,
-            Long tenantId,
-            String traceId,
-            String requestId,
-            String module,
-            String action,
-            String eventType,
-            String result,
-            OperatorId operatorId,
-            String operatorName,
-            String clientIp,
-            String requestUri,
-            String httpMethod,
-            Long costMs,
-            String errorMessage,
-            Instant occurredAt) {
-        return create(
-                id,
-                tenantId,
-                traceId,
-                requestId,
-                module,
-                action,
-                eventType,
-                result,
-                operatorId,
-                operatorName,
-                clientIp,
-                requestUri,
-                httpMethod,
-                costMs,
-                errorMessage,
-                occurredAt,
-                null,
-                null,
-                null,
-                null);
+                occurredAt);
     }
 
     public static SysLogRecord reconstruct(
@@ -158,11 +102,7 @@ public class SysLogRecord {
             String httpMethod,
             Long costMs,
             String errorMessage,
-            Instant occurredAt,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
+            Instant occurredAt) {
         return new SysLogRecord(
                 id,
                 tenantId,
@@ -179,50 +119,6 @@ public class SysLogRecord {
                 httpMethod,
                 costMs,
                 errorMessage,
-                occurredAt,
-                createdBy,
-                createdAt,
-                updatedBy,
-                updatedAt);
-    }
-
-    public static SysLogRecord reconstruct(
-            Long id,
-            Long tenantId,
-            String traceId,
-            String requestId,
-            String module,
-            String action,
-            String eventType,
-            String result,
-            OperatorId operatorId,
-            String operatorName,
-            String clientIp,
-            String requestUri,
-            String httpMethod,
-            Long costMs,
-            String errorMessage,
-            Instant occurredAt) {
-        return reconstruct(
-                id,
-                tenantId,
-                traceId,
-                requestId,
-                module,
-                action,
-                eventType,
-                result,
-                operatorId,
-                operatorName,
-                clientIp,
-                requestUri,
-                httpMethod,
-                costMs,
-                errorMessage,
-                occurredAt,
-                null,
-                null,
-                null,
-                null);
+                occurredAt);
     }
 }

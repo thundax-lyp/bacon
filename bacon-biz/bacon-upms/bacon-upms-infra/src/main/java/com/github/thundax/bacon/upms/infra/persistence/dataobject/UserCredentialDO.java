@@ -65,16 +65,4 @@ public class UserCredentialDO {
 
     @TableField("last_verified_at")
     private LocalDateTime lastVerifiedAt;
-
-    @TableField("created_by")
-    private String createdBy;
-
-    @TableField("created_at")
-    private LocalDateTime createdAt;
-
-    @TableField("updated_by")
-    private String updatedBy;
-
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
 }

@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -66,16 +65,4 @@ public class SysLogRecordDO {
 
     @TableField("occurred_at")
     private Instant occurredAt;
-
-    @TableField("created_by")
-    private String createdBy;
-
-    @TableField("created_at")
-    private LocalDateTime createdAt;
-
-    @TableField("updated_by")
-    private String updatedBy;
-
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
 }

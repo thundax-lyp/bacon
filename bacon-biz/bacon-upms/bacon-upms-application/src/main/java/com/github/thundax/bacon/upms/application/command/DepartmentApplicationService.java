@@ -92,11 +92,7 @@ public class DepartmentApplicationService {
                 parentDepartmentId,
                 leaderId,
                 defaultSort(sort),
-                DepartmentStatus.ENABLED,
-                null,
-                null,
-                null,
-                null)));
+                DepartmentStatus.ENABLED)));
     }
 
     @Transactional
@@ -126,11 +122,7 @@ public class DepartmentApplicationService {
                 parentDepartmentId,
                 toUserId(leaderUserId),
                 sort == null ? currentDepartment.getSort() : sort,
-                currentDepartment.getStatus(),
-                currentDepartment.getCreatedBy(),
-                currentDepartment.getCreatedAt(),
-                currentDepartment.getUpdatedBy(),
-                currentDepartment.getUpdatedAt())));
+                currentDepartment.getStatus())));
     }
 
     @Transactional

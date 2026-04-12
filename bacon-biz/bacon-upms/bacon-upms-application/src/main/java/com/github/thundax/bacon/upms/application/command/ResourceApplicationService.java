@@ -63,11 +63,7 @@ public class ResourceApplicationService {
                 toResourceType(resourceType),
                 normalize(httpMethod),
                 normalize(uri),
-                ResourceStatus.ENABLED,
-                null,
-                null,
-                null,
-                null)));
+                ResourceStatus.ENABLED)));
     }
 
     @Transactional
@@ -93,11 +89,7 @@ public class ResourceApplicationService {
                 toResourceType(resourceType),
                 normalize(httpMethod),
                 normalize(uri),
-                toResourceStatus(status, currentResource.getStatus()),
-                currentResource.getCreatedBy(),
-                currentResource.getCreatedAt(),
-                currentResource.getUpdatedBy(),
-                currentResource.getUpdatedAt())));
+                toResourceStatus(status, currentResource.getStatus()))));
     }
 
     @Transactional

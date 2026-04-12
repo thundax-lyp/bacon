@@ -87,11 +87,7 @@ public class RoleApplicationService {
                 normalize(name),
                 toRoleType(roleType),
                 toRoleDataScopeType(dataScopeType),
-                RoleStatus.ENABLED,
-                null,
-                null,
-                null,
-                null)));
+                RoleStatus.ENABLED)));
     }
 
     @Transactional
@@ -112,11 +108,7 @@ public class RoleApplicationService {
                 normalize(name),
                 toRoleType(roleType),
                 toRoleDataScopeType(dataScopeType),
-                currentRole.getStatus(),
-                currentRole.getCreatedBy(),
-                currentRole.getCreatedAt(),
-                currentRole.getUpdatedBy(),
-                currentRole.getUpdatedAt())));
+                currentRole.getStatus())));
     }
 
     @Transactional

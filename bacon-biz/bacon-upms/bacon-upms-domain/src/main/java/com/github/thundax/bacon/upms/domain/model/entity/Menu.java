@@ -60,20 +60,6 @@ public class Menu {
                 id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
     }
 
-    public static Menu create(
-            MenuId id,
-            TenantId tenantId,
-            String menuType,
-            String name,
-            MenuId parentId,
-            String routePath,
-            String componentName,
-            String icon,
-            Integer sort,
-            String permissionCode) {
-        return create(id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, List.of());
-    }
-
     public static Menu reconstruct(
             MenuId id,
             TenantId tenantId,
@@ -88,19 +74,5 @@ public class Menu {
             List<Menu> children) {
         return new Menu(
                 id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
-    }
-
-    public static Menu reconstruct(
-            MenuId id,
-            TenantId tenantId,
-            String menuType,
-            String name,
-            MenuId parentId,
-            String routePath,
-            String componentName,
-            String icon,
-            Integer sort,
-            String permissionCode) {
-        return reconstruct(id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, List.of());
     }
 }

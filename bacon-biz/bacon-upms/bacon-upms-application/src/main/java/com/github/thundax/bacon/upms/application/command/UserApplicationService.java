@@ -198,11 +198,7 @@ public class UserApplicationService {
                         normalize(name),
                         null,
                         domainDepartmentId,
-                        UserStatus.ENABLED,
-                        null,
-                        null,
-                        null,
-                        null),
+                        UserStatus.ENABLED),
                 normalizedAccount,
                 normalizedPhone);
         return toDetailedDto(savedUser);
@@ -225,11 +221,7 @@ public class UserApplicationService {
                         normalize(name),
                         currentUser.getAvatarObjectId(),
                         toDepartmentId(departmentId),
-                        currentUser.getStatus(),
-                        currentUser.getCreatedBy(),
-                        currentUser.getCreatedAt(),
-                        currentUser.getUpdatedBy(),
-                        currentUser.getUpdatedAt()),
+                        currentUser.getStatus()),
                 normalizedAccount,
                 normalizedPhone);
         return toDetailedDto(savedUser);
@@ -249,11 +241,7 @@ public class UserApplicationService {
                         currentUser.getName(),
                         currentUser.getAvatarObjectId(),
                         currentUser.getDepartmentId(),
-                        toDomainStatus(status),
-                        currentUser.getCreatedBy(),
-                        currentUser.getCreatedAt(),
-                        currentUser.getUpdatedBy(),
-                        currentUser.getUpdatedAt()),
+                        toDomainStatus(status)),
                 requireIdentityValue(tenantId, currentUser.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(tenantId, currentUser.getId(), UserIdentityType.PHONE));
         if (UserStatus.DISABLED == savedUser.getStatus()) {
@@ -387,11 +375,7 @@ public class UserApplicationService {
                             currentUser.getName(),
                             storedObjectId,
                             currentUser.getDepartmentId(),
-                            currentUser.getStatus(),
-                            currentUser.getCreatedBy(),
-                            currentUser.getCreatedAt(),
-                            currentUser.getUpdatedBy(),
-                            currentUser.getUpdatedAt()),
+                            currentUser.getStatus()),
                     requireIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.ACCOUNT),
                     resolveIdentityValue(currentUser.getTenantId(), currentUser.getId(), UserIdentityType.PHONE));
             if (previousAvatarObjectId != null && !previousAvatarObjectId.equals(storedObjectId)) {

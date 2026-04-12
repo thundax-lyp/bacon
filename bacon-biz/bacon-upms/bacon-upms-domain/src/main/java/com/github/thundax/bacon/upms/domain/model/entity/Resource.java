@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
-import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -35,14 +34,6 @@ public class Resource {
     private String uri;
     /** 资源状态。 */
     private ResourceStatus status;
-    /** 创建人。 */
-    private String createdBy;
-    /** 创建时间。 */
-    private Instant createdAt;
-    /** 最后更新人。 */
-    private String updatedBy;
-    /** 最后更新时间。 */
-    private Instant updatedAt;
 
     public static Resource create(
             ResourceId id,
@@ -52,48 +43,14 @@ public class Resource {
             ResourceType resourceType,
             String httpMethod,
             String uri,
-            ResourceStatus status,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
+            ResourceStatus status) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(resourceType, "resourceType must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new Resource(
-                id, tenantId, code, name, resourceType, httpMethod, uri, status, createdBy, createdAt, updatedBy, updatedAt);
-    }
-
-    public static Resource create(
-            ResourceId id,
-            TenantId tenantId,
-            String code,
-            String name,
-            ResourceType resourceType,
-            String httpMethod,
-            String uri,
-            ResourceStatus status) {
-        return create(id, tenantId, code, name, resourceType, httpMethod, uri, status, null, null, null, null);
-    }
-
-    public static Resource reconstruct(
-            ResourceId id,
-            TenantId tenantId,
-            String code,
-            String name,
-            ResourceType resourceType,
-            String httpMethod,
-            String uri,
-            ResourceStatus status,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
-        return new Resource(
-                id, tenantId, code, name, resourceType, httpMethod, uri, status, createdBy, createdAt, updatedBy, updatedAt);
+        return new Resource(id, tenantId, code, name, resourceType, httpMethod, uri, status);
     }
 
     public static Resource reconstruct(
@@ -105,6 +62,6 @@ public class Resource {
             String httpMethod,
             String uri,
             ResourceStatus status) {
-        return reconstruct(id, tenantId, code, name, resourceType, httpMethod, uri, status, null, null, null, null);
+        return new Resource(id, tenantId, code, name, resourceType, httpMethod, uri, status);
     }
 }

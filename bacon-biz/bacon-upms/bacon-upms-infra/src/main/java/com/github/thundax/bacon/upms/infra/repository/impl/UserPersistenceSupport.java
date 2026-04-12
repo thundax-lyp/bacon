@@ -16,7 +16,6 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserIdentityDO
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
-import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -140,15 +139,11 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     User saveUser(User user) {
         UserDO userDO = toDataObject(user);
-        LocalDateTime now = LocalDateTime.now();
         boolean insert = userDO.getId() == null || userMapper.selectById(userDO.getId()) == null;
         if (insert) {
             userDO.setDeleted(false);
-            userDO.setCreatedAt(now);
-            userDO.setUpdatedAt(now);
             userMapper.insert(userDO);
         } else {
-            userDO.setUpdatedAt(now);
             userMapper.updateById(userDO);
         }
         return toDomain(userDO);
@@ -163,7 +158,6 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
             return;
         }
         userDO.setDeleted(true);
-        userDO.setUpdatedAt(LocalDateTime.now());
         userMapper.updateById(userDO);
     }
 
@@ -182,13 +176,9 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     UserIdentity saveUserIdentity(UserIdentity userIdentity) {
         UserIdentityDO dataObject = toDataObject(userIdentity);
-        LocalDateTime now = LocalDateTime.now();
         if (dataObject.getId() == null || userIdentityMapper.selectById(dataObject.getId()) == null) {
-            dataObject.setCreatedAt(now);
-            dataObject.setUpdatedAt(now);
             userIdentityMapper.insert(dataObject);
         } else {
-            dataObject.setUpdatedAt(now);
             userIdentityMapper.updateById(dataObject);
         }
         return toDomain(dataObject);
@@ -196,13 +186,9 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     UserCredential saveUserCredential(UserCredential userCredential) {
         UserCredentialDO dataObject = toDataObject(userCredential);
-        LocalDateTime now = LocalDateTime.now();
         if (dataObject.getId() == null || userCredentialMapper.selectById(dataObject.getId()) == null) {
-            dataObject.setCreatedAt(now);
-            dataObject.setUpdatedAt(now);
             userCredentialMapper.insert(dataObject);
         } else {
-            dataObject.setUpdatedAt(now);
             userCredentialMapper.updateById(dataObject);
         }
         return toDomain(dataObject);

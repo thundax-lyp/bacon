@@ -24,7 +24,6 @@ import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleMenuRelMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleResourceRelMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -135,20 +134,13 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Role saveRole(Role role) {
         RoleDO roleDO = toDataObject(role);
-        LocalDateTime now = LocalDateTime.now();
         boolean exists = roleDO.getId() != null && roleMapper.selectById(roleDO.getId()) != null;
         if (!exists) {
-            if (roleDO.getCreatedAt() == null) {
-                roleDO.setCreatedAt(now);
-            }
-            roleDO.setUpdatedAt(now);
             roleMapper.insert(roleDO);
         } else {
-            roleDO.setUpdatedAt(now);
             roleMapper.updateById(roleDO);
         }
-        upsertDataPermissionRule(
-                roleDO.getTenantId(), roleDO.getId(), RoleDataScopeType.from(roleDO.getDataScopeType()), now);
+        upsertDataPermissionRule(roleDO.getTenantId(), roleDO.getId(), RoleDataScopeType.from(roleDO.getDataScopeType()));
         return toDomain(roleDO);
     }
 
@@ -270,8 +262,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     void replaceRoleDataScope(
             TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType, Collection<DepartmentId> departmentIds) {
-        LocalDateTime now = LocalDateTime.now();
-        upsertDataPermissionRule(tenantId, roleId, dataScopeType, now);
+        upsertDataPermissionRule(tenantId, roleId, dataScopeType);
         roleDataScopeRelMapper.delete(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
                 .eq(RoleDataScopeRelDO::getTenantId, tenantId)
                 .eq(RoleDataScopeRelDO::getRoleId, roleId));
@@ -290,8 +281,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .eq(RoleMenuRelDO::getMenuId, menuId));
     }
 
-    private void upsertDataPermissionRule(
-            TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType, LocalDateTime now) {
+    private void upsertDataPermissionRule(TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType) {
         DataPermissionRuleDO existing = dataPermissionRuleMapper.selectOne(Wrappers.<DataPermissionRuleDO>lambdaQuery()
                 .eq(DataPermissionRuleDO::getTenantId, tenantId)
                 .eq(DataPermissionRuleDO::getRoleId, roleId));
@@ -300,15 +290,10 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                     idGenerator.nextId(DATA_PERMISSION_RULE_ID_BIZ_TAG),
                     tenantId,
                     roleId,
-                    dataScopeType == null ? null : dataScopeType.value(),
-                    null,
-                    now,
-                    null,
-                    now));
+                    dataScopeType == null ? null : dataScopeType.value()));
             return;
         }
         existing.setDataScopeType(dataScopeType == null ? null : dataScopeType.value());
-        existing.setUpdatedAt(now);
         dataPermissionRuleMapper.updateById(existing);
     }
 }

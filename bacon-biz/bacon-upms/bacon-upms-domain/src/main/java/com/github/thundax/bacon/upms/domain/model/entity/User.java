@@ -5,7 +5,6 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -32,14 +31,6 @@ public class User {
     private DepartmentId departmentId;
     /** 用户状态。 */
     private UserStatus status;
-    /** 创建人。 */
-    private String createdBy;
-    /** 创建时间。 */
-    private Instant createdAt;
-    /** 最后更新人。 */
-    private String updatedBy;
-    /** 最后更新时间。 */
-    private Instant updatedAt;
 
     public static User create(
             UserId id,
@@ -47,40 +38,12 @@ public class User {
             String name,
             StoredObjectId avatarObjectId,
             DepartmentId departmentId,
-            UserStatus status,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
+            UserStatus status) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new User(id, tenantId, name, avatarObjectId, departmentId, status, createdBy, createdAt, updatedBy, updatedAt);
-    }
-
-    public static User create(
-            UserId id,
-            TenantId tenantId,
-            String name,
-            StoredObjectId avatarObjectId,
-            DepartmentId departmentId,
-            UserStatus status) {
-        return create(id, tenantId, name, avatarObjectId, departmentId, status, null, null, null, null);
-    }
-
-    public static User reconstruct(
-            UserId id,
-            TenantId tenantId,
-            String name,
-            StoredObjectId avatarObjectId,
-            DepartmentId departmentId,
-            UserStatus status,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
-        return new User(id, tenantId, name, avatarObjectId, departmentId, status, createdBy, createdAt, updatedBy, updatedAt);
+        return new User(id, tenantId, name, avatarObjectId, departmentId, status);
     }
 
     public static User reconstruct(
@@ -90,6 +53,6 @@ public class User {
             StoredObjectId avatarObjectId,
             DepartmentId departmentId,
             UserStatus status) {
-        return reconstruct(id, tenantId, name, avatarObjectId, departmentId, status, null, null, null, null);
+        return new User(id, tenantId, name, avatarObjectId, departmentId, status);
     }
 }

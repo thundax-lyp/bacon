@@ -64,11 +64,7 @@ public class RoleRepositoryImpl implements RoleRepository {
                         role.getName(),
                         role.getRoleType(),
                         role.getDataScopeType(),
-                        role.getStatus(),
-                        role.getCreatedBy(),
-                        role.getCreatedAt(),
-                        role.getUpdatedBy(),
-                        role.getUpdatedAt())
+                        role.getStatus())
                 : role;
         Role savedRole = support.saveRole(roleToSave);
         cacheSupport.evictUsersPermission(
@@ -87,11 +83,7 @@ public class RoleRepositoryImpl implements RoleRepository {
                 currentRole.getName(),
                 currentRole.getRoleType(),
                 currentRole.getDataScopeType(),
-                status,
-                currentRole.getCreatedBy(),
-                currentRole.getCreatedAt(),
-                currentRole.getUpdatedBy(),
-                currentRole.getUpdatedAt()));
+                status));
     }
 
     @Override
@@ -164,11 +156,7 @@ public class RoleRepositoryImpl implements RoleRepository {
                 currentRole.getName(),
                 currentRole.getRoleType(),
                 dataScopeType,
-                currentRole.getStatus(),
-                currentRole.getCreatedBy(),
-                currentRole.getCreatedAt(),
-                currentRole.getUpdatedBy(),
-                currentRole.getUpdatedAt()));
+                currentRole.getStatus()));
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
         return safeDepartmentIds;
     }

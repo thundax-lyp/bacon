@@ -126,11 +126,7 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getName(),
                 currentUser.getAvatarObjectId(),
                 currentUser.getDepartmentId(),
-                currentUser.getStatus(),
-                currentUser.getCreatedBy(),
-                currentUser.getCreatedAt(),
-                currentUser.getUpdatedBy(),
-                currentUser.getUpdatedAt());
+                currentUser.getStatus());
         User savedUser = support.saveUser(updatedUser);
         UserIdentity accountIdentity = requireUserIdentity(tenantId, userId, UserIdentityType.ACCOUNT);
         upsertPasswordCredential(
@@ -166,11 +162,7 @@ public class UserRepositoryImpl implements UserRepository {
                 user.getName(),
                 user.getAvatarObjectId(),
                 user.getDepartmentId(),
-                user.getStatus(),
-                null,
-                null,
-                null,
-                null);
+                user.getStatus());
     }
 
     private User updateUser(User user) {
@@ -182,11 +174,7 @@ public class UserRepositoryImpl implements UserRepository {
                 user.getName(),
                 user.getAvatarObjectId(),
                 user.getDepartmentId(),
-                user.getStatus(),
-                currentUser.getCreatedBy(),
-                currentUser.getCreatedAt(),
-                currentUser.getUpdatedBy(),
-                currentUser.getUpdatedAt());
+                user.getStatus());
     }
 
     private UserIdentity replaceAccountIdentity(User user, String account) {
@@ -197,11 +185,7 @@ public class UserRepositoryImpl implements UserRepository {
                 user.getId(),
                 UserIdentityType.ACCOUNT,
                 requireIdentityValue(account, UserIdentityType.ACCOUNT),
-                ACTIVE_IDENTITY_STATUS,
-                null,
-                null,
-                null,
-                null));
+                ACTIVE_IDENTITY_STATUS));
     }
 
     private void replacePhoneIdentity(User user, String phone) {
@@ -213,11 +197,7 @@ public class UserRepositoryImpl implements UserRepository {
                     user.getId(),
                     UserIdentityType.PHONE,
                     phone.trim(),
-                    ACTIVE_IDENTITY_STATUS,
-                    null,
-                    null,
-                    null,
-                    null));
+                    ACTIVE_IDENTITY_STATUS));
         }
     }
 
@@ -263,11 +243,7 @@ public class UserRepositoryImpl implements UserRepository {
                 null,
                 null,
                 Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS),
-                currentCredential == null ? null : currentCredential.getLastVerifiedAt(),
-                currentCredential == null ? null : currentCredential.getCreatedBy(),
-                currentCredential == null ? null : currentCredential.getCreatedAt(),
-                currentCredential == null ? null : currentCredential.getUpdatedBy(),
-                currentCredential == null ? null : currentCredential.getUpdatedAt()));
+                currentCredential == null ? null : currentCredential.getLastVerifiedAt()));
     }
 
     private UserIdentityId nextUserIdentityId() {

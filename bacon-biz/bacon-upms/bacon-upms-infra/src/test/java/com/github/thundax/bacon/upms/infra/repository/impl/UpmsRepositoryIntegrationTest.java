@@ -125,10 +125,6 @@ class UpmsRepositoryIntegrationTest {
                         leader_user_id varchar(64) NULL,
                         sort int NOT NULL,
                         status varchar(16) NOT NULL,
-                        created_by varchar(64) NULL,
-                        created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
-                        updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -142,10 +138,6 @@ class UpmsRepositoryIntegrationTest {
                         department_id varchar(64) NULL,
                         status varchar(16) NOT NULL,
                         deleted boolean NOT NULL,
-                        created_by varchar(64) NULL,
-                        created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
-                        updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -158,10 +150,6 @@ class UpmsRepositoryIntegrationTest {
                         identity_type varchar(32) NOT NULL,
                         identity_value varchar(128) NOT NULL,
                         status varchar(16) NOT NULL,
-                        created_by varchar(64) NULL,
-                        created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
-                        updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -183,10 +171,6 @@ class UpmsRepositoryIntegrationTest {
                         locked_until timestamp NULL,
                         expires_at timestamp NULL,
                         last_verified_at timestamp NULL,
-                        created_by varchar(64) NULL,
-                        created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
-                        updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -200,10 +184,6 @@ class UpmsRepositoryIntegrationTest {
                         role_type varchar(32) NOT NULL,
                         data_scope_type varchar(32) NOT NULL,
                         status varchar(16) NOT NULL,
-                        created_by varchar(64) NULL,
-                        created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
-                        updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -234,10 +214,6 @@ class UpmsRepositoryIntegrationTest {
                         method varchar(16) NULL,
                         path varchar(255) NULL,
                         status varchar(16) NOT NULL,
-                        created_by varchar(64) NULL,
-                        created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
-                        updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -278,10 +254,6 @@ class UpmsRepositoryIntegrationTest {
                         tenant_id varchar(64) NOT NULL,
                         role_id varchar(64) NOT NULL,
                         data_scope_type varchar(32) NOT NULL,
-                        created_by varchar(64) NULL,
-                        created_at timestamp NULL,
-                        updated_by varchar(64) NULL,
-                        updated_at timestamp NULL,
                         PRIMARY KEY (id)
                     )
                     """);
@@ -327,11 +299,7 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 1,
-                DepartmentStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                DepartmentStatus.ENABLED));
         Department childDepartment = departmentRepository.save(Department.create(
                 OPERATIONS_DEPARTMENT_ID,
                 TENANT_ID,
@@ -340,11 +308,7 @@ class UpmsRepositoryIntegrationTest {
                 rootDepartment.getId(),
                 null,
                 2,
-                DepartmentStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                DepartmentStatus.ENABLED));
         Menu rootMenu = menuRepository.save(Menu.reconstruct(
                 (MenuId) null, TENANT_ID, "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
         Menu childMenu = menuRepository.save(Menu.reconstruct(
@@ -367,11 +331,7 @@ class UpmsRepositoryIntegrationTest {
                 ResourceType.API,
                 "POST",
                 "/users",
-                ResourceStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                ResourceStatus.ENABLED));
         Role role = roleRepository.save(Role.reconstruct(
                 (RoleId) null,
                 TENANT_ID,
@@ -379,11 +339,7 @@ class UpmsRepositoryIntegrationTest {
                 "Administrator",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
-                RoleStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                RoleStatus.ENABLED));
         User user = userRepository.save(
                 User.reconstruct(
                         (UserId) null,
@@ -391,11 +347,7 @@ class UpmsRepositoryIntegrationTest {
                         "Alice",
                         StoredObjectId.of(901L),
                         childDepartment.getId(),
-                        UserStatus.ENABLED,
-                        null,
-                        null,
-                        null,
-                        null),
+                        UserStatus.ENABLED),
                 "alice",
                 "13800000001");
 
@@ -457,11 +409,7 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 1,
-                DepartmentStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                DepartmentStatus.ENABLED));
         Role role = roleRepository.save(Role.reconstruct(
                 (RoleId) null,
                 TENANT_ID,
@@ -469,11 +417,7 @@ class UpmsRepositoryIntegrationTest {
                 "Ops Admin",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
-                RoleStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                RoleStatus.ENABLED));
         User createdUser = userRepository.save(
                 User.reconstruct(
                         (UserId) null,
@@ -481,11 +425,7 @@ class UpmsRepositoryIntegrationTest {
                         "Bob",
                         StoredObjectId.of(1001L),
                         department.getId(),
-                        UserStatus.ENABLED,
-                        null,
-                        null,
-                        null,
-                        null),
+                        UserStatus.ENABLED),
                 "bob",
                 "13800000002");
 
@@ -497,11 +437,7 @@ class UpmsRepositoryIntegrationTest {
                         "Bob",
                         StoredObjectId.of(1002L),
                         department.getId(),
-                        UserStatus.ENABLED,
-                        null,
-                        null,
-                        null,
-                        null),
+                        UserStatus.ENABLED),
                 "bob",
                 "13900000003");
 
@@ -545,14 +481,9 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 1,
-                DepartmentStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                DepartmentStatus.ENABLED));
         User createdUser = userRepository.save(
-                User.reconstruct(
-                        (UserId) null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED, null, null, null, null),
+                User.reconstruct((UserId) null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED),
                 "carol",
                 "13600000001");
 
@@ -584,11 +515,7 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 1,
-                DepartmentStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                DepartmentStatus.ENABLED));
         Department child = departmentRepository.save(Department.create(
                 CHILD_DEPARTMENT_ID,
                 TENANT_ID,
@@ -597,11 +524,7 @@ class UpmsRepositoryIntegrationTest {
                 root.getId(),
                 null,
                 2,
-                DepartmentStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                DepartmentStatus.ENABLED));
         Menu oldMenu = menuRepository.save(Menu.reconstruct(
                 (MenuId) null, TENANT_ID, "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
         Menu newMenu = menuRepository.save(Menu.reconstruct(
@@ -614,11 +537,7 @@ class UpmsRepositoryIntegrationTest {
                 ResourceType.API,
                 "POST",
                 "/old",
-                ResourceStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                ResourceStatus.ENABLED));
         Resource newResource = resourceRepository.save(Resource.reconstruct(
                 (ResourceId) null,
                 TENANT_ID,
@@ -627,11 +546,7 @@ class UpmsRepositoryIntegrationTest {
                 ResourceType.API,
                 "PUT",
                 "/new",
-                ResourceStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                ResourceStatus.ENABLED));
         Role role = roleRepository.save(Role.reconstruct(
                 (RoleId) null,
                 TENANT_ID,
@@ -639,19 +554,14 @@ class UpmsRepositoryIntegrationTest {
                 "Manager",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
-                RoleStatus.ENABLED,
-                null,
-                null,
-                null,
-                null));
+                RoleStatus.ENABLED));
 
         roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(oldMenu.getId()));
         roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(oldResource.getCode()));
         roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
         User user = userRepository.save(
-                User.reconstruct(
-                        (UserId) null, TENANT_ID, "Manager", null, child.getId(), UserStatus.ENABLED, null, null, null, null),
+                User.reconstruct((UserId) null, TENANT_ID, "Manager", null, child.getId(), UserStatus.ENABLED),
                 "manager",
                 "13700000001");
         userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));

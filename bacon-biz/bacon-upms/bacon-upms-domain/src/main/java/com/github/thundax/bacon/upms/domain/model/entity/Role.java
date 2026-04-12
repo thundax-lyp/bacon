@@ -5,7 +5,6 @@ import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
-import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -34,14 +33,6 @@ public class Role {
     private RoleDataScopeType dataScopeType;
     /** 角色状态。 */
     private RoleStatus status;
-    /** 创建人。 */
-    private String createdBy;
-    /** 创建时间。 */
-    private Instant createdAt;
-    /** 最后更新人。 */
-    private String updatedBy;
-    /** 最后更新时间。 */
-    private Instant updatedAt;
 
     public static Role create(
             RoleId id,
@@ -50,44 +41,14 @@ public class Role {
             String name,
             RoleType roleType,
             RoleDataScopeType dataScopeType,
-            RoleStatus status,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
+            RoleStatus status) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(roleType, "roleType must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new Role(id, tenantId, code, name, roleType, dataScopeType, status, createdBy, createdAt, updatedBy, updatedAt);
-    }
-
-    public static Role create(
-            RoleId id,
-            TenantId tenantId,
-            String code,
-            String name,
-            RoleType roleType,
-            RoleDataScopeType dataScopeType,
-            RoleStatus status) {
-        return create(id, tenantId, code, name, roleType, dataScopeType, status, null, null, null, null);
-    }
-
-    public static Role reconstruct(
-            RoleId id,
-            TenantId tenantId,
-            String code,
-            String name,
-            RoleType roleType,
-            RoleDataScopeType dataScopeType,
-            RoleStatus status,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
-        return new Role(id, tenantId, code, name, roleType, dataScopeType, status, createdBy, createdAt, updatedBy, updatedAt);
+        return new Role(id, tenantId, code, name, roleType, dataScopeType, status);
     }
 
     public static Role reconstruct(
@@ -98,6 +59,6 @@ public class Role {
             RoleType roleType,
             RoleDataScopeType dataScopeType,
             RoleStatus status) {
-        return reconstruct(id, tenantId, code, name, roleType, dataScopeType, status, null, null, null, null);
+        return new Role(id, tenantId, code, name, roleType, dataScopeType, status);
     }
 }

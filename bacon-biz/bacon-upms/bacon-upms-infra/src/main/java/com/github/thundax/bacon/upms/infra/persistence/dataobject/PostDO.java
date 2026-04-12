@@ -8,7 +8,6 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,16 +36,4 @@ public class PostDO {
 
     @TableField("status")
     private String status;
-
-    @TableField("created_by")
-    private String createdBy;
-
-    @TableField("created_at")
-    private LocalDateTime createdAt;
-
-    @TableField("updated_by")
-    private String updatedBy;
-
-    @TableField("updated_at")
-    private LocalDateTime updatedAt;
 }

@@ -52,11 +52,7 @@ class UserPersistenceSupportTest {
                 "Alice",
                 StoredObjectId.of(9001L),
                 DepartmentId.of(11L),
-                UserStatus.ENABLED,
-                null,
-                null,
-                null,
-                null);
+                UserStatus.ENABLED);
         UserId generatedId = UserId.of(101L);
 
         when(userMapper.insert(any(UserDO.class))).thenAnswer(invocation -> {
@@ -68,8 +64,7 @@ class UserPersistenceSupportTest {
         User savedUser = support.saveUser(newUser);
 
         verify(userMapper).insert(captor.capture());
-        assertThat(captor.getValue().getCreatedAt()).isNotNull();
-        assertThat(captor.getValue().getUpdatedAt()).isNotNull();
+        assertThat(captor.getValue().getDeleted()).isFalse();
         assertThat(captor.getValue().getAvatarObjectId()).isEqualTo(StoredObjectId.of(9001L));
         assertThat(savedUser.getId()).isEqualTo(generatedId);
         assertThat(savedUser.getName()).isEqualTo("Alice");

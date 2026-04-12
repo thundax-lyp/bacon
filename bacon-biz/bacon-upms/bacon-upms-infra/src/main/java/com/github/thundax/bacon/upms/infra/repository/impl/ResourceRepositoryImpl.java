@@ -52,11 +52,7 @@ public class ResourceRepositoryImpl implements ResourceRepository {
                         resource.getResourceType(),
                         resource.getHttpMethod(),
                         resource.getUri(),
-                        resource.getStatus(),
-                        resource.getCreatedBy(),
-                        resource.getCreatedAt(),
-                        resource.getUpdatedBy(),
-                        resource.getUpdatedAt())
+                        resource.getStatus())
                 : resource;
         Resource savedResource = support.saveResource(resourceToSave);
         cacheSupport.evictTenantPermission(savedResource.getTenantId());

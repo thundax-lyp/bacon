@@ -56,11 +56,7 @@ public class TenantApplicationService {
                 normalize(name),
                 normalizedTenantCode,
                 TenantStatus.ACTIVE,
-                expiredAt,
-                null,
-                null,
-                null,
-                null)));
+                expiredAt)));
     }
 
     @Transactional
@@ -82,11 +78,7 @@ public class TenantApplicationService {
                 normalize(name),
                 normalizedTenantCode,
                 currentTenant.getStatus(),
-                expiredAt,
-                currentTenant.getCreatedBy(),
-                currentTenant.getCreatedAt(),
-                currentTenant.getUpdatedBy(),
-                currentTenant.getUpdatedAt())));
+                expiredAt)));
     }
 
     @Transactional

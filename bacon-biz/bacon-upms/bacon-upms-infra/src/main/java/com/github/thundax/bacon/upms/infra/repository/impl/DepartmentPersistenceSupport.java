@@ -6,7 +6,6 @@ import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DepartmentMapper;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -63,7 +62,6 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Department saveDepartment(Department department) {
         DepartmentDO dataObject = toDataObject(department);
-        LocalDateTime now = LocalDateTime.now();
         DepartmentId departmentId = dataObject.getId();
         boolean exists = departmentId != null
                 && departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
@@ -71,11 +69,8 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
                                 .eq(DepartmentDO::getId, departmentId))
                         != null;
         if (!exists) {
-            dataObject.setCreatedAt(now);
-            dataObject.setUpdatedAt(now);
             departmentMapper.insert(dataObject);
         } else {
-            dataObject.setUpdatedAt(now);
             departmentMapper.updateById(dataObject);
         }
         return toDomain(dataObject);
@@ -92,11 +87,7 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 currentDepartment.getParentId(),
                 currentDepartment.getLeaderUserId(),
                 sort,
-                currentDepartment.getStatus(),
-                currentDepartment.getCreatedBy(),
-                currentDepartment.getCreatedAt(),
-                currentDepartment.getUpdatedBy(),
-                currentDepartment.getUpdatedAt()));
+                currentDepartment.getStatus()));
     }
 
     void deleteDepartment(TenantId tenantId, DepartmentId departmentId) {

@@ -116,11 +116,7 @@ class RolePersistenceSupportTest {
                                 "API",
                                 "GET",
                                 "/users",
-                                "ACTIVE",
-                                null,
-                                null,
-                                null,
-                                null),
+                                "ACTIVE"),
                         new ResourceDO(
                                 ResourceId.of(22L),
                                 TENANT_ID,
@@ -129,11 +125,7 @@ class RolePersistenceSupportTest {
                                 "API",
                                 "POST",
                                 "/users",
-                                "ACTIVE",
-                                null,
-                                null,
-                                null,
-                                null)));
+                                "ACTIVE")));
 
         Set<String> assignedResourceCodes = support.getAssignedResourceCodes(TENANT_ID, RoleId.of(9L));
 
@@ -152,11 +144,7 @@ class RolePersistenceSupportTest {
                         "API",
                         "GET",
                         "/users",
-                        "ACTIVE",
-                        null,
-                        null,
-                        null,
-                        null)));
+                        "ACTIVE")));
 
         support.replaceRoleResources(TENANT_ID, RoleId.of(9L), Set.of("upms:user:view"));
 

@@ -256,44 +256,16 @@ class UserApplicationServiceTest {
     }
 
     private static Tenant tenant(Long id, String name, String code, TenantStatus status, Instant expiredAt) {
-        return Tenant.reconstruct(
-                TenantId.of(id),
-                name,
-                TenantCode.of(code),
-                status,
-                expiredAt,
-                (String) null,
-                (Instant) null,
-                (String) null,
-                (Instant) null);
+        return Tenant.reconstruct(TenantId.of(id), name, TenantCode.of(code), status, expiredAt);
     }
 
     private static User user(Long id, String name, StoredObjectId avatarObjectId, DepartmentId departmentId, UserStatus status) {
-        return User.reconstruct(
-                UserId.of(id),
-                TENANT_ID,
-                name,
-                avatarObjectId,
-                departmentId,
-                status,
-                (String) null,
-                (Instant) null,
-                (String) null,
-                (Instant) null);
+        return User.reconstruct(UserId.of(id), TENANT_ID, name, avatarObjectId, departmentId, status);
     }
 
     private static UserIdentity identity(Long id, Long userId, UserIdentityType type, String value) {
         return UserIdentity.reconstruct(
-                UserIdentityId.of(id),
-                TENANT_ID,
-                UserId.of(userId),
-                type,
-                value,
-                UserIdentityStatus.ACTIVE,
-                (String) null,
-                (Instant) null,
-                (String) null,
-                (Instant) null);
+                UserIdentityId.of(id), TENANT_ID, UserId.of(userId), type, value, UserIdentityStatus.ACTIVE);
     }
 
     private static UserCredential credential(
@@ -313,10 +285,6 @@ class UserApplicationServiceTest {
                 (String) null,
                 (Instant) null,
                 (Instant) null,
-                (Instant) null,
-                (String) null,
-                (Instant) null,
-                (String) null,
                 (Instant) null);
     }
 

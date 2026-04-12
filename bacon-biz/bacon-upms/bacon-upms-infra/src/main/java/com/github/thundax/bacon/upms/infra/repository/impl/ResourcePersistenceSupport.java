@@ -8,7 +8,6 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleResourceRelDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.ResourceMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleResourceRelMapper;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;
@@ -58,13 +57,9 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Resource saveResource(Resource resource) {
         ResourceDO dataObject = toDataObject(resource);
-        LocalDateTime now = LocalDateTime.now();
         if (dataObject.getId() == null || resourceMapper.selectById(dataObject.getId()) == null) {
-            dataObject.setCreatedAt(now);
-            dataObject.setUpdatedAt(now);
             resourceMapper.insert(dataObject);
         } else {
-            dataObject.setUpdatedAt(now);
             resourceMapper.updateById(dataObject);
         }
         return toDomain(dataObject);

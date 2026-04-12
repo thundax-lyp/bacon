@@ -28,51 +28,17 @@ public class Tenant {
     private TenantStatus status;
     /** 过期时间。 */
     private Instant expiredAt;
-    /** 创建人。 */
-    private String createdBy;
-    /** 创建时间。 */
-    private Instant createdAt;
-    /** 最后更新人。 */
-    private String updatedBy;
-    /** 最后更新时间。 */
-    private Instant updatedAt;
 
-    public static Tenant create(
-            TenantId id,
-            String name,
-            TenantCode tenantCode,
-            TenantStatus status,
-            Instant expiredAt,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
+    public static Tenant create(TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(tenantCode, "tenantCode must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new Tenant(id, name, tenantCode, status, expiredAt, createdBy, createdAt, updatedBy, updatedAt);
-    }
-
-    public static Tenant create(TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
-        return create(id, name, tenantCode, status, expiredAt, null, null, null, null);
-    }
-
-    public static Tenant reconstruct(
-            TenantId id,
-            String name,
-            TenantCode tenantCode,
-            TenantStatus status,
-            Instant expiredAt,
-            String createdBy,
-            Instant createdAt,
-            String updatedBy,
-            Instant updatedAt) {
-        return new Tenant(id, name, tenantCode, status, expiredAt, createdBy, createdAt, updatedBy, updatedAt);
+        return new Tenant(id, name, tenantCode, status, expiredAt);
     }
 
     public static Tenant reconstruct(
             TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
-        return reconstruct(id, name, tenantCode, status, expiredAt, null, null, null, null);
+        return new Tenant(id, name, tenantCode, status, expiredAt);
     }
 }

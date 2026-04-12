@@ -57,8 +57,6 @@
 - 仅当业务域已显式声明统一文本型领域主标识直接作为主键列时，可使用该领域字段名作为主键列名
 - 租户隔离列统一命名为 `tenant_id`
 - 逻辑删除列统一命名为 `deleted`
-- 创建时间统一命名为 `created_at`
-- 更新时间统一命名为 `updated_at`
 - 审计发生时间统一命名为 `occurred_at`
 - 其他领域时间字段使用业务语义命名，例如 `issued_at`、`received_at`、`granted_at`、`released_at`、`deducted_at`
 
@@ -67,20 +65,17 @@
 ### 5.1 Master Table
 
 - 面向后台维护的主数据表和配置表
-- 统一包含 `created_at`、`created_by`、`updated_at`、`updated_by`
 - 如业务支持逻辑删除，统一包含 `deleted`
 
 ### 5.2 Runtime Table
 
 - 面向运行时状态的业务表，例如订单、支付单、会话、令牌、预占单
 - 必须保留业务主状态和必要领域时间字段
-- 不强制包含 `created_by`、`updated_by`
 - 不得为了“字段统一”机械增加无业务意义的通用字段
 
 ### 5.3 Relation Table
 
 - 只保存关联关系本身所需的最小字段
-- 当前规范下，关系表不增加 `created_at`、`created_by`、`updated_at`、`updated_by`
 - 关系表应以联合唯一约束表达关系唯一性
 - 关系变更历史由审计日志承载，不由关系表自身承载
 
@@ -99,17 +94,10 @@
 
 ## 6. Common Field Rules
 
-- `created_by`、`updated_by` 的类型统一使用 `varchar(64)`
-- `created_by`、`updated_by` 表达“操作者身份标识”，不强制等同于站内用户主键
-- 面向开放平台、系统任务、外部应用或跨域调用的场景，允许写入如 `user:1001`、`app:demo`、`system:job` 等稳定身份标识
-- 如某业务域确实需要单独保存站内用户主键，应新增语义明确的字段，例如 `operator_user_id`
 - `deleted` 的类型统一使用 `tinyint(1)`
-- 使用领域时间字段的表，不再额外重复声明 `created_at` / `updated_at`
-- 运行态表是否需要 `updated_at`，取决于该表是否存在持续更新语义
-- 单纯快照表可只保留 `updated_at`
 - 明细表是否需要时间字段，取决于是否存在独立生命周期；没有则不加
 - Java 领域模型中表达绝对时间点的字段统一使用 `Instant`
-- `createdAt`、`updatedAt`、`occurredAt`、`expireAt`、`issuedAt`、`releasedAt`、`deductedAt`、`lockedUntil` 统一视为绝对时间点
+- `occurredAt`、`expireAt`、`issuedAt`、`releasedAt`、`deductedAt`、`lockedUntil` 统一视为绝对时间点
 - `LocalDateTime` 只用于表达本地业务时间，不用于跨服务传递或持久化真相时间点
 - `infra` 持久化层负责 `Instant` 与数据库 `datetime(3)` 的 `UTC` 转换
 

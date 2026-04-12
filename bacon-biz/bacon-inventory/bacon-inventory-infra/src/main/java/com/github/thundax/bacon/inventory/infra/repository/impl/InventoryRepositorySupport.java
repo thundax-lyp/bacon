@@ -172,7 +172,7 @@ public class InventoryRepositorySupport {
     }
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         InventoryReservationDO reservationDataObject =
                 InventoryReservationPersistenceAssembler.toDataObject(reservation);
         if (reservationDataObject.getId() == null) {
@@ -193,7 +193,7 @@ public class InventoryRepositorySupport {
     }
 
     public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         InventoryReservationDO reservation = reservationMapper.selectOne(Wrappers.<InventoryReservationDO>lambdaQuery()
                 .eq(InventoryReservationDO::getTenantId, tenantId)
                 .eq(InventoryReservationDO::getOrderNo, orderNo == null ? null : orderNo.value()));
@@ -216,7 +216,7 @@ public class InventoryRepositorySupport {
     }
 
     public List<InventoryLedger> findLedgers(OrderNo orderNo) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return ledgerMapper
                 .selectList(Wrappers.<InventoryLedgerDO>lambdaQuery()
                         .eq(InventoryLedgerDO::getTenantId, tenantId)
@@ -232,7 +232,7 @@ public class InventoryRepositorySupport {
     }
 
     public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return auditLogMapper
                 .selectList(Wrappers.<InventoryAuditLogDO>lambdaQuery()
                         .eq(InventoryAuditLogDO::getTenantId, tenantId)
@@ -422,7 +422,7 @@ public class InventoryRepositorySupport {
 
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         long offset = (long) (pageNo - 1) * pageSize;
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
                 Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
@@ -443,7 +443,7 @@ public class InventoryRepositorySupport {
     }
 
     public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
                 Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
                         .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId);
@@ -457,7 +457,7 @@ public class InventoryRepositorySupport {
     }
 
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return Optional.ofNullable(auditDeadLetterMapper.selectOne(Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
                         .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
                         .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId)))
@@ -470,7 +470,7 @@ public class InventoryRepositorySupport {
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return auditDeadLetterMapper.update(
                         null,
                         Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
@@ -545,13 +545,9 @@ public class InventoryRepositorySupport {
                         .set(InventoryAuditDeadLetterDO::getLastReplayError, replayError));
     }
 
-    private Long currentTenantId() {
-        return BaconContextHolder.requireTenantId();
-    }
-
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         InventoryAuditReplayTaskDO dataObject =
-                InventoryAuditReplayTaskPersistenceAssembler.toDataObject(currentTenantId(), task);
+                InventoryAuditReplayTaskPersistenceAssembler.toDataObject(BaconContextHolder.requireTenantId(), task);
         if (dataObject.getId() == null) {
             auditReplayTaskMapper.insert(dataObject);
         } else {
@@ -561,7 +557,7 @@ public class InventoryRepositorySupport {
     }
 
     public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             return;
         }
@@ -730,7 +726,7 @@ public class InventoryRepositorySupport {
     }
 
     public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return auditReplayTaskMapper.update(
                         null,
                         Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
@@ -749,7 +745,7 @@ public class InventoryRepositorySupport {
     }
 
     public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
-        Long tenantId = currentTenantId();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return auditReplayTaskMapper.update(
                         null,
                         Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()

@@ -15,9 +15,7 @@ class InMemoryOrderOutboxSupportTest {
     @Test
     void saveOutboxEventShouldGenerateTechnicalIdAndBusinessEventCode() {
         InMemoryOrderOutboxSupport support = new InMemoryOrderOutboxSupport();
-        OrderOutboxEvent event = new OrderOutboxEvent(
-                null,
-                null,
+        OrderOutboxEvent event = OrderOutboxEvent.create(
                 1001L,
                 "ORD-1",
                 OrderOutboxEventType.RESERVE_STOCK,
@@ -40,9 +38,9 @@ class InMemoryOrderOutboxSupportTest {
 
         assertNotNull(event.getId());
         assertNotNull(event.getEventCode());
-        assertTrue(event.getEventCodeValue().matches("^EVT\\d{14}-\\d{6}$"));
+        assertTrue(event.getEventCode().value().matches("^EVT\\d{14}-\\d{6}$"));
         assertEquals(1, claimed.size());
         assertEquals(event.getId(), claimed.get(0).getId());
-        assertEquals(event.getEventCodeValue(), claimed.get(0).getEventCodeValue());
+        assertEquals(event.getEventCode().value(), claimed.get(0).getEventCode().value());
     }
 }

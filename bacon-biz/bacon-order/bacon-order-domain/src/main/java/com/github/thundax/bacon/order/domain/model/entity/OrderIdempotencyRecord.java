@@ -5,16 +5,19 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * 订单幂等处理记录。
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderIdempotencyRecord {
 
     /** 幂等业务键。 */
@@ -36,10 +39,14 @@ public class OrderIdempotencyRecord {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public OrderIdempotencyRecord(
-            Long tenantId,
-            String orderNo,
-            String eventType,
+    public static OrderIdempotencyRecord create(
+            OrderIdempotencyRecordKey key, String processingOwner, Instant leaseUntil, Instant claimedAt) {
+        return new OrderIdempotencyRecord(
+                key, null, null, null, processingOwner, leaseUntil, claimedAt, null, null);
+    }
+
+    public static OrderIdempotencyRecord reconstruct(
+            OrderIdempotencyRecordKey key,
             OrderIdempotencyStatus status,
             Integer attemptCount,
             String lastError,
@@ -48,35 +55,8 @@ public class OrderIdempotencyRecord {
             Instant claimedAt,
             Instant createdAt,
             Instant updatedAt) {
-        this(
-                OrderIdempotencyRecordKey.of(
-                        tenantId == null ? null : TenantId.of(tenantId),
-                        orderNo == null ? null : OrderNo.of(orderNo),
-                        eventType),
-                status,
-                attemptCount,
-                lastError,
-                processingOwner,
-                leaseUntil,
-                claimedAt,
-                createdAt,
-                updatedAt);
-    }
-
-    public Long getTenantIdValue() {
-        return key == null ? null : key.tenantId().value();
-    }
-
-    public String getOrderNoValue() {
-        return key == null ? null : key.orderNo().value();
-    }
-
-    public String getEventTypeValue() {
-        return key == null ? null : key.eventType();
-    }
-
-    public String getStatusValue() {
-        return status == null ? null : status.value();
+        return new OrderIdempotencyRecord(
+                key, status, attemptCount, lastError, processingOwner, leaseUntil, claimedAt, createdAt, updatedAt);
     }
 
     public TenantId getTenantId() {

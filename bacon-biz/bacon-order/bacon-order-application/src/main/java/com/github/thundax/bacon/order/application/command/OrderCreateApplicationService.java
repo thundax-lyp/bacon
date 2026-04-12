@@ -1,15 +1,15 @@
 package com.github.thundax.bacon.order.application.command;
 
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
-import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
+import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
+import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
-import com.github.thundax.bacon.order.domain.factory.OrderFactory;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
@@ -27,7 +27,6 @@ public class OrderCreateApplicationService {
     private static final OrderAuditActionType ACTION_CREATE = OrderAuditActionType.ORDER_CREATE;
 
     private final OrderRepository orderRepository;
-    private final OrderFactory orderFactory = new OrderFactory();
     private final OrderNoGenerator orderNoGenerator;
     private final OrderOutboxActionExecutor orderOutboxActionExecutor;
     private final OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport;
@@ -54,24 +53,24 @@ public class OrderCreateApplicationService {
         BigDecimal totalAmount = items.stream().map(this::calculateLineAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         OrderNo orderNo = orderNoGenerator.nextOrderNo();
         CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
-        Order order = orderFactory.create(
+        Order order = Order.create(
                 null,
-                TenantIdMapper.toDomain(command.tenantId()),
-                orderNo,
-                UserIdMapper.toDomain(command.userId()),
+                command.tenantId(),
+                orderNo.value(),
+                command.userId(),
                 currencyCode,
-                Money.of(totalAmount, currencyCode),
-                Money.of(totalAmount, currencyCode),
+                totalAmount.toPlainString(),
+                totalAmount.toPlainString(),
                 command.remark(),
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
         orderRepository.saveItems(
-                savedOrder.getTenantIdValue(),
-                savedOrder.getIdValue(),
+                valueOf(savedOrder.getTenantId()),
+                valueOf(savedOrder.getId()),
                 items.stream()
-                        .map(item -> new OrderItem(
-                                savedOrder.getTenantIdValue(),
-                                savedOrder.getIdValue(),
+                        .map(item -> OrderItem.create(
+                                valueOf(savedOrder.getTenantId()),
+                                valueOf(savedOrder.getId()),
                                 item.skuId(),
                                 item.skuName(),
                                 item.imageUrl(),
@@ -83,19 +82,19 @@ public class OrderCreateApplicationService {
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);
         orderOutboxActionExecutor.enqueueReserveStock(
-                savedOrder.getTenantIdValue(), savedOrder.getOrderNoValue(), command.channelCode());
+                valueOf(savedOrder.getTenantId()), valueOf(savedOrder.getOrderNo()), command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
         return new OrderSummaryDTO(
-                savedOrder.getIdValue(),
-                savedOrder.getTenantIdValue(),
-                savedOrder.getOrderNoValue(),
+                valueOf(savedOrder.getId()),
+                valueOf(savedOrder.getTenantId()),
+                valueOf(savedOrder.getOrderNo()),
                 savedOrder.getUserId() == null ? null : savedOrder.getUserId().value(),
-                savedOrder.getOrderStatusValue(),
-                savedOrder.getPayStatusValue(),
-                savedOrder.getInventoryStatusValue(),
-                savedOrder.getPaymentNoValue(),
-                savedOrder.getReservationNoValue(),
-                savedOrder.getCurrencyCodeValue(),
+                valueOf(savedOrder.getOrderStatus()),
+                valueOf(savedOrder.getPayStatus()),
+                valueOf(savedOrder.getInventoryStatus()),
+                valueOf(savedOrder.getPaymentNo()),
+                valueOf(savedOrder.getReservationNo()),
+                valueOf(savedOrder.getCurrencyCode()),
                 savedOrder.getTotalAmount().value(),
                 savedOrder.getPayableAmount().value(),
                 savedOrder.getCancelReason(),
@@ -115,11 +114,39 @@ public class OrderCreateApplicationService {
         return currencyCode == null || currencyCode.isBlank() ? CurrencyCode.RMB : CurrencyCode.fromValue(currencyCode);
     }
 
-    private OrderId toOrderId(Order order) {
-        return order.getId();
+    private Long valueOf(OrderId orderId) {
+        return OrderIdCodec.toValue(orderId);
     }
 
-    private SkuId toSkuId(Long skuId) {
-        return skuId == null ? null : SkuId.of(skuId);
+    private Long valueOf(com.github.thundax.bacon.common.id.domain.TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    private String valueOf(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    private String valueOf(com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo reservationNo) {
+        return ReservationNoCodec.toValue(reservationNo);
+    }
+
+    private String valueOf(com.github.thundax.bacon.common.commerce.valueobject.PaymentNo paymentNo) {
+        return paymentNo == null ? null : paymentNo.value();
+    }
+
+    private String valueOf(CurrencyCode currencyCode) {
+        return currencyCode == null ? null : currencyCode.value();
+    }
+
+    private String valueOf(com.github.thundax.bacon.order.domain.model.enums.OrderStatus orderStatus) {
+        return orderStatus == null ? null : orderStatus.value();
+    }
+
+    private String valueOf(com.github.thundax.bacon.order.domain.model.enums.PayStatus payStatus) {
+        return payStatus == null ? null : payStatus.value();
+    }
+
+    private String valueOf(com.github.thundax.bacon.order.domain.model.enums.InventoryStatus inventoryStatus) {
+        return inventoryStatus == null ? null : inventoryStatus.value();
     }
 }

@@ -162,7 +162,7 @@ class OrderCreateApplicationServiceTest {
         cancelService.cancel(1001L, created.getOrderNo(), "SYSTEM_CANCELLED");
         Order found = repository.findByOrderNo(1001L, created.getOrderNo()).orElseThrow();
 
-        assertEquals("CANCELLED", found.getOrderStatusValue());
+        assertEquals("CANCELLED", found.getOrderStatus().value());
         assertEquals("SYSTEM_CANCELLED", found.getCancelReason());
         assertNotNull(found.getClosedAt());
     }
@@ -233,11 +233,10 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public boolean createProcessing(OrderIdempotencyRecord record) {
-            String key = keyOf(record.getTenantIdValue(), record.getOrderNoValue(), record.getEventType());
-            OrderIdempotencyRecord value = new OrderIdempotencyRecord(
-                    record.getTenantIdValue(),
-                    record.getOrderNoValue(),
-                    record.getEventType(),
+            String key = keyOf(valueOf(record.getTenantId()), valueOf(record.getOrderNo()), record.getEventType());
+            OrderIdempotencyRecord value = OrderIdempotencyRecord.reconstruct(
+                    com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey.of(
+                            record.getTenantId(), record.getOrderNo(), record.getEventType()),
                     com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING,
                     1,
                     null,
@@ -371,6 +370,14 @@ class OrderCreateApplicationServiceTest {
         private String keyOf(Long tenantId, String orderNo, String eventType) {
             return tenantId + ":" + orderNo + ":" + eventType;
         }
+
+        private Long valueOf(TenantId tenantId) {
+            return tenantId == null ? null : Long.valueOf(tenantId.value());
+        }
+
+        private String valueOf(OrderNo orderNo) {
+            return orderNo == null ? null : orderNo.value();
+        }
     }
 
     private static final class SequenceOrderNoGenerator implements OrderNoGenerator {
@@ -409,8 +416,8 @@ class OrderCreateApplicationServiceTest {
         @Override
         public Optional<Order> findByOrderNo(Long tenantId, String orderNo) {
             return storage.values().stream()
-                    .filter(order -> tenantId.equals(order.getTenantIdValue()))
-                    .filter(order -> orderNo.equals(order.getOrderNoValue()))
+                    .filter(order -> tenantId.equals(toTenantIdValue(order.getTenantId())))
+                    .filter(order -> orderNo.equals(toOrderNoValue(order.getOrderNo())))
                     .findFirst();
         }
 
@@ -422,20 +429,20 @@ class OrderCreateApplicationServiceTest {
         @Override
         public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
             return itemStorage.getOrDefault(orderId, List.of()).stream()
-                    .filter(item -> tenantId.equals(item.getTenantIdValue()))
+                    .filter(item -> tenantId.equals(toTenantIdValue(item.getTenantId())))
                     .toList();
         }
 
         @Override
         public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
-            paymentSnapshots.put(snapshot.orderIdValue(), snapshot);
+            paymentSnapshots.put(toOrderIdValue(snapshot.getOrderId()), snapshot);
         }
 
         @Override
         public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(
                 Long tenantId, Long orderId, String currencyCode) {
             OrderPaymentSnapshot snapshot = paymentSnapshots.get(orderId);
-            if (snapshot == null || !tenantId.equals(snapshot.tenantIdValue())) {
+            if (snapshot == null || !tenantId.equals(toTenantIdValue(snapshot.getTenantId()))) {
                 return Optional.empty();
             }
             return Optional.of(snapshot);
@@ -443,13 +450,13 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
-            inventorySnapshots.put(snapshot.orderNoValue(), snapshot);
+            inventorySnapshots.put(toOrderNoValue(snapshot.getOrderNo()), snapshot);
         }
 
         @Override
         public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
             OrderInventorySnapshot snapshot = inventorySnapshots.get(orderNo);
-            if (snapshot == null || !tenantId.equals(snapshot.tenantIdValue())) {
+            if (snapshot == null || !tenantId.equals(toTenantIdValue(snapshot.getTenantId()))) {
                 return Optional.empty();
             }
             return Optional.of(snapshot);
@@ -457,8 +464,8 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void saveAuditLog(OrderAuditLog auditLog) {
-            String key = toTenantIdValue(auditLog.tenantId()) + ":"
-                    + auditLog.orderNo().value();
+            String key = toTenantIdValue(auditLog.getTenantId()) + ":"
+                    + toOrderNoValue(auditLog.getOrderNo());
             auditLogs
                     .computeIfAbsent(key, unused -> new java.util.ArrayList<>())
                     .add(auditLog);
@@ -528,12 +535,13 @@ class OrderCreateApplicationServiceTest {
                 Instant createdAtFrom,
                 Instant createdAtTo) {
             List<Order> filtered = storage.values().stream()
-                    .filter(order -> tenantId == null || tenantId.equals(order.getTenantIdValue()))
+                    .filter(order -> tenantId == null || tenantId.equals(toTenantIdValue(order.getTenantId())))
                     .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
-                    .filter(order -> orderNo == null || order.getOrderNoValue().contains(orderNo))
-                    .filter(order -> orderStatus == null || orderStatus.equals(order.getOrderStatusValue()))
-                    .filter(order -> payStatus == null || payStatus.equals(order.getPayStatusValue()))
-                    .filter(order -> inventoryStatus == null || inventoryStatus.equals(order.getInventoryStatusValue()))
+                    .filter(order -> orderNo == null || toOrderNoValue(order.getOrderNo()).contains(orderNo))
+                    .filter(order -> orderStatus == null || orderStatus.equals(toOrderStatusValue(order.getOrderStatus())))
+                    .filter(order -> payStatus == null || payStatus.equals(toPayStatusValue(order.getPayStatus())))
+                    .filter(order -> inventoryStatus == null
+                            || inventoryStatus.equals(toInventoryStatusValue(order.getInventoryStatus())))
                     .filter(order ->
                             createdAtFrom == null || !order.getCreatedAt().isBefore(createdAtFrom))
                     .filter(order ->
@@ -563,44 +571,72 @@ class OrderCreateApplicationServiceTest {
         private Long toTenantIdValue(TenantId tenantId) {
             return tenantId == null ? null : Long.valueOf(tenantId.value());
         }
+
+        private Long toOrderIdValue(OrderId orderId) {
+            return orderId == null ? null : orderId.value();
+        }
+
+        private String toOrderNoValue(OrderNo orderNo) {
+            return orderNo == null ? null : orderNo.value();
+        }
+
+        private String toOrderStatusValue(com.github.thundax.bacon.order.domain.model.enums.OrderStatus orderStatus) {
+            return orderStatus == null ? null : orderStatus.value();
+        }
+
+        private String toPayStatusValue(com.github.thundax.bacon.order.domain.model.enums.PayStatus payStatus) {
+            return payStatus == null ? null : payStatus.value();
+        }
+
+        private String toInventoryStatusValue(
+                com.github.thundax.bacon.order.domain.model.enums.InventoryStatus inventoryStatus) {
+            return inventoryStatus == null ? null : inventoryStatus.value();
+        }
+
+        private Long valueOf(TenantId tenantId) {
+            return tenantId == null ? null : Long.valueOf(tenantId.value());
+        }
+
+        private String valueOf(OrderNo orderNo) {
+            return orderNo == null ? null : orderNo.value();
+        }
     }
 
     private static class SuccessInventoryCommandFacade implements InventoryCommandFacade {
 
         @Override
         public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
-            return new InventoryReservationResultDTO(
-                    1001L, orderNo, "RSV-" + orderNo, "RESERVED", "RESERVED", "DEFAULT", null, null, null, null);
+            return reservationResult(orderNo, "RESERVED", null, null, null, null);
         }
 
         @Override
         public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
-            return new InventoryReservationResultDTO(
-                    1001L,
-                    orderNo,
-                    "RSV-" + orderNo,
-                    "RELEASED",
-                    "RELEASED",
-                    "DEFAULT",
-                    null,
-                    reason,
-                    Instant.now(),
-                    null);
+            return reservationResult(orderNo, "RELEASED", null, reason, Instant.now(), null);
         }
 
         @Override
         public InventoryReservationResultDTO deductReservedStock(String orderNo) {
-            return new InventoryReservationResultDTO(
-                    1001L,
-                    orderNo,
-                    "RSV-" + orderNo,
-                    "DEDUCTED",
-                    "DEDUCTED",
-                    "DEFAULT",
-                    null,
-                    null,
-                    null,
-                    Instant.now());
+            return reservationResult(orderNo, "DEDUCTED", null, null, null, Instant.now());
+        }
+
+        protected final InventoryReservationResultDTO reservationResult(
+                String orderNo,
+                String reservationStatus,
+                String failureReason,
+                String releaseReason,
+                Instant releasedAt,
+                Instant deductedAt) {
+            InventoryReservationResultDTO result = new InventoryReservationResultDTO();
+            result.setOrderNo(orderNo);
+            result.setReservationNo("RSV-" + orderNo);
+            result.setReservationStatus(reservationStatus);
+            result.setInventoryStatus(reservationStatus);
+            result.setWarehouseCode("DEFAULT");
+            result.setFailureReason(failureReason);
+            result.setReleaseReason(releaseReason);
+            result.setReleasedAt(releasedAt);
+            result.setDeductedAt(deductedAt);
+            return result;
         }
     }
 
@@ -619,17 +655,7 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
-            return new InventoryReservationResultDTO(
-                    1001L,
-                    orderNo,
-                    "RSV-" + orderNo,
-                    "FAILED",
-                    "FAILED",
-                    "DEFAULT",
-                    "stock not enough",
-                    null,
-                    null,
-                    null);
+            return reservationResult(orderNo, "FAILED", "stock not enough", null, null, null);
         }
     }
 

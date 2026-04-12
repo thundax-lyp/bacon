@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
@@ -60,9 +61,9 @@ public class OrderCancelApplicationService {
         InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
                 tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, reason));
         applyReleaseResult(order, releaseResult, reason);
-        if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
+        if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
             BaconContextHolder.runWithTenantId(
-                    tenantId, () -> paymentCommandFacade.closePayment(order.getPaymentNoValue(), reason));
+                    tenantId, () -> paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason));
         }
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CANCEL, beforeStatus);
@@ -89,7 +90,7 @@ public class OrderCancelApplicationService {
     }
 
     private ReservationNo toReservationNo(String reservationNo) {
-        return reservationNo == null ? null : ReservationNo.of(reservationNo);
+        return ReservationNoCodec.toDomain(reservationNo);
     }
 
     private WarehouseCode toWarehouseCode(String warehouseCode) {

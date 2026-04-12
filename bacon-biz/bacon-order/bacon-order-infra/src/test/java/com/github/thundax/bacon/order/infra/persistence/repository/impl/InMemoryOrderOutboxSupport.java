@@ -6,6 +6,8 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -60,7 +62,9 @@ public class InMemoryOrderOutboxSupport {
                 .filter(event -> event.getNextRetryAt() == null
                         || !event.getNextRetryAt().isAfter(now))
                 .sorted(Comparator.comparing(OrderOutboxEvent::getCreatedAt)
-                        .thenComparing(OrderOutboxEvent::getIdValue))
+                        .thenComparing(
+                                event -> event.getId() == null ? null : event.getId().value(),
+                                Comparator.nullsLast(Comparator.naturalOrder())))
                 .limit(Math.max(limit, 1))
                 .toList();
         List<OrderOutboxEvent> claimed = new ArrayList<>(candidates.size());
@@ -189,11 +193,11 @@ public class InMemoryOrderOutboxSupport {
     }
 
     private OrderOutboxEvent copy(OrderOutboxEvent source) {
-        return new OrderOutboxEvent(
-                source.getIdValue(),
-                source.getEventCodeValue(),
-                source.getTenantIdValue(),
-                source.getOrderNoValue(),
+        return OrderOutboxEvent.reconstruct(
+                source.getId(),
+                source.getEventCode(),
+                source.getTenantId(),
+                source.getOrderNo(),
                 source.getEventType(),
                 source.getBusinessKey(),
                 source.getPayload(),
@@ -210,11 +214,11 @@ public class InMemoryOrderOutboxSupport {
     }
 
     private OrderOutboxDeadLetter copy(OrderOutboxDeadLetter source) {
-        return new OrderOutboxDeadLetter(
-                source.getOutboxIdValue(),
-                source.getEventCodeValue(),
-                source.getTenantIdValue(),
-                source.getOrderNoValue(),
+        return OrderOutboxDeadLetter.create(
+                source.getOutboxId() == null ? null : source.getOutboxId().value(),
+                source.getEventCode() == null ? null : source.getEventCode().value(),
+                source.getTenantId() == null ? null : source.getTenantId().value(),
+                source.getOrderNo() == null ? null : source.getOrderNo().value(),
                 source.getEventType(),
                 source.getBusinessKey(),
                 source.getPayload(),
@@ -228,5 +232,13 @@ public class InMemoryOrderOutboxSupport {
                 source.getLastReplayMessage(),
                 source.getCreatedAt(),
                 source.getUpdatedAt());
+    }
+
+    private TenantId toTenantId(Long tenantId) {
+        return tenantId == null ? null : TenantId.of(tenantId);
+    }
+
+    private OrderNo toOrderNo(String orderNo) {
+        return orderNo == null ? null : OrderNo.of(orderNo);
     }
 }

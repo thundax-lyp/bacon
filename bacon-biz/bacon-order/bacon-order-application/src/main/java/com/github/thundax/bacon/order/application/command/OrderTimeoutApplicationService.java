@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
@@ -56,9 +57,9 @@ public class OrderTimeoutApplicationService {
         OrderStatus beforeStatus = order.getOrderStatus();
         order.closeExpired(reason);
         // 超时关单的资源回收顺序固定为“先关支付，再释放库存”，与订单生命周期的依赖方向保持一致。
-        if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
+        if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
             BaconContextHolder.runWithTenantId(
-                    tenantId, () -> paymentCommandFacade.closePayment(order.getPaymentNoValue(), reason));
+                    tenantId, () -> paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason));
         }
         InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
                 tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, reason));
@@ -88,7 +89,7 @@ public class OrderTimeoutApplicationService {
     }
 
     private ReservationNo toReservationNo(String reservationNo) {
-        return reservationNo == null ? null : ReservationNo.of(reservationNo);
+        return ReservationNoCodec.toDomain(reservationNo);
     }
 
     private WarehouseCode toWarehouseCode(String warehouseCode) {

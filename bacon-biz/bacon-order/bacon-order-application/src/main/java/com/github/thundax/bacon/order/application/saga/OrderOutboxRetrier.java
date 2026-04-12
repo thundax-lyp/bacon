@@ -90,11 +90,11 @@ public class OrderOutboxRetrier {
         if (nextRetryCount > maxRetries) {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (orderOutboxRepository.markDeadClaimed(event.getId(), owner, nextRetryCount, deadReason, message, now)) {
-                orderOutboxDeadLetterRepository.saveDeadLetter(new OrderOutboxDeadLetter(
-                        event.getIdValue(),
-                        event.getEventCodeValue(),
-                        event.getTenantIdValue(),
-                        event.getOrderNoValue(),
+                orderOutboxDeadLetterRepository.saveDeadLetter(OrderOutboxDeadLetter.create(
+                        event.getId() == null ? null : event.getId().value(),
+                        event.getEventCode() == null ? null : event.getEventCode().value(),
+                        event.getTenantId() == null ? null : event.getTenantId().value(),
+                        event.getOrderNo() == null ? null : event.getOrderNo().value(),
                         event.getEventType(),
                         event.getBusinessKey(),
                         event.getPayload(),
@@ -111,8 +111,8 @@ public class OrderOutboxRetrier {
                 log.error(
                         "ALERT order outbox retry exhausted, outboxId={}, eventType={}, orderNo={}",
                         event.getId(),
-                        event.getEventTypeValue(),
-                        event.getOrderNoValue(),
+                        event.getEventType() == null ? null : event.getEventType().value(),
+                        event.getOrderNo() == null ? null : event.getOrderNo().value(),
                         ex);
             }
             return;
@@ -123,8 +123,8 @@ public class OrderOutboxRetrier {
         log.warn(
                 "Order outbox retry failed, outboxId={}, eventType={}, orderNo={}, retryCount={}",
                 event.getId(),
-                event.getEventTypeValue(),
-                event.getOrderNoValue(),
+                event.getEventType() == null ? null : event.getEventType().value(),
+                event.getOrderNo() == null ? null : event.getOrderNo().value(),
                 nextRetryCount,
                 ex);
     }

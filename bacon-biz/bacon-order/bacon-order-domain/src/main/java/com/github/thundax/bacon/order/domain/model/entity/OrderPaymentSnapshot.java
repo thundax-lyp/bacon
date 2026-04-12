@@ -8,59 +8,90 @@ import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 订单支付快照。
  */
-public record OrderPaymentSnapshot(
-        /** 快照主键。 */
-        Long id,
-        /** 所属租户主键。 */
-        TenantId tenantId,
-        /** 订单主键。 */
-        OrderId orderId,
-        /** 支付单号。 */
-        PaymentNo paymentNo,
-        /** 支付渠道编码。 */
-        PaymentChannel channelCode,
-        /** 支付状态。 */
-        PayStatus payStatus,
-        /** 已支付金额。 */
-        Money paidAmount,
-        /** 支付完成时间。 */
-        Instant paidTime,
-        /** 失败原因。 */
-        String failureReason,
-        /** 支付渠道状态。 */
-        PaymentChannelStatus channelStatus,
-        /** 最后更新时间。 */
-        Instant updatedAt) {
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class OrderPaymentSnapshot {
 
-    public Long tenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
+    /** 快照主键。 */
+    private Long id;
+    /** 所属租户主键。 */
+    private TenantId tenantId;
+    /** 订单主键。 */
+    private OrderId orderId;
+    /** 支付单号。 */
+    private PaymentNo paymentNo;
+    /** 支付渠道编码。 */
+    private PaymentChannel channelCode;
+    /** 支付状态。 */
+    private PayStatus payStatus;
+    /** 已支付金额。 */
+    private Money paidAmount;
+    /** 支付完成时间。 */
+    private Instant paidTime;
+    /** 失败原因。 */
+    private String failureReason;
+    /** 支付渠道状态。 */
+    private PaymentChannelStatus channelStatus;
+    /** 最后更新时间。 */
+    private Instant updatedAt;
+
+    public static OrderPaymentSnapshot create(
+            TenantId tenantId,
+            OrderId orderId,
+            PaymentNo paymentNo,
+            PaymentChannel channelCode,
+            PayStatus payStatus,
+            Money paidAmount,
+            Instant paidTime,
+            String failureReason,
+            PaymentChannelStatus channelStatus,
+            Instant updatedAt) {
+        return new OrderPaymentSnapshot(
+                null,
+                tenantId,
+                orderId,
+                paymentNo,
+                channelCode,
+                payStatus,
+                paidAmount,
+                paidTime,
+                failureReason,
+                channelStatus,
+                updatedAt);
     }
 
-    public Long orderIdValue() {
-        return orderId == null ? null : orderId.value();
-    }
-
-    public String paymentNoValue() {
-        return paymentNo == null ? null : paymentNo.value();
-    }
-
-    public String channelCodeValue() {
-        return channelCode == null ? null : channelCode.value();
-    }
-
-    public String payStatusValue() {
-        return payStatus == null ? null : payStatus.value();
-    }
-
-    public java.math.BigDecimal paidAmountValue() {
-        return paidAmount == null ? null : paidAmount.value();
-    }
-
-    public String channelStatusValue() {
-        return channelStatus == null ? null : channelStatus.value();
+    public static OrderPaymentSnapshot reconstruct(
+            Long id,
+            TenantId tenantId,
+            OrderId orderId,
+            PaymentNo paymentNo,
+            PaymentChannel channelCode,
+            PayStatus payStatus,
+            Money paidAmount,
+            Instant paidTime,
+            String failureReason,
+            PaymentChannelStatus channelStatus,
+            Instant updatedAt) {
+        return new OrderPaymentSnapshot(
+                id,
+                tenantId,
+                orderId,
+                paymentNo,
+                channelCode,
+                payStatus,
+                paidAmount,
+                paidTime,
+                failureReason,
+                channelStatus,
+                updatedAt);
     }
 }

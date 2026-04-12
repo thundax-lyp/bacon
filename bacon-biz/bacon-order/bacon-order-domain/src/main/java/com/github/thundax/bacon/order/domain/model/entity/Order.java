@@ -16,26 +16,29 @@ import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import java.math.BigDecimal;
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
  * 订单主单领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Order {
 
     /** 订单主键。 */
     @Setter
     private OrderId id;
     /** 所属租户主键。 */
-    private final TenantId tenantId;
+    private TenantId tenantId;
     /** 订单号。 */
-    private final OrderNo orderNo;
+    private OrderNo orderNo;
     /** 下单用户主键。 */
-    private final UserId userId;
+    private UserId userId;
     /** 订单状态。 */
     private OrderStatus orderStatus;
     /** 支付状态。 */
@@ -47,13 +50,13 @@ public class Order {
     /** 库存预占单号。 */
     private ReservationNo reservationNo;
     /** 币种编码。 */
-    private final CurrencyCode currencyCode;
+    private CurrencyCode currencyCode;
     /** 订单总金额。 */
     private Money totalAmount;
     /** 应付金额。 */
     private Money payableAmount;
     /** 订单备注。 */
-    private final String remark;
+    private String remark;
     /** 支付渠道编码。 */
     private PaymentChannel paymentChannelCode;
     /** 支付成功金额。 */
@@ -75,9 +78,9 @@ public class Order {
     /** 关闭原因。 */
     private String closeReason;
     /** 创建时间。 */
-    private final Instant createdAt;
+    private Instant createdAt;
     /** 过期时间。 */
-    private final Instant expiredAt;
+    private Instant expiredAt;
     /** 支付完成时间。 */
     private Instant paidAt;
     /** 库存释放时间。 */
@@ -87,7 +90,7 @@ public class Order {
     /** 订单关闭时间。 */
     private Instant closedAt;
 
-    public Order(
+    public static Order create(
             Long id,
             Long tenantId,
             String orderNo,
@@ -97,31 +100,8 @@ public class Order {
             String payableAmount,
             String remark,
             Instant expiredAt) {
-        this(
-                id,
-                tenantId,
-                orderNo,
-                userId,
-                currencyCode,
-                totalAmount,
-                payableAmount,
-                remark,
-                expiredAt,
-                buildBoundaryInit(currencyCode, totalAmount, payableAmount, expiredAt));
-    }
-
-    private Order(
-            Long id,
-            Long tenantId,
-            String orderNo,
-            Long userId,
-            CurrencyCode currencyCode,
-            String totalAmount,
-            String payableAmount,
-            String remark,
-            Instant expiredAt,
-            BoundaryInit init) {
-        this(
+        BoundaryInit init = buildBoundaryInit(currencyCode, totalAmount, payableAmount, expiredAt);
+        return new Order(
                 id == null ? null : OrderId.of(id),
                 tenantId == null ? null : TenantId.of(tenantId),
                 orderNo == null ? null : OrderNo.of(orderNo),
@@ -153,7 +133,7 @@ public class Order {
                 null);
     }
 
-    public static Order rehydrate(
+    public static Order reconstruct(
             OrderId id,
             TenantId tenantId,
             OrderNo orderNo,
@@ -248,55 +228,11 @@ public class Order {
 
     private record BoundaryInit(Money totalAmount, Money payableAmount, Instant createdAt, Instant expiredAt) {}
 
-    public String getCurrencyCodeValue() {
-        return currencyCode == null ? null : currencyCode.value();
-    }
-
-    public String getOrderStatusValue() {
-        return orderStatus == null ? null : orderStatus.value();
-    }
-
-    public Long getIdValue() {
-        return id == null ? null : id.value();
-    }
-
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    public String getOrderNoValue() {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    public String getPayStatusValue() {
-        return payStatus == null ? null : payStatus.value();
-    }
-
-    public String getInventoryStatusValue() {
-        return inventoryStatus == null ? null : inventoryStatus.value();
-    }
-
-    public String getPaymentNoValue() {
-        return paymentNo == null ? null : paymentNo.value();
-    }
-
-    public String getReservationNoValue() {
-        return reservationNo == null ? null : reservationNo.value();
-    }
-
-    public String getPaymentChannelCodeValue() {
-        return paymentChannelCode == null ? null : paymentChannelCode.value();
-    }
-
     public void markReservingStock() {
         // 只有新建订单才能进入预占库存阶段，避免取消/关闭后的订单再次触发库存链路。
         ensureOrderStatus(OrderStatus.CREATED);
         this.orderStatus = OrderStatus.RESERVING_STOCK;
         this.inventoryStatus = InventoryStatus.RESERVING;
-    }
-
-    public String getWarehouseCodeValue() {
-        return warehouseCode == null ? null : warehouseCode.value();
     }
 
     public void markInventoryReserved(ReservationNo reservationNo, WarehouseCode warehouseCode) {
@@ -408,6 +344,7 @@ public class Order {
                 return;
             }
         }
-        throw new IllegalStateException("Invalid order status: " + getOrderStatusValue());
+        throw new IllegalStateException(
+                "Invalid order status: " + (orderStatus == null ? null : orderStatus.value()));
     }
 }

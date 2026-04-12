@@ -7,16 +7,19 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * 订单出站事件。
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderOutboxEvent {
     /** 出站事件主键。 */
     private OutboxId id;
@@ -53,9 +56,7 @@ public class OrderOutboxEvent {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public OrderOutboxEvent(
-            Long id,
-            String eventCode,
+    public static OrderOutboxEvent create(
             Long tenantId,
             String orderNo,
             OrderOutboxEventType eventType,
@@ -71,9 +72,9 @@ public class OrderOutboxEvent {
             String deadReason,
             Instant createdAt,
             Instant updatedAt) {
-        this(
-                id == null ? null : OutboxId.of(id),
-                eventCode == null ? null : EventCode.of(eventCode),
+        return new OrderOutboxEvent(
+                null,
+                null,
                 tenantId == null ? null : TenantId.of(tenantId),
                 orderNo == null ? null : OrderNo.of(orderNo),
                 eventType,
@@ -91,27 +92,41 @@ public class OrderOutboxEvent {
                 updatedAt);
     }
 
-    public String getEventCodeValue() {
-        return eventCode == null ? null : eventCode.value();
-    }
-
-    public Long getIdValue() {
-        return id == null ? null : id.value();
-    }
-
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    public String getOrderNoValue() {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    public String getEventTypeValue() {
-        return eventType == null ? null : eventType.value();
-    }
-
-    public String getStatusValue() {
-        return status == null ? null : status.value();
+    public static OrderOutboxEvent reconstruct(
+            OutboxId id,
+            EventCode eventCode,
+            TenantId tenantId,
+            OrderNo orderNo,
+            OrderOutboxEventType eventType,
+            String businessKey,
+            String payload,
+            OrderOutboxStatus status,
+            Integer retryCount,
+            Instant nextRetryAt,
+            String processingOwner,
+            Instant leaseUntil,
+            Instant claimedAt,
+            String errorMessage,
+            String deadReason,
+            Instant createdAt,
+            Instant updatedAt) {
+        return new OrderOutboxEvent(
+                id,
+                eventCode,
+                tenantId,
+                orderNo,
+                eventType,
+                businessKey,
+                payload,
+                status,
+                retryCount,
+                nextRetryAt,
+                processingOwner,
+                leaseUntil,
+                claimedAt,
+                errorMessage,
+                deadReason,
+                createdAt,
+                updatedAt);
     }
 }

@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.order.application.executor;
 
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.order.application.codec.OrderIdempotencyRecordKeyCodec;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
@@ -37,13 +36,8 @@ public class OrderIdempotencyExecutor {
         Instant now = Instant.now();
         String owner = applicationName + ":" + processingOwner;
         Instant leaseUntil = now.plusSeconds(Math.max(leaseSeconds, 1L));
-        OrderIdempotencyRecordKey key =
-                OrderIdempotencyRecordKey.of(toTenantId(tenantId), toOrderNo(orderNo), eventType);
-        OrderIdempotencyRecord record = new OrderIdempotencyRecord();
-        record.setKey(key);
-        record.setProcessingOwner(owner);
-        record.setLeaseUntil(leaseUntil);
-        record.setClaimedAt(now);
+        OrderIdempotencyRecordKey key = OrderIdempotencyRecordKeyCodec.toDomain(tenantId, orderNo, eventType);
+        OrderIdempotencyRecord record = OrderIdempotencyRecord.create(key, owner, leaseUntil, now);
         // 先尝试插入 PROCESSING 记录，天然覆盖“首次执行”路径；失败后再分流到重复成功、仍在处理、失败重试三类情况。
         if (!orderIdempotencyRepository.createProcessing(record)) {
             if (skipForDuplicateSuccessOrProcessing(key, now)) {
@@ -101,13 +95,5 @@ public class OrderIdempotencyExecutor {
 
     private boolean isLeaseExpired(OrderIdempotencyRecord record, Instant now) {
         return record.getLeaseUntil() == null || !record.getLeaseUntil().isAfter(now);
-    }
-
-    private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
-    private OrderNo toOrderNo(String orderNo) {
-        return orderNo == null ? null : OrderNo.of(orderNo);
     }
 }

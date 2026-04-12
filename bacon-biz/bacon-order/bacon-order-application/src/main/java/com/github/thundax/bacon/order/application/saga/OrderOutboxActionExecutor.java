@@ -9,6 +9,8 @@ import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.order.application.codec.OrderOutboxPayloadCodec;
+import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
+import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
@@ -58,9 +60,7 @@ public class OrderOutboxActionExecutor {
     public void enqueueReserveStock(Long tenantId, String orderNo, String channelCode) {
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode == null ? "MOCK" : channelCode);
-        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(
-                null,
-                null,
+        orderOutboxRepository.saveOutboxEvent(OrderOutboxEvent.create(
                 tenantId,
                 orderNo,
                 OrderOutboxEventType.RESERVE_STOCK,
@@ -96,16 +96,16 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReserveStock(OrderOutboxEvent event) {
-        Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
+        Order order = findOrder(valueOf(event.getTenantId()), valueOf(event.getOrderNo()));
         List<OrderItem> items = orderRepository.findItemsByOrderId(
-                order.getTenantIdValue(), order.getIdValue(), order.getCurrencyCodeValue());
+                valueOf(order.getTenantId()), valueOf(order.getId()), valueOf(order.getCurrencyCode()));
         List<InventoryReservationItemDTO> reserveItems = items.stream()
                 .map(item -> new InventoryReservationItemDTO(
                         item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
                 .toList();
         InventoryReservationResultDTO reserveResult = BaconContextHolder.callWithTenantId(
-                order.getTenantIdValue(),
-                () -> inventoryCommandFacade.reserveStock(order.getOrderNoValue(), reserveItems));
+                valueOf(order.getTenantId()),
+                () -> inventoryCommandFacade.reserveStock(valueOf(order.getOrderNo()), reserveItems));
         // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
         if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
             String reason = resolveFailureReason(reserveResult.getFailureReason(), "inventory reserve failed");
@@ -130,13 +130,11 @@ public class OrderOutboxActionExecutor {
         String channelCode = source.getOrDefault("channelCode", "MOCK");
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode);
-        orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(
-                null,
-                null,
-                order.getTenantIdValue(),
-                order.getOrderNoValue(),
+        orderOutboxRepository.saveOutboxEvent(OrderOutboxEvent.create(
+                valueOf(order.getTenantId()),
+                valueOf(order.getOrderNo()),
                 OrderOutboxEventType.CREATE_PAYMENT,
-                order.getTenantIdValue() + ":" + order.getOrderNoValue() + ":CREATE_PAYMENT",
+                valueOf(order.getTenantId()) + ":" + valueOf(order.getOrderNo()) + ":CREATE_PAYMENT",
                 OrderOutboxPayloadCodec.encode(payload),
                 OrderOutboxStatus.NEW,
                 0,
@@ -151,17 +149,17 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeCreatePayment(OrderOutboxEvent event) {
-        Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
+        Order order = findOrder(valueOf(event.getTenantId()), valueOf(event.getOrderNo()));
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
         PaymentCreateResultDTO paymentResult = BaconContextHolder.callWithTenantId(
-                order.getTenantIdValue(),
+                valueOf(order.getTenantId()),
                 () -> paymentCommandFacade.createPayment(
-                        order.getOrderNoValue(),
+                        valueOf(order.getOrderNo()),
                         order.getUserId() == null ? null : order.getUserId().value(),
                         order.getPayableAmount().value(),
                         channelCode,
-                        "order:" + order.getOrderNoValue(),
+                        "order:" + valueOf(order.getOrderNo()),
                         order.getExpiredAt()));
         // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
         if (paymentResult.getPaymentNo() == null
@@ -174,13 +172,11 @@ public class OrderOutboxActionExecutor {
 
             Map<String, String> releasePayload = new LinkedHashMap<>();
             releasePayload.put("reason", CLOSE_REASON_PAYMENT_CREATE_FAILED);
-            orderOutboxRepository.saveOutboxEvent(new OrderOutboxEvent(
-                    null,
-                    null,
-                    order.getTenantIdValue(),
-                    order.getOrderNoValue(),
+            orderOutboxRepository.saveOutboxEvent(OrderOutboxEvent.create(
+                    valueOf(order.getTenantId()),
+                    valueOf(order.getOrderNo()),
                     OrderOutboxEventType.RELEASE_STOCK,
-                    order.getTenantIdValue() + ":" + order.getOrderNoValue() + ":RELEASE_PAYMENT_CREATE_FAILED",
+                    valueOf(order.getTenantId()) + ":" + valueOf(order.getOrderNo()) + ":RELEASE_PAYMENT_CREATE_FAILED",
                     OrderOutboxPayloadCodec.encode(releasePayload),
                     OrderOutboxStatus.NEW,
                     0,
@@ -201,11 +197,11 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReleaseStock(OrderOutboxEvent event) {
-        Order order = findOrder(event.getTenantIdValue(), event.getOrderNoValue());
+        Order order = findOrder(valueOf(event.getTenantId()), valueOf(event.getOrderNo()));
         String reason = OrderOutboxPayloadCodec.decode(event.getPayload()).getOrDefault("reason", "SYSTEM_CANCELLED");
         InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
-                order.getTenantIdValue(),
-                () -> inventoryCommandFacade.releaseReservedStock(order.getOrderNoValue(), reason));
+                valueOf(order.getTenantId()),
+                () -> inventoryCommandFacade.releaseReservedStock(valueOf(order.getOrderNo()), reason));
         // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(
@@ -234,7 +230,7 @@ public class OrderOutboxActionExecutor {
     }
 
     private ReservationNo toReservationNo(String reservationNo) {
-        return reservationNo == null ? null : ReservationNo.of(reservationNo);
+        return ReservationNoCodec.toDomain(reservationNo);
     }
 
     private WarehouseCode toWarehouseCode(String warehouseCode) {
@@ -247,5 +243,21 @@ public class OrderOutboxActionExecutor {
 
     private OrderNo toOrderNo(String orderNo) {
         return orderNo == null ? null : OrderNo.of(orderNo);
+    }
+
+    private Long valueOf(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    private String valueOf(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    private Long valueOf(com.github.thundax.bacon.order.domain.model.valueobject.OrderId orderId) {
+        return OrderIdCodec.toValue(orderId);
+    }
+
+    private String valueOf(com.github.thundax.bacon.common.commerce.enums.CurrencyCode currencyCode) {
+        return currencyCode == null ? null : currencyCode.value();
     }
 }

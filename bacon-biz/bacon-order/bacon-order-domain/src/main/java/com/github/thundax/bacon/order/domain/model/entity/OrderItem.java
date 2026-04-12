@@ -6,34 +6,37 @@ import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import java.math.BigDecimal;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 订单项领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderItem {
 
     /** 所属租户主键。 */
-    private final TenantId tenantId;
+    private TenantId tenantId;
     /** 所属订单主键。 */
-    private final OrderId orderId;
+    private OrderId orderId;
     /** 商品 SKU 主键。 */
-    private final SkuId skuId;
+    private SkuId skuId;
     /** 商品 SKU 名称。 */
-    private final String skuName;
+    private String skuName;
     /** 商品图片快照。 */
-    private final String imageUrl;
+    private String imageUrl;
     /** 购买数量。 */
-    private final Integer quantity;
+    private Integer quantity;
     /** 销售价。 */
-    private final Money salePrice;
+    private Money salePrice;
     /** 行金额。 */
-    private final Money lineAmount;
+    private Money lineAmount;
 
-    public OrderItem(
+    public static OrderItem create(
             Long tenantId,
             Long orderId,
             Long skuId,
@@ -43,7 +46,7 @@ public class OrderItem {
             CurrencyCode currencyCode,
             String salePrice,
             String lineAmount) {
-        this(
+        return new OrderItem(
                 tenantId == null ? null : TenantId.of(tenantId),
                 orderId == null ? null : OrderId.of(orderId),
                 skuId == null ? null : SkuId.of(skuId),
@@ -54,11 +57,15 @@ public class OrderItem {
                 lineAmount == null ? null : Money.of(new BigDecimal(lineAmount), currencyCode));
     }
 
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    public Long getOrderIdValue() {
-        return orderId == null ? null : orderId.value();
+    public static OrderItem reconstruct(
+            TenantId tenantId,
+            OrderId orderId,
+            SkuId skuId,
+            String skuName,
+            String imageUrl,
+            Integer quantity,
+            Money salePrice,
+            Money lineAmount) {
+        return new OrderItem(tenantId, orderId, skuId, skuName, imageUrl, quantity, salePrice, lineAmount);
     }
 }

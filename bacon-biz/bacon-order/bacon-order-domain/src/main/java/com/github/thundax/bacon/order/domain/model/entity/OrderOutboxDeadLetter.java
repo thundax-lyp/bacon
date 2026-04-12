@@ -7,16 +7,19 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * 订单出站事件死信记录。
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderOutboxDeadLetter {
 
     /** 出站事件主键。 */
@@ -54,7 +57,7 @@ public class OrderOutboxDeadLetter {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public OrderOutboxDeadLetter(
+    public static OrderOutboxDeadLetter create(
             Long outboxId,
             String eventCode,
             Long tenantId,
@@ -72,7 +75,7 @@ public class OrderOutboxDeadLetter {
             String lastReplayMessage,
             Instant createdAt,
             Instant updatedAt) {
-        this(
+        return new OrderOutboxDeadLetter(
                 outboxId == null ? null : OutboxId.of(outboxId),
                 eventCode == null ? null : EventCode.of(eventCode),
                 tenantId == null ? null : TenantId.of(tenantId),
@@ -92,27 +95,41 @@ public class OrderOutboxDeadLetter {
                 updatedAt);
     }
 
-    public String getEventCodeValue() {
-        return eventCode == null ? null : eventCode.value();
-    }
-
-    public Long getOutboxIdValue() {
-        return outboxId == null ? null : outboxId.value();
-    }
-
-    public Long getTenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    public String getOrderNoValue() {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    public String getEventTypeValue() {
-        return eventType == null ? null : eventType.value();
-    }
-
-    public String getReplayStatusValue() {
-        return replayStatus == null ? null : replayStatus.value();
+    public static OrderOutboxDeadLetter reconstruct(
+            OutboxId outboxId,
+            EventCode eventCode,
+            TenantId tenantId,
+            OrderNo orderNo,
+            OrderOutboxEventType eventType,
+            String businessKey,
+            String payload,
+            Integer retryCount,
+            String errorMessage,
+            String deadReason,
+            Instant deadAt,
+            OrderOutboxReplayStatus replayStatus,
+            Integer replayCount,
+            Instant lastReplayAt,
+            String lastReplayMessage,
+            Instant createdAt,
+            Instant updatedAt) {
+        return new OrderOutboxDeadLetter(
+                outboxId,
+                eventCode,
+                tenantId,
+                orderNo,
+                eventType,
+                businessKey,
+                payload,
+                retryCount,
+                errorMessage,
+                deadReason,
+                deadAt,
+                replayStatus,
+                replayCount,
+                lastReplayAt,
+                lastReplayMessage,
+                createdAt,
+                updatedAt);
     }
 }

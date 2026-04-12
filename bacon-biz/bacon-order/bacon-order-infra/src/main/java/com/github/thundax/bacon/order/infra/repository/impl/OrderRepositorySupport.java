@@ -113,8 +113,8 @@ public class OrderRepositorySupport {
         for (OrderItem item : items) {
             orderItemMapper.insert(new OrderItemDO(
                     idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG),
-                    item.getTenantIdValue(),
-                    String.valueOf(item.getOrderIdValue()),
+                    valueOf(item.getTenantId()),
+                    String.valueOf(valueOf(item.getOrderId())),
                     String.valueOf(
                             item.getSkuId() == null ? null : item.getSkuId().value()),
                     item.getSkuName(),
@@ -139,10 +139,10 @@ public class OrderRepositorySupport {
     public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
         OrderPaymentSnapshotDO existing =
                 orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
-                        .eq(OrderPaymentSnapshotDO::getTenantId, snapshot.tenantIdValue())
-                        .eq(OrderPaymentSnapshotDO::getOrderId, snapshot.orderIdValue()));
+                        .eq(OrderPaymentSnapshotDO::getTenantId, valueOf(snapshot.getTenantId()))
+                        .eq(OrderPaymentSnapshotDO::getOrderId, valueOf(snapshot.getOrderId())));
         OrderPaymentSnapshotDO dataObject = toDataObject(snapshot);
-        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
+        dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
         if (existing == null) {
             dataObject.setId(idGenerator.nextId(PAYMENT_SNAPSHOT_ID_BIZ_TAG));
@@ -164,10 +164,10 @@ public class OrderRepositorySupport {
     public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
         OrderInventorySnapshotDO existing =
                 orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                        .eq(OrderInventorySnapshotDO::getTenantId, snapshot.tenantIdValue())
-                        .eq(OrderInventorySnapshotDO::getOrderNo, snapshot.orderNoValue()));
+                        .eq(OrderInventorySnapshotDO::getTenantId, valueOf(snapshot.getTenantId()))
+                        .eq(OrderInventorySnapshotDO::getOrderNo, valueOf(snapshot.getOrderNo())));
         OrderInventorySnapshotDO dataObject = toDataObject(snapshot);
-        dataObject.setUpdatedAt(snapshot.updatedAt() == null ? Instant.now() : snapshot.updatedAt());
+        dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
         if (existing == null) {
             dataObject.setId(idGenerator.nextId(INVENTORY_SNAPSHOT_ID_BIZ_TAG));
@@ -302,10 +302,10 @@ public class OrderRepositorySupport {
                 order.getTenantId() == null ? null : order.getTenantId().value(),
                 toDatabaseOrderNo(order.getOrderNo()),
                 order.getUserId() == null ? null : order.getUserId().value(),
-                order.getOrderStatusValue(),
-                order.getPayStatusValue(),
-                order.getInventoryStatusValue(),
-                order.getCurrencyCodeValue(),
+                valueOf(order.getOrderStatus()),
+                valueOf(order.getPayStatus()),
+                valueOf(order.getInventoryStatus()),
+                valueOf(order.getCurrencyCode()),
                 order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
                 order.getRemark(),
@@ -335,7 +335,7 @@ public class OrderRepositorySupport {
             OrderDO dataObject, OrderPaymentSnapshotDO paymentSnapshot, OrderInventorySnapshotDO inventorySnapshot) {
         // rehydrate 时优先用快照表补回 paymentNo/reservationNo 等派生字段，
         // 因为这些字段在 strict 持久化模型里并不全部固化在订单主表。
-        return Order.rehydrate(
+        return Order.reconstruct(
                 toDomainOrderId(dataObject.getId()),
                 toDomainOrderTenantId(dataObject.getTenantId()),
                 toDomainOrderNo(dataObject.getOrderNo()),
@@ -410,7 +410,7 @@ public class OrderRepositorySupport {
 
     private OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
         CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(currencyCode);
-        return new OrderItem(
+        return OrderItem.create(
                 dataObject.getTenantId(),
                 dataObject.getOrderId() == null ? null : Long.valueOf(dataObject.getOrderId()),
                 dataObject.getSkuId() == null ? null : Long.valueOf(dataObject.getSkuId()),
@@ -428,21 +428,21 @@ public class OrderRepositorySupport {
 
     private OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {
         return new OrderPaymentSnapshotDO(
-                snapshot.id(),
-                snapshot.tenantIdValue(),
-                snapshot.orderIdValue(),
-                snapshot.paymentNoValue(),
-                snapshot.channelCodeValue(),
-                snapshot.payStatusValue(),
-                snapshot.paidAmountValue(),
-                snapshot.paidTime(),
-                snapshot.failureReason(),
-                snapshot.channelStatusValue(),
-                snapshot.updatedAt());
+                snapshot.getId(),
+                valueOf(snapshot.getTenantId()),
+                valueOf(snapshot.getOrderId()),
+                valueOf(snapshot.getPaymentNo()),
+                valueOf(snapshot.getChannelCode()),
+                valueOf(snapshot.getPayStatus()),
+                snapshot.getPaidAmount() == null ? null : snapshot.getPaidAmount().value(),
+                snapshot.getPaidTime(),
+                snapshot.getFailureReason(),
+                valueOf(snapshot.getChannelStatus()),
+                snapshot.getUpdatedAt());
     }
 
     private OrderPaymentSnapshot toDomain(OrderPaymentSnapshotDO dataObject, String currencyCode) {
-        return new OrderPaymentSnapshot(
+        return OrderPaymentSnapshot.reconstruct(
                 dataObject.getId(),
                 toDomainOrderTenantId(dataObject.getTenantId()),
                 toDomainOrderId(dataObject.getOrderId()),
@@ -459,19 +459,17 @@ public class OrderRepositorySupport {
     private OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {
         return new OrderInventorySnapshotDO(
                 null,
-                snapshot.tenantIdValue(),
-                snapshot.orderNoValue(),
-                snapshot.reservationNoValue(),
-                snapshot.inventoryStatusValue(),
-                snapshot.warehouseCode() == null
-                        ? null
-                        : snapshot.warehouseCode().value(),
-                snapshot.failureReason(),
-                snapshot.updatedAt());
+                valueOf(snapshot.getTenantId()),
+                valueOf(snapshot.getOrderNo()),
+                valueOf(snapshot.getReservationNo()),
+                valueOf(snapshot.getInventoryStatus()),
+                valueOf(snapshot.getWarehouseCode()),
+                snapshot.getFailureReason(),
+                snapshot.getUpdatedAt());
     }
 
     private OrderInventorySnapshot toDomain(OrderInventorySnapshotDO dataObject) {
-        return new OrderInventorySnapshot(
+        return OrderInventorySnapshot.reconstruct(
                 toDomainOrderTenantId(dataObject.getTenantId()),
                 toDomainOrderNo(dataObject.getOrderNo()),
                 dataObject.getReservationNo() == null ? null : ReservationNo.of(dataObject.getReservationNo()),
@@ -483,19 +481,19 @@ public class OrderRepositorySupport {
 
     private OrderAuditLogDO toDataObject(OrderAuditLog auditLog) {
         return new OrderAuditLogDO(
-                auditLog.id(),
-                auditLog.tenantId() == null ? null : auditLog.tenantId().value(),
-                toDatabaseOrderNo(auditLog.orderNo()),
-                auditLog.actionType() == null ? null : auditLog.actionType().value(),
-                auditLog.beforeStatus() == null ? null : auditLog.beforeStatus().value(),
-                auditLog.afterStatus() == null ? null : auditLog.afterStatus().value(),
-                auditLog.operatorType() == null ? null : auditLog.operatorType().value(),
-                auditLog.operatorId(),
-                auditLog.occurredAt());
+                auditLog.getId(),
+                auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(),
+                toDatabaseOrderNo(auditLog.getOrderNo()),
+                valueOf(auditLog.getActionType()),
+                valueOf(auditLog.getBeforeStatus()),
+                valueOf(auditLog.getAfterStatus()),
+                valueOf(auditLog.getOperatorType()),
+                auditLog.getOperatorId(),
+                auditLog.getOccurredAt());
     }
 
     private OrderAuditLog toDomain(OrderAuditLogDO dataObject) {
-        return new OrderAuditLog(
+        return OrderAuditLog.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
                 toDomainOrderNo(dataObject.getOrderNo()),
@@ -505,5 +503,61 @@ public class OrderRepositorySupport {
                 dataObject.getOperatorType() == null ? null : OperatorType.from(dataObject.getOperatorType()),
                 dataObject.getOperatorId(),
                 dataObject.getOccurredAt());
+    }
+
+    private Long valueOf(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    private Long valueOf(OrderId orderId) {
+        return orderId == null ? null : orderId.value();
+    }
+
+    private String valueOf(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    private String valueOf(PaymentNo paymentNo) {
+        return paymentNo == null ? null : paymentNo.value();
+    }
+
+    private String valueOf(ReservationNo reservationNo) {
+        return reservationNo == null ? null : reservationNo.value();
+    }
+
+    private String valueOf(WarehouseCode warehouseCode) {
+        return warehouseCode == null ? null : warehouseCode.value();
+    }
+
+    private String valueOf(CurrencyCode currencyCode) {
+        return currencyCode == null ? null : currencyCode.value();
+    }
+
+    private String valueOf(PaymentChannel channel) {
+        return channel == null ? null : channel.value();
+    }
+
+    private String valueOf(PaymentChannelStatus channelStatus) {
+        return channelStatus == null ? null : channelStatus.value();
+    }
+
+    private String valueOf(OrderStatus orderStatus) {
+        return orderStatus == null ? null : orderStatus.value();
+    }
+
+    private String valueOf(PayStatus payStatus) {
+        return payStatus == null ? null : payStatus.value();
+    }
+
+    private String valueOf(InventoryStatus inventoryStatus) {
+        return inventoryStatus == null ? null : inventoryStatus.value();
+    }
+
+    private String valueOf(OrderAuditActionType actionType) {
+        return actionType == null ? null : actionType.value();
+    }
+
+    private String valueOf(OperatorType operatorType) {
+        return operatorType == null ? null : operatorType.value();
     }
 }

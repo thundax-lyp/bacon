@@ -58,10 +58,9 @@ class OrderIdempotencyExecutorTest {
         OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(repository);
         AtomicInteger executedTimes = new AtomicInteger(0);
 
-        OrderIdempotencyRecord stale = new OrderIdempotencyRecord(
-                1001L,
-                "ORD-3",
-                OrderIdempotencyExecutor.EVENT_MARK_PAID,
+        OrderIdempotencyRecord stale = OrderIdempotencyRecord.reconstruct(
+                OrderIdempotencyRecordKey.of(
+                        TenantId.of(1001L), OrderNo.of("ORD-3"), OrderIdempotencyExecutor.EVENT_MARK_PAID),
                 OrderIdempotencyStatus.PROCESSING,
                 1,
                 null,
@@ -120,11 +119,9 @@ class OrderIdempotencyExecutorTest {
 
         @Override
         public boolean createProcessing(OrderIdempotencyRecord record) {
-            String key = keyOf(record.getTenantIdValue(), record.getOrderNoValue(), record.getEventType());
-            OrderIdempotencyRecord value = new OrderIdempotencyRecord(
-                    record.getTenantIdValue(),
-                    record.getOrderNoValue(),
-                    record.getEventType(),
+            String key = keyOf(valueOf(record.getTenantId()), valueOf(record.getOrderNo()), record.getEventType());
+            OrderIdempotencyRecord value = OrderIdempotencyRecord.reconstruct(
+                    OrderIdempotencyRecordKey.of(record.getTenantId(), record.getOrderNo(), record.getEventType()),
                     OrderIdempotencyStatus.PROCESSING,
                     1,
                     null,
@@ -262,7 +259,7 @@ class OrderIdempotencyExecutorTest {
         }
 
         void forcePut(OrderIdempotencyRecord record) {
-            storage.put(keyOf(record.getTenantIdValue(), record.getOrderNoValue(), record.getEventType()), record);
+            storage.put(keyOf(valueOf(record.getTenantId()), valueOf(record.getOrderNo()), record.getEventType()), record);
         }
 
         private String keyOf(Long tenantId, String orderNo, String eventType) {
@@ -275,6 +272,14 @@ class OrderIdempotencyExecutorTest {
 
         private OrderNo toOrderNo(String orderNo) {
             return orderNo == null ? null : OrderNo.of(orderNo);
+        }
+
+        private Long valueOf(TenantId tenantId) {
+            return tenantId == null ? null : tenantId.value();
+        }
+
+        private String valueOf(OrderNo orderNo) {
+            return orderNo == null ? null : orderNo.value();
         }
     }
 }

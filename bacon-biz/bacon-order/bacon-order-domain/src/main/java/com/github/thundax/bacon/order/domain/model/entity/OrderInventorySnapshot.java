@@ -6,43 +6,55 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 订单库存快照。
  */
-public record OrderInventorySnapshot(
-        /** 所属租户主键。 */
-        TenantId tenantId,
-        /** 订单号。 */
-        OrderNo orderNo,
-        /** 库存预占单号。 */
-        ReservationNo reservationNo,
-        /** 库存状态。 */
-        InventoryStatus inventoryStatus,
-        /** 仓库业务编码。 */
-        WarehouseCode warehouseCode,
-        /** 失败原因。 */
-        String failureReason,
-        /** 最后更新时间。 */
-        Instant updatedAt) {
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class OrderInventorySnapshot {
 
-    public Long tenantIdValue() {
-        return tenantId == null ? null : tenantId.value();
+    /** 所属租户主键。 */
+    private TenantId tenantId;
+    /** 订单号。 */
+    private OrderNo orderNo;
+    /** 库存预占单号。 */
+    private ReservationNo reservationNo;
+    /** 库存状态。 */
+    private InventoryStatus inventoryStatus;
+    /** 仓库业务编码。 */
+    private WarehouseCode warehouseCode;
+    /** 失败原因。 */
+    private String failureReason;
+    /** 最后更新时间。 */
+    private Instant updatedAt;
+
+    public static OrderInventorySnapshot create(
+            TenantId tenantId,
+            OrderNo orderNo,
+            ReservationNo reservationNo,
+            InventoryStatus inventoryStatus,
+            WarehouseCode warehouseCode,
+            String failureReason,
+            Instant updatedAt) {
+        return new OrderInventorySnapshot(
+                tenantId, orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
     }
 
-    public String orderNoValue() {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    public String reservationNoValue() {
-        return reservationNo == null ? null : reservationNo.value();
-    }
-
-    public String inventoryStatusValue() {
-        return inventoryStatus == null ? null : inventoryStatus.value();
-    }
-
-    public String warehouseCodeValue() {
-        return warehouseCode == null ? null : warehouseCode.value();
+    public static OrderInventorySnapshot reconstruct(
+            TenantId tenantId,
+            OrderNo orderNo,
+            ReservationNo reservationNo,
+            InventoryStatus inventoryStatus,
+            WarehouseCode warehouseCode,
+            String failureReason,
+            Instant updatedAt) {
+        return new OrderInventorySnapshot(
+                tenantId, orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
     }
 }

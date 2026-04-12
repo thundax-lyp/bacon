@@ -43,8 +43,8 @@ class OrderRepositorySupportPagingTest {
 
         assertEquals(3L, total);
         assertEquals(2, result.size());
-        assertEquals("ORD-1002", result.get(0).getOrderNoValue());
-        assertEquals("ORD-1001", result.get(1).getOrderNoValue());
+        assertEquals("ORD-1002", result.get(0).getOrderNo().value());
+        assertEquals("ORD-1001", result.get(1).getOrderNo().value());
 
         LambdaQueryWrapper<OrderDO> pagedWrapper = pagedWrapperRef.get();
         assertNotNull(pagedWrapper);

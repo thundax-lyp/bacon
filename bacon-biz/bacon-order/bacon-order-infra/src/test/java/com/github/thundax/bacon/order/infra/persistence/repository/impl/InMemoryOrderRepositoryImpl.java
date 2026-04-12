@@ -48,8 +48,8 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     @Override
     public Optional<Order> findByOrderNo(Long tenantId, String orderNo) {
         return storage.values().stream()
-                .filter(order -> String.valueOf(tenantId).equals(order.getTenantIdValue()))
-                .filter(order -> orderNo.equals(order.getOrderNoValue()))
+                .filter(order -> String.valueOf(tenantId).equals(String.valueOf(toTenantIdValue(order.getTenantId()))))
+                .filter(order -> orderNo.equals(toOrderNoValue(order.getOrderNo())))
                 .findFirst();
     }
 
@@ -61,20 +61,20 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     @Override
     public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
         return itemsStorage.getOrDefault(orderId, List.of()).stream()
-                .filter(item -> String.valueOf(tenantId).equals(String.valueOf(item.getTenantIdValue())))
+                .filter(item -> String.valueOf(tenantId).equals(String.valueOf(toTenantIdValue(item.getTenantId()))))
                 .toList();
     }
 
     @Override
     public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
-        paymentSnapshotStorage.put(snapshot.orderIdValue(), snapshot);
+        paymentSnapshotStorage.put(toOrderIdValue(snapshot.getOrderId()), snapshot);
     }
 
     @Override
     public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(
             Long tenantId, Long orderId, String currencyCode) {
         OrderPaymentSnapshot snapshot = paymentSnapshotStorage.get(orderId);
-        if (snapshot == null || !tenantId.equals(snapshot.tenantIdValue())) {
+        if (snapshot == null || !tenantId.equals(toTenantIdValue(snapshot.getTenantId()))) {
             return Optional.empty();
         }
         return Optional.of(snapshot);
@@ -82,13 +82,13 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     @Override
     public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
-        inventorySnapshotStorage.put(snapshot.orderNoValue(), snapshot);
+        inventorySnapshotStorage.put(toOrderNoValue(snapshot.getOrderNo()), snapshot);
     }
 
     @Override
     public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
         OrderInventorySnapshot snapshot = inventorySnapshotStorage.get(orderNo);
-        if (snapshot == null || !tenantId.equals(snapshot.tenantIdValue())) {
+        if (snapshot == null || !tenantId.equals(toTenantIdValue(snapshot.getTenantId()))) {
             return Optional.empty();
         }
         return Optional.of(snapshot);
@@ -97,7 +97,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     @Override
     public void saveAuditLog(OrderAuditLog auditLog) {
         String key =
-                toTenantIdValue(auditLog.tenantId()) + ":" + auditLog.orderNo().value();
+                toTenantIdValue(auditLog.getTenantId()) + ":" + toOrderNoValue(auditLog.getOrderNo());
         auditLogStorage
                 .computeIfAbsent(key, unused -> new java.util.ArrayList<>())
                 .add(auditLog);
@@ -152,12 +152,14 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
             Instant createdAtFrom,
             Instant createdAtTo) {
         List<Order> filtered = storage.values().stream()
-                .filter(order -> tenantId == null || String.valueOf(tenantId).equals(order.getTenantIdValue()))
+                .filter(order -> tenantId == null
+                        || String.valueOf(tenantId).equals(String.valueOf(toTenantIdValue(order.getTenantId()))))
                 .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
-                .filter(order -> orderNo == null || order.getOrderNoValue().contains(orderNo))
-                .filter(order -> orderStatus == null || orderStatus.equals(order.getOrderStatusValue()))
-                .filter(order -> payStatus == null || payStatus.equals(order.getPayStatusValue()))
-                .filter(order -> inventoryStatus == null || inventoryStatus.equals(order.getInventoryStatusValue()))
+                .filter(order -> orderNo == null || toOrderNoValue(order.getOrderNo()).contains(orderNo))
+                .filter(order -> orderStatus == null || orderStatus.equals(toOrderStatusValue(order.getOrderStatus())))
+                .filter(order -> payStatus == null || payStatus.equals(toPayStatusValue(order.getPayStatus())))
+                .filter(order -> inventoryStatus == null
+                        || inventoryStatus.equals(toInventoryStatusValue(order.getInventoryStatus())))
                 .filter(order -> createdAtFrom == null || !order.getCreatedAt().isBefore(createdAtFrom))
                 .filter(order -> createdAtTo == null || !order.getCreatedAt().isAfter(createdAtTo))
                 .sorted(Comparator.comparing(Order::getCreatedAt)
@@ -182,5 +184,26 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
 
     private Long toTenantIdValue(TenantId tenantId) {
         return tenantId == null ? null : Long.valueOf(tenantId.value());
+    }
+
+    private Long toOrderIdValue(OrderId orderId) {
+        return orderId == null ? null : orderId.value();
+    }
+
+    private String toOrderNoValue(com.github.thundax.bacon.common.commerce.valueobject.OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
+    }
+
+    private String toOrderStatusValue(com.github.thundax.bacon.order.domain.model.enums.OrderStatus orderStatus) {
+        return orderStatus == null ? null : orderStatus.value();
+    }
+
+    private String toPayStatusValue(com.github.thundax.bacon.order.domain.model.enums.PayStatus payStatus) {
+        return payStatus == null ? null : payStatus.value();
+    }
+
+    private String toInventoryStatusValue(
+            com.github.thundax.bacon.order.domain.model.enums.InventoryStatus inventoryStatus) {
+        return inventoryStatus == null ? null : inventoryStatus.value();
     }
 }

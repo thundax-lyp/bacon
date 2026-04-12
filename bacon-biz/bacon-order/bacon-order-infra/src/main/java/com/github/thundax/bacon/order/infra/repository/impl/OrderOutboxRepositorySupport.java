@@ -239,11 +239,11 @@ public class OrderOutboxRepositorySupport {
     }
 
     private OrderOutboxEvent toDomain(OrderOutboxEventDO dataObject) {
-        return new OrderOutboxEvent(
-                dataObject.getId(),
-                dataObject.getEventCode(),
-                dataObject.getTenantId(),
-                dataObject.getOrderNo(),
+        return OrderOutboxEvent.reconstruct(
+                toDomainOutboxId(dataObject.getId()),
+                toDomainEventCode(dataObject.getEventCode()),
+                toDomainTenantId(dataObject.getTenantId()),
+                toDomainOrderNo(dataObject.getOrderNo()),
                 toDomainEventType(dataObject.getEventType()),
                 dataObject.getBusinessKey(),
                 dataObject.getPayload(),
@@ -319,16 +319,16 @@ public class OrderOutboxRepositorySupport {
                 null,
                 toDatabaseOutboxId(deadLetter.getOutboxId()),
                 toDatabaseEventCode(deadLetter.getEventCode()),
-                deadLetter.getTenantIdValue(),
-                deadLetter.getOrderNoValue(),
-                deadLetter.getEventTypeValue(),
+                toDatabaseTenantId(deadLetter.getTenantId()),
+                toDatabaseOrderNo(deadLetter.getOrderNo()),
+                toDatabaseEventType(deadLetter.getEventType()),
                 deadLetter.getBusinessKey(),
                 deadLetter.getPayload(),
                 deadLetter.getRetryCount(),
                 deadLetter.getErrorMessage(),
                 deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(),
-                deadLetter.getReplayStatusValue(),
+                deadLetter.getReplayStatus() == null ? null : deadLetter.getReplayStatus().value(),
                 deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(),
                 deadLetter.getLastReplayMessage(),

@@ -173,8 +173,8 @@ public class OrderIdempotencyRepositorySupport {
         return new OrderIdempotencyRecordDO(
                 toDatabaseTenantId(record.getTenantId()),
                 toDatabaseOrderNo(record.getOrderNo()),
-                record.getEventTypeValue(),
-                record.getStatusValue(),
+                record.getEventType(),
+                record.getStatus() == null ? null : record.getStatus().value(),
                 record.getAttemptCount(),
                 record.getLastError(),
                 record.getProcessingOwner(),
@@ -185,10 +185,11 @@ public class OrderIdempotencyRepositorySupport {
     }
 
     private OrderIdempotencyRecord toDomain(OrderIdempotencyRecordDO dataObject) {
-        return new OrderIdempotencyRecord(
-                dataObject.getTenantId(),
-                dataObject.getOrderNo(),
-                dataObject.getEventType(),
+        return OrderIdempotencyRecord.reconstruct(
+                OrderIdempotencyRecordKey.of(
+                        toDomainTenantId(dataObject.getTenantId()),
+                        toDomainOrderNo(dataObject.getOrderNo()),
+                        dataObject.getEventType()),
                 OrderIdempotencyStatus.from(dataObject.getStatus()),
                 dataObject.getAttemptCount(),
                 dataObject.getLastError(),

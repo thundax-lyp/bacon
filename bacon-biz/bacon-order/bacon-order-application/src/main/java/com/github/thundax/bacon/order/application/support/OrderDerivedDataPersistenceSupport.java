@@ -2,7 +2,6 @@ package com.github.thundax.bacon.order.application.support;
 
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
@@ -10,10 +9,7 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.enums.OperatorType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
-import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
-import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
@@ -31,23 +27,22 @@ public class OrderDerivedDataPersistenceSupport {
 
     public void persist(Order order, OrderAuditActionType actionType, OrderStatus beforeStatus) {
         Instant now = Instant.now();
-        if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
-            orderRepository.savePaymentSnapshot(new OrderPaymentSnapshot(
-                    null,
+        if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
+            orderRepository.savePaymentSnapshot(OrderPaymentSnapshot.create(
                     order.getTenantId(),
-                    toOrderId(order),
-                    toPaymentNo(order.getPaymentNoValue()),
-                    toPaymentChannel(order.getPaymentChannelCodeValue()),
-                    toPayStatus(order.getPayStatusValue()),
-                    toMoney(order.getPaidAmount(), order.getCurrencyCodeValue()),
+                    order.getId(),
+                    order.getPaymentNo(),
+                    order.getPaymentChannelCode(),
+                    order.getPayStatus(),
+                    toMoney(order.getPaidAmount(), order.getCurrencyCode()),
                     order.getPaidAt(),
                     order.getPaymentFailureReason(),
                     toPaymentChannelStatus(order.getPaymentChannelStatus()),
                     now));
         }
-        if (order.getReservationNoValue() != null
-                && !order.getReservationNoValue().isBlank()) {
-            orderRepository.saveInventorySnapshot(new OrderInventorySnapshot(
+        if (order.getReservationNo() != null
+                && !order.getReservationNo().value().isBlank()) {
+            orderRepository.saveInventorySnapshot(OrderInventorySnapshot.create(
                     order.getTenantId(),
                     order.getOrderNo(),
                     order.getReservationNo(),
@@ -56,8 +51,7 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getInventoryFailureReason(),
                     now));
         }
-        orderRepository.saveAuditLog(new OrderAuditLog(
-                null,
+        orderRepository.saveAuditLog(OrderAuditLog.create(
                 order.getTenantId(),
                 order.getOrderNo(),
                 actionType,
@@ -68,27 +62,11 @@ public class OrderDerivedDataPersistenceSupport {
                 now));
     }
 
-    private OrderId toOrderId(Order order) {
-        return order.getId();
-    }
-
-    private PaymentNo toPaymentNo(String paymentNo) {
-        return paymentNo == null ? null : PaymentNo.of(paymentNo);
-    }
-
-    private PaymentChannel toPaymentChannel(String channelCode) {
-        return channelCode == null || channelCode.isBlank() ? null : PaymentChannel.from(channelCode);
-    }
-
-    private PayStatus toPayStatus(String payStatus) {
-        return payStatus == null || payStatus.isBlank() ? null : PayStatus.from(payStatus);
-    }
-
     private PaymentChannelStatus toPaymentChannelStatus(String channelStatus) {
         return channelStatus == null || channelStatus.isBlank() ? null : PaymentChannelStatus.from(channelStatus);
     }
 
-    private Money toMoney(Money paidAmount, String currencyCode) {
-        return paidAmount == null ? null : Money.of(paidAmount.value(), CurrencyCode.fromValue(currencyCode));
+    private Money toMoney(Money paidAmount, CurrencyCode currencyCode) {
+        return paidAmount == null || currencyCode == null ? null : Money.of(paidAmount.value(), currencyCode);
     }
 }

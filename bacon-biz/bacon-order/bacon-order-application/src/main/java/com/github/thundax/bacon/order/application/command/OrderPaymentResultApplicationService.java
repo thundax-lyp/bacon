@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
@@ -83,7 +84,7 @@ public class OrderPaymentResultApplicationService {
         order.markPaid(
                 toPaymentNo(paymentNo),
                 channelCode,
-                Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCodeValue())),
+                Money.of(paidAmount, order.getCurrencyCode()),
                 paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
         InventoryReservationResultDTO deductResult = BaconContextHolder.callWithTenantId(
@@ -144,7 +145,7 @@ public class OrderPaymentResultApplicationService {
     }
 
     private ReservationNo toReservationNo(String reservationNo) {
-        return reservationNo == null ? null : ReservationNo.of(reservationNo);
+        return ReservationNoCodec.toDomain(reservationNo);
     }
 
     private WarehouseCode toWarehouseCode(String warehouseCode) {

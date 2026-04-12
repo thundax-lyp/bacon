@@ -23,7 +23,7 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
 
     @Override
     public boolean createProcessing(OrderIdempotencyRecord record) {
-        String key = businessKey(record.getTenantIdValue(), record.getOrderNoValue(), record.getEventType());
+        String key = businessKey(valueOf(record.getTenantId()), valueOf(record.getOrderNo()), record.getEventType());
         OrderIdempotencyRecord created = copy(record);
         return storage.putIfAbsent(key, created) == null;
     }
@@ -145,10 +145,8 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
     }
 
     private OrderIdempotencyRecord copy(OrderIdempotencyRecord source) {
-        return new OrderIdempotencyRecord(
-                source.getTenantIdValue(),
-                source.getOrderNoValue(),
-                source.getEventType(),
+        return OrderIdempotencyRecord.reconstruct(
+                OrderIdempotencyRecordKey.of(source.getTenantId(), source.getOrderNo(), source.getEventType()),
                 source.getStatus(),
                 source.getAttemptCount(),
                 source.getLastError(),
@@ -165,5 +163,13 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
 
     private OrderNo toOrderNo(String orderNo) {
         return orderNo == null ? null : OrderNo.of(orderNo);
+    }
+
+    private Long valueOf(TenantId tenantId) {
+        return tenantId == null ? null : tenantId.value();
+    }
+
+    private String valueOf(OrderNo orderNo) {
+        return orderNo == null ? null : orderNo.value();
     }
 }

@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.application.audit;
 
 import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
@@ -9,15 +10,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class SysLogConsumeApplicationService {
 
-    private final SysLogRepository sysLogRepository;
+    private static final String SYS_LOG_ID_BIZ_TAG = "upms-sys-log-id";
 
-    public SysLogConsumeApplicationService(SysLogRepository sysLogRepository) {
+    private final SysLogRepository sysLogRepository;
+    private final IdGenerator idGenerator;
+
+    public SysLogConsumeApplicationService(SysLogRepository sysLogRepository, IdGenerator idGenerator) {
         this.sysLogRepository = sysLogRepository;
+        this.idGenerator = idGenerator;
     }
 
     public void consume(SysLogDTO sysLogDTO) {
         SysLogRecord sysLogRecord = new SysLogRecord(
-                null,
+                idGenerator.nextId(SYS_LOG_ID_BIZ_TAG),
                 sysLogDTO.getTenantId(),
                 sysLogDTO.getTraceId(),
                 sysLogDTO.getRequestId(),

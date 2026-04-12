@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_upms_role_resource_rel")
 public class RoleResourceRelDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
 
     @TableField("tenant_id")

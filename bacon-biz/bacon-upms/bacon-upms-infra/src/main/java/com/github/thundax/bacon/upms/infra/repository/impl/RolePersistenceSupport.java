@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -36,6 +37,12 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
+    private static final String USER_ROLE_REL_ID_BIZ_TAG = "upms-user-role-rel-id";
+    private static final String ROLE_MENU_REL_ID_BIZ_TAG = "upms-role-menu-rel-id";
+    private static final String ROLE_RESOURCE_REL_ID_BIZ_TAG = "upms-role-resource-rel-id";
+    private static final String ROLE_DATA_SCOPE_REL_ID_BIZ_TAG = "upms-role-data-scope-rel-id";
+    private static final String DATA_PERMISSION_RULE_ID_BIZ_TAG = "upms-data-permission-rule-id";
+
     private final RoleMapper roleMapper;
     private final ResourceMapper resourceMapper;
     private final UserRoleRelMapper userRoleRelMapper;
@@ -43,6 +50,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     private final RoleResourceRelMapper roleResourceRelMapper;
     private final DataPermissionRuleMapper dataPermissionRuleMapper;
     private final RoleDataScopeRelMapper roleDataScopeRelMapper;
+    private final IdGenerator idGenerator;
 
     RolePersistenceSupport(
             RoleMapper roleMapper,
@@ -51,7 +59,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             RoleMenuRelMapper roleMenuRelMapper,
             RoleResourceRelMapper roleResourceRelMapper,
             DataPermissionRuleMapper dataPermissionRuleMapper,
-            RoleDataScopeRelMapper roleDataScopeRelMapper) {
+            RoleDataScopeRelMapper roleDataScopeRelMapper,
+            IdGenerator idGenerator) {
         this.roleMapper = roleMapper;
         this.resourceMapper = resourceMapper;
         this.userRoleRelMapper = userRoleRelMapper;
@@ -59,6 +68,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.roleResourceRelMapper = roleResourceRelMapper;
         this.dataPermissionRuleMapper = dataPermissionRuleMapper;
         this.roleDataScopeRelMapper = roleDataScopeRelMapper;
+        this.idGenerator = idGenerator;
     }
 
     Optional<Role> findRoleById(TenantId tenantId, RoleId roleId) {
@@ -173,7 +183,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             return;
         }
         for (RoleId roleId : new LinkedHashSet<>(roleIds)) {
-            userRoleRelMapper.insert(new UserRoleRelDO(null, tenantId, userId, roleId));
+            userRoleRelMapper.insert(
+                    new UserRoleRelDO(idGenerator.nextId(USER_ROLE_REL_ID_BIZ_TAG), tenantId, userId, roleId));
         }
     }
 
@@ -201,7 +212,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             return;
         }
         for (MenuId menuId : new LinkedHashSet<>(menuIds)) {
-            roleMenuRelMapper.insert(new RoleMenuRelDO(null, tenantId, roleId, menuId));
+            roleMenuRelMapper.insert(
+                    new RoleMenuRelDO(idGenerator.nextId(ROLE_MENU_REL_ID_BIZ_TAG), tenantId, roleId, menuId));
         }
     }
 
@@ -236,7 +248,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .eq(ResourceDO::getTenantId, tenantId)
                 .in(ResourceDO::getCode, new LinkedHashSet<>(resourceCodes)));
         for (ResourceDO resource : resources) {
-            roleResourceRelMapper.insert(new RoleResourceRelDO(null, tenantId, roleId, resource.getId()));
+            roleResourceRelMapper.insert(new RoleResourceRelDO(
+                    idGenerator.nextId(ROLE_RESOURCE_REL_ID_BIZ_TAG), tenantId, roleId, resource.getId()));
         }
     }
 
@@ -269,7 +282,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             return;
         }
         for (DepartmentId departmentId : new LinkedHashSet<>(departmentIds)) {
-            roleDataScopeRelMapper.insert(new RoleDataScopeRelDO(null, tenantId, roleId, departmentId));
+            roleDataScopeRelMapper.insert(new RoleDataScopeRelDO(
+                    idGenerator.nextId(ROLE_DATA_SCOPE_REL_ID_BIZ_TAG), tenantId, roleId, departmentId));
         }
     }
 
@@ -286,7 +300,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .eq(DataPermissionRuleDO::getRoleId, roleId));
         if (existing == null) {
             dataPermissionRuleMapper.insert(new DataPermissionRuleDO(
-                    null,
+                    idGenerator.nextId(DATA_PERMISSION_RULE_ID_BIZ_TAG),
                     tenantId,
                     roleId,
                     dataScopeType == null ? null : dataScopeType.value(),

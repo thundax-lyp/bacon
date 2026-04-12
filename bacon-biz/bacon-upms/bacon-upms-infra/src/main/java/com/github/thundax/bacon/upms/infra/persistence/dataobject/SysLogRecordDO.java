@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_upms_sys_log")
 public class SysLogRecordDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
 
     @TableField("tenant_id")

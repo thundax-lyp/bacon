@@ -781,7 +781,8 @@ class UpmsRepositoryIntegrationTest {
                 RoleMenuRelMapper roleMenuRelMapper,
                 RoleResourceRelMapper roleResourceRelMapper,
                 DataPermissionRuleMapper dataPermissionRuleMapper,
-                RoleDataScopeRelMapper roleDataScopeRelMapper) {
+                RoleDataScopeRelMapper roleDataScopeRelMapper,
+                IdGenerator idGenerator) {
             return new RolePersistenceSupport(
                     roleMapper,
                     resourceMapper,
@@ -789,7 +790,8 @@ class UpmsRepositoryIntegrationTest {
                     roleMenuRelMapper,
                     roleResourceRelMapper,
                     dataPermissionRuleMapper,
-                    roleDataScopeRelMapper);
+                    roleDataScopeRelMapper,
+                    idGenerator);
         }
 
         @Bean

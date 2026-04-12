@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
@@ -58,6 +59,9 @@ class RolePersistenceSupportTest {
     @Mock
     private RoleDataScopeRelMapper roleDataScopeRelMapper;
 
+    @Mock
+    private IdGenerator idGenerator;
+
     private RolePersistenceSupport support;
 
     @BeforeEach
@@ -69,7 +73,9 @@ class RolePersistenceSupportTest {
                 roleMenuRelMapper,
                 roleResourceRelMapper,
                 dataPermissionRuleMapper,
-                roleDataScopeRelMapper);
+                roleDataScopeRelMapper,
+                idGenerator);
+        Mockito.lenient().when(idGenerator.nextId(any())).thenReturn(1001L, 1002L, 1003L, 1004L, 1005L);
     }
 
     @Test

@@ -10,7 +10,6 @@ import java.nio.file.StandardOpenOption;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -22,7 +21,6 @@ public class SysLogRepositoryImpl implements SysLogRepository {
     private static final Path SYS_LOG_FILE = Path.of("logs", "upms-sys-log.log");
 
     private final SysLogPersistenceSupport support;
-    private final AtomicLong logIdSequence = new AtomicLong(1L);
 
     public SysLogRepositoryImpl(SysLogPersistenceSupport support) {
         this.support = support;
@@ -30,29 +28,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
 
     @Override
     public void saveToDatabase(SysLogRecord sysLogRecord) {
-        Long id = sysLogRecord.getId() == null ? logIdSequence.getAndIncrement() : sysLogRecord.getId();
-        SysLogRecord persistedRecord = new SysLogRecord(
-                id,
-                sysLogRecord.getTenantId(),
-                sysLogRecord.getTraceId(),
-                sysLogRecord.getRequestId(),
-                sysLogRecord.getModule(),
-                sysLogRecord.getAction(),
-                sysLogRecord.getEventType(),
-                sysLogRecord.getResult(),
-                sysLogRecord.getOperatorId(),
-                sysLogRecord.getOperatorName(),
-                sysLogRecord.getClientIp(),
-                sysLogRecord.getRequestUri(),
-                sysLogRecord.getHttpMethod(),
-                sysLogRecord.getCostMs(),
-                sysLogRecord.getErrorMessage(),
-                sysLogRecord.getOccurredAt(),
-                sysLogRecord.getCreatedBy(),
-                sysLogRecord.getCreatedAt(),
-                sysLogRecord.getUpdatedBy(),
-                sysLogRecord.getUpdatedAt());
-        support.saveSysLog(persistedRecord);
+        support.saveSysLog(sysLogRecord);
     }
 
     @Override

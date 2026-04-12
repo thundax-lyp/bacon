@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @TableName("bacon_upms_data_permission_rule")
 public class DataPermissionRuleDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
 
     @TableField("tenant_id")

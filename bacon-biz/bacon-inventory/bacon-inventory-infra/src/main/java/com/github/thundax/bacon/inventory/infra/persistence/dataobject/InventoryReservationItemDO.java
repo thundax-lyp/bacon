@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_inventory_reservation_item")
+@TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class InventoryReservationItemDO {
 
     @TableId(type = IdType.AUTO)

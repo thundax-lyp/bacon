@@ -45,14 +45,13 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public List<Role> pageRoles(
-            TenantId tenantId, String code, String name, String roleType, String status, int pageNo, int pageSize) {
-        return support.listRoles(tenantId, code, name, roleType, status, pageNo, pageSize);
+    public List<Role> pageRoles(String code, String name, String roleType, String status, int pageNo, int pageSize) {
+        return support.listRoles(code, name, roleType, status, pageNo, pageSize);
     }
 
     @Override
-    public long countRoles(TenantId tenantId, String code, String name, String roleType, String status) {
-        return support.countRoles(tenantId, code, name, roleType, status);
+    public long countRoles(String code, String name, String roleType, String status) {
+        return support.countRoles(code, name, roleType, status);
     }
 
     @Override

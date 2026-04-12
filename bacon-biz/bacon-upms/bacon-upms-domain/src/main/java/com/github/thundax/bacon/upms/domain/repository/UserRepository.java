@@ -24,12 +24,11 @@ public interface UserRepository {
 
     Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, UserCredentialType credentialType);
 
-    List<User> pageUsers(
-            TenantId tenantId, String account, String name, String phone, String status, int pageNo, int pageSize);
+    List<User> pageUsers(String account, String name, String phone, String status, int pageNo, int pageSize);
 
-    long countUsers(TenantId tenantId, String account, String name, String phone, String status);
+    long countUsers(String account, String name, String phone, String status);
 
-    List<User> listUsers(TenantId tenantId, String account, String name, String phone, String status);
+    List<User> listUsers(String account, String name, String phone, String status);
 
     User save(User user, String account, String phone);
 

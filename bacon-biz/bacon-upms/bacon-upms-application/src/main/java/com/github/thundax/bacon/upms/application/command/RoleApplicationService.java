@@ -60,7 +60,6 @@ public class RoleApplicationService {
         return new PageResultDTO<>(
                 roleRepository
                         .pageRoles(
-                                query.getTenantId(),
                                 query.getCode(),
                                 query.getName(),
                                 query.getRoleType(),
@@ -68,10 +67,9 @@ public class RoleApplicationService {
                                 pageNo,
                                 pageSize)
                         .stream()
-                        .map(role -> toDto(role, query.getTenantId().value()))
+                        .map(this::toDto)
                         .toList(),
-                roleRepository.countRoles(
-                        query.getTenantId(), query.getCode(), query.getName(), query.getRoleType(), query.getStatus()),
+                roleRepository.countRoles(query.getCode(), query.getName(), query.getRoleType(), query.getStatus()),
                 pageNo,
                 pageSize);
     }

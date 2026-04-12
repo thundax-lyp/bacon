@@ -429,7 +429,7 @@ class UpmsRepositoryIntegrationTest {
         assertTrue(userRepository
                 .findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000001")
                 .isPresent());
-        assertEquals(1L, userRepository.countUsers(TENANT_ID, "ali", null, null, "ENABLED"));
+        assertEquals(1L, userRepository.countUsers("ali", null, null, "ENABLED"));
 
         List<Menu> menuTree = permissionRepository.getUserMenuTree(TENANT_ID, user.getId());
         assertEquals(1, menuTree.size());

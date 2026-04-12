@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.api.dto;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,8 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PostPageQueryDTO {
 
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 岗位编码。 */
     private String code;
     /** 岗位名称。 */

@@ -18,10 +18,9 @@ public interface RoleRepository {
 
     List<Role> findRolesByUserId(TenantId tenantId, UserId userId);
 
-    List<Role> pageRoles(
-            TenantId tenantId, String code, String name, String roleType, String status, int pageNo, int pageSize);
+    List<Role> pageRoles(String code, String name, String roleType, String status, int pageNo, int pageSize);
 
-    long countRoles(TenantId tenantId, String code, String name, String roleType, String status);
+    long countRoles(String code, String name, String roleType, String status);
 
     Role save(Role role);
 

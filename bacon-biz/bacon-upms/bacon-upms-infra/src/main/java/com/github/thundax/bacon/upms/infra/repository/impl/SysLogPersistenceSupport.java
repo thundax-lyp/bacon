@@ -37,17 +37,9 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return Optional.ofNullable(sysLogRecordMapper.selectById(logId)).map(this::toDomain);
     }
 
-    List<SysLogRecord> listSysLogs(
-            Long tenantId,
-            String module,
-            String eventType,
-            String result,
-            String operatorName,
-            int pageNo,
-            int pageSize) {
+    List<SysLogRecord> listSysLogs(String module, String eventType, String result, String operatorName, int pageNo, int pageSize) {
         return sysLogRecordMapper
                 .selectList(Wrappers.<SysLogRecordDO>lambdaQuery()
-                        .eq(tenantId != null, SysLogRecordDO::getTenantId, tenantId)
                         .eq(hasText(module), SysLogRecordDO::getModule, trim(module))
                         .eq(hasText(eventType), SysLogRecordDO::getEventType, trim(eventType))
                         .eq(hasText(result), SysLogRecordDO::getResult, trim(result))
@@ -59,9 +51,8 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countSysLogs(Long tenantId, String module, String eventType, String result, String operatorName) {
+    long countSysLogs(String module, String eventType, String result, String operatorName) {
         return Optional.ofNullable(sysLogRecordMapper.selectCount(Wrappers.<SysLogRecordDO>lambdaQuery()
-                        .eq(tenantId != null, SysLogRecordDO::getTenantId, tenantId)
                         .eq(hasText(module), SysLogRecordDO::getModule, trim(module))
                         .eq(hasText(eventType), SysLogRecordDO::getEventType, trim(eventType))
                         .eq(hasText(result), SysLogRecordDO::getResult, trim(result))

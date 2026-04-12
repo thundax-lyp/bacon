@@ -11,16 +11,9 @@ public interface PostRepository {
 
     Optional<Post> findById(TenantId tenantId, PostId postId);
 
-    List<Post> pagePosts(
-            TenantId tenantId,
-            String code,
-            String name,
-            DepartmentId departmentId,
-            String status,
-            int pageNo,
-            int pageSize);
+    List<Post> pagePosts(String code, String name, DepartmentId departmentId, String status, int pageNo, int pageSize);
 
-    long countPosts(TenantId tenantId, String code, String name, DepartmentId departmentId, String status);
+    long countPosts(String code, String name, DepartmentId departmentId, String status);
 
     Post save(Post post);
 

@@ -31,11 +31,9 @@ public class PostApplicationService {
     public PageResultDTO<PostDTO> pagePosts(PostPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        Long tenantIdValue = query.getTenantId().value();
         return new PageResultDTO<>(
                 postRepository
                         .pagePosts(
-                                query.getTenantId(),
                                 query.getCode(),
                                 query.getName(),
                                 query.getDepartmentId(),
@@ -43,14 +41,9 @@ public class PostApplicationService {
                                 pageNo,
                                 pageSize)
                         .stream()
-                        .map(post -> toDto(post, tenantIdValue))
+                        .map(this::toDto)
                         .toList(),
-                postRepository.countPosts(
-                        query.getTenantId(),
-                        query.getCode(),
-                        query.getName(),
-                        query.getDepartmentId(),
-                        query.getStatus()),
+                postRepository.countPosts(query.getCode(), query.getName(), query.getDepartmentId(), query.getStatus()),
                 pageNo,
                 pageSize);
     }

@@ -10,10 +10,9 @@ public interface ResourceRepository {
 
     Optional<Resource> findById(TenantId tenantId, ResourceId resourceId);
 
-    List<Resource> pageResources(
-            TenantId tenantId, String code, String name, String resourceType, String status, int pageNo, int pageSize);
+    List<Resource> pageResources(String code, String name, String resourceType, String status, int pageNo, int pageSize);
 
-    long countResources(TenantId tenantId, String code, String name, String resourceType, String status);
+    long countResources(String code, String name, String resourceType, String status);
 
     Resource save(Resource resource);
 

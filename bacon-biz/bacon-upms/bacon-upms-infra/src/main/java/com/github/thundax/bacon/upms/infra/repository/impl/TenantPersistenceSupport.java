@@ -36,10 +36,9 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    List<Tenant> listTenants(TenantId tenantId, String name, String status, int pageNo, int pageSize) {
+    List<Tenant> listTenants(String name, String status, int pageNo, int pageSize) {
         return tenantMapper
                 .selectList(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(tenantId != null, TenantDO::getId, tenantId)
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))
                         .orderByAsc(TenantDO::getId)
@@ -49,9 +48,8 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countTenants(TenantId tenantId, String name, String status) {
+    long countTenants(String name, String status) {
         return Optional.ofNullable(tenantMapper.selectCount(Wrappers.<TenantDO>lambdaQuery()
-                        .eq(tenantId != null, TenantDO::getId, tenantId)
                         .like(hasText(name), TenantDO::getName, name)
                         .eq(hasText(status), TenantDO::getStatus, trim(status))))
                 .orElse(0L);

@@ -91,19 +91,18 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<User> pageUsers(
-            TenantId tenantId, String account, String name, String phone, String status, int pageNo, int pageSize) {
-        return support.listUsers(tenantId, account, name, phone, status, pageNo, pageSize);
+    public List<User> pageUsers(String account, String name, String phone, String status, int pageNo, int pageSize) {
+        return support.listUsers(account, name, phone, status, pageNo, pageSize);
     }
 
     @Override
-    public long countUsers(TenantId tenantId, String account, String name, String phone, String status) {
-        return support.countUsers(tenantId, account, name, phone, status);
+    public long countUsers(String account, String name, String phone, String status) {
+        return support.countUsers(account, name, phone, status);
     }
 
     @Override
-    public List<User> listUsers(TenantId tenantId, String account, String name, String phone, String status) {
-        return support.listUsers(tenantId, account, name, phone, status, 1, Integer.MAX_VALUE);
+    public List<User> listUsers(String account, String name, String phone, String status) {
+        return support.listUsers(account, name, phone, status, 1, Integer.MAX_VALUE);
     }
 
     @Override

@@ -53,7 +53,6 @@ public class RoleController {
     @GetMapping("/page")
     public RolePageResponse pageRoles(@CurrentTenant Long tenantId, @Valid @ModelAttribute RolePageRequest request) {
         return RolePageResponse.from(roleApplicationService.pageRoles(new RolePageQueryDTO(
-                TenantId.of(tenantId),
                 request.getCode(),
                 request.getName(),
                 request.getRoleType() == null ? null : request.getRoleType().name(),

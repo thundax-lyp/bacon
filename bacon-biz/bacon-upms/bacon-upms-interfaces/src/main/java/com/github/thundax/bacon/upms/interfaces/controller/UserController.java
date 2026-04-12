@@ -63,7 +63,6 @@ public class UserController {
     @GetMapping("/page")
     public UserPageResponse pageUsers(@CurrentTenant Long tenantId, @Valid @ModelAttribute UserPageRequest request) {
         return UserPageResponse.from(userApplicationService.pageUsers(new UserPageQueryDTO(
-                TenantId.of(tenantId),
                 request.getAccount(),
                 request.getName(),
                 request.getPhone(),
@@ -228,7 +227,6 @@ public class UserController {
     public List<UserResponse> exportUsers(@CurrentTenant Long tenantId, @ModelAttribute UserPageRequest request) {
         return userApplicationService
                 .exportUsers(new UserPageQueryDTO(
-                        TenantId.of(tenantId),
                         request.getAccount(),
                         request.getName(),
                         request.getPhone(),

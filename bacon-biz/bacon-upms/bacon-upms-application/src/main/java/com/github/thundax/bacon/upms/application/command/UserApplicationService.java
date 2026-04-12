@@ -166,11 +166,9 @@ public class UserApplicationService {
     public PageResultDTO<UserDTO> pageUsers(UserPageQueryDTO query) {
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        Long tenantIdValue = query.getTenantId().value();
         return new PageResultDTO<>(
                 userRepository
                         .pageUsers(
-                                query.getTenantId(),
                                 query.getAccount(),
                                 query.getName(),
                                 query.getPhone(),
@@ -178,10 +176,9 @@ public class UserApplicationService {
                                 pageNo,
                                 pageSize)
                         .stream()
-                        .map(user -> toSummaryDto(user, tenantIdValue))
+                        .map(this::toSummaryDto)
                         .toList(),
-                userRepository.countUsers(
-                        query.getTenantId(), query.getAccount(), query.getName(), query.getPhone(), query.getStatus()),
+                userRepository.countUsers(query.getAccount(), query.getName(), query.getPhone(), query.getStatus()),
                 pageNo,
                 pageSize);
     }
@@ -361,12 +358,10 @@ public class UserApplicationService {
     }
 
     public List<UserDTO> exportUsers(UserPageQueryDTO query) {
-        Long tenantIdValue = query.getTenantId().value();
         return userRepository
-                .listUsers(
-                        query.getTenantId(), query.getAccount(), query.getName(), query.getPhone(), query.getStatus())
+                .listUsers(query.getAccount(), query.getName(), query.getPhone(), query.getStatus())
                 .stream()
-                .map(user -> toSummaryDto(user, tenantIdValue))
+                .map(this::toSummaryDto)
                 .toList();
     }
 
@@ -444,6 +439,10 @@ public class UserApplicationService {
                 user,
                 resolveAvatarUrl(user.getAvatarObjectId()),
                 user.getTenantId().value());
+    }
+
+    private UserDTO toSummaryDto(User user) {
+        return toSummaryDto(user, user.getTenantId().value());
     }
 
     private UserDTO toSummaryDto(User user, Long tenantIdValue) {

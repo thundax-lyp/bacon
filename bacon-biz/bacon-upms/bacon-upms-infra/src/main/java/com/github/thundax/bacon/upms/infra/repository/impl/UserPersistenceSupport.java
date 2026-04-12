@@ -80,15 +80,13 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    List<User> listUsers(
-            TenantId tenantId, String account, String name, String phone, String status, int pageNo, int pageSize) {
-        Set<UserId> userIds = resolveUserIdsByIdentityFilters(tenantId, account, phone);
+    List<User> listUsers(String account, String name, String phone, String status, int pageNo, int pageSize) {
+        Set<UserId> userIds = resolveUserIdsByIdentityFilters(account, phone);
         if (userIds != null && userIds.isEmpty()) {
             return List.of();
         }
         return userMapper
                 .selectList(Wrappers.<UserDO>lambdaQuery()
-                        .eq(UserDO::getTenantId, tenantId)
                         .eq(UserDO::getDeleted, false)
                         .in(userIds != null, UserDO::getId, userIds)
                         .like(hasText(name), UserDO::getName, name)
@@ -100,13 +98,12 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countUsers(TenantId tenantId, String account, String name, String phone, String status) {
-        Set<UserId> userIds = resolveUserIdsByIdentityFilters(tenantId, account, phone);
+    long countUsers(String account, String name, String phone, String status) {
+        Set<UserId> userIds = resolveUserIdsByIdentityFilters(account, phone);
         if (userIds != null && userIds.isEmpty()) {
             return 0L;
         }
         return Optional.ofNullable(userMapper.selectCount(Wrappers.<UserDO>lambdaQuery()
-                        .eq(UserDO::getTenantId, tenantId)
                         .eq(UserDO::getDeleted, false)
                         .in(userIds != null, UserDO::getId, userIds)
                         .like(hasText(name), UserDO::getName, name)
@@ -114,13 +111,13 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .orElse(0L);
     }
 
-    private Set<UserId> resolveUserIdsByIdentityFilters(TenantId tenantId, String account, String phone) {
+    private Set<UserId> resolveUserIdsByIdentityFilters(String account, String phone) {
         Set<UserId> filteredUserIds = null;
         if (hasText(account)) {
-            filteredUserIds = queryUserIdsByIdentityLike(tenantId, UserIdentityType.ACCOUNT, account);
+            filteredUserIds = queryUserIdsByIdentityLike(UserIdentityType.ACCOUNT, account);
         }
         if (hasText(phone)) {
-            Set<UserId> phoneUserIds = queryUserIdsByIdentityLike(tenantId, UserIdentityType.PHONE, phone);
+            Set<UserId> phoneUserIds = queryUserIdsByIdentityLike(UserIdentityType.PHONE, phone);
             if (filteredUserIds == null) {
                 filteredUserIds = phoneUserIds;
             } else {
@@ -130,11 +127,9 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return filteredUserIds;
     }
 
-    private Set<UserId> queryUserIdsByIdentityLike(
-            TenantId tenantId, UserIdentityType identityType, String identityValue) {
+    private Set<UserId> queryUserIdsByIdentityLike(UserIdentityType identityType, String identityValue) {
         return new LinkedHashSet<>(userIdentityMapper
                 .selectList(Wrappers.<UserIdentityDO>lambdaQuery()
-                        .eq(UserIdentityDO::getTenantId, tenantId)
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
                         .like(UserIdentityDO::getIdentityValue, trim(identityValue))
                         .eq(UserIdentityDO::getStatus, UserIdentityStatus.ACTIVE.value()))

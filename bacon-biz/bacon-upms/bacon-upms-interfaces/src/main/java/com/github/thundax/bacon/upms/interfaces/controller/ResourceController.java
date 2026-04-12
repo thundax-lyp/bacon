@@ -45,7 +45,6 @@ public class ResourceController {
     public ResourcePageResponse pageResources(
             @CurrentTenant Long tenantId, @Valid @ModelAttribute ResourcePageRequest request) {
         return ResourcePageResponse.from(resourceApplicationService.pageResources(new ResourcePageQueryDTO(
-                TenantId.of(tenantId),
                 request.getCode(),
                 request.getName(),
                 request.getResourceType() == null

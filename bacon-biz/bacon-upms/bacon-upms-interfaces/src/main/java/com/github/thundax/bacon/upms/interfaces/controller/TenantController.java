@@ -42,9 +42,6 @@ public class TenantController {
     @GetMapping("/page")
     public TenantPageResponse pageTenants(@Valid @ModelAttribute TenantPageRequest request) {
         return TenantPageResponse.from(tenantApplicationService.pageTenants(new TenantPageQueryDTO(
-                request.getTenantCode() == null || request.getTenantCode().isBlank()
-                        ? null
-                        : Long.valueOf(request.getTenantCode().trim()),
                 request.getName(),
                 request.getStatus() == null ? null : request.getStatus().name(),
                 request.getPageNo(),

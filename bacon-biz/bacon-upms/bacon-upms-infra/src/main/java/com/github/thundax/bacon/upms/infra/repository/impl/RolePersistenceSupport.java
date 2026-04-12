@@ -110,11 +110,9 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    List<Role> listRoles(
-            TenantId tenantId, String code, String name, String roleType, String status, int pageNo, int pageSize) {
+    List<Role> listRoles(String code, String name, String roleType, String status, int pageNo, int pageSize) {
         return roleMapper
                 .selectList(Wrappers.<RoleDO>lambdaQuery()
-                        .eq(RoleDO::getTenantId, tenantId)
                         .like(hasText(code), RoleDO::getCode, code)
                         .like(hasText(name), RoleDO::getName, name)
                         .eq(hasText(roleType), RoleDO::getRoleType, trim(roleType))
@@ -126,9 +124,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countRoles(TenantId tenantId, String code, String name, String roleType, String status) {
+    long countRoles(String code, String name, String roleType, String status) {
         return Optional.ofNullable(roleMapper.selectCount(Wrappers.<RoleDO>lambdaQuery()
-                        .eq(RoleDO::getTenantId, tenantId)
                         .like(hasText(code), RoleDO::getCode, code)
                         .like(hasText(name), RoleDO::getName, name)
                         .eq(hasText(roleType), RoleDO::getRoleType, trim(roleType))

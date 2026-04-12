@@ -161,13 +161,12 @@ class UserApplicationServiceTest {
     @Test
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
         User user = user(101L, "Alice", StoredObjectId.of(501L), DEPARTMENT_ID, UserStatus.ENABLED);
-        when(userRepository.pageUsers(TENANT_ID, null, null, null, null, 1, 20)).thenReturn(List.of(user));
-        when(userRepository.countUsers(TENANT_ID, null, null, null, null)).thenReturn(1L);
+        when(userRepository.pageUsers(null, null, null, null, 1, 20)).thenReturn(List.of(user));
+        when(userRepository.countUsers(null, null, null, null)).thenReturn(1L);
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
 
-        PageResultDTO<UserDTO> result =
-                service.pageUsers(new UserPageQueryDTO(TENANT_ID, null, null, null, null, 1, 20));
+        PageResultDTO<UserDTO> result = service.pageUsers(new UserPageQueryDTO(null, null, null, null, 1, 20));
 
         assertThat(result.getRecords()).hasSize(1);
         assertThat(result.getRecords().get(0).getTenantId()).isEqualTo(1001L);

@@ -46,7 +46,6 @@ public class PostController {
     @GetMapping("/page")
     public PostPageResponse pagePosts(@CurrentTenant Long tenantId, @Valid @ModelAttribute PostPageRequest request) {
         return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(
-                TenantId.of(tenantId),
                 request.getCode(),
                 request.getName(),
                 request.getDepartmentId() == null || request.getDepartmentId().isBlank()

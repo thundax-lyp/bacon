@@ -30,17 +30,9 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(this::toDomain);
     }
 
-    List<Post> listPosts(
-            TenantId tenantId,
-            String code,
-            String name,
-            DepartmentId departmentId,
-            String status,
-            int pageNo,
-            int pageSize) {
+    List<Post> listPosts(String code, String name, DepartmentId departmentId, String status, int pageNo, int pageSize) {
         return postMapper
                 .selectList(Wrappers.<PostDO>lambdaQuery()
-                        .eq(tenantId != null, PostDO::getTenantId, tenantId)
                         .like(hasText(code), PostDO::getCode, code)
                         .like(hasText(name), PostDO::getName, name)
                         .eq(departmentId != null, PostDO::getDepartmentId, departmentId)
@@ -52,9 +44,8 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countPosts(TenantId tenantId, String code, String name, DepartmentId departmentId, String status) {
+    long countPosts(String code, String name, DepartmentId departmentId, String status) {
         return Optional.ofNullable(postMapper.selectCount(Wrappers.<PostDO>lambdaQuery()
-                        .eq(tenantId != null, PostDO::getTenantId, tenantId)
                         .like(hasText(code), PostDO::getCode, code)
                         .like(hasText(name), PostDO::getName, name)
                         .eq(departmentId != null, PostDO::getDepartmentId, departmentId)

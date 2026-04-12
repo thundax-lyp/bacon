@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.api.dto;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,8 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserPageQueryDTO {
 
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 登录账号。 */
     private String account;
     /** 用户名称。 */

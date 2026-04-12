@@ -25,7 +25,6 @@ public class SysLogQueryApplicationService {
         return new PageResultDTO<>(
                 sysLogRepository
                         .pageLogs(
-                                query.getTenantId(),
                                 query.getModule(),
                                 query.getEventType(),
                                 query.getResult(),
@@ -36,7 +35,6 @@ public class SysLogQueryApplicationService {
                         .map(this::toDto)
                         .toList(),
                 sysLogRepository.countLogs(
-                        query.getTenantId(),
                         query.getModule(),
                         query.getEventType(),
                         query.getResult(),

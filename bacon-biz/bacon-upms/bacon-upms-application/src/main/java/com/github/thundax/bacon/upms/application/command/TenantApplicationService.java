@@ -30,12 +30,11 @@ public class TenantApplicationService {
         // 租户分页属于运营后台能力，统一先归一化分页参数，避免不同入口传入 0/负数时结果漂移。
         int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        TenantId tenantId = toTenantId(query.getTenantId());
         return new PageResultDTO<>(
-                tenantRepository.pageTenants(tenantId, query.getName(), query.getStatus(), pageNo, pageSize).stream()
+                tenantRepository.pageTenants(query.getName(), query.getStatus(), pageNo, pageSize).stream()
                         .map(this::toDto)
                         .toList(),
-                tenantRepository.countTenants(tenantId, query.getName(), query.getStatus()),
+                tenantRepository.countTenants(query.getName(), query.getStatus()),
                 pageNo,
                 pageSize);
     }
@@ -131,12 +130,5 @@ public class TenantApplicationService {
 
     private String normalize(String value) {
         return value == null ? null : value.trim();
-    }
-
-    private TenantId toTenantId(Long tenantId) {
-        if (tenantId == null) {
-            return null;
-        }
-        return TenantId.of(tenantId);
     }
 }

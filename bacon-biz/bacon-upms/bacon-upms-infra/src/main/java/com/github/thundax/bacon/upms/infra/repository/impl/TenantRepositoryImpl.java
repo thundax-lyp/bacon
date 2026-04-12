@@ -34,13 +34,13 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public List<Tenant> pageTenants(TenantId tenantId, String name, String status, int pageNo, int pageSize) {
-        return support.listTenants(tenantId, name, status, pageNo, pageSize);
+    public List<Tenant> pageTenants(String name, String status, int pageNo, int pageSize) {
+        return support.listTenants(name, status, pageNo, pageSize);
     }
 
     @Override
-    public long countTenants(TenantId tenantId, String name, String status) {
-        return support.countTenants(tenantId, name, status);
+    public long countTenants(String name, String status) {
+        return support.countTenants(name, status);
     }
 
     @Override

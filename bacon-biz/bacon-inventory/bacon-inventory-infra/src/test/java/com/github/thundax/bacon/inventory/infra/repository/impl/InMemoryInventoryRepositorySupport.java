@@ -435,7 +435,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
-        TenantId tenantId = currentTenantId();
+        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -454,7 +454,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
-        TenantId tenantId = currentTenantId();
+        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -464,7 +464,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
-        TenantId tenantId = currentTenantId();
+        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return auditDeadLetters.values().stream()
                 .flatMap(List::stream)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
@@ -479,7 +479,7 @@ public class InMemoryInventoryRepositorySupport {
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
-        TenantId tenantId = currentTenantId();
+        TenantId tenantId = TenantId.of(BaconContextHolder.requireTenantId());
         return findAuditDeadLetterById(id)
                 .filter(item -> tenantId.equals(findAuditDeadLetterTenant(item)))
                 .filter(item -> InventoryAuditReplayStatus.PENDING.equals(item.getReplayStatus())
@@ -716,12 +716,6 @@ public class InMemoryInventoryRepositorySupport {
 
     private static String reservationKey(String tenantId, String orderNo) {
         return tenantId + ":" + orderNo;
-    }
-
-    private TenantId currentTenantId() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        java.util.Objects.requireNonNull(tenantId, "tenantId must not be null");
-        return TenantId.of(tenantId);
     }
 
     private Optional<InventoryAuditOutbox> findAuditOutboxById(OutboxId outboxId) {

@@ -12,7 +12,7 @@ public final class InventoryAuditReplayTaskItemPersistenceAssembler {
     private InventoryAuditReplayTaskItemPersistenceAssembler() {}
 
     public static InventoryAuditReplayTaskItem toDomain(InventoryAuditReplayTaskItemDO dataObject) {
-        return new InventoryAuditReplayTaskItem(
+        return InventoryAuditReplayTaskItem.reconstruct(
                 dataObject.getId(),
                 dataObject.getTaskId() == null ? null : TaskId.of(dataObject.getTaskId()),
                 dataObject.getDeadLetterId() == null ? null : DeadLetterId.of(dataObject.getDeadLetterId()),

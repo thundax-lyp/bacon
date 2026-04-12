@@ -158,9 +158,10 @@ class InventoryAuditCompensationControllerContractTest {
 
         @Override
         public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
-            tasks.put(task.getIdValue(), task);
+            Long taskId = task.getId() == null ? null : task.getId().value();
+            tasks.put(taskId, task);
             taskTenants.put(
-                    task.getIdValue(),
+                    taskId,
                     java.util.Objects.requireNonNull(
                             BaconContextHolder.currentTenantId(), "tenantId must not be null"));
             return task;
@@ -192,13 +193,12 @@ class InventoryAuditCompensationControllerContractTest {
             Long tenantId =
                     java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
             return findAuditReplayTaskById(taskId)
-                    .filter(task -> java.util.Objects.equals(tenantId, taskTenants.get(task.getIdValue())))
+                    .filter(task -> java.util.Objects.equals(
+                            tenantId, taskTenants.get(task.getId() == null ? null : task.getId().value())))
                     .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
                             || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                     .map(task -> {
-                        task.setStatus(InventoryAuditReplayTaskStatus.PAUSED);
-                        task.setPausedAt(pausedAt);
-                        task.setUpdatedAt(pausedAt);
+                        task.pause(pausedAt);
                         return true;
                     })
                     .orElse(false);
@@ -209,12 +209,11 @@ class InventoryAuditCompensationControllerContractTest {
             Long tenantId =
                     java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
             return findAuditReplayTaskById(taskId)
-                    .filter(task -> java.util.Objects.equals(tenantId, taskTenants.get(task.getIdValue())))
+                    .filter(task -> java.util.Objects.equals(
+                            tenantId, taskTenants.get(task.getId() == null ? null : task.getId().value())))
                     .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))
                     .map(task -> {
-                        task.setStatus(InventoryAuditReplayTaskStatus.PENDING);
-                        task.setPausedAt(null);
-                        task.setUpdatedAt(updatedAt);
+                        task.resume(updatedAt);
                         return true;
                     })
                     .orElse(false);

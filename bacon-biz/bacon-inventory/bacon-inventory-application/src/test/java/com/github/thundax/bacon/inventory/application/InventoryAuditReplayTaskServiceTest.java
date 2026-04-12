@@ -174,9 +174,10 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         @Override
         public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
             assertNotNull(task.getId());
-            tasks.put(task.getIdValue(), task);
+            Long taskId = task.getId() == null ? null : task.getId().value();
+            tasks.put(taskId, task);
             taskTenants.put(
-                    task.getIdValue(),
+                    taskId,
                     java.util.Objects.requireNonNull(
                             BaconContextHolder.currentTenantId(), "tenantId must not be null"));
             return task;
@@ -208,21 +209,13 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(
                 Instant now, int limit, String processingOwner, Instant leaseUntil) {
             return tasks.values().stream()
-                    .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
-                            || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
-                    .filter(task -> task.getLeaseUntil() == null
-                            || !task.getLeaseUntil().isAfter(now))
-                    .sorted(Comparator.comparing(InventoryAuditReplayTask::getIdValue))
+                .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
+                        || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
+                .filter(task -> task.getLeaseUntil() == null
+                        || !task.getLeaseUntil().isAfter(now))
+                    .sorted(Comparator.comparing(task -> task.getId() == null ? null : task.getId().value()))
                     .limit(limit)
-                    .peek(task -> {
-                        task.setStatus(InventoryAuditReplayTaskStatus.RUNNING);
-                        task.setProcessingOwner(processingOwner);
-                        task.setLeaseUntil(leaseUntil);
-                        if (task.getStartedAt() == null) {
-                            task.setStartedAt(now);
-                        }
-                        task.setUpdatedAt(now);
-                    })
+                    .peek(task -> task.claim(processingOwner, leaseUntil, now))
                     .toList();
         }
 
@@ -231,8 +224,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                 TaskId taskId, String processingOwner, Instant leaseUntil, Instant updatedAt) {
             InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task != null && processingOwner.equals(task.getProcessingOwner())) {
-                task.setLeaseUntil(leaseUntil);
-                task.setUpdatedAt(updatedAt);
+                task.renewLease(leaseUntil, updatedAt);
             }
         }
 
@@ -255,16 +247,10 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                 Instant startedAt,
                 Instant finishedAt) {
             taskItems.values().forEach(items -> items.stream()
-                    .filter(item -> item.getId().equals(itemId))
-                    .findFirst()
-                    .ifPresent(item -> {
-                        item.setItemStatus(itemStatus);
-                        item.setReplayStatus(replayStatus);
-                        item.setReplayKey(replayKey);
-                        item.setResultMessage(resultMessage);
-                        item.setStartedAt(startedAt);
-                        item.setFinishedAt(finishedAt);
-                        item.setUpdatedAt(finishedAt);
+                .filter(item -> item.getId().equals(itemId))
+                .findFirst()
+                .ifPresent(item -> {
+                        item.markResult(itemStatus, replayStatus, replayKey, resultMessage, startedAt, finishedAt);
                     }));
         }
 
@@ -280,10 +266,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {
                 return;
             }
-            task.setProcessedCount(task.getProcessedCount() + processedDelta);
-            task.setSuccessCount(task.getSuccessCount() + successDelta);
-            task.setFailedCount(task.getFailedCount() + failedDelta);
-            task.setUpdatedAt(updatedAt);
+            task.markItemProgress(processedDelta, successDelta, failedDelta, updatedAt);
         }
 
         @Override
@@ -293,12 +276,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {
                 return;
             }
-            task.setStatus(InventoryAuditReplayTaskStatus.from(status));
-            task.setLastError(lastError);
-            task.setProcessingOwner(null);
-            task.setLeaseUntil(null);
-            task.setFinishedAt(finishedAt);
-            task.setUpdatedAt(finishedAt);
+            task.finish(InventoryAuditReplayTaskStatus.from(status), lastError, finishedAt);
         }
     }
 }

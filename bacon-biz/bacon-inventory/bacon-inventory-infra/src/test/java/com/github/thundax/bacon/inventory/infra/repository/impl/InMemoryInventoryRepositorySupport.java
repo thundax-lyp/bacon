@@ -203,7 +203,7 @@ public class InMemoryInventoryRepositorySupport {
         }
         java.util.Objects.requireNonNull(outbox.getId(), "outbox.id must not be null");
         if (outbox.getEventCode() == null) {
-            outbox.setEventCode(EventCode.of(eventCode));
+            outbox.assignEventCode(EventCode.of(eventCode));
         }
         auditOutbox
                 .computeIfAbsent(
@@ -258,11 +258,7 @@ public class InMemoryInventoryRepositorySupport {
                 if (item.getLeaseUntil() == null || item.getLeaseUntil().isAfter(now)) {
                     continue;
                 }
-                item.setStatus(InventoryAuditOutboxStatus.RETRYING);
-                item.setProcessingOwner(null);
-                item.setLeaseUntil(null);
-                item.setClaimedAt(null);
-                item.setUpdatedAt(now);
+                item.releaseLeaseToRetrying(now);
                 released++;
             }
         }
@@ -272,11 +268,7 @@ public class InMemoryInventoryRepositorySupport {
     public void updateAuditOutboxForRetry(
             OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage, Instant updatedAt) {
         findAuditOutboxById(outboxId).ifPresent(item -> {
-            item.setStatus(InventoryAuditOutboxStatus.RETRYING);
-            item.setRetryCount(retryCount);
-            item.setNextRetryAt(nextRetryAt);
-            item.setErrorMessage(errorMessage);
-            item.setUpdatedAt(updatedAt);
+            item.markRetrying(retryCount, nextRetryAt, errorMessage, updatedAt);
         });
     }
 
@@ -291,14 +283,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item -> InventoryAuditOutboxStatus.PROCESSING.equals(item.getStatus()))
                 .filter(item -> processingOwner.equals(item.getProcessingOwner()))
                 .map(item -> {
-                    item.setStatus(InventoryAuditOutboxStatus.RETRYING);
-                    item.setRetryCount(retryCount);
-                    item.setNextRetryAt(nextRetryAt);
-                    item.setErrorMessage(errorMessage);
-                    item.setProcessingOwner(null);
-                    item.setLeaseUntil(null);
-                    item.setClaimedAt(null);
-                    item.setUpdatedAt(updatedAt);
+                    item.markRetryingClaimed(retryCount, nextRetryAt, errorMessage, updatedAt);
                     return true;
                 })
                 .orElse(false);
@@ -306,10 +291,7 @@ public class InMemoryInventoryRepositorySupport {
 
     public void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
         findAuditOutboxById(outboxId).ifPresent(item -> {
-            item.setStatus(InventoryAuditOutboxStatus.DEAD);
-            item.setRetryCount(retryCount);
-            item.setDeadReason(deadReason);
-            item.setUpdatedAt(updatedAt);
+            item.markDead(retryCount, deadReason, updatedAt);
         });
     }
 
@@ -319,13 +301,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item -> InventoryAuditOutboxStatus.PROCESSING.equals(item.getStatus()))
                 .filter(item -> processingOwner.equals(item.getProcessingOwner()))
                 .map(item -> {
-                    item.setStatus(InventoryAuditOutboxStatus.DEAD);
-                    item.setRetryCount(retryCount);
-                    item.setDeadReason(deadReason);
-                    item.setProcessingOwner(null);
-                    item.setLeaseUntil(null);
-                    item.setClaimedAt(null);
-                    item.setUpdatedAt(updatedAt);
+                    item.markDeadClaimed(retryCount, deadReason, updatedAt);
                     return true;
                 })
                 .orElse(false);
@@ -452,8 +428,9 @@ public class InMemoryInventoryRepositorySupport {
 
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         java.util.Objects.requireNonNull(task.getId(), "replayTask.id must not be null");
-        auditReplayTasks.put(task.getIdValue(), task);
-        auditReplayTaskTenants.put(task.getIdValue(), BaconContextHolder.requireTenantId());
+        Long taskId = task.getId() == null ? null : task.getId().value();
+        auditReplayTasks.put(taskId, task);
+        auditReplayTaskTenants.put(taskId, BaconContextHolder.requireTenantId());
         return task;
     }
 
@@ -486,17 +463,9 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(task ->
                         task.getLeaseUntil() == null || !task.getLeaseUntil().isAfter(now))
                 .sorted(java.util.Comparator.comparing(InventoryAuditReplayTask::getCreatedAt)
-                        .thenComparing(InventoryAuditReplayTask::getIdValue))
+                        .thenComparing(task -> task.getId() == null ? null : task.getId().value()))
                 .limit(limit)
-                .peek(task -> {
-                    task.setStatus(InventoryAuditReplayTaskStatus.RUNNING);
-                    task.setProcessingOwner(processingOwner);
-                    task.setLeaseUntil(leaseUntil);
-                    if (task.getStartedAt() == null) {
-                        task.setStartedAt(now);
-                    }
-                    task.setUpdatedAt(now);
-                })
+                .peek(task -> task.claim(processingOwner, leaseUntil, now))
                 .toList();
     }
 
@@ -505,10 +474,7 @@ public class InMemoryInventoryRepositorySupport {
         findAuditReplayTaskById(taskId)
                 .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .filter(task -> processingOwner.equals(task.getProcessingOwner()))
-                .ifPresent(task -> {
-                    task.setLeaseUntil(leaseUntil);
-                    task.setUpdatedAt(updatedAt);
-                });
+                .ifPresent(task -> task.renewLease(leaseUntil, updatedAt));
     }
 
     public List<InventoryAuditReplayTaskItem> findPendingAuditReplayTaskItems(TaskId taskId, int limit) {
@@ -534,13 +500,7 @@ public class InMemoryInventoryRepositorySupport {
                     if (!InventoryAuditReplayTaskItemStatus.PENDING.equals(item.getItemStatus())) {
                         return;
                     }
-                    item.setItemStatus(itemStatus);
-                    item.setReplayStatus(replayStatus);
-                    item.setReplayKey(replayKey);
-                    item.setResultMessage(resultMessage);
-                    item.setStartedAt(startedAt);
-                    item.setFinishedAt(finishedAt);
-                    item.setUpdatedAt(finishedAt);
+                    item.markResult(itemStatus, replayStatus, replayKey, resultMessage, startedAt, finishedAt);
                 }));
     }
 
@@ -554,15 +514,7 @@ public class InMemoryInventoryRepositorySupport {
         findAuditReplayTaskById(taskId)
                 .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .filter(task -> processingOwner.equals(task.getProcessingOwner()))
-                .ifPresent(task -> {
-                    task.setProcessedCount((task.getProcessedCount() == null ? 0 : task.getProcessedCount())
-                            + Math.max(processedDelta, 0));
-                    task.setSuccessCount(
-                            (task.getSuccessCount() == null ? 0 : task.getSuccessCount()) + Math.max(successDelta, 0));
-                    task.setFailedCount(
-                            (task.getFailedCount() == null ? 0 : task.getFailedCount()) + Math.max(failedDelta, 0));
-                    task.setUpdatedAt(updatedAt);
-                });
+                .ifPresent(task -> task.markItemProgress(processedDelta, successDelta, failedDelta, updatedAt));
     }
 
     public void finishAuditReplayTask(
@@ -570,14 +522,7 @@ public class InMemoryInventoryRepositorySupport {
         findAuditReplayTaskById(taskId)
                 .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .filter(task -> processingOwner.equals(task.getProcessingOwner()))
-                .ifPresent(task -> {
-                    task.setStatus(InventoryAuditReplayTaskStatus.from(status));
-                    task.setLastError(lastError);
-                    task.setProcessingOwner(null);
-                    task.setLeaseUntil(null);
-                    task.setFinishedAt(finishedAt);
-                    task.setUpdatedAt(finishedAt);
-                });
+                .ifPresent(task -> task.finish(InventoryAuditReplayTaskStatus.from(status), lastError, finishedAt));
     }
 
     public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
@@ -587,11 +532,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
                         || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                 .map(task -> {
-                    task.setStatus(InventoryAuditReplayTaskStatus.PAUSED);
-                    task.setProcessingOwner(null);
-                    task.setLeaseUntil(null);
-                    task.setPausedAt(pausedAt);
-                    task.setUpdatedAt(pausedAt);
+                    task.pause(pausedAt);
                     return true;
                 })
                 .orElse(false);
@@ -603,9 +544,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(task -> java.util.Objects.equals(findAuditReplayTaskTenantId(task.getId()), tenantId))
                 .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))
                 .map(task -> {
-                    task.setStatus(InventoryAuditReplayTaskStatus.PENDING);
-                    task.setPausedAt(null);
-                    task.setUpdatedAt(updatedAt);
+                    task.resume(updatedAt);
                     return true;
                 })
                 .orElse(false);
@@ -667,11 +606,7 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item ->
                         item.getNextRetryAt() == null || !item.getNextRetryAt().isAfter(now))
                 .map(item -> {
-                    item.setStatus(InventoryAuditOutboxStatus.PROCESSING);
-                    item.setProcessingOwner(processingOwner);
-                    item.setLeaseUntil(leaseUntil);
-                    item.setClaimedAt(now);
-                    item.setUpdatedAt(now);
+                    item.claim(processingOwner, leaseUntil, now);
                     return true;
                 })
                 .orElse(false);

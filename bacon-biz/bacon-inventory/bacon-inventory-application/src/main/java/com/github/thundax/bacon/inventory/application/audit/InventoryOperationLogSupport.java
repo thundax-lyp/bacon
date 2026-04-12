@@ -127,7 +127,7 @@ public class InventoryOperationLogSupport {
             Instant occurredAt,
             RuntimeException ex) {
         try {
-            inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(
+            inventoryAuditOutboxRepository.saveAuditOutbox(InventoryAuditOutbox.create(
                     com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(
                             idGenerator.nextId(AUDIT_OUTBOX_ID_BIZ_TAG)),
                     null,

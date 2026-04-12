@@ -60,16 +60,10 @@ public class InventoryAuditReplayTaskApplicationService {
         inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(
                 createDTO.getDeadLetterIds().stream()
                         .map(DeadLetterIdCodec::toDomain)
-                        .map(deadLetterId -> new InventoryAuditReplayTaskItem(
+                        .map(deadLetterId -> InventoryAuditReplayTaskItem.create(
                                 idGenerator.nextId(REPLAY_TASK_ITEM_ID_BIZ_TAG),
                                 saved.getId(),
                                 deadLetterId,
-                                InventoryAuditReplayTaskItemStatus.PENDING,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
                                 now))
                         .toList());
         Metrics.counter("bacon.inventory.audit.replay.task.created.total").increment();
@@ -149,7 +143,7 @@ public class InventoryAuditReplayTaskApplicationService {
                 InventoryAuditReplayResultDTO result = BaconContextHolder.callWithTenantId(
                         tenantId,
                         () -> compensationService.replayDeadLetter(
-                                DeadLetterIdCodec.toDomain(item.getDeadLetterIdValue()),
+                                item.getDeadLetterId(),
                                 replayKey,
                                 OperatorIdMapper.toDomain(task.getOperatorId())));
                 InventoryAuditReplayStatus replayStatus = InventoryAuditReplayStatus.from(result.getReplayStatus());
@@ -212,9 +206,12 @@ public class InventoryAuditReplayTaskApplicationService {
     private String buildReplayKey(InventoryAuditReplayTask task, InventoryAuditReplayTaskItem item) {
         // 优先复用外部提供的回放前缀；否则退化为任务号 + 死信号，确保同一任务内 replayKey 稳定可追踪。
         if (task.getReplayKeyPrefix() == null || task.getReplayKeyPrefix().isBlank()) {
-            return "TASK-" + task.getTaskNoValue() + "-DL-" + item.getDeadLetterIdValue();
+            return "TASK-"
+                    + (task.getTaskNo() == null ? null : task.getTaskNo().value())
+                    + "-DL-"
+                    + (item.getDeadLetterId() == null ? null : item.getDeadLetterId().value());
         }
-        return task.getReplayKeyPrefix() + "-" + item.getDeadLetterIdValue();
+        return task.getReplayKeyPrefix() + "-" + (item.getDeadLetterId() == null ? null : item.getDeadLetterId().value());
     }
 
     private String truncateError(String error) {

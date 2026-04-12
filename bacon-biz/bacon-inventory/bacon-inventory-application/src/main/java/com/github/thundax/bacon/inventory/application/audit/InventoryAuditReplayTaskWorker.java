@@ -66,8 +66,8 @@ public class InventoryAuditReplayTaskWorker {
                         .increment();
                 log.error(
                         "ALERT inventory audit replay task worker failed, taskId={}, taskNo={}",
-                        task.getIdValue(),
-                        task.getTaskNoValue(),
+                        task.getId() == null ? null : task.getId().value(),
+                        task.getTaskNo() == null ? null : task.getTaskNo().value(),
                         ex);
             }
         }

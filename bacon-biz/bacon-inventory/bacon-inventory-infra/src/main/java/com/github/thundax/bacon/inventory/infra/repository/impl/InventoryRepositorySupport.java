@@ -251,7 +251,7 @@ public class InventoryRepositorySupport {
             dataObject.setEventCode(generateEventCode().value());
         }
         auditOutboxMapper.insert(dataObject);
-        outbox.setEventCode(toDomainEventCode(dataObject.getEventCode()));
+        outbox.assignEventCode(toDomainEventCode(dataObject.getEventCode()));
     }
 
     public List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {

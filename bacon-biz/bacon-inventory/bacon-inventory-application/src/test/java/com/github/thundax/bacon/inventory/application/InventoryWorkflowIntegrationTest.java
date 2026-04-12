@@ -134,7 +134,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
+                () -> repository.saveAuditOutbox(InventoryAuditOutbox.create(
                         OutboxId.of(1001L),
                         null,
                         OrderNo.of("ORDER-DEAD"),
@@ -176,7 +176,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
+                () -> repository.saveAuditOutbox(InventoryAuditOutbox.create(
                         OutboxId.of(1002L),
                         null,
                         OrderNo.of("ORDER-OK"),
@@ -386,10 +386,10 @@ class InventoryWorkflowIntegrationTest {
         @Override
         public void saveAuditOutbox(InventoryAuditOutbox outbox) {
             if (outbox.getId() == null) {
-                outbox.setId(OutboxId.of(outboxIdGenerator.incrementAndGet()));
+                throw new IllegalArgumentException("outbox.id must not be null");
             }
             if (outbox.getEventCode() == null) {
-                outbox.setEventCode(generateEventCode());
+                outbox.assignEventCode(generateEventCode());
             }
             outboxMap.put(outbox.getId(), outbox);
             Long tenantId = BaconContextHolder.currentTenantId();
@@ -441,11 +441,7 @@ class InventoryWorkflowIntegrationTest {
                 if (item.getLeaseUntil() == null || item.getLeaseUntil().isAfter(now)) {
                     continue;
                 }
-                item.setStatus(InventoryAuditOutboxStatus.RETRYING);
-                item.setProcessingOwner(null);
-                item.setLeaseUntil(null);
-                item.setClaimedAt(null);
-                item.setUpdatedAt(now);
+                item.releaseLeaseToRetrying(now);
                 released++;
             }
             return released;
@@ -456,11 +452,7 @@ class InventoryWorkflowIntegrationTest {
                 OutboxId outboxId, int retryCount, Instant nextRetryAt, String errorMessage, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox != null) {
-                outbox.setStatus(InventoryAuditOutboxStatus.RETRYING);
-                outbox.setRetryCount(retryCount);
-                outbox.setNextRetryAt(nextRetryAt);
-                outbox.setErrorMessage(errorMessage);
-                outbox.setUpdatedAt(updatedAt);
+                outbox.markRetrying(retryCount, nextRetryAt, errorMessage, updatedAt);
             }
         }
 
@@ -478,14 +470,7 @@ class InventoryWorkflowIntegrationTest {
                     || !processingOwner.equals(outbox.getProcessingOwner())) {
                 return false;
             }
-            outbox.setStatus(InventoryAuditOutboxStatus.RETRYING);
-            outbox.setRetryCount(retryCount);
-            outbox.setNextRetryAt(nextRetryAt);
-            outbox.setErrorMessage(errorMessage);
-            outbox.setProcessingOwner(null);
-            outbox.setLeaseUntil(null);
-            outbox.setClaimedAt(null);
-            outbox.setUpdatedAt(updatedAt);
+            outbox.markRetryingClaimed(retryCount, nextRetryAt, errorMessage, updatedAt);
             return true;
         }
 
@@ -493,10 +478,7 @@ class InventoryWorkflowIntegrationTest {
         public void markAuditOutboxDead(OutboxId outboxId, int retryCount, String deadReason, Instant updatedAt) {
             InventoryAuditOutbox outbox = outboxMap.get(outboxId);
             if (outbox != null) {
-                outbox.setStatus(InventoryAuditOutboxStatus.DEAD);
-                outbox.setRetryCount(retryCount);
-                outbox.setDeadReason(deadReason);
-                outbox.setUpdatedAt(updatedAt);
+                outbox.markDead(retryCount, deadReason, updatedAt);
             }
         }
 
@@ -509,13 +491,7 @@ class InventoryWorkflowIntegrationTest {
                     || !processingOwner.equals(outbox.getProcessingOwner())) {
                 return false;
             }
-            outbox.setStatus(InventoryAuditOutboxStatus.DEAD);
-            outbox.setRetryCount(retryCount);
-            outbox.setDeadReason(deadReason);
-            outbox.setProcessingOwner(null);
-            outbox.setLeaseUntil(null);
-            outbox.setClaimedAt(null);
-            outbox.setUpdatedAt(updatedAt);
+            outbox.markDeadClaimed(retryCount, deadReason, updatedAt);
             return true;
         }
 
@@ -577,11 +553,7 @@ class InventoryWorkflowIntegrationTest {
             if (outbox.getNextRetryAt() != null && outbox.getNextRetryAt().isAfter(now)) {
                 return false;
             }
-            outbox.setStatus(InventoryAuditOutboxStatus.PROCESSING);
-            outbox.setProcessingOwner(processingOwner);
-            outbox.setLeaseUntil(leaseUntil);
-            outbox.setClaimedAt(now);
-            outbox.setUpdatedAt(now);
+            outbox.claim(processingOwner, leaseUntil, now);
             return true;
         }
 

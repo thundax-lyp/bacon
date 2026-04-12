@@ -5,16 +5,18 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditRepla
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import java.time.Instant;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
  * 库存审计回放任务明细。
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class InventoryAuditReplayTaskItem {
 
     /** 明细主键。 */
@@ -38,19 +40,61 @@ public class InventoryAuditReplayTaskItem {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Long getTaskIdValue() {
-        return taskId == null ? null : taskId.value();
+    public static InventoryAuditReplayTaskItem create(Long id, TaskId taskId, DeadLetterId deadLetterId, Instant updatedAt) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(taskId, "taskId must not be null");
+        Objects.requireNonNull(deadLetterId, "deadLetterId must not be null");
+        Objects.requireNonNull(updatedAt, "updatedAt must not be null");
+        return new InventoryAuditReplayTaskItem(
+                id,
+                taskId,
+                deadLetterId,
+                InventoryAuditReplayTaskItemStatus.PENDING,
+                null,
+                null,
+                null,
+                null,
+                null,
+                updatedAt);
     }
 
-    public Long getDeadLetterIdValue() {
-        return deadLetterId == null ? null : deadLetterId.value();
+    public static InventoryAuditReplayTaskItem reconstruct(
+            Long id,
+            TaskId taskId,
+            DeadLetterId deadLetterId,
+            InventoryAuditReplayTaskItemStatus itemStatus,
+            InventoryAuditReplayStatus replayStatus,
+            String replayKey,
+            String resultMessage,
+            Instant startedAt,
+            Instant finishedAt,
+            Instant updatedAt) {
+        return new InventoryAuditReplayTaskItem(
+                id,
+                taskId,
+                deadLetterId,
+                itemStatus,
+                replayStatus,
+                replayKey,
+                resultMessage,
+                startedAt,
+                finishedAt,
+                updatedAt);
     }
 
-    public String getItemStatusValue() {
-        return itemStatus == null ? null : itemStatus.value();
-    }
-
-    public String getReplayStatusValue() {
-        return replayStatus == null ? null : replayStatus.value();
+    public void markResult(
+            InventoryAuditReplayTaskItemStatus itemStatus,
+            InventoryAuditReplayStatus replayStatus,
+            String replayKey,
+            String resultMessage,
+            Instant startedAt,
+            Instant finishedAt) {
+        this.itemStatus = itemStatus;
+        this.replayStatus = replayStatus;
+        this.replayKey = replayKey;
+        this.resultMessage = resultMessage;
+        this.startedAt = startedAt;
+        this.finishedAt = finishedAt;
+        this.updatedAt = finishedAt;
     }
 }

@@ -43,7 +43,7 @@ public final class InventoryAuditOutboxPersistenceAssembler {
     }
 
     public static InventoryAuditOutbox toDomain(InventoryAuditOutboxDO dataObject) {
-        return new InventoryAuditOutbox(
+        return InventoryAuditOutbox.reconstruct(
                 dataObject.getId() == null ? null : OutboxId.of(dataObject.getId()),
                 dataObject.getEventCode() == null ? null : EventCode.of(dataObject.getEventCode()),
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),

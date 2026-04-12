@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
+import com.github.thundax.bacon.upms.infra.persistence.assembler.SysLogRecordPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.SysLogRecordDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.SysLogRecordMapper;
 import java.util.List;
@@ -20,7 +21,7 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void saveSysLog(SysLogRecord sysLogRecord) {
-        SysLogRecordDO dataObject = toDataObject(sysLogRecord);
+        SysLogRecordDO dataObject = SysLogRecordPersistenceAssembler.toDataObject(sysLogRecord);
         if (dataObject.getId() == null) {
             sysLogRecordMapper.insert(dataObject);
         } else {
@@ -29,7 +30,7 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Optional<SysLogRecord> findSysLogById(Long logId) {
-        return Optional.ofNullable(sysLogRecordMapper.selectById(logId)).map(this::toDomain);
+        return Optional.ofNullable(sysLogRecordMapper.selectById(logId)).map(SysLogRecordPersistenceAssembler::toDomain);
     }
 
     List<SysLogRecord> listSysLogs(String module, String eventType, String result, String operatorName, int pageNo, int pageSize) {
@@ -42,7 +43,7 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .orderByDesc(SysLogRecordDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
-                .map(this::toDomain)
+                .map(SysLogRecordPersistenceAssembler::toDomain)
                 .toList();
     }
 

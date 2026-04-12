@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
+import com.github.thundax.bacon.upms.infra.persistence.assembler.PostPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.PostDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.PostMapper;
 import java.util.List;
@@ -26,7 +27,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return Optional.ofNullable(postMapper.selectOne(Wrappers.<PostDO>lambdaQuery()
                         .eq(PostDO::getTenantId, tenantId)
                         .eq(PostDO::getId, postId)))
-                .map(this::toDomain);
+                .map(PostPersistenceAssembler::toDomain);
     }
 
     List<Post> listPosts(String code, String name, DepartmentId departmentId, String status, int pageNo, int pageSize) {
@@ -39,7 +40,7 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .orderByAsc(PostDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
-                .map(this::toDomain)
+                .map(PostPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -53,13 +54,13 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Post savePost(Post post) {
-        PostDO dataObject = toDataObject(post);
+        PostDO dataObject = PostPersistenceAssembler.toDataObject(post);
         if (dataObject.getId() == null) {
             postMapper.insert(dataObject);
         } else {
             postMapper.updateById(dataObject);
         }
-        return toDomain(dataObject);
+        return PostPersistenceAssembler.toDomain(dataObject);
     }
 
     void deletePost(TenantId tenantId, PostId postId) {

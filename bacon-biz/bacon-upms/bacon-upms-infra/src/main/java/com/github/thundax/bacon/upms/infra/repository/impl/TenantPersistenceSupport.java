@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.infra.persistence.assembler.TenantPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.TenantDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.TenantMapper;
 import java.util.List;
@@ -21,19 +22,19 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Optional<Tenant> findTenantById(TenantId tenantId) {
-        return Optional.ofNullable(tenantId).map(tenantMapper::selectById).map(this::toDomain);
+        return Optional.ofNullable(tenantId).map(tenantMapper::selectById).map(TenantPersistenceAssembler::toDomain);
     }
 
     Optional<Tenant> findTenantByTenantId(TenantId tenantId) {
         return Optional.ofNullable(
                         tenantMapper.selectOne(Wrappers.<TenantDO>lambdaQuery().eq(TenantDO::getId, tenantId)))
-                .map(this::toDomain);
+                .map(TenantPersistenceAssembler::toDomain);
     }
 
     Optional<Tenant> findTenantByCode(String tenantCode) {
         return Optional.ofNullable(tenantMapper.selectOne(
                         Wrappers.<TenantDO>lambdaQuery().eq(TenantDO::getCode, trim(tenantCode))))
-                .map(this::toDomain);
+                .map(TenantPersistenceAssembler::toDomain);
     }
 
     List<Tenant> listTenants(String name, String status, int pageNo, int pageSize) {
@@ -44,7 +45,7 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .orderByAsc(TenantDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
-                .map(this::toDomain)
+                .map(TenantPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -56,12 +57,12 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Tenant saveTenant(Tenant tenant) {
-        TenantDO tenantDO = toDataObject(tenant);
+        TenantDO tenantDO = TenantPersistenceAssembler.toDataObject(tenant);
         if (tenantDO.getId() == null) {
             tenantMapper.insert(tenantDO);
         } else {
             tenantMapper.updateById(tenantDO);
         }
-        return toDomain(tenantDO);
+        return TenantPersistenceAssembler.toDomain(tenantDO);
     }
 }

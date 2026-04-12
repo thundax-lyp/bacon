@@ -12,7 +12,8 @@
 - 实现仓储落库与查询：建 `RepositoryImpl`
 - 只做数据库访问：建 `Mapper`
 - 承载持久化字段结构：建 `DO`
-- 只做对象转换：建 `Converter`
+- 只做持久化桥接转换：建 `PersistenceAssembler`
+- 只做通用对象转换：建 `Converter`
 - 只做基础类型与值对象编解码：建 `Codec`
 - 只是内部复用辅助逻辑：建 `Helper` / `Factory` / `Resolver` / `Executor`
 - 提供通用技术能力：建 `Service`
@@ -29,7 +30,8 @@
 - `RepositoryImpl`：仓储实现，负责落库、查询、组装，命名 `{业务对象}RepositoryImpl`，目录 `infra/repository/impl/`
 - `Mapper`：持久化映射，只负责数据库访问，命名 `{业务对象}Mapper`，目录 `infra/persistence/mapper/`
 - `DO`：持久化对象，只承载数据库字段，不承载领域行为，命名 `{业务对象}DO`，目录 `infra/persistence/dataobject/`
-- `Converter`：对象转换，只负责对象转换，命名 `{业务对象}Converter`，目录 `infra/repository/converter/`
+- `PersistenceAssembler`：持久化桥接对象转换，只负责 `Domain <-> DO` 转换，命名 `{业务对象}PersistenceAssembler`，目录 `infra/persistence/assembler/`
+- `Converter`：通用对象转换，不承载仓储落库语义，命名 `{业务对象}Converter`，目录按调用层就近放置
 - `Codec`：值对象编解码，只负责基础类型与值对象之间的转换，命名 `{业务对象}Codec`，目录 `application/codec/`
 - `Facade`：跨域调用契约，只定义能力，不承担 HTTP 入口职责，命名 `{业务对象}{动作}Facade`，目录 `api/facade/`
 - `FacadeLocalImpl`：单体模式门面实现，直接调用对方 `ApplicationService`，命名 `{业务对象}{动作}FacadeLocalImpl`，目录 `interfaces/facade/`
@@ -56,6 +58,7 @@
 - 推荐：`OrderRepositoryImpl`
 - 推荐：`OrderMapper`
 - 推荐：`OrderDO`
+- 推荐：`OrderPersistenceAssembler`
 - 推荐：`OrderConverter`
 - 推荐：`OrderNoCodec`
 - 推荐：`UserReadFacade`

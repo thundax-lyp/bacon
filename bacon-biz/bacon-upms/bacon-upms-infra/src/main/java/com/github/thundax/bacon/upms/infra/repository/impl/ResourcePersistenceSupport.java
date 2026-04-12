@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
+import com.github.thundax.bacon.upms.infra.persistence.assembler.ResourcePersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleResourceRelDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.ResourceMapper;
@@ -29,7 +30,7 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
         return Optional.ofNullable(resourceMapper.selectOne(Wrappers.<ResourceDO>lambdaQuery()
                         .eq(ResourceDO::getTenantId, tenantId)
                         .eq(ResourceDO::getId, resourceId)))
-                .map(this::toDomain);
+                .map(ResourcePersistenceAssembler::toDomain);
     }
 
     List<Resource> listResources(String code, String name, String resourceType, String status, int pageNo, int pageSize) {
@@ -42,7 +43,7 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .orderByAsc(ResourceDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
-                .map(this::toDomain)
+                .map(ResourcePersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -56,13 +57,13 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Resource saveResource(Resource resource) {
-        ResourceDO dataObject = toDataObject(resource);
+        ResourceDO dataObject = ResourcePersistenceAssembler.toDataObject(resource);
         if (dataObject.getId() == null || resourceMapper.selectById(dataObject.getId()) == null) {
             resourceMapper.insert(dataObject);
         } else {
             resourceMapper.updateById(dataObject);
         }
-        return toDomain(dataObject);
+        return ResourcePersistenceAssembler.toDomain(dataObject);
     }
 
     void deleteResource(TenantId tenantId, ResourceId resourceId) {

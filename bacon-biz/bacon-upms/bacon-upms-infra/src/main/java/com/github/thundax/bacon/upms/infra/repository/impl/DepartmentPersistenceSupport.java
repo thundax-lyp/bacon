@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.infra.persistence.assembler.DepartmentPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.DepartmentMapper;
 import java.util.List;
@@ -26,14 +27,14 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return Optional.ofNullable(departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
                         .eq(DepartmentDO::getTenantId, tenantId)
                         .eq(DepartmentDO::getId, departmentId)))
-                .map(this::toDomain);
+                .map(DepartmentPersistenceAssembler::toDomain);
     }
 
     Optional<Department> findDepartmentByCode(TenantId tenantId, String code) {
         return Optional.ofNullable(departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
                         .eq(DepartmentDO::getTenantId, tenantId)
                         .eq(DepartmentDO::getCode, code)))
-                .map(this::toDomain);
+                .map(DepartmentPersistenceAssembler::toDomain);
     }
 
     List<Department> listDepartmentsByIds(TenantId tenantId, Set<DepartmentId> departmentIds) {
@@ -46,7 +47,7 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .in(DepartmentDO::getId, departmentIds)
                         .orderByAsc(DepartmentDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(DepartmentPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -56,12 +57,12 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(DepartmentDO::getTenantId, tenantId)
                         .orderByAsc(DepartmentDO::getParentId, DepartmentDO::getSort, DepartmentDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(DepartmentPersistenceAssembler::toDomain)
                 .toList();
     }
 
     Department saveDepartment(Department department) {
-        DepartmentDO dataObject = toDataObject(department);
+        DepartmentDO dataObject = DepartmentPersistenceAssembler.toDataObject(department);
         DepartmentId departmentId = dataObject.getId();
         boolean exists = departmentId != null
                 && departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
@@ -73,7 +74,7 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
         } else {
             departmentMapper.updateById(dataObject);
         }
-        return toDomain(dataObject);
+        return DepartmentPersistenceAssembler.toDomain(dataObject);
     }
 
     Department updateDepartmentSort(TenantId tenantId, DepartmentId departmentId, Integer sort) {

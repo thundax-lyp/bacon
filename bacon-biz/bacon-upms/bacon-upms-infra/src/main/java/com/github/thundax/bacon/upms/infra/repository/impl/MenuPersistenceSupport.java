@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.infra.persistence.assembler.MenuPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.MenuDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.MenuMapper;
 import java.util.List;
@@ -27,7 +28,7 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(MenuDO::getTenantId, tenantId)
                         .orderByAsc(MenuDO::getSort, MenuDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(MenuPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -35,17 +36,17 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return Optional.ofNullable(menuMapper.selectOne(Wrappers.<MenuDO>lambdaQuery()
                         .eq(MenuDO::getTenantId, tenantId)
                         .eq(MenuDO::getId, menuId)))
-                .map(this::toDomain);
+                .map(MenuPersistenceAssembler::toDomain);
     }
 
     Menu saveMenu(Menu menu) {
-        MenuDO dataObject = toDataObject(menu);
+        MenuDO dataObject = MenuPersistenceAssembler.toDataObject(menu);
         if (dataObject.getId() == null || menuMapper.selectById(dataObject.getId()) == null) {
             menuMapper.insert(dataObject);
         } else {
             menuMapper.updateById(dataObject);
         }
-        return toDomain(dataObject);
+        return MenuPersistenceAssembler.toDomain(dataObject);
     }
 
     void deleteMenu(TenantId tenantId, MenuId menuId) {

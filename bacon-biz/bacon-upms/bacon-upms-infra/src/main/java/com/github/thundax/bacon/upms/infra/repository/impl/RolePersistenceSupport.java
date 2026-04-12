@@ -10,6 +10,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
+import com.github.thundax.bacon.upms.infra.persistence.assembler.RolePersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleDO;
@@ -74,7 +75,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         return Optional.ofNullable(roleMapper.selectOne(Wrappers.<RoleDO>lambdaQuery()
                         .eq(RoleDO::getTenantId, tenantId)
                         .eq(RoleDO::getId, roleId)))
-                .map(this::toDomain);
+                .map(RolePersistenceAssembler::toDomain);
     }
 
     List<Role> findRolesByUserId(TenantId tenantId, UserId userId) {
@@ -94,7 +95,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .in(RoleDO::getId, roleIds)
                         .orderByAsc(RoleDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(RolePersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -119,7 +120,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .orderByAsc(RoleDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
-                .map(this::toDomain)
+                .map(RolePersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -133,7 +134,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Role saveRole(Role role) {
-        RoleDO roleDO = toDataObject(role);
+        RoleDO roleDO = RolePersistenceAssembler.toDataObject(role);
         boolean exists = roleDO.getId() != null && roleMapper.selectById(roleDO.getId()) != null;
         if (!exists) {
             roleMapper.insert(roleDO);
@@ -141,7 +142,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             roleMapper.updateById(roleDO);
         }
         upsertDataPermissionRule(roleDO.getTenantId(), roleDO.getId(), RoleDataScopeType.from(roleDO.getDataScopeType()));
-        return toDomain(roleDO);
+        return RolePersistenceAssembler.toDomain(roleDO);
     }
 
     void deleteRole(TenantId tenantId, RoleId roleId) {

@@ -15,7 +15,6 @@ import com.github.thundax.bacon.inventory.interfaces.response.InventoryStockResp
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -86,21 +85,17 @@ public class InventoryController {
     public InventoryPageResponse pageInventories(@Valid @ModelAttribute InventoryPageRequest request) {
         InventoryStatus status = parseInventoryStatus(request.getStatus());
         return InventoryPageResponse.from(inventoryQueryService.pageInventories(
-                SkuIdMapper.toDomain(request.getSkuId()),
-                status,
-                request.getPageNo(),
-                request.getPageSize()));
+                SkuIdMapper.toDomain(request.getSkuId()), status, request.getPageNo(), request.getPageSize()));
     }
 
     @Operation(summary = "修改库存状态")
     @HasPermission("inventory:stock:update")
     @PutMapping("/{skuId}/status")
     public InventoryStockResponse updateInventoryStatus(
-            @PathVariable @Positive Long skuId,
-            @Valid @RequestBody InventoryStatusUpdateRequest request) {
+            @PathVariable @Positive Long skuId, @Valid @RequestBody InventoryStatusUpdateRequest request) {
         InventoryStatus status = parseInventoryStatus(request.status());
-        return InventoryStockResponse.from(inventoryManagementApplicationService.updateInventoryStatus(
-                SkuIdMapper.toDomain(skuId), status));
+        return InventoryStockResponse.from(
+                inventoryManagementApplicationService.updateInventoryStatus(SkuIdMapper.toDomain(skuId), status));
     }
 
     private InventoryStatus parseInventoryStatus(String status) {

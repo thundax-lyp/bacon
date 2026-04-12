@@ -86,8 +86,8 @@ public class OrderPaymentResultApplicationService {
                 Money.of(paidAmount, CurrencyCode.fromValue(order.getCurrencyCodeValue())),
                 paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
-        InventoryReservationResultDTO deductResult =
-                BaconContextHolder.callWithTenantId(tenantId, () -> inventoryCommandFacade.deductReservedStock(orderNo));
+        InventoryReservationResultDTO deductResult = BaconContextHolder.callWithTenantId(
+                tenantId, () -> inventoryCommandFacade.deductReservedStock(orderNo));
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
             String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
             order.markInventoryFailed(

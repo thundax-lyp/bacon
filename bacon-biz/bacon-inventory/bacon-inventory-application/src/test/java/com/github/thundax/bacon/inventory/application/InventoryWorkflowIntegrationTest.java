@@ -30,13 +30,12 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOpera
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditDeadLetterRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
@@ -83,23 +82,17 @@ class InventoryWorkflowIntegrationTest {
                     () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResultDTO>) () -> {
                         await(start);
                         return service.reserveStock(
-                                OrderNo.of("ORDER-C1"),
-                                List.of(new InventoryReservationItemDTO(101L, 40)));
+                                OrderNo.of("ORDER-C1"), List.of(new InventoryReservationItemDTO(101L, 40)));
                     }));
-            CompletableFuture<InventoryReservationResultDTO> first = CompletableFuture.supplyAsync(
-                    firstTask,
-                    pool);
+            CompletableFuture<InventoryReservationResultDTO> first = CompletableFuture.supplyAsync(firstTask, pool);
             Supplier<InventoryReservationResultDTO> secondTask = BaconContextHolder.callWithTenantId(
                     1001L,
                     () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResultDTO>) () -> {
                         await(start);
                         return service.reserveStock(
-                                OrderNo.of("ORDER-C2"),
-                                List.of(new InventoryReservationItemDTO(101L, 40)));
+                                OrderNo.of("ORDER-C2"), List.of(new InventoryReservationItemDTO(101L, 40)));
                     }));
-            CompletableFuture<InventoryReservationResultDTO> second = CompletableFuture.supplyAsync(
-                    secondTask,
-                    pool);
+            CompletableFuture<InventoryReservationResultDTO> second = CompletableFuture.supplyAsync(secondTask, pool);
 
             start.countDown();
 
@@ -115,9 +108,13 @@ class InventoryWorkflowIntegrationTest {
             assertTrue(inventory.getVersion().value() >= 2);
 
             BaconContextHolder.runWithTenantId(
-                    1001L, () -> assertNotNull(repository.findReservation(OrderNo.of("ORDER-C1")).orElse(null)));
+                    1001L,
+                    () -> assertNotNull(
+                            repository.findReservation(OrderNo.of("ORDER-C1")).orElse(null)));
             BaconContextHolder.runWithTenantId(
-                    1001L, () -> assertNotNull(repository.findReservation(OrderNo.of("ORDER-C2")).orElse(null)));
+                    1001L,
+                    () -> assertNotNull(
+                            repository.findReservation(OrderNo.of("ORDER-C2")).orElse(null)));
         } finally {
             pool.shutdownNow();
         }
@@ -135,25 +132,27 @@ class InventoryWorkflowIntegrationTest {
         ReflectionTestUtils.setField(retryService, "maxDelaySeconds", 10L);
 
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                null,
-                null,
-                OrderNo.of("ORDER-DEAD"),
-                ReservationNo.of("RSV-DEAD"),
-                InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM,
-                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
-                now,
-                "INIT",
-                InventoryAuditOutboxStatus.NEW,
-                1,
-                Instant.EPOCH,
-                null,
-                null,
-                null,
-                null,
-                now,
-                now)));
+        BaconContextHolder.runWithTenantId(
+                1001L,
+                () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
+                        null,
+                        null,
+                        OrderNo.of("ORDER-DEAD"),
+                        ReservationNo.of("RSV-DEAD"),
+                        InventoryAuditActionType.RESERVE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                        now,
+                        "INIT",
+                        InventoryAuditOutboxStatus.NEW,
+                        1,
+                        Instant.EPOCH,
+                        null,
+                        null,
+                        null,
+                        null,
+                        now,
+                        now)));
 
         retryService.retryAuditOutbox();
 
@@ -175,25 +174,27 @@ class InventoryWorkflowIntegrationTest {
         ReflectionTestUtils.setField(retryService, "maxDelaySeconds", 10L);
 
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                null,
-                null,
-                OrderNo.of("ORDER-OK"),
-                ReservationNo.of("RSV-OK"),
-                InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM,
-                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
-                now,
-                "INIT",
-                InventoryAuditOutboxStatus.NEW,
-                0,
-                Instant.EPOCH,
-                null,
-                null,
-                null,
-                null,
-                now,
-                now)));
+        BaconContextHolder.runWithTenantId(
+                1001L,
+                () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
+                        null,
+                        null,
+                        OrderNo.of("ORDER-OK"),
+                        ReservationNo.of("RSV-OK"),
+                        InventoryAuditActionType.RESERVE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                        now,
+                        "INIT",
+                        InventoryAuditOutboxStatus.NEW,
+                        0,
+                        Instant.EPOCH,
+                        null,
+                        null,
+                        null,
+                        null,
+                        now,
+                        now)));
 
         retryService.retryAuditOutbox();
 
@@ -260,9 +261,7 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public List<Inventory> findInventories() {
-            return inventories.values().stream()
-                    .map(this::copy)
-                    .toList();
+            return inventories.values().stream().map(this::copy).toList();
         }
 
         @Override
@@ -325,7 +324,9 @@ class InventoryWorkflowIntegrationTest {
         public InventoryReservation saveReservation(InventoryReservation reservation) {
             String key = reservationKey(
                     BaconContextHolder.currentTenantId(),
-                    reservation.getOrderNo() == null ? null : reservation.getOrderNo().value());
+                    reservation.getOrderNo() == null
+                            ? null
+                            : reservation.getOrderNo().value());
             InventoryReservation existing = reservations.get(key);
             if (existing != null && !existing.getReservationNo().equals(reservation.getReservationNo())) {
                 throw new DuplicateKeyException("duplicate orderNo");
@@ -336,8 +337,8 @@ class InventoryWorkflowIntegrationTest {
 
         @Override
         public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
-            return Optional.ofNullable(reservations.get(reservationKey(
-                    BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value())));
+            return Optional.ofNullable(reservations.get(
+                    reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value())));
         }
 
         @Override
@@ -345,7 +346,9 @@ class InventoryWorkflowIntegrationTest {
             ledgers.computeIfAbsent(
                             reservationKey(
                                     BaconContextHolder.currentTenantId(),
-                                    ledger.getOrderNo() == null ? null : ledger.getOrderNo().value()),
+                                    ledger.getOrderNo() == null
+                                            ? null
+                                            : ledger.getOrderNo().value()),
                             ignored -> new ArrayList<>())
                     .add(ledger);
         }
@@ -366,7 +369,9 @@ class InventoryWorkflowIntegrationTest {
                     .computeIfAbsent(
                             reservationKey(
                                     BaconContextHolder.currentTenantId(),
-                                    auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value()),
+                                    auditLog.getOrderNo() == null
+                                            ? null
+                                            : auditLog.getOrderNo().value()),
                             ignored -> new ArrayList<>())
                     .add(auditLog);
         }
@@ -401,7 +406,8 @@ class InventoryWorkflowIntegrationTest {
                     .filter(item -> item.getNextRetryAt() == null
                             || !item.getNextRetryAt().isAfter(now))
                     .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt)
-                            .thenComparing(item -> item.getId() == null ? null : item.getId().value()))
+                            .thenComparing(item ->
+                                    item.getId() == null ? null : item.getId().value()))
                     .limit(limit)
                     .toList();
         }

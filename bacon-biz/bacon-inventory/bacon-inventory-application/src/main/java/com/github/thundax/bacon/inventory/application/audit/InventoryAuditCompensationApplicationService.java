@@ -34,7 +34,8 @@ public class InventoryAuditCompensationApplicationService {
         this.inventoryAuditReplayTransactionService = inventoryAuditReplayTransactionService;
     }
 
-    public InventoryAuditReplayResultDTO replayDeadLetter(DeadLetterId deadLetterId, String replayKey, OperatorId operatorId) {
+    public InventoryAuditReplayResultDTO replayDeadLetter(
+            DeadLetterId deadLetterId, String replayKey, OperatorId operatorId) {
         requireTenantContext();
         InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository
                 .findAuditDeadLetterById(deadLetterId)

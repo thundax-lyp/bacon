@@ -31,6 +31,7 @@ public class InventoryReservationController {
     @HasPermission("inventory:reservation:view")
     @GetMapping("/{orderNo}")
     public InventoryReservationResponse getReservation(@PathVariable @NotBlank String orderNo) {
-        return InventoryReservationResponse.from(inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(orderNo)));
+        return InventoryReservationResponse.from(
+                inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(orderNo)));
     }
 }

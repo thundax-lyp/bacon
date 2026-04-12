@@ -25,13 +25,15 @@ public abstract class AbstractConcurrencyArchitectureTest {
     @Test
     @DisplayName("不得直接 new Thread")
     void shouldNotCreateRawThreads() {
-        ConcurrencyArchitectureRuleSupport.shouldNotCreateRawThreads(basePackage()).check(classes());
+        ConcurrencyArchitectureRuleSupport.shouldNotCreateRawThreads(basePackage())
+                .check(classes());
     }
 
     @Test
     @DisplayName("不得直接使用 Executors 工厂")
     void shouldNotUseExecutorsFactory() {
-        ConcurrencyArchitectureRuleSupport.shouldNotUseExecutorsFactory(basePackage()).check(classes());
+        ConcurrencyArchitectureRuleSupport.shouldNotUseExecutorsFactory(basePackage())
+                .check(classes());
     }
 
     @Test

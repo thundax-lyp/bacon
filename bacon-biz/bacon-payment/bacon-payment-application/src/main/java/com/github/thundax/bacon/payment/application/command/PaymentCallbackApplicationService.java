@@ -104,12 +104,14 @@ public class PaymentCallbackApplicationService {
                 beforeStatus,
                 paymentOrder.getPaymentStatus().value(),
                 paidTime);
-        BaconContextHolder.runWithTenantId(tenantId, () -> orderCommandFacade.markPaid(
-                paymentOrder.getOrderNo().value(),
-                paymentNo,
-                channelCode,
-                paymentOrder.getAmount().value(),
-                paidTime));
+        BaconContextHolder.runWithTenantId(
+                tenantId,
+                () -> orderCommandFacade.markPaid(
+                        paymentOrder.getOrderNo().value(),
+                        paymentNo,
+                        channelCode,
+                        paymentOrder.getAmount().value(),
+                        paidTime));
     }
 
     public void callbackFailed(
@@ -178,8 +180,10 @@ public class PaymentCallbackApplicationService {
                 beforeStatus,
                 paymentOrder.getPaymentStatus().value(),
                 failedTime);
-        BaconContextHolder.runWithTenantId(tenantId, () -> orderCommandFacade.markPaymentFailed(
-                paymentOrder.getOrderNo().value(), paymentNo, reason, channelStatus, failedTime));
+        BaconContextHolder.runWithTenantId(
+                tenantId,
+                () -> orderCommandFacade.markPaymentFailed(
+                        paymentOrder.getOrderNo().value(), paymentNo, reason, channelStatus, failedTime));
     }
 
     private void validateChannel(String channelCode) {

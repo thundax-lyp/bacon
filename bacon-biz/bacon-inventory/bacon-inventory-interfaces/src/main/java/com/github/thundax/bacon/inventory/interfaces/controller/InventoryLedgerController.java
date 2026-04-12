@@ -33,9 +33,7 @@ public class InventoryLedgerController {
     @HasPermission("inventory:ledger:view")
     @GetMapping
     public List<InventoryLedgerResponse> listByOrderNo(@Valid @ModelAttribute InventoryOrderScopedRequest request) {
-        return inventoryQueryService
-                .listLedgersByOrderNo(OrderNoCodec.toDomain(request.getOrderNo()))
-                .stream()
+        return inventoryQueryService.listLedgersByOrderNo(OrderNoCodec.toDomain(request.getOrderNo())).stream()
                 .map(InventoryLedgerResponse::from)
                 .toList();
     }

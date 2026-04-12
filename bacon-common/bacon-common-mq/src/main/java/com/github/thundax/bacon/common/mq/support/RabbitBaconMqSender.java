@@ -15,11 +15,13 @@ public class RabbitBaconMqSender implements BaconMqSender {
 
     @Override
     public void send(BaconMqMessage message) {
-        rabbitTemplate.convertAndSend(message.getExchange(), message.getRoutingKey(), message.getPayload(), mqMessage -> {
-            for (Map.Entry<String, String> entry : BaconMqHeaderSupport.resolveHeaders(message).entrySet()) {
-                mqMessage.getMessageProperties().setHeader(entry.getKey(), entry.getValue());
-            }
-            return mqMessage;
-        });
+        rabbitTemplate.convertAndSend(
+                message.getExchange(), message.getRoutingKey(), message.getPayload(), mqMessage -> {
+                    for (Map.Entry<String, String> entry :
+                            BaconMqHeaderSupport.resolveHeaders(message).entrySet()) {
+                        mqMessage.getMessageProperties().setHeader(entry.getKey(), entry.getValue());
+                    }
+                    return mqMessage;
+                });
     }
 }

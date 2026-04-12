@@ -30,9 +30,13 @@ public final class InventoryLedgerPersistenceAssembler {
                 ledger.getId(),
                 BaconContextHolder.requireTenantId(),
                 ledger.getOrderNo() == null ? null : ledger.getOrderNo().value(),
-                ledger.getReservationNo() == null ? null : ledger.getReservationNo().value(),
+                ledger.getReservationNo() == null
+                        ? null
+                        : ledger.getReservationNo().value(),
                 ledger.getSkuId() == null ? null : ledger.getSkuId().value(),
-                ledger.getWarehouseCode() == null ? null : ledger.getWarehouseCode().value(),
+                ledger.getWarehouseCode() == null
+                        ? null
+                        : ledger.getWarehouseCode().value(),
                 ledger.getLedgerType() == null ? null : ledger.getLedgerType().value(),
                 ledger.getQuantity(),
                 ledger.getOccurredAt());

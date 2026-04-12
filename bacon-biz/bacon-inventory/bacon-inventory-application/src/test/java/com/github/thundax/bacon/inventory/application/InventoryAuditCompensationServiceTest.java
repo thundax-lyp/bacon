@@ -39,20 +39,22 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldReplayDeadLetterSuccessfully() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
-        BaconContextHolder.runWithTenantId(3001L, () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
-                DeadLetterId.of(1001L),
-                com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1001L),
-                EventCode.of("EVT20260326000000-001001"),
-                OrderNo.of("ORDER-1"),
-                ReservationNo.of("RSV-1"),
-                InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM,
-                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
-                Instant.parse("2026-03-26T00:00:00Z"),
-                3,
-                "FAIL",
-                "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"))));
+        BaconContextHolder.runWithTenantId(
+                3001L,
+                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                        DeadLetterId.of(1001L),
+                        com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1001L),
+                        EventCode.of("EVT20260326000000-001001"),
+                        OrderNo.of("ORDER-1"),
+                        ReservationNo.of("RSV-1"),
+                        InventoryAuditActionType.RESERVE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                        Instant.parse("2026-03-26T00:00:00Z"),
+                        3,
+                        "FAIL",
+                        "MAX_RETRIES_EXCEEDED",
+                        Instant.parse("2026-03-26T00:01:00Z"))));
 
         InventoryAuditReplayResultDTO result = BaconContextHolder.callWithTenantId(
                 3001L,
@@ -73,42 +75,48 @@ class InventoryAuditCompensationApplicationServiceTest {
     void shouldBatchReplayAndKeepRunningItemsUnchanged() {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service = createService(repository);
-        BaconContextHolder.runWithTenantId(3001L, () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
-                DeadLetterId.of(1002L),
-                com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1002L),
-                EventCode.of("EVT20260326000000-001002"),
-                OrderNo.of("ORDER-2"),
-                ReservationNo.of("RSV-2"),
-                InventoryAuditActionType.RELEASE,
-                InventoryAuditOperatorType.SYSTEM,
-                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
-                Instant.parse("2026-03-26T00:00:00Z"),
-                2,
-                "FAIL",
-                "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"))));
-        BaconContextHolder.runWithTenantId(3001L, () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
-                DeadLetterId.of(1003L),
-                com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1003L),
-                EventCode.of("EVT20260326000000-001003"),
-                OrderNo.of("ORDER-3"),
-                ReservationNo.of("RSV-3"),
-                InventoryAuditActionType.DEDUCT,
-                InventoryAuditOperatorType.SYSTEM,
-                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
-                Instant.parse("2026-03-26T00:00:00Z"),
-                2,
-                "FAIL",
-                "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"))));
-        repository.deadLetters.get(1003L).markReplayRunning("RUNNING-1003", InventoryAuditOperatorType.SYSTEM, "0", Instant.parse("2026-03-26T00:02:00Z"));
+        BaconContextHolder.runWithTenantId(
+                3001L,
+                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                        DeadLetterId.of(1002L),
+                        com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1002L),
+                        EventCode.of("EVT20260326000000-001002"),
+                        OrderNo.of("ORDER-2"),
+                        ReservationNo.of("RSV-2"),
+                        InventoryAuditActionType.RELEASE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                        Instant.parse("2026-03-26T00:00:00Z"),
+                        2,
+                        "FAIL",
+                        "MAX_RETRIES_EXCEEDED",
+                        Instant.parse("2026-03-26T00:01:00Z"))));
+        BaconContextHolder.runWithTenantId(
+                3001L,
+                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                        DeadLetterId.of(1003L),
+                        com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1003L),
+                        EventCode.of("EVT20260326000000-001003"),
+                        OrderNo.of("ORDER-3"),
+                        ReservationNo.of("RSV-3"),
+                        InventoryAuditActionType.DEDUCT,
+                        InventoryAuditOperatorType.SYSTEM,
+                        String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                        Instant.parse("2026-03-26T00:00:00Z"),
+                        2,
+                        "FAIL",
+                        "MAX_RETRIES_EXCEEDED",
+                        Instant.parse("2026-03-26T00:01:00Z"))));
+        repository
+                .deadLetters
+                .get(1003L)
+                .markReplayRunning(
+                        "RUNNING-1003", InventoryAuditOperatorType.SYSTEM, "0", Instant.parse("2026-03-26T00:02:00Z"));
 
         List<InventoryAuditReplayResultDTO> results = BaconContextHolder.callWithTenantId(
                 3001L,
                 () -> service.replayDeadLettersBatch(
-                        List.of(DeadLetterId.of(1002L), DeadLetterId.of(1003L)),
-                        "BATCH-1",
-                        OperatorId.of("9002")));
+                        List.of(DeadLetterId.of(1002L), DeadLetterId.of(1003L)), "BATCH-1", OperatorId.of("9002")));
 
         assertEquals(2, results.size());
         assertEquals(
@@ -121,20 +129,22 @@ class InventoryAuditCompensationApplicationServiceTest {
         TestLogRepository repository = new TestLogRepository();
         InventoryAuditCompensationApplicationService service =
                 createService(repository, new FailingOnceTransactionExecutor());
-        BaconContextHolder.runWithTenantId(3001L, () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
-                DeadLetterId.of(1004L),
-                com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1004L),
-                EventCode.of("EVT20260326000000-001004"),
-                OrderNo.of("ORDER-4"),
-                ReservationNo.of("RSV-4"),
-                InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM,
-                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
-                Instant.parse("2026-03-26T00:00:00Z"),
-                1,
-                "FAIL",
-                "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"))));
+        BaconContextHolder.runWithTenantId(
+                3001L,
+                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                        DeadLetterId.of(1004L),
+                        com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1004L),
+                        EventCode.of("EVT20260326000000-001004"),
+                        OrderNo.of("ORDER-4"),
+                        ReservationNo.of("RSV-4"),
+                        InventoryAuditActionType.RESERVE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                        Instant.parse("2026-03-26T00:00:00Z"),
+                        1,
+                        "FAIL",
+                        "MAX_RETRIES_EXCEEDED",
+                        Instant.parse("2026-03-26T00:01:00Z"))));
 
         InventoryAuditReplayResultDTO result = BaconContextHolder.callWithTenantId(
                 3001L,
@@ -148,7 +158,11 @@ class InventoryAuditCompensationApplicationServiceTest {
         assertEquals("MANUAL", repository.deadLetters.get(1004L).getReplayOperatorType());
         assertEquals(
                 InventoryAuditActionType.AUDIT_REPLAY_FAILED.value(),
-                repository.auditLogs.get(repository.auditLogs.size() - 1).getActionType().value());
+                repository
+                        .auditLogs
+                        .get(repository.auditLogs.size() - 1)
+                        .getActionType()
+                        .value());
     }
 
     private InventoryAuditCompensationApplicationService createService(TestLogRepository repository) {
@@ -158,8 +172,7 @@ class InventoryAuditCompensationApplicationServiceTest {
     private InventoryAuditCompensationApplicationService createService(
             TestLogRepository repository, InventoryTransactionExecutor transactionExecutor) {
         InventoryAuditReplayTransactionExecutor service =
-                new InventoryAuditReplayTransactionExecutor(
-                        repository, repository, transactionExecutor, ID_GENERATOR);
+                new InventoryAuditReplayTransactionExecutor(repository, repository, transactionExecutor, ID_GENERATOR);
         return new InventoryAuditCompensationApplicationService(repository, service);
     }
 
@@ -213,9 +226,9 @@ class InventoryAuditCompensationApplicationServiceTest {
         public boolean claimAuditDeadLetterForReplay(
                 DeadLetterId id,
                 String replayKey,
-            InventoryAuditOperatorType operatorType,
-            OperatorId operatorId,
-            Instant replayAt) {
+                InventoryAuditOperatorType operatorType,
+                OperatorId operatorId,
+                Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             if (deadLetter == null) {
                 return false;

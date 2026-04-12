@@ -33,9 +33,7 @@ public class InventoryAuditLogController {
     @HasPermission("inventory:audit:view")
     @GetMapping
     public List<InventoryAuditLogResponse> listByOrderNo(@Valid @ModelAttribute InventoryOrderScopedRequest request) {
-        return inventoryQueryService
-                .listAuditLogsByOrderNo(OrderNoCodec.toDomain(request.getOrderNo()))
-                .stream()
+        return inventoryQueryService.listAuditLogsByOrderNo(OrderNoCodec.toDomain(request.getOrderNo())).stream()
                 .map(InventoryAuditLogResponse::from)
                 .toList();
     }

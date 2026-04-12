@@ -64,8 +64,7 @@ public class DefaultBaconContextResolver implements BaconContextResolver {
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
-        if (authentication.getPrincipal() instanceof String principal
-                && "anonymousUser".equalsIgnoreCase(principal)) {
+        if (authentication.getPrincipal() instanceof String principal && "anonymousUser".equalsIgnoreCase(principal)) {
             return null;
         }
         return authentication;

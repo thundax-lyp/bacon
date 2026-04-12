@@ -382,21 +382,13 @@ class PaymentApplicationServiceTest {
 
         @Override
         public void markPaid(
-                String orderNo,
-                String paymentNo,
-                String channelCode,
-                BigDecimal paidAmount,
-                Instant paidTime) {
+                String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
             markPaidCount++;
         }
 
         @Override
         public void markPaymentFailed(
-                String orderNo,
-                String paymentNo,
-                String reason,
-                String channelStatus,
-                Instant failedTime) {
+                String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
             markFailedCount++;
         }
 

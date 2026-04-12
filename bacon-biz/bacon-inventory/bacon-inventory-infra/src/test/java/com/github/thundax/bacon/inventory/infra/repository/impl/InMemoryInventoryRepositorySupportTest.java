@@ -6,13 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditOutbox;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
@@ -28,25 +26,27 @@ class InMemoryInventoryRepositorySupportTest {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
 
-        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                null,
-                null,
-                OrderNo.of("ORDER-1"),
-                ReservationNo.of("RSV-1"),
-                InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM,
-                "0",
-                now,
-                "DB_TIMEOUT",
-                InventoryAuditOutboxStatus.NEW,
-                0,
-                now,
-                null,
-                null,
-                null,
-                null,
-                now,
-                now)));
+        BaconContextHolder.runWithTenantId(
+                1001L,
+                () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
+                        null,
+                        null,
+                        OrderNo.of("ORDER-1"),
+                        ReservationNo.of("RSV-1"),
+                        InventoryAuditActionType.RESERVE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        "0",
+                        now,
+                        "DB_TIMEOUT",
+                        InventoryAuditOutboxStatus.NEW,
+                        0,
+                        now,
+                        null,
+                        null,
+                        null,
+                        null,
+                        now,
+                        now)));
 
         List<InventoryAuditOutbox> retryable = repository.findRetryableAuditOutbox(now.plusSeconds(1), 10);
         assertEquals(1, retryable.size());
@@ -62,20 +62,22 @@ class InMemoryInventoryRepositorySupportTest {
         repository.markAuditOutboxDead(outboxId, 6, "MAX_RETRIES_EXCEEDED", now.plusSeconds(600));
         assertTrue(repository.findRetryableAuditOutbox(now.plusSeconds(601), 10).isEmpty());
 
-        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
-                DeadLetterId.of(2001L),
-                outboxId,
-                retryable.get(0).getEventCode(),
-                OrderNo.of("ORDER-1"),
-                ReservationNo.of("RSV-1"),
-                InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM,
-                "0",
-                now,
-                6,
-                "RETRY_FAIL",
-                "MAX_RETRIES_EXCEEDED",
-                now.plusSeconds(600))));
+        BaconContextHolder.runWithTenantId(
+                1001L,
+                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                        DeadLetterId.of(2001L),
+                        outboxId,
+                        retryable.get(0).getEventCode(),
+                        OrderNo.of("ORDER-1"),
+                        ReservationNo.of("RSV-1"),
+                        InventoryAuditActionType.RESERVE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        "0",
+                        now,
+                        6,
+                        "RETRY_FAIL",
+                        "MAX_RETRIES_EXCEEDED",
+                        now.plusSeconds(600))));
 
         repository.deleteAuditOutbox(outboxId);
         assertTrue(
@@ -86,25 +88,27 @@ class InMemoryInventoryRepositorySupportTest {
     void shouldClaimOutboxOnceAndRecycleExpiredLease() {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                null,
-                null,
-                OrderNo.of("ORDER-2"),
-                ReservationNo.of("RSV-2"),
-                InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM,
-                "0",
-                now,
-                "INIT",
-                InventoryAuditOutboxStatus.NEW,
-                0,
-                now,
-                null,
-                null,
-                null,
-                null,
-                now,
-                now)));
+        BaconContextHolder.runWithTenantId(
+                1001L,
+                () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
+                        null,
+                        null,
+                        OrderNo.of("ORDER-2"),
+                        ReservationNo.of("RSV-2"),
+                        InventoryAuditActionType.RESERVE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        "0",
+                        now,
+                        "INIT",
+                        InventoryAuditOutboxStatus.NEW,
+                        0,
+                        now,
+                        null,
+                        null,
+                        null,
+                        null,
+                        now,
+                        now)));
 
         List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> firstClaim =
                 repository.claimRetryableAuditOutbox(now, 10, "owner-a", now.plusSeconds(30));
@@ -123,25 +127,27 @@ class InMemoryInventoryRepositorySupportTest {
     void shouldRequireOwnerMatchWhenUpdatingClaimedOutbox() {
         InMemoryInventoryRepositorySupport repository = new InMemoryInventoryRepositorySupport();
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
-        BaconContextHolder.runWithTenantId(1001L, () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                null,
-                null,
-                OrderNo.of("ORDER-3"),
-                ReservationNo.of("RSV-3"),
-                InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM,
-                "0",
-                now,
-                "INIT",
-                InventoryAuditOutboxStatus.NEW,
-                0,
-                now,
-                null,
-                null,
-                null,
-                null,
-                now,
-                now)));
+        BaconContextHolder.runWithTenantId(
+                1001L,
+                () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
+                        null,
+                        null,
+                        OrderNo.of("ORDER-3"),
+                        ReservationNo.of("RSV-3"),
+                        InventoryAuditActionType.RESERVE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        "0",
+                        now,
+                        "INIT",
+                        InventoryAuditOutboxStatus.NEW,
+                        0,
+                        now,
+                        null,
+                        null,
+                        null,
+                        null,
+                        now,
+                        now)));
 
         List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> claimed =
                 repository.claimRetryableAuditOutbox(now, 1, "owner-a", now.plusSeconds(30));

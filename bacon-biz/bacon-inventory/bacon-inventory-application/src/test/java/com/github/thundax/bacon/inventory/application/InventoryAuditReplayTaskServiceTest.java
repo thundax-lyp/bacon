@@ -45,20 +45,22 @@ class InventoryAuditReplayTaskApplicationServiceTest {
     @Test
     void shouldCreateAndProcessReplayTask() {
         TestLogRepository repository = new TestLogRepository();
-        BaconContextHolder.runWithTenantId(3001L, () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
-                DeadLetterId.of(101L),
-                com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L),
-                EventCode.of("EVT20260326000000-000101"),
-                OrderNo.of("ORDER-1"),
-                ReservationNo.of("RSV-1"),
-                InventoryAuditActionType.RESERVE,
-                InventoryAuditOperatorType.SYSTEM,
-                String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
-                Instant.parse("2026-03-26T00:00:00Z"),
-                1,
-                "FAIL",
-                "MAX_RETRIES_EXCEEDED",
-                Instant.parse("2026-03-26T00:01:00Z"))));
+        BaconContextHolder.runWithTenantId(
+                3001L,
+                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                        DeadLetterId.of(101L),
+                        com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L),
+                        EventCode.of("EVT20260326000000-000101"),
+                        OrderNo.of("ORDER-1"),
+                        ReservationNo.of("RSV-1"),
+                        InventoryAuditActionType.RESERVE,
+                        InventoryAuditOperatorType.SYSTEM,
+                        String.valueOf(InventoryAuditLog.OPERATOR_ID_SYSTEM),
+                        Instant.parse("2026-03-26T00:00:00Z"),
+                        1,
+                        "FAIL",
+                        "MAX_RETRIES_EXCEEDED",
+                        Instant.parse("2026-03-26T00:01:00Z"))));
 
         InventoryAuditReplayTaskApplicationService taskService =
                 new InventoryAuditReplayTaskApplicationService(repository);
@@ -70,8 +72,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
 
         var created = BaconContextHolder.callWithTenantId(
                 3001L,
-                () -> taskService.createReplayTask(new InventoryAuditReplayTaskCreateDTO(
-                        9001L, "TASK-BATCH", List.of(101L))));
+                () -> taskService.createReplayTask(
+                        new InventoryAuditReplayTaskCreateDTO(9001L, "TASK-BATCH", List.of(101L))));
         assertNotNull(created.getTaskId());
 
         String owner = "test-owner";
@@ -130,9 +132,9 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         public boolean claimAuditDeadLetterForReplay(
                 DeadLetterId id,
                 String replayKey,
-            InventoryAuditOperatorType operatorType,
-            OperatorId operatorId,
-            Instant replayAt) {
+                InventoryAuditOperatorType operatorType,
+                OperatorId operatorId,
+                Instant replayAt) {
             InventoryAuditDeadLetter deadLetter = deadLetters.get(id.value());
             if (deadLetter == null) {
                 return false;
@@ -179,7 +181,8 @@ class InventoryAuditReplayTaskApplicationServiceTest {
             tasks.put(task.getIdValue(), task);
             taskTenants.put(
                     task.getIdValue(),
-                    java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null"));
+                    java.util.Objects.requireNonNull(
+                            BaconContextHolder.currentTenantId(), "tenantId must not be null"));
             return task;
         }
 

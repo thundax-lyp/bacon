@@ -57,8 +57,8 @@ public class OrderTimeoutApplicationService {
         order.closeExpired(reason);
         // 超时关单的资源回收顺序固定为“先关支付，再释放库存”，与订单生命周期的依赖方向保持一致。
         if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
-            BaconContextHolder.runWithTenantId(tenantId, () -> paymentCommandFacade.closePayment(
-                    order.getPaymentNoValue(), reason));
+            BaconContextHolder.runWithTenantId(
+                    tenantId, () -> paymentCommandFacade.closePayment(order.getPaymentNoValue(), reason));
         }
         InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
                 tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, reason));

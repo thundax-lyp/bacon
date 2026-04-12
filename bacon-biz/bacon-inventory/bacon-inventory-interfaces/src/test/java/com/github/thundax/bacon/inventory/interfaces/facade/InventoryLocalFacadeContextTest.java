@@ -18,7 +18,8 @@ class InventoryLocalFacadeContextTest {
 
     @Test
     void commandFacadeShouldRequireUserId() {
-        InventoryCommandFacadeLocalImpl facade = new InventoryCommandFacadeLocalImpl(new InventoryApplicationService(null, null, null));
+        InventoryCommandFacadeLocalImpl facade =
+                new InventoryCommandFacadeLocalImpl(new InventoryApplicationService(null, null, null));
         BaconContextHolder.set(new BaconContext(1001L, null));
 
         assertThatThrownBy(() -> facade.deductReservedStock("ORD-1"))
@@ -28,7 +29,8 @@ class InventoryLocalFacadeContextTest {
 
     @Test
     void readFacadeShouldRequireUserId() {
-        InventoryReadFacadeLocalImpl facade = new InventoryReadFacadeLocalImpl(new InventoryQueryApplicationService(null, null, null, null));
+        InventoryReadFacadeLocalImpl facade =
+                new InventoryReadFacadeLocalImpl(new InventoryQueryApplicationService(null, null, null, null));
         BaconContextHolder.set(new BaconContext(1001L, null));
 
         assertThatThrownBy(() -> facade.getAvailableStock(101L))

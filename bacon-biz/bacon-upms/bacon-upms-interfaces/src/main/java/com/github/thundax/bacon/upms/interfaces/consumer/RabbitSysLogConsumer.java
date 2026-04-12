@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.consumer;
 
-import com.github.thundax.bacon.common.mq.BaconMqHeaders;
 import com.github.thundax.bacon.common.log.dto.SysLogDTO;
+import com.github.thundax.bacon.common.mq.BaconMqHeaders;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.messaging.handler.annotation.Header;
@@ -19,7 +19,8 @@ public class RabbitSysLogConsumer {
     }
 
     @RabbitListener(queues = "${bacon.log.sys.queue:bacon.sys.log.queue}")
-    public void onMessage(@Payload SysLogDTO sysLogDTO, @Header(name = BaconMqHeaders.TENANT_ID, required = false) Long tenantId) {
+    public void onMessage(
+            @Payload SysLogDTO sysLogDTO, @Header(name = BaconMqHeaders.TENANT_ID, required = false) Long tenantId) {
         sysLogMqConsumer.consume(tenantId, sysLogDTO);
     }
 }

@@ -85,7 +85,9 @@ public class PaymentProviderController {
     @Operation(summary = "关闭支付单")
     @PostMapping("/close")
     public PaymentCloseResultDTO closePayment(
-            @CurrentTenant Long tenantId, @RequestParam("paymentNo") @NotBlank String paymentNo, @RequestParam("reason") @NotBlank String reason) {
+            @CurrentTenant Long tenantId,
+            @RequestParam("paymentNo") @NotBlank String paymentNo,
+            @RequestParam("reason") @NotBlank String reason) {
         return paymentCloseApplicationService.closePayment(tenantId, paymentNo, reason);
     }
 }

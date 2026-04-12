@@ -32,7 +32,8 @@ public class InventoryCommandFacadeLocalImpl implements InventoryCommandFacade {
     @Override
     public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
         requireContext();
-        return inventoryApplicationService.releaseReservedStock(OrderNoCodec.toDomain(orderNo), toReleaseReason(reason));
+        return inventoryApplicationService.releaseReservedStock(
+                OrderNoCodec.toDomain(orderNo), toReleaseReason(reason));
     }
 
     private InventoryReleaseReason toReleaseReason(String reason) {

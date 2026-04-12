@@ -17,9 +17,8 @@ import org.junit.jupiter.api.Test;
 
 class MybatisPlusMetaObjectHandlerTest {
 
-    private final MybatisPlusMetaObjectHandler handler =
-            new MybatisPlusMetaObjectHandler(
-                    Clock.fixed(Instant.parse("2026-04-10T10:00:00Z"), ZoneOffset.UTC), () -> "2001");
+    private final MybatisPlusMetaObjectHandler handler = new MybatisPlusMetaObjectHandler(
+            Clock.fixed(Instant.parse("2026-04-10T10:00:00Z"), ZoneOffset.UTC), () -> "2001");
 
     @AfterEach
     void tearDown() {

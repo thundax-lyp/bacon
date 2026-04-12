@@ -100,8 +100,7 @@ public class UpmsProviderController {
 
     @Operation(summary = "按部门编码查询部门")
     @GetMapping("/departments/code/{departmentCode}")
-    public DepartmentDTO getDepartmentByCode(
-            @CurrentTenant Long tenantId, @PathVariable String departmentCode) {
+    public DepartmentDTO getDepartmentByCode(@CurrentTenant Long tenantId, @PathVariable String departmentCode) {
         return departmentApplicationService.getDepartmentByCode(requireExistingTenantId(tenantId), departmentCode);
     }
 
@@ -129,30 +128,26 @@ public class UpmsProviderController {
 
     @Operation(summary = "查询用户角色列表")
     @GetMapping("/roles")
-    public List<RoleDTO> getRolesByUserId(
-            @CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
+    public List<RoleDTO> getRolesByUserId(@CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
         return roleApplicationService.getRolesByUserId(tenantId, userId);
     }
 
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
-    public List<UserMenuTreeDTO> getUserMenuTree(
-            @CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
+    public List<UserMenuTreeDTO> getUserMenuTree(@CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserMenuTree(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
-    public Set<String> getUserPermissionCodes(
-            @CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
+    public Set<String> getUserPermissionCodes(@CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserPermissionCodes(
                 requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @GetMapping("/permissions/data-scope")
-    public UserDataScopeDTO getUserDataScope(
-            @CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
+    public UserDataScopeDTO getUserDataScope(@CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserDataScope(
                 requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
     }

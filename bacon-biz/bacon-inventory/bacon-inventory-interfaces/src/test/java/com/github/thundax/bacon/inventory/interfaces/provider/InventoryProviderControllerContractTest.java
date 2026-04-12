@@ -36,7 +36,7 @@ class InventoryProviderControllerContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-                mockMvc.perform(get("/providers/inventory/stocks")
+        mockMvc.perform(get("/providers/inventory/stocks")
                         .param("skuIds", "101")
                         .param("skuIds", "102")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
@@ -88,8 +88,7 @@ class InventoryProviderControllerContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/inventory/stocks")
-                        .param("skuIds", "101"))
+        mockMvc.perform(get("/providers/inventory/stocks").param("skuIds", "101"))
                 .andExpect(status().isUnauthorized());
     }
 

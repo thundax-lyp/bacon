@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,14 +79,12 @@ public class InventoryReservationApplicationService {
         return inventoryWriteRetrier.execute(
                 "reserve",
                 tenantId + ":" + orderNo,
-                () -> inventoryTransactionExecutor.executeInNewTransaction(
-                        () -> reserveStockOnce(orderNo, items)));
+                () -> inventoryTransactionExecutor.executeInNewTransaction(() -> reserveStockOnce(orderNo, items)));
     }
 
     private InventoryReservationResultDTO reserveStockOnce(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
-        InventoryReservation existingReservation = inventoryReservationRepository
-                .findReservation(orderNo)
-                .orElse(null);
+        InventoryReservation existingReservation =
+                inventoryReservationRepository.findReservation(orderNo).orElse(null);
         if (existingReservation != null) {
             if (InventoryReservationStatus.CREATED.equals(existingReservation.getReservationStatus())) {
                 return completeCreatedReservation(existingReservation);
@@ -103,8 +100,7 @@ public class InventoryReservationApplicationService {
         WarehouseCode warehouseCodeValue = WarehouseCode.DEFAULT;
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
         List<InventoryReservationItem> reservationItems = InventoryReservationAssembler.toDomainItems(
-                reservationNoValue == null ? null : reservationNoValue.value(),
-                normalizedItems);
+                reservationNoValue == null ? null : reservationNoValue.value(), normalizedItems);
         InventoryReservation reservation = new InventoryReservation(
                 null,
                 reservationNoValue,
@@ -127,9 +123,8 @@ public class InventoryReservationApplicationService {
             return InventoryReservationResultAssembler.fromReservation(reservation);
         }
 
-        InventoryReservation existing = inventoryReservationRepository
-                .findReservation(orderNo)
-                .orElse(null);
+        InventoryReservation existing =
+                inventoryReservationRepository.findReservation(orderNo).orElse(null);
         if (existing != null) {
             return InventoryReservationResultAssembler.fromReservation(existing);
         }
@@ -173,14 +168,16 @@ public class InventoryReservationApplicationService {
                 .map(InventoryReservationItemDTO::getSkuId)
                 .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toSet());
-        Map<Long, Inventory> inventoryBySku = inventoryStockRepository
-                .findInventories(skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()))
-                .stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        inventory -> inventory.getSkuId() == null
-                                ? null
-                                : inventory.getSkuId().value(),
-                        inventory -> inventory));
+        Map<Long, Inventory> inventoryBySku =
+                inventoryStockRepository
+                        .findInventories(
+                                skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()))
+                        .stream()
+                        .collect(java.util.stream.Collectors.toMap(
+                                inventory -> inventory.getSkuId() == null
+                                        ? null
+                                        : inventory.getSkuId().value(),
+                                inventory -> inventory));
         for (InventoryReservationItemDTO item : items) {
             if (item.getSkuId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
                 return ReservationValidationResult.failed(InventoryErrorCode.INVALID_QUANTITY.code());
@@ -216,7 +213,8 @@ public class InventoryReservationApplicationService {
         }
     }
 
-    private void reserveStockOnce(InventoryReservationItem item, Instant operatedAt, Map<Long, Inventory> inventoryBySku) {
+    private void reserveStockOnce(
+            InventoryReservationItem item, Instant operatedAt, Map<Long, Inventory> inventoryBySku) {
         Long skuId = SkuIdMapper.toValue(item.getSkuId());
         Inventory inventory = inventoryBySku.get(skuId);
         if (inventory == null) {

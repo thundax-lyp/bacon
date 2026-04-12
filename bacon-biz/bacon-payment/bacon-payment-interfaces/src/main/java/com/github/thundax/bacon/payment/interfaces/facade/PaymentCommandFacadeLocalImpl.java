@@ -27,12 +27,7 @@ public class PaymentCommandFacadeLocalImpl implements PaymentCommandFacade {
 
     @Override
     public PaymentCreateResultDTO createPayment(
-            String orderNo,
-            Long userId,
-            BigDecimal amount,
-            String channelCode,
-            String subject,
-            Instant expiredAt) {
+            String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
         Long tenantId = requireTenantId();
         return paymentCreateApplicationService.createPayment(
                 tenantId, orderNo, userId, amount, channelCode, subject, expiredAt);

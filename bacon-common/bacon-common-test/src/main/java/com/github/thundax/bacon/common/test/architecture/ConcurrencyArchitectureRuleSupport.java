@@ -50,8 +50,10 @@ public final class ConcurrencyArchitectureRuleSupport {
                                 continue;
                             }
                             String methodName = methodCall.getName();
-                            int parameterCount =
-                                    methodCall.getTarget().getRawParameterTypes().size();
+                            int parameterCount = methodCall
+                                    .getTarget()
+                                    .getRawParameterTypes()
+                                    .size();
                             boolean illegal = ("runAsync".equals(methodName) || "supplyAsync".equals(methodName))
                                     && parameterCount == 1;
                             if (illegal) {

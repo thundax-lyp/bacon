@@ -35,8 +35,12 @@ public final class InventoryPersistenceAssembler {
                 inventory.getWarehouseCode() == null
                         ? null
                         : inventory.getWarehouseCode().value(),
-                inventory.getOnHandQuantity() == null ? null : inventory.getOnHandQuantity().value(),
-                inventory.getReservedQuantity() == null ? null : inventory.getReservedQuantity().value(),
+                inventory.getOnHandQuantity() == null
+                        ? null
+                        : inventory.getOnHandQuantity().value(),
+                inventory.getReservedQuantity() == null
+                        ? null
+                        : inventory.getReservedQuantity().value(),
                 inventory.getStatus().value(),
                 inventory.getVersion() == null ? null : inventory.getVersion().value(),
                 null,

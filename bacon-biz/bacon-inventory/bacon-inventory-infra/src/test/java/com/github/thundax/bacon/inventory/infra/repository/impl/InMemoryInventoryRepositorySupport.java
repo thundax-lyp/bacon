@@ -16,7 +16,6 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
-import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -26,10 +25,9 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.InventoryId;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.OnHandQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservedQuantity;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
+import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -127,7 +125,9 @@ public class InMemoryInventoryRepositorySupport {
                     inventory.getVersion(),
                     inventory.getUpdatedAt());
         }
-        Version version = inventory.getVersion() == null ? new Version(0L) : inventory.getVersion().next();
+        Version version = inventory.getVersion() == null
+                ? new Version(0L)
+                : inventory.getVersion().next();
         inventory.markPersisted(version);
         inventories.put(
                 key(
@@ -147,7 +147,9 @@ public class InMemoryInventoryRepositorySupport {
                     reservation.getReservationNo() == null
                             ? null
                             : reservation.getReservationNo().value(),
-                    reservation.getOrderNo() == null ? null : reservation.getOrderNo().value(),
+                    reservation.getOrderNo() == null
+                            ? null
+                            : reservation.getOrderNo().value(),
                     reservation.getWarehouseCode() == null
                             ? null
                             : reservation.getWarehouseCode().value(),
@@ -163,14 +165,18 @@ public class InMemoryInventoryRepositorySupport {
                             ? null
                             : reservation.getReservationStatus().value(),
                     reservation.getFailureReason(),
-                    reservation.getReleaseReason() == null ? null : reservation.getReleaseReason().value(),
+                    reservation.getReleaseReason() == null
+                            ? null
+                            : reservation.getReleaseReason().value(),
                     reservation.getReleasedAt(),
                     reservation.getDeductedAt());
         }
         reservations.put(
                 reservationKey(
                         tenantId,
-                        reservation.getOrderNo() == null ? null : reservation.getOrderNo().value()),
+                        reservation.getOrderNo() == null
+                                ? null
+                                : reservation.getOrderNo().value()),
                 reservation);
         return reservation;
     }
@@ -195,7 +201,9 @@ public class InMemoryInventoryRepositorySupport {
         ledgers.computeIfAbsent(
                         reservationKey(
                                 BaconContextHolder.currentTenantId(),
-                                ledger.getOrderNo() == null ? null : ledger.getOrderNo().value()),
+                                ledger.getOrderNo() == null
+                                        ? null
+                                        : ledger.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(ledger);
     }
@@ -221,7 +229,9 @@ public class InMemoryInventoryRepositorySupport {
                 .computeIfAbsent(
                         reservationKey(
                                 BaconContextHolder.currentTenantId(),
-                                auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value()),
+                                auditLog.getOrderNo() == null
+                                        ? null
+                                        : auditLog.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(auditLog);
     }
@@ -233,7 +243,8 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public void saveAuditOutbox(InventoryAuditOutbox outbox) {
-        String eventCode = outbox.getEventCode() == null ? null : outbox.getEventCode().value();
+        String eventCode =
+                outbox.getEventCode() == null ? null : outbox.getEventCode().value();
         if (eventCode == null) {
             eventCode = generateEventCode().value();
         }
@@ -264,7 +275,9 @@ public class InMemoryInventoryRepositorySupport {
                 .computeIfAbsent(
                         reservationKey(
                                 BaconContextHolder.currentTenantId(),
-                                outbox.getOrderNo() == null ? null : outbox.getOrderNo().value()),
+                                outbox.getOrderNo() == null
+                                        ? null
+                                        : outbox.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(outbox);
     }
@@ -277,7 +290,8 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(item ->
                         item.getNextRetryAt() == null || !item.getNextRetryAt().isAfter(now))
                 .sorted(java.util.Comparator.comparing(InventoryAuditOutbox::getFailedAt)
-                        .thenComparing(item -> item.getId() == null ? null : item.getId().value()))
+                        .thenComparing(item ->
+                                item.getId() == null ? null : item.getId().value()))
                 .limit(limit)
                 .toList();
     }
@@ -293,8 +307,9 @@ public class InMemoryInventoryRepositorySupport {
             if (!tryClaim(candidate.getId(), now, processingOwner, leaseUntil)) {
                 continue;
             }
-            findAuditOutboxById(candidate.getId()).ifPresent(item -> claimed.add(
-                    new InventoryAuditOutboxRepository.TenantScopedAuditOutbox(findAuditOutboxTenant(item), item)));
+            findAuditOutboxById(candidate.getId())
+                    .ifPresent(item -> claimed.add(new InventoryAuditOutboxRepository.TenantScopedAuditOutbox(
+                            findAuditOutboxTenant(item), item)));
         }
         return List.copyOf(claimed);
     }
@@ -411,7 +426,9 @@ public class InMemoryInventoryRepositorySupport {
                 .computeIfAbsent(
                         reservationKey(
                                 tenantId,
-                                deadLetter.getOrderNo() == null ? null : deadLetter.getOrderNo().value()),
+                                deadLetter.getOrderNo() == null
+                                        ? null
+                                        : deadLetter.getOrderNo().value()),
                         key -> new ArrayList<>())
                 .add(deadLetter);
     }
@@ -482,8 +499,7 @@ public class InMemoryInventoryRepositorySupport {
             OperatorId operatorId,
             Instant replayAt) {
         findAuditDeadLetterById(id).ifPresent(item -> {
-            item.markReplaySucceeded(
-                    replayKey, operatorType, operatorId == null ? null : operatorId.value(), replayAt);
+            item.markReplaySucceeded(replayKey, operatorType, operatorId == null ? null : operatorId.value(), replayAt);
         });
     }
 

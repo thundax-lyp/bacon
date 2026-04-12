@@ -28,7 +28,6 @@ import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecord
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 
@@ -66,14 +65,13 @@ public class InventoryQueryApplicationService {
                 .toList();
     }
 
-    public InventoryPageResultDTO pageInventories(SkuId skuId, InventoryStatus status, Integer pageNo, Integer pageSize) {
+    public InventoryPageResultDTO pageInventories(
+            SkuId skuId, InventoryStatus status, Integer pageNo, Integer pageSize) {
         requireTenantContext();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         List<InventoryStockDTO> records =
-                inventoryStockRepository
-                        .pageInventories(skuId, status, normalizedPageNo, normalizedPageSize)
-                        .stream()
+                inventoryStockRepository.pageInventories(skuId, status, normalizedPageNo, normalizedPageSize).stream()
                         .map(InventoryStockAssembler::fromInventory)
                         .toList();
         long total = inventoryStockRepository.countInventories(skuId, status);
@@ -104,10 +102,7 @@ public class InventoryQueryApplicationService {
     }
 
     public InventoryAuditDeadLetterPageResultDTO pageAuditDeadLetters(
-            OrderNo orderNo,
-            InventoryAuditReplayStatus replayStatus,
-            Integer pageNo,
-            Integer pageSize) {
+            OrderNo orderNo, InventoryAuditReplayStatus replayStatus, Integer pageNo, Integer pageSize) {
         requireTenantContext();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
@@ -124,5 +119,4 @@ public class InventoryQueryApplicationService {
     private void requireTenantContext() {
         BaconContextHolder.requireTenantId();
     }
-
 }

@@ -30,14 +30,22 @@ public final class InventoryReservationPersistenceAssembler {
         return new InventoryReservationDO(
                 reservation.getId(),
                 BaconContextHolder.requireTenantId(),
-                reservation.getReservationNo() == null ? null : reservation.getReservationNo().value(),
-                reservation.getOrderNo() == null ? null : reservation.getOrderNo().value(),
+                reservation.getReservationNo() == null
+                        ? null
+                        : reservation.getReservationNo().value(),
+                reservation.getOrderNo() == null
+                        ? null
+                        : reservation.getOrderNo().value(),
                 reservation.getReservationStatus() == null
                         ? null
                         : reservation.getReservationStatus().value(),
-                reservation.getWarehouseCode() == null ? null : reservation.getWarehouseCode().value(),
+                reservation.getWarehouseCode() == null
+                        ? null
+                        : reservation.getWarehouseCode().value(),
                 reservation.getFailureReason(),
-                reservation.getReleaseReason() == null ? null : reservation.getReleaseReason().value(),
+                reservation.getReleaseReason() == null
+                        ? null
+                        : reservation.getReleaseReason().value(),
                 reservation.getCreatedAt(),
                 reservation.getReleasedAt(),
                 reservation.getDeductedAt());

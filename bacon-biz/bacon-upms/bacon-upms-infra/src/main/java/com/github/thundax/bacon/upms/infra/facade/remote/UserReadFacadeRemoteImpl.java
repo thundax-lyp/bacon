@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -33,44 +33,38 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
     @Override
     public UserDTO getUserById(@NonNull TenantId tenantId, @NonNull UserId userId) {
         // 用户主数据读取按 tenantId + userId 定位，避免在调用侧绕过租户边界。
-        return BaconContextHolder.callWithTenantId(
-                tenantId.value(),
-                () -> restClient
-                        .get()
-                        .uri("/providers/upms/users/{userId}", userId.value())
-                        .retrieve()
-                        .body(UserDTO.class));
+        return BaconContextHolder.callWithTenantId(tenantId.value(), () -> restClient
+                .get()
+                .uri("/providers/upms/users/{userId}", userId.value())
+                .retrieve()
+                .body(UserDTO.class));
     }
 
     @Override
     public UserIdentityDTO getUserIdentity(@NonNull TenantId tenantId, String identityType, String identityValue) {
         // 身份映射读取只返回绑定结果，不在 remote facade 里补默认身份，避免认证链路误判“用户不存在”和“未绑定”。
-        return BaconContextHolder.callWithTenantId(
-                tenantId.value(),
-                () -> restClient
-                        .get()
-                        .uri(
-                                "/providers/upms/user-identities?identityType={identityType}&identityValue={identityValue}",
-                                identityType,
-                                identityValue)
-                        .retrieve()
-                        .body(UserIdentityDTO.class));
+        return BaconContextHolder.callWithTenantId(tenantId.value(), () -> restClient
+                .get()
+                .uri(
+                        "/providers/upms/user-identities?identityType={identityType}&identityValue={identityValue}",
+                        identityType,
+                        identityValue)
+                .retrieve()
+                .body(UserIdentityDTO.class));
     }
 
     @Override
     public UserLoginCredentialDTO getUserLoginCredential(
             @NonNull TenantId tenantId, String identityType, String identityValue) {
         // 登录凭据查询是 auth 登录链路的基础读操作；provider 负责决定哪些敏感字段可以下发。
-        return BaconContextHolder.callWithTenantId(
-                tenantId.value(),
-                () -> restClient
-                        .get()
-                        .uri(
-                                "/providers/upms/user-credentials?identityType={identityType}&identityValue={identityValue}",
-                                identityType,
-                                identityValue)
-                        .retrieve()
-                        .body(UserLoginCredentialDTO.class));
+        return BaconContextHolder.callWithTenantId(tenantId.value(), () -> restClient
+                .get()
+                .uri(
+                        "/providers/upms/user-credentials?identityType={identityType}&identityValue={identityValue}",
+                        identityType,
+                        identityValue)
+                .retrieve()
+                .body(UserLoginCredentialDTO.class));
     }
 
     @Override

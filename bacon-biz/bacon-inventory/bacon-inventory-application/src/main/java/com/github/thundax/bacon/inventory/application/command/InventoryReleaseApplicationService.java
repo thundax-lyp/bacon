@@ -68,13 +68,11 @@ public class InventoryReleaseApplicationService {
     }
 
     private InventoryReservationResultDTO releaseReservedStockOnce(OrderNo orderNo, InventoryReleaseReason reason) {
-        InventoryReservation reservation = inventoryReservationRepository
-                .findReservation(orderNo)
-                .orElse(null);
+        InventoryReservation reservation =
+                inventoryReservationRepository.findReservation(orderNo).orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(
-                    OrderNoCodec.toValue(orderNo),
-                    InventoryErrorCode.RESERVATION_NOT_FOUND.code());
+                    OrderNoCodec.toValue(orderNo), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
             return InventoryReservationResultAssembler.fromReservation(reservation);

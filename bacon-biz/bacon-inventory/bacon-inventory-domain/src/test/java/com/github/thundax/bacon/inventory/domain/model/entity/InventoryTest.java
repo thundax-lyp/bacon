@@ -20,11 +20,7 @@ class InventoryTest {
     @Test
     void createShouldInitializeDefaultState() {
         Inventory inventory =
-                Inventory.create(
-                        InventoryId.of(1L),
-                        SkuId.of(101L),
-                        WarehouseCode.DEFAULT,
-                        new OnHandQuantity(30));
+                Inventory.create(InventoryId.of(1L), SkuId.of(101L), WarehouseCode.DEFAULT, new OnHandQuantity(30));
 
         assertEquals(InventoryId.of(1L), inventory.getId());
         assertEquals(new OnHandQuantity(30), inventory.getOnHandQuantity());
@@ -39,8 +35,7 @@ class InventoryTest {
     void createShouldRejectNullInventoryKey() {
         InventoryDomainException exception = assertThrows(
                 InventoryDomainException.class,
-                () -> Inventory.create(
-                        null, SkuId.of(101L), WarehouseCode.DEFAULT, new OnHandQuantity(30)));
+                () -> Inventory.create(null, SkuId.of(101L), WarehouseCode.DEFAULT, new OnHandQuantity(30)));
 
         assertEquals(InventoryErrorCode.INVALID_INVENTORY_KEY.code(), exception.getCode());
     }
@@ -59,10 +54,7 @@ class InventoryTest {
         InventoryDomainException exception = assertThrows(
                 InventoryDomainException.class,
                 () -> Inventory.create(
-                        InventoryId.of(1L),
-                        SkuId.of(101L),
-                        WarehouseCode.DEFAULT,
-                        OnHandQuantity.of(-1)));
+                        InventoryId.of(1L), SkuId.of(101L), WarehouseCode.DEFAULT, OnHandQuantity.of(-1)));
 
         assertEquals(InventoryErrorCode.INVALID_ON_HAND_QUANTITY.code(), exception.getCode());
     }

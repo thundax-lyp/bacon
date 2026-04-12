@@ -24,7 +24,8 @@ public class RocketMqBaconMqSender implements BaconMqSender {
         if (message.getTag() != null) {
             builder.setHeader(RocketMQHeaders.TAGS, message.getTag());
         }
-        for (Map.Entry<String, String> entry : BaconMqHeaderSupport.resolveHeaders(message).entrySet()) {
+        for (Map.Entry<String, String> entry :
+                BaconMqHeaderSupport.resolveHeaders(message).entrySet()) {
             builder.setHeader(entry.getKey(), entry.getValue());
         }
         rocketMQTemplate.syncSend(buildDestination(message), builder.build());

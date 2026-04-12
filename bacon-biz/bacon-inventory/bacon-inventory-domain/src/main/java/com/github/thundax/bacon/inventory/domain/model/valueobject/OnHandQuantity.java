@@ -31,23 +31,17 @@ public record OnHandQuantity(int value) {
 
     public OnHandQuantity increase(int delta) {
         if (delta < 0) {
-            throw new InventoryDomainException(
-                    InventoryErrorCode.INVALID_DELTA_QUANTITY,
-                    String.valueOf(delta));
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_DELTA_QUANTITY, String.valueOf(delta));
         }
         return new OnHandQuantity(value + delta);
     }
 
     public OnHandQuantity decrease(int delta) {
         if (delta < 0) {
-            throw new InventoryDomainException(
-                    InventoryErrorCode.INVALID_DELTA_QUANTITY,
-                    String.valueOf(delta));
+            throw new InventoryDomainException(InventoryErrorCode.INVALID_DELTA_QUANTITY, String.valueOf(delta));
         }
         if (this.value < delta) {
-            throw new InventoryDomainException(
-                    InventoryErrorCode.INSUFFICIENT_STOCK,
-                    this.value + " < " + delta);
+            throw new InventoryDomainException(InventoryErrorCode.INSUFFICIENT_STOCK, this.value + " < " + delta);
         }
         return new OnHandQuantity(value - delta);
     }

@@ -29,12 +29,7 @@ public class PaymentCommandFacadeRemoteImpl implements PaymentCommandFacade {
     @CircuitBreaker(name = "paymentRemote", fallbackMethod = "createPaymentFallback")
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "createPaymentFallback")
     public PaymentCreateResultDTO createPayment(
-            String orderNo,
-            Long userId,
-            BigDecimal amount,
-            String channelCode,
-            String subject,
-            Instant expiredAt) {
+            String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
         // remote facade 只负责协议转发，不在这里做支付业务兜底；一切失败都交给 fallback 统一翻译。
         return restClient
                 .post()

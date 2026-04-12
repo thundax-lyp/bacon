@@ -9,7 +9,6 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
@@ -76,10 +75,14 @@ class InventoryApplicationServiceTest {
             assertEquals(first.getReservationNo(), second.getReservationNo());
             assertEquals(10, stock.getReservedQuantity());
             assertEquals(90, stock.getAvailableQuantity());
-            assertEquals(1, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-1")).size());
+            assertEquals(
+                    1, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-1")).size());
             assertEquals(
                     InventoryLedgerType.RESERVE.value(),
-                    queryService.listLedgersByOrderNo(OrderNo.of("ORDER-1")).get(0).getLedgerType());
+                    queryService
+                            .listLedgersByOrderNo(OrderNo.of("ORDER-1"))
+                            .get(0)
+                            .getLedgerType());
         });
     }
 
@@ -108,7 +111,10 @@ class InventoryApplicationServiceTest {
             assertEquals(100, stock.getAvailableQuantity());
             assertEquals(
                     InventoryAuditActionType.RESERVE_FAILED.value(),
-                    queryService.listAuditLogsByOrderNo(OrderNo.of("ORDER-2")).get(0).getActionType());
+                    queryService
+                            .listAuditLogsByOrderNo(OrderNo.of("ORDER-2"))
+                            .get(0)
+                            .getActionType());
         });
     }
 
@@ -137,10 +143,14 @@ class InventoryApplicationServiceTest {
             assertEquals(InventoryReservationStatus.RELEASED.value(), secondRelease.getReservationStatus());
             assertEquals(0, stock.getReservedQuantity());
             assertEquals(100, stock.getAvailableQuantity());
-            assertEquals(2, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-3")).size());
+            assertEquals(
+                    2, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-3")).size());
             assertEquals(
                     InventoryAuditActionType.RELEASE.value(),
-                    queryService.listAuditLogsByOrderNo(OrderNo.of("ORDER-3")).get(1).getActionType());
+                    queryService
+                            .listAuditLogsByOrderNo(OrderNo.of("ORDER-3"))
+                            .get(1)
+                            .getActionType());
         });
     }
 
@@ -168,10 +178,14 @@ class InventoryApplicationServiceTest {
             assertEquals(0, stock.getReservedQuantity());
             assertEquals(93, stock.getOnHandQuantity());
             assertEquals(93, stock.getAvailableQuantity());
-            assertEquals(2, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-4")).size());
+            assertEquals(
+                    2, queryService.listLedgersByOrderNo(OrderNo.of("ORDER-4")).size());
             assertEquals(
                     InventoryLedgerType.DEDUCT.value(),
-                    queryService.listLedgersByOrderNo(OrderNo.of("ORDER-4")).get(1).getLedgerType());
+                    queryService
+                            .listLedgersByOrderNo(OrderNo.of("ORDER-4"))
+                            .get(1)
+                            .getLedgerType());
         });
     }
 
@@ -235,8 +249,7 @@ class InventoryApplicationServiceTest {
 
         @Override
         public List<Inventory> findInventories() {
-            return inventories.values().stream()
-                    .toList();
+            return inventories.values().stream().toList();
         }
 
         @Override
@@ -268,7 +281,9 @@ class InventoryApplicationServiceTest {
 
         @Override
         public Inventory saveInventory(Inventory inventory) {
-            Version version = inventory.getVersion() == null ? new Version(0L) : inventory.getVersion().next();
+            Version version = inventory.getVersion() == null
+                    ? new Version(0L)
+                    : inventory.getVersion().next();
             inventory.markPersisted(version);
             inventories.put(
                     key(
@@ -285,15 +300,17 @@ class InventoryApplicationServiceTest {
             reservations.put(
                     reservationKey(
                             BaconContextHolder.currentTenantId(),
-                            reservation.getOrderNo() == null ? null : reservation.getOrderNo().value()),
+                            reservation.getOrderNo() == null
+                                    ? null
+                                    : reservation.getOrderNo().value()),
                     reservation);
             return reservation;
         }
 
         @Override
         public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
-            return Optional.ofNullable(reservations.get(reservationKey(
-                    BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value())));
+            return Optional.ofNullable(reservations.get(
+                    reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value())));
         }
 
         @Override
@@ -301,7 +318,9 @@ class InventoryApplicationServiceTest {
             ledgers.computeIfAbsent(
                             reservationKey(
                                     BaconContextHolder.currentTenantId(),
-                                    ledger.getOrderNo() == null ? null : ledger.getOrderNo().value()),
+                                    ledger.getOrderNo() == null
+                                            ? null
+                                            : ledger.getOrderNo().value()),
                             ignored -> new java.util.ArrayList<>())
                     .add(ledger);
         }
@@ -319,7 +338,9 @@ class InventoryApplicationServiceTest {
                     .computeIfAbsent(
                             reservationKey(
                                     BaconContextHolder.currentTenantId(),
-                                    auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value()),
+                                    auditLog.getOrderNo() == null
+                                            ? null
+                                            : auditLog.getOrderNo().value()),
                             ignored -> new java.util.ArrayList<>())
                     .add(auditLog);
         }

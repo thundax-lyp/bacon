@@ -33,7 +33,9 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
     public List<InventoryStockDTO> batchGetAvailableStock(Set<Long> skuIds) {
         requireContext();
         return inventoryQueryService.batchGetAvailableStock(
-                skuIds == null ? Set.of() : skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
+                skuIds == null
+                        ? Set.of()
+                        : skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
     }
 
     @Override

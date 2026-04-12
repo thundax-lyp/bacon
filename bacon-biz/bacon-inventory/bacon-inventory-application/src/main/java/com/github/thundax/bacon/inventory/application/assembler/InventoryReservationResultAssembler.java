@@ -23,7 +23,9 @@ public final class InventoryReservationResultAssembler {
                 toInventoryStatus(reservation.getReservationStatus()),
                 WarehouseCodeCodec.toValue(reservation.getWarehouseCode()),
                 reservation.getFailureReason(),
-                reservation.getReleaseReason() == null ? null : reservation.getReleaseReason().value(),
+                reservation.getReleaseReason() == null
+                        ? null
+                        : reservation.getReleaseReason().value(),
                 reservation.getReleasedAt(),
                 reservation.getDeductedAt());
     }

@@ -25,7 +25,9 @@ public final class InventoryReservationAssembler {
                 WarehouseCodeCodec.toValue(reservation.getWarehouseCode()),
                 toItemDtos(reservation.getItems()),
                 reservation.getFailureReason(),
-                reservation.getReleaseReason() == null ? null : reservation.getReleaseReason().value(),
+                reservation.getReleaseReason() == null
+                        ? null
+                        : reservation.getReleaseReason().value(),
                 reservation.getCreatedAt(),
                 reservation.getReleasedAt(),
                 reservation.getDeductedAt());

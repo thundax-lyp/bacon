@@ -36,8 +36,8 @@ class InventoryQueryApplicationServiceTest {
         InventoryQueryApplicationService service =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
-        InventoryPageResultDTO result =
-                BaconContextHolder.callWithTenantId(1001L, () -> service.pageInventories(null, InventoryStatus.ENABLED, 1, 2));
+        InventoryPageResultDTO result = BaconContextHolder.callWithTenantId(
+                1001L, () -> service.pageInventories(null, InventoryStatus.ENABLED, 1, 2));
 
         assertEquals(2, result.getRecords().size());
         assertEquals(3, result.getTotal());
@@ -114,11 +114,10 @@ class InventoryQueryApplicationServiceTest {
 
         @Override
         public Optional<Inventory> findInventory(SkuId skuId) {
-            return Optional.ofNullable(
-                    inventories.values().stream()
-                            .filter(inventory -> java.util.Objects.equals(inventory.getSkuId(), skuId))
-                            .findFirst()
-                            .orElse(null));
+            return Optional.ofNullable(inventories.values().stream()
+                    .filter(inventory -> java.util.Objects.equals(inventory.getSkuId(), skuId))
+                    .findFirst()
+                    .orElse(null));
         }
 
         @Override
@@ -158,7 +157,9 @@ class InventoryQueryApplicationServiceTest {
 
         @Override
         public Inventory saveInventory(Inventory inventory) {
-            Version version = inventory.getVersion() == null ? new Version(0L) : inventory.getVersion().next();
+            Version version = inventory.getVersion() == null
+                    ? new Version(0L)
+                    : inventory.getVersion().next();
             inventory.markPersisted(version);
             inventories.put(
                     key(

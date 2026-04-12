@@ -81,8 +81,8 @@ class BaconSecurityConfigurationTest {
 
     @Test
     void shouldResolveCurrentUserFromResolverBackedMicroProvider() {
-        CurrentUserProvider currentUserProvider = new SpringContextCurrentUserProvider(
-                new org.springframework.beans.factory.ObjectProvider<>() {
+        CurrentUserProvider currentUserProvider =
+                new SpringContextCurrentUserProvider(new org.springframework.beans.factory.ObjectProvider<>() {
                     @Override
                     public CurrentUserResolver getObject(Object... args) {
                         return new StubCurrentUserResolver();

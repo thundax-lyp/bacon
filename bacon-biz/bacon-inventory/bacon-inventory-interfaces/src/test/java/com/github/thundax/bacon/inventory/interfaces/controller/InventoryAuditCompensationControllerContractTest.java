@@ -10,7 +10,6 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -94,9 +93,11 @@ class InventoryAuditCompensationControllerContractTest {
 
     @Test
     void shouldCreateReplayTaskWithoutTenantIdInResponse() throws Exception {
-        mockMvc.perform(post("/inventory-audit-dead-letters/replay-tasks")
-                        .contentType(APPLICATION_JSON)
-                        .content("""
+        mockMvc.perform(
+                        post("/inventory-audit-dead-letters/replay-tasks")
+                                .contentType(APPLICATION_JSON)
+                                .content(
+                                        """
                                 {
                                   "operatorId": 3001,
                                   "replayKeyPrefix": "TASK",
@@ -146,7 +147,7 @@ class InventoryAuditCompensationControllerContractTest {
         }
     }
 
-        private static final class StubReplayTaskRepository implements InventoryAuditReplayTaskRepository {
+    private static final class StubReplayTaskRepository implements InventoryAuditReplayTaskRepository {
 
         private final AtomicLong taskIdGenerator = new AtomicLong(1000L);
         private final AtomicLong taskItemIdGenerator = new AtomicLong(2000L);
@@ -162,7 +163,8 @@ class InventoryAuditCompensationControllerContractTest {
             tasks.put(task.getIdValue(), task);
             taskTenants.put(
                     task.getIdValue(),
-                    java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null"));
+                    java.util.Objects.requireNonNull(
+                            BaconContextHolder.currentTenantId(), "tenantId must not be null"));
             return task;
         }
 
@@ -197,7 +199,8 @@ class InventoryAuditCompensationControllerContractTest {
 
         @Override
         public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
-            Long tenantId = java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
+            Long tenantId =
+                    java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
             return findAuditReplayTaskById(taskId)
                     .filter(task -> java.util.Objects.equals(tenantId, taskTenants.get(task.getIdValue())))
                     .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
@@ -213,7 +216,8 @@ class InventoryAuditCompensationControllerContractTest {
 
         @Override
         public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
-            Long tenantId = java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
+            Long tenantId =
+                    java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
             return findAuditReplayTaskById(taskId)
                     .filter(task -> java.util.Objects.equals(tenantId, taskTenants.get(task.getIdValue())))
                     .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))

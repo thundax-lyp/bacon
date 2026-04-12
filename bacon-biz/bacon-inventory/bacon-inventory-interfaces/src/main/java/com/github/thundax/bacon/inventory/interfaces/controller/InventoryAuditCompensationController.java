@@ -59,13 +59,11 @@ public class InventoryAuditCompensationController {
     @Operation(summary = "分页查询库存审计死信")
     @HasPermission("inventory:audit:dead:view")
     @GetMapping
-    public InventoryAuditDeadLetterPageResponse pageDeadLetters(@Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
+    public InventoryAuditDeadLetterPageResponse pageDeadLetters(
+            @Valid @ModelAttribute InventoryAuditDeadLetterPageRequest request) {
         InventoryAuditReplayStatus replayStatus = parseReplayStatus(request.getReplayStatus());
         return InventoryAuditDeadLetterPageResponse.from(inventoryQueryService.pageAuditDeadLetters(
-                OrderNoCodec.toDomain(request.getOrderNo()),
-                replayStatus,
-                request.getPageNo(),
-                request.getPageSize()));
+                OrderNoCodec.toDomain(request.getOrderNo()), replayStatus, request.getPageNo(), request.getPageSize()));
     }
 
     @Operation(summary = "重放单条库存审计死信")
@@ -83,7 +81,8 @@ public class InventoryAuditCompensationController {
     @Operation(summary = "批量重放库存审计死信")
     @HasPermission("inventory:audit:dead:replay")
     @PostMapping("/replay-batch")
-    public List<InventoryAuditReplayResultResponse> replayBatch(@Valid @RequestBody InventoryAuditBatchReplayRequest request) {
+    public List<InventoryAuditReplayResultResponse> replayBatch(
+            @Valid @RequestBody InventoryAuditBatchReplayRequest request) {
         return inventoryAuditCompensationService
                 .replayDeadLettersBatch(
                         request.deadLetterIds() == null
@@ -101,7 +100,8 @@ public class InventoryAuditCompensationController {
     @Operation(summary = "创建库存审计死信批量重放任务")
     @HasPermission("inventory:audit:dead:replay")
     @PostMapping("/replay-tasks")
-    public InventoryAuditReplayTaskResponse createReplayTask(@Valid @RequestBody InventoryAuditReplayTaskCreateRequest request) {
+    public InventoryAuditReplayTaskResponse createReplayTask(
+            @Valid @RequestBody InventoryAuditReplayTaskCreateRequest request) {
         return InventoryAuditReplayTaskResponse.from(
                 inventoryAuditReplayTaskService.createReplayTask(new InventoryAuditReplayTaskCreateDTO(
                         request.operatorId(), request.replayKeyPrefix(), request.deadLetterIds())));
@@ -122,8 +122,7 @@ public class InventoryAuditCompensationController {
             @PathVariable @NotNull @Positive Long taskId,
             @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
         return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.pauseReplayTask(
-                TaskIdCodec.toDomain(taskId),
-                OperatorIdMapper.toDomainFromLong(request.operatorId())));
+                TaskIdCodec.toDomain(taskId), OperatorIdMapper.toDomainFromLong(request.operatorId())));
     }
 
     @Operation(summary = "恢复库存审计死信批量重放任务")
@@ -133,8 +132,7 @@ public class InventoryAuditCompensationController {
             @PathVariable @NotNull @Positive Long taskId,
             @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
         return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.resumeReplayTask(
-                TaskIdCodec.toDomain(taskId),
-                OperatorIdMapper.toDomainFromLong(request.operatorId())));
+                TaskIdCodec.toDomain(taskId), OperatorIdMapper.toDomainFromLong(request.operatorId())));
     }
 
     private InventoryAuditReplayStatus parseReplayStatus(String replayStatus) {

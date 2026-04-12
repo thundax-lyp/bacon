@@ -21,9 +21,13 @@ public final class InventoryAuditOutboxPersistenceAssembler {
                 outbox.getEventCode() == null ? null : outbox.getEventCode().value(),
                 BaconContextHolder.requireTenantId(),
                 outbox.getOrderNo() == null ? null : outbox.getOrderNo().value(),
-                outbox.getReservationNo() == null ? null : outbox.getReservationNo().value(),
+                outbox.getReservationNo() == null
+                        ? null
+                        : outbox.getReservationNo().value(),
                 outbox.getActionType() == null ? null : outbox.getActionType().value(),
-                outbox.getOperatorType() == null ? null : outbox.getOperatorType().value(),
+                outbox.getOperatorType() == null
+                        ? null
+                        : outbox.getOperatorType().value(),
                 outbox.getOperatorId() == null ? null : Long.valueOf(outbox.getOperatorId()),
                 outbox.getOccurredAt(),
                 outbox.getErrorMessage(),

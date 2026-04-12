@@ -43,10 +43,7 @@ public class Inventory {
     private Instant updatedAt;
 
     public static Inventory create(
-            InventoryId id,
-            SkuId skuId,
-            WarehouseCode warehouseCode,
-            OnHandQuantity onHandQuantity) {
+            InventoryId id, SkuId skuId, WarehouseCode warehouseCode, OnHandQuantity onHandQuantity) {
         if (Objects.isNull(id) || Objects.isNull(skuId) || Objects.isNull(warehouseCode)) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_INVENTORY_KEY);
         }
@@ -87,15 +84,7 @@ public class Inventory {
         if (Objects.isNull(version)) {
             throw new IllegalArgumentException("version must not be null");
         }
-        return new Inventory(
-                id,
-                skuId,
-                warehouseCode,
-                onHandQuantity,
-                reservedQuantity,
-                status,
-                version,
-                updatedAt);
+        return new Inventory(id, skuId, warehouseCode, onHandQuantity, reservedQuantity, status, version, updatedAt);
     }
 
     public AvailableQuantity availableQuantity() {

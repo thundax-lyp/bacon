@@ -53,8 +53,7 @@ class InventoryManagementApplicationServiceTest {
                 new InventoryManagementApplicationService(repository, bizTag -> 10001L);
 
         InventoryStockDTO result = BaconContextHolder.callWithTenantId(
-                1001L,
-                () -> service.updateInventoryStatus(SkuId.of(101L), InventoryStatus.DISABLED));
+                1001L, () -> service.updateInventoryStatus(SkuId.of(101L), InventoryStatus.DISABLED));
 
         assertEquals(InventoryStatus.DISABLED.value(), result.getStatus());
         assertEquals(
@@ -126,7 +125,9 @@ class InventoryManagementApplicationServiceTest {
 
         @Override
         public Inventory saveInventory(Inventory inventory) {
-            Version version = inventory.getVersion() == null ? new Version(0L) : inventory.getVersion().next();
+            Version version = inventory.getVersion() == null
+                    ? new Version(0L)
+                    : inventory.getVersion().next();
             inventory.markPersisted(version);
             inventories.put(
                     key(

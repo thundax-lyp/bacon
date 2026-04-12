@@ -75,7 +75,10 @@ public class OrderReadProviderController {
     }
 
     @PostMapping("/close-expired")
-    public void closeExpired(@CurrentTenant Long tenantId, @RequestParam("orderNo") String orderNo, @RequestParam("reason") String reason) {
+    public void closeExpired(
+            @CurrentTenant Long tenantId,
+            @RequestParam("orderNo") String orderNo,
+            @RequestParam("reason") String reason) {
         orderTimeoutApplicationService.closeExpiredOrder(tenantId, orderNo, reason);
     }
 }

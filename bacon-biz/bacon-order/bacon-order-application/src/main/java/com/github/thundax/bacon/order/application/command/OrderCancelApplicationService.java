@@ -61,8 +61,8 @@ public class OrderCancelApplicationService {
                 tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, reason));
         applyReleaseResult(order, releaseResult, reason);
         if (order.getPaymentNoValue() != null && !order.getPaymentNoValue().isBlank()) {
-            BaconContextHolder.runWithTenantId(tenantId, () -> paymentCommandFacade.closePayment(
-                    order.getPaymentNoValue(), reason));
+            BaconContextHolder.runWithTenantId(
+                    tenantId, () -> paymentCommandFacade.closePayment(order.getPaymentNoValue(), reason));
         }
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CANCEL, beforeStatus);

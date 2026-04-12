@@ -16,9 +16,15 @@ public final class InventoryAuditLogAssembler {
         return new InventoryAuditLogDTO(
                 auditLog.getId(),
                 auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value(),
-                auditLog.getReservationNo() == null ? null : auditLog.getReservationNo().value(),
-                auditLog.getActionType() == null ? null : auditLog.getActionType().value(),
-                auditLog.getOperatorType() == null ? null : auditLog.getOperatorType().value(),
+                auditLog.getReservationNo() == null
+                        ? null
+                        : auditLog.getReservationNo().value(),
+                auditLog.getActionType() == null
+                        ? null
+                        : auditLog.getActionType().value(),
+                auditLog.getOperatorType() == null
+                        ? null
+                        : auditLog.getOperatorType().value(),
                 OperatorIdMapper.toLongValue(auditLog.getOperatorId()),
                 auditLog.getOccurredAt());
     }

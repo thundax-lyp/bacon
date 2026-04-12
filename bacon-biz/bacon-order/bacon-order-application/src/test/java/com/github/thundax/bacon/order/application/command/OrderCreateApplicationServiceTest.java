@@ -637,21 +637,9 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public PaymentCreateResultDTO createPayment(
-                String orderNo,
-                Long userId,
-                BigDecimal amount,
-                String channelCode,
-                String subject,
-                Instant expiredAt) {
+                String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
             return new PaymentCreateResultDTO(
-                    1001L,
-                    "PAY-" + orderNo,
-                    orderNo,
-                    channelCode,
-                    "PAYING",
-                    "mock://pay/" + orderNo,
-                    expiredAt,
-                    null);
+                    1001L, "PAY-" + orderNo, orderNo, channelCode, "PAYING", "mock://pay/" + orderNo, expiredAt, null);
         }
 
         @Override
@@ -664,12 +652,7 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public PaymentCreateResultDTO createPayment(
-                String orderNo,
-                Long userId,
-                BigDecimal amount,
-                String channelCode,
-                String subject,
-                Instant expiredAt) {
+                String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
             return new PaymentCreateResultDTO(
                     1001L, null, orderNo, channelCode, "FAILED", null, expiredAt, "payment channel unavailable");
         }

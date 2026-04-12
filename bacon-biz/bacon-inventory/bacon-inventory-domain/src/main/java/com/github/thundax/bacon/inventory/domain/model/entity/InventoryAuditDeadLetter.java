@@ -155,10 +155,7 @@ public class InventoryAuditDeadLetter {
     }
 
     public void markReplayRunning(
-            String replayKey,
-            InventoryAuditOperatorType operatorType,
-            String operatorId,
-            Instant replayAt) {
+            String replayKey, InventoryAuditOperatorType operatorType, String operatorId, Instant replayAt) {
         this.replayStatus = InventoryAuditReplayStatus.RUNNING;
         this.replayKey = replayKey;
         this.replayOperatorType = operatorType == null ? null : operatorType.value();
@@ -169,10 +166,7 @@ public class InventoryAuditDeadLetter {
     }
 
     public void markReplaySucceeded(
-            String replayKey,
-            InventoryAuditOperatorType operatorType,
-            String operatorId,
-            Instant replayAt) {
+            String replayKey, InventoryAuditOperatorType operatorType, String operatorId, Instant replayAt) {
         this.replayStatus = InventoryAuditReplayStatus.SUCCEEDED;
         this.replayCount = (replayCount == null ? 0 : replayCount) + 1;
         this.replayKey = replayKey;

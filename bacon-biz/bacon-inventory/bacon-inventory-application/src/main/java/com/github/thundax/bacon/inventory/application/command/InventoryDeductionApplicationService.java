@@ -16,7 +16,6 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservati
 import com.github.thundax.bacon.inventory.domain.repository.InventoryReservationRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryStockRepository;
 import java.time.Instant;
-import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -60,18 +59,15 @@ public class InventoryDeductionApplicationService {
         return inventoryWriteRetrier.execute(
                 "deduct",
                 tenantId + ":" + orderNo,
-                () -> inventoryTransactionExecutor.executeInNewTransaction(
-                        () -> deductReservedStockOnce(orderNo)));
+                () -> inventoryTransactionExecutor.executeInNewTransaction(() -> deductReservedStockOnce(orderNo)));
     }
 
     private InventoryReservationResultDTO deductReservedStockOnce(OrderNo orderNo) {
-        InventoryReservation reservation = inventoryReservationRepository
-                .findReservation(orderNo)
-                .orElse(null);
+        InventoryReservation reservation =
+                inventoryReservationRepository.findReservation(orderNo).orElse(null);
         if (reservation == null) {
             return InventoryReservationResultAssembler.failed(
-                    OrderNoCodec.toValue(orderNo),
-                    InventoryErrorCode.RESERVATION_NOT_FOUND.code());
+                    OrderNoCodec.toValue(orderNo), InventoryErrorCode.RESERVATION_NOT_FOUND.code());
         }
         if (!reservation.isReserved()) {
             return InventoryReservationResultAssembler.fromReservation(reservation);

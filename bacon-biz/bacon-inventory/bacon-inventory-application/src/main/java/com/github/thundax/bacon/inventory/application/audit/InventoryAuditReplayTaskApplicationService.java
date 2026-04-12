@@ -44,7 +44,7 @@ public class InventoryAuditReplayTaskApplicationService {
             throw new InventoryDomainException(
                     InventoryErrorCode.INVENTORY_REMOTE_BAD_REQUEST, "replay-task-empty-dead-letter-ids");
         }
-        currentTenantId();
+        requireTenantIdValue();
         Instant now = Instant.now();
         TaskNo taskNo =
                 TaskNoCodec.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
@@ -64,12 +64,12 @@ public class InventoryAuditReplayTaskApplicationService {
 
     public InventoryAuditReplayTaskDTO getReplayTask(TaskId taskId) {
         InventoryAuditReplayTask task = getTaskById(taskId);
-        ensureTaskTenant(taskId, currentTenantId());
+        ensureTaskTenant(taskId, requireTenantIdValue());
         return InventoryAuditReplayTaskAssembler.toDto(task);
     }
 
     public InventoryAuditReplayTaskDTO pauseReplayTask(TaskId taskId, OperatorId operatorId) {
-        Long tenantId = currentTenantId();
+        long tenantId = requireTenantIdValue();
         InventoryAuditReplayTask task = getTaskById(taskId);
         ensureTaskTenant(taskId, tenantId);
         if (isTerminal(task.getStatus())) {
@@ -84,7 +84,7 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     public InventoryAuditReplayTaskDTO resumeReplayTask(TaskId taskId, OperatorId operatorId) {
-        Long tenantId = currentTenantId();
+        long tenantId = requireTenantIdValue();
         InventoryAuditReplayTask task = getTaskById(taskId);
         ensureTaskTenant(taskId, tenantId);
         if (isTerminal(task.getStatus())) {
@@ -218,7 +218,7 @@ public class InventoryAuditReplayTaskApplicationService {
                         "replay-task-not-found:" + (taskId == null ? null : taskId.value())));
     }
 
-    private void ensureTaskTenant(TaskId taskId, Long tenantId) {
+    private void ensureTaskTenant(TaskId taskId, long tenantId) {
         if (!Objects.equals(loadTaskTenantId(taskId), tenantId)) {
             throw new InventoryDomainException(
                     InventoryErrorCode.INVENTORY_REMOTE_FORBIDDEN, "replay-task-tenant-mismatch");
@@ -229,7 +229,7 @@ public class InventoryAuditReplayTaskApplicationService {
         return inventoryAuditReplayTaskRepository.findAuditReplayTaskTenantId(taskId);
     }
 
-    private Long currentTenantId() {
+    private long requireTenantIdValue() {
         return BaconIdContextHelper.requireTenantId().value();
     }
 

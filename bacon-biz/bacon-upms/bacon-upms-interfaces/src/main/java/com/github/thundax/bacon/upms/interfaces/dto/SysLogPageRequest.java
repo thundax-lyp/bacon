@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SysLogPageRequest {
 
-    private String tenantCode;
     private String module;
     private LogEventType eventType;
     private String result;

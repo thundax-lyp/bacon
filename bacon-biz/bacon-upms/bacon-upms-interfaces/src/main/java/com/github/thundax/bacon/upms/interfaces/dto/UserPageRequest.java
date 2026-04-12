@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserPageRequest {
 
-    private String tenantCode;
     private String account;
     private String name;
     private String phone;

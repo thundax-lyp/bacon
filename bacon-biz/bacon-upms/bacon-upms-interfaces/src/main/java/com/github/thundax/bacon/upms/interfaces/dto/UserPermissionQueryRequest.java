@@ -9,6 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserPermissionQueryRequest {
 
-    private String tenantCode;
     private String userId;
 }

@@ -1,264 +1,111 @@
-# 统一 ID 体系设计
+# Unified ID Design
 
-## 1. Purpose
+本文件只定义统一 ID 的工程边界和默认写法。
 
-本文档定义项目内统一 ID 体系的工程设计。  
-目标是统一 `UserId`、`RoleId`、`TenantId`、`OrderId`、`SkuId` 等标识的建模方式，减少重复样板代码，保留类型安全，并支持 `Jackson`、`MyBatis` 和后续 `JPA` 集成。
+## Scope
 
-## 2. Scope
+- 统一 `UserId`、`RoleId`、`TenantId`、`OrderId`、`SkuId` 等领域标识建模
+- 保留类型安全
+- 统一 `Jackson`、`MyBatis` 和持久化边界适配
+- 不覆盖业务单号设计
 
-- 定义统一 ID 抽象：`Identifier<T>`、`BaseId<T>`
-- 定义具体 ID 类型的固定写法：`DepartmentId`、`UserId`、`RoleId`、`TenantId`、`OrderId`、`SkuId`
-- 定义统一生成入口：`IdGenerator`、`Ids`
-- 定义统一发号提供方规则
-- 定义统一适配层：`IdConverters`
-- 定义退化事件边界
-- 定义 `Jackson`、`MyBatis`、`JPA` 的接入规则
-- 定义数据库字段与迁移边界
+## Core Distinction
 
-## 3. Bounded Context
+- `Database Primary Key`
+  数据库主键
+- `Business No`
+  业务单号，例如 `orderNo`、`paymentNo`
+- `Domain Identifier`
+  Java 里的强类型领域标识，例如 `UserId`、`TenantId`
 
-- 本设计属于工程级公共能力，固定落在 `bacon-common-id`
-- `domain` 层优先使用强类型 ID 表达领域标识
-- `interfaces`、`api.dto`、`infra.persistence.dataobject` 可按协议需要保留基础类型字段，但转换必须通过统一适配层完成
-- `Order`、`Payment`、`Inventory` 的业务单号规则仍以 `ARCHITECTURE.md` 既有定义为准
-- 本设计中的“领域 ID”不等于“业务单号”
+三者不得混用。
 
-## 4. Module Mapping
+## Module Boundary
 
-- `bacon-common-id`
-  - `core`: `Identifier<T>`、`BaseId<T>`、`Ids`
-  - `provider`: 发号提供方适配
-  - `config`: 发号提供方选择与装配
-  - `domain`: 具体 ID 类型，如 `UserId`、`RoleId`、`TenantId`
-  - `converter`: `Jackson` / `JPA` 通用转换支持
-  - `event`: 发号退化与告警事件
-- `bacon-common-mybatis`
-  - `handler`: `MyBatis` 统一 `TypeHandler`
-- 各业务域
-  - `domain.model.valueobject` 或 `domain.model.identifier` 只保留业务语义类型声明
-  - 不重复实现公共比较、判空、序列化、持久化逻辑
+- 统一 ID 公共能力固定放在 `bacon-common-id`
+- `domain` 优先使用强类型 ID
+- `interfaces`、`api.dto`、`infra.dataobject` 可按协议需要保留基础类型
+- 边界转换必须通过统一适配层完成
+- 业务单号规则仍以架构文档为准，不属于统一 ID 体系
 
-## 5. Core Domain Objects
-
-### 5.1 Terminology
-
-- `Database Primary Key`：数据库主键，如表的 `id`
-- `Business No`：业务单号，如 `orderNo`、`paymentNo`、`reservationNo`
-- `Domain Identifier`：领域内强类型标识，如 `UserId`、`TenantId`、`OrderId`
-
-固定边界：
-
-- `Database Primary Key` 用于数据库关系和站内持久化定位
-- `Business No` 用于跨域调用、幂等键和外部查询
-- `Domain Identifier` 用于 Java 代码中的类型安全表达
-- 三者不得混用
-
-### 5.2 Fixed Interfaces
+## Core Model
 
 - `Identifier<T>`
-  - 固定表示“可暴露底层值的领域标识”
-  - 至少提供 `value()`、`type()`、`asString()`
+  标识接口
 - `BaseId<T>`
-  - 固定为抽象基类
-  - 负责 `equals`、`hashCode`、`toString`
-  - 负责空值校验、类型校验、统一文本表达
+  抽象基类
+- 具体 ID
+  例如 `DepartmentId`、`UserId`、`RoleId`、`TenantId`、`OrderId`、`SkuId`
+- `IdGenerator`
+  统一底层值生成器
+- `Ids`
+  统一工厂入口
+- `IdConverters`
+  统一适配层
 
-### 5.3 Fixed Concrete IDs
+## Hard Rules
 
-- `DepartmentId`
-- `UserId`
-- `UserIdentityId`
-- `RoleId`
-- `TenantId`
-- `OrderId`
-- `SkuId`
+- 统一 ID 采用“单值包装 + 强类型”模型
+- `BaseId<T>` 必须不可变
+- 构造器固定非公开，统一使用 `of(...)`
+- 判等必须基于“具体类型 + 底层值”
+- 不允许每个具体 ID 重写 `equals/hashCode/toString`
+- 框架适配逻辑固定放在转换器或 `TypeHandler`
+- `domain` 不得被 `MyBatis`、`JPA`、`Spring MVC` 注解污染
+- 新增 ID 类型时，优先复用统一基类和统一转换器
 
-固定要求：
+## Value Type Rules
 
-- 每个具体 ID 只保留极薄的一层类型声明
-- 每个具体 ID 固定提供 `of(...)`
-- 如该类型支持自动生成，则固定提供 `newId(Ids ids)` 或由 `Ids` 直接暴露工厂方法
-- 不允许每个 ID 重新手写 `equals`、`hashCode`、`toString`、`@JsonValue`、`TypeHandler`
-
-## 6. Global Constraints
-
-- 统一 ID 体系优先采用“单值包装 + 强类型”模型
-- `Identifier<T>` 必须暴露单一底层值与该值类型
-- `BaseId<T>` 必须保持不可变
-- `BaseId<T>` 的底层值固定优先支持 `String` 与 `Long`
-- 具体 ID 在创建时必须完成空值、类型和值域校验
-- 文本型 ID 的底层值不得为空白字符串
+- `BaseId<T>` 的底层值优先支持 `String` 或 `Long`
+- 文本型 ID 底层值不得为空白
+- 一个具体 ID 类型只能固定一种底层值类型
 - `UserId` 固定使用 `String`
 - `UserIdentityId` 固定使用 `String`
-- `TenantId` 固定承载租户领域主标识，例如 `T001`
-- `RoleId`、`SkuId`、`OrderId` 可承载字符串型或数值型值，但一个具体类型只能固定一种底层值类型
-- `BaseId<T>` 不得直接依赖 `MyBatis`、`JPA`、`Spring MVC`
-- 框架适配逻辑固定放在 `converter` 或 `handler`，不得回灌到领域模型
-- `domain` 中允许出现具体 ID 类型，不允许出现框架注解污染领域对象
-- 新增具体 ID 类型时，优先复用统一基类与统一转换器，不新增第二套模式
+- `TenantId` 固定使用文本型租户主标识
+- `RoleId`、`SkuId`、`OrderId` 可使用 `String` 或 `Long`，但具体类型一旦确定后不可混用
 
-## 7. Functional Requirements
+## Generation Rules
 
-### 7.1 Unified Type Model
-
-固定写法：
-
-```java
-UserId userId = UserId.of("U1001");
-TenantId tenantId = TenantId.of("T001");
-OrderId orderId = ids.orderId();
-```
-
-固定要求：
-
-- `UserId.of(...)`、`TenantId.of(...)`、`OrderId.of(...)` 必须为静态工厂
-- 构造器固定非公开，避免绕过校验
-- 判等必须基于“具体类型 + 底层值”
-- `UserId.of("U1001")` 不得与 `RoleId.of("1001")` 判等
-
-### 7.2 Unified Factory Entry
-
-- `Ids` 固定为统一工厂入口
+- `Ids` 是统一工厂入口
 - `Ids` 负责屏蔽不同发号来源
-- `Ids` 可组合现有 `IdGenerator`
-- `Ids` 负责把发号结果映射为具体 ID 类型
-- 具体 ID 的前缀、文本编码和包装规则固定由 `Ids` 或具体 ID 工厂负责，不下沉到发号提供方
+- `Ids` 负责把底层值包装成具体 ID
+- `IdGenerator` 以业务标签区分不同发号命名空间
+- 同一种 ID 的业务标签必须稳定
+- 发号提供方返回非法结果时必须失败，不能静默兜底
 
-固定方法风格：
-
-- `ids.userId()`
-- `ids.userIdentityId()`
-- `ids.roleId()`
-- `ids.orderId()`
-- `ids.skuId()`
-
-固定要求：
-
-- `Ids` 不感知具体业务流程，只负责生成标识
-- `Ids` 生成领域 ID 时，底层值来源必须可配置
-- `IdGenerator` 统一以业务标签区分不同发号命名空间
-- 同一种具体 ID 对应的业务标签必须稳定，不得因调用方不同而变化
-- 发号提供方必须返回合法正整数；非法结果必须按统一异常语义失败，不能静默兜底为默认值
-- 业务单号如 `orderNo`、`paymentNo` 仍走既有单号生成器，不与 `OrderId` 混用
-
-### 7.2.1 Provider Selection Rules
-
-- 发号提供方必须通过统一配置入口选择，不允许业务模块各自直连具体实现
-- 配置缺失或非法时，发号提供方选择必须有确定的默认行为
-- 发号提供方依赖的关键参数必须在装配时完成校验
-- `IdGenerator` 作为统一发号入口应允许通过 `@ConditionalOnMissingBean` 被测试替身或上层装配覆盖
-
-### 7.2.2 Degradation And Alert Rules
-
-- 发号异常、退化或回退必须通过统一事件模型暴露
-- 退化事件至少包含业务标签、触发操作、原因和发生时间
-- 事件监听属于公共基础设施，不得耦合到具体业务域
-
-### 7.3 Jackson Rules
-
-- 统一 ID 对外序列化为单一基础值
-- `UserId("U1001")` 序列化后固定为 `"U1001"`
-- `Jackson` 反序列化必须支持从基础值恢复具体 ID 类型
-- 不允许把统一 ID 序列化成 `{"value":1001}` 这类额外包裹结构
-
-### 7.4 MyBatis Rules
-
-- `MyBatis` 持久化固定通过统一 `TypeHandler` 或统一转换基类完成
-- `DataObject` 层字段可直接使用具体 ID 类型，前提是已注册统一处理器
-- 如需控制改造范围，也允许 `DataObject` 继续使用基础类型，在 `RepositoryImpl` 做双向转换
-- 同一业务域内同一类 ID 的持久化方式必须统一，不允许半数 `DO` 用 `Long`、半数 `DO` 用 `UserId`
-
-### 7.5 JPA Rules
-
-- 仓库未使用 `JPA` 作为正式持久化实现
-- `JPA` 适配规则先在公共层预留 `AttributeConverter` 模式
-- 未引入 `JPA` 时，不在业务域增加 `Entity` 专用实现
-- 如接入 `JPA`，统一 ID 体系不得要求重写领域模型
-
-## 8. Key Flows
-
-### 8.1 Domain Create Flow
-
-1. `application` 调用 `Ids`
-2. `Ids` 使用统一生成策略产生底层值
-3. `Ids` 包装为具体 ID 类型
-4. `domain` 持有具体 ID 类型参与业务逻辑
-5. `infra` 在持久化边界转换为数据库字段
-
-### 8.2 Read Flow
-
-1. `infra` 从数据库读取基础类型字段
-2. 通过统一转换器恢复为具体 ID 类型
-3. `domain` 与 `application` 全程使用强类型 ID
-4. `interfaces` 输出时通过 `Jackson` 统一序列化为基础值
-
-## 9. Database And Migration Rules
-
-### 9.1 Fixed Persistence Mapping
-
-- `UserId` 固定使用 `varchar(64)`
-- `RoleId` 固定为文本型统一 ID，数据库字段固定使用 `varchar(64)`
-- `SkuId`、`OrderId` 若底层值为 `Long`，数据库字段继续使用 `bigint`
-- `TenantId` 固定使用 `varchar(64)`
-- 统一 ID 体系优先改变 Java 类型系统，不强制改变既有列类型
-
-### 9.2 UserId Rules
-
-- `UserId` 固定为文本型统一 ID
-- `UserId` 的 Java 底层类型固定为 `String`
-- `UserId` 的数据库字段固定建议使用 `varchar(64)`
-- `UserId` 默认生成规则可采用 `U` 前缀加数值序列，例如 `U1001`
-- `UserId` 作为 `UPMS` 用户主体主标识时，允许作为表主键和关联字段直接落库
-
-### 9.3 Adjustment Rules
-
-仅在以下场景允许调整数据库结构：
-
-- 某领域当前把同一概念同时存成 `varchar` 和 `bigint`
-- 某领域需要把外部业务标识升级为内部强类型主标识
-- 某领域已经确认数据库列类型与领域语义不匹配
-
-固定要求：
-
-- 数据库结构调整必须按业务域单独设计
-- 不允许把统一 ID 建模等同为全库结构重写
-- 文档、代码、数据库三者必须先统一“这是主键、业务单号还是领域标识”
-
-### 9.4 TenantId Rules
-
-- `TenantId` 固定为文本型统一 ID
-- `TenantId` 的 Java 底层类型固定为 `String`
-- `TenantId` 在 `UPMS` 中直接作为 `Tenant` 聚合主标识
-- `Tenant` 的目标领域模型固定为 `Tenant { TenantId id; ... }`
-- `UPMS` 中租户表主键固定使用 `tenant_id varchar(64)`
-- `tenantId` 固定作为 `UPMS`、`Auth` 对外接口中的租户参数名
-- 所有跨租户关联字段中的 `tenant_id` 与 `TenantId` 语义保持一致
-- 数据交互对象（如 `TenantDTO` / `TenantResponse`）只暴露 `TenantId`
-
-## 10. Non-Functional Requirements
-
-- 统一 ID 基础设施必须放在公共模块，避免每个业务域重复实现
-- 新增一个具体 ID 类型时，除类型声明外的新增代码应控制在极小范围
-- 统一 ID 体系不得明显增加序列化和持久化复杂度
-- 允许老代码和新类型在边界层共存
-- 统一 ID 体系必须支持单元测试直接构造，不依赖 Spring 容器
-
-## 11. Recommended Implementation Baseline
-
-固定采用以下总体方案：
-
-- `Identifier<T>`：标识接口
-- `BaseId<T>`：抽象基类
-- `DepartmentId` / `UserId` / `TenantId` / `RoleId` / `OrderId` / `SkuId`：具体 ID
-- `IdGenerator`：统一底层值生成器
-- `IdConverters`：统一序列化与持久化适配
-- `Ids`：统一工厂入口
-
-示例：
+默认风格：
 
 ```java
 UserId userId = UserId.of("U1001");
 TenantId tenantId = TenantId.of("T001");
 OrderId orderId = ids.orderId();
 ```
+
+## Serialization And Persistence
+
+- `Jackson` 对外序列化为单一基础值
+- 不序列化成额外包裹结构，如 `{\"value\":1001}`
+- `MyBatis` 通过统一 `TypeHandler` 或统一转换器完成持久化
+- 同一业务域内同一类 ID 的持久化方式必须统一
+- 仓库当前未正式使用 `JPA`，但允许公共层预留 `AttributeConverter` 模式
+
+## Persistence Defaults
+
+- `UserId` 默认 `varchar(64)`
+- `TenantId` 默认 `varchar(64)`
+- `RoleId` 若为文本型，默认 `varchar(64)`
+- `SkuId`、`OrderId` 若为 `Long`，可继续使用 `bigint`
+- 统一 ID 设计优先改变 Java 类型系统，不强制全库重写
+
+## Migration Rules
+
+- 只在语义明显不匹配时调整数据库结构
+- 数据库、代码、文档必须先统一“这是主键、业务单号还是领域标识”
+- 不允许把统一 ID 改造理解成全库字段类型统一重写
+
+## Non-Functional Rules
+
+- 统一 ID 基础设施必须在公共模块，不能每个业务域各写一套
+- 新增具体 ID 类型时，除类型声明外的新增代码应控制在极小范围
+- 统一 ID 不得明显增加序列化和持久化复杂度
+- 必须支持单元测试直接构造，不依赖 Spring 容器

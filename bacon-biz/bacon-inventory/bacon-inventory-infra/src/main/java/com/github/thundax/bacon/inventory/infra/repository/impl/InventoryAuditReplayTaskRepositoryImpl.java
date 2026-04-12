@@ -5,7 +5,6 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
-import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditReplayTaskRepository;
 import java.time.Instant;
@@ -30,8 +29,8 @@ public class InventoryAuditReplayTaskRepositoryImpl implements InventoryAuditRep
     }
 
     @Override
-    public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
-        support.batchSaveAuditReplayTaskItems(taskId, deadLetterIds, createdAt);
+    public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+        support.batchSaveAuditReplayTaskItems(items);
     }
 
     @Override

@@ -26,7 +26,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 public class InventoryOperationLogSupport {
 
+    private static final String LEDGER_ID_BIZ_TAG = "inventory-ledger-id";
     private static final String AUDIT_LOG_ID_BIZ_TAG = "inventory-audit-log-id";
+    private static final String AUDIT_OUTBOX_ID_BIZ_TAG = "inventory-audit-outbox-id";
 
     private final InventoryAuditRecordRepository inventoryAuditRecordRepository;
     private final InventoryAuditOutboxRepository inventoryAuditOutboxRepository;
@@ -67,7 +69,7 @@ public class InventoryOperationLogSupport {
             Instant occurredAt) {
         for (InventoryReservationItem item : items) {
             inventoryAuditRecordRepository.saveLedger(new InventoryLedger(
-                    null,
+                    idGenerator.nextId(LEDGER_ID_BIZ_TAG),
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
                     item.getSkuId(),
@@ -126,7 +128,8 @@ public class InventoryOperationLogSupport {
             RuntimeException ex) {
         try {
             inventoryAuditOutboxRepository.saveAuditOutbox(new InventoryAuditOutbox(
-                    null,
+                    com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(
+                            idGenerator.nextId(AUDIT_OUTBOX_ID_BIZ_TAG)),
                     null,
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),

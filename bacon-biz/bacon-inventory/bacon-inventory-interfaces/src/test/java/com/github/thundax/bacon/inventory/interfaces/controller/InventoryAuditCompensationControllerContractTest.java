@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
@@ -43,6 +44,8 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 class InventoryAuditCompensationControllerContractTest {
 
+    private static final IdGenerator ID_GENERATOR = bizTag -> 1L;
+
     private MockMvc mockMvc;
 
     @AfterEach
@@ -57,7 +60,7 @@ class InventoryAuditCompensationControllerContractTest {
         InventoryQueryApplicationService inventoryQueryService =
                 new InventoryQueryApplicationService(null, null, null, new StubAuditDeadLetterRepository());
         InventoryAuditReplayTaskApplicationService replayTaskService =
-                new InventoryAuditReplayTaskApplicationService(replayTaskRepository);
+                new InventoryAuditReplayTaskApplicationService(replayTaskRepository, ID_GENERATOR);
         InventoryAuditCompensationController controller =
                 new InventoryAuditCompensationController(inventoryQueryService, null, replayTaskService);
 
@@ -149,17 +152,12 @@ class InventoryAuditCompensationControllerContractTest {
 
     private static final class StubReplayTaskRepository implements InventoryAuditReplayTaskRepository {
 
-        private final AtomicLong taskIdGenerator = new AtomicLong(1000L);
-        private final AtomicLong taskItemIdGenerator = new AtomicLong(2000L);
         private final Map<Long, InventoryAuditReplayTask> tasks = new ConcurrentHashMap<>();
         private final Map<Long, Long> taskTenants = new ConcurrentHashMap<>();
         private final Map<Long, List<InventoryAuditReplayTaskItem>> taskItems = new ConcurrentHashMap<>();
 
         @Override
         public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
-            if (task.getId() == null) {
-                task.setId(TaskId.of(taskIdGenerator.getAndIncrement()));
-            }
             tasks.put(task.getIdValue(), task);
             taskTenants.put(
                     task.getIdValue(),
@@ -169,22 +167,14 @@ class InventoryAuditCompensationControllerContractTest {
         }
 
         @Override
-        public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
-            List<InventoryAuditReplayTaskItem> items =
-                    taskItems.computeIfAbsent(taskId == null ? null : taskId.value(), key -> new ArrayList<>());
-            for (DeadLetterId deadLetterId : deadLetterIds) {
-                items.add(new InventoryAuditReplayTaskItem(
-                        taskItemIdGenerator.getAndIncrement(),
-                        taskId,
-                        deadLetterId,
-                        InventoryAuditReplayTaskItemStatus.PENDING,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        createdAt));
+        public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+            if (items == null || items.isEmpty()) {
+                return;
             }
+            taskItems.computeIfAbsent(
+                            items.get(0).getTaskId() == null ? null : items.get(0).getTaskId().value(),
+                            key -> new ArrayList<>())
+                    .addAll(items);
         }
 
         @Override

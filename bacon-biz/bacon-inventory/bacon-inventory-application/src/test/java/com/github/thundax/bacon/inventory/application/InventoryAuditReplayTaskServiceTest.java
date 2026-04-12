@@ -63,7 +63,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                         Instant.parse("2026-03-26T00:01:00Z"))));
 
         InventoryAuditReplayTaskApplicationService taskService =
-                new InventoryAuditReplayTaskApplicationService(repository);
+                new InventoryAuditReplayTaskApplicationService(repository, ID_GENERATOR);
         InventoryAuditCompensationApplicationService compensationService =
                 new InventoryAuditCompensationApplicationService(
                         repository,
@@ -92,8 +92,6 @@ class InventoryAuditReplayTaskApplicationServiceTest {
 
     private static final class TestLogRepository implements InventoryLogRepository {
 
-        private final AtomicLong taskIdGenerator = new AtomicLong(1000L);
-        private final AtomicLong taskItemIdGenerator = new AtomicLong(2000L);
         private final Map<Long, InventoryAuditDeadLetter> deadLetters = new ConcurrentHashMap<>();
         private final Map<Long, InventoryAuditReplayTask> tasks = new ConcurrentHashMap<>();
         private final Map<Long, Long> taskTenants = new ConcurrentHashMap<>();
@@ -175,9 +173,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
 
         @Override
         public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
-            if (task.getId() == null) {
-                task.setId(TaskId.of(taskIdGenerator.getAndIncrement()));
-            }
+            assertNotNull(task.getId());
             tasks.put(task.getIdValue(), task);
             taskTenants.put(
                     task.getIdValue(),
@@ -187,22 +183,15 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
-            List<InventoryAuditReplayTaskItem> items =
-                    taskItems.computeIfAbsent(taskId == null ? null : taskId.value(), key -> new ArrayList<>());
-            for (DeadLetterId deadLetterId : deadLetterIds) {
-                items.add(new InventoryAuditReplayTaskItem(
-                        taskItemIdGenerator.getAndIncrement(),
-                        taskId,
-                        deadLetterId,
-                        InventoryAuditReplayTaskItemStatus.PENDING,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        createdAt));
+        public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+            if (items == null || items.isEmpty()) {
+                return;
             }
+            items.forEach(item -> assertNotNull(item.getId()));
+            taskItems.computeIfAbsent(
+                            items.get(0).getTaskId() == null ? null : items.get(0).getTaskId().value(),
+                            key -> new ArrayList<>())
+                    .addAll(items);
         }
 
         @Override

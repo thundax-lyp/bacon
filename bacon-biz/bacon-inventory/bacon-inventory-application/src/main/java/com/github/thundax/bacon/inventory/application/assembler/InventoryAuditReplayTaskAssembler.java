@@ -6,6 +6,7 @@ import com.github.thundax.bacon.inventory.application.codec.TaskIdCodec;
 import com.github.thundax.bacon.inventory.application.codec.TaskNoCodec;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskNo;
 import java.time.Instant;
 
@@ -14,9 +15,9 @@ public final class InventoryAuditReplayTaskAssembler {
     private InventoryAuditReplayTaskAssembler() {}
 
     public static InventoryAuditReplayTask toDomain(
-            InventoryAuditReplayTaskCreateDTO createDTO, TaskNo taskNo, String operatorType, Instant now) {
+            InventoryAuditReplayTaskCreateDTO createDTO, TaskId taskId, TaskNo taskNo, String operatorType, Instant now) {
         return new InventoryAuditReplayTask(
-                null,
+                taskId,
                 taskNo,
                 InventoryAuditReplayTaskStatus.PENDING,
                 createDTO.getDeadLetterIds().size(),

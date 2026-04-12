@@ -141,36 +141,8 @@ public class InMemoryInventoryRepositorySupport {
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
         Long tenantId = BaconContextHolder.currentTenantId();
-        if (reservation.getId() == null) {
-            reservation = InventoryReservation.rehydrate(
-                    reservationIdGenerator.getAndIncrement(),
-                    reservation.getReservationNo() == null
-                            ? null
-                            : reservation.getReservationNo().value(),
-                    reservation.getOrderNo() == null
-                            ? null
-                            : reservation.getOrderNo().value(),
-                    reservation.getWarehouseCode() == null
-                            ? null
-                            : reservation.getWarehouseCode().value(),
-                    reservation.getCreatedAt(),
-                    reservation.getItems().stream()
-                            .map(item -> new InventoryReservationItem(
-                                    item.getId() == null ? itemIdGenerator.getAndIncrement() : item.getId(),
-                                    item.getReservationNo(),
-                                    item.getSkuId(),
-                                    item.getQuantity()))
-                            .toList(),
-                    reservation.getReservationStatus() == null
-                            ? null
-                            : reservation.getReservationStatus().value(),
-                    reservation.getFailureReason(),
-                    reservation.getReleaseReason() == null
-                            ? null
-                            : reservation.getReleaseReason().value(),
-                    reservation.getReleasedAt(),
-                    reservation.getDeductedAt());
-        }
+        java.util.Objects.requireNonNull(reservation.getId(), "reservation.id must not be null");
+        reservation.getItems().forEach(item -> java.util.Objects.requireNonNull(item.getId(), "reservationItem.id must not be null"));
         reservations.put(
                 reservationKey(
                         tenantId,
@@ -187,17 +159,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public void saveLedger(InventoryLedger ledger) {
-        if (ledger.getId() == null) {
-            ledger = new InventoryLedger(
-                    ledgerIdGenerator.getAndIncrement(),
-                    ledger.getOrderNo(),
-                    ledger.getReservationNo(),
-                    ledger.getSkuId(),
-                    ledger.getWarehouseCode(),
-                    ledger.getLedgerType(),
-                    ledger.getQuantity(),
-                    ledger.getOccurredAt());
-        }
+        java.util.Objects.requireNonNull(ledger.getId(), "ledger.id must not be null");
         ledgers.computeIfAbsent(
                         reservationKey(
                                 BaconContextHolder.currentTenantId(),
@@ -215,16 +177,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public void saveAuditLog(InventoryAuditLog auditLog) {
-        if (auditLog.getId() == null) {
-            auditLog = InventoryAuditLog.reconstruct(
-                    auditLogIdGenerator.getAndIncrement(),
-                    auditLog.getOrderNo(),
-                    auditLog.getReservationNo(),
-                    auditLog.getActionType(),
-                    auditLog.getOperatorType(),
-                    auditLog.getOperatorId(),
-                    auditLog.getOccurredAt());
-        }
+        java.util.Objects.requireNonNull(auditLog.getId(), "auditLog.id must not be null");
         auditLogs
                 .computeIfAbsent(
                         reservationKey(
@@ -248,27 +201,8 @@ public class InMemoryInventoryRepositorySupport {
         if (eventCode == null) {
             eventCode = generateEventCode().value();
         }
-        if (outbox.getId() == null) {
-            outbox = new InventoryAuditOutbox(
-                    OutboxId.of(auditOutboxIdGenerator.getAndIncrement()),
-                    EventCode.of(eventCode),
-                    outbox.getOrderNo(),
-                    outbox.getReservationNo(),
-                    outbox.getActionType(),
-                    outbox.getOperatorType(),
-                    outbox.getOperatorId(),
-                    outbox.getOccurredAt(),
-                    outbox.getErrorMessage(),
-                    outbox.getStatus(),
-                    outbox.getRetryCount(),
-                    outbox.getNextRetryAt(),
-                    outbox.getProcessingOwner(),
-                    outbox.getLeaseUntil(),
-                    outbox.getClaimedAt(),
-                    outbox.getDeadReason(),
-                    outbox.getFailedAt(),
-                    outbox.getUpdatedAt());
-        } else if (outbox.getEventCode() == null) {
+        java.util.Objects.requireNonNull(outbox.getId(), "outbox.id must not be null");
+        if (outbox.getEventCode() == null) {
             outbox.setEventCode(EventCode.of(eventCode));
         }
         auditOutbox
@@ -517,47 +451,22 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
-        if (task.getId() == null) {
-            task = new InventoryAuditReplayTask(
-                    TaskId.of(auditReplayTaskIdGenerator.getAndIncrement()),
-                    task.getTaskNo(),
-                    task.getStatus(),
-                    task.getTotalCount(),
-                    task.getProcessedCount(),
-                    task.getSuccessCount(),
-                    task.getFailedCount(),
-                    task.getReplayKeyPrefix(),
-                    task.getOperatorType(),
-                    task.getOperatorId(),
-                    task.getProcessingOwner(),
-                    task.getLeaseUntil(),
-                    task.getLastError(),
-                    task.getCreatedAt(),
-                    task.getStartedAt(),
-                    task.getPausedAt(),
-                    task.getFinishedAt(),
-                    task.getUpdatedAt());
-        }
+        java.util.Objects.requireNonNull(task.getId(), "replayTask.id must not be null");
         auditReplayTasks.put(task.getIdValue(), task);
         auditReplayTaskTenants.put(task.getIdValue(), BaconContextHolder.requireTenantId());
         return task;
     }
 
-    public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
-        List<InventoryAuditReplayTaskItem> items =
+    public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        TaskId taskId = items.get(0).getTaskId();
+        List<InventoryAuditReplayTaskItem> persistedItems =
                 auditReplayTaskItems.computeIfAbsent(taskId == null ? null : taskId.value(), key -> new ArrayList<>());
-        for (DeadLetterId deadLetterId : deadLetterIds) {
-            items.add(new InventoryAuditReplayTaskItem(
-                    auditReplayTaskItemIdGenerator.getAndIncrement(),
-                    taskId,
-                    deadLetterId,
-                    InventoryAuditReplayTaskItemStatus.PENDING,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    createdAt));
+        for (InventoryAuditReplayTaskItem item : items) {
+            java.util.Objects.requireNonNull(item.getId(), "replayTaskItem.id must not be null");
+            persistedItems.add(item);
         }
     }
 

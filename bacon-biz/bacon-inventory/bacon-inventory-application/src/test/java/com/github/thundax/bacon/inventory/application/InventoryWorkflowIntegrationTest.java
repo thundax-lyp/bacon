@@ -72,7 +72,7 @@ class InventoryWorkflowIntegrationTest {
         InventoryOperationLogSupport operationLogService =
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryReservationApplicationService service = new InventoryReservationApplicationService(
-                repository, repository, operationLogService, new SequenceInventoryReservationNoGenerator());
+                repository, repository, operationLogService, new SequenceInventoryReservationNoGenerator(), ID_GENERATOR);
 
         CountDownLatch start = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(2);
@@ -135,7 +135,7 @@ class InventoryWorkflowIntegrationTest {
         BaconContextHolder.runWithTenantId(
                 1001L,
                 () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                        null,
+                        OutboxId.of(1001L),
                         null,
                         OrderNo.of("ORDER-DEAD"),
                         ReservationNo.of("RSV-DEAD"),
@@ -177,7 +177,7 @@ class InventoryWorkflowIntegrationTest {
         BaconContextHolder.runWithTenantId(
                 1001L,
                 () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                        null,
+                        OutboxId.of(1002L),
                         null,
                         OrderNo.of("ORDER-OK"),
                         ReservationNo.of("RSV-OK"),

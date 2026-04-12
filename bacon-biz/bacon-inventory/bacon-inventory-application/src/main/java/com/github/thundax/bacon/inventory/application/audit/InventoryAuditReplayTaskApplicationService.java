@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
@@ -30,12 +31,16 @@ import org.springframework.stereotype.Service;
 public class InventoryAuditReplayTaskApplicationService {
 
     private static final String OPERATOR_TYPE_MANUAL = "MANUAL";
+    private static final String REPLAY_TASK_ID_BIZ_TAG = "inventory-audit-replay-task-id";
+    private static final String REPLAY_TASK_ITEM_ID_BIZ_TAG = "inventory-audit-replay-task-item-id";
 
     private final InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository;
+    private final IdGenerator idGenerator;
 
     public InventoryAuditReplayTaskApplicationService(
-            InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository) {
+            InventoryAuditReplayTaskRepository inventoryAuditReplayTaskRepository, IdGenerator idGenerator) {
         this.inventoryAuditReplayTaskRepository = inventoryAuditReplayTaskRepository;
+        this.idGenerator = idGenerator;
     }
 
     public InventoryAuditReplayTaskDTO createReplayTask(InventoryAuditReplayTaskCreateDTO createDTO) {
@@ -45,18 +50,28 @@ public class InventoryAuditReplayTaskApplicationService {
         }
         BaconContextHolder.requireTenantId();
         Instant now = Instant.now();
+        TaskId taskId = TaskId.of(idGenerator.nextId(REPLAY_TASK_ID_BIZ_TAG));
         TaskNo taskNo =
                 TaskNoCodec.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
         // 回放任务只负责“组织一批死信逐条回放”，真正的单条回放语义仍复用 compensation service。
         InventoryAuditReplayTask task =
-                InventoryAuditReplayTaskAssembler.toDomain(createDTO, taskNo, OPERATOR_TYPE_MANUAL, now);
+                InventoryAuditReplayTaskAssembler.toDomain(createDTO, taskId, taskNo, OPERATOR_TYPE_MANUAL, now);
         InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
         inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(
-                saved.getId(),
                 createDTO.getDeadLetterIds().stream()
                         .map(DeadLetterIdCodec::toDomain)
-                        .toList(),
-                now);
+                        .map(deadLetterId -> new InventoryAuditReplayTaskItem(
+                                idGenerator.nextId(REPLAY_TASK_ITEM_ID_BIZ_TAG),
+                                saved.getId(),
+                                deadLetterId,
+                                InventoryAuditReplayTaskItemStatus.PENDING,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                now))
+                        .toList());
         Metrics.counter("bacon.inventory.audit.replay.task.created.total").increment();
         return InventoryAuditReplayTaskAssembler.toDto(saved);
     }

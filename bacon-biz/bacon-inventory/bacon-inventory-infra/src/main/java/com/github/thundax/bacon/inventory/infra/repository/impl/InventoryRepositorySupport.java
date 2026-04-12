@@ -212,6 +212,7 @@ public class InventoryRepositorySupport {
     }
 
     public void saveLedger(InventoryLedger ledger) {
+        java.util.Objects.requireNonNull(ledger.getId(), "ledger.id must not be null");
         ledgerMapper.insert(InventoryLedgerPersistenceAssembler.toDataObject(ledger));
     }
 
@@ -245,11 +246,11 @@ public class InventoryRepositorySupport {
 
     public void saveAuditOutbox(InventoryAuditOutbox outbox) {
         InventoryAuditOutboxDO dataObject = InventoryAuditOutboxPersistenceAssembler.toDataObject(outbox);
+        java.util.Objects.requireNonNull(dataObject.getId(), "outbox.id must not be null");
         if (dataObject.getEventCode() == null || dataObject.getEventCode().isBlank()) {
             dataObject.setEventCode(generateEventCode().value());
         }
         auditOutboxMapper.insert(dataObject);
-        outbox.setId(toDomainOutboxId(dataObject.getId()));
         outbox.setEventCode(toDomainEventCode(dataObject.getEventCode()));
     }
 
@@ -548,6 +549,7 @@ public class InventoryRepositorySupport {
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
         InventoryAuditReplayTaskDO dataObject =
                 InventoryAuditReplayTaskPersistenceAssembler.toDataObject(BaconContextHolder.requireTenantId(), task);
+        java.util.Objects.requireNonNull(dataObject.getId(), "replayTask.id must not be null");
         if (dataObject.getId() == null) {
             auditReplayTaskMapper.insert(dataObject);
         } else {
@@ -556,24 +558,24 @@ public class InventoryRepositorySupport {
         return InventoryAuditReplayTaskPersistenceAssembler.toDomain(dataObject);
     }
 
-    public void batchSaveAuditReplayTaskItems(TaskId taskId, List<DeadLetterId> deadLetterIds, Instant createdAt) {
+    public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
         Long tenantId = BaconContextHolder.requireTenantId();
-        if (deadLetterIds == null || deadLetterIds.isEmpty()) {
+        if (items == null || items.isEmpty()) {
             return;
         }
-        for (DeadLetterId deadLetterId : deadLetterIds) {
+        for (InventoryAuditReplayTaskItem item : items) {
             auditReplayTaskItemMapper.insert(new InventoryAuditReplayTaskItemDO(
-                    null,
-                    taskId == null ? null : taskId.value(),
+                    item.getId(),
+                    item.getTaskId() == null ? null : item.getTaskId().value(),
                     tenantId,
-                    deadLetterId == null ? null : deadLetterId.value(),
-                    InventoryAuditReplayTaskItemStatus.PENDING.value(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    createdAt));
+                    item.getDeadLetterId() == null ? null : item.getDeadLetterId().value(),
+                    item.getItemStatus() == null ? null : item.getItemStatus().value(),
+                    item.getReplayStatus() == null ? null : item.getReplayStatus().value(),
+                    item.getReplayKey(),
+                    item.getResultMessage(),
+                    item.getStartedAt(),
+                    item.getFinishedAt(),
+                    item.getUpdatedAt()));
         }
     }
 

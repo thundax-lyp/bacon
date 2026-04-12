@@ -29,7 +29,7 @@ class InMemoryInventoryRepositorySupportTest {
         BaconContextHolder.runWithTenantId(
                 1001L,
                 () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                        null,
+                        OutboxId.of(3001L),
                         null,
                         OrderNo.of("ORDER-1"),
                         ReservationNo.of("RSV-1"),
@@ -91,7 +91,7 @@ class InMemoryInventoryRepositorySupportTest {
         BaconContextHolder.runWithTenantId(
                 1001L,
                 () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                        null,
+                        OutboxId.of(3002L),
                         null,
                         OrderNo.of("ORDER-2"),
                         ReservationNo.of("RSV-2"),
@@ -130,7 +130,7 @@ class InMemoryInventoryRepositorySupportTest {
         BaconContextHolder.runWithTenantId(
                 1001L,
                 () -> repository.saveAuditOutbox(new InventoryAuditOutbox(
-                        null,
+                        OutboxId.of(3003L),
                         null,
                         OrderNo.of("ORDER-3"),
                         ReservationNo.of("RSV-3"),

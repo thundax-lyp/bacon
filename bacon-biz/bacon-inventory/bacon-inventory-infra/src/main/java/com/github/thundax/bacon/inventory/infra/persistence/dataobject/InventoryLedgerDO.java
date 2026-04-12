@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class InventoryLedgerDO {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.INPUT)
     private Long id;
 
     @TableField("tenant_id")

@@ -55,7 +55,7 @@ public class InventoryDeductionApplicationService {
     }
 
     public InventoryReservationResultDTO deductReservedStock(OrderNo orderNo) {
-        Long tenantId = currentTenantId();
+        Long tenantId = requireTenantIdValue();
         return inventoryWriteRetrier.execute(
                 "deduct",
                 tenantId + ":" + orderNo,
@@ -92,7 +92,7 @@ public class InventoryDeductionApplicationService {
         inventoryStockRepository.saveInventory(inventory);
     }
 
-    private Long currentTenantId() {
+    private Long requireTenantIdValue() {
         return BaconContextHolder.requireTenantId();
     }
 }

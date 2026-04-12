@@ -539,7 +539,7 @@ public class InMemoryInventoryRepositorySupport {
                     task.getUpdatedAt());
         }
         auditReplayTasks.put(task.getIdValue(), task);
-        auditReplayTaskTenants.put(task.getIdValue(), requireTenantIdValue());
+        auditReplayTaskTenants.put(task.getIdValue(), BaconContextHolder.requireTenantId());
         return task;
     }
 
@@ -672,7 +672,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
-        Long tenantId = requireTenantIdValue();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return findAuditReplayTaskById(taskId)
                 .filter(task -> java.util.Objects.equals(findAuditReplayTaskTenantId(task.getId()), tenantId))
                 .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
@@ -689,7 +689,7 @@ public class InMemoryInventoryRepositorySupport {
     }
 
     public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
-        Long tenantId = requireTenantIdValue();
+        Long tenantId = BaconContextHolder.requireTenantId();
         return findAuditReplayTaskById(taskId)
                 .filter(task -> java.util.Objects.equals(findAuditReplayTaskTenantId(task.getId()), tenantId))
                 .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))
@@ -716,10 +716,6 @@ public class InMemoryInventoryRepositorySupport {
 
     private static String reservationKey(String tenantId, String orderNo) {
         return tenantId + ":" + orderNo;
-    }
-
-    private Long requireTenantIdValue() {
-        return java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
     }
 
     private TenantId currentTenantId() {

@@ -43,7 +43,7 @@ public class InventoryAuditReplayTaskApplicationService {
             throw new InventoryDomainException(
                     InventoryErrorCode.INVENTORY_REMOTE_BAD_REQUEST, "replay-task-empty-dead-letter-ids");
         }
-        requireTenantIdValue();
+        BaconContextHolder.requireTenantId();
         Instant now = Instant.now();
         TaskNo taskNo =
                 TaskNoCodec.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
@@ -63,12 +63,12 @@ public class InventoryAuditReplayTaskApplicationService {
 
     public InventoryAuditReplayTaskDTO getReplayTask(TaskId taskId) {
         InventoryAuditReplayTask task = getTaskById(taskId);
-        ensureTaskTenant(taskId, requireTenantIdValue());
+        ensureTaskTenant(taskId, BaconContextHolder.requireTenantId());
         return InventoryAuditReplayTaskAssembler.toDto(task);
     }
 
     public InventoryAuditReplayTaskDTO pauseReplayTask(TaskId taskId, OperatorId operatorId) {
-        long tenantId = requireTenantIdValue();
+        long tenantId = BaconContextHolder.requireTenantId();
         InventoryAuditReplayTask task = getTaskById(taskId);
         ensureTaskTenant(taskId, tenantId);
         if (isTerminal(task.getStatus())) {
@@ -83,7 +83,7 @@ public class InventoryAuditReplayTaskApplicationService {
     }
 
     public InventoryAuditReplayTaskDTO resumeReplayTask(TaskId taskId, OperatorId operatorId) {
-        long tenantId = requireTenantIdValue();
+        long tenantId = BaconContextHolder.requireTenantId();
         InventoryAuditReplayTask task = getTaskById(taskId);
         ensureTaskTenant(taskId, tenantId);
         if (isTerminal(task.getStatus())) {
@@ -226,10 +226,6 @@ public class InventoryAuditReplayTaskApplicationService {
 
     private Long loadTaskTenantId(TaskId taskId) {
         return inventoryAuditReplayTaskRepository.findAuditReplayTaskTenantId(taskId);
-    }
-
-    private long requireTenantIdValue() {
-        return BaconContextHolder.requireTenantId();
     }
 
     private boolean isTerminal(InventoryAuditReplayTaskStatus status) {

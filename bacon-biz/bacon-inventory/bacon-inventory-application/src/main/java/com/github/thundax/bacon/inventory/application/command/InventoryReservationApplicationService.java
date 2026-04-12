@@ -75,7 +75,7 @@ public class InventoryReservationApplicationService {
     }
 
     public InventoryReservationResultDTO reserveStock(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
-        Long tenantId = currentTenantId();
+        Long tenantId = requireTenantIdValue();
         return inventoryWriteRetrier.execute(
                 "reserve",
                 tenantId + ":" + orderNo,
@@ -251,7 +251,7 @@ public class InventoryReservationApplicationService {
         return InventoryReservationResultAssembler.fromReservation(persisted);
     }
 
-    private Long currentTenantId() {
+    private Long requireTenantIdValue() {
         return BaconContextHolder.requireTenantId();
     }
 

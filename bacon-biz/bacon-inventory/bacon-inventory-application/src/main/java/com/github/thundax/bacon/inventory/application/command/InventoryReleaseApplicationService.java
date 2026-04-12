@@ -57,7 +57,7 @@ public class InventoryReleaseApplicationService {
     }
 
     public InventoryReservationResultDTO releaseReservedStock(OrderNo orderNo, InventoryReleaseReason reason) {
-        Long tenantId = currentTenantId();
+        Long tenantId = requireTenantIdValue();
         Objects.requireNonNull(orderNo, "orderNo must not be null");
         Objects.requireNonNull(reason, "reason must not be null");
         return inventoryWriteRetrier.execute(
@@ -97,7 +97,7 @@ public class InventoryReleaseApplicationService {
         inventoryStockRepository.saveInventory(inventory);
     }
 
-    private Long currentTenantId() {
+    private Long requireTenantIdValue() {
         return BaconContextHolder.requireTenantId();
     }
 }

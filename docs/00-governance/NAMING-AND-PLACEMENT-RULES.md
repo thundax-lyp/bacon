@@ -1,71 +1,139 @@
 # 命名与目录规则
 
-## 选型
+本文件只回答三个问题：
 
-- 面向 HTTP 暴露业务入口：建 `Controller` 或 `ProviderController`
-- 编排本域业务用例：建 `ApplicationService`
-- 封装跨实体、跨聚合的领域规则：建 `DomainService`
-- 定义跨域调用能力：建 `Facade`
-- 实现单体模式跨域调用：建 `FacadeLocalImpl`
-- 实现微服务模式跨域调用：建 `FacadeRemoteImpl`
-- 定义领域对象读写能力：建 `Repository`
-- 实现仓储落库与查询：建 `RepositoryImpl`
-- 只做数据库访问：建 `Mapper`
-- 承载持久化字段结构：建 `DO`
-- 只做持久化桥接转换：建 `PersistenceAssembler`
-- 只做通用对象转换：建 `Converter`
-- 只做基础类型与值对象编解码：建 `Codec`
-- 只是内部复用辅助逻辑：建 `Helper` / `Factory` / `Resolver` / `Executor`
-- 提供通用技术能力：建 `Service`
+1. 该建什么类型的类
+2. 该放哪一层、哪个目录
+3. 该叫什么名字
 
-## 规则
+## Fast Choice
 
-- `Controller`：对外业务 HTTP 入口，命名 `{业务对象}{动作}Controller`，目录 `interfaces/controller/`
-- `ProviderController`：对内服务 HTTP 入口，命名 `{业务对象}{动作}ProviderController`，目录 `interfaces/provider/`
-- `Resolver`：接口层请求解析辅助对象，命名 `{业务对象}{动作}Resolver`，目录 `interfaces/resolver/`
-- `ApplicationService`：业务用例编排入口，命名 `{业务对象}{动作}ApplicationService`、`{业务对象}QueryApplicationService`、`{业务对象}{场景}{动作}ApplicationService`，目录 `application/command/`、`application/query/`、`application/audit/`
-- 应用层辅助类：内部辅助对象，不是业务用例入口，命名 `*Helper` / `*Factory` / `*Resolver` / `*Executor`，目录 `application/support/`
-- `DomainService`：封装领域规则，命名 `{业务对象}DomainService`，目录 `domain/service/`
-- `Repository`：领域仓储接口，定义领域对象读写能力，命名 `{业务对象}Repository`，目录 `domain/repository/`
-- `RepositoryImpl`：仓储实现，负责落库、查询、组装，命名 `{业务对象}RepositoryImpl`，目录 `infra/repository/impl/`
-- `Mapper`：持久化映射，只负责数据库访问，命名 `{业务对象}Mapper`，目录 `infra/persistence/mapper/`
-- `DO`：持久化对象，只承载数据库字段，不承载领域行为，命名 `{业务对象}DO`，目录 `infra/persistence/dataobject/`
-- `PersistenceAssembler`：持久化桥接对象转换，只负责 `Domain <-> DO` 转换，命名 `{业务对象}PersistenceAssembler`，目录 `infra/persistence/assembler/`
-- `Converter`：通用对象转换，不承载仓储落库语义，命名 `{业务对象}Converter`，目录按调用层就近放置
-- `Codec`：值对象编解码，只负责基础类型与值对象之间的转换，命名 `{业务对象}Codec`，目录 `application/codec/`
-- `Facade`：跨域调用契约，只定义能力，不承担 HTTP 入口职责，命名 `{业务对象}{动作}Facade`，目录 `api/facade/`
-- `FacadeLocalImpl`：单体模式门面实现，直接调用对方 `ApplicationService`，命名 `{业务对象}{动作}FacadeLocalImpl`，目录 `interfaces/facade/`
-- `FacadeRemoteImpl`：微服务模式门面实现，通过 HTTP / RPC 调用对方服务，命名 `{业务对象}{动作}FacadeRemoteImpl`，目录 `infra/facade/remote/`
-- `Service`：通用技术能力，命名 `{能力}Service`，目录对应技术模块的 `service/`
-- `domain.model.enums`：简单枚举统一成 `value() -> name()`、`from()` 走 `Arrays.stream(values()) + equalsIgnoreCase + orElseThrow(...)`
+- HTTP 外部入口：`Controller`
+- HTTP 内部入口：`ProviderController`
+- 接口层请求解析：`Resolver`
+- 用例编排入口：`ApplicationService`
+- 应用层内部复用：`Helper` / `Factory` / `Resolver` / `Executor`
+- 核心领域规则：`DomainService`
+- 领域读写契约：`Repository`
+- 仓储实现：`RepositoryImpl`
+- 数据库访问：`Mapper`
+- 持久化对象：`DO`
+- 持久化桥接转换：`PersistenceAssembler`
+- 通用对象转换：`Converter`
+- 基础类型和值对象互转：`Codec`
+- 跨域调用契约：`Facade`
+- 单体跨域适配：`FacadeLocalImpl`
+- 微服务跨域适配：`FacadeRemoteImpl`
+- 通用技术能力：`Service`
+
+## Hard Rules
+
 - `Controller`、`ProviderController` 直接调用本域 `ApplicationService`
 - 跨域调用统一依赖 `Facade`，不直接依赖对方 `ApplicationService`
-- `Audit` 是独立业务场景时，命名 `{业务对象}Audit{动作}ApplicationService`
 - `Local`、`Remote` 是运行模式语义，不省略
-- `infra` 层如果有更精确的后缀，不用业务 `*Service`
+- `Codec` 只做基础类型和值对象互转，不做业务编排
+- `Converter` 做通用对象转换，不承载仓储语义
+- `PersistenceAssembler` 只做 `Domain <-> DO`
+- `infra` 层已有更精确后缀时，不再使用业务 `*Service`
+- `domain.model.enums` 简单枚举统一实现 `value() -> name()` 和 `from(...)`
 
-## 示例
+## Placement
 
-- 推荐：`OrderCreateController`
-- 推荐：`OrderQueryProviderController`
-- 推荐：`TenantRequestResolver`
-- 推荐：`OrderCreateApplicationService`
-- 推荐：`OrderQueryApplicationService`
-- 推荐：`OrderAuditCompensationApplicationService`
-- 推荐：`OrderAuditReplayApplicationService`
-- 推荐：`OrderDomainService`
-- 推荐：`OrderRepository`
-- 推荐：`OrderRepositoryImpl`
-- 推荐：`OrderMapper`
-- 推荐：`OrderDO`
-- 推荐：`OrderPersistenceAssembler`
-- 推荐：`OrderConverter`
-- 推荐：`OrderNoCodec`
-- 推荐：`UserReadFacade`
-- 推荐：`UserReadFacadeLocalImpl`
-- 推荐：`UserReadFacadeRemoteImpl`
-- 推荐：`VerificationCodeService`
-- 避免：`OrderService`
-- 避免：`InventoryService`
-- 避免：`InventoryAuditCompensationService`
-- 避免：看不出所在层次的名字
+- `interfaces/controller/`
+  `Controller`
+- `interfaces/provider/`
+  `ProviderController`
+- `interfaces/resolver/`
+  `Resolver`
+- `interfaces/facade/`
+  `FacadeLocalImpl`
+- `application/command/`
+  写动作 `ApplicationService`
+- `application/query/`
+  查动作 `ApplicationService`
+- `application/audit/`
+  审计场景 `ApplicationService`
+- `application/support/`
+  `Helper` / `Factory` / `Resolver` / `Executor`
+- `application/codec/`
+  `Codec`
+- `domain/service/`
+  `DomainService`
+- `domain/repository/`
+  `Repository`
+- `infra/repository/impl/`
+  `RepositoryImpl`
+- `infra/persistence/mapper/`
+  `Mapper`
+- `infra/persistence/dataobject/`
+  `DO`
+- `infra/persistence/assembler/`
+  `PersistenceAssembler`
+- `api/facade/`
+  `Facade`
+- `infra/facade/remote/`
+  `FacadeRemoteImpl`
+
+## Naming
+
+- `Controller`
+  `{业务对象}{动作}Controller`
+- `ProviderController`
+  `{业务对象}{动作}ProviderController`
+- `Resolver`
+  `{业务对象}{动作}Resolver`
+- `ApplicationService`
+  `{业务对象}{动作}ApplicationService`
+  `{业务对象}QueryApplicationService`
+  `{业务对象}{场景}{动作}ApplicationService`
+- `DomainService`
+  `{业务对象}DomainService`
+- `Repository`
+  `{业务对象}Repository`
+- `RepositoryImpl`
+  `{业务对象}RepositoryImpl`
+- `Mapper`
+  `{业务对象}Mapper`
+- `DO`
+  `{业务对象}DO`
+- `PersistenceAssembler`
+  `{业务对象}PersistenceAssembler`
+- `Converter`
+  `{业务对象}Converter`
+- `Codec`
+  `{业务对象}Codec`
+- `Facade`
+  `{业务对象}{动作}Facade`
+- `FacadeLocalImpl`
+  `{业务对象}{动作}FacadeLocalImpl`
+- `FacadeRemoteImpl`
+  `{业务对象}{动作}FacadeRemoteImpl`
+
+## Good Names
+
+- `OrderCreateController`
+- `OrderQueryProviderController`
+- `TenantRequestResolver`
+- `OrderCreateApplicationService`
+- `OrderQueryApplicationService`
+- `OrderAuditCompensationApplicationService`
+- `OrderAuditReplayApplicationService`
+- `OrderDomainService`
+- `OrderRepository`
+- `OrderRepositoryImpl`
+- `OrderMapper`
+- `OrderDO`
+- `OrderPersistenceAssembler`
+- `OrderConverter`
+- `OrderNoCodec`
+- `UserReadFacade`
+- `UserReadFacadeLocalImpl`
+- `UserReadFacadeRemoteImpl`
+- `VerificationCodeService`
+
+## Bad Names
+
+- `OrderService`
+- `InventoryService`
+- `InventoryAuditCompensationService`
+- 看不出层次和职责的名字

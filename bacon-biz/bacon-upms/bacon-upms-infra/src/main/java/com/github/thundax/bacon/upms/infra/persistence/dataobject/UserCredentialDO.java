@@ -8,6 +8,7 @@ import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_upms_user_credential")
+@TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class UserCredentialDO {
 
     @TableId(type = IdType.INPUT)

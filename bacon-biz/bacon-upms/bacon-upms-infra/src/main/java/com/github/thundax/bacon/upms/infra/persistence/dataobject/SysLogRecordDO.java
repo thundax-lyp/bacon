@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_upms_sys_log")
+@TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class SysLogRecordDO {
 
     @TableId(type = IdType.INPUT)

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_upms_data_permission_rule")
+@TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class DataPermissionRuleDO {
 
     @TableId(type = IdType.INPUT)

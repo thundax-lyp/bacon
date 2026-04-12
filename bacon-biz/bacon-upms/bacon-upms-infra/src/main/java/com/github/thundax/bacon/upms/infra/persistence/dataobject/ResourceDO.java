@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_upms_resource")
+@TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class ResourceDO {
 
     @TableId(type = IdType.INPUT)

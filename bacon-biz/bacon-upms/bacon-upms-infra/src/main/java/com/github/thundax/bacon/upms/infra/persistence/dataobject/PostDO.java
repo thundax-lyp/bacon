@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_upms_post")
+@TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class PostDO {
 
     @TableId(type = IdType.INPUT)

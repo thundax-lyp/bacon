@@ -9,28 +9,32 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservatio
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 库存预占单领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class InventoryReservation {
 
     /** 预占单主键。 */
-    private final Long id;
+    private Long id;
     /** 预占单号。 */
-    private final ReservationNo reservationNo;
+    private ReservationNo reservationNo;
     /** 订单号。 */
-    private final OrderNo orderNo;
+    private OrderNo orderNo;
     /** 仓库业务编码。 */
-    private final WarehouseCode warehouseCode;
+    private WarehouseCode warehouseCode;
     /** 创建时间。 */
-    private final Instant createdAt;
+    private Instant createdAt;
     /** 预占明细列表。 */
-    private final List<InventoryReservationItem> items;
+    private List<InventoryReservationItem> items;
     /** 预占状态。 */
     private InventoryReservationStatus reservationStatus;
     /** 失败原因。 */
@@ -42,29 +46,56 @@ public class InventoryReservation {
     /** 扣减时间。 */
     private Instant deductedAt;
 
-    public static InventoryReservation rehydrate(
+    public static InventoryReservation create(
             Long id,
-            String reservationNo,
-            String orderNo,
-            String warehouseCode,
+            ReservationNo reservationNo,
+            OrderNo orderNo,
+            WarehouseCode warehouseCode,
+            Instant createdAt,
+            List<InventoryReservationItem> items) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(reservationNo, "reservationNo must not be null");
+        Objects.requireNonNull(orderNo, "orderNo must not be null");
+        Objects.requireNonNull(warehouseCode, "warehouseCode must not be null");
+        Objects.requireNonNull(createdAt, "createdAt must not be null");
+        Objects.requireNonNull(items, "items must not be null");
+        return new InventoryReservation(
+                id,
+                reservationNo,
+                orderNo,
+                warehouseCode,
+                createdAt,
+                items,
+                InventoryReservationStatus.CREATED,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    public static InventoryReservation reconstruct(
+            Long id,
+            ReservationNo reservationNo,
+            OrderNo orderNo,
+            WarehouseCode warehouseCode,
             Instant createdAt,
             List<InventoryReservationItem> items,
-            String reservationStatus,
+            InventoryReservationStatus reservationStatus,
             String failureReason,
-            String releaseReason,
+            InventoryReleaseReason releaseReason,
             Instant releasedAt,
             Instant deductedAt) {
         // 预占单回写时必须带回终态与原因字段，应用层会基于这些字段判断是否还能继续补偿或回放。
         return new InventoryReservation(
                 id,
-                reservationNo == null ? null : ReservationNo.of(reservationNo),
-                orderNo == null ? null : OrderNo.of(orderNo),
-                warehouseCode == null ? null : WarehouseCode.of(warehouseCode),
+                reservationNo,
+                orderNo,
+                warehouseCode,
                 createdAt,
                 items,
-                reservationStatus == null ? null : InventoryReservationStatus.from(reservationStatus),
+                reservationStatus,
                 failureReason,
-                releaseReason == null ? null : InventoryReleaseReason.from(releaseReason),
+                releaseReason,
                 releasedAt,
                 deductedAt);
     }

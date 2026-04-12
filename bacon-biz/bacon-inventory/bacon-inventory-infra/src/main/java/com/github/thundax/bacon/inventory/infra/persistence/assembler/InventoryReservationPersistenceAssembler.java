@@ -12,16 +12,30 @@ public final class InventoryReservationPersistenceAssembler {
 
     public static InventoryReservation toDomain(
             InventoryReservationDO reservation, List<InventoryReservationItem> items) {
-        return InventoryReservation.rehydrate(
+        return InventoryReservation.reconstruct(
                 reservation.getId(),
-                reservation.getReservationNo(),
-                reservation.getOrderNo(),
-                reservation.getWarehouseCode(),
+                reservation.getReservationNo() == null
+                        ? null
+                        : com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo.of(
+                                reservation.getReservationNo()),
+                reservation.getOrderNo() == null
+                        ? null
+                        : com.github.thundax.bacon.common.commerce.valueobject.OrderNo.of(reservation.getOrderNo()),
+                reservation.getWarehouseCode() == null
+                        ? null
+                        : com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode.of(
+                                reservation.getWarehouseCode()),
                 reservation.getCreatedAt(),
                 items,
-                reservation.getReservationStatus(),
+                reservation.getReservationStatus() == null
+                        ? null
+                        : com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus.from(
+                                reservation.getReservationStatus()),
                 reservation.getFailureReason(),
-                reservation.getReleaseReason(),
+                reservation.getReleaseReason() == null
+                        ? null
+                        : com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason.from(
+                                reservation.getReleaseReason()),
                 reservation.getReleasedAt(),
                 reservation.getDeductedAt());
     }

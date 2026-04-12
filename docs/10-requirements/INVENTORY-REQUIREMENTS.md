@@ -242,14 +242,14 @@ Inventory 是 Bacon 的统一库存业务域。
 ## 5.5 Uniqueness And Index Rules
 
 - `Inventory.id` 全局唯一
-- `Inventory.id` 由持久化层生成，应用层不得自行发号
+- `Inventory.id` 由应用层通过统一 ID 组件生成，持久化层只负责写入
 - `Inventory` 必须保证 `(tenantId, skuId)` 唯一
 - `InventoryReservation.id` 全局唯一
-- `InventoryReservation.id` 由持久化层生成，应用层不得自行发号
+- `InventoryReservation.id` 由应用层通过统一 ID 组件生成，持久化层只负责写入
 - `InventoryReservation.reservationNo` 全局唯一
 - `InventoryReservation` 必须保证 `(tenantId, orderNo)` 唯一
 - `InventoryReservationItem.id` 全局唯一
-- `InventoryReservationItem.id` 由持久化层生成，应用层不得自行发号
+- `InventoryReservationItem.id` 由应用层通过统一 ID 组件生成，持久化层只负责写入
 - `InventoryReservationItem` 必须保证 `(tenantId, reservationNo, skuId)` 唯一
 - `InventoryLedger.id` 全局唯一
 - `InventoryLedger` 必须建立 `(tenantId, orderNo, ledgerType)` 索引

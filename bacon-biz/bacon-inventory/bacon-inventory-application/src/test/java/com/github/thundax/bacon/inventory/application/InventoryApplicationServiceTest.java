@@ -57,7 +57,7 @@ class InventoryApplicationServiceTest {
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR),
+                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService));
         InventoryQueryApplicationService queryService =
@@ -69,10 +69,14 @@ class InventoryApplicationServiceTest {
             InventoryReservationResultDTO second =
                     service.reserveStock(OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
             InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
+            InventoryReservation reservation =
+                    repository.findReservation(OrderNo.of("ORDER-1")).orElseThrow();
 
             assertEquals(InventoryReservationStatus.RESERVED.value(), first.getReservationStatus());
             assertEquals("RESERVED", first.getInventoryStatus());
             assertEquals(first.getReservationNo(), second.getReservationNo());
+            assertNotNull(reservation.getId());
+            assertNotNull(reservation.getItems().get(0).getId());
             assertEquals(10, stock.getReservedQuantity());
             assertEquals(90, stock.getAvailableQuantity());
             assertEquals(
@@ -93,7 +97,7 @@ class InventoryApplicationServiceTest {
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR),
+                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService));
         InventoryQueryApplicationService queryService =
@@ -125,7 +129,7 @@ class InventoryApplicationServiceTest {
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR),
+                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService));
         InventoryQueryApplicationService queryService =
@@ -161,7 +165,7 @@ class InventoryApplicationServiceTest {
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR),
+                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService));
         InventoryQueryApplicationService queryService =
@@ -196,7 +200,7 @@ class InventoryApplicationServiceTest {
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryApplicationService service = new InventoryApplicationService(
                 new InventoryReservationApplicationService(
-                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR),
+                        repository, repository, operationLogService, RESERVATION_NO_GENERATOR, ID_GENERATOR),
                 new InventoryReleaseApplicationService(repository, repository, operationLogService),
                 new InventoryDeductionApplicationService(repository, repository, operationLogService));
 

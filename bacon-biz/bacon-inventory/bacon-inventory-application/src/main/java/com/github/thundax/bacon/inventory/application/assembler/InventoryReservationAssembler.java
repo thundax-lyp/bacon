@@ -34,16 +34,22 @@ public final class InventoryReservationAssembler {
     }
 
     public static InventoryReservation toDomain(InventoryReservationDTO dto) {
-        return InventoryReservation.rehydrate(
+        return InventoryReservation.reconstruct(
                 null,
-                dto.getReservationNo(),
-                dto.getOrderNo(),
-                dto.getWarehouseCode(),
+                dto.getReservationNo() == null ? null : ReservationNo.of(dto.getReservationNo()),
+                dto.getOrderNo() == null ? null : com.github.thundax.bacon.common.commerce.valueobject.OrderNo.of(dto.getOrderNo()),
+                dto.getWarehouseCode() == null ? null : com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode.of(dto.getWarehouseCode()),
                 dto.getCreatedAt(),
                 toDomainItems(dto.getReservationNo(), dto.getItems()),
-                dto.getReservationStatus(),
+                dto.getReservationStatus() == null
+                        ? null
+                        : com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus.from(
+                                dto.getReservationStatus()),
                 dto.getFailureReason(),
-                dto.getReleaseReason(),
+                dto.getReleaseReason() == null
+                        ? null
+                        : com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason.from(
+                                dto.getReleaseReason()),
                 dto.getReleasedAt(),
                 dto.getDeductedAt());
     }
@@ -65,7 +71,7 @@ public final class InventoryReservationAssembler {
         }
         ReservationNo reservationNoValue = reservationNo == null ? null : ReservationNo.of(reservationNo);
         return items.stream()
-                .map(item -> new InventoryReservationItem(
+                .map(item -> InventoryReservationItem.reconstruct(
                         null,
                         reservationNoValue,
                         item.getSkuId() == null ? null : SkuId.of(item.getSkuId()),

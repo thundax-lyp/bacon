@@ -10,7 +10,7 @@ public final class InventoryReservationItemPersistenceAssembler {
     private InventoryReservationItemPersistenceAssembler() {}
 
     public static InventoryReservationItem toDomain(InventoryReservationItemDO item) {
-        return new InventoryReservationItem(
+        return InventoryReservationItem.reconstruct(
                 item.getId(),
                 item.getReservationNo() == null ? null : ReservationNo.of(item.getReservationNo()),
                 item.getSkuId() == null ? null : SkuId.of(item.getSkuId()),

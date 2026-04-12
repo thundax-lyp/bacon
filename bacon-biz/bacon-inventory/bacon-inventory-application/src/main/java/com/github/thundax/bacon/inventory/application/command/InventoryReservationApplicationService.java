@@ -1,9 +1,11 @@
 package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationAssembler;
@@ -37,12 +39,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class InventoryReservationApplicationService {
 
+    private static final String RESERVATION_ID_BIZ_TAG = "inventory-reservation-id";
+    private static final String RESERVATION_ITEM_ID_BIZ_TAG = "inventory-reservation-item-id";
+
     private final InventoryStockRepository inventoryStockRepository;
     private final InventoryReservationRepository inventoryReservationRepository;
     private final InventoryOperationLogSupport inventoryOperationLogService;
     private final InventoryReservationNoGenerator inventoryReservationNoGenerator;
     private final InventoryTransactionExecutor inventoryTransactionExecutor;
     private final InventoryWriteRetrier inventoryWriteRetrier;
+    private final IdGenerator idGenerator;
 
     @Autowired
     public InventoryReservationApplicationService(
@@ -51,27 +57,31 @@ public class InventoryReservationApplicationService {
             InventoryOperationLogSupport inventoryOperationLogService,
             InventoryReservationNoGenerator inventoryReservationNoGenerator,
             InventoryTransactionExecutor inventoryTransactionExecutor,
-            InventoryWriteRetrier inventoryWriteRetrier) {
+            InventoryWriteRetrier inventoryWriteRetrier,
+            IdGenerator idGenerator) {
         this.inventoryStockRepository = inventoryStockRepository;
         this.inventoryReservationRepository = inventoryReservationRepository;
         this.inventoryOperationLogService = inventoryOperationLogService;
         this.inventoryReservationNoGenerator = inventoryReservationNoGenerator;
         this.inventoryTransactionExecutor = inventoryTransactionExecutor;
         this.inventoryWriteRetrier = inventoryWriteRetrier;
+        this.idGenerator = idGenerator;
     }
 
     public InventoryReservationApplicationService(
             InventoryStockRepository inventoryStockRepository,
             InventoryReservationRepository inventoryReservationRepository,
             InventoryOperationLogSupport inventoryOperationLogService,
-            InventoryReservationNoGenerator inventoryReservationNoGenerator) {
+            InventoryReservationNoGenerator inventoryReservationNoGenerator,
+            IdGenerator idGenerator) {
         this(
                 inventoryStockRepository,
                 inventoryReservationRepository,
                 inventoryOperationLogService,
                 inventoryReservationNoGenerator,
                 new InventoryTransactionExecutor(),
-                new InventoryWriteRetrier());
+                new InventoryWriteRetrier(),
+                idGenerator);
     }
 
     public InventoryReservationResultDTO reserveStock(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
@@ -99,20 +109,20 @@ public class InventoryReservationApplicationService {
         ReservationNo reservationNoValue = ReservationNoCodec.toDomain(reservationNo);
         WarehouseCode warehouseCodeValue = WarehouseCode.DEFAULT;
         List<InventoryReservationItemDTO> normalizedItems = normalizeItems(items);
-        List<InventoryReservationItem> reservationItems = InventoryReservationAssembler.toDomainItems(
-                reservationNoValue == null ? null : reservationNoValue.value(), normalizedItems);
-        InventoryReservation reservation = new InventoryReservation(
-                null,
+        List<InventoryReservationItem> reservationItems = normalizedItems.stream()
+                .map(item -> InventoryReservationItem.create(
+                        idGenerator.nextId(RESERVATION_ITEM_ID_BIZ_TAG),
+                        reservationNoValue,
+                        item.getSkuId() == null ? null : SkuId.of(item.getSkuId()),
+                        item.getQuantity()))
+                .toList();
+        InventoryReservation reservation = InventoryReservation.create(
+                idGenerator.nextId(RESERVATION_ID_BIZ_TAG),
                 reservationNoValue,
                 orderNo,
                 warehouseCodeValue,
                 Instant.now(),
-                reservationItems,
-                InventoryReservationStatus.CREATED,
-                null,
-                null,
-                null,
-                null);
+                reservationItems);
 
         ReservationValidationResult validationResult = validateReservation(normalizedItems);
         String failureReason = validationResult.failureReason();

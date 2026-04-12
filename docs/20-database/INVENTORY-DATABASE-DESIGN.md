@@ -412,7 +412,7 @@
 - `strict` 模式下，未装配可用持久化仓储（如 `DataSource` / `SqlSessionFactory`）必须启动失败（fail-fast）
 - `memory` 模式仅允许开发、测试或演练场景显式启用，不得作为生产默认，也不得在运行时自动从 `strict` 切换
 - 预占、释放、扣减都以 `order_no` 为幂等键
-- `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的主键由持久化层生成，应用层不得自行发号
+- `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的主键由应用层通过统一 ID 组件生成，数据库侧不依赖自增语义
 - `releaseReservedStock` 和 `deductReservedStock` 只允许基于已存在预占单执行语义判断
 - 库存数量变更必须显式更新 `bacon_inventory_inventory`，不得依赖运行时对象引用副作用
 - `Inventory`、`InventoryReservation`、`InventoryReservationItem` 的命令写入应运行在同一事务中

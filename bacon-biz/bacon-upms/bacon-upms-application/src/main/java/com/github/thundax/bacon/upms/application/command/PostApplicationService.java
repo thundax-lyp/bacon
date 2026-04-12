@@ -64,12 +64,12 @@ public class PostApplicationService {
         validateRequired(code, "code");
         validateRequired(name, "name");
         DepartmentId domainDepartmentId = toDepartmentId(departmentId);
-        return toDto(postRepository.save(new Post(
-                idGenerator.nextId(POST_ID_BIZ_TAG),
-                tenantId.value(),
+        return toDto(postRepository.save(Post.create(
+                PostId.of(idGenerator.nextId(POST_ID_BIZ_TAG)),
+                tenantId,
                 normalize(code),
                 normalize(name),
-                domainDepartmentId == null ? null : domainDepartmentId.value(),
+                domainDepartmentId,
                 PostStatus.ENABLED,
                 null,
                 null,
@@ -83,7 +83,7 @@ public class PostApplicationService {
         Post currentPost = requirePost(tenantId, postId);
         validateRequired(code, "code");
         validateRequired(name, "name");
-        return toDto(postRepository.save(new Post(
+        return toDto(postRepository.save(Post.reconstruct(
                 currentPost.getId(),
                 tenantId,
                 normalize(code),

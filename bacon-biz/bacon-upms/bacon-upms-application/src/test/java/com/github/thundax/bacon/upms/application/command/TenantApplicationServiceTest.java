@@ -12,6 +12,7 @@ import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.time.Instant;
 import java.util.Optional;
@@ -41,17 +42,8 @@ class TenantApplicationServiceTest {
     void shouldCreateTenantWithTenantId() {
         when(tenantRepository.findTenantByTenantId(TenantId.of(1001L))).thenReturn(Optional.empty());
         when(tenantRepository.findTenantByCode("TENANT_DEMO")).thenReturn(Optional.empty());
-        when(tenantRepository.saveTenant(any(Tenant.class)))
-                .thenReturn(new Tenant(
-                        1001L,
-                        "Demo Tenant",
-                        "TENANT_DEMO",
-                        TenantStatus.ACTIVE,
-                        Instant.parse("2099-01-01T00:00:00Z"),
-                        null,
-                        null,
-                        null,
-                        null));
+        when(tenantRepository.saveTenant(any(Tenant.class))).thenReturn(tenant(
+                1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z")));
 
         TenantDTO result =
                 service.createTenant(1001L, "Demo Tenant", "TENANT_DEMO", Instant.parse("2099-01-01T00:00:00Z"));
@@ -65,16 +57,8 @@ class TenantApplicationServiceTest {
     @Test
     void shouldRejectDuplicateTenantId() {
         when(tenantRepository.findTenantByTenantId(TenantId.of(1001L)))
-                .thenReturn(Optional.of(new Tenant(
-                        1001L,
-                        "Demo Tenant",
-                        "TENANT_DEMO",
-                        TenantStatus.ACTIVE,
-                        Instant.parse("2099-01-01T00:00:00Z"),
-                        null,
-                        null,
-                        null,
-                        null)));
+                .thenReturn(Optional.of(tenant(
+                        1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
 
         assertThatThrownBy(() -> service.createTenant(1001L, "Other", "OTHER", null))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -91,12 +75,24 @@ class TenantApplicationServiceTest {
     @Test
     void shouldInvalidateTenantSessionsWhenTenantDisabled() {
         when(tenantRepository.updateTenantStatus(TenantId.of(1001L), "DISABLED"))
-                .thenReturn(new Tenant(
-                        1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null, null, null, null, null));
+                .thenReturn(tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null));
 
         TenantDTO result = service.updateTenantStatus(1001L, TenantStatusEnum.DISABLED);
 
         assertThat(result.getStatus()).isEqualTo("DISABLED");
         verify(sessionCommandFacade).invalidateTenantSessions(1001L, "TENANT_DISABLED");
+    }
+
+    private static Tenant tenant(Long id, String name, String code, TenantStatus status, Instant expiredAt) {
+        return Tenant.reconstruct(
+                TenantId.of(id),
+                name,
+                TenantCode.of(code),
+                status,
+                expiredAt,
+                (String) null,
+                (Instant) null,
+                (String) null,
+                (Instant) null);
     }
 }

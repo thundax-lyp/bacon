@@ -58,7 +58,7 @@ public class RoleRepositoryImpl implements RoleRepository {
     @Override
     public Role save(Role role) {
         Role roleToSave = role.getId() == null
-                ? new Role(
+                ? Role.create(
                         RoleId.of(idGenerator.nextId(ROLE_ID_BIZ_TAG)),
                         role.getTenantId(),
                         role.getCode(),
@@ -81,7 +81,7 @@ public class RoleRepositoryImpl implements RoleRepository {
     public Role updateStatus(TenantId tenantId, RoleId roleId, RoleStatus status) {
         Role currentRole = findRoleById(tenantId, roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
-        return support.saveRole(new Role(
+        return support.saveRole(Role.reconstruct(
                 currentRole.getId(),
                 currentRole.getTenantId(),
                 currentRole.getCode(),
@@ -158,7 +158,7 @@ public class RoleRepositoryImpl implements RoleRepository {
         Set<DepartmentId> safeDepartmentIds = departmentIds == null ? Set.of() : Set.copyOf(departmentIds);
         support.replaceRoleDataScope(tenantId, roleId, dataScopeType, safeDepartmentIds);
         Role currentRole = findRoleById(tenantId, roleId).orElseThrow();
-        support.saveRole(new Role(
+        support.saveRole(Role.reconstruct(
                 currentRole.getId(),
                 currentRole.getTenantId(),
                 currentRole.getCode(),

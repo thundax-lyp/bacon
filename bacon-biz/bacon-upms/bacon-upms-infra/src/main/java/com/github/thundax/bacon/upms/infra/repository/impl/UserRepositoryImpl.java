@@ -121,7 +121,7 @@ public class UserRepositoryImpl implements UserRepository {
     public User updatePassword(TenantId tenantId, UserId userId, String password, boolean needChangePassword) {
         User currentUser = findUserById(tenantId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
-        User updatedUser = new User(
+        User updatedUser = User.reconstruct(
                 currentUser.getId(),
                 currentUser.getTenantId(),
                 currentUser.getName(),
@@ -161,7 +161,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private User createUser(User user) {
-        return new User(
+        return User.create(
                 ids.userId(),
                 user.getTenantId(),
                 user.getName(),
@@ -177,7 +177,7 @@ public class UserRepositoryImpl implements UserRepository {
     private User updateUser(User user) {
         User currentUser = findUserById(user.getTenantId(), user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + user.getId()));
-        return new User(
+        return User.reconstruct(
                 currentUser.getId(),
                 user.getTenantId(),
                 user.getName(),
@@ -192,7 +192,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     private UserIdentity replaceAccountIdentity(User user, String account) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
-        return support.saveUserIdentity(new UserIdentity(
+        return support.saveUserIdentity(UserIdentity.create(
                 nextUserIdentityId(),
                 user.getTenantId(),
                 user.getId(),
@@ -208,7 +208,7 @@ public class UserRepositoryImpl implements UserRepository {
     private void replacePhoneIdentity(User user, String phone) {
         support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
         if (phone != null && !phone.isBlank()) {
-            support.saveUserIdentity(new UserIdentity(
+            support.saveUserIdentity(UserIdentity.create(
                     nextUserIdentityId(),
                     user.getTenantId(),
                     user.getId(),
@@ -249,7 +249,7 @@ public class UserRepositoryImpl implements UserRepository {
         UserCredential currentCredential = support.findUserCredential(
                         user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .orElse(null);
-        support.saveUserCredential(new UserCredential(
+        support.saveUserCredential(UserCredential.create(
                 currentCredential == null ? nextUserCredentialId() : currentCredential.getId(),
                 user.getTenantId(),
                 user.getId(),

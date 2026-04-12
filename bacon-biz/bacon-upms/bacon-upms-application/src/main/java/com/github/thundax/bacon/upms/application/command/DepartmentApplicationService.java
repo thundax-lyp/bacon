@@ -84,13 +84,13 @@ public class DepartmentApplicationService {
         DepartmentId parentDepartmentId = normalizeParentId(parentId);
         validateParent(tenantId, parentDepartmentId);
         UserId leaderId = toUserId(leaderUserId);
-        return toDto(departmentRepository.save(new Department(
-                idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG),
-                tenantId.value(),
+        return toDto(departmentRepository.save(Department.create(
+                DepartmentId.of(idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG)),
+                tenantId,
                 normalize(code),
                 normalize(name),
-                parentDepartmentId == null ? null : parentDepartmentId.value(),
-                leaderId == null ? null : leaderId.value(),
+                parentDepartmentId,
+                leaderId,
                 defaultSort(sort),
                 DepartmentStatus.ENABLED,
                 null,
@@ -118,7 +118,7 @@ public class DepartmentApplicationService {
         if (departmentId.equals(parentDepartmentId)) {
             throw new IllegalArgumentException("Department parent cannot be self");
         }
-        return toDto(departmentRepository.save(new Department(
+        return toDto(departmentRepository.save(Department.reconstruct(
                 currentDepartment.getId(),
                 tenantId,
                 normalize(code),

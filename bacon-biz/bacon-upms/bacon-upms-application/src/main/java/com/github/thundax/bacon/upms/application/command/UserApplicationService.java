@@ -195,12 +195,12 @@ public class UserApplicationService {
         String normalizedPhone = normalize(phone);
         DepartmentId domainDepartmentId = toDepartmentId(departmentId);
         User savedUser = userRepository.save(
-                new User(
+                User.reconstruct(
                         null,
-                        tenantId.value(),
+                        tenantId,
                         normalize(name),
                         null,
-                        domainDepartmentId == null ? null : domainDepartmentId.value(),
+                        domainDepartmentId,
                         UserStatus.ENABLED,
                         null,
                         null,
@@ -222,7 +222,7 @@ public class UserApplicationService {
         String normalizedAccount = normalize(account);
         String normalizedPhone = normalize(phone);
         User savedUser = userRepository.save(
-                new User(
+                User.reconstruct(
                         currentUser.getId(),
                         tenantId,
                         normalize(name),
@@ -246,7 +246,7 @@ public class UserApplicationService {
             throw new IllegalArgumentException("status must not be null");
         }
         User savedUser = userRepository.save(
-                new User(
+                User.reconstruct(
                         currentUser.getId(),
                         tenantId,
                         currentUser.getName(),
@@ -386,7 +386,7 @@ public class UserApplicationService {
         StoredObjectId previousAvatarObjectId = currentUser.getAvatarObjectId();
         try {
             User savedUser = userRepository.save(
-                    new User(
+                    User.reconstruct(
                             currentUser.getId(),
                             currentUser.getTenantId(),
                             currentUser.getName(),

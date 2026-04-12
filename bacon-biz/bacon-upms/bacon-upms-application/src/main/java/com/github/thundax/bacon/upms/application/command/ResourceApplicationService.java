@@ -61,9 +61,9 @@ public class ResourceApplicationService {
         validateRequired(name, "name");
         validateRequired(resourceType, "resourceType");
         validateRequired(uri, "uri");
-        return toDto(resourceRepository.save(new Resource(
+        return toDto(resourceRepository.save(Resource.reconstruct(
                 null,
-                tenantId.value(),
+                tenantId,
                 normalize(code),
                 normalize(name),
                 toResourceType(resourceType),
@@ -91,7 +91,7 @@ public class ResourceApplicationService {
         validateRequired(name, "name");
         validateRequired(resourceType, "resourceType");
         validateRequired(uri, "uri");
-        return toDto(resourceRepository.save(new Resource(
+        return toDto(resourceRepository.save(Resource.reconstruct(
                 currentResource.getId(),
                 tenantId,
                 normalize(code),

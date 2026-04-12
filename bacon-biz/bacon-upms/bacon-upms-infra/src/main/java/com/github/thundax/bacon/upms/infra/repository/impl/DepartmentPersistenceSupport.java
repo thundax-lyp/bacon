@@ -84,7 +84,7 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
     Department updateDepartmentSort(TenantId tenantId, DepartmentId departmentId, Integer sort) {
         Department currentDepartment = findDepartmentById(tenantId, departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
-        return saveDepartment(new Department(
+        return saveDepartment(Department.reconstruct(
                 currentDepartment.getId(),
                 currentDepartment.getTenantId(),
                 currentDepartment.getCode(),

@@ -6,14 +6,18 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.time.Instant;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 用户领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class User {
 
     /** 用户主键。 */
@@ -37,27 +41,55 @@ public class User {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public User(
-            Long id,
-            Long tenantId,
+    public static User create(
+            UserId id,
+            TenantId tenantId,
             String name,
-            Long avatarObjectId,
-            Long departmentId,
+            StoredObjectId avatarObjectId,
+            DepartmentId departmentId,
             UserStatus status,
             String createdBy,
             Instant createdAt,
             String updatedBy,
             Instant updatedAt) {
-        this(
-                id == null ? null : UserId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                name,
-                avatarObjectId == null ? null : StoredObjectId.of(avatarObjectId),
-                departmentId == null ? null : DepartmentId.of(departmentId),
-                status,
-                createdBy,
-                createdAt,
-                updatedBy,
-                updatedAt);
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new User(id, tenantId, name, avatarObjectId, departmentId, status, createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public static User create(
+            UserId id,
+            TenantId tenantId,
+            String name,
+            StoredObjectId avatarObjectId,
+            DepartmentId departmentId,
+            UserStatus status) {
+        return create(id, tenantId, name, avatarObjectId, departmentId, status, null, null, null, null);
+    }
+
+    public static User reconstruct(
+            UserId id,
+            TenantId tenantId,
+            String name,
+            StoredObjectId avatarObjectId,
+            DepartmentId departmentId,
+            UserStatus status,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        return new User(id, tenantId, name, avatarObjectId, departmentId, status, createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public static User reconstruct(
+            UserId id,
+            TenantId tenantId,
+            String name,
+            StoredObjectId avatarObjectId,
+            DepartmentId departmentId,
+            UserStatus status) {
+        return reconstruct(id, tenantId, name, avatarObjectId, departmentId, status, null, null, null, null);
     }
 }

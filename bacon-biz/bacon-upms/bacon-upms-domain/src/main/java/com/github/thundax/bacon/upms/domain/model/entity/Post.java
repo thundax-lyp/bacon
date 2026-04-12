@@ -5,14 +5,18 @@ import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import java.time.Instant;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 岗位领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Post {
 
     /** 岗位主键。 */
@@ -36,27 +40,56 @@ public class Post {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Post(
-            Long id,
-            Long tenantId,
+    public static Post create(
+            PostId id,
+            TenantId tenantId,
             String code,
             String name,
-            Long departmentId,
+            DepartmentId departmentId,
             PostStatus status,
             String createdBy,
             Instant createdAt,
             String updatedBy,
             Instant updatedAt) {
-        this(
-                id == null ? null : PostId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                code,
-                name,
-                departmentId == null ? null : DepartmentId.of(departmentId),
-                status,
-                createdBy,
-                createdAt,
-                updatedBy,
-                updatedAt);
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Objects.requireNonNull(code, "code must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new Post(id, tenantId, code, name, departmentId, status, createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public static Post create(
+            PostId id,
+            TenantId tenantId,
+            String code,
+            String name,
+            DepartmentId departmentId,
+            PostStatus status) {
+        return create(id, tenantId, code, name, departmentId, status, null, null, null, null);
+    }
+
+    public static Post reconstruct(
+            PostId id,
+            TenantId tenantId,
+            String code,
+            String name,
+            DepartmentId departmentId,
+            PostStatus status,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        return new Post(id, tenantId, code, name, departmentId, status, createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public static Post reconstruct(
+            PostId id,
+            TenantId tenantId,
+            String code,
+            String name,
+            DepartmentId departmentId,
+            PostStatus status) {
+        return reconstruct(id, tenantId, code, name, departmentId, status, null, null, null, null);
     }
 }

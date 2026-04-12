@@ -129,7 +129,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                         .thenComparing(menu -> menu.getId().value()))
                 .forEach(menu -> menuMap.put(
                         menu.getId(),
-                        new Menu(
+                        Menu.reconstruct(
                                 menu.getId(),
                                 menu.getTenantId(),
                                 menu.getMenuType(),

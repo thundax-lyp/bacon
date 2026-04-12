@@ -50,7 +50,7 @@ public class MenuApplicationService {
         validateRequired(name, "name");
         MenuId domainParentId = normalizeParentId(parentId);
         validateParent(tenantId, domainParentId);
-        return toTreeDto(menuRepository.save(new Menu(
+        return toTreeDto(menuRepository.save(Menu.reconstruct(
                 null,
                 tenantId,
                 normalize(menuType),
@@ -61,7 +61,7 @@ public class MenuApplicationService {
                 normalize(icon),
                 sort == null ? 0 : sort,
                 normalize(permissionCode),
-                List.of())));
+                List.<Menu>of())));
     }
 
     @Transactional
@@ -87,7 +87,7 @@ public class MenuApplicationService {
         if (domainMenuId.equals(domainParentId)) {
             throw new IllegalArgumentException("Menu parent cannot be self");
         }
-        return toTreeDto(menuRepository.save(new Menu(
+        return toTreeDto(menuRepository.save(Menu.reconstruct(
                 currentMenu.getId(),
                 tenantId,
                 normalize(menuType),
@@ -98,7 +98,7 @@ public class MenuApplicationService {
                 normalize(icon),
                 sort == null ? currentMenu.getSort() : sort,
                 normalize(permissionCode),
-                List.of())));
+                List.<Menu>of())));
     }
 
     @Transactional

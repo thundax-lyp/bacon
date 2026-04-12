@@ -3,14 +3,18 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import java.util.List;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 菜单领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Menu {
 
     /** 菜单主键。 */
@@ -36,29 +40,67 @@ public class Menu {
     /** 子菜单列表。 */
     private List<Menu> children;
 
-    public Menu(
-            Long id,
-            Long tenantId,
+    public static Menu create(
+            MenuId id,
+            TenantId tenantId,
             String menuType,
             String name,
-            Long parentId,
+            MenuId parentId,
             String routePath,
             String componentName,
             String icon,
             Integer sort,
             String permissionCode,
             List<Menu> children) {
-        this(
-                id == null ? null : MenuId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                menuType,
-                name,
-                parentId == null ? null : MenuId.of(parentId),
-                routePath,
-                componentName,
-                icon,
-                sort,
-                permissionCode,
-                children);
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Objects.requireNonNull(menuType, "menuType must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        return new Menu(
+                id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
+    }
+
+    public static Menu create(
+            MenuId id,
+            TenantId tenantId,
+            String menuType,
+            String name,
+            MenuId parentId,
+            String routePath,
+            String componentName,
+            String icon,
+            Integer sort,
+            String permissionCode) {
+        return create(id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, List.of());
+    }
+
+    public static Menu reconstruct(
+            MenuId id,
+            TenantId tenantId,
+            String menuType,
+            String name,
+            MenuId parentId,
+            String routePath,
+            String componentName,
+            String icon,
+            Integer sort,
+            String permissionCode,
+            List<Menu> children) {
+        return new Menu(
+                id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
+    }
+
+    public static Menu reconstruct(
+            MenuId id,
+            TenantId tenantId,
+            String menuType,
+            String name,
+            MenuId parentId,
+            String routePath,
+            String componentName,
+            String icon,
+            Integer sort,
+            String permissionCode) {
+        return reconstruct(id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, List.of());
     }
 }

@@ -5,14 +5,18 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.time.Instant;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 部门领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Department {
 
     /** 部门主键。 */
@@ -40,31 +44,66 @@ public class Department {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public Department(
-            Long id,
-            Long tenantId,
+    public static Department create(
+            DepartmentId id,
+            TenantId tenantId,
             String code,
             String name,
-            Long parentId,
-            Long leaderUserId,
+            DepartmentId parentId,
+            UserId leaderUserId,
             Integer sort,
             DepartmentStatus status,
             String createdBy,
             Instant createdAt,
             String updatedBy,
             Instant updatedAt) {
-        this(
-                id == null ? null : DepartmentId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                code,
-                name,
-                parentId == null ? null : DepartmentId.of(parentId),
-                leaderUserId == null ? null : UserId.of(leaderUserId),
-                sort,
-                status,
-                createdBy,
-                createdAt,
-                updatedBy,
-                updatedAt);
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Objects.requireNonNull(code, "code must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new Department(
+                id, tenantId, code, name, parentId, leaderUserId, sort, status, createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public static Department create(
+            DepartmentId id,
+            TenantId tenantId,
+            String code,
+            String name,
+            DepartmentId parentId,
+            UserId leaderUserId,
+            Integer sort,
+            DepartmentStatus status) {
+        return create(id, tenantId, code, name, parentId, leaderUserId, sort, status, null, null, null, null);
+    }
+
+    public static Department reconstruct(
+            DepartmentId id,
+            TenantId tenantId,
+            String code,
+            String name,
+            DepartmentId parentId,
+            UserId leaderUserId,
+            Integer sort,
+            DepartmentStatus status,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        return new Department(
+                id, tenantId, code, name, parentId, leaderUserId, sort, status, createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public static Department reconstruct(
+            DepartmentId id,
+            TenantId tenantId,
+            String code,
+            String name,
+            DepartmentId parentId,
+            UserId leaderUserId,
+            Integer sort,
+            DepartmentStatus status) {
+        return reconstruct(id, tenantId, code, name, parentId, leaderUserId, sort, status, null, null, null, null);
     }
 }

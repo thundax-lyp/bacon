@@ -45,7 +45,7 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     @Override
     public Resource save(Resource resource) {
         Resource resourceToSave = resource.getId() == null
-                ? new Resource(
+                ? Resource.create(
                         ids.resourceId(),
                         resource.getTenantId(),
                         resource.getCode(),

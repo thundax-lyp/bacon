@@ -82,9 +82,9 @@ public class RoleApplicationService {
         validateRequired(name, "name");
         validateRequired(roleType, "roleType");
         validateRequired(dataScopeType, "dataScopeType");
-        return toDto(roleRepository.save(new Role(
+        return toDto(roleRepository.save(Role.reconstruct(
                 null,
-                tenantId.value(),
+                tenantId,
                 normalize(code),
                 normalize(name),
                 toRoleType(roleType),
@@ -107,7 +107,7 @@ public class RoleApplicationService {
         validateRequired(name, "name");
         validateRequired(roleType, "roleType");
         validateRequired(dataScopeType, "dataScopeType");
-        return toDto(roleRepository.save(new Role(
+        return toDto(roleRepository.save(Role.reconstruct(
                 currentRole.getId(),
                 tenantId,
                 normalize(code),

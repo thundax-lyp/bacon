@@ -15,8 +15,10 @@ import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.core.DefaultIds;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
@@ -34,6 +36,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -316,7 +319,7 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
-        Department rootDepartment = departmentRepository.save(new Department(
+        Department rootDepartment = departmentRepository.save(Department.create(
                 HEADQUARTERS_DEPARTMENT_ID,
                 TENANT_ID,
                 "ROOT",
@@ -329,7 +332,7 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 null));
-        Department childDepartment = departmentRepository.save(new Department(
+        Department childDepartment = departmentRepository.save(Department.create(
                 OPERATIONS_DEPARTMENT_ID,
                 TENANT_ID,
                 "OPS",
@@ -342,10 +345,10 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 null));
-        Menu rootMenu = menuRepository.save(new Menu(
-                null, TENANT_ID, "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
-        Menu childMenu = menuRepository.save(new Menu(
-                null,
+        Menu rootMenu = menuRepository.save(Menu.reconstruct(
+                (MenuId) null, TENANT_ID, "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
+        Menu childMenu = menuRepository.save(Menu.reconstruct(
+                (MenuId) null,
                 TENANT_ID,
                 "MENU",
                 "Users",
@@ -356,8 +359,8 @@ class UpmsRepositoryIntegrationTest {
                 2,
                 "upms:user:view",
                 List.of()));
-        Resource resource = resourceRepository.save(new Resource(
-                null,
+        Resource resource = resourceRepository.save(Resource.reconstruct(
+                (ResourceId) null,
                 TENANT_ID,
                 "upms:user:edit",
                 "Edit User",
@@ -369,8 +372,8 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 null));
-        Role role = roleRepository.save(new Role(
-                null,
+        Role role = roleRepository.save(Role.reconstruct(
+                (RoleId) null,
                 TENANT_ID,
                 "ADMIN",
                 "Administrator",
@@ -382,8 +385,8 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null));
         User user = userRepository.save(
-                new User(
-                        null,
+                User.reconstruct(
+                        (UserId) null,
                         TENANT_ID,
                         "Alice",
                         StoredObjectId.of(901L),
@@ -446,7 +449,7 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
-        Department department = departmentRepository.save(new Department(
+        Department department = departmentRepository.save(Department.create(
                 OPERATIONS_DEPARTMENT_ID,
                 TENANT_ID,
                 "OPS",
@@ -459,8 +462,8 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 null));
-        Role role = roleRepository.save(new Role(
-                null,
+        Role role = roleRepository.save(Role.reconstruct(
+                (RoleId) null,
                 TENANT_ID,
                 "OPS_ADMIN",
                 "Ops Admin",
@@ -472,8 +475,8 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null));
         User createdUser = userRepository.save(
-                new User(
-                        null,
+                User.reconstruct(
+                        (UserId) null,
                         TENANT_ID,
                         "Bob",
                         StoredObjectId.of(1001L),
@@ -488,7 +491,7 @@ class UpmsRepositoryIntegrationTest {
 
         userRepository.assignRoles(TENANT_ID, createdUser.getId(), List.of(role.getId()));
         User updatedUser = userRepository.save(
-                new User(
+                User.reconstruct(
                         createdUser.getId(),
                         TENANT_ID,
                         "Bob",
@@ -534,7 +537,7 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
-        Department department = departmentRepository.save(new Department(
+        Department department = departmentRepository.save(Department.create(
                 OPERATIONS_DEPARTMENT_ID,
                 TENANT_ID,
                 "OPS",
@@ -548,8 +551,8 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null));
         User createdUser = userRepository.save(
-                new User(
-                        null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED, null, null, null, null),
+                User.reconstruct(
+                        (UserId) null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED, null, null, null, null),
                 "carol",
                 "13600000001");
 
@@ -573,7 +576,7 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
-        Department root = departmentRepository.save(new Department(
+        Department root = departmentRepository.save(Department.create(
                 HEADQUARTERS_DEPARTMENT_ID,
                 TENANT_ID,
                 "ROOT",
@@ -586,7 +589,7 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 null));
-        Department child = departmentRepository.save(new Department(
+        Department child = departmentRepository.save(Department.create(
                 CHILD_DEPARTMENT_ID,
                 TENANT_ID,
                 "CHILD",
@@ -599,12 +602,12 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 null));
-        Menu oldMenu = menuRepository.save(new Menu(
-                null, TENANT_ID, "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
-        Menu newMenu = menuRepository.save(new Menu(
-                null, TENANT_ID, "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
-        Resource oldResource = resourceRepository.save(new Resource(
-                null,
+        Menu oldMenu = menuRepository.save(Menu.reconstruct(
+                (MenuId) null, TENANT_ID, "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
+        Menu newMenu = menuRepository.save(Menu.reconstruct(
+                (MenuId) null, TENANT_ID, "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
+        Resource oldResource = resourceRepository.save(Resource.reconstruct(
+                (ResourceId) null,
                 TENANT_ID,
                 "upms:old:edit",
                 "Old Edit",
@@ -616,8 +619,8 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 null));
-        Resource newResource = resourceRepository.save(new Resource(
-                null,
+        Resource newResource = resourceRepository.save(Resource.reconstruct(
+                (ResourceId) null,
                 TENANT_ID,
                 "upms:new:edit",
                 "New Edit",
@@ -629,8 +632,8 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 null,
                 null));
-        Role role = roleRepository.save(new Role(
-                null,
+        Role role = roleRepository.save(Role.reconstruct(
+                (RoleId) null,
                 TENANT_ID,
                 "MANAGER",
                 "Manager",
@@ -647,7 +650,8 @@ class UpmsRepositoryIntegrationTest {
         roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
         User user = userRepository.save(
-                new User(null, TENANT_ID, "Manager", null, child.getId(), UserStatus.ENABLED, null, null, null, null),
+                User.reconstruct(
+                        (UserId) null, TENANT_ID, "Manager", null, child.getId(), UserStatus.ENABLED, null, null, null, null),
                 "manager",
                 "13700000001");
         userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));

@@ -46,7 +46,7 @@ public class MenuRepositoryImpl implements MenuRepository {
     @Override
     public Menu save(Menu menu) {
         Menu menuToSave = menu.getId() == null
-                ? new Menu(
+                ? Menu.create(
                         MenuId.of(idGenerator.nextId(MENU_ID_BIZ_TAG)),
                         menu.getTenantId(),
                         menu.getMenuType(),
@@ -68,7 +68,7 @@ public class MenuRepositoryImpl implements MenuRepository {
     public Menu updateSort(TenantId tenantId, MenuId menuId, Integer sort) {
         Menu currentMenu = findMenuById(tenantId, menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
-        return support.saveMenu(new Menu(
+        return support.saveMenu(Menu.reconstruct(
                 currentMenu.getId(),
                 currentMenu.getTenantId(),
                 currentMenu.getMenuType(),

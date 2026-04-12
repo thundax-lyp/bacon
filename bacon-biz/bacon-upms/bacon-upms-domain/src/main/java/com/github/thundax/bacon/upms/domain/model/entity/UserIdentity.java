@@ -6,14 +6,18 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import java.time.Instant;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 用户身份标识领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserIdentity {
 
     /** 身份标识主键。 */
@@ -37,10 +41,10 @@ public class UserIdentity {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserIdentity(
-            Long id,
-            Long tenantId,
-            Long userId,
+    public static UserIdentity create(
+            UserIdentityId id,
+            TenantId tenantId,
+            UserId userId,
             UserIdentityType identityType,
             String identityValue,
             UserIdentityStatus status,
@@ -48,16 +52,48 @@ public class UserIdentity {
             Instant createdAt,
             String updatedBy,
             Instant updatedAt) {
-        this(
-                id == null ? null : UserIdentityId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                userId == null ? null : UserId.of(userId),
-                identityType,
-                identityValue,
-                status,
-                createdBy,
-                createdAt,
-                updatedBy,
-                updatedAt);
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Objects.requireNonNull(userId, "userId must not be null");
+        Objects.requireNonNull(identityType, "identityType must not be null");
+        Objects.requireNonNull(identityValue, "identityValue must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new UserIdentity(
+                id, tenantId, userId, identityType, identityValue, status, createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public static UserIdentity create(
+            UserIdentityId id,
+            TenantId tenantId,
+            UserId userId,
+            UserIdentityType identityType,
+            String identityValue,
+            UserIdentityStatus status) {
+        return create(id, tenantId, userId, identityType, identityValue, status, null, null, null, null);
+    }
+
+    public static UserIdentity reconstruct(
+            UserIdentityId id,
+            TenantId tenantId,
+            UserId userId,
+            UserIdentityType identityType,
+            String identityValue,
+            UserIdentityStatus status,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        return new UserIdentity(
+                id, tenantId, userId, identityType, identityValue, status, createdBy, createdAt, updatedBy, updatedAt);
+    }
+
+    public static UserIdentity reconstruct(
+            UserIdentityId id,
+            TenantId tenantId,
+            UserId userId,
+            UserIdentityType identityType,
+            String identityValue,
+            UserIdentityStatus status) {
+        return reconstruct(id, tenantId, userId, identityType, identityValue, status, null, null, null, null);
     }
 }

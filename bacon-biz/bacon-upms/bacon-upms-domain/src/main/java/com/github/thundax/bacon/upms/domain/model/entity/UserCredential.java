@@ -8,14 +8,18 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLeve
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import java.time.Instant;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 用户认证凭据领域实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserCredential {
 
     /** 凭据主键。 */
@@ -57,18 +61,18 @@ public class UserCredential {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public UserCredential(
-            Long id,
-            Long tenantId,
-            Long userId,
-            Long identityId,
+    public static UserCredential create(
+            UserCredentialId id,
+            TenantId tenantId,
+            UserId userId,
+            UserIdentityId identityId,
             UserCredentialType credentialType,
             UserCredentialFactorLevel factorLevel,
             String credentialValue,
             UserCredentialStatus status,
-            Integer needChangePassword,
-            Integer failedCount,
-            Integer failedLimit,
+            boolean needChangePassword,
+            int failedCount,
+            int failedLimit,
             String lockReason,
             Instant lockedUntil,
             Instant expiresAt,
@@ -77,18 +81,25 @@ public class UserCredential {
             Instant createdAt,
             String updatedBy,
             Instant updatedAt) {
-        this(
-                id == null ? null : UserCredentialId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
-                userId == null ? null : UserId.of(userId),
-                identityId == null ? null : UserIdentityId.of(identityId),
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(tenantId, "tenantId must not be null");
+        Objects.requireNonNull(userId, "userId must not be null");
+        Objects.requireNonNull(credentialType, "credentialType must not be null");
+        Objects.requireNonNull(factorLevel, "factorLevel must not be null");
+        Objects.requireNonNull(credentialValue, "credentialValue must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new UserCredential(
+                id,
+                tenantId,
+                userId,
+                identityId,
                 credentialType,
                 factorLevel,
                 credentialValue,
                 status,
-                needChangePassword != null && needChangePassword != 0,
-                failedCount == null ? 0 : failedCount,
-                failedLimit == null ? 0 : failedLimit,
+                needChangePassword,
+                failedCount,
+                failedLimit,
                 lockReason,
                 lockedUntil,
                 expiresAt,
@@ -97,5 +108,115 @@ public class UserCredential {
                 createdAt,
                 updatedBy,
                 updatedAt);
+    }
+
+    public static UserCredential create(
+            UserCredentialId id,
+            TenantId tenantId,
+            UserId userId,
+            UserIdentityId identityId,
+            UserCredentialType credentialType,
+            UserCredentialFactorLevel factorLevel,
+            String credentialValue,
+            UserCredentialStatus status,
+            boolean needChangePassword,
+            int failedCount,
+            int failedLimit) {
+        return create(
+                id,
+                tenantId,
+                userId,
+                identityId,
+                credentialType,
+                factorLevel,
+                credentialValue,
+                status,
+                needChangePassword,
+                failedCount,
+                failedLimit,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    public static UserCredential reconstruct(
+            UserCredentialId id,
+            TenantId tenantId,
+            UserId userId,
+            UserIdentityId identityId,
+            UserCredentialType credentialType,
+            UserCredentialFactorLevel factorLevel,
+            String credentialValue,
+            UserCredentialStatus status,
+            boolean needChangePassword,
+            int failedCount,
+            int failedLimit,
+            String lockReason,
+            Instant lockedUntil,
+            Instant expiresAt,
+            Instant lastVerifiedAt,
+            String createdBy,
+            Instant createdAt,
+            String updatedBy,
+            Instant updatedAt) {
+        return new UserCredential(
+                id,
+                tenantId,
+                userId,
+                identityId,
+                credentialType,
+                factorLevel,
+                credentialValue,
+                status,
+                needChangePassword,
+                failedCount,
+                failedLimit,
+                lockReason,
+                lockedUntil,
+                expiresAt,
+                lastVerifiedAt,
+                createdBy,
+                createdAt,
+                updatedBy,
+                updatedAt);
+    }
+
+    public static UserCredential reconstruct(
+            UserCredentialId id,
+            TenantId tenantId,
+            UserId userId,
+            UserIdentityId identityId,
+            UserCredentialType credentialType,
+            UserCredentialFactorLevel factorLevel,
+            String credentialValue,
+            UserCredentialStatus status,
+            boolean needChangePassword,
+            int failedCount,
+            int failedLimit) {
+        return reconstruct(
+                id,
+                tenantId,
+                userId,
+                identityId,
+                credentialType,
+                factorLevel,
+                credentialValue,
+                status,
+                needChangePassword,
+                failedCount,
+                failedLimit,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 }

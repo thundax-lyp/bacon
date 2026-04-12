@@ -80,7 +80,7 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final Tenant toDomain(TenantDO tenantDO) {
-        return new Tenant(
+        return Tenant.reconstruct(
                 tenantDO.getId(),
                 tenantDO.getName(),
                 com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode.of(tenantDO.getCode()),
@@ -108,7 +108,7 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final User toDomain(UserDO userDO) {
-        return new User(
+        return User.reconstruct(
                 userDO.getId(),
                 userDO.getTenantId(),
                 userDO.getName(),
@@ -140,7 +140,7 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final UserIdentity toDomain(UserIdentityDO dataObject) {
-        return new UserIdentity(
+        return UserIdentity.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
                 dataObject.getUserId(),
@@ -181,7 +181,7 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final UserCredential toDomain(UserCredentialDO dataObject) {
-        return new UserCredential(
+        return UserCredential.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
                 dataObject.getUserId(),
@@ -220,7 +220,7 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final Department toDomain(DepartmentDO dataObject) {
-        return new Department(
+        return Department.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
                 dataObject.getCode(),
@@ -250,7 +250,7 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final Post toDomain(PostDO dataObject) {
-        return new Post(
+        return Post.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
                 dataObject.getCode(),
@@ -279,7 +279,7 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final Role toDomain(RoleDO dataObject) {
-        return new Role(
+        return Role.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
                 dataObject.getCode(),
@@ -309,7 +309,7 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final Menu toDomain(MenuDO dataObject) {
         MenuId parentId = dataObject.getParentId();
-        return new Menu(
+        return Menu.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
                 dataObject.getMenuType(),
@@ -343,7 +343,7 @@ abstract class AbstractUpmsPersistenceSupport {
 
     protected final Resource toDomain(ResourceDO dataObject) {
         ResourceId resourceId = dataObject.getId();
-        return new Resource(
+        return Resource.reconstruct(
                 resourceId,
                 dataObject.getTenantId(),
                 dataObject.getCode(),
@@ -383,7 +383,7 @@ abstract class AbstractUpmsPersistenceSupport {
     }
 
     protected final SysLogRecord toDomain(SysLogRecordDO dataObject) {
-        return new SysLogRecord(
+        return SysLogRecord.reconstruct(
                 dataObject.getId(),
                 dataObject.getTenantId(),
                 dataObject.getTraceId(),

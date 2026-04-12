@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.facade;
 
-import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
@@ -26,7 +26,7 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
     @Override
     public InventoryStockDTO getAvailableStock(Long skuId) {
         requireContext();
-        return inventoryQueryService.getAvailableStock(SkuIdMapper.toDomain(skuId));
+        return inventoryQueryService.getAvailableStock(SkuIdCodec.toDomain(skuId));
     }
 
     @Override
@@ -35,7 +35,7 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
         return inventoryQueryService.batchGetAvailableStock(
                 skuIds == null
                         ? Set.of()
-                        : skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
+                        : skuIds.stream().map(SkuIdCodec::toDomain).collect(Collectors.toSet()));
     }
 
     @Override

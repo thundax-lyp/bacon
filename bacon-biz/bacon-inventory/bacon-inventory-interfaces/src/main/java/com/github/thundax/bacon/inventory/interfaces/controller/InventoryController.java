@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
-import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.application.command.InventoryManagementApplicationService;
@@ -53,14 +53,14 @@ public class InventoryController {
     public InventoryStockResponse createInventory(@Valid @RequestBody CreateInventoryRequest request) {
         InventoryStatus status = parseInventoryStatus(request.status());
         return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(
-                SkuIdMapper.toDomain(request.skuId()), request.onHandQuantity(), status));
+                SkuIdCodec.toDomain(request.skuId()), request.onHandQuantity(), status));
     }
 
     @Operation(summary = "查询 SKU 可用库存")
     @HasPermission("inventory:stock:view")
     @GetMapping("/{skuId}")
     public InventoryStockResponse getInventory(@PathVariable @Positive Long skuId) {
-        return InventoryStockResponse.from(inventoryQueryService.getAvailableStock(SkuIdMapper.toDomain(skuId)));
+        return InventoryStockResponse.from(inventoryQueryService.getAvailableStock(SkuIdCodec.toDomain(skuId)));
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
@@ -72,7 +72,7 @@ public class InventoryController {
                         request.getSkuIds() == null
                                 ? java.util.Set.of()
                                 : request.getSkuIds().stream()
-                                        .map(SkuIdMapper::toDomain)
+                                        .map(SkuIdCodec::toDomain)
                                         .collect(Collectors.toSet()))
                 .stream()
                 .map(InventoryStockResponse::from)
@@ -85,7 +85,7 @@ public class InventoryController {
     public InventoryPageResponse pageInventories(@Valid @ModelAttribute InventoryPageRequest request) {
         InventoryStatus status = parseInventoryStatus(request.getStatus());
         return InventoryPageResponse.from(inventoryQueryService.pageInventories(
-                SkuIdMapper.toDomain(request.getSkuId()), status, request.getPageNo(), request.getPageSize()));
+                SkuIdCodec.toDomain(request.getSkuId()), status, request.getPageNo(), request.getPageSize()));
     }
 
     @Operation(summary = "修改库存状态")
@@ -95,7 +95,7 @@ public class InventoryController {
             @PathVariable @Positive Long skuId, @Valid @RequestBody InventoryStatusUpdateRequest request) {
         InventoryStatus status = parseInventoryStatus(request.status());
         return InventoryStockResponse.from(
-                inventoryManagementApplicationService.updateInventoryStatus(SkuIdMapper.toDomain(skuId), status));
+                inventoryManagementApplicationService.updateInventoryStatus(SkuIdCodec.toDomain(skuId), status));
     }
 
     private InventoryStatus parseInventoryStatus(String status) {

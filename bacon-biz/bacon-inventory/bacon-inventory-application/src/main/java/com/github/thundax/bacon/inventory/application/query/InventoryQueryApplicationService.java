@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.application.query;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
-import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
@@ -55,7 +55,7 @@ public class InventoryQueryApplicationService {
         return InventoryStockAssembler.fromInventory(inventoryStockRepository
                 .findInventory(skuId)
                 .orElseThrow(() -> new InventoryDomainException(
-                        InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(SkuIdMapper.toValue(skuId)))));
+                        InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(SkuIdCodec.toValue(skuId)))));
     }
 
     public List<InventoryStockDTO> batchGetAvailableStock(Set<SkuId> skuIds) {

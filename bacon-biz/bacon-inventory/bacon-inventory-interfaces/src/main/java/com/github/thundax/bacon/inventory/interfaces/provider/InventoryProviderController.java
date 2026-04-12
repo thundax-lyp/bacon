@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.provider;
 
-import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReleaseCommandDTO;
@@ -51,7 +51,7 @@ public class InventoryProviderController {
     @Operation(summary = "查询 SKU 可用库存")
     @GetMapping("/stocks/{skuId}")
     public InventoryStockDTO getAvailableStock(@PathVariable @NotNull @Positive Long skuId) {
-        return inventoryQueryService.getAvailableStock(SkuIdMapper.toDomain(skuId));
+        return inventoryQueryService.getAvailableStock(SkuIdCodec.toDomain(skuId));
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
@@ -59,7 +59,7 @@ public class InventoryProviderController {
     public List<InventoryStockDTO> batchGetAvailableStock(
             @RequestParam("skuIds") @NotNull Set<@NotNull @Positive Long> skuIds) {
         return inventoryQueryService.batchGetAvailableStock(
-                skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()));
+                skuIds.stream().map(SkuIdCodec::toDomain).collect(Collectors.toSet()));
     }
 
     @Operation(summary = "按订单号查询库存预占结果")

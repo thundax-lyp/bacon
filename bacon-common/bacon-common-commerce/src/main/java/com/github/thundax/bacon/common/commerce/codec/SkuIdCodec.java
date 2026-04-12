@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.common.commerce.mapper;
+package com.github.thundax.bacon.common.commerce.codec;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 
-public final class SkuIdMapper {
+public final class SkuIdCodec {
 
-    private SkuIdMapper() {}
+    private SkuIdCodec() {}
 
     public static SkuId toDomain(Long value) {
         if (value == null) {

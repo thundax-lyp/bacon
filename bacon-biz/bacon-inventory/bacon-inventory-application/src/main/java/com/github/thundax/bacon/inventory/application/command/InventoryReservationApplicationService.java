@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.application.command;
 
-import com.github.thundax.bacon.common.commerce.mapper.SkuIdMapper;
+import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
@@ -181,7 +181,7 @@ public class InventoryReservationApplicationService {
         Map<Long, Inventory> inventoryBySku =
                 inventoryStockRepository
                         .findInventories(
-                                skuIds.stream().map(SkuIdMapper::toDomain).collect(Collectors.toSet()))
+                                skuIds.stream().map(SkuIdCodec::toDomain).collect(Collectors.toSet()))
                         .stream()
                         .collect(java.util.stream.Collectors.toMap(
                                 inventory -> inventory.getSkuId() == null
@@ -225,14 +225,14 @@ public class InventoryReservationApplicationService {
 
     private void reserveStockOnce(
             InventoryReservationItem item, Instant operatedAt, Map<Long, Inventory> inventoryBySku) {
-        Long skuId = SkuIdMapper.toValue(item.getSkuId());
+        Long skuId = SkuIdCodec.toValue(item.getSkuId());
         Inventory inventory = inventoryBySku.get(skuId);
         if (inventory == null) {
             inventory = inventoryStockRepository
                     .findInventory(item.getSkuId())
                     .orElseThrow(() -> new InventoryDomainException(
                             InventoryErrorCode.INVENTORY_NOT_FOUND,
-                            String.valueOf(SkuIdMapper.toValue(item.getSkuId()))));
+                            String.valueOf(SkuIdCodec.toValue(item.getSkuId()))));
             inventoryBySku.put(skuId, inventory);
         }
         inventory.reserve(item.getQuantity());

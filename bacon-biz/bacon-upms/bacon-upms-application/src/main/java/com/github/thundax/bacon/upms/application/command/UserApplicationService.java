@@ -362,7 +362,7 @@ public class UserApplicationService {
             InputStream inputStream) {
         User currentUser = requireUser(tenantId, UserIdMapper.toDomain(userId));
         AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
-        StoredObjectDTO storedObject = uploadAvatarObject(tenantId, avatarImage);
+        StoredObjectDTO storedObject = uploadAvatarObject(avatarImage);
         StoredObjectId storedObjectId = storedObject.getId();
         storedObjectFacade.markObjectReferenced(
                 storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId));
@@ -537,11 +537,10 @@ public class UserApplicationService {
         }
     }
 
-    private StoredObjectDTO uploadAvatarObject(TenantId tenantId, AvatarImage avatarImage) {
+    private StoredObjectDTO uploadAvatarObject(AvatarImage avatarImage) {
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(avatarImage.bytes())) {
             return storedObjectFacade.uploadObject(new UploadObjectCommand(
                     USER_AVATAR_OWNER_TYPE,
-                    tenantId == null ? null : tenantId.value(),
                     USER_AVATAR_CATEGORY,
                     avatarImage.originalFilename(),
                     avatarImage.contentType(),

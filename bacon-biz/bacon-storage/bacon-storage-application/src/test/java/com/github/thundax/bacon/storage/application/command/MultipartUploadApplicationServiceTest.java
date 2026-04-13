@@ -303,6 +303,7 @@ class MultipartUploadApplicationServiceTest {
                 .thenReturn(List.of(
                         MultipartUploadPart.create(null, "6", 1, "etag-1", 512L, Instant.now()),
                         MultipartUploadPart.create(null, "6", 2, "etag-2", 512L, Instant.now())));
+        when(idGenerator.nextId("stored-object-id")).thenReturn(100L);
         when(storedObjectStorageRepository.completeMultipartUpload(eq(session), any()))
                 .thenReturn(new StoredObjectStorageResult(
                         StorageType.OSS, "bucket", "attachment/key.png", "http://test/key"));

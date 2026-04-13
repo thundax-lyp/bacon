@@ -103,7 +103,7 @@ public class StorageProviderController {
 
     @Operation(summary = "查询存储对象")
     @GetMapping("/objects/{objectId}")
-    public StoredObjectDTO getObjectById(@PathVariable("objectId") String objectId) {
+    public StoredObjectDTO getObjectById(@PathVariable("objectId") Long objectId) {
         return storedObjectQueryApplicationService.getObjectById(objectId);
     }
 

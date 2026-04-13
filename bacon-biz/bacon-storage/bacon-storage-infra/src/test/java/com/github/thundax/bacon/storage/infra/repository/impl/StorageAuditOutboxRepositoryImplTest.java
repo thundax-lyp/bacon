@@ -7,9 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxStatus;
@@ -30,9 +28,6 @@ class StorageAuditOutboxRepositoryImplTest {
     @Mock
     private StorageAuditOutboxMapper storageAuditOutboxMapper;
 
-    @Mock
-    private IdGenerator idGenerator;
-
     @InjectMocks
     private StorageAuditOutboxRepositoryImpl storageAuditOutboxRepository;
 
@@ -50,7 +45,6 @@ class StorageAuditOutboxRepositoryImplTest {
         assertThat(result).hasSize(1);
         StorageAuditOutbox mapped = result.get(0);
         assertThat(mapped.getId()).isEqualTo(101L);
-        assertThat(mapped.getTenantId()).isEqualTo(TenantId.of(1L));
         assertThat(mapped.getObjectId()).isEqualTo(StoredObjectId.of(9001L));
         assertThat(mapped.getActionType()).isEqualTo(StorageAuditActionType.UPLOAD);
         assertThat(mapped.getStatus()).isEqualTo(StorageAuditOutboxStatus.NEW);
@@ -123,8 +117,8 @@ class StorageAuditOutboxRepositoryImplTest {
     private StorageAuditOutboxDO buildOutboxDO(Long id, String status, Instant nextRetryAt) {
         StorageAuditOutboxDO dataObject = new StorageAuditOutboxDO();
         dataObject.setId(id);
-        dataObject.setTenantId(TenantId.of(1L));
-        dataObject.setObjectId(StoredObjectId.of(9001L));
+        dataObject.setTenantId(1L);
+        dataObject.setObjectId(9001L);
         dataObject.setOwnerType("USER");
         dataObject.setOwnerId("U-1");
         dataObject.setActionType("UPLOAD");

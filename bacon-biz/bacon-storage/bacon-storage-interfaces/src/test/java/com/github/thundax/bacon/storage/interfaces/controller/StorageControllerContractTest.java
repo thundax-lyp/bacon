@@ -74,7 +74,7 @@ class StorageControllerContractTest {
 
     @Test
     void shouldWrapGetObjectForAdminFrontend() throws Exception {
-        when(storedObjectQueryApplicationService.getObjectById("O100"))
+        when(storedObjectQueryApplicationService.getObjectById(100L))
                 .thenReturn(new StoredObjectDTO(
                         StoredObjectId.of(100L),
                         "LOCAL_FILE",
@@ -88,7 +88,7 @@ class StorageControllerContractTest {
                         "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(get("/api/storage/objects/{objectId}", "O100"))
+        mockMvc.perform(get("/api/storage/objects/{objectId}", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.id").value("O100"));
@@ -98,7 +98,7 @@ class StorageControllerContractTest {
     void shouldWrapDeleteForAdminFrontend() throws Exception {
         doNothing().when(storedObjectApplicationService).deleteObject(100L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/storage/objects/{objectId}", "O100"))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/storage/objects/{objectId}", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data").doesNotExist());

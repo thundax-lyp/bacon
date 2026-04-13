@@ -59,7 +59,7 @@ public class StoredObjectFacadeLocalImpl implements StoredObjectFacade {
 
     @Override
     public StoredObjectDTO getObjectById(String objectId) {
-        return storedObjectQueryApplicationService.getObjectById(objectId);
+        return storedObjectQueryApplicationService.getObjectById(toObjectId(objectId));
     }
 
     @Override

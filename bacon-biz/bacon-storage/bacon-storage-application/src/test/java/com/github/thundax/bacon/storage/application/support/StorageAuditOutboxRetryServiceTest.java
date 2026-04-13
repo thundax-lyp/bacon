@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,7 +52,7 @@ class StorageAuditOutboxRetryServiceTest {
         properties.setMaxRetries(2);
         properties.setBaseDelaySeconds(30L);
         properties.setMaxDelaySeconds(300L);
-        when(idGenerator.nextId("storage_audit_log")).thenReturn(1001L);
+        lenient().when(idGenerator.nextId("storage_audit_log")).thenReturn(1001L);
         service =
                 new StorageAuditOutboxRetryService(
                         idGenerator, storageAuditLogRepository, storageAuditOutboxRepository, properties);

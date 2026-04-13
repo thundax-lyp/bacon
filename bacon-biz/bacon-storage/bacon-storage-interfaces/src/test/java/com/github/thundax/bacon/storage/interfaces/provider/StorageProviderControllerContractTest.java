@@ -16,7 +16,6 @@ import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
-import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import java.time.Instant;
@@ -93,7 +92,7 @@ class StorageProviderControllerContractTest {
                         1024L,
                         8L * 1024 * 1024,
                         0,
-                        UploadStatusEnum.INITIATED));
+                        "INITIATED"));
 
         mockMvc.perform(post("/providers/storage/objects/multipart/init")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
@@ -172,7 +171,7 @@ class StorageProviderControllerContractTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
-        when(storedObjectQueryApplicationService.getObjectById("O100"))
+        when(storedObjectQueryApplicationService.getObjectById(100L))
                 .thenReturn(new StoredObjectDTO(
                         StoredObjectId.of(100L),
                         "LOCAL_FILE",
@@ -186,7 +185,7 @@ class StorageProviderControllerContractTest {
                         "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(get("/providers/storage/objects/{objectId}", "O100")
+        mockMvc.perform(get("/providers/storage/objects/{objectId}", "100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(100))

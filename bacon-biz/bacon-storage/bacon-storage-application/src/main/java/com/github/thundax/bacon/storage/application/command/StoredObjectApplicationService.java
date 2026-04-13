@@ -1,16 +1,17 @@
 package com.github.thundax.bacon.storage.application.command;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.application.assembler.StoredObjectAssembler;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.application.support.StoredObjectDeletionTransactionService;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
-import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectReference;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -26,12 +27,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class StoredObjectApplicationService {
 
+    private static final String STORED_OBJECT_ID_BIZ_TAG = "stored-object-id";
+
     private final StoredObjectRepository storedObjectRepository;
     private final StoredObjectReferenceRepository storedObjectReferenceRepository;
     private final StoredObjectStorageRepository storedObjectStorageRepository;
     private final StorageAuditApplicationService storageAuditApplicationService;
     private final StoredObjectDeletionTransactionService storedObjectDeletionTransactionService;
     private final StorageUploadLimitValidator storageUploadLimitValidator;
+    private final IdGenerator idGenerator;
 
     public StoredObjectApplicationService(
             StoredObjectRepository storedObjectRepository,
@@ -39,13 +43,15 @@ public class StoredObjectApplicationService {
             StoredObjectStorageRepository storedObjectStorageRepository,
             StorageAuditApplicationService storageAuditApplicationService,
             StoredObjectDeletionTransactionService storedObjectDeletionTransactionService,
-            StorageUploadLimitValidator storageUploadLimitValidator) {
+            StorageUploadLimitValidator storageUploadLimitValidator,
+            IdGenerator idGenerator) {
         this.storedObjectRepository = storedObjectRepository;
         this.storedObjectReferenceRepository = storedObjectReferenceRepository;
         this.storedObjectStorageRepository = storedObjectStorageRepository;
         this.storageAuditApplicationService = storageAuditApplicationService;
         this.storedObjectDeletionTransactionService = storedObjectDeletionTransactionService;
         this.storageUploadLimitValidator = storageUploadLimitValidator;
+        this.idGenerator = idGenerator;
     }
 
     @Transactional
@@ -56,26 +62,25 @@ public class StoredObjectApplicationService {
                 command.getOriginalFilename(),
                 command.getContentType(),
                 command.getInputStream());
-        StoredObject storedObject = StoredObject.newUploadedObject(
-                toTenantId(command.getTenantId()),
-                storageResult.getStorageType(),
-                storageResult.getBucketName(),
-                storageResult.getObjectKey(),
+        StoredObject storedObject = StoredObject.create(
+                StoredObjectId.of(idGenerator.nextId(STORED_OBJECT_ID_BIZ_TAG)),
+                storageResult.storageType(),
+                storageResult.bucketName(),
+                storageResult.objectKey(),
                 command.getOriginalFilename(),
                 command.getContentType(),
                 command.getSize(),
-                storageResult.getAccessEndpoint(),
-                null);
-        StoredObject savedObject = storedObjectRepository.save(storedObject);
+                storageResult.accessEndpoint());
+        StoredObject savedObject = storedObjectRepository.insert(storedObject);
         storageAuditApplicationService.record(
-                savedObject.getTenantId(),
+                null,
                 savedObject.getId(),
                 command.getOwnerType(),
                 null,
                 StorageAuditActionType.UPLOAD,
                 null,
                 savedObject.getObjectStatus().value());
-        return toDto(savedObject);
+        return StoredObjectAssembler.toDto(savedObject);
     }
 
     @Transactional
@@ -94,7 +99,7 @@ public class StoredObjectApplicationService {
             return;
         }
         storageAuditApplicationService.record(
-                savedObject.getTenantId(),
+                null,
                 storedObjectId,
                 ownerType,
                 ownerId,
@@ -117,7 +122,7 @@ public class StoredObjectApplicationService {
             return;
         }
         storageAuditApplicationService.record(
-                savedObject.getTenantId(),
+                null,
                 storedObjectId,
                 ownerType,
                 ownerId,
@@ -146,23 +151,6 @@ public class StoredObjectApplicationService {
         }
     }
 
-    private StoredObjectDTO toDto(StoredObject storedObject) {
-        return new StoredObjectDTO(
-                storedObject.getId(),
-                storedObject.getStorageType() == null
-                        ? null
-                        : storedObject.getStorageType().value(),
-                storedObject.getBucketName(),
-                storedObject.getObjectKey(),
-                storedObject.getOriginalFilename(),
-                storedObject.getContentType(),
-                storedObject.getSize(),
-                storedObject.getAccessEndpoint(),
-                storedObject.getObjectStatus().value(),
-                storedObject.getReferenceStatus().value(),
-                storedObject.getCreatedAt());
-    }
-
     private void ensureAvailable(StoredObject storedObject, Long objectId) {
         if (storedObject.isDeleting() || storedObject.isDeleted()) {
             throw new NotFoundException("Stored object is unavailable: " + objectId);
@@ -172,16 +160,12 @@ public class StoredObjectApplicationService {
     private StoredObject syncReferenceStatus(StoredObject storedObject, boolean referenced) {
         if (referenced && !storedObject.isReferenced()) {
             storedObject.markReferenced();
-            return storedObjectRepository.save(storedObject);
+            return storedObjectRepository.update(storedObject);
         }
         if (!referenced && storedObject.isReferenced()) {
             storedObject.markUnreferenced();
-            return storedObjectRepository.save(storedObject);
+            return storedObjectRepository.update(storedObject);
         }
         return storedObject;
-    }
-
-    private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
     }
 }

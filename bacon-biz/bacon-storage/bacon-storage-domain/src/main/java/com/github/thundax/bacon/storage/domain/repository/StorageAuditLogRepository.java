@@ -4,5 +4,5 @@ import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 
 public interface StorageAuditLogRepository {
 
-    void save(StorageAuditLog storageAuditLog);
+    void insert(StorageAuditLog storageAuditLog);
 }

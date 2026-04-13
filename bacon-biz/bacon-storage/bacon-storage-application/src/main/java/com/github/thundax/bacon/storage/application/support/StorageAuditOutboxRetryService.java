@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.storage.application.support;
 
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.storage.application.config.StorageAuditRetryProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
@@ -19,18 +20,22 @@ import org.springframework.stereotype.Service;
 @Service
 public class StorageAuditOutboxRetryService {
 
+    private static final String AUDIT_LOG_BIZ_TAG = "storage_audit_log";
     private static final int MAX_EXPONENT = 20;
     private static final List<StorageAuditOutboxStatus> RETRYABLE_STATUSES =
             List.of(StorageAuditOutboxStatus.NEW, StorageAuditOutboxStatus.RETRYING);
 
+    private final IdGenerator idGenerator;
     private final StorageAuditLogRepository storageAuditLogRepository;
     private final StorageAuditOutboxRepository storageAuditOutboxRepository;
     private final StorageAuditRetryProperties properties;
 
     public StorageAuditOutboxRetryService(
+            IdGenerator idGenerator,
             StorageAuditLogRepository storageAuditLogRepository,
             StorageAuditOutboxRepository storageAuditOutboxRepository,
             StorageAuditRetryProperties properties) {
+        this.idGenerator = idGenerator;
         this.storageAuditLogRepository = storageAuditLogRepository;
         this.storageAuditOutboxRepository = storageAuditOutboxRepository;
         this.properties = properties;
@@ -70,9 +75,8 @@ public class StorageAuditOutboxRetryService {
 
     protected void retryOne(StorageAuditOutbox item, Instant now) {
         try {
-            storageAuditLogRepository.save(new StorageAuditLog(
-                    null,
-                    item.getTenantId(),
+            storageAuditLogRepository.insert(StorageAuditLog.create(
+                    idGenerator.nextId(AUDIT_LOG_BIZ_TAG),
                     item.getObjectId(),
                     item.getOwnerType(),
                     item.getOwnerId(),

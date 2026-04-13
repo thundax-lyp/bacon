@@ -1,17 +1,19 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 存储审计日志实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class StorageAuditLog {
 
     public static final String OPERATOR_TYPE_SYSTEM = "SYSTEM";
@@ -19,8 +21,6 @@ public class StorageAuditLog {
 
     /** 主键。 */
     private Long id;
-    /** 所属租户业务键。 */
-    private TenantId tenantId;
     /** 存储对象主键。 */
     private StoredObjectId objectId;
     /** 引用方类型。 */
@@ -40,10 +40,9 @@ public class StorageAuditLog {
     /** 审计发生时间。 */
     private Instant occurredAt;
 
-    public StorageAuditLog(
+    public static StorageAuditLog create(
             Long id,
-            Long tenantId,
-            Long objectId,
+            StoredObjectId objectId,
             String ownerType,
             String ownerId,
             StorageAuditActionType actionType,
@@ -52,39 +51,22 @@ public class StorageAuditLog {
             String operatorType,
             Long operatorId,
             Instant occurredAt) {
-        this(
-                id,
-                tenantId == null ? null : TenantId.of(tenantId),
-                objectId == null ? null : StoredObjectId.of(objectId),
-                ownerType,
-                ownerId,
-                actionType,
-                beforeStatus,
-                afterStatus,
-                operatorType,
-                operatorId,
-                occurredAt);
+        return new StorageAuditLog(
+                id, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
     }
 
-    public static StorageAuditLog systemAction(
-            TenantId tenantId,
+    public static StorageAuditLog reconstruct(
+            Long id,
             StoredObjectId objectId,
             String ownerType,
             String ownerId,
             StorageAuditActionType actionType,
             String beforeStatus,
-            String afterStatus) {
+            String afterStatus,
+            String operatorType,
+            Long operatorId,
+            Instant occurredAt) {
         return new StorageAuditLog(
-                null,
-                tenantId,
-                objectId,
-                ownerType,
-                ownerId,
-                actionType,
-                beforeStatus,
-                afterStatus,
-                OPERATOR_TYPE_SYSTEM,
-                OPERATOR_ID_SYSTEM,
-                Instant.now());
+                id, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
     }
 }

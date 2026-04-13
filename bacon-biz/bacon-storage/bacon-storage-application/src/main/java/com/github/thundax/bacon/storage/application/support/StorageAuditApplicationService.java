@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.storage.application.support;
 
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
@@ -19,14 +20,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class StorageAuditApplicationService {
 
+    private static final String AUDIT_LOG_BIZ_TAG = "storage_audit_log";
     private static final Logger log = LoggerFactory.getLogger(StorageAuditApplicationService.class);
 
+    private final IdGenerator idGenerator;
     private final StorageAuditLogRepository storageAuditLogRepository;
     private final StorageAuditOutboxRepository storageAuditOutboxRepository;
 
     public StorageAuditApplicationService(
+            IdGenerator idGenerator,
             StorageAuditLogRepository storageAuditLogRepository,
             StorageAuditOutboxRepository storageAuditOutboxRepository) {
+        this.idGenerator = idGenerator;
         this.storageAuditLogRepository = storageAuditLogRepository;
         this.storageAuditOutboxRepository = storageAuditOutboxRepository;
     }
@@ -39,10 +44,19 @@ public class StorageAuditApplicationService {
             StorageAuditActionType actionType,
             String beforeStatus,
             String afterStatus) {
-        StorageAuditLog auditLog = StorageAuditLog.systemAction(
-                tenantId, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus);
+        StorageAuditLog auditLog = StorageAuditLog.create(
+                idGenerator.nextId(AUDIT_LOG_BIZ_TAG),
+                objectId,
+                ownerType,
+                ownerId,
+                actionType,
+                beforeStatus,
+                afterStatus,
+                StorageAuditLog.OPERATOR_TYPE_SYSTEM,
+                StorageAuditLog.OPERATOR_ID_SYSTEM,
+                Instant.now());
         try {
-            storageAuditLogRepository.save(auditLog);
+            storageAuditLogRepository.insert(auditLog);
             Metrics.counter("bacon.storage.audit.write.success.total", "actionType", actionType.value())
                     .increment();
         } catch (RuntimeException ex) {
@@ -61,8 +75,23 @@ public class StorageAuditApplicationService {
 
     private void saveAuditOutboxSafely(StorageAuditLog auditLog, RuntimeException ex) {
         try {
-            storageAuditOutboxRepository.save(
-                    StorageAuditOutbox.newEvent(auditLog, truncateMessage(ex.getMessage()), Instant.now()));
+            storageAuditOutboxRepository.insert(
+                    StorageAuditOutbox.create(
+                            null,
+                            auditLog.getObjectId(),
+                            auditLog.getOwnerType(),
+                            auditLog.getOwnerId(),
+                            auditLog.getActionType(),
+                            auditLog.getBeforeStatus(),
+                            auditLog.getAfterStatus(),
+                            auditLog.getOperatorType(),
+                            auditLog.getOperatorId(),
+                            auditLog.getOccurredAt(),
+                            truncateMessage(ex.getMessage()),
+                            com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxStatus.NEW,
+                            0,
+                            Instant.now(),
+                            Instant.now()));
             Metrics.counter(
                             "bacon.storage.audit.outbox.persist.success.total",
                             "actionType",

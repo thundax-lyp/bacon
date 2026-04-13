@@ -7,8 +7,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.application.config.StorageAuditRetryProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
@@ -30,6 +30,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class StorageAuditOutboxRetryServiceTest {
 
     @Mock
+    private IdGenerator idGenerator;
+
+    @Mock
     private StorageAuditLogRepository storageAuditLogRepository;
 
     @Mock
@@ -48,8 +51,10 @@ class StorageAuditOutboxRetryServiceTest {
         properties.setMaxRetries(2);
         properties.setBaseDelaySeconds(30L);
         properties.setMaxDelaySeconds(300L);
+        when(idGenerator.nextId("storage_audit_log")).thenReturn(1001L);
         service =
-                new StorageAuditOutboxRetryService(storageAuditLogRepository, storageAuditOutboxRepository, properties);
+                new StorageAuditOutboxRetryService(
+                        idGenerator, storageAuditLogRepository, storageAuditOutboxRepository, properties);
     }
 
     @AfterEach
@@ -68,7 +73,7 @@ class StorageAuditOutboxRetryServiceTest {
         int processed = service.retryOutbox();
 
         assertEquals(1, processed);
-        verify(storageAuditLogRepository).save(any());
+        verify(storageAuditLogRepository).insert(any());
         verify(storageAuditOutboxRepository).deleteById(100L);
         assertEquals(
                 1.0d,
@@ -87,7 +92,7 @@ class StorageAuditOutboxRetryServiceTest {
                 .thenReturn(true);
         doThrow(new IllegalStateException("retry-fail"))
                 .when(storageAuditLogRepository)
-                .save(any());
+                .insert(any());
 
         service.retryOutbox();
 
@@ -110,7 +115,7 @@ class StorageAuditOutboxRetryServiceTest {
                 .thenReturn(true);
         doThrow(new IllegalStateException("retry-fail"))
                 .when(storageAuditLogRepository)
-                .save(any());
+                .insert(any());
 
         service.retryOutbox();
 
@@ -149,15 +154,14 @@ class StorageAuditOutboxRetryServiceTest {
         int processed = service.retryOutbox();
 
         assertEquals(0, processed);
-        verify(storageAuditLogRepository, org.mockito.Mockito.never()).save(any());
+        verify(storageAuditLogRepository, org.mockito.Mockito.never()).insert(any());
         verify(storageAuditOutboxRepository, org.mockito.Mockito.never()).deleteById(103L);
     }
 
     private StorageAuditOutbox outbox(Long id, int retryCount) {
         Instant now = Instant.parse("2026-03-27T12:00:00Z");
-        return new StorageAuditOutbox(
+        return StorageAuditOutbox.reconstruct(
                 id,
-                TenantId.of(1L),
                 StoredObjectId.of(100L),
                 "GENERIC_ATTACHMENT",
                 "owner-1",

@@ -8,14 +8,15 @@ import java.util.Optional;
 
 public interface StoredObjectRepository {
 
-    StoredObject save(StoredObject storedObject);
+    StoredObject insert(StoredObject storedObject);
+
+    StoredObject update(StoredObject storedObject);
 
     Optional<StoredObject> findById(StoredObjectId objectId);
 
     List<StoredObject> listByObjectStatus(StoredObjectStatus objectStatus, int limit);
 
     List<StoredObject> pageObjects(
-            Long tenantId,
             String storageType,
             String objectStatus,
             String referenceStatus,
@@ -25,7 +26,6 @@ public interface StoredObjectRepository {
             int limit);
 
     long countObjects(
-            Long tenantId,
             String storageType,
             String objectStatus,
             String referenceStatus,

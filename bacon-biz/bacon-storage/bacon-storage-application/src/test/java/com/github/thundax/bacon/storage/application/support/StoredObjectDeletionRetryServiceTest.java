@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.application.config.StorageDeletionRetryProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
@@ -64,7 +63,7 @@ class StoredObjectDeletionRetryServiceTest {
 
     @Test
     void shouldRetryDeletingObjectsAndMarkDeleted() {
-        StoredObject storedObject = deletingObject("O100", "attachment/a.bin");
+        StoredObject storedObject = deletingObject(100L, "attachment/a.bin");
         when(storedObjectRepository.listByObjectStatus(StoredObjectStatus.DELETING, 10))
                 .thenReturn(List.of(storedObject));
 
@@ -83,7 +82,7 @@ class StoredObjectDeletionRetryServiceTest {
 
     @Test
     void shouldKeepDeletingObjectForNextRetryWhenPhysicalDeleteFails() {
-        StoredObject storedObject = deletingObject("O101", "attachment/b.bin");
+        StoredObject storedObject = deletingObject(101L, "attachment/b.bin");
         when(storedObjectRepository.listByObjectStatus(StoredObjectStatus.DELETING, 10))
                 .thenReturn(List.of(storedObject));
         doThrow(new IllegalStateException("delete-fail"))
@@ -112,21 +111,19 @@ class StoredObjectDeletionRetryServiceTest {
         verify(storedObjectRepository, never()).listByObjectStatus(eq(StoredObjectStatus.DELETING), anyInt());
     }
 
-    private StoredObject deletingObject(String id, String objectKey) {
-        StoredObject storedObject = StoredObject.newUploadedObject(
-                TenantId.of(1L),
+    private StoredObject deletingObject(Long id, String objectKey) {
+        StoredObject storedObject = StoredObject.create(
+                null,
                 StorageType.LOCAL_FILE,
                 "default",
                 objectKey,
                 "test.bin",
                 "application/octet-stream",
                 1024L,
-                "/files/test.bin",
-                null);
+                "/files/test.bin");
         storedObject.markDeleting();
-        return new StoredObject(
-                StoredObjectId.of(Long.valueOf(id.substring(1))),
-                storedObject.getTenantId(),
+        return StoredObject.reconstruct(
+                StoredObjectId.of(id),
                 storedObject.getStorageType(),
                 storedObject.getBucketName(),
                 storedObject.getObjectKey(),
@@ -135,10 +132,6 @@ class StoredObjectDeletionRetryServiceTest {
                 storedObject.getSize(),
                 storedObject.getAccessEndpoint(),
                 storedObject.getObjectStatus(),
-                storedObject.getReferenceStatus(),
-                storedObject.getCreatedBy(),
-                storedObject.getCreatedAt(),
-                storedObject.getUpdatedBy(),
-                storedObject.getUpdatedAt());
+                storedObject.getReferenceStatus());
     }
 }

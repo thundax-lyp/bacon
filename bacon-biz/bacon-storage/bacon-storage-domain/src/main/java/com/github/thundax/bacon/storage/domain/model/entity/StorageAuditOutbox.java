@@ -1,41 +1,56 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxStatus;
 import java.time.Instant;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 存储审计补偿出站事件。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class StorageAuditOutbox {
 
-    private final Long id;
-    private final TenantId tenantId;
-    private final StoredObjectId objectId;
-    private final String ownerType;
-    private final String ownerId;
-    private final StorageAuditActionType actionType;
-    private final String beforeStatus;
-    private final String afterStatus;
-    private final String operatorType;
-    private final Long operatorId;
-    private final Instant occurredAt;
-    private final String errorMessage;
-    private final StorageAuditOutboxStatus status;
-    private final Integer retryCount;
-    private final Instant nextRetryAt;
-    private final Instant updatedAt;
+    /** 主键。 */
+    private Long id;
+    /** 存储对象主键。 */
+    private StoredObjectId objectId;
+    /** 引用方类型。 */
+    private String ownerType;
+    /** 引用方业务主键。 */
+    private String ownerId;
+    /** 审计动作类型。 */
+    private StorageAuditActionType actionType;
+    /** 变更前状态。 */
+    private String beforeStatus;
+    /** 变更后状态。 */
+    private String afterStatus;
+    /** 操作人类型。 */
+    private String operatorType;
+    /** 操作人主键。 */
+    private Long operatorId;
+    /** 审计发生时间。 */
+    private Instant occurredAt;
+    /** 最近一次失败原因。 */
+    private String errorMessage;
+    /** 补偿状态。 */
+    private StorageAuditOutboxStatus status;
+    /** 已重试次数。 */
+    private Integer retryCount;
+    /** 下次重试时间。 */
+    private Instant nextRetryAt;
+    /** 最后更新时间。 */
+    private Instant updatedAt;
 
-    public StorageAuditOutbox(
+    public static StorageAuditOutbox create(
             Long id,
-            Long tenantId,
-            Long objectId,
+            StoredObjectId objectId,
             String ownerType,
             String ownerId,
             StorageAuditActionType actionType,
@@ -49,10 +64,9 @@ public class StorageAuditOutbox {
             Integer retryCount,
             Instant nextRetryAt,
             Instant updatedAt) {
-        this(
+        return new StorageAuditOutbox(
                 id,
-                tenantId == null ? null : TenantId.of(tenantId),
-                objectId == null ? null : StoredObjectId.of(objectId),
+                objectId,
                 ownerType,
                 ownerId,
                 actionType,
@@ -68,23 +82,37 @@ public class StorageAuditOutbox {
                 updatedAt);
     }
 
-    public static StorageAuditOutbox newEvent(StorageAuditLog auditLog, String errorMessage, Instant now) {
+    public static StorageAuditOutbox reconstruct(
+            Long id,
+            StoredObjectId objectId,
+            String ownerType,
+            String ownerId,
+            StorageAuditActionType actionType,
+            String beforeStatus,
+            String afterStatus,
+            String operatorType,
+            Long operatorId,
+            Instant occurredAt,
+            String errorMessage,
+            StorageAuditOutboxStatus status,
+            Integer retryCount,
+            Instant nextRetryAt,
+            Instant updatedAt) {
         return new StorageAuditOutbox(
-                null,
-                auditLog.getTenantId(),
-                auditLog.getObjectId(),
-                auditLog.getOwnerType(),
-                auditLog.getOwnerId(),
-                auditLog.getActionType(),
-                auditLog.getBeforeStatus(),
-                auditLog.getAfterStatus(),
-                auditLog.getOperatorType(),
-                auditLog.getOperatorId(),
-                auditLog.getOccurredAt(),
+                id,
+                objectId,
+                ownerType,
+                ownerId,
+                actionType,
+                beforeStatus,
+                afterStatus,
+                operatorType,
+                operatorId,
+                occurredAt,
                 errorMessage,
-                StorageAuditOutboxStatus.NEW,
-                0,
-                now,
-                now);
+                status,
+                retryCount,
+                nextRetryAt,
+                updatedAt);
     }
 }

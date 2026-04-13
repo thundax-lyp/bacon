@@ -1,8 +1,5 @@
 package com.github.thundax.bacon.storage.interfaces.dto;
 
-import com.github.thundax.bacon.storage.api.enums.ObjectStatusEnum;
-import com.github.thundax.bacon.storage.api.enums.ReferenceStatusEnum;
-import com.github.thundax.bacon.storage.api.enums.StorageTypeEnum;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -14,13 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StoredObjectPageRequest {
 
-    private String tenantCode;
+    private String storageType;
 
-    private StorageTypeEnum storageType;
+    private String objectStatus;
 
-    private ObjectStatusEnum objectStatus;
-
-    private ReferenceStatusEnum referenceStatus;
+    private String referenceStatus;
 
     private String originalFilename;
 

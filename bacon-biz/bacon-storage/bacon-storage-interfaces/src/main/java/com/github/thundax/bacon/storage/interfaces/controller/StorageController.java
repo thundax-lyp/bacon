@@ -11,7 +11,6 @@ import com.github.thundax.bacon.storage.interfaces.response.StoredObjectResponse
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,19 +42,9 @@ public class StorageController {
     public StoredObjectPageResponse pageObjects(@Valid @ModelAttribute StoredObjectPageRequest request) {
         return StoredObjectPageResponse.from(
                 storedObjectQueryApplicationService.pageObjects(new StoredObjectPageQueryDTO(
-                        request.getTenantCode() == null
-                                        || request.getTenantCode().isBlank()
-                                ? null
-                                : Long.parseLong(request.getTenantCode().trim()),
-                        request.getStorageType() == null
-                                ? null
-                                : request.getStorageType().name(),
-                        request.getObjectStatus() == null
-                                ? null
-                                : request.getObjectStatus().name(),
-                        request.getReferenceStatus() == null
-                                ? null
-                                : request.getReferenceStatus().name(),
+                        request.getStorageType(),
+                        request.getObjectStatus(),
+                        request.getReferenceStatus(),
                         request.getOriginalFilename(),
                         request.getObjectKey(),
                         request.getPageNo(),
@@ -65,19 +54,14 @@ public class StorageController {
     @Operation(summary = "查询存储对象详情")
     @HasPermission("storage:object:view")
     @GetMapping("/{objectId}")
-    public StoredObjectResponse getObjectById(@PathVariable("objectId") @NotBlank String objectId) {
+    public StoredObjectResponse getObjectById(@PathVariable("objectId") Long objectId) {
         return StoredObjectResponse.from(storedObjectQueryApplicationService.getObjectById(objectId));
     }
 
     @Operation(summary = "删除存储对象")
     @HasPermission("storage:object:delete")
     @DeleteMapping("/{objectId}")
-    public void deleteObject(@PathVariable("objectId") @NotBlank String objectId) {
-        storedObjectApplicationService.deleteObject(toObjectId(objectId));
-    }
-
-    private Long toObjectId(String objectId) {
-        String normalized = objectId.startsWith("O") ? objectId.substring(1) : objectId;
-        return Long.valueOf(normalized);
+    public void deleteObject(@PathVariable("objectId") Long objectId) {
+        storedObjectApplicationService.deleteObject(objectId);
     }
 }

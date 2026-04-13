@@ -7,8 +7,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.application.support.StoredObjectDeletionTransactionService;
@@ -45,6 +45,9 @@ class StoredObjectApplicationServiceTest {
     @Mock
     private StorageUploadLimitValidator storageUploadLimitValidator;
 
+    @Mock
+    private IdGenerator idGenerator;
+
     private StoredObjectApplicationService service;
 
     @BeforeEach
@@ -55,21 +58,21 @@ class StoredObjectApplicationServiceTest {
                 storedObjectStorageRepository,
                 storageAuditApplicationService,
                 storedObjectDeletionTransactionService,
-                storageUploadLimitValidator);
+                storageUploadLimitValidator,
+                idGenerator);
     }
 
     @Test
     void shouldDeletePhysicalObjectAfterMarkDeleting() {
-        StoredObject storedObject = StoredObject.newUploadedObject(
-                TenantId.of(1L),
+        StoredObject storedObject = StoredObject.create(
+                null,
                 StorageType.LOCAL_FILE,
                 "default",
                 "attachment/object-a.bin",
                 "a.bin",
                 "application/octet-stream",
                 1024L,
-                "/files/a.bin",
-                null);
+                "/files/a.bin");
         storedObject.markDeleting();
         when(storedObjectDeletionTransactionService.markDeleting(StoredObjectId.of(100L)))
                 .thenReturn(storedObject);
@@ -82,16 +85,15 @@ class StoredObjectApplicationServiceTest {
 
     @Test
     void shouldSkipPhysicalDeleteWhenObjectAlreadyDeleted() {
-        StoredObject storedObject = StoredObject.newUploadedObject(
-                TenantId.of(1L),
+        StoredObject storedObject = StoredObject.create(
+                null,
                 StorageType.LOCAL_FILE,
                 "default",
                 "attachment/object-b.bin",
                 "b.bin",
                 "application/octet-stream",
                 1024L,
-                "/files/b.bin",
-                null);
+                "/files/b.bin");
         storedObject.markDeleting();
         storedObject.markDeleted();
         when(storedObjectDeletionTransactionService.markDeleting(StoredObjectId.of(101L)))
@@ -105,16 +107,15 @@ class StoredObjectApplicationServiceTest {
 
     @Test
     void shouldRejectReferenceForDeletingObject() {
-        StoredObject storedObject = StoredObject.newUploadedObject(
-                TenantId.of(1L),
+        StoredObject storedObject = StoredObject.create(
+                null,
                 StorageType.LOCAL_FILE,
                 "default",
                 "attachment/object-c.bin",
                 "c.bin",
                 "application/octet-stream",
                 1024L,
-                "/files/c.bin",
-                null);
+                "/files/c.bin");
         storedObject.markDeleting();
         when(storedObjectRepository.findById(StoredObjectId.of(102L))).thenReturn(Optional.of(storedObject));
 
@@ -125,41 +126,39 @@ class StoredObjectApplicationServiceTest {
 
     @Test
     void shouldSkipDuplicateReferenceAuditWhenReferenceAlreadyExists() {
-        StoredObject storedObject = StoredObject.newUploadedObject(
-                TenantId.of(1L),
+        StoredObject storedObject = StoredObject.create(
+                null,
                 StorageType.LOCAL_FILE,
                 "default",
                 "attachment/object-d.bin",
                 "d.bin",
                 "application/octet-stream",
                 1024L,
-                "/files/d.bin",
-                null);
+                "/files/d.bin");
         when(storedObjectRepository.findById(StoredObjectId.of(103L))).thenReturn(Optional.of(storedObject));
         when(storedObjectReferenceRepository.saveIfAbsent(any())).thenReturn(false);
         when(storedObjectReferenceRepository.existsByObjectId(StoredObjectId.of(103L)))
                 .thenReturn(true);
-        when(storedObjectRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.markObjectReferenced(103L, "GENERIC_ATTACHMENT", "owner-1");
 
         verify(storedObjectReferenceRepository).saveIfAbsent(any());
-        verify(storedObjectRepository).save(any());
+        verify(storedObjectRepository).update(any());
         verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test
     void shouldSkipMissingReferenceClearAudit() {
-        StoredObject storedObject = StoredObject.newUploadedObject(
-                TenantId.of(1L),
+        StoredObject storedObject = StoredObject.create(
+                null,
                 StorageType.LOCAL_FILE,
                 "default",
                 "attachment/object-e.bin",
                 "e.bin",
                 "application/octet-stream",
                 1024L,
-                "/files/e.bin",
-                null);
+                "/files/e.bin");
         storedObject.markReferenced();
         when(storedObjectRepository.findById(StoredObjectId.of(104L))).thenReturn(Optional.of(storedObject));
         when(storedObjectReferenceRepository.deleteByObjectIdAndOwner(
@@ -175,40 +174,38 @@ class StoredObjectApplicationServiceTest {
 
     @Test
     void shouldReconcileReferenceStatusWhenReferenceInsertHitsDuplicate() {
-        StoredObject storedObject = StoredObject.newUploadedObject(
-                TenantId.of(1L),
+        StoredObject storedObject = StoredObject.create(
+                null,
                 StorageType.LOCAL_FILE,
                 "default",
                 "attachment/object-f.bin",
                 "f.bin",
                 "application/octet-stream",
                 1024L,
-                "/files/f.bin",
-                null);
+                "/files/f.bin");
         when(storedObjectRepository.findById(StoredObjectId.of(105L))).thenReturn(Optional.of(storedObject));
         when(storedObjectReferenceRepository.saveIfAbsent(any())).thenReturn(false);
         when(storedObjectReferenceRepository.existsByObjectId(StoredObjectId.of(105L)))
                 .thenReturn(true);
-        when(storedObjectRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.markObjectReferenced(105L, "GENERIC_ATTACHMENT", "owner-3");
 
-        verify(storedObjectRepository).save(any());
+        verify(storedObjectRepository).update(any());
         verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test
     void shouldReconcileReferenceStatusWhenReferenceDeleteAlreadyConsumed() {
-        StoredObject storedObject = StoredObject.newUploadedObject(
-                TenantId.of(1L),
+        StoredObject storedObject = StoredObject.create(
+                null,
                 StorageType.LOCAL_FILE,
                 "default",
                 "attachment/object-g.bin",
                 "g.bin",
                 "application/octet-stream",
                 1024L,
-                "/files/g.bin",
-                null);
+                "/files/g.bin");
         storedObject.markReferenced();
         when(storedObjectRepository.findById(StoredObjectId.of(106L))).thenReturn(Optional.of(storedObject));
         when(storedObjectReferenceRepository.deleteByObjectIdAndOwner(
@@ -216,11 +213,11 @@ class StoredObjectApplicationServiceTest {
                 .thenReturn(false);
         when(storedObjectReferenceRepository.existsByObjectId(StoredObjectId.of(106L)))
                 .thenReturn(false);
-        when(storedObjectRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(storedObjectRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.clearObjectReference(106L, "GENERIC_ATTACHMENT", "owner-4");
 
-        verify(storedObjectRepository).save(any());
+        verify(storedObjectRepository).update(any());
         verify(storageAuditApplicationService, never()).record(any(), any(), any(), any(), any(), any(), any());
     }
 }

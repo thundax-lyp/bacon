@@ -2,9 +2,7 @@ package com.github.thundax.bacon.storage.infra.persistence.dataobject;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import java.time.Instant;
+import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,13 +14,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_storage_object")
+@TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class StoredObjectDO {
 
     /** 主键。 */
-    private StoredObjectId id;
+    private Long id;
     /** 所属租户业务键。 */
     @TableField("tenant_id")
-    private TenantId tenantId;
+    private Long tenantId;
     /** 底层存储类型。 */
     @TableField("storage_type")
     private String storageType;
@@ -50,16 +49,4 @@ public class StoredObjectDO {
     /** 引用状态。 */
     @TableField("reference_status")
     private String referenceStatus;
-    /** 创建人。 */
-    @TableField("created_by")
-    private String createdBy;
-    /** 创建时间。 */
-    @TableField("created_at")
-    private Instant createdAt;
-    /** 更新人。 */
-    @TableField("updated_by")
-    private String updatedBy;
-    /** 更新时间。 */
-    @TableField("updated_at")
-    private Instant updatedAt;
 }

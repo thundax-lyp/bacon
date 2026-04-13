@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
@@ -23,6 +25,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class StorageAuditApplicationServiceTest {
 
     @Mock
+    private IdGenerator idGenerator;
+
+    @Mock
     private StorageAuditLogRepository storageAuditLogRepository;
 
     @Mock
@@ -35,7 +40,8 @@ class StorageAuditApplicationServiceTest {
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
         Metrics.addRegistry(meterRegistry);
-        service = new StorageAuditApplicationService(storageAuditLogRepository, storageAuditOutboxRepository);
+        when(idGenerator.nextId("storage_audit_log")).thenReturn(1001L);
+        service = new StorageAuditApplicationService(idGenerator, storageAuditLogRepository, storageAuditOutboxRepository);
     }
 
     @AfterEach
@@ -55,7 +61,7 @@ class StorageAuditApplicationServiceTest {
                 null,
                 "ACTIVE");
 
-        verify(storageAuditLogRepository).save(any());
+        verify(storageAuditLogRepository).insert(any());
         assertEquals(
                 1.0d,
                 meterRegistry
@@ -69,7 +75,7 @@ class StorageAuditApplicationServiceTest {
     void shouldPersistOutboxWhenAuditLogSaveFails() {
         doThrow(new IllegalStateException("force-fail-audit"))
                 .when(storageAuditLogRepository)
-                .save(any());
+                .insert(any());
 
         service.record(
                 TenantId.of(1L),
@@ -80,7 +86,7 @@ class StorageAuditApplicationServiceTest {
                 null,
                 "ACTIVE");
 
-        verify(storageAuditOutboxRepository).save(any());
+        verify(storageAuditOutboxRepository).insert(any());
         assertEquals(
                 1.0d,
                 meterRegistry
@@ -101,10 +107,10 @@ class StorageAuditApplicationServiceTest {
     void shouldIncrementOutboxFailMetricWhenOutboxPersistFails() {
         doThrow(new IllegalStateException("force-fail-audit"))
                 .when(storageAuditLogRepository)
-                .save(any());
+                .insert(any());
         doThrow(new IllegalStateException("force-fail-outbox"))
                 .when(storageAuditOutboxRepository)
-                .save(any());
+                .insert(any());
 
         service.record(
                 TenantId.of(1L),

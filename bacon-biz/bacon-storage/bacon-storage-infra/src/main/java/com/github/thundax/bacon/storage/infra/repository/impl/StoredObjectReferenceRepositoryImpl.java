@@ -2,8 +2,9 @@ package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectReference;
+import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
+import com.github.thundax.bacon.storage.infra.persistence.assembler.StoredObjectReferencePersistenceAssembler;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StoredObjectReferenceDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.StoredObjectReferenceMapper;
 import org.springframework.dao.DuplicateKeyException;
@@ -20,7 +21,8 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
 
     @Override
     public boolean saveIfAbsent(StoredObjectReference storedObjectReference) {
-        StoredObjectReferenceDO dataObject = toDataObject(storedObjectReference);
+        StoredObjectReferenceDO dataObject =
+                StoredObjectReferencePersistenceAssembler.toDataObject(storedObjectReference);
         try {
             storedObjectReferenceMapper.insert(dataObject);
             return true;
@@ -52,12 +54,5 @@ public class StoredObjectReferenceRepositoryImpl implements StoredObjectReferenc
         return storedObjectReferenceMapper.selectCount(Wrappers.<StoredObjectReferenceDO>lambdaQuery()
                         .eq(StoredObjectReferenceDO::getObjectId, objectId))
                 > 0;
-    }
-
-    private StoredObjectReferenceDO toDataObject(StoredObjectReference storedObjectReference) {
-        return new StoredObjectReferenceDO(
-                storedObjectReference.getObjectId(),
-                storedObjectReference.getOwnerType(),
-                storedObjectReference.getOwnerId());
     }
 }

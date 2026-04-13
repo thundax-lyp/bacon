@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface StorageAuditOutboxRepository {
 
-    void save(StorageAuditOutbox storageAuditOutbox);
+    void insert(StorageAuditOutbox storageAuditOutbox);
 
     List<StorageAuditOutbox> listRetryable(List<StorageAuditOutboxStatus> statuses, Instant retryBefore, int limit);
 

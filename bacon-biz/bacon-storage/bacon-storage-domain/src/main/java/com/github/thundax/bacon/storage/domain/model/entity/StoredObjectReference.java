@@ -1,20 +1,25 @@
-package com.github.thundax.bacon.storage.domain.model.valueobject;
+package com.github.thundax.bacon.storage.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * 存储对象引用关系值对象。
+ * 存储对象引用关系实体。
  */
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class StoredObjectReference {
 
     /** 存储对象主键。 */
-    private final StoredObjectId objectId;
+    private StoredObjectId objectId;
     /** 引用方类型。 */
-    private final String ownerType;
+    private String ownerType;
     /** 引用方业务主键。 */
-    private final String ownerId;
+    private String ownerId;
 
     public static StoredObjectReference create(StoredObjectId objectId, String ownerType, String ownerId) {
         if (objectId == null) {
@@ -29,9 +34,7 @@ public class StoredObjectReference {
         return new StoredObjectReference(objectId, ownerType, ownerId);
     }
 
-    public StoredObjectReference(StoredObjectId objectId, String ownerType, String ownerId) {
-        this.objectId = objectId;
-        this.ownerType = ownerType;
-        this.ownerId = ownerId;
+    public static StoredObjectReference reconstruct(StoredObjectId objectId, String ownerType, String ownerId) {
+        return new StoredObjectReference(objectId, ownerType, ownerId);
     }
 }

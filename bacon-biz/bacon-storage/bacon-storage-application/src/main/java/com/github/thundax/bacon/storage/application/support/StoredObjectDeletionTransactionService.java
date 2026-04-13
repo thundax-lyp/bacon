@@ -42,7 +42,7 @@ public class StoredObjectDeletionTransactionService {
             throw new ConflictException("Stored object is still referenced: " + objectId);
         }
         storedObject.markDeleting();
-        return storedObjectRepository.save(storedObject);
+        return storedObjectRepository.update(storedObject);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -55,9 +55,9 @@ public class StoredObjectDeletionTransactionService {
         }
         String beforeStatus = storedObject.getObjectStatus().value();
         storedObject.markDeleted();
-        StoredObject savedObject = storedObjectRepository.save(storedObject);
+        StoredObject savedObject = storedObjectRepository.update(storedObject);
         storageAuditApplicationService.record(
-                savedObject.getTenantId(),
+                null,
                 objectId,
                 null,
                 null,

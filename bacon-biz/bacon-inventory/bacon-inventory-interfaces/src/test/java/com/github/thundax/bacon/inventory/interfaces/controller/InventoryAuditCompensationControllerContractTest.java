@@ -160,10 +160,7 @@ class InventoryAuditCompensationControllerContractTest {
         public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
             Long taskId = task.getId() == null ? null : task.getId().value();
             tasks.put(taskId, task);
-            taskTenants.put(
-                    taskId,
-                    java.util.Objects.requireNonNull(
-                            BaconContextHolder.currentTenantId(), "tenantId must not be null"));
+            taskTenants.put(taskId, BaconContextHolder.requireTenantId());
             return task;
         }
 
@@ -190,8 +187,7 @@ class InventoryAuditCompensationControllerContractTest {
 
         @Override
         public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
-            Long tenantId =
-                    java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
+            Long tenantId = BaconContextHolder.requireTenantId();
             return findAuditReplayTaskById(taskId)
                     .filter(task -> java.util.Objects.equals(
                             tenantId, taskTenants.get(task.getId() == null ? null : task.getId().value())))
@@ -206,8 +202,7 @@ class InventoryAuditCompensationControllerContractTest {
 
         @Override
         public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
-            Long tenantId =
-                    java.util.Objects.requireNonNull(BaconContextHolder.currentTenantId(), "tenantId must not be null");
+            Long tenantId = BaconContextHolder.requireTenantId();
             return findAuditReplayTaskById(taskId)
                     .filter(task -> java.util.Objects.equals(
                             tenantId, taskTenants.get(task.getId() == null ? null : task.getId().value())))

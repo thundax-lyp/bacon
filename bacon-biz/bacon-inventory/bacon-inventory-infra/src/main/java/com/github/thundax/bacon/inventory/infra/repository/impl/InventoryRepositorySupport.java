@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
@@ -172,18 +173,13 @@ public class InventoryRepositorySupport {
     }
 
     public InventoryReservation saveReservation(InventoryReservation reservation) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         InventoryReservationDO reservationDataObject =
                 InventoryReservationPersistenceAssembler.toDataObject(reservation);
         if (reservationDataObject.getId() == null) {
             reservationMapper.insert(reservationDataObject);
             List<InventoryReservationItemDO> itemDataObjects = reservation.getItems().stream()
-                    .map(item -> InventoryReservationItemPersistenceAssembler.toDataObject(
-                            item,
-                            tenantId,
-                            reservation.getReservationNo() == null
-                                    ? null
-                                    : reservation.getReservationNo().value()))
+                    .map(InventoryReservationItemPersistenceAssembler::toDataObject)
                     .toList();
             itemDataObjects.forEach(reservationItemMapper::insert);
         } else {
@@ -193,16 +189,14 @@ public class InventoryRepositorySupport {
     }
 
     public Optional<InventoryReservation> findReservation(OrderNo orderNo) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         InventoryReservationDO reservation = reservationMapper.selectOne(Wrappers.<InventoryReservationDO>lambdaQuery()
-                .eq(InventoryReservationDO::getTenantId, tenantId)
                 .eq(InventoryReservationDO::getOrderNo, orderNo == null ? null : orderNo.value()));
         if (reservation == null) {
             return Optional.empty();
         }
         List<InventoryReservationItem> items = reservationItemMapper
                 .selectList(Wrappers.<InventoryReservationItemDO>lambdaQuery()
-                        .eq(InventoryReservationItemDO::getTenantId, tenantId)
                         .eq(InventoryReservationItemDO::getReservationNo, reservation.getReservationNo())
                         .orderByAsc(InventoryReservationItemDO::getSkuId))
                 .stream()
@@ -217,10 +211,9 @@ public class InventoryRepositorySupport {
     }
 
     public List<InventoryLedger> findLedgers(OrderNo orderNo) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         return ledgerMapper
                 .selectList(Wrappers.<InventoryLedgerDO>lambdaQuery()
-                        .eq(InventoryLedgerDO::getTenantId, tenantId)
                         .eq(InventoryLedgerDO::getOrderNo, orderNo == null ? null : orderNo.value())
                         .orderByAsc(InventoryLedgerDO::getOccurredAt, InventoryLedgerDO::getId))
                 .stream()
@@ -233,10 +226,9 @@ public class InventoryRepositorySupport {
     }
 
     public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         return auditLogMapper
                 .selectList(Wrappers.<InventoryAuditLogDO>lambdaQuery()
-                        .eq(InventoryAuditLogDO::getTenantId, tenantId)
                         .eq(InventoryAuditLogDO::getOrderNo, orderNo == null ? null : orderNo.value())
                         .orderByAsc(InventoryAuditLogDO::getOccurredAt, InventoryAuditLogDO::getId))
                 .stream()
@@ -423,11 +415,9 @@ public class InventoryRepositorySupport {
 
     public List<InventoryAuditDeadLetter> pageAuditDeadLetters(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         long offset = (long) (pageNo - 1) * pageSize;
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
-                Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
-                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId);
+        LambdaQueryWrapper<InventoryAuditDeadLetterDO> query = Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery();
         if (orderNo != null) {
             query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo.value());
         }
@@ -444,10 +434,8 @@ public class InventoryRepositorySupport {
     }
 
     public long countAuditDeadLetters(OrderNo orderNo, InventoryAuditReplayStatus replayStatus) {
-        Long tenantId = BaconContextHolder.requireTenantId();
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<InventoryAuditDeadLetterDO> query =
-                Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
-                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId);
+        BaconContextHolder.requireTenantId();
+        LambdaQueryWrapper<InventoryAuditDeadLetterDO> query = Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery();
         if (orderNo != null) {
             query.eq(InventoryAuditDeadLetterDO::getOrderNo, orderNo.value());
         }
@@ -458,10 +446,9 @@ public class InventoryRepositorySupport {
     }
 
     public Optional<InventoryAuditDeadLetter> findAuditDeadLetterById(DeadLetterId id) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(auditDeadLetterMapper.selectOne(Wrappers.<InventoryAuditDeadLetterDO>lambdaQuery()
-                        .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
-                        .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId)))
+                        .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())))
                 .map(InventoryAuditDeadLetterPersistenceAssembler::toDomain);
     }
 
@@ -471,12 +458,11 @@ public class InventoryRepositorySupport {
             InventoryAuditOperatorType operatorType,
             OperatorId operatorId,
             Instant replayAt) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         return auditDeadLetterMapper.update(
                         null,
                         Wrappers.<InventoryAuditDeadLetterDO>lambdaUpdate()
                                 .eq(InventoryAuditDeadLetterDO::getOutboxId, id == null ? null : id.value())
-                                .eq(InventoryAuditDeadLetterDO::getTenantId, tenantId)
                                 .in(
                                         InventoryAuditDeadLetterDO::getReplayStatus,
                                         InventoryAuditReplayStatus.PENDING.value(),
@@ -547,8 +533,7 @@ public class InventoryRepositorySupport {
     }
 
     public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
-        InventoryAuditReplayTaskDO dataObject =
-                InventoryAuditReplayTaskPersistenceAssembler.toDataObject(BaconContextHolder.requireTenantId(), task);
+        InventoryAuditReplayTaskDO dataObject = InventoryAuditReplayTaskPersistenceAssembler.toDataObject(task);
         java.util.Objects.requireNonNull(dataObject.getId(), "replayTask.id must not be null");
         if (dataObject.getId() == null) {
             auditReplayTaskMapper.insert(dataObject);
@@ -559,23 +544,12 @@ public class InventoryRepositorySupport {
     }
 
     public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         if (items == null || items.isEmpty()) {
             return;
         }
         for (InventoryAuditReplayTaskItem item : items) {
-            auditReplayTaskItemMapper.insert(new InventoryAuditReplayTaskItemDO(
-                    item.getId(),
-                    item.getTaskId() == null ? null : item.getTaskId().value(),
-                    tenantId,
-                    item.getDeadLetterId() == null ? null : item.getDeadLetterId().value(),
-                    item.getItemStatus() == null ? null : item.getItemStatus().value(),
-                    item.getReplayStatus() == null ? null : item.getReplayStatus().value(),
-                    item.getReplayKey(),
-                    item.getResultMessage(),
-                    item.getStartedAt(),
-                    item.getFinishedAt(),
-                    item.getUpdatedAt()));
+            auditReplayTaskItemMapper.insert(InventoryAuditReplayTaskItemPersistenceAssembler.toDataObject(item));
         }
     }
 
@@ -728,12 +702,11 @@ public class InventoryRepositorySupport {
     }
 
     public boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         return auditReplayTaskMapper.update(
                         null,
                         Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
                                 .eq(InventoryAuditReplayTaskDO::getId, taskId == null ? null : taskId.value())
-                                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId)
                                 .in(
                                         InventoryAuditReplayTaskDO::getStatus,
                                         InventoryAuditReplayTaskStatus.PENDING,
@@ -747,12 +720,11 @@ public class InventoryRepositorySupport {
     }
 
     public boolean resumeAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant updatedAt) {
-        Long tenantId = BaconContextHolder.requireTenantId();
+        BaconContextHolder.requireTenantId();
         return auditReplayTaskMapper.update(
                         null,
                         Wrappers.<InventoryAuditReplayTaskDO>lambdaUpdate()
                                 .eq(InventoryAuditReplayTaskDO::getId, taskId == null ? null : taskId.value())
-                                .eq(InventoryAuditReplayTaskDO::getTenantId, tenantId)
                                 .eq(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.PAUSED)
                                 .set(InventoryAuditReplayTaskDO::getStatus, InventoryAuditReplayTaskStatus.PENDING)
                                 .set(InventoryAuditReplayTaskDO::getPausedAt, null)

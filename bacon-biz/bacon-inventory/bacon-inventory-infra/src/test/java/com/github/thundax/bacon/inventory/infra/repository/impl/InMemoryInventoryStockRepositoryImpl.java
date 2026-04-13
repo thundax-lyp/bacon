@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.context.BaconIdContextHelper;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryStatus;
@@ -55,7 +55,6 @@ public class InMemoryInventoryStockRepositoryImpl implements InventoryStockRepos
     }
 
     private TenantId currentTenantId() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        return tenantId == null ? null : TenantId.of(tenantId);
+        return BaconIdContextHelper.currentTenantId();
     }
 }

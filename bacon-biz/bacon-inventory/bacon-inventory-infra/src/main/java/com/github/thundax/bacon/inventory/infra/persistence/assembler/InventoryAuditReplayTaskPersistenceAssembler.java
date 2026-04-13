@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.TaskId;
@@ -11,13 +12,9 @@ public final class InventoryAuditReplayTaskPersistenceAssembler {
     private InventoryAuditReplayTaskPersistenceAssembler() {}
 
     public static InventoryAuditReplayTaskDO toDataObject(InventoryAuditReplayTask task) {
-        return toDataObject(null, task);
-    }
-
-    public static InventoryAuditReplayTaskDO toDataObject(Long tenantId, InventoryAuditReplayTask task) {
         return new InventoryAuditReplayTaskDO(
                 task.getId() == null ? null : task.getId().value(),
-                tenantId,
+                BaconContextHolder.requireTenantId(),
                 task.getTaskNo() == null ? null : task.getTaskNo().value(),
                 task.getStatus().value(),
                 task.getTotalCount(),

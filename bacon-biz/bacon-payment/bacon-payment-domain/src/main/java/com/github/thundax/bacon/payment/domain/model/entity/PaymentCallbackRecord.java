@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
@@ -16,8 +15,6 @@ public class PaymentCallbackRecord {
 
     /** 回调记录主键。 */
     private final Long id;
-    /** 所属租户主键。 */
-    private final TenantId tenantId;
     /** 支付单号。 */
     private final PaymentNo paymentNo;
     /** 关联订单号。 */
@@ -35,7 +32,6 @@ public class PaymentCallbackRecord {
 
     public PaymentCallbackRecord(
             Long id,
-            TenantId tenantId,
             PaymentNo paymentNo,
             OrderNo orderNo,
             PaymentChannelCode channelCode,
@@ -44,7 +40,6 @@ public class PaymentCallbackRecord {
             String rawPayload,
             Instant receivedAt) {
         this.id = id;
-        this.tenantId = tenantId;
         this.paymentNo = paymentNo;
         this.orderNo = orderNo;
         this.channelCode = channelCode;

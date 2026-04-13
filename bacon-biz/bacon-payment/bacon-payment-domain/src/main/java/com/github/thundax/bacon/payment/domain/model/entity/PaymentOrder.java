@@ -2,7 +2,6 @@ package com.github.thundax.bacon.payment.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
@@ -20,8 +19,6 @@ public class PaymentOrder {
 
     /** 支付主单主键。 */
     private final PaymentOrderId id;
-    /** 所属租户主键。 */
-    private final TenantId tenantId;
     /** 支付单号。 */
     private final PaymentNo paymentNo;
     /** 关联订单号。 */
@@ -55,7 +52,6 @@ public class PaymentOrder {
 
     public PaymentOrder(
             PaymentOrderId id,
-            TenantId tenantId,
             PaymentNo paymentNo,
             OrderNo orderNo,
             UserId userId,
@@ -65,7 +61,6 @@ public class PaymentOrder {
             Instant expiredAt,
             Instant createdAt) {
         this.id = id;
-        this.tenantId = tenantId;
         this.paymentNo = paymentNo;
         this.orderNo = orderNo;
         this.userId = userId;
@@ -80,7 +75,6 @@ public class PaymentOrder {
 
     public static PaymentOrder rehydrate(
             PaymentOrderId id,
-            TenantId tenantId,
             PaymentNo paymentNo,
             OrderNo orderNo,
             UserId userId,
@@ -98,7 +92,7 @@ public class PaymentOrder {
             String callbackSummary) {
         // 查询和回调处理依赖主单快照，因此重建时必须带回最新终态、渠道交易号和回调摘要。
         PaymentOrder paymentOrder = new PaymentOrder(
-                id, tenantId, paymentNo, orderNo, userId, channelCode, amount, subject, expiredAt, createdAt);
+                id, paymentNo, orderNo, userId, channelCode, amount, subject, expiredAt, createdAt);
         paymentOrder.paidAmount = paidAmount == null ? Money.zero() : paidAmount;
         paymentOrder.paidAt = paidAt;
         paymentOrder.closedAt = closedAt;

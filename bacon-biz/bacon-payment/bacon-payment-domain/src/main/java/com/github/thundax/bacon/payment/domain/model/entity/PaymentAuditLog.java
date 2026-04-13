@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
@@ -16,8 +15,6 @@ public class PaymentAuditLog {
 
     /** 审计日志主键。 */
     private final Long id;
-    /** 所属租户主键。 */
-    private final TenantId tenantId;
     /** 支付单号。 */
     private final PaymentNo paymentNo;
     /** 操作类型。 */
@@ -35,7 +32,6 @@ public class PaymentAuditLog {
 
     public PaymentAuditLog(
             Long id,
-            TenantId tenantId,
             PaymentNo paymentNo,
             PaymentAuditActionType actionType,
             PaymentStatus beforeStatus,
@@ -44,7 +40,6 @@ public class PaymentAuditLog {
             String operatorId,
             Instant occurredAt) {
         this.id = id;
-        this.tenantId = tenantId;
         this.paymentNo = paymentNo;
         this.actionType = actionType;
         this.beforeStatus = beforeStatus;

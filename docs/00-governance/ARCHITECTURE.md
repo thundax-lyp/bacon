@@ -66,18 +66,23 @@
 - 只表达业务动作，不落技术细节
 - 可以依赖本域 `domain` 和外域 `api.facade`
 - 不直接依赖其他域的 `infra`
+- 创建新的领域对象时，调用 `domain entity.create(...)`
 
 ### domain
 
 - 负责核心业务规则、不变量、聚合、一致性约束
 - 定义仓储接口
 - 不感知 HTTP、MyBatis、缓存、MQ、SDK
+- `create(...)` 表达“新建业务对象”，给 `application` 使用
+- `reconstruct(...)` 表达“从持久化状态恢复对象”，给 `infra` 使用
+- 不要用 `reconstruct(...)` 承担 application 的创建语义
 
 ### infra
 
 - 负责持久化、远程调用、缓存、消息、三方适配
 - 实现 `domain.repository`
 - 远程 facade 适配实现固定放在 `infra.facade.remote`
+- 从数据库、缓存、消息等技术载荷恢复领域对象时，调用 `domain entity.reconstruct(...)`
 
 ## Time Modeling
 

@@ -52,7 +52,12 @@ public class RestClientFactory {
     }
 
     private RestClient.Builder builder() {
-        return restClientBuilderProvider.getIfAvailable(RestClient::builder);
+        return restClientBuilderProvider
+                .getIfAvailable(RestClient::builder)
+                .requestInterceptor((request, body, execution) -> {
+                    RestTemplateAutoConfiguration.applyContextHeaders(request.getHeaders());
+                    return execution.execute(request, body);
+                });
     }
 
     private RestClient.Builder applyDefaultHeader(RestClient.Builder builder, String headerName, String headerValue) {

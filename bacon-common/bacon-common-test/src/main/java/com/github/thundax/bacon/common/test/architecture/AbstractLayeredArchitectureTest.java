@@ -83,4 +83,18 @@ public abstract class AbstractLayeredArchitectureTest {
         LayeredArchitectureRuleSupport.infraShouldOnlyDependOnDomainRepositoryAsImplementation(basePackage())
                 .check(classes());
     }
+
+    @Test
+    @DisplayName("domain entity 的 create() 只能由 application 调用")
+    void shouldOnlyAllowApplicationToCallDomainEntityCreate() {
+        LayeredArchitectureRuleSupport.domainEntityCreateShouldOnlyBeCalledByApplication(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    @DisplayName("domain entity 的 reconstruct() 只能由 infra 调用")
+    void shouldOnlyAllowInfraToCallDomainEntityReconstruct() {
+        LayeredArchitectureRuleSupport.domainEntityReconstructShouldOnlyBeCalledByInfra(basePackage())
+                .check(classes());
+    }
 }

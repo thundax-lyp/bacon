@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
@@ -8,6 +10,8 @@ import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.inventory.application.codec.WarehouseCodeCodec;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
+import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;
 import java.util.List;
 
@@ -37,19 +41,17 @@ public final class InventoryReservationAssembler {
         return InventoryReservation.reconstruct(
                 null,
                 dto.getReservationNo() == null ? null : ReservationNo.of(dto.getReservationNo()),
-                dto.getOrderNo() == null ? null : com.github.thundax.bacon.common.commerce.valueobject.OrderNo.of(dto.getOrderNo()),
-                dto.getWarehouseCode() == null ? null : com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode.of(dto.getWarehouseCode()),
+                dto.getOrderNo() == null ? null : OrderNo.of(dto.getOrderNo()),
+                dto.getWarehouseCode() == null ? null : WarehouseCode.of(dto.getWarehouseCode()),
                 dto.getCreatedAt(),
                 toDomainItems(dto.getReservationNo(), dto.getItems()),
                 dto.getReservationStatus() == null
                         ? null
-                        : com.github.thundax.bacon.inventory.domain.model.enums.InventoryReservationStatus.from(
-                                dto.getReservationStatus()),
+                        : InventoryReservationStatus.from(dto.getReservationStatus()),
                 dto.getFailureReason(),
                 dto.getReleaseReason() == null
                         ? null
-                        : com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason.from(
-                                dto.getReleaseReason()),
+                        : InventoryReleaseReason.from(dto.getReleaseReason()),
                 dto.getReleasedAt(),
                 dto.getDeductedAt());
     }

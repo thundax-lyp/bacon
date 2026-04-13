@@ -22,6 +22,7 @@ import com.github.thundax.bacon.upms.interfaces.dto.UserStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserIdentityResponse;
+import java.util.Optional;
 import com.github.thundax.bacon.upms.interfaces.response.UserPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -108,7 +109,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "访问用户头像", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}/avatar")
     public ResponseEntity<Void> getAvatar(@CurrentTenant Long tenantId, @PathVariable("userId") Long userId) {
-        java.util.Optional<String> avatarAccessUrl =
+        Optional<String> avatarAccessUrl =
                 userApplicationService.getAvatarAccessUrl(TenantId.of(tenantId), userId);
         if (avatarAccessUrl.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

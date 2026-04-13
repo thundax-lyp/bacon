@@ -25,6 +25,7 @@ import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRep
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectStorageRepository;
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,7 +85,7 @@ public class MultipartUploadApplicationService {
                 storageSession.providerUploadId(),
                 command.getTotalSize(),
                 command.getPartSize(),
-                java.time.Instant.now());
+                Instant.now());
         MultipartUploadSession savedSession = multipartUploadSessionRepository.insert(session);
         return MultipartUploadSessionAssembler.toDto(savedSession);
     }
@@ -123,7 +124,7 @@ public class MultipartUploadApplicationService {
                                 command.getPartNumber(),
                                 etag,
                                 command.getSize(),
-                                java.time.Instant.now()));
+                                Instant.now()));
         MultipartUploadPart savedPart = existingPartPresent
                 ? multipartUploadPartRepository.update(part)
                 : multipartUploadPartRepository.insert(part);

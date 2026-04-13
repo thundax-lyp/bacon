@@ -2,6 +2,7 @@ package com.github.thundax.bacon.inventory.infra.persistence.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.github.thundax.bacon.inventory.infra.persistence.dataobject.InventoryDO;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -26,7 +27,7 @@ public interface InventoryMapper extends BaseMapper<InventoryDO> {
             limit #{offset}, #{pageSize}
             </script>
             """)
-    java.util.List<InventoryDO> selectPageByCondition(
+    List<InventoryDO> selectPageByCondition(
             @Param("skuId") Long skuId,
             @Param("status") String status,
             @Param("offset") long offset,

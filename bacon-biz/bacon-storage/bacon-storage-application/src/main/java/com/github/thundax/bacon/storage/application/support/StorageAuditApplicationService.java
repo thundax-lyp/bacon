@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditLog;
 import com.github.thundax.bacon.storage.domain.model.entity.StorageAuditOutbox;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxStatus;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditLogRepository;
 import com.github.thundax.bacon.storage.domain.repository.StorageAuditOutboxRepository;
 import io.micrometer.core.instrument.Metrics;
@@ -88,7 +89,7 @@ public class StorageAuditApplicationService {
                             auditLog.getOperatorId(),
                             auditLog.getOccurredAt(),
                             truncateMessage(ex.getMessage()),
-                            com.github.thundax.bacon.storage.domain.model.enums.StorageAuditOutboxStatus.NEW,
+                            StorageAuditOutboxStatus.NEW,
                             0,
                             Instant.now(),
                             Instant.now()));

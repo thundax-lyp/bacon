@@ -8,6 +8,7 @@ import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionTyp
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
+import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +39,7 @@ public class PaymentOperationLogSupport {
         }
     }
 
-    public void recordCreate(String paymentNo, String afterStatus, java.time.Instant occurredAt) {
+    public void recordCreate(String paymentNo, String afterStatus, Instant occurredAt) {
         BaconContextHolder.requireTenantId();
         saveSafely(PaymentAuditLog.create(
                 nextAuditLogId(),
@@ -56,7 +57,7 @@ public class PaymentOperationLogSupport {
             String paymentNo,
             String beforeStatus,
             String afterStatus,
-            java.time.Instant occurredAt) {
+            Instant occurredAt) {
         BaconContextHolder.requireTenantId();
         saveSafely(PaymentAuditLog.create(
                 nextAuditLogId(),
@@ -69,7 +70,7 @@ public class PaymentOperationLogSupport {
                 occurredAt));
     }
 
-    public void recordClose(String paymentNo, String beforeStatus, String afterStatus, java.time.Instant occurredAt) {
+    public void recordClose(String paymentNo, String beforeStatus, String afterStatus, Instant occurredAt) {
         BaconContextHolder.requireTenantId();
         saveSafely(PaymentAuditLog.create(
                 nextAuditLogId(),

@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -70,7 +71,7 @@ public class InventoryController {
         return inventoryQueryService
                 .batchGetAvailableStock(
                         request.getSkuIds() == null
-                                ? java.util.Set.of()
+                                ? Set.of()
                                 : request.getSkuIds().stream()
                                         .map(SkuIdCodec::toDomain)
                                         .collect(Collectors.toSet()))

@@ -12,6 +12,7 @@ import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActio
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
+import com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditOutboxRepository;
 import com.github.thundax.bacon.inventory.domain.repository.InventoryAuditRecordRepository;
 import io.micrometer.core.instrument.Metrics;
@@ -128,8 +129,7 @@ public class InventoryOperationLogSupport {
             RuntimeException ex) {
         try {
             inventoryAuditOutboxRepository.saveAuditOutbox(InventoryAuditOutbox.create(
-                    com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(
-                            idGenerator.nextId(AUDIT_OUTBOX_ID_BIZ_TAG)),
+                    OutboxId.of(idGenerator.nextId(AUDIT_OUTBOX_ID_BIZ_TAG)),
                     null,
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),

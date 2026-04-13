@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,14 +177,14 @@ public class InventoryReservationApplicationService {
         }
         Set<Long> skuIds = items.stream()
                 .map(InventoryReservationItemDTO::getSkuId)
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         Map<Long, Inventory> inventoryBySku =
                 inventoryStockRepository
                         .findInventories(
                                 skuIds.stream().map(SkuIdCodec::toDomain).collect(Collectors.toSet()))
                         .stream()
-                        .collect(java.util.stream.Collectors.toMap(
+                        .collect(Collectors.toMap(
                                 inventory -> inventory.getSkuId() == null
                                         ? null
                                         : inventory.getSkuId().value(),

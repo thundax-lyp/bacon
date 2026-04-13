@@ -1,10 +1,5 @@
 package com.github.thundax.bacon.order.application.query;
 
-import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
-import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
@@ -17,13 +12,6 @@ import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
-import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
-import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
-import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
-import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
-import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
-import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
-import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.math.BigDecimal;
 import java.util.List;

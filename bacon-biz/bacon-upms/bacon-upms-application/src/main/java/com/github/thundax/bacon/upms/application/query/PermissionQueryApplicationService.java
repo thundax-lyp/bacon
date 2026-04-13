@@ -9,6 +9,7 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -39,6 +40,6 @@ public class PermissionQueryApplicationService {
                 permissionRepository.getUserScopeTypes(tenantId, userId),
                 permissionRepository.getUserDepartmentIds(tenantId, userId).stream()
                         .map(DepartmentId::value)
-                        .collect(java.util.stream.Collectors.toSet()));
+                        .collect(Collectors.toSet()));
     }
 }

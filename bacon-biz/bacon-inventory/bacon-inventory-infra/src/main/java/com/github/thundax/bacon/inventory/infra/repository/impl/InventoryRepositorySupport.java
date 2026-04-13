@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
@@ -59,7 +60,9 @@ import com.github.thundax.bacon.inventory.infra.persistence.mapper.InventoryRese
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -129,7 +132,7 @@ public class InventoryRepositorySupport {
             return List.of();
         }
         List<Long> skuIdValues = skuIds.stream()
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .map(SkuId::value)
                 .toList();
         if (skuIdValues.isEmpty()) {
@@ -281,7 +284,7 @@ public class InventoryRepositorySupport {
         if (candidates.isEmpty()) {
             return List.of();
         }
-        List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> claimed = new java.util.ArrayList<>(limit);
+        List<InventoryAuditOutboxRepository.TenantScopedAuditOutbox> claimed = new ArrayList<>(limit);
         for (InventoryAuditOutboxDO candidate : candidates) {
             if (claimed.size() >= limit) {
                 break;
@@ -310,8 +313,7 @@ public class InventoryRepositorySupport {
                 claimed.add(new InventoryAuditOutboxRepository.TenantScopedAuditOutbox(
                         claimedDataObject.getTenantId() == null
                                 ? null
-                                : com.github.thundax.bacon.common.id.domain.TenantId.of(
-                                        claimedDataObject.getTenantId()),
+                                : TenantId.of(claimedDataObject.getTenantId()),
                         InventoryAuditOutboxPersistenceAssembler.toDomain(claimedDataObject)));
             }
         }
@@ -580,7 +582,7 @@ public class InventoryRepositorySupport {
         if (candidates.isEmpty()) {
             return List.of();
         }
-        List<InventoryAuditReplayTask> claimed = new java.util.ArrayList<>(limit);
+        List<InventoryAuditReplayTask> claimed = new ArrayList<>(limit);
         for (InventoryAuditReplayTaskDO candidate : candidates) {
             if (claimed.size() >= limit) {
                 break;

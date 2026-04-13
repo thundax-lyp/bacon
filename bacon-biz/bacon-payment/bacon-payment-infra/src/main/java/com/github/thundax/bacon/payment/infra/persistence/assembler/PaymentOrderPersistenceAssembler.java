@@ -10,12 +10,13 @@ import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentOrderDO;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PaymentOrderPersistenceAssembler {
 
-    public PaymentOrderDO toDataObject(PaymentOrder paymentOrder, java.time.Instant updatedAt) {
+    public PaymentOrderDO toDataObject(PaymentOrder paymentOrder, Instant updatedAt) {
         return new PaymentOrderDO(
                 paymentOrder.getId() == null ? null : paymentOrder.getId().value(),
                 BaconContextHolder.requireTenantId(),

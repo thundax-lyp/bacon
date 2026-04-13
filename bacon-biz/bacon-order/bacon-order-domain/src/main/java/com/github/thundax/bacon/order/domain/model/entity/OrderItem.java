@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
-import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.util.MoneyValidator;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;

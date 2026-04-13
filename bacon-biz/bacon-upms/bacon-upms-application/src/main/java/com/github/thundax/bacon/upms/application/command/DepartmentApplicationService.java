@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -185,7 +186,7 @@ public class DepartmentApplicationService {
                         : department.getLeaderUserId().value(),
                 department.getSort(),
                 toStatusEnum(department.getStatus()),
-                new java.util.ArrayList<>());
+                new ArrayList<>());
     }
 
     private Comparator<DepartmentTreeDTO> treeComparator() {

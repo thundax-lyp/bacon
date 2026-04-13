@@ -18,8 +18,10 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,14 +131,14 @@ public class RoleApplicationService {
     public Set<String> getAssignedMenus(TenantId tenantId, String roleId) {
         return roleRepository.getAssignedMenus(tenantId, toRoleId(roleId)).stream()
                 .map(menuId -> String.valueOf(menuId.value()))
-                .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Transactional
     public Set<String> assignMenus(TenantId tenantId, String roleId, Set<String> menuIds) {
         return roleRepository.assignMenus(tenantId, toRoleId(roleId), toMenuIds(menuIds)).stream()
                 .map(menuId -> String.valueOf(menuId.value()))
-                .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public Set<String> getAssignedResources(TenantId tenantId, String roleId) {
@@ -222,7 +224,7 @@ public class RoleApplicationService {
                         .filter(value -> !value.isBlank())
                         .map(Long::parseLong)
                         .map(DepartmentId::of)
-                        .collect(java.util.stream.Collectors.toSet());
+                        .collect(Collectors.toSet());
     }
 
     private Set<MenuId> toMenuIds(Set<String> menuIds) {
@@ -233,7 +235,7 @@ public class RoleApplicationService {
                         .filter(value -> !value.isBlank())
                         .map(Long::parseLong)
                         .map(MenuId::of)
-                        .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private RoleId toRoleId(String roleId) {

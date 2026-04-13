@@ -9,7 +9,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.application.config.StorageMultipartCleanupProperties;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
@@ -67,10 +66,9 @@ class MultipartUploadCleanupServiceTest {
 
     @Test
     void shouldAbortAndCleanupExpiredMultipartSessions() {
-        MultipartUploadSession session = new MultipartUploadSession(
+        MultipartUploadSession session = MultipartUploadSession.reconstruct(
                 1L,
                 "upload-expired",
-                TenantId.of(1L),
                 "GENERIC_ATTACHMENT",
                 "owner-1",
                 "attachment",
@@ -88,14 +86,14 @@ class MultipartUploadCleanupServiceTest {
                 null);
         when(multipartUploadSessionRepository.listExpiredSessions(any(), any(), eq(100)))
                 .thenReturn(List.of(session));
-        when(multipartUploadSessionRepository.save(any(MultipartUploadSession.class)))
+        when(multipartUploadSessionRepository.update(any(MultipartUploadSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         int cleanedCount = service.cleanupExpiredSessions();
 
         assertEquals(1, cleanedCount);
         ArgumentCaptor<MultipartUploadSession> sessionCaptor = ArgumentCaptor.forClass(MultipartUploadSession.class);
-        verify(multipartUploadSessionRepository).save(sessionCaptor.capture());
+        verify(multipartUploadSessionRepository).update(sessionCaptor.capture());
         assertEquals(UploadStatus.ABORTED, sessionCaptor.getValue().getUploadStatus());
         verify(storedObjectStorageRepository).abortMultipartUpload(session);
         verify(multipartUploadPartRepository).deleteByUploadId("upload-expired");
@@ -110,10 +108,9 @@ class MultipartUploadCleanupServiceTest {
 
     @Test
     void shouldCleanupAlreadyAbortedSessionsWithoutSavingAgain() {
-        MultipartUploadSession session = new MultipartUploadSession(
+        MultipartUploadSession session = MultipartUploadSession.reconstruct(
                 2L,
                 "upload-aborted",
-                TenantId.of(1L),
                 "GENERIC_ATTACHMENT",
                 "owner-2",
                 "attachment",
@@ -141,7 +138,7 @@ class MultipartUploadCleanupServiceTest {
         assertEquals(1, cleanedCount);
         verify(storedObjectStorageRepository).abortMultipartUpload(session);
         verify(multipartUploadPartRepository).deleteByUploadId("upload-aborted");
-        verify(multipartUploadSessionRepository, never()).save(any(MultipartUploadSession.class));
+        verify(multipartUploadSessionRepository, never()).update(any(MultipartUploadSession.class));
         assertEquals(
                 1.0d,
                 meterRegistry
@@ -153,10 +150,9 @@ class MultipartUploadCleanupServiceTest {
 
     @Test
     void shouldRecordCleanupFailureMetricWhenAbortFails() {
-        MultipartUploadSession session = new MultipartUploadSession(
+        MultipartUploadSession session = MultipartUploadSession.reconstruct(
                 3L,
                 "upload-failed",
-                TenantId.of(1L),
                 "GENERIC_ATTACHMENT",
                 "owner-3",
                 "attachment",

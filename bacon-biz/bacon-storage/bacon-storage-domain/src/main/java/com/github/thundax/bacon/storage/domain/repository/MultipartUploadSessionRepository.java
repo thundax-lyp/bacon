@@ -11,7 +11,9 @@ import java.util.Optional;
  */
 public interface MultipartUploadSessionRepository {
 
-    MultipartUploadSession save(MultipartUploadSession session);
+    MultipartUploadSession insert(MultipartUploadSession session);
+
+    MultipartUploadSession update(MultipartUploadSession session);
 
     Optional<MultipartUploadSession> findByUploadId(String uploadId);
 

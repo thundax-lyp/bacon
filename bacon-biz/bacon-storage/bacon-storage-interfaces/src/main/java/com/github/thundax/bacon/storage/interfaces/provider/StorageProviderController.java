@@ -43,13 +43,11 @@ public class StorageProviderController {
     @PostMapping(value = "/objects/upload", consumes = "multipart/form-data")
     public StoredObjectDTO uploadObject(
             @RequestParam("ownerType") String ownerType,
-            @RequestParam(value = "tenantId", required = false) Long tenantId,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam("file") MultipartFile file)
             throws IOException {
         UploadObjectCommand command = new UploadObjectCommand(
                 ownerType,
-                tenantId,
                 category,
                 file.getOriginalFilename(),
                 file.getContentType(),
@@ -63,50 +61,44 @@ public class StorageProviderController {
     public MultipartUploadSessionDTO initMultipartUpload(
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId,
-            @RequestParam(value = "tenantId", required = false) Long tenantId,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam("originalFilename") String originalFilename,
             @RequestParam("contentType") String contentType,
             @RequestParam("totalSize") Long totalSize,
             @RequestParam("partSize") Long partSize) {
         return storedObjectFacade.initMultipartUpload(new InitMultipartUploadCommand(
-                ownerType, ownerId, tenantId, category, originalFilename, contentType, totalSize, partSize));
+                ownerType, ownerId, category, originalFilename, contentType, totalSize, partSize));
     }
 
     @Operation(summary = "上传大文件分段")
     @PostMapping(value = "/objects/multipart/{uploadId}/parts", consumes = "multipart/form-data")
     public MultipartUploadPartDTO uploadMultipartPart(
-            @PathVariable("uploadId") Long uploadId,
+            @PathVariable("uploadId") String uploadId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId,
-            @RequestParam(value = "tenantId", required = false) Long tenantId,
             @RequestParam("partNumber") Integer partNumber,
             @RequestParam("file") MultipartFile file)
             throws IOException {
         return storedObjectFacade.uploadMultipartPart(new UploadMultipartPartCommand(
-                uploadId, ownerType, ownerId, tenantId, partNumber, file.getSize(), file.getInputStream()));
+                uploadId, ownerType, ownerId, partNumber, file.getSize(), file.getInputStream()));
     }
 
     @Operation(summary = "完成大文件分段上传")
     @PostMapping("/objects/multipart/{uploadId}/complete")
     public StoredObjectDTO completeMultipartUpload(
-            @PathVariable("uploadId") Long uploadId,
+            @PathVariable("uploadId") String uploadId,
             @RequestParam("ownerType") String ownerType,
-            @RequestParam("ownerId") String ownerId,
-            @RequestParam(value = "tenantId", required = false) Long tenantId) {
-        return storedObjectFacade.completeMultipartUpload(
-                new CompleteMultipartUploadCommand(uploadId, ownerType, ownerId, tenantId));
+            @RequestParam("ownerId") String ownerId) {
+        return storedObjectFacade.completeMultipartUpload(new CompleteMultipartUploadCommand(uploadId, ownerType, ownerId));
     }
 
     @Operation(summary = "取消大文件分段上传")
     @DeleteMapping("/objects/multipart/{uploadId}")
     public void abortMultipartUpload(
-            @PathVariable("uploadId") Long uploadId,
+            @PathVariable("uploadId") String uploadId,
             @RequestParam("ownerType") String ownerType,
-            @RequestParam("ownerId") String ownerId,
-            @RequestParam(value = "tenantId", required = false) Long tenantId) {
-        storedObjectFacade.abortMultipartUpload(
-                new AbortMultipartUploadCommand(uploadId, ownerType, ownerId, tenantId));
+            @RequestParam("ownerId") String ownerId) {
+        storedObjectFacade.abortMultipartUpload(new AbortMultipartUploadCommand(uploadId, ownerType, ownerId));
     }
 
     @Operation(summary = "查询存储对象")

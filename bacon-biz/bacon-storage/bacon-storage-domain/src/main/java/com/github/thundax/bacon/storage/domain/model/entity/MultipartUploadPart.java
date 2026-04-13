@@ -1,14 +1,18 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
 import java.time.Instant;
+import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 分段上传分段实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MultipartUploadPart {
 
     /** 主键。 */
@@ -24,11 +28,8 @@ public class MultipartUploadPart {
     /** 创建时间。 */
     private Instant createdAt;
 
-    public MultipartUploadPart(Long id, String uploadId, Integer partNumber, String etag, Long size) {
-        this(id, uploadId, partNumber, etag, size, Instant.now());
-    }
-
-    public static MultipartUploadPart create(String uploadId, Integer partNumber, String etag, Long size) {
+    public static MultipartUploadPart create(
+            Long id, String uploadId, Integer partNumber, String etag, Long size, Instant createdAt) {
         if (uploadId == null || uploadId.isBlank()) {
             throw new IllegalArgumentException("uploadId must not be blank");
         }
@@ -41,6 +42,12 @@ public class MultipartUploadPart {
         if (size == null || size <= 0L) {
             throw new IllegalArgumentException("size must be positive");
         }
-        return new MultipartUploadPart(null, uploadId, partNumber, etag, size);
+        Objects.requireNonNull(createdAt, "createdAt must not be null");
+        return new MultipartUploadPart(id, uploadId, partNumber, etag, size, createdAt);
+    }
+
+    public static MultipartUploadPart reconstruct(
+            Long id, String uploadId, Integer partNumber, String etag, Long size, Instant createdAt) {
+        return new MultipartUploadPart(id, uploadId, partNumber, etag, size, createdAt);
     }
 }

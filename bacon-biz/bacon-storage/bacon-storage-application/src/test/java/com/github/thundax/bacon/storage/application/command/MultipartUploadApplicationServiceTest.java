@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.application.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -11,12 +12,10 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
-import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
@@ -84,19 +83,23 @@ class MultipartUploadApplicationServiceTest {
         when(storedObjectStorageRepository.initMultipartUpload("attachment", "a.png", "image/png"))
                 .thenReturn(new MultipartUploadStorageSession("attachment/key.png", "provider-1"));
         when(idGenerator.nextId("storage_multipart_upload")).thenReturn(1001L);
-        when(multipartUploadSessionRepository.save(any(MultipartUploadSession.class)))
+        when(multipartUploadSessionRepository.insert(any(MultipartUploadSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         var dto = service.initMultipartUpload(new InitMultipartUploadCommand(
-                "GENERIC_ATTACHMENT", "owner-1", 1L, "attachment", "a.png", "image/png", 1024L, 512L));
+                "GENERIC_ATTACHMENT", "owner-1", "attachment", "a.png", "image/png", 1024L, 512L));
 
         assertEquals("owner-1", dto.getOwnerId());
-        assertEquals(1L, dto.getTenantId());
-        assertEquals(UploadStatusEnum.INITIATED, dto.getUploadStatus());
+        assertEquals("INITIATED", dto.getUploadStatus());
+        assertTrue(dto.getUploadId().startsWith("storage"));
+        assertTrue(dto.getUploadId().endsWith("-001001"));
 
         ArgumentCaptor<MultipartUploadSession> captor = ArgumentCaptor.forClass(MultipartUploadSession.class);
-        verify(multipartUploadSessionRepository).save(captor.capture());
+        verify(multipartUploadSessionRepository).insert(captor.capture());
+        assertEquals(1001L, captor.getValue().getId());
         assertEquals("owner-1", captor.getValue().getOwnerId());
+        assertTrue(captor.getValue().getUploadId().startsWith("storage"));
+        assertTrue(captor.getValue().getUploadId().endsWith("-001001"));
     }
 
     @Test
@@ -108,16 +111,15 @@ class MultipartUploadApplicationServiceTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.initMultipartUpload(new InitMultipartUploadCommand(
-                        "GENERIC_ATTACHMENT", "owner-1", 1L, "attachment", "a.png", "image/png", 2048L, 512L)));
+                        "GENERIC_ATTACHMENT", "owner-1", "attachment", "a.png", "image/png", 2048L, 512L)));
         verify(storedObjectStorageRepository, never()).initMultipartUpload(any(), any(), any());
     }
 
     @Test
     void shouldRejectMultipartPartUploadWhenOwnershipMismatch() {
-        MultipartUploadSession session = new MultipartUploadSession(
+        MultipartUploadSession session = MultipartUploadSession.reconstruct(
                 1L,
                 "1",
-                TenantId.of(1L),
                 "GENERIC_ATTACHMENT",
                 "owner-1",
                 "attachment",
@@ -138,16 +140,15 @@ class MultipartUploadApplicationServiceTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.uploadMultipartPart(new UploadMultipartPartCommand(
-                        1L, "GENERIC_ATTACHMENT", "owner-2", 1L, 1, 512L, new ByteArrayInputStream(new byte[] {1}))));
+                        "1", "GENERIC_ATTACHMENT", "owner-2", 1, 512L, new ByteArrayInputStream(new byte[] {1}))));
         verify(storedObjectStorageRepository, never()).uploadPart(any(), any(), any(), any());
     }
 
     @Test
     void shouldRejectMultipartPartUploadWhenPartSizeExceedsConfiguredLimit() {
-        MultipartUploadSession session = new MultipartUploadSession(
+        MultipartUploadSession session = MultipartUploadSession.reconstruct(
                 2L,
                 "2",
-                TenantId.of(1L),
                 "GENERIC_ATTACHMENT",
                 "owner-1",
                 "attachment",
@@ -171,16 +172,15 @@ class MultipartUploadApplicationServiceTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.uploadMultipartPart(new UploadMultipartPartCommand(
-                        2L, "GENERIC_ATTACHMENT", "owner-1", 1L, 1, 1024L, new ByteArrayInputStream(new byte[] {1}))));
+                        "2", "GENERIC_ATTACHMENT", "owner-1", 1, 1024L, new ByteArrayInputStream(new byte[] {1}))));
         verify(storedObjectStorageRepository, never()).uploadPart(any(), any(), any(), any());
     }
 
     @Test
     void shouldNotIncrementUploadedPartCountWhenReuploadingSamePartNumber() {
-        MultipartUploadSession session = new MultipartUploadSession(
+        MultipartUploadSession session = MultipartUploadSession.reconstruct(
                 3L,
                 "3",
-                TenantId.of(1L),
                 "GENERIC_ATTACHMENT",
                 "owner-1",
                 "attachment",
@@ -196,32 +196,32 @@ class MultipartUploadApplicationServiceTest {
                 Instant.now(),
                 null,
                 null);
-        MultipartUploadPart existingPart = new MultipartUploadPart(10L, "3", 1, "etag-old", 512L, Instant.now());
+        MultipartUploadPart existingPart = MultipartUploadPart.reconstruct(
+                10L, "3", 1, "etag-old", 512L, Instant.now());
         when(multipartUploadSessionRepository.findByUploadId("3")).thenReturn(Optional.of(session));
         when(multipartUploadPartRepository.findByUploadIdAndPartNumber("3", 1))
                 .thenReturn(Optional.of(existingPart), Optional.of(existingPart));
         when(storedObjectStorageRepository.uploadPart(eq(session), eq(1), eq(512L), org.mockito.ArgumentMatchers.any()))
                 .thenReturn("etag-new");
-        when(multipartUploadPartRepository.save(any(MultipartUploadPart.class)))
+        when(multipartUploadPartRepository.update(any(MultipartUploadPart.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         service.uploadMultipartPart(new UploadMultipartPartCommand(
-                3L, "GENERIC_ATTACHMENT", "owner-1", 1L, 1, 512L, new ByteArrayInputStream(new byte[] {1, 2, 3})));
+                "3", "GENERIC_ATTACHMENT", "owner-1", 1, 512L, new ByteArrayInputStream(new byte[] {1, 2, 3})));
 
         assertEquals(1, session.getUploadedPartCount());
-        verify(multipartUploadSessionRepository, never()).save(any(MultipartUploadSession.class));
+        verify(multipartUploadSessionRepository, never()).update(any(MultipartUploadSession.class));
         ArgumentCaptor<MultipartUploadPart> captor = ArgumentCaptor.forClass(MultipartUploadPart.class);
-        verify(multipartUploadPartRepository).save(captor.capture());
+        verify(multipartUploadPartRepository).update(captor.capture());
         assertEquals(10L, captor.getValue().getId());
         assertEquals("etag-new", captor.getValue().getEtag());
     }
 
     @Test
     void shouldRejectCompleteWhenMultipartIntegrityMismatch() {
-        MultipartUploadSession session = new MultipartUploadSession(
+        MultipartUploadSession session = MultipartUploadSession.reconstruct(
                 2L,
                 "2",
-                TenantId.of(1L),
                 "GENERIC_ATTACHMENT",
                 "owner-1",
                 "attachment",
@@ -239,21 +239,20 @@ class MultipartUploadApplicationServiceTest {
                 null);
         when(multipartUploadSessionRepository.findByUploadId("2")).thenReturn(Optional.of(session));
         when(multipartUploadPartRepository.listByUploadId("2"))
-                .thenReturn(List.of(MultipartUploadPart.create("2", 1, "etag-1", 512L)));
+                .thenReturn(List.of(MultipartUploadPart.create(null, "2", 1, "etag-1", 512L, Instant.now())));
 
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.completeMultipartUpload(
-                        new CompleteMultipartUploadCommand(2L, "GENERIC_ATTACHMENT", "owner-1", 1L)));
+                        new CompleteMultipartUploadCommand("2", "GENERIC_ATTACHMENT", "owner-1")));
         verify(storedObjectStorageRepository, never()).completeMultipartUpload(any(), any());
     }
 
     @Test
     void shouldAbortMultipartUploadWithOwnershipValidation() {
-        MultipartUploadSession session = new MultipartUploadSession(
+        MultipartUploadSession session = MultipartUploadSession.reconstruct(
                 5L,
                 "5",
-                TenantId.of(1L),
                 "GENERIC_ATTACHMENT",
                 "owner-1",
                 "attachment",
@@ -270,10 +269,10 @@ class MultipartUploadApplicationServiceTest {
                 null,
                 null);
         when(multipartUploadSessionRepository.findByUploadId("5")).thenReturn(Optional.of(session));
-        when(multipartUploadSessionRepository.save(any(MultipartUploadSession.class)))
+        when(multipartUploadSessionRepository.update(any(MultipartUploadSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.abortMultipartUpload(new AbortMultipartUploadCommand(5L, "GENERIC_ATTACHMENT", "owner-1", 1L));
+        service.abortMultipartUpload(new AbortMultipartUploadCommand("5", "GENERIC_ATTACHMENT", "owner-1"));
 
         verify(storedObjectStorageRepository).abortMultipartUpload(session);
         verify(multipartUploadPartRepository).deleteByUploadId("5");
@@ -281,10 +280,9 @@ class MultipartUploadApplicationServiceTest {
 
     @Test
     void shouldCompleteMultipartUploadWhenOwnershipAndIntegrityPass() {
-        MultipartUploadSession session = new MultipartUploadSession(
+        MultipartUploadSession session = MultipartUploadSession.reconstruct(
                 6L,
                 "6",
-                TenantId.of(1L),
                 "GENERIC_ATTACHMENT",
                 "owner-1",
                 "attachment",
@@ -303,16 +301,15 @@ class MultipartUploadApplicationServiceTest {
         when(multipartUploadSessionRepository.findByUploadId("6")).thenReturn(Optional.of(session));
         when(multipartUploadPartRepository.listByUploadId("6"))
                 .thenReturn(List.of(
-                        MultipartUploadPart.create("6", 1, "etag-1", 512L),
-                        MultipartUploadPart.create("6", 2, "etag-2", 512L)));
+                        MultipartUploadPart.create(null, "6", 1, "etag-1", 512L, Instant.now()),
+                        MultipartUploadPart.create(null, "6", 2, "etag-2", 512L, Instant.now())));
         when(storedObjectStorageRepository.completeMultipartUpload(eq(session), any()))
                 .thenReturn(new StoredObjectStorageResult(
                         StorageType.OSS, "bucket", "attachment/key.png", "http://test/key"));
-        when(storedObjectRepository.save(any(StoredObject.class))).thenAnswer(invocation -> {
+        when(storedObjectRepository.insert(any(StoredObject.class))).thenAnswer(invocation -> {
             StoredObject input = invocation.getArgument(0);
-            return new StoredObject(
+            return StoredObject.reconstruct(
                     StoredObjectId.of(100L),
-                    input.getTenantId(),
                     input.getStorageType(),
                     input.getBucketName(),
                     input.getObjectKey(),
@@ -321,17 +318,13 @@ class MultipartUploadApplicationServiceTest {
                     input.getSize(),
                     input.getAccessEndpoint(),
                     input.getObjectStatus(),
-                    input.getReferenceStatus(),
-                    input.getCreatedBy(),
-                    input.getCreatedAt(),
-                    input.getUpdatedBy(),
-                    input.getUpdatedAt());
+                    input.getReferenceStatus());
         });
-        when(multipartUploadSessionRepository.save(any(MultipartUploadSession.class)))
+        when(multipartUploadSessionRepository.update(any(MultipartUploadSession.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         var dto = service.completeMultipartUpload(
-                new CompleteMultipartUploadCommand(6L, "GENERIC_ATTACHMENT", "owner-1", 1L));
+                new CompleteMultipartUploadCommand("6", "GENERIC_ATTACHMENT", "owner-1"));
 
         assertEquals(StoredObjectId.of(100L), dto.getId());
         verify(multipartUploadPartRepository).deleteByUploadId("6");

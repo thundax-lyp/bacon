@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.storage.api.dto;
 
-import com.github.thundax.bacon.storage.api.enums.UploadStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,13 +13,11 @@ import lombok.NoArgsConstructor;
 public class MultipartUploadSessionDTO {
 
     /** 分段上传会话业务键。 */
-    private Long uploadId;
+    private String uploadId;
     /** 引用方类型。 */
     private String ownerType;
     /** 引用方业务主键。 */
     private String ownerId;
-    /** 所属租户业务键。 */
-    private Long tenantId;
     /** 对象分类。 */
     private String category;
     /** 原始文件名。 */
@@ -34,5 +31,5 @@ public class MultipartUploadSessionDTO {
     /** 已上传分段数。 */
     private Integer uploadedPartCount;
     /** 分段上传状态。 */
-    private UploadStatusEnum uploadStatus;
+    private String uploadStatus;
 }

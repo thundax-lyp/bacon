@@ -9,7 +9,9 @@ import java.util.Optional;
  */
 public interface MultipartUploadPartRepository {
 
-    MultipartUploadPart save(MultipartUploadPart part);
+    MultipartUploadPart insert(MultipartUploadPart part);
+
+    MultipartUploadPart update(MultipartUploadPart part);
 
     Optional<MultipartUploadPart> findByUploadIdAndPartNumber(String uploadId, Integer partNumber);
 

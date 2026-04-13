@@ -74,7 +74,6 @@ class StorageProviderControllerContractTest {
                         .file(file)
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
-                        .param("tenantId", "1")
                         .param("category", "attachment"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -85,10 +84,9 @@ class StorageProviderControllerContractTest {
     void shouldExposeMultipartInitPath() throws Exception {
         when(storedObjectFacade.initMultipartUpload(any()))
                 .thenReturn(new MultipartUploadSessionDTO(
-                        1L,
+                        "storage20260327100000-001001",
                         "GENERIC_ATTACHMENT",
                         "owner-1",
-                        1L,
                         "attachment",
                         "a.txt",
                         "text/plain",
@@ -101,14 +99,13 @@ class StorageProviderControllerContractTest {
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
-                        .param("tenantId", "1")
                         .param("category", "attachment")
                         .param("originalFilename", "a.txt")
                         .param("contentType", "text/plain")
                         .param("totalSize", "1024")
                         .param("partSize", String.valueOf(8L * 1024 * 1024)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.uploadId").value(1))
+                .andExpect(jsonPath("$.uploadId").value("storage20260327100000-001001"))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -123,7 +120,6 @@ class StorageProviderControllerContractTest {
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1")
-                        .param("tenantId", "1")
                         .param("partNumber", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.uploadId").value("1"))
@@ -150,8 +146,7 @@ class StorageProviderControllerContractTest {
         mockMvc.perform(post("/providers/storage/objects/multipart/{uploadId}/complete", "1")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
-                        .param("ownerId", "owner-1")
-                        .param("tenantId", "1"))
+                        .param("ownerId", "owner-1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(2))
                 .andExpect(jsonPath("$.code").doesNotExist());
@@ -164,8 +159,7 @@ class StorageProviderControllerContractTest {
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/multipart/{uploadId}", "1")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
-                        .param("ownerId", "owner-1")
-                        .param("tenantId", "1"))
+                        .param("ownerId", "owner-1"))
                 .andExpect(status().isOk());
     }
 

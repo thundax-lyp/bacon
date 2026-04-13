@@ -48,7 +48,6 @@ class StoredObjectFacadeRemoteContractTest {
         StoredObjectFacadeRemoteImpl facade = newFacade();
         facade.uploadObject(new UploadObjectCommand(
                 "GENERIC_ATTACHMENT",
-                1L,
                 "attachment",
                 "a.txt",
                 "text/plain",
@@ -61,7 +60,7 @@ class StoredObjectFacadeRemoteContractTest {
     @Test
     void shouldCallMultipartInitProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/init"
-                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&tenantId=1&category=attachment"
+                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&category=attachment"
                         + "&originalFilename=a.txt&contentType=text%2Fplain&totalSize=1024&partSize=8388608"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
@@ -69,7 +68,7 @@ class StoredObjectFacadeRemoteContractTest {
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
         facade.initMultipartUpload(new InitMultipartUploadCommand(
-                "GENERIC_ATTACHMENT", "owner-1", 1L, "attachment", "a.txt", "text/plain", 1024L, 8L * 1024 * 1024));
+                "GENERIC_ATTACHMENT", "owner-1", "attachment", "a.txt", "text/plain", 1024L, 8L * 1024 * 1024));
 
         server.verify();
     }
@@ -77,14 +76,14 @@ class StoredObjectFacadeRemoteContractTest {
     @Test
     void shouldCallMultipartPartProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/1/parts"
-                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&tenantId=1"))
+                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
         facade.uploadMultipartPart(new UploadMultipartPartCommand(
-                1L, "GENERIC_ATTACHMENT", "owner-1", 1L, 1, 3L, new ByteArrayInputStream(new byte[] {1, 2, 3})));
+                "1", "GENERIC_ATTACHMENT", "owner-1", 1, 3L, new ByteArrayInputStream(new byte[] {1, 2, 3})));
 
         server.verify();
     }
@@ -92,13 +91,13 @@ class StoredObjectFacadeRemoteContractTest {
     @Test
     void shouldCallMultipartCompleteProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/1/complete"
-                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&tenantId=1"))
+                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.completeMultipartUpload(new CompleteMultipartUploadCommand(1L, "GENERIC_ATTACHMENT", "owner-1", 1L));
+        facade.completeMultipartUpload(new CompleteMultipartUploadCommand("1", "GENERIC_ATTACHMENT", "owner-1"));
 
         server.verify();
     }
@@ -106,13 +105,13 @@ class StoredObjectFacadeRemoteContractTest {
     @Test
     void shouldCallMultipartAbortProviderPath() {
         server.expect(requestTo(BASE_URL + "/providers/storage/objects/multipart/1"
-                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1&tenantId=1"))
+                        + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess());
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.abortMultipartUpload(new AbortMultipartUploadCommand(1L, "GENERIC_ATTACHMENT", "owner-1", 1L));
+        facade.abortMultipartUpload(new AbortMultipartUploadCommand("1", "GENERIC_ATTACHMENT", "owner-1"));
 
         server.verify();
     }

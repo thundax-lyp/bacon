@@ -1,26 +1,26 @@
 package com.github.thundax.bacon.storage.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 分段上传会话实体。
  */
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MultipartUploadSession {
 
     /** 主键。 */
     private Long id;
     /** 分段上传会话业务键。 */
     private String uploadId;
-    /** 所属租户业务键。 */
-    private TenantId tenantId;
     /** 引用方类型。 */
     private String ownerType;
     /** 引用方业务主键。 */
@@ -52,10 +52,9 @@ public class MultipartUploadSession {
     /** 取消时间。 */
     private Instant abortedAt;
 
-    public MultipartUploadSession(
+    public static MultipartUploadSession create(
             Long id,
             String uploadId,
-            Long tenantId,
             String ownerType,
             String ownerId,
             String category,
@@ -65,56 +64,17 @@ public class MultipartUploadSession {
             String providerUploadId,
             Long totalSize,
             Long partSize,
-            Integer uploadedPartCount,
-            UploadStatus uploadStatus,
-            Instant createdAt,
-            Instant updatedAt,
-            Instant completedAt,
-            Instant abortedAt) {
-        this(
-                id,
-                uploadId,
-                tenantId == null ? null : TenantId.of(tenantId),
-                ownerType,
-                ownerId,
-                category,
-                originalFilename,
-                contentType,
-                objectKey,
-                providerUploadId,
-                totalSize,
-                partSize,
-                uploadedPartCount,
-                uploadStatus,
-                createdAt,
-                updatedAt,
-                completedAt,
-                abortedAt);
-    }
-
-    public static MultipartUploadSession initiate(
-            String uploadId,
-            TenantId tenantId,
-            String ownerType,
-            String ownerId,
-            String category,
-            String originalFilename,
-            String contentType,
-            String objectKey,
-            String providerUploadId,
-            Long totalSize,
-            Long partSize) {
+            Instant now) {
         requireText(uploadId, "uploadId");
         requireText(ownerType, "ownerType");
         requireText(ownerId, "ownerId");
         requireText(objectKey, "objectKey");
         requirePositive(totalSize, "totalSize");
         requirePositive(partSize, "partSize");
-        Instant now = Instant.now();
+        Objects.requireNonNull(now, "now must not be null");
         return new MultipartUploadSession(
-                null,
+                id,
                 uploadId,
-                tenantId,
                 ownerType,
                 ownerId,
                 category,
@@ -130,6 +90,44 @@ public class MultipartUploadSession {
                 now,
                 null,
                 null);
+    }
+
+    public static MultipartUploadSession reconstruct(
+            Long id,
+            String uploadId,
+            String ownerType,
+            String ownerId,
+            String category,
+            String originalFilename,
+            String contentType,
+            String objectKey,
+            String providerUploadId,
+            Long totalSize,
+            Long partSize,
+            Integer uploadedPartCount,
+            UploadStatus uploadStatus,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant completedAt,
+            Instant abortedAt) {
+        return new MultipartUploadSession(
+                id,
+                uploadId,
+                ownerType,
+                ownerId,
+                category,
+                originalFilename,
+                contentType,
+                objectKey,
+                providerUploadId,
+                totalSize,
+                partSize,
+                uploadedPartCount,
+                uploadStatus,
+                createdAt,
+                updatedAt,
+                completedAt,
+                abortedAt);
     }
 
     public boolean isCompleted() {
@@ -165,10 +163,7 @@ public class MultipartUploadSession {
         this.abortedAt = now;
     }
 
-    public void assertOwnership(TenantId tenantId, String ownerType, String ownerId) {
-        if (!Objects.equals(this.tenantId, tenantId)) {
-            throw new IllegalArgumentException("Multipart upload session tenantId mismatch");
-        }
+    public void assertOwnership(String ownerType, String ownerId) {
         if (!Objects.equals(this.ownerType, ownerType)) {
             throw new IllegalArgumentException("Multipart upload session ownerType mismatch");
         }

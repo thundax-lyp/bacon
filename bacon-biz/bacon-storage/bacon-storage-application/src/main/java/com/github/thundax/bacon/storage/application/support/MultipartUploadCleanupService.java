@@ -78,7 +78,7 @@ public class MultipartUploadCleanupService {
         multipartUploadPartRepository.deleteByUploadId(session.getUploadId());
         if (!session.isAborted()) {
             session.markAborted();
-            multipartUploadSessionRepository.save(session);
+            multipartUploadSessionRepository.update(session);
         }
         log.info(
                 "Multipart upload expired cleanup completed, uploadId={}, ownerType={}, ownerId={}",

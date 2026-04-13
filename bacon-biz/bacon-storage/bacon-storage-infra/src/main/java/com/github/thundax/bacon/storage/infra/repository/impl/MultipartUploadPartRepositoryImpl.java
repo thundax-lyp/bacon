@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.storage.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
+import com.github.thundax.bacon.storage.infra.persistence.assembler.MultipartUploadPartPersistenceAssembler;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.MultipartUploadPartDO;
 import com.github.thundax.bacon.storage.infra.persistence.mapper.MultipartUploadPartMapper;
 import java.util.List;
@@ -13,27 +13,24 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRepository {
 
-    private static final String BIZ_TAG = "storage_multipart_upload_part";
-
     private final MultipartUploadPartMapper multipartUploadPartMapper;
-    private final IdGenerator idGenerator;
 
-    public MultipartUploadPartRepositoryImpl(
-            MultipartUploadPartMapper multipartUploadPartMapper, IdGenerator idGenerator) {
+    public MultipartUploadPartRepositoryImpl(MultipartUploadPartMapper multipartUploadPartMapper) {
         this.multipartUploadPartMapper = multipartUploadPartMapper;
-        this.idGenerator = idGenerator;
     }
 
     @Override
-    public MultipartUploadPart save(MultipartUploadPart part) {
-        MultipartUploadPartDO dataObject = toDataObject(part);
-        if (dataObject.getId() == null) {
-            dataObject.setId(idGenerator.nextId(BIZ_TAG));
-            multipartUploadPartMapper.insert(dataObject);
-        } else {
-            multipartUploadPartMapper.updateById(dataObject);
-        }
-        return toDomain(dataObject);
+    public MultipartUploadPart insert(MultipartUploadPart part) {
+        MultipartUploadPartDO dataObject = MultipartUploadPartPersistenceAssembler.toDataObject(part);
+        multipartUploadPartMapper.insert(dataObject);
+        return MultipartUploadPartPersistenceAssembler.toDomain(dataObject);
+    }
+
+    @Override
+    public MultipartUploadPart update(MultipartUploadPart part) {
+        MultipartUploadPartDO dataObject = MultipartUploadPartPersistenceAssembler.toDataObject(part);
+        multipartUploadPartMapper.updateById(dataObject);
+        return MultipartUploadPartPersistenceAssembler.toDomain(dataObject);
     }
 
     @Override
@@ -41,7 +38,7 @@ public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRep
         return Optional.ofNullable(multipartUploadPartMapper.selectOne(Wrappers.<MultipartUploadPartDO>lambdaQuery()
                         .eq(MultipartUploadPartDO::getUploadId, uploadId)
                         .eq(MultipartUploadPartDO::getPartNumber, partNumber)))
-                .map(this::toDomain);
+                .map(MultipartUploadPartPersistenceAssembler::toDomain);
     }
 
     @Override
@@ -51,7 +48,7 @@ public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRep
                         .eq(MultipartUploadPartDO::getUploadId, uploadId)
                         .orderByAsc(MultipartUploadPartDO::getPartNumber))
                 .stream()
-                .map(this::toDomain)
+                .map(MultipartUploadPartPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -59,25 +56,5 @@ public class MultipartUploadPartRepositoryImpl implements MultipartUploadPartRep
     public void deleteByUploadId(String uploadId) {
         multipartUploadPartMapper.delete(
                 Wrappers.<MultipartUploadPartDO>lambdaQuery().eq(MultipartUploadPartDO::getUploadId, uploadId));
-    }
-
-    private MultipartUploadPartDO toDataObject(MultipartUploadPart part) {
-        return new MultipartUploadPartDO(
-                part.getId(),
-                part.getUploadId(),
-                part.getPartNumber(),
-                part.getEtag(),
-                part.getSize(),
-                part.getCreatedAt());
-    }
-
-    private MultipartUploadPart toDomain(MultipartUploadPartDO dataObject) {
-        return new MultipartUploadPart(
-                dataObject.getId(),
-                dataObject.getUploadId(),
-                dataObject.getPartNumber(),
-                dataObject.getEtag(),
-                dataObject.getSize(),
-                dataObject.getCreatedAt());
     }
 }

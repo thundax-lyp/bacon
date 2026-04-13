@@ -1,6 +1,10 @@
 package com.github.thundax.bacon.order.application.query;
 
+import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
@@ -13,6 +17,13 @@ import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
+import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
+import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.math.BigDecimal;
 import java.util.List;
@@ -75,16 +86,16 @@ public class OrderQueryApplicationService {
     private OrderSummaryDTO toSummary(Order order) {
         Long tenantId = BaconContextHolder.currentTenantId();
         return new OrderSummaryDTO(
-                valueOf(order.getId()),
+                order.getId() == null ? null : OrderIdCodec.toValue(order.getId()),
                 tenantId,
-                valueOf(order.getOrderNo()),
+                order.getOrderNo() == null ? null : order.getOrderNo().value(),
                 order.getUserId() == null ? null : order.getUserId().value(),
-                valueOf(order.getOrderStatus()),
-                valueOf(order.getPayStatus()),
-                valueOf(order.getInventoryStatus()),
-                valueOf(order.getPaymentNo()),
-                valueOf(order.getReservationNo()),
-                valueOf(order.getCurrencyCode()),
+                order.getOrderStatus() == null ? null : order.getOrderStatus().value(),
+                order.getPayStatus() == null ? null : order.getPayStatus().value(),
+                order.getInventoryStatus() == null ? null : order.getInventoryStatus().value(),
+                order.getPaymentNo() == null ? null : order.getPaymentNo().value(),
+                order.getReservationNo() == null ? null : ReservationNoCodec.toValue(order.getReservationNo()),
+                order.getCurrencyCode() == null ? null : order.getCurrencyCode().value(),
                 order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
                 order.getCancelReason(),
@@ -96,14 +107,14 @@ public class OrderQueryApplicationService {
     private OrderDetailDTO toDetail(Order order) {
         Long tenantId = BaconContextHolder.currentTenantId();
         OrderPaymentSnapshot paymentSnapshot = orderRepository
-                .findPaymentSnapshotByOrderId(valueOf(order.getId()))
+                .findPaymentSnapshotByOrderId(order.getId() == null ? null : OrderIdCodec.toValue(order.getId()))
                 .orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository
-                .findInventorySnapshotByOrderNo(valueOf(order.getOrderNo()))
+                .findInventorySnapshotByOrderNo(order.getOrderNo() == null ? null : order.getOrderNo().value())
                 .orElse(null);
         List<OrderItemDTO> itemDtos =
                 orderRepository
-                        .findItemsByOrderId(valueOf(order.getId()))
+                        .findItemsByOrderId(order.getId() == null ? null : OrderIdCodec.toValue(order.getId()))
                         .stream()
                         .map(item -> new OrderItemDTO(
                                 item.getSkuId() == null ? null : item.getSkuId().value(),
@@ -114,16 +125,22 @@ public class OrderQueryApplicationService {
                                 item.getLineAmount().value()))
                         .toList();
         return new OrderDetailDTO(
-                valueOf(order.getId()),
+                order.getId() == null ? null : OrderIdCodec.toValue(order.getId()),
                 tenantId,
-                valueOf(order.getOrderNo()),
+                order.getOrderNo() == null ? null : order.getOrderNo().value(),
                 order.getUserId() == null ? null : order.getUserId().value(),
-                valueOf(order.getOrderStatus()),
-                valueOf(order.getPayStatus()),
-                valueOf(order.getInventoryStatus()),
-                paymentSnapshot == null ? valueOf(order.getPaymentNo()) : valueOf(paymentSnapshot.getPaymentNo()),
-                inventorySnapshot == null ? valueOf(order.getReservationNo()) : valueOf(inventorySnapshot.getReservationNo()),
-                valueOf(order.getCurrencyCode()),
+                order.getOrderStatus() == null ? null : order.getOrderStatus().value(),
+                order.getPayStatus() == null ? null : order.getPayStatus().value(),
+                order.getInventoryStatus() == null ? null : order.getInventoryStatus().value(),
+                paymentSnapshot == null
+                        ? (order.getPaymentNo() == null ? null : order.getPaymentNo().value())
+                        : (paymentSnapshot.getPaymentNo() == null ? null : paymentSnapshot.getPaymentNo().value()),
+                inventorySnapshot == null
+                        ? (order.getReservationNo() == null ? null : ReservationNoCodec.toValue(order.getReservationNo()))
+                        : (inventorySnapshot.getReservationNo() == null
+                                ? null
+                                : ReservationNoCodec.toValue(inventorySnapshot.getReservationNo())),
+                order.getCurrencyCode() == null ? null : order.getCurrencyCode().value(),
                 order.getTotalAmount().value(),
                 order.getPayableAmount().value(),
                 order.getCancelReason(),
@@ -141,16 +158,21 @@ public class OrderQueryApplicationService {
         if (paymentSnapshot == null && order.getPaymentNo() == null) {
             return null;
         }
-        String paymentNo = paymentSnapshot == null ? valueOf(order.getPaymentNo()) : valueOf(paymentSnapshot.getPaymentNo());
-        String payStatus = paymentSnapshot == null ? valueOf(order.getPayStatus()) : valueOf(paymentSnapshot.getPayStatus());
+        String paymentNo = paymentSnapshot == null
+                ? (order.getPaymentNo() == null ? null : order.getPaymentNo().value())
+                : (paymentSnapshot.getPaymentNo() == null ? null : paymentSnapshot.getPaymentNo().value());
+        String payStatus = paymentSnapshot == null
+                ? (order.getPayStatus() == null ? null : order.getPayStatus().value())
+                : (paymentSnapshot.getPayStatus() == null ? null : paymentSnapshot.getPayStatus().value());
         String channelCode = paymentSnapshot == null
-                ? valueOf(order.getPaymentChannelCode())
-                : valueOf(paymentSnapshot.getChannelCode());
+                ? (order.getPaymentChannelCode() == null ? null : order.getPaymentChannelCode().value())
+                : (paymentSnapshot.getChannelCode() == null ? null : paymentSnapshot.getChannelCode().value());
         BigDecimal paidAmount = paymentSnapshot == null
-                ? toAmountValue(order.getPaidAmount())
-                : toAmountValue(paymentSnapshot.getPaidAmount());
-        String channelStatus =
-                paymentSnapshot == null ? order.getPaymentChannelStatus() : valueOf(paymentSnapshot.getChannelStatus());
+                ? (order.getPaidAmount() == null ? null : order.getPaidAmount().value())
+                : (paymentSnapshot.getPaidAmount() == null ? null : paymentSnapshot.getPaidAmount().value());
+        String channelStatus = paymentSnapshot == null
+                ? order.getPaymentChannelStatus()
+                : (paymentSnapshot.getChannelStatus() == null ? null : paymentSnapshot.getChannelStatus().value());
         String failureReason =
                 paymentSnapshot == null ? order.getPaymentFailureReason() : paymentSnapshot.getFailureReason();
         return "paymentNo=" + paymentNo
@@ -161,67 +183,25 @@ public class OrderQueryApplicationService {
                 + ",failureReason=" + Objects.toString(failureReason, "N/A");
     }
 
-    private BigDecimal toAmountValue(Money money) {
-        return money == null ? null : money.value();
-    }
-
     private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {
         String reservationNo = Objects.toString(
-                inventorySnapshot == null ? valueOf(order.getReservationNo()) : valueOf(inventorySnapshot.getReservationNo()),
+                inventorySnapshot == null
+                        ? (order.getReservationNo() == null ? null : ReservationNoCodec.toValue(order.getReservationNo()))
+                        : (inventorySnapshot.getReservationNo() == null
+                                ? null
+                                : ReservationNoCodec.toValue(inventorySnapshot.getReservationNo())),
                 "N/A");
-        String inventoryStatus =
-                inventorySnapshot == null ? valueOf(order.getInventoryStatus()) : valueOf(inventorySnapshot.getInventoryStatus());
-        String warehouseCode =
-                inventorySnapshot == null ? valueOf(order.getWarehouseCode()) : valueOf(inventorySnapshot.getWarehouseCode());
+        String inventoryStatus = inventorySnapshot == null
+                ? (order.getInventoryStatus() == null ? null : order.getInventoryStatus().value())
+                : (inventorySnapshot.getInventoryStatus() == null ? null : inventorySnapshot.getInventoryStatus().value());
+        String warehouseCode = inventorySnapshot == null
+                ? (order.getWarehouseCode() == null ? null : order.getWarehouseCode().value())
+                : (inventorySnapshot.getWarehouseCode() == null ? null : inventorySnapshot.getWarehouseCode().value());
         String failureReason =
                 inventorySnapshot == null ? order.getInventoryFailureReason() : inventorySnapshot.getFailureReason();
         return "reservationNo=" + reservationNo
                 + ",inventoryStatus=" + inventoryStatus
                 + ",warehouseCode=" + Objects.toString(warehouseCode, "N/A")
                 + ",failureReason=" + Objects.toString(failureReason, "N/A");
-    }
-
-    private Long valueOf(com.github.thundax.bacon.order.domain.model.valueobject.OrderId orderId) {
-        return OrderIdCodec.toValue(orderId);
-    }
-
-    private String valueOf(com.github.thundax.bacon.common.commerce.valueobject.OrderNo orderNo) {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    private String valueOf(com.github.thundax.bacon.common.commerce.valueobject.PaymentNo paymentNo) {
-        return paymentNo == null ? null : paymentNo.value();
-    }
-
-    private String valueOf(com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo reservationNo) {
-        return ReservationNoCodec.toValue(reservationNo);
-    }
-
-    private String valueOf(com.github.thundax.bacon.common.commerce.enums.CurrencyCode currencyCode) {
-        return currencyCode == null ? null : currencyCode.value();
-    }
-
-    private String valueOf(com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode warehouseCode) {
-        return warehouseCode == null ? null : warehouseCode.value();
-    }
-
-    private String valueOf(com.github.thundax.bacon.order.domain.model.enums.OrderStatus orderStatus) {
-        return orderStatus == null ? null : orderStatus.value();
-    }
-
-    private String valueOf(com.github.thundax.bacon.order.domain.model.enums.PayStatus payStatus) {
-        return payStatus == null ? null : payStatus.value();
-    }
-
-    private String valueOf(com.github.thundax.bacon.order.domain.model.enums.InventoryStatus inventoryStatus) {
-        return inventoryStatus == null ? null : inventoryStatus.value();
-    }
-
-    private String valueOf(com.github.thundax.bacon.order.domain.model.enums.PaymentChannel paymentChannel) {
-        return paymentChannel == null ? null : paymentChannel.value();
-    }
-
-    private String valueOf(com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus channelStatus) {
-        return channelStatus == null ? null : channelStatus.value();
     }
 }

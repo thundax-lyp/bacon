@@ -57,6 +57,7 @@ public class PaymentAuditLog {
             PaymentAuditOperatorType operatorType,
             String operatorId,
             Instant occurredAt) {
-        return new PaymentAuditLog(id, paymentNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
+        return new PaymentAuditLog(
+                id, paymentNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
     }
 }

@@ -96,10 +96,6 @@ class PaymentCallbackControllerContractTest {
 
         @Override
         public void callbackFailed(
-                String channelCode,
-                String paymentNo,
-                String channelStatus,
-                String rawPayload,
-                String reason) {}
+                String channelCode, String paymentNo, String channelStatus, String rawPayload, String reason) {}
     }
 }

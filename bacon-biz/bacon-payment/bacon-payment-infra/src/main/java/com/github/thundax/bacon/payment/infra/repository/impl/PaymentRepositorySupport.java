@@ -77,15 +77,15 @@ public class PaymentRepositorySupport {
 
     public Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo) {
         BaconContextHolder.requireTenantId();
-        return Optional.ofNullable(paymentOrderMapper.selectOne(Wrappers.<PaymentOrderDO>lambdaQuery()
-                        .eq(PaymentOrderDO::getPaymentNo, paymentNo)))
+        return Optional.ofNullable(paymentOrderMapper.selectOne(
+                        Wrappers.<PaymentOrderDO>lambdaQuery().eq(PaymentOrderDO::getPaymentNo, paymentNo)))
                 .map(paymentOrderPersistenceAssembler::toDomain);
     }
 
     public Optional<PaymentOrder> findOrderByOrderNo(String orderNo) {
         BaconContextHolder.requireTenantId();
-        return Optional.ofNullable(paymentOrderMapper.selectOne(Wrappers.<PaymentOrderDO>lambdaQuery()
-                        .eq(PaymentOrderDO::getOrderNo, orderNo)))
+        return Optional.ofNullable(paymentOrderMapper.selectOne(
+                        Wrappers.<PaymentOrderDO>lambdaQuery().eq(PaymentOrderDO::getOrderNo, orderNo)))
                 .map(paymentOrderPersistenceAssembler::toDomain);
     }
 

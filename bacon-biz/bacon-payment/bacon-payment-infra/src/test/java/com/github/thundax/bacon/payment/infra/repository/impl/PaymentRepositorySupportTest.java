@@ -4,11 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
@@ -210,7 +210,8 @@ class PaymentRepositorySupportTest {
 
         BaconContextHolder.set(new BaconContext(1001L, 2003L));
         PaymentOrder paymentOrder = support.findOrderByPaymentNo("PAY-10003").orElseThrow();
-        PaymentCallbackRecord latestCallback = support.findLatestCallbackByPaymentNo("PAY-10003").orElseThrow();
+        PaymentCallbackRecord latestCallback =
+                support.findLatestCallbackByPaymentNo("PAY-10003").orElseThrow();
         List<PaymentAuditLog> auditLogs = support.findAuditLogsByPaymentNo("PAY-10003");
 
         assertEquals(PaymentStatus.PAID.value(), paymentOrder.getPaymentStatus().value());

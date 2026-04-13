@@ -20,13 +20,27 @@ public class PaymentOrderPersistenceAssembler {
         return new PaymentOrderDO(
                 paymentOrder.getId() == null ? null : paymentOrder.getId().value(),
                 BaconContextHolder.requireTenantId(),
-                paymentOrder.getPaymentNo() == null ? null : paymentOrder.getPaymentNo().value(),
-                paymentOrder.getOrderNo() == null ? null : paymentOrder.getOrderNo().value(),
-                paymentOrder.getUserId() == null ? null : paymentOrder.getUserId().value(),
-                paymentOrder.getChannelCode() == null ? null : paymentOrder.getChannelCode().value(),
-                paymentOrder.getPaymentStatus() == null ? null : paymentOrder.getPaymentStatus().value(),
-                paymentOrder.getAmount() == null ? null : paymentOrder.getAmount().value(),
-                paymentOrder.getPaidAmount() == null ? null : paymentOrder.getPaidAmount().value(),
+                paymentOrder.getPaymentNo() == null
+                        ? null
+                        : paymentOrder.getPaymentNo().value(),
+                paymentOrder.getOrderNo() == null
+                        ? null
+                        : paymentOrder.getOrderNo().value(),
+                paymentOrder.getUserId() == null
+                        ? null
+                        : paymentOrder.getUserId().value(),
+                paymentOrder.getChannelCode() == null
+                        ? null
+                        : paymentOrder.getChannelCode().value(),
+                paymentOrder.getPaymentStatus() == null
+                        ? null
+                        : paymentOrder.getPaymentStatus().value(),
+                paymentOrder.getAmount() == null
+                        ? null
+                        : paymentOrder.getAmount().value(),
+                paymentOrder.getPaidAmount() == null
+                        ? null
+                        : paymentOrder.getPaidAmount().value(),
                 paymentOrder.getSubject(),
                 paymentOrder.getCreatedAt(),
                 updatedAt,

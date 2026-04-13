@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.payment.application.audit;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
@@ -21,8 +21,7 @@ public class PaymentOperationLogSupport {
     private final PaymentAuditLogRepository paymentAuditLogRepository;
     private final IdGenerator idGenerator;
 
-    public PaymentOperationLogSupport(
-            PaymentAuditLogRepository paymentAuditLogRepository, IdGenerator idGenerator) {
+    public PaymentOperationLogSupport(PaymentAuditLogRepository paymentAuditLogRepository, IdGenerator idGenerator) {
         this.paymentAuditLogRepository = paymentAuditLogRepository;
         this.idGenerator = idGenerator;
     }

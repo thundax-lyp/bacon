@@ -4,11 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
@@ -134,15 +134,16 @@ class PaymentRepositorySupportIntegrationTest {
         paymentOrder.markPaying();
 
         PaymentOrder persistedOrder = paymentRepositorySupport.saveOrder(paymentOrder);
-        PaymentCallbackRecord persistedCallback = paymentRepositorySupport.saveCallbackRecord(PaymentCallbackRecord.create(
-                1L,
-                persistedOrder.getPaymentNo(),
-                persistedOrder.getOrderNo(),
-                PaymentChannelCode.MOCK,
-                "TXN-IT-10001",
-                PaymentChannelStatus.SUCCESS,
-                "{\"tradeStatus\":\"SUCCESS\"}",
-                Instant.parse("2026-03-27T10:01:00Z")));
+        PaymentCallbackRecord persistedCallback =
+                paymentRepositorySupport.saveCallbackRecord(PaymentCallbackRecord.create(
+                        1L,
+                        persistedOrder.getPaymentNo(),
+                        persistedOrder.getOrderNo(),
+                        PaymentChannelCode.MOCK,
+                        "TXN-IT-10001",
+                        PaymentChannelStatus.SUCCESS,
+                        "{\"tradeStatus\":\"SUCCESS\"}",
+                        Instant.parse("2026-03-27T10:01:00Z")));
         paymentRepositorySupport.saveAuditLog(PaymentAuditLog.create(
                 1L,
                 persistedOrder.getPaymentNo(),
@@ -153,7 +154,8 @@ class PaymentRepositorySupportIntegrationTest {
                 "0",
                 Instant.parse("2026-03-27T10:00:00Z")));
 
-        PaymentOrder reloadedOrder = paymentRepositorySupport.findOrderByPaymentNo("PAY-IT-10001").orElseThrow();
+        PaymentOrder reloadedOrder =
+                paymentRepositorySupport.findOrderByPaymentNo("PAY-IT-10001").orElseThrow();
         PaymentCallbackRecord reloadedCallback = paymentRepositorySupport
                 .findCallbackByChannelTransactionNo("MOCK", "TXN-IT-10001")
                 .orElseThrow();
@@ -163,7 +165,11 @@ class PaymentRepositorySupportIntegrationTest {
         assertNotNull(persistedCallback.getId());
         assertEquals("ORD-IT-10001", reloadedOrder.getOrderNo().value());
         assertEquals("TXN-IT-10001", reloadedCallback.getChannelTransactionNo());
-        assertEquals(1, paymentRepositorySupport.findAuditLogsByPaymentNo(persistedOrder.getPaymentNo().value()).size());
+        assertEquals(
+                1,
+                paymentRepositorySupport
+                        .findAuditLogsByPaymentNo(persistedOrder.getPaymentNo().value())
+                        .size());
     }
 
     @Configuration(proxyBeanMethods = false)

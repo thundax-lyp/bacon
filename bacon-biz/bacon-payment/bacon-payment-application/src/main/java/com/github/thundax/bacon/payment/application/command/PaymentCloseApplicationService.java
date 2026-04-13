@@ -65,7 +65,8 @@ public class PaymentCloseApplicationService {
         Instant closedAt = Instant.now();
         paymentOrder.close(closedAt);
         paymentOrderRepository.save(paymentOrder);
-        paymentOperationLogSupport.recordClose(paymentNo, beforeStatus, paymentOrder.getPaymentStatus().value(), closedAt);
+        paymentOperationLogSupport.recordClose(
+                paymentNo, beforeStatus, paymentOrder.getPaymentStatus().value(), closedAt);
         return new PaymentCloseResultDTO(
                 paymentNo,
                 paymentOrder.getOrderNo().value(),

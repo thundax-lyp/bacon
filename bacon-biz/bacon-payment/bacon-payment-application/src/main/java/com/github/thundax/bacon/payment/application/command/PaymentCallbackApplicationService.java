@@ -43,7 +43,11 @@ public class PaymentCallbackApplicationService {
     }
 
     public void callbackPaid(
-            String channelCode, String paymentNo, String channelTransactionNo, String channelStatus, String rawPayload) {
+            String channelCode,
+            String paymentNo,
+            String channelTransactionNo,
+            String channelStatus,
+            String rawPayload) {
         BaconContextHolder.requireTenantId();
         validateChannel(channelCode);
         validateSuccessCallbackPayload(channelTransactionNo, channelStatus, rawPayload);

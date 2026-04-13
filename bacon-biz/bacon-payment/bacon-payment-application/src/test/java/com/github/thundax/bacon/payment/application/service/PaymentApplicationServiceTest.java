@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
@@ -21,7 +19,6 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
-import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
@@ -97,7 +94,8 @@ class PaymentApplicationServiceTest {
                 Instant.now().plusSeconds(1800));
 
         assertEquals(first.getPaymentNo(), second.getPaymentNo());
-        assertEquals(1, repository.findAuditLogsByPaymentNo(first.getPaymentNo()).size());
+        assertEquals(
+                1, repository.findAuditLogsByPaymentNo(first.getPaymentNo()).size());
     }
 
     @Test
@@ -134,7 +132,9 @@ class PaymentApplicationServiceTest {
 
         assertEquals(
                 "FAILED",
-                closeService.closePayment(created.getPaymentNo(), "USER_CANCELLED").getCloseResult());
+                closeService
+                        .closePayment(created.getPaymentNo(), "USER_CANCELLED")
+                        .getCloseResult());
     }
 
     @Test
@@ -198,7 +198,8 @@ class PaymentApplicationServiceTest {
         assertEquals("SUCCESS", first.getCloseResult());
         assertEquals("SUCCESS", second.getCloseResult());
         assertEquals(PaymentStatus.CLOSED.value(), second.getPaymentStatus());
-        assertEquals(2, repository.findAuditLogsByPaymentNo(created.getPaymentNo()).size());
+        assertEquals(
+                2, repository.findAuditLogsByPaymentNo(created.getPaymentNo()).size());
     }
 
     @Test
@@ -263,8 +264,10 @@ class PaymentApplicationServiceTest {
 
         @Override
         public PaymentOrder save(PaymentOrder paymentOrder) {
-            paymentsByPaymentNo.put(paymentKey(currentTenantId(), paymentOrder.getPaymentNo().value()), paymentOrder);
-            paymentsByOrderNo.put(orderKey(currentTenantId(), paymentOrder.getOrderNo().value()), paymentOrder);
+            paymentsByPaymentNo.put(
+                    paymentKey(currentTenantId(), paymentOrder.getPaymentNo().value()), paymentOrder);
+            paymentsByOrderNo.put(
+                    orderKey(currentTenantId(), paymentOrder.getOrderNo().value()), paymentOrder);
             return paymentOrder;
         }
 
@@ -281,11 +284,18 @@ class PaymentApplicationServiceTest {
         @Override
         public PaymentCallbackRecord save(PaymentCallbackRecord callbackRecord) {
             callbacksByPaymentNo
-                    .computeIfAbsent(paymentKey(currentTenantId(), callbackRecord.getPaymentNo().value()), ignored -> new ArrayList<>())
+                    .computeIfAbsent(
+                            paymentKey(
+                                    currentTenantId(),
+                                    callbackRecord.getPaymentNo().value()),
+                            ignored -> new ArrayList<>())
                     .add(callbackRecord);
             if (callbackRecord.getChannelTransactionNo() != null) {
                 callbacksByTxn.put(
-                        txnKey(currentTenantId(), callbackRecord.getChannelCode().value(), callbackRecord.getChannelTransactionNo()),
+                        txnKey(
+                                currentTenantId(),
+                                callbackRecord.getChannelCode().value(),
+                                callbackRecord.getChannelTransactionNo()),
                         callbackRecord);
             }
             return callbackRecord;
@@ -301,7 +311,8 @@ class PaymentApplicationServiceTest {
         @Override
         public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
                 String channelCode, String channelTransactionNo) {
-            return Optional.ofNullable(callbacksByTxn.get(txnKey(currentTenantId(), channelCode, channelTransactionNo)));
+            return Optional.ofNullable(
+                    callbacksByTxn.get(txnKey(currentTenantId(), channelCode, channelTransactionNo)));
         }
 
         @Override
@@ -315,7 +326,10 @@ class PaymentApplicationServiceTest {
                 throw new IllegalStateException("audit unavailable");
             }
             auditLogsByPaymentNo
-                    .computeIfAbsent(paymentKey(currentTenantId(), auditLog.getPaymentNo().value()), ignored -> new ArrayList<>())
+                    .computeIfAbsent(
+                            paymentKey(
+                                    currentTenantId(), auditLog.getPaymentNo().value()),
+                            ignored -> new ArrayList<>())
                     .add(auditLog);
         }
 

@@ -190,13 +190,7 @@ class PaymentProviderControllerContractTest {
         @Override
         public List<PaymentAuditLogDTO> getByPaymentNo(String paymentNo) {
             return List.of(new PaymentAuditLogDTO(
-                    paymentNo,
-                    "CREATE",
-                    null,
-                    "PAYING",
-                    "SYSTEM",
-                    "0",
-                    Instant.parse("2026-03-27T10:00:00Z")));
+                    paymentNo, "CREATE", null, "PAYING", "SYSTEM", "0", Instant.parse("2026-03-27T10:00:00Z")));
         }
     }
 }

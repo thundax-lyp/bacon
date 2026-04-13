@@ -16,11 +16,19 @@ public class PaymentCallbackRecordPersistenceAssembler {
         return new PaymentCallbackRecordDO(
                 callbackRecord.getId(),
                 BaconContextHolder.requireTenantId(),
-                callbackRecord.getPaymentNo() == null ? null : callbackRecord.getPaymentNo().value(),
-                callbackRecord.getOrderNo() == null ? null : callbackRecord.getOrderNo().value(),
-                callbackRecord.getChannelCode() == null ? null : callbackRecord.getChannelCode().value(),
+                callbackRecord.getPaymentNo() == null
+                        ? null
+                        : callbackRecord.getPaymentNo().value(),
+                callbackRecord.getOrderNo() == null
+                        ? null
+                        : callbackRecord.getOrderNo().value(),
+                callbackRecord.getChannelCode() == null
+                        ? null
+                        : callbackRecord.getChannelCode().value(),
                 callbackRecord.getChannelTransactionNo(),
-                callbackRecord.getChannelStatus() == null ? null : callbackRecord.getChannelStatus().value(),
+                callbackRecord.getChannelStatus() == null
+                        ? null
+                        : callbackRecord.getChannelStatus().value(),
                 callbackRecord.getRawPayload(),
                 callbackRecord.getReceivedAt());
     }
@@ -32,7 +40,9 @@ public class PaymentCallbackRecordPersistenceAssembler {
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),
                 dataObject.getChannelCode() == null ? null : PaymentChannelCode.fromValue(dataObject.getChannelCode()),
                 dataObject.getChannelTransactionNo(),
-                dataObject.getChannelStatus() == null ? null : PaymentChannelStatus.fromValue(dataObject.getChannelStatus()),
+                dataObject.getChannelStatus() == null
+                        ? null
+                        : PaymentChannelStatus.fromValue(dataObject.getChannelStatus()),
                 dataObject.getRawPayload(),
                 dataObject.getReceivedAt());
     }

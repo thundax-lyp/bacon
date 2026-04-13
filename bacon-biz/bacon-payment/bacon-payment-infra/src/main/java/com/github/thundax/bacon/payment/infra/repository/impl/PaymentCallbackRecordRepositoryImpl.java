@@ -28,7 +28,8 @@ public class PaymentCallbackRecordRepositoryImpl implements PaymentCallbackRecor
     }
 
     @Override
-    public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(String channelCode, String channelTransactionNo) {
+    public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
+            String channelCode, String channelTransactionNo) {
         return support.findCallbackByChannelTransactionNo(channelCode, channelTransactionNo);
     }
 

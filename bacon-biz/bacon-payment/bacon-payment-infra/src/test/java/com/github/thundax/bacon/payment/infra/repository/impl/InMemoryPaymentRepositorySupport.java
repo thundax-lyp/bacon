@@ -1,12 +1,9 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
-import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -57,7 +54,8 @@ public class InMemoryPaymentRepositorySupport {
                         paymentOrder.getChannelStatus(),
                         paymentOrder.getCallbackSummary())
                 : paymentOrder;
-        paymentsByPaymentNo.put(paymentKey(currentTenantId(), persisted.getPaymentNo().value()), persisted);
+        paymentsByPaymentNo.put(
+                paymentKey(currentTenantId(), persisted.getPaymentNo().value()), persisted);
         paymentsByOrderNo.put(orderKey(currentTenantId(), persisted.getOrderNo().value()), persisted);
         return persisted;
     }
@@ -83,7 +81,8 @@ public class InMemoryPaymentRepositorySupport {
                         callbackRecord.getReceivedAt())
                 : callbackRecord;
         callbackRecordsByPaymentNo
-                .computeIfAbsent(paymentKey(currentTenantId(), persisted.getPaymentNo().value()), ignored -> new ArrayList<>())
+                .computeIfAbsent(
+                        paymentKey(currentTenantId(), persisted.getPaymentNo().value()), ignored -> new ArrayList<>())
                 .add(persisted);
         if (persisted.getChannelTransactionNo() != null
                 && !persisted.getChannelTransactionNo().isBlank()) {
@@ -102,11 +101,13 @@ public class InMemoryPaymentRepositorySupport {
 
     public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
             String channelCode, String channelTransactionNo) {
-        return Optional.ofNullable(callbackRecordsByTxn.get(txnKey(currentTenantId(), channelCode, channelTransactionNo)));
+        return Optional.ofNullable(
+                callbackRecordsByTxn.get(txnKey(currentTenantId(), channelCode, channelTransactionNo)));
     }
 
     public List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo) {
-        return List.copyOf(callbackRecordsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
+        return List.copyOf(
+                callbackRecordsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
     }
 
     public void saveAuditLog(PaymentAuditLog auditLog) {
@@ -122,7 +123,8 @@ public class InMemoryPaymentRepositorySupport {
                         auditLog.getOccurredAt())
                 : auditLog;
         auditLogsByPaymentNo
-                .computeIfAbsent(paymentKey(currentTenantId(), persisted.getPaymentNo().value()), ignored -> new ArrayList<>())
+                .computeIfAbsent(
+                        paymentKey(currentTenantId(), persisted.getPaymentNo().value()), ignored -> new ArrayList<>())
                 .add(persisted);
     }
 

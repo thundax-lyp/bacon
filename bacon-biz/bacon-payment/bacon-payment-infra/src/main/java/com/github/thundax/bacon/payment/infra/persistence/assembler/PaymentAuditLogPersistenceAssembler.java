@@ -17,10 +17,18 @@ public class PaymentAuditLogPersistenceAssembler {
                 auditLog.getId(),
                 BaconContextHolder.requireTenantId(),
                 auditLog.getPaymentNo() == null ? null : auditLog.getPaymentNo().value(),
-                auditLog.getActionType() == null ? null : auditLog.getActionType().value(),
-                auditLog.getBeforeStatus() == null ? null : auditLog.getBeforeStatus().value(),
-                auditLog.getAfterStatus() == null ? null : auditLog.getAfterStatus().value(),
-                auditLog.getOperatorType() == null ? null : auditLog.getOperatorType().value(),
+                auditLog.getActionType() == null
+                        ? null
+                        : auditLog.getActionType().value(),
+                auditLog.getBeforeStatus() == null
+                        ? null
+                        : auditLog.getBeforeStatus().value(),
+                auditLog.getAfterStatus() == null
+                        ? null
+                        : auditLog.getAfterStatus().value(),
+                auditLog.getOperatorType() == null
+                        ? null
+                        : auditLog.getOperatorType().value(),
                 auditLog.getOperatorId(),
                 auditLog.getOccurredAt());
     }
@@ -29,10 +37,14 @@ public class PaymentAuditLogPersistenceAssembler {
         return PaymentAuditLog.reconstruct(
                 dataObject.getId(),
                 dataObject.getPaymentNo() == null ? null : PaymentNo.of(dataObject.getPaymentNo()),
-                dataObject.getActionType() == null ? null : PaymentAuditActionType.fromValue(dataObject.getActionType()),
+                dataObject.getActionType() == null
+                        ? null
+                        : PaymentAuditActionType.fromValue(dataObject.getActionType()),
                 dataObject.getBeforeStatus() == null ? null : PaymentStatus.fromValue(dataObject.getBeforeStatus()),
                 dataObject.getAfterStatus() == null ? null : PaymentStatus.fromValue(dataObject.getAfterStatus()),
-                dataObject.getOperatorType() == null ? null : PaymentAuditOperatorType.fromValue(dataObject.getOperatorType()),
+                dataObject.getOperatorType() == null
+                        ? null
+                        : PaymentAuditOperatorType.fromValue(dataObject.getOperatorType()),
                 dataObject.getOperatorId(),
                 dataObject.getOccurredAt());
     }

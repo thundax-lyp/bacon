@@ -67,10 +67,26 @@ public final class BaconContextHolder {
     }
 
     public static <T> T callWithTenantId(Long tenantId, Supplier<T> supplier) {
+        BaconContext current = snapshot();
+        Long userId = current == null ? null : current.userId();
+        return callWithContext(new BaconContext(tenantId, userId), supplier);
+    }
+
+    public static void runWithCurrentContext(Runnable action) {
+        callWithCurrentContext(() -> {
+            action.run();
+            return null;
+        });
+    }
+
+    public static <T> T callWithCurrentContext(Supplier<T> supplier) {
+        return callWithContext(snapshot(), supplier);
+    }
+
+    private static <T> T callWithContext(BaconContext context, Supplier<T> supplier) {
         BaconContext previous = snapshot();
-        Long userId = previous == null ? null : previous.userId();
         try {
-            set(new BaconContext(tenantId, userId));
+            restore(context);
             return supplier.get();
         } finally {
             restore(previous);

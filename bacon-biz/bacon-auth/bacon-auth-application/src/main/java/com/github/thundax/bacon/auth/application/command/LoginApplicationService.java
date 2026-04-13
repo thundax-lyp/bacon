@@ -8,6 +8,7 @@ import com.github.thundax.bacon.auth.application.support.LoginSecurityApplicatio
 import com.github.thundax.bacon.auth.domain.model.entity.AuthSession;
 import com.github.thundax.bacon.auth.domain.model.entity.RefreshTokenSession;
 import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
@@ -60,8 +61,8 @@ public class LoginApplicationService {
         loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
         String plainPassword =
                 loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
-        UserLoginCredentialDTO credential =
-                userReadFacade.getUserLoginCredential(tenantId, "ACCOUNT", command.getAccount());
+        UserLoginCredentialDTO credential = BaconContextHolder.callWithTenantId(
+                tenantId.value(), () -> userReadFacade.getUserLoginCredential("ACCOUNT", command.getAccount()));
         validatePasswordLoginCredential(credential, plainPassword);
         return createLoginSession(
                 tenantId.value(),

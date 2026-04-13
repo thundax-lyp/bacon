@@ -37,10 +37,14 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getPaymentNo(),
                     order.getPaymentChannelCode(),
                     order.getPayStatus(),
-                    toMoney(order.getPaidAmount(), order.getCurrencyCode()),
+                    order.getPaidAmount() == null || order.getCurrencyCode() == null
+                            ? null
+                            : Money.of(order.getPaidAmount().value(), order.getCurrencyCode()),
                     order.getPaidAt(),
                     order.getPaymentFailureReason(),
-                    toPaymentChannelStatus(order.getPaymentChannelStatus()),
+                    order.getPaymentChannelStatus() == null || order.getPaymentChannelStatus().isBlank()
+                            ? null
+                            : PaymentChannelStatus.from(order.getPaymentChannelStatus()),
                     now));
         }
         if (order.getReservationNo() != null
@@ -62,13 +66,5 @@ public class OrderDerivedDataPersistenceSupport {
                 OperatorType.SYSTEM,
                 OPERATOR_ID_SYSTEM,
                 now));
-    }
-
-    private PaymentChannelStatus toPaymentChannelStatus(String channelStatus) {
-        return channelStatus == null || channelStatus.isBlank() ? null : PaymentChannelStatus.from(channelStatus);
-    }
-
-    private Money toMoney(Money paidAmount, CurrencyCode currencyCode) {
-        return paidAmount == null || currencyCode == null ? null : Money.of(paidAmount.value(), currencyCode);
     }
 }

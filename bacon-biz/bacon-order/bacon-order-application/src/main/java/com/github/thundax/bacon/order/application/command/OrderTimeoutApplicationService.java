@@ -11,7 +11,6 @@ import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
-import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import org.springframework.stereotype.Service;
@@ -69,28 +68,18 @@ public class OrderTimeoutApplicationService {
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(
-                    toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseCode(releaseResult.getWarehouseCode()),
+                    ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
+                    releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
                     releaseResult.getReleaseReason(),
                     releaseResult.getReleasedAt());
             return;
         }
         // 库存释放异常只体现在派生状态上，主订单仍保持 CLOSED，等待后续补偿或人工处理。
         order.markInventoryFailed(
-                toReservationNo(releaseResult.getReservationNo()),
-                toWarehouseCode(releaseResult.getWarehouseCode()),
-                resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
-    }
-
-    private String resolveFailureReason(String reason, String defaultReason) {
-        return reason == null || reason.isBlank() ? defaultReason : reason;
-    }
-
-    private ReservationNo toReservationNo(String reservationNo) {
-        return ReservationNoCodec.toDomain(reservationNo);
-    }
-
-    private WarehouseCode toWarehouseCode(String warehouseCode) {
-        return warehouseCode == null ? null : WarehouseCode.of(warehouseCode);
+                ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
+                releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
+                releaseResult.getFailureReason() == null || releaseResult.getFailureReason().isBlank()
+                        ? fallbackReason
+                        : releaseResult.getFailureReason());
     }
 }

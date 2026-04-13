@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.order.application.command;
 
-import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
@@ -14,7 +13,6 @@ import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
-import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -86,17 +84,19 @@ public class OrderPaymentResultApplicationService {
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
         InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(orderNo);
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
-            String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
+            String reason = deductResult.getFailureReason() == null || deductResult.getFailureReason().isBlank()
+                    ? "inventory deduct failed"
+                    : deductResult.getFailureReason();
             order.markInventoryFailed(
-                    toReservationNo(deductResult.getReservationNo()),
-                    toWarehouseCode(deductResult.getWarehouseCode()),
+                    ReservationNoCodec.toDomain(deductResult.getReservationNo()),
+                    deductResult.getWarehouseCode() == null ? null : WarehouseCode.of(deductResult.getWarehouseCode()),
                     reason);
             orderRepository.save(order);
             throw new IllegalStateException(reason);
         }
         order.markInventoryDeducted(
-                toReservationNo(deductResult.getReservationNo()),
-                toWarehouseCode(deductResult.getWarehouseCode()),
+                ReservationNoCodec.toDomain(deductResult.getReservationNo()),
+                deductResult.getWarehouseCode() == null ? null : WarehouseCode.of(deductResult.getWarehouseCode()),
                 deductResult.getDeductedAt());
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
@@ -118,31 +118,21 @@ public class OrderPaymentResultApplicationService {
     private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(
-                    toReservationNo(releaseResult.getReservationNo()),
-                    toWarehouseCode(releaseResult.getWarehouseCode()),
+                    ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
+                    releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
                     releaseResult.getReleaseReason(),
                     releaseResult.getReleasedAt());
             return;
         }
         order.markInventoryFailed(
-                toReservationNo(releaseResult.getReservationNo()),
-                toWarehouseCode(releaseResult.getWarehouseCode()),
-                resolveFailureReason(releaseResult.getFailureReason(), fallbackReason));
-    }
-
-    private String resolveFailureReason(String reason, String defaultReason) {
-        return reason == null || reason.isBlank() ? defaultReason : reason;
+                ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
+                releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
+                releaseResult.getFailureReason() == null || releaseResult.getFailureReason().isBlank()
+                        ? fallbackReason
+                        : releaseResult.getFailureReason());
     }
 
     private PaymentNo toPaymentNo(String paymentNo) {
         return paymentNo == null ? null : PaymentNo.of(paymentNo);
-    }
-
-    private ReservationNo toReservationNo(String reservationNo) {
-        return ReservationNoCodec.toDomain(reservationNo);
-    }
-
-    private WarehouseCode toWarehouseCode(String warehouseCode) {
-        return warehouseCode == null ? null : WarehouseCode.of(warehouseCode);
     }
 }

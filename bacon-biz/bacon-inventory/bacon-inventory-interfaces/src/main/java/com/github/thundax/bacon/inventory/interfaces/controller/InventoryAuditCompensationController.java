@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.controller;
 
-import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
+import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
@@ -75,7 +75,7 @@ public class InventoryAuditCompensationController {
         return InventoryAuditReplayResultResponse.from(inventoryAuditCompensationService.replayDeadLetter(
                 DeadLetterIdCodec.toDomain(deadLetterId),
                 request.replayKey(),
-                OperatorIdMapper.toDomain(request.operatorId() == null ? null : String.valueOf(request.operatorId()))));
+                OperatorIdCodec.toDomain(request.operatorId() == null ? null : String.valueOf(request.operatorId()))));
     }
 
     @Operation(summary = "批量重放库存审计死信")
@@ -91,7 +91,7 @@ public class InventoryAuditCompensationController {
                                         .map(DeadLetterIdCodec::toDomain)
                                         .toList(),
                         request.replayKeyPrefix(),
-                        OperatorIdMapper.toDomainFromLong(request.operatorId()))
+                        OperatorIdCodec.toDomainFromLong(request.operatorId()))
                 .stream()
                 .map(InventoryAuditReplayResultResponse::from)
                 .toList();
@@ -122,7 +122,7 @@ public class InventoryAuditCompensationController {
             @PathVariable @NotNull @Positive Long taskId,
             @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
         return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.pauseReplayTask(
-                TaskIdCodec.toDomain(taskId), OperatorIdMapper.toDomainFromLong(request.operatorId())));
+                TaskIdCodec.toDomain(taskId), OperatorIdCodec.toDomainFromLong(request.operatorId())));
     }
 
     @Operation(summary = "恢复库存审计死信批量重放任务")
@@ -132,7 +132,7 @@ public class InventoryAuditCompensationController {
             @PathVariable @NotNull @Positive Long taskId,
             @Valid @RequestBody InventoryAuditReplayTaskControlRequest request) {
         return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.resumeReplayTask(
-                TaskIdCodec.toDomain(taskId), OperatorIdMapper.toDomainFromLong(request.operatorId())));
+                TaskIdCodec.toDomain(taskId), OperatorIdCodec.toDomainFromLong(request.operatorId())));
     }
 
     private InventoryAuditReplayStatus parseReplayStatus(String replayStatus) {

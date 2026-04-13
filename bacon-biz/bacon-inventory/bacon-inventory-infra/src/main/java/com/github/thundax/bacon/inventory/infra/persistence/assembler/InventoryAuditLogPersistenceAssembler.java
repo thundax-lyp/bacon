@@ -2,7 +2,7 @@ package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
+import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
@@ -22,7 +22,7 @@ public final class InventoryAuditLogPersistenceAssembler {
                 dataObject.getOperatorType() == null
                         ? null
                         : InventoryAuditOperatorType.from(dataObject.getOperatorType()),
-                OperatorIdMapper.toDomainFromLong(dataObject.getOperatorId()),
+                OperatorIdCodec.toDomainFromLong(dataObject.getOperatorId()),
                 dataObject.getOccurredAt());
     }
 
@@ -40,7 +40,7 @@ public final class InventoryAuditLogPersistenceAssembler {
                 auditLog.getOperatorType() == null
                         ? null
                         : auditLog.getOperatorType().value(),
-                OperatorIdMapper.toLongValue(auditLog.getOperatorId()),
+                OperatorIdCodec.toLongValue(auditLog.getOperatorId()),
                 auditLog.getOccurredAt());
     }
 }

@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
@@ -36,7 +36,7 @@ public class PermissionController {
     @SysLog(module = "UPMS", action = "查询用户菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/menu-tree")
     public List<UserMenuTreeResponse> getUserMenuTree(@CurrentTenant Long tenantId, @PathVariable Long userId) {
-        return permissionQueryService.getUserMenuTree(TenantId.of(tenantId), UserIdMapper.toDomain(userId)).stream()
+        return permissionQueryService.getUserMenuTree(TenantId.of(tenantId), UserIdCodec.toDomain(userId)).stream()
                 .map(UserMenuTreeResponse::from)
                 .toList();
     }
@@ -46,7 +46,7 @@ public class PermissionController {
     @SysLog(module = "UPMS", action = "查询用户权限码", eventType = LogEventType.QUERY)
     @GetMapping("/permission-codes")
     public Set<String> getUserPermissionCodes(@CurrentTenant Long tenantId, @PathVariable Long userId) {
-        return permissionQueryService.getUserPermissionCodes(TenantId.of(tenantId), UserIdMapper.toDomain(userId));
+        return permissionQueryService.getUserPermissionCodes(TenantId.of(tenantId), UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")
@@ -55,6 +55,6 @@ public class PermissionController {
     @GetMapping("/data-scope")
     public UserDataScopeResponse getUserDataScope(@CurrentTenant Long tenantId, @PathVariable Long userId) {
         return UserDataScopeResponse.from(
-                permissionQueryService.getUserDataScope(TenantId.of(tenantId), UserIdMapper.toDomain(userId)));
+                permissionQueryService.getUserDataScope(TenantId.of(tenantId), UserIdCodec.toDomain(userId)));
     }
 }

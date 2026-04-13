@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
@@ -57,15 +57,11 @@ public class InventoryAuditReplayTaskApplicationService {
         InventoryAuditReplayTask task =
                 InventoryAuditReplayTaskAssembler.toDomain(createDTO, taskId, taskNo, OPERATOR_TYPE_MANUAL, now);
         InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
-        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(
-                createDTO.getDeadLetterIds().stream()
-                        .map(DeadLetterIdCodec::toDomain)
-                        .map(deadLetterId -> InventoryAuditReplayTaskItem.create(
-                                idGenerator.nextId(REPLAY_TASK_ITEM_ID_BIZ_TAG),
-                                saved.getId(),
-                                deadLetterId,
-                                now))
-                        .toList());
+        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(createDTO.getDeadLetterIds().stream()
+                .map(DeadLetterIdCodec::toDomain)
+                .map(deadLetterId -> InventoryAuditReplayTaskItem.create(
+                        idGenerator.nextId(REPLAY_TASK_ITEM_ID_BIZ_TAG), saved.getId(), deadLetterId, now))
+                .toList());
         Metrics.counter("bacon.inventory.audit.replay.task.created.total").increment();
         return InventoryAuditReplayTaskAssembler.toDto(saved);
     }
@@ -143,9 +139,7 @@ public class InventoryAuditReplayTaskApplicationService {
                 InventoryAuditReplayResultDTO result = BaconContextHolder.callWithTenantId(
                         tenantId,
                         () -> compensationService.replayDeadLetter(
-                                item.getDeadLetterId(),
-                                replayKey,
-                                OperatorIdMapper.toDomain(task.getOperatorId())));
+                                item.getDeadLetterId(), replayKey, OperatorIdCodec.toDomain(task.getOperatorId())));
                 InventoryAuditReplayStatus replayStatus = InventoryAuditReplayStatus.from(result.getReplayStatus());
                 InventoryAuditReplayTaskItemStatus itemStatus = InventoryAuditReplayTaskItemStatus.FAILED;
                 if (InventoryAuditReplayStatus.SUCCEEDED.equals(replayStatus)) {
@@ -209,9 +203,14 @@ public class InventoryAuditReplayTaskApplicationService {
             return "TASK-"
                     + (task.getTaskNo() == null ? null : task.getTaskNo().value())
                     + "-DL-"
-                    + (item.getDeadLetterId() == null ? null : item.getDeadLetterId().value());
+                    + (item.getDeadLetterId() == null
+                            ? null
+                            : item.getDeadLetterId().value());
         }
-        return task.getReplayKeyPrefix() + "-" + (item.getDeadLetterId() == null ? null : item.getDeadLetterId().value());
+        return task.getReplayKeyPrefix() + "-"
+                + (item.getDeadLetterId() == null
+                        ? null
+                        : item.getDeadLetterId().value());
     }
 
     private String truncateError(String error) {

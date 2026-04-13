@@ -4,8 +4,8 @@ import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
@@ -14,6 +14,7 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentChannelPayloa
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
+import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import com.github.thundax.bacon.payment.domain.service.PaymentNoGenerator;
 import java.math.BigDecimal;
@@ -45,7 +46,8 @@ public class PaymentCreateApplicationService {
             String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
         BaconContextHolder.requireTenantId();
         validateCreateRequest(amount, channelCode, expiredAt);
-        PaymentOrder existing = paymentOrderRepository.findOrderByOrderNo(orderNo).orElse(null);
+        PaymentOrder existing =
+                paymentOrderRepository.findOrderByOrderNo(orderNo).orElse(null);
         // 按 orderNo 保证创建幂等；同一订单重复创建时直接返回已存在支付单，而不是重新生成 paymentNo。
         if (existing != null) {
             return toCreateResult(existing, buildPayload(existing), null);
@@ -56,10 +58,10 @@ public class PaymentCreateApplicationService {
         }
         PaymentNo paymentNo = PaymentNo.of(nextPaymentNo);
         PaymentOrder paymentOrder = PaymentOrder.create(
-                com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId.of(idGenerator.nextId(PAYMENT_ORDER_ID_BIZ_TAG)),
+                PaymentOrderId.of(idGenerator.nextId(PAYMENT_ORDER_ID_BIZ_TAG)),
                 paymentNo,
                 OrderNo.of(orderNo),
-                UserIdMapper.toDomain(userId),
+                UserIdCodec.toDomain(userId),
                 PaymentChannelCode.fromValue(channelCode),
                 Money.of(amount),
                 subject,

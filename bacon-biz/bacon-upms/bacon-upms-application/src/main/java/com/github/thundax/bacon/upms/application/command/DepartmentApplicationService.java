@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.upms.application.command;
 
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
@@ -202,7 +202,7 @@ public class DepartmentApplicationService {
     }
 
     private UserId toUserId(String userId) {
-        return userId == null || userId.isBlank() ? null : UserIdMapper.toDomain(Long.valueOf(userId.trim()));
+        return userId == null || userId.isBlank() ? null : UserIdCodec.toDomain(Long.valueOf(userId.trim()));
     }
 
     private void validateParent(TenantId tenantId, DepartmentId parentId) {

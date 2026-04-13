@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.provider;
 
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
@@ -135,21 +135,20 @@ public class UpmsProviderController {
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
     public List<UserMenuTreeDTO> getUserMenuTree(@CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserMenuTree(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
+        return permissionQueryService.getUserMenuTree(requireExistingTenantId(tenantId), UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
     public Set<String> getUserPermissionCodes(@CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
         return permissionQueryService.getUserPermissionCodes(
-                requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
+                requireExistingTenantId(tenantId), UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @GetMapping("/permissions/data-scope")
     public UserDataScopeDTO getUserDataScope(@CurrentTenant Long tenantId, @RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserDataScope(
-                requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
+        return permissionQueryService.getUserDataScope(requireExistingTenantId(tenantId), UserIdCodec.toDomain(userId));
     }
 
     private TenantId requireExistingTenantId(Long tenantId) {

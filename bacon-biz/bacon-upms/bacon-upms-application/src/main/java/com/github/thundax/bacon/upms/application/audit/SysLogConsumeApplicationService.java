@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.application.audit;
 
-import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
-import com.github.thundax.bacon.common.log.dto.SysLogDTO;
+import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.log.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ public class SysLogConsumeApplicationService {
                 sysLogDTO.getAction(),
                 sysLogDTO.getEventType().name(),
                 sysLogDTO.getResult().name(),
-                OperatorIdMapper.toDomain(sysLogDTO.getOperatorId()),
+                OperatorIdCodec.toDomain(sysLogDTO.getOperatorId()),
                 sysLogDTO.getOperatorName(),
                 sysLogDTO.getClientIp(),
                 sysLogDTO.getRequestUri(),

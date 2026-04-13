@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.common.id.mapper;
+package com.github.thundax.bacon.common.id.codec;
 
 import com.github.thundax.bacon.common.id.domain.UserId;
 
-public final class UserIdMapper {
+public final class UserIdCodec {
 
-    private UserIdMapper() {}
+    private UserIdCodec() {}
 
     public static UserId toDomain(Long value) {
         if (value == null) {

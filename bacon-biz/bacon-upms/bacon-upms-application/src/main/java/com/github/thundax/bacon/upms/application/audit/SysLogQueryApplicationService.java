@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.audit;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
-import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
+import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.api.dto.SysLogQueryDTO;
@@ -35,10 +35,7 @@ public class SysLogQueryApplicationService {
                         .map(this::toDto)
                         .toList(),
                 sysLogRepository.countLogs(
-                        query.getModule(),
-                        query.getEventType(),
-                        query.getResult(),
-                        query.getOperatorName()),
+                        query.getModule(), query.getEventType(), query.getResult(), query.getOperatorName()),
                 pageNo,
                 pageSize);
     }
@@ -59,7 +56,7 @@ public class SysLogQueryApplicationService {
                 record.getAction(),
                 record.getEventType(),
                 record.getResult(),
-                OperatorIdMapper.toValue(record.getOperatorId()),
+                OperatorIdCodec.toValue(record.getOperatorId()),
                 record.getOperatorName(),
                 record.getClientIp(),
                 record.getRequestUri(),

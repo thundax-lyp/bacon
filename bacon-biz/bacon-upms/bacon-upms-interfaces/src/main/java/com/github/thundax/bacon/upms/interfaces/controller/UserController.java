@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
@@ -101,7 +101,7 @@ public class UserController {
     @GetMapping("/{userId}")
     public UserResponse getUserById(@CurrentTenant Long tenantId, @PathVariable Long userId) {
         return UserResponse.from(
-                userApplicationService.getUserById(TenantId.of(tenantId), UserIdMapper.toDomain(userId)));
+                userApplicationService.getUserById(TenantId.of(tenantId), UserIdCodec.toDomain(userId)));
     }
 
     @Operation(summary = "访问用户头像")

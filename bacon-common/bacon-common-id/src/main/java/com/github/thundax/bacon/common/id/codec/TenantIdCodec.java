@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.common.id.mapper;
+package com.github.thundax.bacon.common.id.codec;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 
-public final class TenantIdMapper {
+public final class TenantIdCodec {
 
-    private TenantIdMapper() {}
+    private TenantIdCodec() {}
 
     public static TenantId toDomain(Long value) {
         if (value == null) {

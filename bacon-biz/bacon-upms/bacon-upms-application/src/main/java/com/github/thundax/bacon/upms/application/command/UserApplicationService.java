@@ -2,10 +2,10 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
@@ -88,7 +88,7 @@ public class UserApplicationService {
     }
 
     public UserDTO getUserById(Long tenantId, Long userId) {
-        return getUserById(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId));
+        return getUserById(requireExistingTenantId(tenantId), UserIdCodec.toDomain(userId));
     }
 
     public UserIdentityDTO getUserIdentity(TenantId tenantId, String identityType, String identityValue) {
@@ -192,13 +192,7 @@ public class UserApplicationService {
         String normalizedPhone = normalize(phone);
         DepartmentId domainDepartmentId = toDepartmentId(departmentId);
         User savedUser = userRepository.save(
-                User.reconstruct(
-                        null,
-                        tenantId,
-                        normalize(name),
-                        null,
-                        domainDepartmentId,
-                        UserStatus.ENABLED),
+                User.reconstruct(null, tenantId, normalize(name), null, domainDepartmentId, UserStatus.ENABLED),
                 normalizedAccount,
                 normalizedPhone);
         return toDetailedDto(savedUser);
@@ -207,7 +201,7 @@ public class UserApplicationService {
     @Transactional
     public UserDTO updateUser(
             TenantId tenantId, Long userId, String account, String name, String phone, Long departmentId) {
-        UserId domainUserId = UserIdMapper.toDomain(userId);
+        UserId domainUserId = UserIdCodec.toDomain(userId);
         User currentUser = requireUser(tenantId, domainUserId);
         validateRequired(account, "account");
         validateRequired(name, "name");
@@ -229,7 +223,7 @@ public class UserApplicationService {
 
     @Transactional
     public UserDTO updateUserStatus(TenantId tenantId, Long userId, EnableStatusEnum status) {
-        UserId domainUserId = UserIdMapper.toDomain(userId);
+        UserId domainUserId = UserIdCodec.toDomain(userId);
         User currentUser = requireUser(tenantId, domainUserId);
         if (status == null) {
             throw new IllegalArgumentException("status must not be null");
@@ -251,7 +245,7 @@ public class UserApplicationService {
     }
 
     public Optional<String> getAvatarAccessUrl(TenantId tenantId, Long userId) {
-        User user = requireUser(tenantId, UserIdMapper.toDomain(userId));
+        User user = requireUser(tenantId, UserIdCodec.toDomain(userId));
         if (user.getAvatarObjectId() == null) {
             return Optional.empty();
         }
@@ -260,7 +254,7 @@ public class UserApplicationService {
 
     @Transactional
     public void deleteUser(TenantId tenantId, Long userId) {
-        UserId domainUserId = UserIdMapper.toDomain(userId);
+        UserId domainUserId = UserIdCodec.toDomain(userId);
         User currentUser = requireUser(tenantId, domainUserId);
         userRepository.deleteUser(tenantId, domainUserId);
         if (currentUser.getAvatarObjectId() != null) {
@@ -272,7 +266,7 @@ public class UserApplicationService {
 
     @Transactional
     public UserDTO initPassword(TenantId tenantId, Long userId) {
-        UserId domainUserId = UserIdMapper.toDomain(userId);
+        UserId domainUserId = UserIdCodec.toDomain(userId);
         requireUser(tenantId, domainUserId);
         User user = userRepository.updatePassword(tenantId, domainUserId, DEFAULT_PASSWORD, true);
         sessionCommandFacade.invalidateUserSessions(
@@ -282,7 +276,7 @@ public class UserApplicationService {
 
     @Transactional
     public UserDTO resetPassword(TenantId tenantId, Long userId, String newPassword) {
-        UserId domainUserId = UserIdMapper.toDomain(userId);
+        UserId domainUserId = UserIdCodec.toDomain(userId);
         requireUser(tenantId, domainUserId);
         validateRequired(newPassword, "newPassword");
         User user = userRepository.updatePassword(tenantId, domainUserId, normalize(newPassword), true);
@@ -305,12 +299,12 @@ public class UserApplicationService {
     }
 
     public void changePassword(Long tenantId, Long userId, String oldPassword, String newPassword) {
-        changePassword(requireExistingTenantId(tenantId), UserIdMapper.toDomain(userId), oldPassword, newPassword);
+        changePassword(requireExistingTenantId(tenantId), UserIdCodec.toDomain(userId), oldPassword, newPassword);
     }
 
     @Transactional
     public List<RoleDTO> assignRoles(TenantId tenantId, Long userId, List<Long> roleIds) {
-        UserId domainUserId = UserIdMapper.toDomain(userId);
+        UserId domainUserId = UserIdCodec.toDomain(userId);
         requireUser(tenantId, domainUserId);
         List<RoleId> domainRoleIds =
                 roleIds == null ? List.of() : roleIds.stream().map(RoleId::of).toList();
@@ -327,7 +321,7 @@ public class UserApplicationService {
     }
 
     public List<RoleDTO> getRolesByUserId(TenantId tenantId, Long userId) {
-        return getRolesByUserId(tenantId, UserIdMapper.toDomain(userId));
+        return getRolesByUserId(tenantId, UserIdCodec.toDomain(userId));
     }
 
     @Transactional
@@ -360,7 +354,7 @@ public class UserApplicationService {
             String contentType,
             Long size,
             InputStream inputStream) {
-        User currentUser = requireUser(tenantId, UserIdMapper.toDomain(userId));
+        User currentUser = requireUser(tenantId, UserIdCodec.toDomain(userId));
         AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
         StoredObjectDTO storedObject = uploadAvatarObject(avatarImage);
         StoredObjectId storedObjectId = storedObject.getId();

@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.mapper.OperatorIdMapper;
+import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
 import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
@@ -25,7 +25,7 @@ public final class InventoryAuditLogAssembler {
                 auditLog.getOperatorType() == null
                         ? null
                         : auditLog.getOperatorType().value(),
-                OperatorIdMapper.toLongValue(auditLog.getOperatorId()),
+                OperatorIdCodec.toLongValue(auditLog.getOperatorId()),
                 auditLog.getOccurredAt());
     }
 
@@ -36,7 +36,7 @@ public final class InventoryAuditLogAssembler {
                 dto.getReservationNo() == null ? null : ReservationNo.of(dto.getReservationNo()),
                 dto.getActionType() == null ? null : InventoryAuditActionType.from(dto.getActionType()),
                 dto.getOperatorType() == null ? null : InventoryAuditOperatorType.from(dto.getOperatorType()),
-                OperatorIdMapper.toDomainFromLong(dto.getOperatorId()),
+                OperatorIdCodec.toDomainFromLong(dto.getOperatorId()),
                 dto.getOccurredAt());
     }
 }

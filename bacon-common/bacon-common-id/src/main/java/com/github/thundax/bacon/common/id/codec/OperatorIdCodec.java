@@ -1,10 +1,10 @@
-package com.github.thundax.bacon.common.id.mapper;
+package com.github.thundax.bacon.common.id.codec;
 
 import com.github.thundax.bacon.common.id.domain.OperatorId;
 
-public final class OperatorIdMapper {
+public final class OperatorIdCodec {
 
-    private OperatorIdMapper() {}
+    private OperatorIdCodec() {}
 
     public static OperatorId toDomain(String value) {
         if (value == null || value.isBlank()) {

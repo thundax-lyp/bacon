@@ -28,18 +28,16 @@ public class OrderQueryApplicationService {
         this.orderRepository = orderRepository;
     }
 
-    public OrderDetailDTO getById(Long tenantId, Long orderId) {
-        OrderDetailDTO dto = orderRepository
+    public OrderDetailDTO getById(Long orderId) {
+        BaconContextHolder.requireTenantId();
+        return orderRepository
                 .findById(orderId)
                 .map(this::toDetail)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
-        if (tenantId != null && !tenantId.equals(dto.getTenantId())) {
-            throw new IllegalArgumentException("Order not found: " + orderId);
-        }
-        return dto;
     }
 
-    public OrderDetailDTO getByOrderNo(Long tenantId, String orderNo) {
+    public OrderDetailDTO getByOrderNo(String orderNo) {
+        BaconContextHolder.requireTenantId();
         return orderRepository
                 .findByOrderNo(orderNo)
                 .map(this::toDetail)

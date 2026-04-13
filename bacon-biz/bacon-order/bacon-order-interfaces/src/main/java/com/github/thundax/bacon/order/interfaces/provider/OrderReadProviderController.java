@@ -37,12 +37,12 @@ public class OrderReadProviderController {
 
     @GetMapping("/{orderId}")
     public OrderDetailDTO getById(@CurrentTenant Long tenantId, @PathVariable Long orderId) {
-        return orderQueryService.getById(tenantId, orderId);
+        return orderQueryService.getById(orderId);
     }
 
     @GetMapping("/by-order-no/{orderNo}")
     public OrderDetailDTO getByOrderNo(@CurrentTenant Long tenantId, @PathVariable String orderNo) {
-        return orderQueryService.getByOrderNo(tenantId, orderNo);
+        return orderQueryService.getByOrderNo(orderNo);
     }
 
     @GetMapping

@@ -53,7 +53,7 @@ public class OrderController {
     @HasPermission("order:order:view")
     @GetMapping("/{orderId}")
     public OrderDetailResponse getById(@CurrentTenant Long tenantId, @PathVariable Long orderId) {
-        return OrderDetailResponse.from(orderQueryService.getById(tenantId, orderId));
+        return OrderDetailResponse.from(orderQueryService.getById(orderId));
     }
 
     @Operation(summary = "分页查询订单")

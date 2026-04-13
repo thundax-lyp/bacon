@@ -21,14 +21,14 @@ public class OrderReadFacadeLocalImpl implements OrderReadFacade {
 
     @Override
     public OrderDetailDTO getById(Long orderId) {
-        Long tenantId = requireTenantId();
-        return orderQueryService.getById(tenantId, orderId);
+        requireTenantId();
+        return orderQueryService.getById(orderId);
     }
 
     @Override
     public OrderDetailDTO getByOrderNo(String orderNo) {
-        Long tenantId = requireTenantId();
-        return orderQueryService.getByOrderNo(tenantId, orderNo);
+        requireTenantId();
+        return orderQueryService.getByOrderNo(orderNo);
     }
 
     @Override

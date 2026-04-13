@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -20,8 +19,6 @@ public class Department {
 
     /** 部门主键。 */
     private DepartmentId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 部门编码。 */
     private String code;
     /** 部门名称。 */
@@ -37,7 +34,6 @@ public class Department {
 
     public static Department create(
             DepartmentId id,
-            TenantId tenantId,
             String code,
             String name,
             DepartmentId parentId,
@@ -45,22 +41,34 @@ public class Department {
             Integer sort,
             DepartmentStatus status) {
         Objects.requireNonNull(id, "id must not be null");
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new Department(id, tenantId, code, name, parentId, leaderUserId, sort, status);
+        return new Department(id, code, name, parentId, leaderUserId, sort, status);
     }
 
     public static Department reconstruct(
             DepartmentId id,
-            TenantId tenantId,
             String code,
             String name,
             DepartmentId parentId,
             UserId leaderUserId,
             Integer sort,
             DepartmentStatus status) {
-        return new Department(id, tenantId, code, name, parentId, leaderUserId, sort, status);
+        return new Department(id, code, name, parentId, leaderUserId, sort, status);
+    }
+
+    public Department update(
+            String code,
+            String name,
+            DepartmentId parentId,
+            UserId leaderUserId,
+            Integer sort,
+            DepartmentStatus status) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(code, "code must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new Department(id, code, name, parentId, leaderUserId, sort, status);
     }
 }

@@ -14,8 +14,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserLoginCredentialDTO {
 
-    /** 所属租户编号。 */
-    private Long tenantId;
     /** 用户主键。 */
     private Long userId;
     /** 身份标识主键。 */

@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
@@ -25,7 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class UserControllerContractTest {
 
-    private static final TenantId TENANT_ID = TenantId.of(1001L);
+    private static final long TENANT_ID = 1001L;
 
     private UserApplicationService userApplicationService;
     private MockMvc mockMvc;
@@ -37,7 +36,7 @@ class UserControllerContractTest {
 
     @BeforeEach
     void setUp() {
-        BaconContextHolder.set(new BaconContext(TENANT_ID.value(), 2001L));
+        BaconContextHolder.set(new BaconContext(TENANT_ID, 2001L));
         userApplicationService = mock(UserApplicationService.class);
         mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService))
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
@@ -47,7 +46,6 @@ class UserControllerContractTest {
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
         when(userApplicationService.updateAvatar(
-                        eq(TENANT_ID),
                         eq(101L),
                         eq("avatar.png"),
                         eq("image/png"),
@@ -55,7 +53,6 @@ class UserControllerContractTest {
                         org.mockito.ArgumentMatchers.any()))
                 .thenReturn(new UserDTO(
                         101L,
-                        TENANT_ID.value(),
                         "alice",
                         "Alice",
                         9001L,
@@ -80,7 +77,7 @@ class UserControllerContractTest {
 
     @Test
     void shouldRedirectAvatarRequestToStorageAccessUrl() throws Exception {
-        when(userApplicationService.getAvatarAccessUrl(TENANT_ID, 101L))
+        when(userApplicationService.getAvatarAccessUrl(101L))
                 .thenReturn(Optional.of("https://cdn.example.com/avatar/9001.png"));
 
         mockMvc.perform(get("/upms/users/{userId}/avatar", 101L))

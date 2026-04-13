@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.facade;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
@@ -19,8 +19,8 @@ public class UserPasswordFacadeLocalImpl implements UserPasswordFacade {
     }
 
     @Override
-    public void changePassword(
-            @NonNull TenantId tenantId, @NonNull UserId userId, String oldPassword, String newPassword) {
-        userApplicationService.changePassword(tenantId, userId, oldPassword, newPassword);
+    public void changePassword(@NonNull UserId userId, String oldPassword, String newPassword) {
+        BaconContextHolder.requireTenantId();
+        userApplicationService.changePassword(userId, oldPassword, newPassword);
     }
 }

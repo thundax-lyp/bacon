@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -14,15 +15,15 @@ import java.util.Optional;
 
 public interface UserRepository {
 
-    Optional<User> findUserById(TenantId tenantId, UserId userId);
+    Optional<User> findUserById(UserId userId);
 
-    Optional<User> findUserByAccount(TenantId tenantId, String account);
+    Optional<User> findUserByAccount(String account);
 
-    Optional<UserIdentity> findUserIdentity(TenantId tenantId, UserIdentityType identityType, String identityValue);
+    Optional<UserIdentity> findUserIdentity(UserIdentityType identityType, String identityValue);
 
-    Optional<UserIdentity> findUserIdentityByUserId(TenantId tenantId, UserId userId, UserIdentityType identityType);
+    Optional<UserIdentity> findUserIdentityByUserId(UserId userId, UserIdentityType identityType);
 
-    Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, UserCredentialType credentialType);
+    Optional<UserCredential> findUserCredential(UserId userId, UserCredentialType credentialType);
 
     List<User> pageUsers(String account, String name, String phone, String status, int pageNo, int pageSize);
 
@@ -30,11 +31,18 @@ public interface UserRepository {
 
     List<User> listUsers(String account, String name, String phone, String status);
 
-    User save(User user, String account, String phone);
+    User save(
+            User user,
+            String account,
+            String phone,
+            UserIdentityId accountIdentityId,
+            UserIdentityId phoneIdentityId,
+            UserCredentialId passwordCredentialIdIfAbsent);
 
-    User updatePassword(TenantId tenantId, UserId userId, String password, boolean needChangePassword);
+    User updatePassword(
+            UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent);
 
-    List<Role> assignRoles(TenantId tenantId, UserId userId, List<RoleId> roleIds);
+    List<Role> assignRoles(UserId userId, List<RoleId> roleIds);
 
-    void deleteUser(TenantId tenantId, UserId userId);
+    void deleteUser(UserId userId);
 }

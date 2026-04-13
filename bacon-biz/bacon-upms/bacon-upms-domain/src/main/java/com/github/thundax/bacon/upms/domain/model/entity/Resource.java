@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.ResourceId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import java.util.Objects;
@@ -20,8 +19,6 @@ public class Resource {
 
     /** 资源主键。 */
     private ResourceId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 资源编码。 */
     private String code;
     /** 资源名称。 */
@@ -37,7 +34,6 @@ public class Resource {
 
     public static Resource create(
             ResourceId id,
-            TenantId tenantId,
             String code,
             String name,
             ResourceType resourceType,
@@ -45,23 +41,36 @@ public class Resource {
             String uri,
             ResourceStatus status) {
         Objects.requireNonNull(id, "id must not be null");
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(resourceType, "resourceType must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new Resource(id, tenantId, code, name, resourceType, httpMethod, uri, status);
+        return new Resource(id, code, name, resourceType, httpMethod, uri, status);
     }
 
     public static Resource reconstruct(
             ResourceId id,
-            TenantId tenantId,
             String code,
             String name,
             ResourceType resourceType,
             String httpMethod,
             String uri,
             ResourceStatus status) {
-        return new Resource(id, tenantId, code, name, resourceType, httpMethod, uri, status);
+        return new Resource(id, code, name, resourceType, httpMethod, uri, status);
+    }
+
+    public Resource update(
+            String code,
+            String name,
+            ResourceType resourceType,
+            String httpMethod,
+            String uri,
+            ResourceStatus status) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(code, "code must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(resourceType, "resourceType must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new Resource(id, code, name, resourceType, httpMethod, uri, status);
     }
 }

@@ -8,8 +8,6 @@ import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 public record RoleResponse(
         /** 角色主键。 */
         Long id,
-        /** 所属租户编号。 */
-        Long tenantId,
         /** 角色编码。 */
         String code,
         /** 角色名称。 */
@@ -24,7 +22,6 @@ public record RoleResponse(
     public static RoleResponse from(RoleDTO dto) {
         return new RoleResponse(
                 dto.getId(),
-                dto.getTenantId(),
                 dto.getCode(),
                 dto.getName(),
                 dto.getRoleType(),

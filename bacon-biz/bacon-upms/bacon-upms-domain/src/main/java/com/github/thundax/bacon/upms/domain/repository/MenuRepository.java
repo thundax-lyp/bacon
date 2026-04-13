@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import java.util.List;
@@ -8,15 +7,15 @@ import java.util.Optional;
 
 public interface MenuRepository {
 
-    List<Menu> listMenus(TenantId tenantId);
+    List<Menu> listMenus();
 
-    Optional<Menu> findMenuById(TenantId tenantId, MenuId menuId);
+    Optional<Menu> findMenuById(MenuId menuId);
 
     Menu save(Menu menu);
 
-    Menu updateSort(TenantId tenantId, MenuId menuId, Integer sort);
+    Menu updateSort(MenuId menuId, Integer sort);
 
-    void deleteMenu(TenantId tenantId, MenuId menuId);
+    void deleteMenu(MenuId menuId);
 
-    boolean existsChildMenu(TenantId tenantId, MenuId menuId);
+    boolean existsChildMenu(MenuId menuId);
 }

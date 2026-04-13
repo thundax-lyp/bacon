@@ -14,8 +14,6 @@ public class UserDTO {
 
     /** 用户主键。 */
     private Long id;
-    /** 所属租户编号。 */
-    private Long tenantId;
     /** 登录账号。 */
     private String account;
     /** 用户名称。 */

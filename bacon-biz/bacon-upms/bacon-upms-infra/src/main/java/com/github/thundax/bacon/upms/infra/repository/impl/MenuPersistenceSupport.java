@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
@@ -22,20 +23,20 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.menuMapper = menuMapper;
     }
 
-    List<Menu> listMenus(TenantId tenantId) {
+    List<Menu> listMenus() {
+        requireTenantId();
         return menuMapper
                 .selectList(Wrappers.<MenuDO>lambdaQuery()
-                        .eq(MenuDO::getTenantId, tenantId)
                         .orderByAsc(MenuDO::getSort, MenuDO::getId))
                 .stream()
                 .map(MenuPersistenceAssembler::toDomain)
                 .toList();
     }
 
-    Optional<Menu> findMenuById(TenantId tenantId, MenuId menuId) {
+    Optional<Menu> findMenuById(MenuId menuId) {
+        requireTenantId();
         return Optional.ofNullable(menuMapper.selectOne(Wrappers.<MenuDO>lambdaQuery()
-                        .eq(MenuDO::getTenantId, tenantId)
-                        .eq(MenuDO::getId, menuId)))
+                        .eq(MenuDO::getId, menuId.value())))
                 .map(MenuPersistenceAssembler::toDomain);
     }
 
@@ -49,16 +50,20 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return MenuPersistenceAssembler.toDomain(dataObject);
     }
 
-    void deleteMenu(TenantId tenantId, MenuId menuId) {
-        menuMapper.delete(
-                Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getTenantId, tenantId).eq(MenuDO::getId, menuId));
+    void deleteMenu(MenuId menuId) {
+        requireTenantId();
+        menuMapper.delete(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value()));
     }
 
-    boolean existsChildMenu(TenantId tenantId, MenuId menuId) {
+    boolean existsChildMenu(MenuId menuId) {
+        requireTenantId();
         return Optional.ofNullable(menuMapper.selectCount(Wrappers.<MenuDO>lambdaQuery()
-                                .eq(MenuDO::getTenantId, tenantId)
-                                .eq(MenuDO::getParentId, menuId)))
+                                .eq(MenuDO::getParentId, menuId.value())))
                         .orElse(0L)
                 > 0L;
+    }
+
+    private TenantId requireTenantId() {
+        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

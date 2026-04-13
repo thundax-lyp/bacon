@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
@@ -23,23 +22,23 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Optional<Department> findDepartmentById(TenantId tenantId, DepartmentId departmentId) {
-        return support.findDepartmentById(tenantId, departmentId);
+    public Optional<Department> findDepartmentById(DepartmentId departmentId) {
+        return support.findDepartmentById(departmentId);
     }
 
     @Override
-    public Optional<Department> findDepartmentByCode(TenantId tenantId, String departmentCode) {
-        return support.findDepartmentByCode(tenantId, departmentCode);
+    public Optional<Department> findDepartmentByCode(String departmentCode) {
+        return support.findDepartmentByCode(departmentCode);
     }
 
     @Override
-    public List<Department> listDepartmentsByIds(TenantId tenantId, Set<DepartmentId> departmentIds) {
-        return support.listDepartmentsByIds(tenantId, departmentIds);
+    public List<Department> listDepartmentsByIds(Set<DepartmentId> departmentIds) {
+        return support.listDepartmentsByIds(departmentIds);
     }
 
     @Override
-    public List<Department> listDepartmentTree(TenantId tenantId) {
-        return support.listDepartmentTree(tenantId);
+    public List<Department> listDepartmentTree() {
+        return support.listDepartmentTree();
     }
 
     @Override
@@ -48,22 +47,22 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Department updateSort(TenantId tenantId, DepartmentId departmentId, Integer sort) {
-        return support.updateDepartmentSort(tenantId, departmentId, sort);
+    public Department updateSort(DepartmentId departmentId, Integer sort) {
+        return support.updateDepartmentSort(departmentId, sort);
     }
 
     @Override
-    public void deleteDepartment(TenantId tenantId, DepartmentId departmentId) {
-        support.deleteDepartment(tenantId, departmentId);
+    public void deleteDepartment(DepartmentId departmentId) {
+        support.deleteDepartment(departmentId);
     }
 
     @Override
-    public boolean existsChildDepartment(TenantId tenantId, DepartmentId departmentId) {
-        return support.existsChildDepartment(tenantId, departmentId);
+    public boolean existsChildDepartment(DepartmentId departmentId) {
+        return support.existsChildDepartment(departmentId);
     }
 
     @Override
-    public boolean existsUserInDepartment(TenantId tenantId, DepartmentId departmentId) {
-        return userRepository.hasActiveUserInDepartment(tenantId, departmentId);
+    public boolean existsUserInDepartment(DepartmentId departmentId) {
+        return userRepository.hasActiveUserInDepartment(departmentId);
     }
 }

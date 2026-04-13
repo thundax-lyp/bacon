@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
@@ -21,8 +20,8 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public Optional<Post> findById(TenantId tenantId, PostId postId) {
-        return support.findPostById(tenantId, postId);
+    public Optional<Post> findById(PostId postId) {
+        return support.findPostById(postId);
     }
 
     @Override
@@ -41,7 +40,7 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public void delete(TenantId tenantId, PostId postId) {
-        support.deletePost(tenantId, postId);
+    public void delete(PostId postId) {
+        support.deletePost(postId);
     }
 }

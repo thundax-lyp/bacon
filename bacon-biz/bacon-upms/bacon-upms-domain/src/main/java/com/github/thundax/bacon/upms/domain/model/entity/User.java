@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -21,8 +20,6 @@ public class User {
 
     /** 用户主键。 */
     private UserId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 用户名称。 */
     private String name;
     /** 头像对象主键。 */
@@ -34,25 +31,30 @@ public class User {
 
     public static User create(
             UserId id,
-            TenantId tenantId,
             String name,
             StoredObjectId avatarObjectId,
             DepartmentId departmentId,
             UserStatus status) {
         Objects.requireNonNull(id, "id must not be null");
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new User(id, tenantId, name, avatarObjectId, departmentId, status);
+        return new User(id, name, avatarObjectId, departmentId, status);
     }
 
     public static User reconstruct(
             UserId id,
-            TenantId tenantId,
             String name,
             StoredObjectId avatarObjectId,
             DepartmentId departmentId,
             UserStatus status) {
-        return new User(id, tenantId, name, avatarObjectId, departmentId, status);
+        return new User(id, name, avatarObjectId, departmentId, status);
+    }
+
+    public User update(
+            String name, StoredObjectId avatarObjectId, DepartmentId departmentId, UserStatus status) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new User(id, name, avatarObjectId, departmentId, status);
     }
 }

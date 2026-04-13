@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.facade;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
@@ -23,23 +23,26 @@ public class UserReadFacadeLocalImpl implements UserReadFacade {
     }
 
     @Override
-    public UserDTO getUserById(@NonNull TenantId tenantId, @NonNull UserId userId) {
-        return userApplicationService.getUserById(tenantId, userId);
+    public UserDTO getUserById(@NonNull UserId userId) {
+        BaconContextHolder.requireTenantId();
+        return userApplicationService.getUserById(userId);
     }
 
     @Override
-    public UserIdentityDTO getUserIdentity(@NonNull TenantId tenantId, String identityType, String identityValue) {
-        return userApplicationService.getUserIdentity(tenantId, identityType, identityValue);
+    public UserIdentityDTO getUserIdentity(String identityType, String identityValue) {
+        BaconContextHolder.requireTenantId();
+        return userApplicationService.getUserIdentity(identityType, identityValue);
     }
 
     @Override
-    public UserLoginCredentialDTO getUserLoginCredential(
-            @NonNull TenantId tenantId, String identityType, String identityValue) {
-        return userApplicationService.getUserLoginCredential(tenantId, identityType, identityValue);
+    public UserLoginCredentialDTO getUserLoginCredential(String identityType, String identityValue) {
+        BaconContextHolder.requireTenantId();
+        return userApplicationService.getUserLoginCredential(identityType, identityValue);
     }
 
     @Override
-    public TenantDTO getTenantByTenantId(@NonNull TenantId tenantId) {
-        return userApplicationService.getTenantByTenantId(tenantId.value());
+    public TenantDTO getTenantByTenantId() {
+        BaconContextHolder.requireTenantId();
+        return userApplicationService.getTenantByTenantId(BaconContextHolder.requireTenantId());
     }
 }

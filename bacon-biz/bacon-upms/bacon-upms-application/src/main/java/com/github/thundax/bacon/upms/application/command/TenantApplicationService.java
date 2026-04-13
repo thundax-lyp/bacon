@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.application.command;
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.application.codec.TenantCodeCodec;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
@@ -44,7 +45,7 @@ public class TenantApplicationService {
         validateRequired(name, "name");
         validateRequired(tenantCode, "tenantCode");
         TenantId normalizedTenantId = TenantId.of(tenantId);
-        TenantCode normalizedTenantCode = TenantCode.of(tenantCode);
+        TenantCode normalizedTenantCode = TenantCodeCodec.toDomain(tenantCode);
         tenantRepository.findTenantByTenantId(normalizedTenantId).ifPresent(tenant -> {
             throw new IllegalArgumentException("Tenant tenantId already exists: " + normalizedTenantId.value());
         });
@@ -65,7 +66,7 @@ public class TenantApplicationService {
         validateRequired(tenantCode, "tenantCode");
         TenantId normalizedTenantId = TenantId.of(tenantId);
         Tenant currentTenant = requireTenant(normalizedTenantId);
-        TenantCode normalizedTenantCode = TenantCode.of(tenantCode);
+        TenantCode normalizedTenantCode = TenantCodeCodec.toDomain(tenantCode);
         tenantRepository
                 .findTenantByCode(normalizedTenantCode.value())
                 .filter(tenant -> !tenant.getId().equals(normalizedTenantId))
@@ -73,8 +74,7 @@ public class TenantApplicationService {
                     throw new IllegalArgumentException(
                             "Tenant tenantCode already exists: " + normalizedTenantCode.value());
                 });
-        return toDto(tenantRepository.saveTenant(Tenant.reconstruct(
-                currentTenant.getId(),
+        return toDto(tenantRepository.saveTenant(currentTenant.update(
                 normalize(name),
                 normalizedTenantCode,
                 currentTenant.getStatus(),
@@ -109,7 +109,7 @@ public class TenantApplicationService {
         return new TenantDTO(
                 tenant.getId(),
                 tenant.getName(),
-                tenant.getTenantCode().value(),
+                TenantCodeCodec.toValue(tenant.getTenantCode()),
                 tenant.getStatus().value(),
                 tenant.getExpiredAt());
     }

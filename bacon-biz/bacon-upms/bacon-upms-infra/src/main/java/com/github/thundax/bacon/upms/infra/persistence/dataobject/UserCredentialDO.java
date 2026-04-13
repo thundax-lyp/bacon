@@ -4,12 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,16 +18,16 @@ import lombok.NoArgsConstructor;
 public class UserCredentialDO {
 
     @TableId(type = IdType.INPUT)
-    private UserCredentialId id;
+    private Long id;
 
     @TableField("tenant_id")
-    private TenantId tenantId;
+    private Long tenantId;
 
     @TableField("user_id")
-    private UserId userId;
+    private Long userId;
 
     @TableField("identity_id")
-    private UserIdentityId identityId;
+    private Long identityId;
 
     @TableField("credential_type")
     private String credentialType;
@@ -58,11 +54,11 @@ public class UserCredentialDO {
     private String lockReason;
 
     @TableField("locked_until")
-    private LocalDateTime lockedUntil;
+    private Instant lockedUntil;
 
     @TableField("expires_at")
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 
     @TableField("last_verified_at")
-    private LocalDateTime lastVerifiedAt;
+    private Instant lastVerifiedAt;
 }

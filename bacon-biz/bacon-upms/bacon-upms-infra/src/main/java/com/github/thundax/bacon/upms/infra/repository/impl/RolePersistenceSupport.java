@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -72,18 +72,18 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.idGenerator = idGenerator;
     }
 
-    Optional<Role> findRoleById(TenantId tenantId, RoleId roleId) {
+    Optional<Role> findRoleById(RoleId roleId) {
+        requireTenantId();
         return Optional.ofNullable(roleMapper.selectOne(Wrappers.<RoleDO>lambdaQuery()
-                        .eq(RoleDO::getTenantId, tenantId)
-                        .eq(RoleDO::getId, roleId)))
+                        .eq(RoleDO::getId, roleId.value())))
                 .map(RolePersistenceAssembler::toDomain);
     }
 
-    List<Role> findRolesByUserId(TenantId tenantId, UserId userId) {
-        List<RoleId> roleIds = userRoleRelMapper
+    List<Role> findRolesByUserId(UserId userId) {
+        requireTenantId();
+        List<Long> roleIds = userRoleRelMapper
                 .selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
-                        .eq(UserRoleRelDO::getTenantId, tenantId)
-                        .eq(UserRoleRelDO::getUserId, userId))
+                        .eq(UserRoleRelDO::getUserId, userId.value()))
                 .stream()
                 .map(UserRoleRelDO::getRoleId)
                 .toList();
@@ -92,7 +92,6 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
         return roleMapper
                 .selectList(Wrappers.<RoleDO>lambdaQuery()
-                        .eq(RoleDO::getTenantId, tenantId)
                         .in(RoleDO::getId, roleIds)
                         .orderByAsc(RoleDO::getId))
                 .stream()
@@ -103,10 +102,10 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     List<UserId> findAssignedUserIds(TenantId tenantId, RoleId roleId) {
         return userRoleRelMapper
                 .selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
-                        .eq(UserRoleRelDO::getTenantId, tenantId)
-                        .eq(UserRoleRelDO::getRoleId, roleId))
+                        .eq(UserRoleRelDO::getRoleId, roleId.value()))
                 .stream()
                 .map(UserRoleRelDO::getUserId)
+                .map(UserId::of)
                 .distinct()
                 .toList();
     }
@@ -135,6 +134,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     Role saveRole(Role role) {
+        TenantId tenantId = requireTenantId();
         RoleDO roleDO = RolePersistenceAssembler.toDataObject(role);
         boolean exists = roleDO.getId() != null && roleMapper.selectById(roleDO.getId()) != null;
         if (!exists) {
@@ -142,77 +142,76 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         } else {
             roleMapper.updateById(roleDO);
         }
-        upsertDataPermissionRule(roleDO.getTenantId(), roleDO.getId(), RoleDataScopeType.from(roleDO.getDataScopeType()));
+        upsertDataPermissionRule(TenantId.of(roleDO.getTenantId()), RoleId.of(roleDO.getId()), RoleDataScopeType.from(roleDO.getDataScopeType()));
         return RolePersistenceAssembler.toDomain(roleDO);
     }
 
-    void deleteRole(TenantId tenantId, RoleId roleId) {
-        roleMapper.delete(
-                Wrappers.<RoleDO>lambdaQuery().eq(RoleDO::getTenantId, tenantId).eq(RoleDO::getId, roleId));
-        userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery()
-                .eq(UserRoleRelDO::getTenantId, tenantId)
-                .eq(UserRoleRelDO::getRoleId, roleId));
-        roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery()
-                .eq(RoleMenuRelDO::getTenantId, tenantId)
-                .eq(RoleMenuRelDO::getRoleId, roleId));
-        roleResourceRelMapper.delete(Wrappers.<RoleResourceRelDO>lambdaQuery()
-                .eq(RoleResourceRelDO::getTenantId, tenantId)
-                .eq(RoleResourceRelDO::getRoleId, roleId));
-        roleDataScopeRelMapper.delete(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
-                .eq(RoleDataScopeRelDO::getTenantId, tenantId)
-                .eq(RoleDataScopeRelDO::getRoleId, roleId));
-        dataPermissionRuleMapper.delete(Wrappers.<DataPermissionRuleDO>lambdaQuery()
-                .eq(DataPermissionRuleDO::getTenantId, tenantId)
-                .eq(DataPermissionRuleDO::getRoleId, roleId));
+    void deleteRole(RoleId roleId) {
+        requireTenantId();
+        roleMapper.delete(Wrappers.<RoleDO>lambdaQuery().eq(RoleDO::getId, roleId.value()));
+        userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getRoleId, roleId.value()));
+        roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getRoleId, roleId.value()));
+        roleResourceRelMapper.delete(
+                Wrappers.<RoleResourceRelDO>lambdaQuery().eq(RoleResourceRelDO::getRoleId, roleId.value()));
+        roleDataScopeRelMapper.delete(
+                Wrappers.<RoleDataScopeRelDO>lambdaQuery().eq(RoleDataScopeRelDO::getRoleId, roleId.value()));
+        dataPermissionRuleMapper.delete(
+                Wrappers.<DataPermissionRuleDO>lambdaQuery().eq(DataPermissionRuleDO::getRoleId, roleId.value()));
     }
 
-    void replaceUserRoles(TenantId tenantId, UserId userId, Collection<RoleId> roleIds) {
-        userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery()
-                .eq(UserRoleRelDO::getTenantId, tenantId)
-                .eq(UserRoleRelDO::getUserId, userId));
+    void replaceUserRoles(UserId userId, Collection<RoleId> roleIds) {
+        TenantId tenantId = requireTenantId();
+        userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getUserId, userId.value()));
         if (roleIds == null || roleIds.isEmpty()) {
             return;
         }
         for (RoleId roleId : new LinkedHashSet<>(roleIds)) {
             userRoleRelMapper.insert(
-                    new UserRoleRelDO(idGenerator.nextId(USER_ROLE_REL_ID_BIZ_TAG), tenantId, userId, roleId));
+                    new UserRoleRelDO(
+                            idGenerator.nextId(USER_ROLE_REL_ID_BIZ_TAG),
+                            tenantId.value(),
+                            userId.value(),
+                            roleId.value()));
         }
     }
 
-    void deleteUserRolesByUser(TenantId tenantId, UserId userId) {
-        userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery()
-                .eq(UserRoleRelDO::getTenantId, tenantId)
-                .eq(UserRoleRelDO::getUserId, userId));
+    void deleteUserRolesByUser(UserId userId) {
+        requireTenantId();
+        userRoleRelMapper.delete(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getUserId, userId.value()));
     }
 
-    Set<MenuId> getAssignedMenuIds(TenantId tenantId, RoleId roleId) {
+    Set<MenuId> getAssignedMenuIds(RoleId roleId) {
+        requireTenantId();
         return roleMenuRelMapper
                 .selectList(Wrappers.<RoleMenuRelDO>lambdaQuery()
-                        .eq(RoleMenuRelDO::getTenantId, tenantId)
-                        .eq(RoleMenuRelDO::getRoleId, roleId))
+                        .eq(RoleMenuRelDO::getRoleId, roleId.value()))
                 .stream()
                 .map(RoleMenuRelDO::getMenuId)
+                .map(MenuId::of)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    void replaceRoleMenus(TenantId tenantId, RoleId roleId, Collection<MenuId> menuIds) {
-        roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery()
-                .eq(RoleMenuRelDO::getTenantId, tenantId)
-                .eq(RoleMenuRelDO::getRoleId, roleId));
+    void replaceRoleMenus(RoleId roleId, Collection<MenuId> menuIds) {
+        TenantId tenantId = requireTenantId();
+        roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getRoleId, roleId.value()));
         if (menuIds == null || menuIds.isEmpty()) {
             return;
         }
         for (MenuId menuId : new LinkedHashSet<>(menuIds)) {
             roleMenuRelMapper.insert(
-                    new RoleMenuRelDO(idGenerator.nextId(ROLE_MENU_REL_ID_BIZ_TAG), tenantId, roleId, menuId));
+                    new RoleMenuRelDO(
+                            idGenerator.nextId(ROLE_MENU_REL_ID_BIZ_TAG),
+                            tenantId.value(),
+                            roleId.value(),
+                            menuId.value()));
         }
     }
 
-    Set<String> getAssignedResourceCodes(TenantId tenantId, RoleId roleId) {
-        List<ResourceId> resourceIds = roleResourceRelMapper
+    Set<String> getAssignedResourceCodes(RoleId roleId) {
+        requireTenantId();
+        List<Long> resourceIds = roleResourceRelMapper
                 .selectList(Wrappers.<RoleResourceRelDO>lambdaQuery()
-                        .eq(RoleResourceRelDO::getTenantId, tenantId)
-                        .eq(RoleResourceRelDO::getRoleId, roleId))
+                        .eq(RoleResourceRelDO::getRoleId, roleId.value()))
                 .stream()
                 .map(RoleResourceRelDO::getResourceId)
                 .toList();
@@ -221,81 +220,87 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
         return resourceMapper
                 .selectList(Wrappers.<ResourceDO>lambdaQuery()
-                        .eq(ResourceDO::getTenantId, tenantId)
                         .in(ResourceDO::getId, resourceIds))
                 .stream()
                 .map(ResourceDO::getCode)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    void replaceRoleResources(TenantId tenantId, RoleId roleId, Collection<String> resourceCodes) {
-        roleResourceRelMapper.delete(Wrappers.<RoleResourceRelDO>lambdaQuery()
-                .eq(RoleResourceRelDO::getTenantId, tenantId)
-                .eq(RoleResourceRelDO::getRoleId, roleId));
+    void replaceRoleResources(RoleId roleId, Collection<String> resourceCodes) {
+        TenantId tenantId = requireTenantId();
+        roleResourceRelMapper.delete(
+                Wrappers.<RoleResourceRelDO>lambdaQuery().eq(RoleResourceRelDO::getRoleId, roleId.value()));
         if (resourceCodes == null || resourceCodes.isEmpty()) {
             return;
         }
-        List<ResourceDO> resources = resourceMapper.selectList(Wrappers.<ResourceDO>lambdaQuery()
-                .eq(ResourceDO::getTenantId, tenantId)
-                .in(ResourceDO::getCode, new LinkedHashSet<>(resourceCodes)));
+        List<ResourceDO> resources = resourceMapper.selectList(
+                Wrappers.<ResourceDO>lambdaQuery().in(ResourceDO::getCode, new LinkedHashSet<>(resourceCodes)));
         for (ResourceDO resource : resources) {
             roleResourceRelMapper.insert(new RoleResourceRelDO(
-                    idGenerator.nextId(ROLE_RESOURCE_REL_ID_BIZ_TAG), tenantId, roleId, resource.getId()));
+                    idGenerator.nextId(ROLE_RESOURCE_REL_ID_BIZ_TAG),
+                    tenantId.value(),
+                    roleId.value(),
+                    resource.getId()));
         }
     }
 
-    String getAssignedDataScopeType(TenantId tenantId, RoleId roleId) {
+    String getAssignedDataScopeType(RoleId roleId) {
+        requireTenantId();
         return Optional.ofNullable(dataPermissionRuleMapper.selectOne(Wrappers.<DataPermissionRuleDO>lambdaQuery()
-                        .eq(DataPermissionRuleDO::getTenantId, tenantId)
-                        .eq(DataPermissionRuleDO::getRoleId, roleId)))
+                        .eq(DataPermissionRuleDO::getRoleId, roleId.value())))
                 .map(DataPermissionRuleDO::getDataScopeType)
                 .orElse("SELF");
     }
 
-    Set<DepartmentId> getAssignedDataScopeDepartments(TenantId tenantId, RoleId roleId) {
+    Set<DepartmentId> getAssignedDataScopeDepartments(RoleId roleId) {
+        requireTenantId();
         return roleDataScopeRelMapper
                 .selectList(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
-                        .eq(RoleDataScopeRelDO::getTenantId, tenantId)
-                        .eq(RoleDataScopeRelDO::getRoleId, roleId))
+                        .eq(RoleDataScopeRelDO::getRoleId, roleId.value()))
                 .stream()
                 .map(RoleDataScopeRelDO::getDepartmentId)
+                .map(DepartmentId::of)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    void replaceRoleDataScope(
-            TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType, Collection<DepartmentId> departmentIds) {
+    void replaceRoleDataScope(RoleId roleId, RoleDataScopeType dataScopeType, Collection<DepartmentId> departmentIds) {
+        TenantId tenantId = requireTenantId();
         upsertDataPermissionRule(tenantId, roleId, dataScopeType);
-        roleDataScopeRelMapper.delete(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
-                .eq(RoleDataScopeRelDO::getTenantId, tenantId)
-                .eq(RoleDataScopeRelDO::getRoleId, roleId));
+        roleDataScopeRelMapper.delete(
+                Wrappers.<RoleDataScopeRelDO>lambdaQuery().eq(RoleDataScopeRelDO::getRoleId, roleId.value()));
         if (departmentIds == null || departmentIds.isEmpty()) {
             return;
         }
         for (DepartmentId departmentId : new LinkedHashSet<>(departmentIds)) {
             roleDataScopeRelMapper.insert(new RoleDataScopeRelDO(
-                    idGenerator.nextId(ROLE_DATA_SCOPE_REL_ID_BIZ_TAG), tenantId, roleId, departmentId));
+                    idGenerator.nextId(ROLE_DATA_SCOPE_REL_ID_BIZ_TAG),
+                    tenantId.value(),
+                    roleId.value(),
+                    departmentId.value()));
         }
     }
 
-    void removeMenuFromAssignments(TenantId tenantId, MenuId menuId) {
-        roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery()
-                .eq(RoleMenuRelDO::getTenantId, tenantId)
-                .eq(RoleMenuRelDO::getMenuId, menuId));
+    void removeMenuFromAssignments(MenuId menuId) {
+        requireTenantId();
+        roleMenuRelMapper.delete(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getMenuId, menuId.value()));
     }
 
     private void upsertDataPermissionRule(TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType) {
         DataPermissionRuleDO existing = dataPermissionRuleMapper.selectOne(Wrappers.<DataPermissionRuleDO>lambdaQuery()
-                .eq(DataPermissionRuleDO::getTenantId, tenantId)
-                .eq(DataPermissionRuleDO::getRoleId, roleId));
+                .eq(DataPermissionRuleDO::getRoleId, roleId.value()));
         if (existing == null) {
             dataPermissionRuleMapper.insert(new DataPermissionRuleDO(
                     idGenerator.nextId(DATA_PERMISSION_RULE_ID_BIZ_TAG),
-                    tenantId,
-                    roleId,
+                    tenantId.value(),
+                    roleId.value(),
                     dataScopeType == null ? null : dataScopeType.value()));
             return;
         }
         existing.setDataScopeType(dataScopeType == null ? null : dataScopeType.value());
         dataPermissionRuleMapper.updateById(existing);
+    }
+
+    private TenantId requireTenantId() {
+        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

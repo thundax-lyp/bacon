@@ -2,8 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
-import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -32,8 +31,6 @@ import org.springframework.stereotype.Repository;
 public class UserRepositoryImpl implements UserRepository {
 
     private static final String DEFAULT_PASSWORD = "123456";
-    private static final String USER_IDENTITY_ID_BIZ_TAG = "user-identity-id";
-    private static final String USER_CREDENTIAL_ID_BIZ_TAG = "user-credential-id";
     private static final UserCredentialType PASSWORD_CREDENTIAL_TYPE = UserCredentialType.PASSWORD;
     private static final UserCredentialFactorLevel PRIMARY_FACTOR_LEVEL = UserCredentialFactorLevel.PRIMARY;
     private static final int PASSWORD_FAILED_LIMIT = 5;
@@ -44,50 +41,41 @@ public class UserRepositoryImpl implements UserRepository {
     private final RoleRepositoryImpl roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final UpmsPermissionCacheSupport cacheSupport;
-    private final Ids ids;
-    private final IdGenerator idGenerator;
 
     public UserRepositoryImpl(
             UserPersistenceSupport support,
             RoleRepositoryImpl roleRepository,
             PasswordEncoder passwordEncoder,
-            UpmsPermissionCacheSupport cacheSupport,
-            Ids ids,
-            IdGenerator idGenerator) {
+            UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.cacheSupport = cacheSupport;
-        this.ids = ids;
-        this.idGenerator = idGenerator;
     }
 
     @Override
-    public Optional<User> findUserById(TenantId tenantId, UserId userId) {
-        return support.findUserById(tenantId, userId);
+    public Optional<User> findUserById(UserId userId) {
+        return support.findUserById(userId);
     }
 
     @Override
-    public Optional<User> findUserByAccount(TenantId tenantId, String account) {
-        return support.findUserByAccount(tenantId, account);
+    public Optional<User> findUserByAccount(String account) {
+        return support.findUserByAccount(account);
     }
 
     @Override
-    public Optional<UserIdentity> findUserIdentity(
-            TenantId tenantId, UserIdentityType identityType, String identityValue) {
-        return support.findUserIdentity(tenantId, identityType, identityValue);
+    public Optional<UserIdentity> findUserIdentity(UserIdentityType identityType, String identityValue) {
+        return support.findUserIdentity(identityType, identityValue);
     }
 
     @Override
-    public Optional<UserIdentity> findUserIdentityByUserId(
-            TenantId tenantId, UserId userId, UserIdentityType identityType) {
-        return support.findUserIdentityByUserId(tenantId, userId, identityType);
+    public Optional<UserIdentity> findUserIdentityByUserId(UserId userId, UserIdentityType identityType) {
+        return support.findUserIdentityByUserId(userId, identityType);
     }
 
     @Override
-    public Optional<UserCredential> findUserCredential(
-            TenantId tenantId, UserId userId, UserCredentialType credentialType) {
-        return support.findUserCredential(tenantId, userId, credentialType);
+    public Optional<UserCredential> findUserCredential(UserId userId, UserCredentialType credentialType) {
+        return support.findUserCredential(userId, credentialType);
     }
 
     @Override
@@ -106,39 +94,64 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User save(User user, String account, String phone) {
-        boolean newUser = user.getId() == null;
-        User savedUser = user.getId() == null ? createUser(user) : updateUser(user);
+    public User save(
+            User user,
+            String account,
+            String phone,
+            UserIdentityId accountIdentityId,
+            UserIdentityId phoneIdentityId,
+            UserCredentialId passwordCredentialIdIfAbsent) {
+        TenantId tenantId = requireTenantId();
+        boolean newUser = user.getId() == null || support.findUserById(user.getId()).isEmpty();
+        User savedUser = updateUser(user);
         savedUser = support.saveUser(savedUser);
-        UserIdentity accountIdentity = replaceAccountIdentity(savedUser, account);
-        upsertPasswordCredential(savedUser, accountIdentity, resolvePasswordHash(savedUser, newUser), newUser, false);
-        replacePhoneIdentity(savedUser, phone);
+        UserIdentity accountIdentity = replaceAccountIdentity(tenantId, savedUser, account, accountIdentityId);
+        upsertPasswordCredential(
+                tenantId,
+                savedUser,
+                accountIdentity,
+                resolvePasswordHash(tenantId, savedUser, newUser),
+                newUser,
+                false,
+                passwordCredentialIdIfAbsent);
+        replacePhoneIdentity(tenantId, savedUser, phone, phoneIdentityId);
         return savedUser;
     }
 
     @Override
-    public User updatePassword(TenantId tenantId, UserId userId, String password, boolean needChangePassword) {
-        User currentUser = findUserById(tenantId, userId)
+    public User updatePassword(
+            UserId userId,
+            String password,
+            boolean needChangePassword,
+            UserCredentialId passwordCredentialIdIfAbsent) {
+        TenantId tenantId = requireTenantId();
+        User currentUser = findUserById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
-        User updatedUser = User.reconstruct(
+        User updatedUser = User.create(
                 currentUser.getId(),
-                currentUser.getTenantId(),
                 currentUser.getName(),
                 currentUser.getAvatarObjectId(),
                 currentUser.getDepartmentId(),
                 currentUser.getStatus());
         User savedUser = support.saveUser(updatedUser);
-        UserIdentity accountIdentity = requireUserIdentity(tenantId, userId, UserIdentityType.ACCOUNT);
+        UserIdentity accountIdentity = requireUserIdentity(userId, UserIdentityType.ACCOUNT);
         upsertPasswordCredential(
-                savedUser, accountIdentity, passwordEncoder.encode(password), false, needChangePassword);
+                tenantId,
+                savedUser,
+                accountIdentity,
+                passwordEncoder.encode(password),
+                false,
+                needChangePassword,
+                passwordCredentialIdIfAbsent);
         return savedUser;
     }
 
     @Override
-    public List<Role> assignRoles(TenantId tenantId, UserId userId, List<RoleId> roleIds) {
+    public List<Role> assignRoles(UserId userId, List<RoleId> roleIds) {
+        TenantId tenantId = requireTenantId();
         List<Role> roles = roleIds.stream()
                 .map(roleId -> roleRepository
-                        .findRoleById(tenantId, roleId)
+                        .findRoleById(roleId)
                         .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value())))
                 .toList();
         roleRepository.bindUserRoles(tenantId, userId, roles);
@@ -147,53 +160,40 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void deleteUser(TenantId tenantId, UserId userId) {
-        support.deleteUser(tenantId, userId);
+    public void deleteUser(UserId userId) {
+        TenantId tenantId = requireTenantId();
+        support.deleteUser(userId);
         roleRepository.clearUserRoles(tenantId, userId);
         support.deleteUserIdentitiesByUser(tenantId, userId);
         support.deleteUserCredentialsByUser(tenantId, userId);
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 
-    private User createUser(User user) {
-        return User.create(
-                ids.userId(),
-                user.getTenantId(),
-                user.getName(),
-                user.getAvatarObjectId(),
-                user.getDepartmentId(),
-                user.getStatus());
-    }
-
     private User updateUser(User user) {
-        User currentUser = findUserById(user.getTenantId(), user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + user.getId()));
-        return User.reconstruct(
-                currentUser.getId(),
-                user.getTenantId(),
+        return User.create(
+                user.getId(),
                 user.getName(),
                 user.getAvatarObjectId(),
                 user.getDepartmentId(),
                 user.getStatus());
     }
 
-    private UserIdentity replaceAccountIdentity(User user, String account) {
-        support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.ACCOUNT);
+    private UserIdentity replaceAccountIdentity(
+            TenantId tenantId, User user, String account, UserIdentityId accountIdentityId) {
+        support.deleteUserIdentitiesByUserAndType(tenantId, user.getId(), UserIdentityType.ACCOUNT);
         return support.saveUserIdentity(UserIdentity.create(
-                nextUserIdentityId(),
-                user.getTenantId(),
+                accountIdentityId,
                 user.getId(),
                 UserIdentityType.ACCOUNT,
                 requireIdentityValue(account, UserIdentityType.ACCOUNT),
                 ACTIVE_IDENTITY_STATUS));
     }
 
-    private void replacePhoneIdentity(User user, String phone) {
-        support.deleteUserIdentitiesByUserAndType(user.getTenantId(), user.getId(), UserIdentityType.PHONE);
+    private void replacePhoneIdentity(TenantId tenantId, User user, String phone, UserIdentityId phoneIdentityId) {
+        support.deleteUserIdentitiesByUserAndType(tenantId, user.getId(), UserIdentityType.PHONE);
         if (phone != null && !phone.isBlank()) {
             support.saveUserIdentity(UserIdentity.create(
-                    nextUserIdentityId(),
-                    user.getTenantId(),
+                    phoneIdentityId,
                     user.getId(),
                     UserIdentityType.PHONE,
                     phone.trim(),
@@ -201,8 +201,8 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
-    private UserIdentity requireUserIdentity(TenantId tenantId, UserId userId, UserIdentityType identityType) {
-        return support.findUserIdentityByUserId(tenantId, userId, identityType)
+    private UserIdentity requireUserIdentity(UserId userId, UserIdentityType identityType) {
+        return support.findUserIdentityByUserId(userId, identityType)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "User identity not found: " + userId + "/" + identityType.value()));
     }
@@ -214,23 +214,27 @@ public class UserRepositoryImpl implements UserRepository {
         return identityValue.trim();
     }
 
-    private String resolvePasswordHash(User user, boolean newUser) {
+    private String resolvePasswordHash(TenantId tenantId, User user, boolean newUser) {
         if (newUser) {
             return passwordEncoder.encode(DEFAULT_PASSWORD);
         }
-        return support.findUserCredential(user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
+        return support.findUserCredential(user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .map(UserCredential::getCredentialValue)
                 .orElseGet(() -> passwordEncoder.encode(DEFAULT_PASSWORD));
     }
 
     private void upsertPasswordCredential(
-            User user, UserIdentity accountIdentity, String passwordHash, boolean newUser, boolean needChangePassword) {
-        UserCredential currentCredential = support.findUserCredential(
-                        user.getTenantId(), user.getId(), PASSWORD_CREDENTIAL_TYPE)
+            TenantId tenantId,
+            User user,
+            UserIdentity accountIdentity,
+            String passwordHash,
+            boolean newUser,
+            boolean needChangePassword,
+            UserCredentialId passwordCredentialIdIfAbsent) {
+        UserCredential currentCredential = support.findUserCredential(user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .orElse(null);
         support.saveUserCredential(UserCredential.create(
-                currentCredential == null ? nextUserCredentialId() : currentCredential.getId(),
-                user.getTenantId(),
+                currentCredential == null ? passwordCredentialIdIfAbsent : currentCredential.getId(),
                 user.getId(),
                 accountIdentity.getId(),
                 PASSWORD_CREDENTIAL_TYPE,
@@ -246,15 +250,15 @@ public class UserRepositoryImpl implements UserRepository {
                 currentCredential == null ? null : currentCredential.getLastVerifiedAt()));
     }
 
-    private UserIdentityId nextUserIdentityId() {
-        return UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG));
-    }
-
-    private UserCredentialId nextUserCredentialId() {
-        return UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG));
-    }
-
     boolean hasActiveUserInDepartment(TenantId tenantId, DepartmentId departmentId) {
-        return support.hasActiveUserInDepartment(tenantId, departmentId);
+        return support.hasActiveUserInDepartment(departmentId);
+    }
+
+    boolean hasActiveUserInDepartment(DepartmentId departmentId) {
+        return support.hasActiveUserInDepartment(departmentId);
+    }
+
+    private TenantId requireTenantId() {
+        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

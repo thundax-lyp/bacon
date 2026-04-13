@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
@@ -46,7 +45,7 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "查询部门树", eventType = LogEventType.QUERY)
     @GetMapping("/tree")
     public List<DepartmentTreeResponse> getDepartmentTree(@CurrentTenant Long tenantId) {
-        return departmentApplicationService.getDepartmentTree(TenantId.of(tenantId)).stream()
+        return departmentApplicationService.getDepartmentTree().stream()
                 .map(DepartmentTreeResponse::from)
                 .toList();
     }
@@ -58,7 +57,6 @@ public class DepartmentController {
     public DepartmentResponse createDepartment(
             @CurrentTenant Long tenantId, @RequestBody DepartmentCreateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.createDepartment(
-                TenantId.of(tenantId),
                 request.code(),
                 request.name(),
                 request.parentId(),
@@ -71,8 +69,8 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "查询部门详情", eventType = LogEventType.QUERY)
     @GetMapping("/{departmentId}")
     public DepartmentResponse getDepartmentById(@CurrentTenant Long tenantId, @PathVariable String departmentId) {
-        return DepartmentResponse.from(departmentApplicationService.getDepartmentById(
-                TenantId.of(tenantId), DepartmentId.of(Long.parseLong(departmentId.trim()))));
+        return DepartmentResponse.from(
+                departmentApplicationService.getDepartmentById(DepartmentId.of(Long.parseLong(departmentId.trim()))));
     }
 
     @Operation(summary = "按部门编码查询部门")
@@ -80,8 +78,7 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "按编码查询部门", eventType = LogEventType.QUERY)
     @GetMapping("/code/{departmentCode}")
     public DepartmentResponse getDepartmentByCode(@CurrentTenant Long tenantId, @PathVariable String departmentCode) {
-        return DepartmentResponse.from(
-                departmentApplicationService.getDepartmentByCode(TenantId.of(tenantId), departmentCode));
+        return DepartmentResponse.from(departmentApplicationService.getDepartmentByCode(departmentCode));
     }
 
     @Operation(summary = "批量查询部门")
@@ -98,7 +95,7 @@ public class DepartmentController {
                         .map(Long::parseLong)
                         .map(DepartmentId::of)
                         .collect(Collectors.toSet());
-        return departmentApplicationService.listDepartmentsByIds(TenantId.of(tenantId), departmentIds).stream()
+        return departmentApplicationService.listDepartmentsByIds(departmentIds).stream()
                 .map(DepartmentResponse::from)
                 .toList();
     }
@@ -112,7 +109,6 @@ public class DepartmentController {
             @PathVariable String departmentId,
             @RequestBody DepartmentUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartment(
-                TenantId.of(tenantId),
                 DepartmentId.of(Long.parseLong(departmentId.trim())),
                 request.code(),
                 request.name(),
@@ -130,7 +126,7 @@ public class DepartmentController {
             @PathVariable String departmentId,
             @RequestBody DepartmentSortUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartmentSort(
-                TenantId.of(tenantId), DepartmentId.of(Long.parseLong(departmentId.trim())), request.sort()));
+                DepartmentId.of(Long.parseLong(departmentId.trim())), request.sort()));
     }
 
     @Operation(summary = "删除部门")
@@ -138,7 +134,6 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "删除部门", eventType = LogEventType.DELETE)
     @DeleteMapping("/{departmentId}")
     public void deleteDepartment(@CurrentTenant Long tenantId, @PathVariable String departmentId) {
-        departmentApplicationService.deleteDepartment(
-                TenantId.of(tenantId), DepartmentId.of(Long.parseLong(departmentId.trim())));
+        departmentApplicationService.deleteDepartment(DepartmentId.of(Long.parseLong(departmentId.trim())));
     }
 }

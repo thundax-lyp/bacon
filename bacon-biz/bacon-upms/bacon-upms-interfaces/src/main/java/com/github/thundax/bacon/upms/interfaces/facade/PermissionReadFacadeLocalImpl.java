@@ -1,11 +1,10 @@
 package com.github.thundax.bacon.upms.interfaces.facade;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
-import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import java.util.List;
 import java.util.Set;
@@ -18,31 +17,26 @@ import org.springframework.stereotype.Component;
 public class PermissionReadFacadeLocalImpl implements PermissionReadFacade {
 
     private final PermissionQueryApplicationService permissionQueryService;
-    private final TenantApplicationService tenantApplicationService;
 
-    public PermissionReadFacadeLocalImpl(
-            PermissionQueryApplicationService permissionQueryService,
-            TenantApplicationService tenantApplicationService) {
+    public PermissionReadFacadeLocalImpl(PermissionQueryApplicationService permissionQueryService) {
         this.permissionQueryService = permissionQueryService;
-        this.tenantApplicationService = tenantApplicationService;
     }
 
     @Override
-    public List<UserMenuTreeDTO> getUserMenuTree(@NonNull TenantId tenantId, @NonNull UserId userId) {
-        return permissionQueryService.getUserMenuTree(resolveExistingTenantId(tenantId), userId);
+    public List<UserMenuTreeDTO> getUserMenuTree(@NonNull UserId userId) {
+        BaconContextHolder.requireTenantId();
+        return permissionQueryService.getUserMenuTree(userId);
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(@NonNull TenantId tenantId, @NonNull UserId userId) {
-        return permissionQueryService.getUserPermissionCodes(resolveExistingTenantId(tenantId), userId);
+    public Set<String> getUserPermissionCodes(@NonNull UserId userId) {
+        BaconContextHolder.requireTenantId();
+        return permissionQueryService.getUserPermissionCodes(userId);
     }
 
     @Override
-    public UserDataScopeDTO getUserDataScope(@NonNull TenantId tenantId, @NonNull UserId userId) {
-        return permissionQueryService.getUserDataScope(resolveExistingTenantId(tenantId), userId);
-    }
-
-    private TenantId resolveExistingTenantId(TenantId tenantId) {
-        return tenantApplicationService.getTenantByTenantId(tenantId.value()).getId();
+    public UserDataScopeDTO getUserDataScope(@NonNull UserId userId) {
+        BaconContextHolder.requireTenantId();
+        return permissionQueryService.getUserDataScope(userId);
     }
 }

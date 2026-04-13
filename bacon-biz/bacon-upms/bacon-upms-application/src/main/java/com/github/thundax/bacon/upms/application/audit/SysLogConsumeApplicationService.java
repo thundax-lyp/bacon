@@ -23,7 +23,6 @@ public class SysLogConsumeApplicationService {
     public void consume(SysLogDTO sysLogDTO) {
         SysLogRecord sysLogRecord = SysLogRecord.create(
                 idGenerator.nextId(SYS_LOG_ID_BIZ_TAG),
-                sysLogDTO.getTenantId(),
                 sysLogDTO.getTraceId(),
                 sysLogDTO.getRequestId(),
                 sysLogDTO.getModule(),

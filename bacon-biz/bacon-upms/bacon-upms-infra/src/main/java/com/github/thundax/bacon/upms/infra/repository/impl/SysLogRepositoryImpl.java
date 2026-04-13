@@ -74,7 +74,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
                         nullSafe(sysLogRecord.getAction()),
                         nullSafe(sysLogRecord.getEventType()),
                         nullSafe(sysLogRecord.getResult()),
-                        nullSafe(sysLogRecord.getTenantId()),
+                        "",
                         nullSafe(sysLogRecord.getOperatorId()),
                         nullSafe(sysLogRecord.getOperatorName()),
                         nullSafe(sysLogRecord.getClientIp()),

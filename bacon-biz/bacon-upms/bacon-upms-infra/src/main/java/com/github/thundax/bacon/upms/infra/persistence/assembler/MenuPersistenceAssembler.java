@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.persistence.assembler;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.MenuDO;
@@ -11,11 +12,11 @@ public final class MenuPersistenceAssembler {
 
     public static MenuDO toDataObject(Menu menu) {
         return new MenuDO(
-                menu.getId(),
-                menu.getTenantId(),
+                menu.getId() == null ? null : menu.getId().value(),
+                BaconContextHolder.requireTenantId(),
                 menu.getMenuType(),
                 menu.getName(),
-                menu.getParentId(),
+                menu.getParentId() == null ? null : menu.getParentId().value(),
                 menu.getRoutePath(),
                 menu.getComponentName(),
                 menu.getIcon(),
@@ -24,10 +25,9 @@ public final class MenuPersistenceAssembler {
     }
 
     public static Menu toDomain(MenuDO dataObject) {
-        MenuId parentId = dataObject.getParentId();
+        MenuId parentId = dataObject.getParentId() == null ? null : MenuId.of(dataObject.getParentId());
         return Menu.reconstruct(
-                dataObject.getId(),
-                dataObject.getTenantId(),
+                dataObject.getId() == null ? null : MenuId.of(dataObject.getId()),
                 dataObject.getMenuType(),
                 dataObject.getName(),
                 parentId,

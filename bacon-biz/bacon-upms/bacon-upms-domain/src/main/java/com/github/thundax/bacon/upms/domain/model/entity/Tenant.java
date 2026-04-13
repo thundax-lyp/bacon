@@ -41,4 +41,12 @@ public class Tenant {
             TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
         return new Tenant(id, name, tenantCode, status, expiredAt);
     }
+
+    public Tenant update(String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(tenantCode, "tenantCode must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new Tenant(id, name, tenantCode, status, expiredAt);
+    }
 }

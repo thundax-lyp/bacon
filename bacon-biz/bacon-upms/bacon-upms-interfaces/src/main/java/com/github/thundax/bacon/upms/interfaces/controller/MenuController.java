@@ -1,10 +1,8 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuCreateRequest;
@@ -39,8 +37,8 @@ public class MenuController {
     @HasPermission("sys:menu:view")
     @SysLog(module = "UPMS", action = "查询菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/tree")
-    public List<MenuTreeResponse> getMenuTree(@CurrentTenant Long tenantId) {
-        return menuApplicationService.getMenuTree(TenantId.of(tenantId)).stream()
+    public List<MenuTreeResponse> getMenuTree() {
+        return menuApplicationService.getMenuTree().stream()
                 .map(MenuTreeResponse::from)
                 .toList();
     }
@@ -49,9 +47,8 @@ public class MenuController {
     @HasPermission("sys:menu:create")
     @SysLog(module = "UPMS", action = "创建菜单", eventType = LogEventType.CREATE)
     @PostMapping
-    public MenuTreeResponse createMenu(@CurrentTenant Long tenantId, @RequestBody MenuCreateRequest request) {
+    public MenuTreeResponse createMenu(@RequestBody MenuCreateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.createMenu(
-                TenantId.of(tenantId),
                 request.menuType(),
                 request.name(),
                 request.parentId(),
@@ -66,10 +63,8 @@ public class MenuController {
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "修改菜单", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}")
-    public MenuTreeResponse updateMenu(
-            @CurrentTenant Long tenantId, @PathVariable String menuId, @RequestBody MenuUpdateRequest request) {
+    public MenuTreeResponse updateMenu(@PathVariable String menuId, @RequestBody MenuUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenu(
-                TenantId.of(tenantId),
                 menuId,
                 request.menuType(),
                 request.name(),
@@ -85,17 +80,15 @@ public class MenuController {
     @HasPermission("sys:menu:delete")
     @SysLog(module = "UPMS", action = "删除菜单", eventType = LogEventType.DELETE)
     @DeleteMapping("/{menuId}")
-    public void deleteMenu(@CurrentTenant Long tenantId, @PathVariable String menuId) {
-        menuApplicationService.deleteMenu(TenantId.of(tenantId), menuId);
+    public void deleteMenu(@PathVariable String menuId) {
+        menuApplicationService.deleteMenu(menuId);
     }
 
     @Operation(summary = "调整菜单排序")
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "调整菜单排序", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}/sort")
-    public MenuTreeResponse updateSort(
-            @CurrentTenant Long tenantId, @PathVariable String menuId, @RequestBody MenuSortUpdateRequest request) {
-        return MenuTreeResponse.from(
-                menuApplicationService.updateMenuSort(TenantId.of(tenantId), menuId, request.sort()));
+    public MenuTreeResponse updateSort(@PathVariable String menuId, @RequestBody MenuSortUpdateRequest request) {
+        return MenuTreeResponse.from(menuApplicationService.updateMenuSort(menuId, request.sort()));
     }
 }

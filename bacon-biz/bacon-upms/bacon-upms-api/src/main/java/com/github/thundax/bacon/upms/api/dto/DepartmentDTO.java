@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.api.dto;
 
-import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,8 +14,6 @@ public class DepartmentDTO {
 
     /** 部门主键。 */
     private Long id;
-    /** 所属租户主键。 */
-    private Long tenantId;
     /** 部门编码。 */
     private String code;
     /** 部门名称。 */
@@ -27,6 +24,6 @@ public class DepartmentDTO {
     private Long leaderUserId;
     /** 排序值。 */
     private Integer sort;
-    /** 部门状态。 */
-    private EnableStatusEnum status;
+    /** 部门状态，可选值：ENABLED、DISABLED。 */
+    private String status;
 }

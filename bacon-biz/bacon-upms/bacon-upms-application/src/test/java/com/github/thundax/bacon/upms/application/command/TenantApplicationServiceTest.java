@@ -84,6 +84,6 @@ class TenantApplicationServiceTest {
     }
 
     private static Tenant tenant(Long id, String name, String code, TenantStatus status, Instant expiredAt) {
-        return Tenant.reconstruct(TenantId.of(id), name, TenantCode.of(code), status, expiredAt);
+        return Tenant.create(TenantId.of(id), name, TenantCode.of(code), status, expiredAt);
     }
 }

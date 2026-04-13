@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
@@ -21,8 +20,6 @@ public class Role {
 
     /** 角色主键。 */
     private RoleId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 角色编码。 */
     private String code;
     /** 角色名称。 */
@@ -36,29 +33,40 @@ public class Role {
 
     public static Role create(
             RoleId id,
-            TenantId tenantId,
             String code,
             String name,
             RoleType roleType,
             RoleDataScopeType dataScopeType,
             RoleStatus status) {
         Objects.requireNonNull(id, "id must not be null");
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(roleType, "roleType must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new Role(id, tenantId, code, name, roleType, dataScopeType, status);
+        return new Role(id, code, name, roleType, dataScopeType, status);
     }
 
     public static Role reconstruct(
             RoleId id,
-            TenantId tenantId,
             String code,
             String name,
             RoleType roleType,
             RoleDataScopeType dataScopeType,
             RoleStatus status) {
-        return new Role(id, tenantId, code, name, roleType, dataScopeType, status);
+        return new Role(id, code, name, roleType, dataScopeType, status);
+    }
+
+    public Role update(
+            String code,
+            String name,
+            RoleType roleType,
+            RoleDataScopeType dataScopeType,
+            RoleStatus status) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(code, "code must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(roleType, "roleType must not be null");
+        Objects.requireNonNull(status, "status must not be null");
+        return new Role(id, code, name, roleType, dataScopeType, status);
     }
 }

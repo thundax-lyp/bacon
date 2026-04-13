@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.github.thundax.bacon.common.id.domain.OperatorId;
 import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -43,7 +42,7 @@ public class SysLogRecordDO {
     private String result;
 
     @TableField("operator_id")
-    private OperatorId operatorId;
+    private String operatorId;
 
     @TableField("operator_name")
     private String operatorName;

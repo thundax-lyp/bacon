@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -37,61 +38,66 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     @Override
-    public List<Menu> listMenus(TenantId tenantId) {
-        return cacheSupport.getTenantMenuTree(tenantId, () -> buildMenuTree(menuRepository.listMenus(tenantId)));
+    public List<Menu> listMenus() {
+        TenantId tenantId = requireTenantId();
+        return cacheSupport.getTenantMenuTree(tenantId, () -> buildMenuTree(menuRepository.listMenus()));
     }
 
     @Override
-    public List<Menu> getUserMenuTree(TenantId tenantId, UserId userId) {
+    public List<Menu> getUserMenuTree(UserId userId) {
+        TenantId tenantId = requireTenantId();
         return cacheSupport.getUserMenuTree(tenantId, userId, () -> loadUserMenuTree(tenantId, userId));
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(TenantId tenantId, UserId userId) {
+    public Set<String> getUserPermissionCodes(UserId userId) {
+        TenantId tenantId = requireTenantId();
         return cacheSupport.getUserPermissionCodes(tenantId, userId, () -> loadUserPermissionCodes(tenantId, userId));
     }
 
     @Override
-    public Set<DepartmentId> getUserDepartmentIds(TenantId tenantId, UserId userId) {
+    public Set<DepartmentId> getUserDepartmentIds(UserId userId) {
+        TenantId tenantId = requireTenantId();
         return cacheSupport.getUserDepartmentIds(tenantId, userId, () -> loadUserDepartmentIds(tenantId, userId));
     }
 
     @Override
-    public Set<String> getUserScopeTypes(TenantId tenantId, UserId userId) {
+    public Set<String> getUserScopeTypes(UserId userId) {
+        TenantId tenantId = requireTenantId();
         return cacheSupport.getUserScopeTypes(tenantId, userId, () -> loadUserScopeTypes(tenantId, userId));
     }
 
     @Override
-    public boolean hasAllAccess(TenantId tenantId, UserId userId) {
-        return getUserScopeTypes(tenantId, userId).contains("ALL");
+    public boolean hasAllAccess(UserId userId) {
+        return getUserScopeTypes(userId).contains("ALL");
     }
 
     private List<Menu> loadUserMenuTree(TenantId tenantId, UserId userId) {
-        List<Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
+        List<Role> roles = roleRepository.findRolesByUserId(userId);
         if (roles.isEmpty()) {
             return List.of();
         }
         Set<MenuId> menuIds = new HashSet<>();
-        roles.forEach(role -> menuIds.addAll(roleRepository.getAssignedMenus(role.getTenantId(), role.getId())));
+        roles.forEach(role -> menuIds.addAll(roleRepository.getAssignedMenus(role.getId())));
         if (menuIds.isEmpty()) {
             return List.of();
         }
-        List<Menu> menus = menuRepository.listMenus(tenantId).stream()
+        List<Menu> menus = menuRepository.listMenus().stream()
                 .filter(menu -> menuIds.contains(menu.getId()))
                 .toList();
         return buildMenuTree(menus);
     }
 
     private Set<String> loadUserPermissionCodes(TenantId tenantId, UserId userId) {
-        List<Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
+        List<Role> roles = roleRepository.findRolesByUserId(userId);
         if (roles.isEmpty()) {
             return Set.of();
         }
-        Map<MenuId, Menu> menuMap = menuRepository.listMenus(tenantId).stream()
+        Map<MenuId, Menu> menuMap = menuRepository.listMenus().stream()
                 .collect(Collectors.toMap(Menu::getId, menu -> menu));
         Set<String> permissionCodes = new HashSet<>();
         roles.forEach(role -> {
-            roleRepository.getAssignedMenus(role.getTenantId(), role.getId()).forEach(menuId -> {
+            roleRepository.getAssignedMenus(role.getId()).forEach(menuId -> {
                 Menu menu = menuMap.get(menuId);
                 if (menu != null
                         && menu.getPermissionCode() != null
@@ -99,26 +105,22 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                     permissionCodes.add(menu.getPermissionCode());
                 }
             });
-            permissionCodes.addAll(roleRepository.getAssignedResources(role.getTenantId(), role.getId()));
+            permissionCodes.addAll(roleRepository.getAssignedResources(role.getId()));
         });
         return Set.copyOf(permissionCodes);
     }
 
     private Set<DepartmentId> loadUserDepartmentIds(TenantId tenantId, UserId userId) {
         Set<DepartmentId> departmentIds = new HashSet<>();
-        roleRepository
-                .findRolesByUserId(tenantId, userId)
-                .forEach(role -> departmentIds.addAll(
-                        roleRepository.getAssignedDataScopeDepartments(role.getTenantId(), role.getId())));
+        roleRepository.findRolesByUserId(userId)
+                .forEach(role -> departmentIds.addAll(roleRepository.getAssignedDataScopeDepartments(role.getId())));
         return Set.copyOf(departmentIds);
     }
 
     private Set<String> loadUserScopeTypes(TenantId tenantId, UserId userId) {
         Set<String> scopeTypes = new HashSet<>();
-        roleRepository
-                .findRolesByUserId(tenantId, userId)
-                .forEach(role ->
-                        scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getTenantId(), role.getId())));
+        roleRepository.findRolesByUserId(userId)
+                .forEach(role -> scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getId())));
         return Set.copyOf(scopeTypes);
     }
 
@@ -129,9 +131,8 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                         .thenComparing(menu -> menu.getId().value()))
                 .forEach(menu -> menuMap.put(
                         menu.getId(),
-                        Menu.reconstruct(
+                        Menu.create(
                                 menu.getId(),
-                                menu.getTenantId(),
                                 menu.getMenuType(),
                                 menu.getName(),
                                 menu.getParentId(),
@@ -154,5 +155,9 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                     }
                 });
         return roots;
+    }
+
+    private TenantId requireTenantId() {
+        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

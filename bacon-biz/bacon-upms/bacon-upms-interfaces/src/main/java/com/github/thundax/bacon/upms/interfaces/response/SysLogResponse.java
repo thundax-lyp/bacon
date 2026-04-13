@@ -9,8 +9,6 @@ import java.time.Instant;
 public record SysLogResponse(
         /** 日志主键。 */
         Long id,
-        /** 租户编号。 */
-        Long tenantId,
         /** 链路追踪标识。 */
         String traceId,
         /** 请求标识。 */
@@ -43,7 +41,6 @@ public record SysLogResponse(
     public static SysLogResponse from(SysLogDTO dto) {
         return new SysLogResponse(
                 dto.getId(),
-                dto.getTenantId(),
                 dto.getTraceId(),
                 dto.getRequestId(),
                 dto.getModule(),

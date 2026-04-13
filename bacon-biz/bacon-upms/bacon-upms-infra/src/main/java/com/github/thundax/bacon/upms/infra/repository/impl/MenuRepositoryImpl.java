@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
@@ -15,62 +15,44 @@ import org.springframework.stereotype.Repository;
 @Profile("!test")
 public class MenuRepositoryImpl implements MenuRepository {
 
-    private static final String MENU_ID_BIZ_TAG = "menu-id";
-
     private final MenuPersistenceSupport support;
     private final RoleRepositoryImpl roleRepository;
     private final UpmsPermissionCacheSupport cacheSupport;
-    private final IdGenerator idGenerator;
 
     public MenuRepositoryImpl(
             MenuPersistenceSupport support,
             RoleRepositoryImpl roleRepository,
-            UpmsPermissionCacheSupport cacheSupport,
-            IdGenerator idGenerator) {
+            UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;
         this.roleRepository = roleRepository;
         this.cacheSupport = cacheSupport;
-        this.idGenerator = idGenerator;
     }
 
     @Override
-    public List<Menu> listMenus(TenantId tenantId) {
-        return support.listMenus(tenantId);
+    public List<Menu> listMenus() {
+        return support.listMenus();
     }
 
     @Override
-    public Optional<Menu> findMenuById(TenantId tenantId, MenuId menuId) {
-        return support.findMenuById(tenantId, menuId);
+    public Optional<Menu> findMenuById(MenuId menuId) {
+        return support.findMenuById(menuId);
     }
 
     @Override
     public Menu save(Menu menu) {
-        Menu menuToSave = menu.getId() == null
-                ? Menu.create(
-                        MenuId.of(idGenerator.nextId(MENU_ID_BIZ_TAG)),
-                        menu.getTenantId(),
-                        menu.getMenuType(),
-                        menu.getName(),
-                        menu.getParentId(),
-                        menu.getRoutePath(),
-                        menu.getComponentName(),
-                        menu.getIcon(),
-                        menu.getSort(),
-                        menu.getPermissionCode(),
-                        menu.getChildren())
-                : menu;
-        Menu savedMenu = support.saveMenu(menuToSave);
-        cacheSupport.evictTenantPermission(savedMenu.getTenantId());
+        TenantId tenantId = requireTenantId();
+        Menu savedMenu = support.saveMenu(menu);
+        cacheSupport.evictTenantPermission(tenantId);
         return savedMenu;
     }
 
     @Override
-    public Menu updateSort(TenantId tenantId, MenuId menuId, Integer sort) {
-        Menu currentMenu = findMenuById(tenantId, menuId)
+    public Menu updateSort(MenuId menuId, Integer sort) {
+        TenantId tenantId = requireTenantId();
+        Menu currentMenu = findMenuById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
-        return support.saveMenu(Menu.reconstruct(
+        return support.saveMenu(Menu.create(
                 currentMenu.getId(),
-                currentMenu.getTenantId(),
                 currentMenu.getMenuType(),
                 currentMenu.getName(),
                 currentMenu.getParentId(),
@@ -83,14 +65,19 @@ public class MenuRepositoryImpl implements MenuRepository {
     }
 
     @Override
-    public void deleteMenu(TenantId tenantId, MenuId menuId) {
-        support.deleteMenu(tenantId, menuId);
+    public void deleteMenu(MenuId menuId) {
+        TenantId tenantId = requireTenantId();
+        support.deleteMenu(menuId);
         roleRepository.removeMenuFromAssignments(tenantId, menuId);
         cacheSupport.evictTenantPermission(tenantId);
     }
 
     @Override
-    public boolean existsChildMenu(TenantId tenantId, MenuId menuId) {
-        return support.existsChildMenu(tenantId, menuId);
+    public boolean existsChildMenu(MenuId menuId) {
+        return support.existsChildMenu(menuId);
+    }
+
+    private TenantId requireTenantId() {
+        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

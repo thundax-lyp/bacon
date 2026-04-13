@@ -8,8 +8,6 @@ import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 public record ResourceResponse(
         /** 资源主键。 */
         Long id,
-        /** 所属租户编号。 */
-        Long tenantId,
         /** 资源编码。 */
         String code,
         /** 资源名称。 */
@@ -26,7 +24,6 @@ public record ResourceResponse(
     public static ResourceResponse from(ResourceDTO dto) {
         return new ResourceResponse(
                 dto.getId(),
-                dto.getTenantId(),
                 dto.getCode(),
                 dto.getName(),
                 dto.getResourceType(),

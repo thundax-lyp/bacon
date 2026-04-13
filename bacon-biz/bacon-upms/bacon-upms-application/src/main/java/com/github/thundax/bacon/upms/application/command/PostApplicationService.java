@@ -2,7 +2,9 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.upms.application.assembler.PostAssembler;
+import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
+import com.github.thundax.bacon.upms.application.codec.PostIdCodec;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
@@ -48,18 +50,17 @@ public class PostApplicationService {
                 pageSize);
     }
 
-    public PostDTO getPostById(TenantId tenantId, PostId postId) {
-        return toDto(requirePost(tenantId, postId));
+    public PostDTO getPostById(PostId postId) {
+        return toDto(requirePost(postId));
     }
 
     @Transactional
-    public PostDTO createPost(TenantId tenantId, String code, String name, String departmentId) {
+    public PostDTO createPost(String code, String name, String departmentId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         DepartmentId domainDepartmentId = toDepartmentId(departmentId);
         return toDto(postRepository.save(Post.create(
-                PostId.of(idGenerator.nextId(POST_ID_BIZ_TAG)),
-                tenantId,
+                PostIdCodec.toDomain(idGenerator.nextId(POST_ID_BIZ_TAG)),
                 normalize(code),
                 normalize(name),
                 domainDepartmentId,
@@ -67,14 +68,11 @@ public class PostApplicationService {
     }
 
     @Transactional
-    public PostDTO updatePost(
-            TenantId tenantId, PostId postId, String code, String name, String departmentId, String status) {
-        Post currentPost = requirePost(tenantId, postId);
+    public PostDTO updatePost(PostId postId, String code, String name, String departmentId, String status) {
+        Post currentPost = requirePost(postId);
         validateRequired(code, "code");
         validateRequired(name, "name");
-        return toDto(postRepository.save(Post.reconstruct(
-                currentPost.getId(),
-                tenantId,
+        return toDto(postRepository.save(currentPost.update(
                 normalize(code),
                 normalize(name),
                 toDepartmentId(departmentId),
@@ -82,35 +80,25 @@ public class PostApplicationService {
     }
 
     @Transactional
-    public void deletePost(TenantId tenantId, PostId postId) {
-        requirePost(tenantId, postId);
-        postRepository.delete(tenantId, postId);
+    public void deletePost(PostId postId) {
+        requirePost(postId);
+        postRepository.delete(postId);
     }
 
-    private Post requirePost(TenantId tenantId, PostId postId) {
+    private Post requirePost(PostId postId) {
         return postRepository
-                .findById(tenantId, postId)
+                .findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
     }
 
     private PostDTO toDto(Post post) {
-        return toDto(post, post.getTenantId().value());
-    }
-
-    private PostDTO toDto(Post post, Long tenantIdValue) {
-        return new PostDTO(
-                post.getId() == null ? null : post.getId().value(),
-                tenantIdValue,
-                post.getCode(),
-                post.getName(),
-                post.getDepartmentId() == null ? null : post.getDepartmentId().value(),
-                post.getStatus() == null ? null : post.getStatus().value());
+        return PostAssembler.toDto(post);
     }
 
     private DepartmentId toDepartmentId(String departmentId) {
         return departmentId == null || departmentId.isBlank()
                 ? null
-                : DepartmentId.of(Long.parseLong(departmentId.trim()));
+                : DepartmentIdCodec.toDomain(Long.parseLong(departmentId.trim()));
     }
 
     private void validateRequired(String value, String fieldName) {

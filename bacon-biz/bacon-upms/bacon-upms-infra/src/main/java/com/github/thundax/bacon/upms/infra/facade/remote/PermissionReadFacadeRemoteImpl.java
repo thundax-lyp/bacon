@@ -1,8 +1,6 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
@@ -35,32 +33,32 @@ public class PermissionReadFacadeRemoteImpl implements PermissionReadFacade {
     }
 
     @Override
-    public List<UserMenuTreeDTO> getUserMenuTree(@NonNull TenantId tenantId, @NonNull UserId userId) {
+    public List<UserMenuTreeDTO> getUserMenuTree(@NonNull UserId userId) {
         // 菜单树属于已聚合好的读取模型，客户端只透传，不在本地再次做权限裁剪。
-        return BaconContextHolder.callWithTenantId(tenantId.value(), () -> restClient
+        return restClient
                 .get()
                 .uri("/providers/upms/permissions/menus?userId={userId}", userId.value())
                 .retrieve()
-                .body(MENU_LIST_TYPE));
+                .body(MENU_LIST_TYPE);
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(@NonNull TenantId tenantId, @NonNull UserId userId) {
+    public Set<String> getUserPermissionCodes(@NonNull UserId userId) {
         // 权限码集合用于鉴权快速判断，保持去重后的集合返回，避免调用方再做一次归并。
-        return BaconContextHolder.callWithTenantId(tenantId.value(), () -> restClient
+        return restClient
                 .get()
                 .uri("/providers/upms/permissions/codes?userId={userId}", userId.value())
                 .retrieve()
-                .body(CODE_SET_TYPE));
+                .body(CODE_SET_TYPE);
     }
 
     @Override
-    public UserDataScopeDTO getUserDataScope(@NonNull TenantId tenantId, @NonNull UserId userId) {
+    public UserDataScopeDTO getUserDataScope(@NonNull UserId userId) {
         // 数据权限规则统一由 upms 侧计算，remote facade 不在消费者侧复制同样的合并逻辑。
-        return BaconContextHolder.callWithTenantId(tenantId.value(), () -> restClient
+        return restClient
                 .get()
                 .uri("/providers/upms/permissions/data-scope?userId={userId}", userId.value())
                 .retrieve()
-                .body(UserDataScopeDTO.class));
+                .body(UserDataScopeDTO.class);
     }
 }

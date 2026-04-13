@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.DefaultIds;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
@@ -71,6 +72,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.h2.jdbcx.JdbcDataSource;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,6 +101,7 @@ class UpmsRepositoryIntegrationTest {
 
     @BeforeEach
     void setUpSchema() throws Exception {
+        BaconContextHolder.set(new BaconContextHolder.BaconContext(TENANT_ID.value(), 2001L));
         try (Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement()) {
             statement.execute("DROP TABLE IF EXISTS bacon_upms_role_data_scope_rel");
@@ -270,6 +273,11 @@ class UpmsRepositoryIntegrationTest {
         }
     }
 
+    @AfterEach
+    void clearContext() {
+        BaconContextHolder.clear();
+    }
+
     @AfterAll
     static void closeContext() {
         CONTEXT.close();
@@ -293,7 +301,6 @@ class UpmsRepositoryIntegrationTest {
     void shouldPersistUserRoleAndPermissionGraph() {
         Department rootDepartment = departmentRepository.save(Department.create(
                 HEADQUARTERS_DEPARTMENT_ID,
-                TENANT_ID,
                 "ROOT",
                 "Headquarters",
                 null,
@@ -302,18 +309,16 @@ class UpmsRepositoryIntegrationTest {
                 DepartmentStatus.ENABLED));
         Department childDepartment = departmentRepository.save(Department.create(
                 OPERATIONS_DEPARTMENT_ID,
-                TENANT_ID,
                 "OPS",
                 "Operations",
                 rootDepartment.getId(),
                 null,
                 2,
                 DepartmentStatus.ENABLED));
-        Menu rootMenu = menuRepository.save(Menu.reconstruct(
-                (MenuId) null, TENANT_ID, "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
-        Menu childMenu = menuRepository.save(Menu.reconstruct(
-                (MenuId) null,
-                TENANT_ID,
+        Menu rootMenu = menuRepository.save(Menu.create(
+                MenuId.of(2001L), "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
+        Menu childMenu = menuRepository.save(Menu.create(
+                MenuId.of(2002L),
                 "MENU",
                 "Users",
                 rootMenu.getId(),
@@ -323,151 +328,151 @@ class UpmsRepositoryIntegrationTest {
                 2,
                 "upms:user:view",
                 List.of()));
-        Resource resource = resourceRepository.save(Resource.reconstruct(
-                (ResourceId) null,
-                TENANT_ID,
+        Resource resource = resourceRepository.save(Resource.create(
+                ResourceId.of(2301L),
                 "upms:user:edit",
                 "Edit User",
                 ResourceType.API,
                 "POST",
                 "/users",
                 ResourceStatus.ENABLED));
-        Role role = roleRepository.save(Role.reconstruct(
-                (RoleId) null,
-                TENANT_ID,
+        Role role = roleRepository.save(Role.create(
+                RoleId.of(2101L),
                 "ADMIN",
                 "Administrator",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
                 RoleStatus.ENABLED));
         User user = userRepository.save(
-                User.reconstruct(
-                        (UserId) null,
-                        TENANT_ID,
+                User.create(
+                        UserId.of(2201L),
                         "Alice",
                         StoredObjectId.of(901L),
                         childDepartment.getId(),
                         UserStatus.ENABLED),
                 "alice",
-                "13800000001");
+                "13800000001",
+                UserIdentityId.of(3001L),
+                UserIdentityId.of(3002L),
+                UserCredentialId.of(3003L));
 
-        roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
-        roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(resource.getCode()));
-        roleRepository.assignDataScope(
-                TENANT_ID,
-                role.getId(),
+        roleRepository.assignMenus(role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
+        roleRepository.assignResources(role.getId(), Set.of(resource.getCode()));
+        roleRepository.assignDataScope(role.getId(),
                 RoleDataScopeType.CUSTOM,
                 Set.of(rootDepartment.getId(), childDepartment.getId()));
-        userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));
+        userRepository.assignRoles(user.getId(), List.of(role.getId()));
 
-        assertEquals(1, permissionRepository.listMenus(TENANT_ID).size());
+        assertEquals(1, permissionRepository.listMenus().size());
 
         User persistedUser =
-                userRepository.findUserByAccount(TENANT_ID, "alice").orElseThrow();
+                userRepository.findUserByAccount("alice").orElseThrow();
         assertNotNull(persistedUser.getId());
         assertTrue(persistedUser.getId().value() > 0);
         assertEquals(StoredObjectId.of(901L), persistedUser.getAvatarObjectId());
         assertTrue(userRepository
-                .findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "alice")
+                .findUserIdentity(UserIdentityType.ACCOUNT, "alice")
                 .isPresent());
         assertNotNull(userRepository
-                .findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD)
+                .findUserCredential(persistedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue());
         assertTrue(userRepository
-                .findUserCredential(TENANT_ID, persistedUser.getId(), UserCredentialType.PASSWORD)
+                .findUserCredential(persistedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .isNeedChangePassword());
         assertTrue(userRepository
-                .findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000001")
+                .findUserIdentity(UserIdentityType.PHONE, "13800000001")
                 .isPresent());
         assertEquals(1L, userRepository.countUsers("ali", null, null, "ENABLED"));
 
-        List<Menu> menuTree = permissionRepository.getUserMenuTree(TENANT_ID, user.getId());
+        List<Menu> menuTree = permissionRepository.getUserMenuTree(user.getId());
         assertEquals(1, menuTree.size());
         assertEquals(rootMenu.getId(), menuTree.get(0).getId());
         assertEquals(1, menuTree.get(0).getChildren().size());
         assertEquals(childMenu.getId(), menuTree.get(0).getChildren().get(0).getId());
 
-        Set<String> permissionCodes = permissionRepository.getUserPermissionCodes(TENANT_ID, user.getId());
+        Set<String> permissionCodes = permissionRepository.getUserPermissionCodes(user.getId());
         assertTrue(permissionCodes.contains("upms:user:view"));
         assertTrue(permissionCodes.contains("upms:user:edit"));
-        assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(TENANT_ID, user.getId()));
+        assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(user.getId()));
         assertEquals(
                 Set.of(rootDepartment.getId(), childDepartment.getId()),
-                permissionRepository.getUserDepartmentIds(TENANT_ID, user.getId()));
-        assertFalse(permissionRepository.hasAllAccess(TENANT_ID, user.getId()));
+                permissionRepository.getUserDepartmentIds(user.getId()));
+        assertFalse(permissionRepository.hasAllAccess(user.getId()));
     }
 
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
         Department department = departmentRepository.save(Department.create(
                 OPERATIONS_DEPARTMENT_ID,
-                TENANT_ID,
                 "OPS",
                 "Operations",
                 null,
                 null,
                 1,
                 DepartmentStatus.ENABLED));
-        Role role = roleRepository.save(Role.reconstruct(
-                (RoleId) null,
-                TENANT_ID,
+        Role role = roleRepository.save(Role.create(
+                RoleId.of(2102L),
                 "OPS_ADMIN",
                 "Ops Admin",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
                 RoleStatus.ENABLED));
         User createdUser = userRepository.save(
-                User.reconstruct(
-                        (UserId) null,
-                        TENANT_ID,
+                User.create(
+                        UserId.of(2202L),
                         "Bob",
                         StoredObjectId.of(1001L),
                         department.getId(),
                         UserStatus.ENABLED),
                 "bob",
-                "13800000002");
+                "13800000002",
+                UserIdentityId.of(3101L),
+                UserIdentityId.of(3102L),
+                UserCredentialId.of(3103L));
 
-        userRepository.assignRoles(TENANT_ID, createdUser.getId(), List.of(role.getId()));
+        userRepository.assignRoles(createdUser.getId(), List.of(role.getId()));
         User updatedUser = userRepository.save(
-                User.reconstruct(
+                User.create(
                         createdUser.getId(),
-                        TENANT_ID,
                         "Bob",
                         StoredObjectId.of(1002L),
                         department.getId(),
                         UserStatus.ENABLED),
                 "bob",
-                "13900000003");
+                "13900000003",
+                UserIdentityId.of(3201L),
+                UserIdentityId.of(3202L),
+                UserCredentialId.of(3203L));
 
         assertFalse(userRepository
-                .findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13800000002")
+                .findUserIdentity(UserIdentityType.PHONE, "13800000002")
                 .isPresent());
         assertTrue(userRepository
-                .findUserIdentity(TENANT_ID, UserIdentityType.PHONE, "13900000003")
+                .findUserIdentity(UserIdentityType.PHONE, "13900000003")
                 .isPresent());
         assertNotNull(userRepository
-                .findUserCredential(TENANT_ID, updatedUser.getId(), UserCredentialType.PASSWORD)
+                .findUserCredential(updatedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue());
         assertEquals(
                 StoredObjectId.of(1002L),
                 userRepository
-                        .findUserById(TENANT_ID, updatedUser.getId())
+                        .findUserById(updatedUser.getId())
                         .orElseThrow()
                         .getAvatarObjectId());
-        assertTrue(departmentRepository.existsUserInDepartment(TENANT_ID, department.getId()));
+        assertTrue(departmentRepository.existsUserInDepartment(department.getId()));
 
-        userRepository.deleteUser(TENANT_ID, updatedUser.getId());
+        userRepository.deleteUser(updatedUser.getId());
 
-        assertFalse(userRepository.findUserById(TENANT_ID, updatedUser.getId()).isPresent());
+        assertFalse(userRepository.findUserById(updatedUser.getId()).isPresent());
         assertFalse(userRepository
-                .findUserIdentity(TENANT_ID, UserIdentityType.ACCOUNT, "bob")
+                .findUserIdentity(UserIdentityType.ACCOUNT, "bob")
                 .isPresent());
         assertTrue(
-                roleRepository.findRolesByUserId(TENANT_ID, updatedUser.getId()).isEmpty());
-        assertFalse(departmentRepository.existsUserInDepartment(TENANT_ID, department.getId()));
+                roleRepository.findRolesByUserId(updatedUser.getId()).isEmpty());
+        assertFalse(departmentRepository.existsUserInDepartment(department.getId()));
         assertTrue(isUserDeleted(String.valueOf(updatedUser.getId().value())));
     }
 
@@ -475,7 +480,6 @@ class UpmsRepositoryIntegrationTest {
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
         Department department = departmentRepository.save(Department.create(
                 OPERATIONS_DEPARTMENT_ID,
-                TENANT_ID,
                 "OPS",
                 "Operations",
                 null,
@@ -483,24 +487,28 @@ class UpmsRepositoryIntegrationTest {
                 1,
                 DepartmentStatus.ENABLED));
         User createdUser = userRepository.save(
-                User.reconstruct((UserId) null, TENANT_ID, "Carol", null, department.getId(), UserStatus.ENABLED),
+                User.create(UserId.of(2203L), "Carol", null, department.getId(), UserStatus.ENABLED),
                 "carol",
-                "13600000001");
+                "13600000001",
+                UserIdentityId.of(3301L),
+                UserIdentityId.of(3302L),
+                UserCredentialId.of(3303L));
 
         String originalPasswordHash = userRepository
-                .findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
+                .findUserCredential(createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue();
 
-        User updatedUser = userRepository.updatePassword(TENANT_ID, createdUser.getId(), "654321", false);
+        User updatedUser =
+                userRepository.updatePassword(createdUser.getId(), "654321", false, UserCredentialId.of(3304L));
 
         String updatedPasswordHash = userRepository
-                .findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
+                .findUserCredential(createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .getCredentialValue();
         assertNotEquals(originalPasswordHash, updatedPasswordHash);
         assertFalse(userRepository
-                .findUserCredential(TENANT_ID, createdUser.getId(), UserCredentialType.PASSWORD)
+                .findUserCredential(createdUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
                 .isNeedChangePassword());
     }
@@ -509,7 +517,6 @@ class UpmsRepositoryIntegrationTest {
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
         Department root = departmentRepository.save(Department.create(
                 HEADQUARTERS_DEPARTMENT_ID,
-                TENANT_ID,
                 "ROOT",
                 "Root",
                 null,
@@ -518,87 +525,86 @@ class UpmsRepositoryIntegrationTest {
                 DepartmentStatus.ENABLED));
         Department child = departmentRepository.save(Department.create(
                 CHILD_DEPARTMENT_ID,
-                TENANT_ID,
                 "CHILD",
                 "Child",
                 root.getId(),
                 null,
                 2,
                 DepartmentStatus.ENABLED));
-        Menu oldMenu = menuRepository.save(Menu.reconstruct(
-                (MenuId) null, TENANT_ID, "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
-        Menu newMenu = menuRepository.save(Menu.reconstruct(
-                (MenuId) null, TENANT_ID, "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
-        Resource oldResource = resourceRepository.save(Resource.reconstruct(
-                (ResourceId) null,
-                TENANT_ID,
+        Menu oldMenu = menuRepository.save(Menu.create(
+                MenuId.of(2003L), "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
+        Menu newMenu = menuRepository.save(Menu.create(
+                MenuId.of(2004L), "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
+        Resource oldResource = resourceRepository.save(Resource.create(
+                ResourceId.of(2302L),
                 "upms:old:edit",
                 "Old Edit",
                 ResourceType.API,
                 "POST",
                 "/old",
                 ResourceStatus.ENABLED));
-        Resource newResource = resourceRepository.save(Resource.reconstruct(
-                (ResourceId) null,
-                TENANT_ID,
+        Resource newResource = resourceRepository.save(Resource.create(
+                ResourceId.of(2303L),
                 "upms:new:edit",
                 "New Edit",
                 ResourceType.API,
                 "PUT",
                 "/new",
                 ResourceStatus.ENABLED));
-        Role role = roleRepository.save(Role.reconstruct(
-                (RoleId) null,
-                TENANT_ID,
+        Role role = roleRepository.save(Role.create(
+                RoleId.of(2103L),
                 "MANAGER",
                 "Manager",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
                 RoleStatus.ENABLED));
 
-        roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(oldMenu.getId()));
-        roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(oldResource.getCode()));
-        roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
+        roleRepository.assignMenus(role.getId(), Set.of(oldMenu.getId()));
+        roleRepository.assignResources(role.getId(), Set.of(oldResource.getCode()));
+        roleRepository.assignDataScope(role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
         User user = userRepository.save(
-                User.reconstruct((UserId) null, TENANT_ID, "Manager", null, child.getId(), UserStatus.ENABLED),
+                User.create(UserId.of(2204L), "Manager", null, child.getId(), UserStatus.ENABLED),
                 "manager",
-                "13700000001");
-        userRepository.assignRoles(TENANT_ID, user.getId(), List.of(role.getId()));
+                "13700000001",
+                UserIdentityId.of(3401L),
+                UserIdentityId.of(3402L),
+                UserCredentialId.of(3403L));
+        userRepository.assignRoles(user.getId(), List.of(role.getId()));
 
         assertEquals(
                 Set.of("upms:old:view", "upms:old:edit"),
-                permissionRepository.getUserPermissionCodes(TENANT_ID, user.getId()));
-        assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(TENANT_ID, user.getId()));
+                permissionRepository.getUserPermissionCodes(user.getId()));
+        assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(user.getId()));
         assertEquals(
-                1, permissionRepository.getUserMenuTree(TENANT_ID, user.getId()).size());
+                1, permissionRepository.getUserMenuTree(user.getId()).size());
 
-        roleRepository.assignMenus(TENANT_ID, role.getId(), Set.of(newMenu.getId()));
-        roleRepository.assignResources(TENANT_ID, role.getId(), Set.of(newResource.getCode()));
-        roleRepository.assignDataScope(TENANT_ID, role.getId(), RoleDataScopeType.ALL, Set.of(child.getId()));
+        roleRepository.assignMenus(role.getId(), Set.of(newMenu.getId()));
+        roleRepository.assignResources(role.getId(), Set.of(newResource.getCode()));
+        roleRepository.assignDataScope(role.getId(), RoleDataScopeType.ALL, Set.of(child.getId()));
 
-        assertEquals(Set.of(newMenu.getId()), roleRepository.getAssignedMenus(TENANT_ID, role.getId()));
-        assertEquals(Set.of(newResource.getCode()), roleRepository.getAssignedResources(TENANT_ID, role.getId()));
-        assertEquals("ALL", roleRepository.getAssignedDataScopeType(TENANT_ID, role.getId()));
-        assertEquals(Set.of(child.getId()), roleRepository.getAssignedDataScopeDepartments(TENANT_ID, role.getId()));
+        assertEquals(Set.of(newMenu.getId()), roleRepository.getAssignedMenus(role.getId()));
+        assertEquals(Set.of(newResource.getCode()), roleRepository.getAssignedResources(role.getId()));
+        assertEquals("ALL", roleRepository.getAssignedDataScopeType(role.getId()));
+        assertEquals(Set.of(child.getId()), roleRepository.getAssignedDataScopeDepartments(role.getId()));
         assertEquals(
                 Set.of("upms:new:view", "upms:new:edit"),
-                permissionRepository.getUserPermissionCodes(TENANT_ID, user.getId()));
-        assertEquals(Set.of("ALL"), permissionRepository.getUserScopeTypes(TENANT_ID, user.getId()));
-        assertTrue(departmentRepository.existsChildDepartment(TENANT_ID, root.getId()));
+                permissionRepository.getUserPermissionCodes(user.getId()));
+        assertEquals(Set.of("ALL"), permissionRepository.getUserScopeTypes(user.getId()));
+        assertTrue(departmentRepository.existsChildDepartment(root.getId()));
         assertEquals(
                 Set.of(root.getId(), child.getId()),
-                departmentRepository.listDepartmentsByIds(TENANT_ID, Set.of(root.getId(), child.getId())).stream()
+                departmentRepository.listDepartmentsByIds(Set.of(root.getId(), child.getId())).stream()
                         .map(Department::getId)
                         .collect(java.util.stream.Collectors.toSet()));
 
-        menuRepository.deleteMenu(TENANT_ID, newMenu.getId());
-        resourceRepository.delete(TENANT_ID, newResource.getId());
+        menuRepository.deleteMenu(newMenu.getId());
+        resourceRepository.delete(newResource.getId());
 
-        assertTrue(roleRepository.getAssignedMenus(TENANT_ID, role.getId()).isEmpty());
-        assertTrue(roleRepository.getAssignedResources(TENANT_ID, role.getId()).isEmpty());
+        assertTrue(roleRepository.getAssignedMenus(role.getId()).isEmpty());
+        assertTrue(roleRepository.getAssignedResources(role.getId()).isEmpty());
         assertTrue(permissionRepository
-                .getUserPermissionCodes(TENANT_ID, user.getId())
+                .getUserPermissionCodes(user.getId())
                 .isEmpty());
         assertNotEquals(oldMenu.getId(), newMenu.getId());
         assertNotEquals(oldResource.getId(), newResource.getId());
@@ -724,7 +730,7 @@ class UpmsRepositoryIntegrationTest {
                 RolePersistenceSupport rolePersistenceSupport,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport,
                 IdGenerator idGenerator) {
-            return new RoleRepositoryImpl(rolePersistenceSupport, upmsPermissionCacheSupport, idGenerator);
+            return new RoleRepositoryImpl(rolePersistenceSupport, upmsPermissionCacheSupport);
         }
 
         @Bean
@@ -753,9 +759,7 @@ class UpmsRepositoryIntegrationTest {
                     userPersistenceSupport,
                     roleRepository,
                     passwordEncoder,
-                    upmsPermissionCacheSupport,
-                    ids,
-                    idGenerator);
+                    upmsPermissionCacheSupport);
         }
 
         @Bean
@@ -784,7 +788,7 @@ class UpmsRepositoryIntegrationTest {
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport,
                 IdGenerator idGenerator) {
             return new MenuRepositoryImpl(
-                    menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport, idGenerator);
+                    menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport);
         }
     }
 

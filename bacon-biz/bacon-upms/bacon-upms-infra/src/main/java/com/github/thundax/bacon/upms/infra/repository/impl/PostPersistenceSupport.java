@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -23,9 +24,9 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.postMapper = postMapper;
     }
 
-    Optional<Post> findPostById(TenantId tenantId, PostId postId) {
+    Optional<Post> findPostById(PostId postId) {
+        requireTenantId();
         return Optional.ofNullable(postMapper.selectOne(Wrappers.<PostDO>lambdaQuery()
-                        .eq(PostDO::getTenantId, tenantId)
                         .eq(PostDO::getId, postId)))
                 .map(PostPersistenceAssembler::toDomain);
     }
@@ -63,8 +64,12 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return PostPersistenceAssembler.toDomain(dataObject);
     }
 
-    void deletePost(TenantId tenantId, PostId postId) {
-        postMapper.delete(
-                Wrappers.<PostDO>lambdaQuery().eq(PostDO::getTenantId, tenantId).eq(PostDO::getId, postId));
+    void deletePost(PostId postId) {
+        requireTenantId();
+        postMapper.delete(Wrappers.<PostDO>lambdaQuery().eq(PostDO::getId, postId));
+    }
+
+    private TenantId requireTenantId() {
+        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

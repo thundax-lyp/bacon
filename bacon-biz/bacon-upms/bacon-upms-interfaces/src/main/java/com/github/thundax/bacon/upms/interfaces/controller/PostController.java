@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
@@ -62,8 +61,7 @@ public class PostController {
     @SysLog(module = "UPMS", action = "查询岗位详情", eventType = LogEventType.QUERY)
     @GetMapping("/{postId}")
     public PostResponse getPostById(@CurrentTenant Long tenantId, @PathVariable String postId) {
-        return PostResponse.from(
-                postApplicationService.getPostById(TenantId.of(tenantId), PostId.of(Long.parseLong(postId.trim()))));
+        return PostResponse.from(postApplicationService.getPostById(PostId.of(Long.parseLong(postId.trim()))));
     }
 
     @Operation(summary = "创建岗位")
@@ -71,8 +69,7 @@ public class PostController {
     @SysLog(module = "UPMS", action = "创建岗位", eventType = LogEventType.CREATE)
     @PostMapping
     public PostResponse createPost(@CurrentTenant Long tenantId, @RequestBody PostCreateRequest request) {
-        return PostResponse.from(postApplicationService.createPost(
-                TenantId.of(tenantId), request.code(), request.name(), request.departmentId()));
+        return PostResponse.from(postApplicationService.createPost(request.code(), request.name(), request.departmentId()));
     }
 
     @Operation(summary = "修改岗位")
@@ -82,7 +79,6 @@ public class PostController {
     public PostResponse updatePost(
             @CurrentTenant Long tenantId, @PathVariable String postId, @RequestBody PostUpdateRequest request) {
         return PostResponse.from(postApplicationService.updatePost(
-                TenantId.of(tenantId),
                 PostId.of(Long.parseLong(postId.trim())),
                 request.code(),
                 request.name(),
@@ -95,6 +91,6 @@ public class PostController {
     @SysLog(module = "UPMS", action = "删除岗位", eventType = LogEventType.DELETE)
     @DeleteMapping("/{postId}")
     public void deletePost(@CurrentTenant Long tenantId, @PathVariable String postId) {
-        postApplicationService.deletePost(TenantId.of(tenantId), PostId.of(Long.parseLong(postId.trim())));
+        postApplicationService.deletePost(PostId.of(Long.parseLong(postId.trim())));
     }
 }

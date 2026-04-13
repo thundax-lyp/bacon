@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
@@ -9,7 +8,7 @@ import java.util.Optional;
 
 public interface PostRepository {
 
-    Optional<Post> findById(TenantId tenantId, PostId postId);
+    Optional<Post> findById(PostId postId);
 
     List<Post> pagePosts(String code, String name, DepartmentId departmentId, String status, int pageNo, int pageSize);
 
@@ -17,5 +16,5 @@ public interface PostRepository {
 
     Post save(Post post);
 
-    void delete(TenantId tenantId, PostId postId);
+    void delete(PostId postId);
 }

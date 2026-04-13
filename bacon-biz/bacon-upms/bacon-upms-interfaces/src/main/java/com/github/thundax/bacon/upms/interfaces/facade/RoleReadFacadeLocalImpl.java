@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.facade;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
@@ -22,12 +22,14 @@ public class RoleReadFacadeLocalImpl implements RoleReadFacade {
     }
 
     @Override
-    public RoleDTO getRoleById(@NonNull TenantId tenantId, @NonNull RoleId roleId) {
-        return roleApplicationService.getRoleById(tenantId, roleId);
+    public RoleDTO getRoleById(@NonNull RoleId roleId) {
+        BaconContextHolder.requireTenantId();
+        return roleApplicationService.getRoleById(roleId);
     }
 
     @Override
-    public List<RoleDTO> getRolesByUserId(@NonNull TenantId tenantId, @NonNull UserId userId) {
-        return roleApplicationService.getRolesByUserId(tenantId, userId);
+    public List<RoleDTO> getRolesByUserId(@NonNull UserId userId) {
+        BaconContextHolder.requireTenantId();
+        return roleApplicationService.getRolesByUserId(userId);
     }
 }

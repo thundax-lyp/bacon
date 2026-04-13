@@ -49,7 +49,6 @@ public class SysLogQueryApplicationService {
     private SysLogDTO toDto(SysLogRecord record) {
         return new SysLogDTO(
                 record.getId(),
-                record.getTenantId(),
                 record.getTraceId(),
                 record.getRequestId(),
                 record.getModule(),

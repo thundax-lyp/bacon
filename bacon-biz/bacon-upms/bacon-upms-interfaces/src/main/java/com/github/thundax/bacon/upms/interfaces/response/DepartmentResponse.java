@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.response;
 
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
-import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 
 /**
  * 部门查询响应对象。
@@ -9,8 +8,6 @@ import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 public record DepartmentResponse(
         /** 部门主键。 */
         Long id,
-        /** 所属租户编号。 */
-        Long tenantId,
         /** 部门编码。 */
         String code,
         /** 部门名称。 */
@@ -21,13 +18,12 @@ public record DepartmentResponse(
         Long leaderUserId,
         /** 排序值。 */
         Integer sort,
-        /** 部门状态。 */
-        EnableStatusEnum status) {
+        /** 部门状态，可选值：ENABLED、DISABLED。 */
+        String status) {
 
     public static DepartmentResponse from(DepartmentDTO dto) {
         return new DepartmentResponse(
                 dto.getId(),
-                dto.getTenantId(),
                 dto.getCode(),
                 dto.getName(),
                 dto.getParentId(),

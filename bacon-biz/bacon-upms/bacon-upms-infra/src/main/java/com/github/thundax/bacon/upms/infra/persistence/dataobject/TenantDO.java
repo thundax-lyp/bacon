@@ -4,8 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class TenantDO {
 
     @TableId(value = "tenant_id", type = IdType.INPUT)
-    private TenantId id;
+    private Long id;
 
     @TableField("code")
     private String code;
@@ -29,5 +28,5 @@ public class TenantDO {
     private String status;
 
     @TableField("expired_at")
-    private LocalDateTime expiredAt;
+    private Instant expiredAt;
 }

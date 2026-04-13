@@ -1,11 +1,9 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.interfaces.response.UserDataScopeResponse;
@@ -35,8 +33,8 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/menu-tree")
-    public List<UserMenuTreeResponse> getUserMenuTree(@CurrentTenant Long tenantId, @PathVariable Long userId) {
-        return permissionQueryService.getUserMenuTree(TenantId.of(tenantId), UserIdCodec.toDomain(userId)).stream()
+    public List<UserMenuTreeResponse> getUserMenuTree(@PathVariable Long userId) {
+        return permissionQueryService.getUserMenuTree(UserIdCodec.toDomain(userId)).stream()
                 .map(UserMenuTreeResponse::from)
                 .toList();
     }
@@ -45,16 +43,15 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户权限码", eventType = LogEventType.QUERY)
     @GetMapping("/permission-codes")
-    public Set<String> getUserPermissionCodes(@CurrentTenant Long tenantId, @PathVariable Long userId) {
-        return permissionQueryService.getUserPermissionCodes(TenantId.of(tenantId), UserIdCodec.toDomain(userId));
+    public Set<String> getUserPermissionCodes(@PathVariable Long userId) {
+        return permissionQueryService.getUserPermissionCodes(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户数据范围", eventType = LogEventType.QUERY)
     @GetMapping("/data-scope")
-    public UserDataScopeResponse getUserDataScope(@CurrentTenant Long tenantId, @PathVariable Long userId) {
-        return UserDataScopeResponse.from(
-                permissionQueryService.getUserDataScope(TenantId.of(tenantId), UserIdCodec.toDomain(userId)));
+    public UserDataScopeResponse getUserDataScope(@PathVariable Long userId) {
+        return UserDataScopeResponse.from(permissionQueryService.getUserDataScope(UserIdCodec.toDomain(userId)));
     }
 }

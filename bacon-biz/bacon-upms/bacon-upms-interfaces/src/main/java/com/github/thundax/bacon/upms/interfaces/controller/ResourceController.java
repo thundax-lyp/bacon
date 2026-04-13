@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
@@ -60,7 +59,7 @@ public class ResourceController {
     @SysLog(module = "UPMS", action = "查询资源详情", eventType = LogEventType.QUERY)
     @GetMapping("/{resourceId}")
     public ResourceResponse getResourceById(@CurrentTenant Long tenantId, @PathVariable String resourceId) {
-        return ResourceResponse.from(resourceApplicationService.getResourceById(TenantId.of(tenantId), resourceId));
+        return ResourceResponse.from(resourceApplicationService.getResourceById(resourceId));
     }
 
     @Operation(summary = "创建资源")
@@ -69,7 +68,6 @@ public class ResourceController {
     @PostMapping
     public ResourceResponse createResource(@CurrentTenant Long tenantId, @RequestBody ResourceCreateRequest request) {
         return ResourceResponse.from(resourceApplicationService.createResource(
-                TenantId.of(tenantId),
                 request.code(),
                 request.name(),
                 request.resourceType(),
@@ -84,7 +82,6 @@ public class ResourceController {
     public ResourceResponse updateResource(
             @CurrentTenant Long tenantId, @PathVariable String resourceId, @RequestBody ResourceUpdateRequest request) {
         return ResourceResponse.from(resourceApplicationService.updateResource(
-                TenantId.of(tenantId),
                 resourceId,
                 request.code(),
                 request.name(),
@@ -99,6 +96,6 @@ public class ResourceController {
     @SysLog(module = "UPMS", action = "删除资源", eventType = LogEventType.DELETE)
     @DeleteMapping("/{resourceId}")
     public void deleteResource(@CurrentTenant Long tenantId, @PathVariable String resourceId) {
-        resourceApplicationService.deleteResource(TenantId.of(tenantId), resourceId);
+        resourceApplicationService.deleteResource(resourceId);
     }
 }

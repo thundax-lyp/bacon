@@ -9,8 +9,6 @@ import java.util.List;
 public record MenuTreeResponse(
         /** 菜单主键。 */
         Long id,
-        /** 所属租户编号。 */
-        Long tenantId,
         /** 菜单类型。 */
         String menuType,
         /** 菜单名称。 */
@@ -36,7 +34,6 @@ public record MenuTreeResponse(
                 : dto.getChildren().stream().map(MenuTreeResponse::from).toList();
         return new MenuTreeResponse(
                 dto.getId(),
-                dto.getTenantId(),
                 dto.getMenuType(),
                 dto.getName(),
                 dto.getParentId(),

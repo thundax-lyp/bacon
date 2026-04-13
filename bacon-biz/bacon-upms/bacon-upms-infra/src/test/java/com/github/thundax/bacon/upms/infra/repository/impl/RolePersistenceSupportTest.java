@@ -6,9 +6,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.ResourceId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
@@ -25,6 +24,7 @@ import com.github.thundax.bacon.upms.infra.persistence.mapper.RoleResourceRelMap
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserRoleRelMapper;
 import java.util.List;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,8 +35,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class RolePersistenceSupportTest {
-
-    private static final TenantId TENANT_ID = TenantId.of(1001L);
 
     @Mock
     private RoleMapper roleMapper;
@@ -66,6 +64,7 @@ class RolePersistenceSupportTest {
 
     @BeforeEach
     void setUp() {
+        BaconContextHolder.set(new BaconContextHolder.BaconContext(1001L, 2001L));
         support = new RolePersistenceSupport(
                 roleMapper,
                 resourceMapper,
@@ -78,56 +77,44 @@ class RolePersistenceSupportTest {
         Mockito.lenient().when(idGenerator.nextId(any())).thenReturn(1001L, 1002L, 1003L, 1004L, 1005L);
     }
 
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
+    }
+
     @Test
     void shouldReplaceRoleDataScopeRuleAndDepartments() {
         ArgumentCaptor<DataPermissionRuleDO> ruleCaptor = ArgumentCaptor.forClass(DataPermissionRuleDO.class);
         ArgumentCaptor<RoleDataScopeRelDO> relationCaptor = ArgumentCaptor.forClass(RoleDataScopeRelDO.class);
         when(dataPermissionRuleMapper.selectOne(any(Wrapper.class))).thenReturn(null);
 
-        support.replaceRoleDataScope(
-                TENANT_ID, RoleId.of(9L), RoleDataScopeType.CUSTOM, Set.of(DepartmentId.of(11L), DepartmentId.of(12L)));
+        support.replaceRoleDataScope(RoleId.of(9L), RoleDataScopeType.CUSTOM, Set.of(DepartmentId.of(11L), DepartmentId.of(12L)));
 
         verify(dataPermissionRuleMapper).insert(ruleCaptor.capture());
         verify(roleDataScopeRelMapper, Mockito.times(2)).insert(relationCaptor.capture());
-        assertThat(ruleCaptor.getValue().getTenantId()).isEqualTo(TENANT_ID);
-        assertThat(ruleCaptor.getValue().getRoleId()).isEqualTo(RoleId.of(9L));
+        assertThat(ruleCaptor.getValue().getTenantId()).isEqualTo(1001L);
+        assertThat(ruleCaptor.getValue().getRoleId()).isEqualTo(9L);
         assertThat(ruleCaptor.getValue().getDataScopeType()).isEqualTo("CUSTOM");
         assertThat(relationCaptor.getAllValues())
                 .extracting(RoleDataScopeRelDO::getRoleId)
-                .containsOnly(RoleId.of(9L));
+                .containsOnly(9L);
         assertThat(relationCaptor.getAllValues())
                 .extracting(RoleDataScopeRelDO::getDepartmentId)
-                .containsExactlyInAnyOrder(DepartmentId.of(11L), DepartmentId.of(12L));
+                .containsExactlyInAnyOrder(11L, 12L);
     }
 
     @Test
     void shouldResolveAssignedResourceCodesFromRelationRows() {
         when(roleResourceRelMapper.selectList(any(Wrapper.class)))
                 .thenReturn(List.of(
-                        new RoleResourceRelDO(1L, TENANT_ID, RoleId.of(9L), ResourceId.of(21L)),
-                        new RoleResourceRelDO(2L, TENANT_ID, RoleId.of(9L), ResourceId.of(22L))));
+                        new RoleResourceRelDO(1L, 1001L, 9L, 21L),
+                        new RoleResourceRelDO(2L, 1001L, 9L, 22L)));
         when(resourceMapper.selectList(any(Wrapper.class)))
                 .thenReturn(List.of(
-                        new ResourceDO(
-                                ResourceId.of(21L),
-                                TENANT_ID,
-                                "upms:user:view",
-                                "User View",
-                                "API",
-                                "GET",
-                                "/users",
-                                "ACTIVE"),
-                        new ResourceDO(
-                                ResourceId.of(22L),
-                                TENANT_ID,
-                                "upms:user:edit",
-                                "User Edit",
-                                "API",
-                                "POST",
-                                "/users",
-                                "ACTIVE")));
+                        new ResourceDO(21L, 1001L, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE"),
+                        new ResourceDO(22L, 1001L, "upms:user:edit", "User Edit", "API", "POST", "/users", "ACTIVE")));
 
-        Set<String> assignedResourceCodes = support.getAssignedResourceCodes(TENANT_ID, RoleId.of(9L));
+        Set<String> assignedResourceCodes = support.getAssignedResourceCodes(RoleId.of(9L));
 
         assertThat(assignedResourceCodes).containsExactlyInAnyOrder("upms:user:view", "upms:user:edit");
     }
@@ -137,8 +124,8 @@ class RolePersistenceSupportTest {
         ArgumentCaptor<RoleResourceRelDO> captor = ArgumentCaptor.forClass(RoleResourceRelDO.class);
         when(resourceMapper.selectList(any(Wrapper.class)))
                 .thenReturn(List.of(new ResourceDO(
-                        ResourceId.of(21L),
-                        TENANT_ID,
+                        21L,
+                        1001L,
                         "upms:user:view",
                         "User View",
                         "API",
@@ -146,11 +133,11 @@ class RolePersistenceSupportTest {
                         "/users",
                         "ACTIVE")));
 
-        support.replaceRoleResources(TENANT_ID, RoleId.of(9L), Set.of("upms:user:view"));
+        support.replaceRoleResources(RoleId.of(9L), Set.of("upms:user:view"));
 
         verify(roleResourceRelMapper).insert(captor.capture());
-        assertThat(captor.getValue().getTenantId()).isEqualTo(TENANT_ID);
-        assertThat(captor.getValue().getRoleId()).isEqualTo(RoleId.of(9L));
-        assertThat(captor.getValue().getResourceId()).isEqualTo(ResourceId.of(21L));
+        assertThat(captor.getValue().getTenantId()).isEqualTo(1001L);
+        assertThat(captor.getValue().getRoleId()).isEqualTo(9L);
+        assertThat(captor.getValue().getResourceId()).isEqualTo(21L);
     }
 }

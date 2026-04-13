@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import java.util.List;
 import java.util.Objects;
@@ -19,8 +18,6 @@ public class Menu {
 
     /** 菜单主键。 */
     private MenuId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 菜单类型。 */
     private String menuType;
     /** 菜单名称。 */
@@ -42,7 +39,6 @@ public class Menu {
 
     public static Menu create(
             MenuId id,
-            TenantId tenantId,
             String menuType,
             String name,
             MenuId parentId,
@@ -53,16 +49,13 @@ public class Menu {
             String permissionCode,
             List<Menu> children) {
         Objects.requireNonNull(id, "id must not be null");
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(menuType, "menuType must not be null");
         Objects.requireNonNull(name, "name must not be null");
-        return new Menu(
-                id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
+        return new Menu(id, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
     }
 
     public static Menu reconstruct(
             MenuId id,
-            TenantId tenantId,
             String menuType,
             String name,
             MenuId parentId,
@@ -72,7 +65,22 @@ public class Menu {
             Integer sort,
             String permissionCode,
             List<Menu> children) {
-        return new Menu(
-                id, tenantId, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
+        return new Menu(id, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
+    }
+
+    public Menu update(
+            String menuType,
+            String name,
+            MenuId parentId,
+            String routePath,
+            String componentName,
+            String icon,
+            Integer sort,
+            String permissionCode,
+            List<Menu> children) {
+        Objects.requireNonNull(id, "id must not be null");
+        Objects.requireNonNull(menuType, "menuType must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        return new Menu(id, menuType, name, parentId, routePath, componentName, icon, sort, permissionCode, children);
     }
 }

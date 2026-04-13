@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.api.facade;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
@@ -10,12 +9,11 @@ import org.springframework.lang.NonNull;
 
 public interface UserReadFacade {
 
-    UserDTO getUserById(@NonNull TenantId tenantId, @NonNull UserId userId);
+    UserDTO getUserById(@NonNull UserId userId);
 
-    UserIdentityDTO getUserIdentity(@NonNull TenantId tenantId, String identityType, String identityValue);
+    UserIdentityDTO getUserIdentity(String identityType, String identityValue);
 
-    UserLoginCredentialDTO getUserLoginCredential(
-            @NonNull TenantId tenantId, String identityType, String identityValue);
+    UserLoginCredentialDTO getUserLoginCredential(String identityType, String identityValue);
 
-    TenantDTO getTenantByTenantId(@NonNull TenantId tenantId);
+    TenantDTO getTenantByTenantId();
 }

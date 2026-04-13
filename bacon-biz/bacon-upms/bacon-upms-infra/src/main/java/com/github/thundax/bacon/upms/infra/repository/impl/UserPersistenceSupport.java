@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -39,41 +40,41 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.userCredentialMapper = userCredentialMapper;
     }
 
-    Optional<User> findUserById(TenantId tenantId, UserId userId) {
+    Optional<User> findUserById(UserId userId) {
+        requireTenantId();
         return Optional.ofNullable(userMapper.selectOne(Wrappers.<UserDO>lambdaQuery()
-                        .eq(UserDO::getTenantId, tenantId)
-                        .eq(UserDO::getId, userId)
+                        .eq(UserDO::getId, userId.value())
                         .eq(UserDO::getDeleted, false)))
                 .map(UserPersistenceAssembler::toDomain);
     }
 
-    Optional<User> findUserByAccount(TenantId tenantId, String account) {
-        return findUserIdentity(tenantId, UserIdentityType.ACCOUNT, account)
-                .flatMap(identity -> findUserById(tenantId, identity.getUserId()));
+    Optional<User> findUserByAccount(String account) {
+        return findUserIdentity(UserIdentityType.ACCOUNT, account)
+                .flatMap(identity -> findUserById(identity.getUserId()));
     }
 
-    Optional<UserIdentity> findUserIdentity(TenantId tenantId, UserIdentityType identityType, String identityValue) {
+    Optional<UserIdentity> findUserIdentity(UserIdentityType identityType, String identityValue) {
+        requireTenantId();
         return Optional.ofNullable(userIdentityMapper.selectOne(Wrappers.<UserIdentityDO>lambdaQuery()
-                        .eq(UserIdentityDO::getTenantId, tenantId)
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
                         .eq(UserIdentityDO::getIdentityValue, identityValue)
                         .eq(UserIdentityDO::getStatus, UserIdentityStatus.ACTIVE.value())))
                 .map(UserPersistenceAssembler::toDomain);
     }
 
-    Optional<UserIdentity> findUserIdentityByUserId(TenantId tenantId, UserId userId, UserIdentityType identityType) {
+    Optional<UserIdentity> findUserIdentityByUserId(UserId userId, UserIdentityType identityType) {
+        requireTenantId();
         return Optional.ofNullable(userIdentityMapper.selectOne(Wrappers.<UserIdentityDO>lambdaQuery()
-                        .eq(UserIdentityDO::getTenantId, tenantId)
-                        .eq(UserIdentityDO::getUserId, userId)
+                        .eq(UserIdentityDO::getUserId, userId.value())
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
                         .eq(UserIdentityDO::getStatus, UserIdentityStatus.ACTIVE.value())))
                 .map(UserPersistenceAssembler::toDomain);
     }
 
-    Optional<UserCredential> findUserCredential(TenantId tenantId, UserId userId, UserCredentialType credentialType) {
+    Optional<UserCredential> findUserCredential(UserId userId, UserCredentialType credentialType) {
+        requireTenantId();
         return Optional.ofNullable(userCredentialMapper.selectOne(Wrappers.<UserCredentialDO>lambdaQuery()
-                        .eq(UserCredentialDO::getTenantId, tenantId)
-                        .eq(UserCredentialDO::getUserId, userId)
+                        .eq(UserCredentialDO::getUserId, userId.value())
                         .eq(
                                 UserCredentialDO::getCredentialType,
                                 credentialType == null ? null : credentialType.value())))
@@ -81,7 +82,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     List<User> listUsers(String account, String name, String phone, String status, int pageNo, int pageSize) {
-        Set<UserId> userIds = resolveUserIdsByIdentityFilters(account, phone);
+        Set<Long> userIds = resolveUserIdsByIdentityFilters(account, phone);
         if (userIds != null && userIds.isEmpty()) {
             return List.of();
         }
@@ -99,7 +100,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     long countUsers(String account, String name, String phone, String status) {
-        Set<UserId> userIds = resolveUserIdsByIdentityFilters(account, phone);
+        Set<Long> userIds = resolveUserIdsByIdentityFilters(account, phone);
         if (userIds != null && userIds.isEmpty()) {
             return 0L;
         }
@@ -111,13 +112,13 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .orElse(0L);
     }
 
-    private Set<UserId> resolveUserIdsByIdentityFilters(String account, String phone) {
-        Set<UserId> filteredUserIds = null;
+    private Set<Long> resolveUserIdsByIdentityFilters(String account, String phone) {
+        Set<Long> filteredUserIds = null;
         if (hasText(account)) {
             filteredUserIds = queryUserIdsByIdentityLike(UserIdentityType.ACCOUNT, account);
         }
         if (hasText(phone)) {
-            Set<UserId> phoneUserIds = queryUserIdsByIdentityLike(UserIdentityType.PHONE, phone);
+            Set<Long> phoneUserIds = queryUserIdsByIdentityLike(UserIdentityType.PHONE, phone);
             if (filteredUserIds == null) {
                 filteredUserIds = phoneUserIds;
             } else {
@@ -127,7 +128,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return filteredUserIds;
     }
 
-    private Set<UserId> queryUserIdsByIdentityLike(UserIdentityType identityType, String identityValue) {
+    private Set<Long> queryUserIdsByIdentityLike(UserIdentityType identityType, String identityValue) {
         return new LinkedHashSet<>(userIdentityMapper
                 .selectList(Wrappers.<UserIdentityDO>lambdaQuery()
                         .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value())
@@ -150,10 +151,10 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
         return UserPersistenceAssembler.toDomain(userDO);
     }
 
-    void deleteUser(TenantId tenantId, UserId userId) {
+    void deleteUser(UserId userId) {
+        requireTenantId();
         UserDO userDO = userMapper.selectOne(Wrappers.<UserDO>lambdaQuery()
-                .eq(UserDO::getTenantId, tenantId)
-                .eq(UserDO::getId, userId)
+                .eq(UserDO::getId, userId.value())
                 .eq(UserDO::getDeleted, false));
         if (userDO == null) {
             return;
@@ -163,15 +164,12 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void deleteUserIdentitiesByUser(TenantId tenantId, UserId userId) {
-        userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery()
-                .eq(UserIdentityDO::getTenantId, tenantId)
-                .eq(UserIdentityDO::getUserId, userId));
+        userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery().eq(UserIdentityDO::getUserId, userId.value()));
     }
 
     void deleteUserIdentitiesByUserAndType(TenantId tenantId, UserId userId, UserIdentityType identityType) {
         userIdentityMapper.delete(Wrappers.<UserIdentityDO>lambdaQuery()
-                .eq(UserIdentityDO::getTenantId, tenantId)
-                .eq(UserIdentityDO::getUserId, userId)
+                .eq(UserIdentityDO::getUserId, userId.value())
                 .eq(UserIdentityDO::getIdentityType, identityType == null ? null : identityType.value()));
     }
 
@@ -196,17 +194,20 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     void deleteUserCredentialsByUser(TenantId tenantId, UserId userId) {
-        userCredentialMapper.delete(Wrappers.<UserCredentialDO>lambdaQuery()
-                .eq(UserCredentialDO::getTenantId, tenantId)
-                .eq(UserCredentialDO::getUserId, userId));
+        userCredentialMapper.delete(
+                Wrappers.<UserCredentialDO>lambdaQuery().eq(UserCredentialDO::getUserId, userId.value()));
     }
 
-    boolean hasActiveUserInDepartment(TenantId tenantId, DepartmentId departmentId) {
+    boolean hasActiveUserInDepartment(DepartmentId departmentId) {
+        requireTenantId();
         return Optional.ofNullable(userMapper.selectCount(Wrappers.<UserDO>lambdaQuery()
-                                .eq(UserDO::getTenantId, tenantId)
-                                .eq(UserDO::getDepartmentId, departmentId)
+                                .eq(UserDO::getDepartmentId, departmentId.value())
                                 .eq(UserDO::getDeleted, false)))
                         .orElse(0L)
                 > 0L;
+    }
+
+    private TenantId requireTenantId() {
+        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

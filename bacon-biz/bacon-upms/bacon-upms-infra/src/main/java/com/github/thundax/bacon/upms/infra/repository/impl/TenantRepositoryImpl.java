@@ -53,7 +53,7 @@ public class TenantRepositoryImpl implements TenantRepository {
     public Tenant updateTenantStatus(TenantId tenantId, String status) {
         Tenant currentTenant = findTenantByTenantId(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
-        return support.saveTenant(Tenant.reconstruct(
+        return support.saveTenant(Tenant.create(
                 currentTenant.getId(),
                 currentTenant.getName(),
                 currentTenant.getTenantCode(),

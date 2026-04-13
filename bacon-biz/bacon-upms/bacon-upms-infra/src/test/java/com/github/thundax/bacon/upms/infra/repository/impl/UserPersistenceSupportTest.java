@@ -5,8 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
@@ -15,6 +15,7 @@ import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserIdentityMapper;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,8 +25,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class UserPersistenceSupportTest {
-
-    private static final TenantId TENANT_ID = TenantId.of(1001L);
 
     @Mock
     private UserMapper userMapper;
@@ -40,24 +39,24 @@ class UserPersistenceSupportTest {
 
     @BeforeEach
     void setUp() {
+        BaconContextHolder.set(new BaconContextHolder.BaconContext(1001L, 2001L));
         support = new UserPersistenceSupport(userMapper, userIdentityMapper, userCredentialMapper);
+    }
+
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
     }
 
     @Test
     void shouldInsertUserAndMapGeneratedId() {
         ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
-        User newUser = User.reconstruct(
-                (UserId) null,
-                TENANT_ID,
-                "Alice",
-                StoredObjectId.of(9001L),
-                DepartmentId.of(11L),
-                UserStatus.ENABLED);
+        User newUser = User.create(UserId.of(101L), "Alice", StoredObjectId.of(9001L), DepartmentId.of(11L), UserStatus.ENABLED);
         UserId generatedId = UserId.of(101L);
 
         when(userMapper.insert(any(UserDO.class))).thenAnswer(invocation -> {
             UserDO dataObject = invocation.getArgument(0);
-            dataObject.setId(generatedId);
+            dataObject.setId(generatedId.value());
             return 1;
         });
 
@@ -65,7 +64,7 @@ class UserPersistenceSupportTest {
 
         verify(userMapper).insert(captor.capture());
         assertThat(captor.getValue().getDeleted()).isFalse();
-        assertThat(captor.getValue().getAvatarObjectId()).isEqualTo(StoredObjectId.of(9001L));
+        assertThat(captor.getValue().getAvatarObjectId()).isEqualTo(9001L);
         assertThat(savedUser.getId()).isEqualTo(generatedId);
         assertThat(savedUser.getName()).isEqualTo("Alice");
         assertThat(savedUser.getAvatarObjectId()).isEqualTo(StoredObjectId.of(9001L));

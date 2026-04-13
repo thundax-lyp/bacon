@@ -18,8 +18,6 @@ public class SysLogRecord {
 
     /** 日志主键。 */
     private Long id;
-    /** 租户标识。 */
-    private Long tenantId;
     /** 链路追踪标识。 */
     private String traceId;
     /** 请求标识。 */
@@ -51,7 +49,6 @@ public class SysLogRecord {
 
     public static SysLogRecord create(
             Long id,
-            Long tenantId,
             String traceId,
             String requestId,
             String module,
@@ -69,7 +66,6 @@ public class SysLogRecord {
         Objects.requireNonNull(id, "id must not be null");
         return new SysLogRecord(
                 id,
-                tenantId,
                 traceId,
                 requestId,
                 module,
@@ -88,7 +84,6 @@ public class SysLogRecord {
 
     public static SysLogRecord reconstruct(
             Long id,
-            Long tenantId,
             String traceId,
             String requestId,
             String module,
@@ -105,7 +100,6 @@ public class SysLogRecord {
             Instant occurredAt) {
         return new SysLogRecord(
                 id,
-                tenantId,
                 traceId,
                 requestId,
                 module,

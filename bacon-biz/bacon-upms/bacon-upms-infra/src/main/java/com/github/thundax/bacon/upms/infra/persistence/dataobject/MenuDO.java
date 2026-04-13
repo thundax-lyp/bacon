@@ -4,9 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
-import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,10 +17,10 @@ import lombok.NoArgsConstructor;
 public class MenuDO {
 
     @TableId(type = IdType.INPUT)
-    private MenuId id;
+    private Long id;
 
     @TableField("tenant_id")
-    private TenantId tenantId;
+    private Long tenantId;
 
     @TableField("menu_type")
     private String menuType;
@@ -31,7 +29,7 @@ public class MenuDO {
     private String name;
 
     @TableField("parent_id")
-    private MenuId parentId;
+    private Long parentId;
 
     @TableField("route_path")
     private String routePath;

@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
@@ -21,8 +20,6 @@ public class UserIdentity {
 
     /** 身份标识主键。 */
     private UserIdentityId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 关联用户主键。 */
     private UserId userId;
     /** 身份标识类型。 */
@@ -34,27 +31,24 @@ public class UserIdentity {
 
     public static UserIdentity create(
             UserIdentityId id,
-            TenantId tenantId,
             UserId userId,
             UserIdentityType identityType,
             String identityValue,
             UserIdentityStatus status) {
         Objects.requireNonNull(id, "id must not be null");
-        Objects.requireNonNull(tenantId, "tenantId must not be null");
         Objects.requireNonNull(userId, "userId must not be null");
         Objects.requireNonNull(identityType, "identityType must not be null");
         Objects.requireNonNull(identityValue, "identityValue must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new UserIdentity(id, tenantId, userId, identityType, identityValue, status);
+        return new UserIdentity(id, userId, identityType, identityValue, status);
     }
 
     public static UserIdentity reconstruct(
             UserIdentityId id,
-            TenantId tenantId,
             UserId userId,
             UserIdentityType identityType,
             String identityValue,
             UserIdentityStatus status) {
-        return new UserIdentity(id, tenantId, userId, identityType, identityValue, status);
+        return new UserIdentity(id, userId, identityType, identityValue, status);
     }
 }

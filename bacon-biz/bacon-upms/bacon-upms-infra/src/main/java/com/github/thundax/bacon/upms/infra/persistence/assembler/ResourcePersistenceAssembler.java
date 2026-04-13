@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.id.domain.ResourceId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
@@ -12,8 +13,8 @@ public final class ResourcePersistenceAssembler {
 
     public static ResourceDO toDataObject(Resource resource) {
         return new ResourceDO(
-                resource.getId(),
-                resource.getTenantId(),
+                resource.getId() == null ? null : resource.getId().value(),
+                BaconContextHolder.requireTenantId(),
                 resource.getCode(),
                 resource.getName(),
                 resource.getResourceType() == null ? null : resource.getResourceType().value(),
@@ -23,10 +24,9 @@ public final class ResourcePersistenceAssembler {
     }
 
     public static Resource toDomain(ResourceDO dataObject) {
-        ResourceId resourceId = dataObject.getId();
+        ResourceId resourceId = dataObject.getId() == null ? null : ResourceId.of(dataObject.getId());
         return Resource.reconstruct(
                 resourceId,
-                dataObject.getTenantId(),
                 dataObject.getCode(),
                 dataObject.getName(),
                 ResourceType.from(dataObject.getResourceType()),

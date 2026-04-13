@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.upms.application.assembler.MenuAssembler;
+import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.api.dto.MenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
@@ -14,30 +16,33 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MenuApplicationService {
 
+    private static final String MENU_ID_BIZ_TAG = "menu-id";
+
     private final MenuRepository menuRepository;
     private final PermissionRepository permissionRepository;
+    private final IdGenerator idGenerator;
 
-    public MenuApplicationService(MenuRepository menuRepository, PermissionRepository permissionRepository) {
+    public MenuApplicationService(
+            MenuRepository menuRepository, PermissionRepository permissionRepository, IdGenerator idGenerator) {
         this.menuRepository = menuRepository;
         this.permissionRepository = permissionRepository;
+        this.idGenerator = idGenerator;
     }
 
     public List<UserMenuTreeDTO> toMenuTree(List<Menu> menus) {
         // 这里假设上游已经给出树形菜单，当前方法只做 DTO 投影，不再重复构树。
-        return menus.stream().map(this::toDto).toList();
+        return menus.stream().map(MenuAssembler::toUserMenuTreeDto).toList();
     }
 
-    public List<MenuTreeDTO> getMenuTree(TenantId tenantId) {
+    public List<MenuTreeDTO> getMenuTree() {
         // 菜单树读取直接复用权限仓储结果，避免命令侧和权限侧各维护一套树装配逻辑。
-        Long tenantIdValue = tenantId.value();
-        return permissionRepository.listMenus(tenantId).stream()
-                .map(menu -> toTreeDto(menu, tenantIdValue))
+        return permissionRepository.listMenus().stream()
+                .map(MenuAssembler::toTreeDto)
                 .toList();
     }
 
     @Transactional
     public MenuTreeDTO createMenu(
-            TenantId tenantId,
             String menuType,
             String name,
             String parentId,
@@ -49,10 +54,9 @@ public class MenuApplicationService {
         validateRequired(menuType, "menuType");
         validateRequired(name, "name");
         MenuId domainParentId = normalizeParentId(parentId);
-        validateParent(tenantId, domainParentId);
-        return toTreeDto(menuRepository.save(Menu.reconstruct(
-                null,
-                tenantId,
+        validateParent(domainParentId);
+        return toTreeDto(menuRepository.save(Menu.create(
+                MenuIdCodec.toDomain(idGenerator.nextId(MENU_ID_BIZ_TAG)),
                 normalize(menuType),
                 normalize(name),
                 domainParentId,
@@ -66,7 +70,6 @@ public class MenuApplicationService {
 
     @Transactional
     public MenuTreeDTO updateMenu(
-            TenantId tenantId,
             String menuId,
             String menuType,
             String name,
@@ -76,20 +79,18 @@ public class MenuApplicationService {
             String icon,
             Integer sort,
             String permissionCode) {
-        MenuId domainMenuId = MenuId.of(Long.parseLong(menuId));
+        MenuId domainMenuId = MenuIdCodec.toDomain(Long.parseLong(menuId));
         MenuId domainParentId = normalizeParentId(parentId);
         Menu currentMenu = menuRepository
-                .findMenuById(tenantId, domainMenuId)
+                .findMenuById(domainMenuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
         validateRequired(menuType, "menuType");
         validateRequired(name, "name");
-        validateParent(tenantId, domainParentId);
+        validateParent(domainParentId);
         if (domainMenuId.equals(domainParentId)) {
             throw new IllegalArgumentException("Menu parent cannot be self");
         }
-        return toTreeDto(menuRepository.save(Menu.reconstruct(
-                currentMenu.getId(),
-                tenantId,
+        return toTreeDto(menuRepository.save(currentMenu.update(
                 normalize(menuType),
                 normalize(name),
                 domainParentId,
@@ -102,70 +103,36 @@ public class MenuApplicationService {
     }
 
     @Transactional
-    public void deleteMenu(TenantId tenantId, String menuId) {
-        MenuId domainMenuId = MenuId.of(Long.parseLong(menuId));
+    public void deleteMenu(String menuId) {
+        MenuId domainMenuId = MenuIdCodec.toDomain(Long.parseLong(menuId));
         menuRepository
-                .findMenuById(tenantId, domainMenuId)
+                .findMenuById(domainMenuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
-        if (menuRepository.existsChildMenu(tenantId, domainMenuId)) {
+        if (menuRepository.existsChildMenu(domainMenuId)) {
             throw new IllegalArgumentException("Menu has child menus: " + menuId);
         }
-        menuRepository.deleteMenu(tenantId, domainMenuId);
+        menuRepository.deleteMenu(domainMenuId);
     }
 
     @Transactional
-    public MenuTreeDTO updateMenuSort(TenantId tenantId, String menuId, Integer sort) {
+    public MenuTreeDTO updateMenuSort(String menuId, Integer sort) {
         if (sort == null) {
             throw new IllegalArgumentException("sort must not be null");
         }
-        return toTreeDto(menuRepository.updateSort(tenantId, MenuId.of(Long.parseLong(menuId)), sort));
-    }
-
-    private UserMenuTreeDTO toDto(Menu menu) {
-        return new UserMenuTreeDTO(
-                idValue(menu.getId()),
-                menu.getName(),
-                menu.getMenuType(),
-                idValue(menu.getParentId()),
-                menu.getRoutePath(),
-                menu.getComponentName(),
-                menu.getIcon(),
-                menu.getSort(),
-                menu.getChildren() == null
-                        ? List.of()
-                        : menu.getChildren().stream().map(this::toDto).toList());
+        return toTreeDto(menuRepository.updateSort(MenuIdCodec.toDomain(Long.parseLong(menuId)), sort));
     }
 
     private MenuTreeDTO toTreeDto(Menu menu) {
-        return toTreeDto(menu, menu.getTenantId().value());
+        return MenuAssembler.toTreeDto(menu);
     }
 
-    private MenuTreeDTO toTreeDto(Menu menu, Long tenantIdValue) {
-        return new MenuTreeDTO(
-                idValue(menu.getId()),
-                tenantIdValue,
-                menu.getMenuType(),
-                menu.getName(),
-                idValue(menu.getParentId()),
-                menu.getRoutePath(),
-                menu.getComponentName(),
-                menu.getIcon(),
-                menu.getSort(),
-                menu.getPermissionCode(),
-                menu.getChildren() == null
-                        ? List.of()
-                        : menu.getChildren().stream()
-                                .map(child -> toTreeDto(child, tenantIdValue))
-                                .toList());
-    }
-
-    private void validateParent(TenantId tenantId, MenuId parentId) {
+    private void validateParent(MenuId parentId) {
         // 菜单根节点统一用 null parentId 语义，避免和正数型 ID 约束冲突。
         if (parentId == null) {
             return;
         }
         menuRepository
-                .findMenuById(tenantId, parentId)
+                .findMenuById(parentId)
                 .orElseThrow(() -> new IllegalArgumentException("Parent menu not found: " + parentId));
     }
 
@@ -173,11 +140,7 @@ public class MenuApplicationService {
         if (parentId == null || parentId.isBlank()) {
             return null;
         }
-        return MenuId.of(Long.parseLong(parentId.trim()));
-    }
-
-    private Long idValue(MenuId menuId) {
-        return menuId == null ? null : menuId.value();
+        return MenuIdCodec.toDomain(Long.parseLong(parentId.trim()));
     }
 
     private void validateRequired(String value, String fieldName) {

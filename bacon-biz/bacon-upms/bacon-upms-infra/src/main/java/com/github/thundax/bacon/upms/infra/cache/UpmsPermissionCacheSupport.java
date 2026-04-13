@@ -194,9 +194,8 @@ public class UpmsPermissionCacheSupport {
     }
 
     private Menu copyMenu(Menu menu) {
-        return Menu.reconstruct(
+        return Menu.create(
                 menu.getId(),
-                menu.getTenantId(),
                 menu.getMenuType(),
                 menu.getName(),
                 menu.getParentId(),

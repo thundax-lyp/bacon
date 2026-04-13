@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.util.List;
@@ -9,21 +8,21 @@ import java.util.Set;
 
 public interface DepartmentRepository {
 
-    Optional<Department> findDepartmentById(TenantId tenantId, DepartmentId departmentId);
+    Optional<Department> findDepartmentById(DepartmentId departmentId);
 
-    Optional<Department> findDepartmentByCode(TenantId tenantId, String departmentCode);
+    Optional<Department> findDepartmentByCode(String departmentCode);
 
-    List<Department> listDepartmentsByIds(TenantId tenantId, Set<DepartmentId> departmentIds);
+    List<Department> listDepartmentsByIds(Set<DepartmentId> departmentIds);
 
-    List<Department> listDepartmentTree(TenantId tenantId);
+    List<Department> listDepartmentTree();
 
     Department save(Department department);
 
-    Department updateSort(TenantId tenantId, DepartmentId departmentId, Integer sort);
+    Department updateSort(DepartmentId departmentId, Integer sort);
 
-    void deleteDepartment(TenantId tenantId, DepartmentId departmentId);
+    void deleteDepartment(DepartmentId departmentId);
 
-    boolean existsChildDepartment(TenantId tenantId, DepartmentId departmentId);
+    boolean existsChildDepartment(DepartmentId departmentId);
 
-    boolean existsUserInDepartment(TenantId tenantId, DepartmentId departmentId);
+    boolean existsUserInDepartment(DepartmentId departmentId);
 }

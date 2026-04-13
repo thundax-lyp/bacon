@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
-import com.github.thundax.bacon.common.id.domain.ResourceId;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.upms.application.assembler.ResourceAssembler;
+import com.github.thundax.bacon.upms.application.codec.ResourceIdCodec;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
@@ -17,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ResourceApplicationService {
 
+    private final Ids ids;
     private final ResourceRepository resourceRepository;
 
-    public ResourceApplicationService(ResourceRepository resourceRepository) {
+    public ResourceApplicationService(Ids ids, ResourceRepository resourceRepository) {
+        this.ids = ids;
         this.resourceRepository = resourceRepository;
     }
 
@@ -44,20 +47,18 @@ public class ResourceApplicationService {
                 pageSize);
     }
 
-    public ResourceDTO getResourceById(TenantId tenantId, String resourceId) {
-        return toDto(requireResource(tenantId, resourceId));
+    public ResourceDTO getResourceById(String resourceId) {
+        return toDto(requireResource(resourceId));
     }
 
     @Transactional
-    public ResourceDTO createResource(
-            TenantId tenantId, String code, String name, String resourceType, String httpMethod, String uri) {
+    public ResourceDTO createResource(String code, String name, String resourceType, String httpMethod, String uri) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         validateRequired(resourceType, "resourceType");
         validateRequired(uri, "uri");
-        return toDto(resourceRepository.save(Resource.reconstruct(
-                null,
-                tenantId,
+        return toDto(resourceRepository.save(Resource.create(
+                ids.resourceId(),
                 normalize(code),
                 normalize(name),
                 toResourceType(resourceType),
@@ -68,7 +69,6 @@ public class ResourceApplicationService {
 
     @Transactional
     public ResourceDTO updateResource(
-            TenantId tenantId,
             String resourceId,
             String code,
             String name,
@@ -76,14 +76,12 @@ public class ResourceApplicationService {
             String httpMethod,
             String uri,
             String status) {
-        Resource currentResource = requireResource(tenantId, resourceId);
+        Resource currentResource = requireResource(resourceId);
         validateRequired(code, "code");
         validateRequired(name, "name");
         validateRequired(resourceType, "resourceType");
         validateRequired(uri, "uri");
-        return toDto(resourceRepository.save(Resource.reconstruct(
-                currentResource.getId(),
-                tenantId,
+        return toDto(resourceRepository.save(currentResource.update(
                 normalize(code),
                 normalize(name),
                 toResourceType(resourceType),
@@ -93,33 +91,19 @@ public class ResourceApplicationService {
     }
 
     @Transactional
-    public void deleteResource(TenantId tenantId, String resourceId) {
-        requireResource(tenantId, resourceId);
-        resourceRepository.delete(tenantId, ResourceId.of(Long.parseLong(resourceId)));
+    public void deleteResource(String resourceId) {
+        requireResource(resourceId);
+        resourceRepository.delete(ResourceIdCodec.toDomain(Long.parseLong(resourceId)));
     }
 
-    private Resource requireResource(TenantId tenantId, String resourceId) {
+    private Resource requireResource(String resourceId) {
         return resourceRepository
-                .findById(tenantId, ResourceId.of(Long.parseLong(resourceId)))
+                .findById(ResourceIdCodec.toDomain(Long.parseLong(resourceId)))
                 .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + resourceId));
     }
 
     private ResourceDTO toDto(Resource resource) {
-        return toDto(resource, resource.getTenantId().value());
-    }
-
-    private ResourceDTO toDto(Resource resource, Long tenantIdValue) {
-        return new ResourceDTO(
-                resource.getId() == null ? null : resource.getId().value(),
-                tenantIdValue,
-                resource.getCode(),
-                resource.getName(),
-                resource.getResourceType() == null
-                        ? null
-                        : resource.getResourceType().value(),
-                resource.getHttpMethod(),
-                resource.getUri(),
-                resource.getStatus() == null ? null : resource.getStatus().value());
+        return ResourceAssembler.toDto(resource);
     }
 
     private void validateRequired(String value, String fieldName) {

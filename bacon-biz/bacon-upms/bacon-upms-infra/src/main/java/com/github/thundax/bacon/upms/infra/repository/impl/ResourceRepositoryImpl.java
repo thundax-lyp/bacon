@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
@@ -27,8 +28,8 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     }
 
     @Override
-    public Optional<Resource> findById(TenantId tenantId, ResourceId resourceId) {
-        return support.findResourceById(tenantId, resourceId);
+    public Optional<Resource> findById(ResourceId resourceId) {
+        return support.findResourceById(resourceId);
     }
 
     @Override
@@ -43,10 +44,10 @@ public class ResourceRepositoryImpl implements ResourceRepository {
 
     @Override
     public Resource save(Resource resource) {
+        TenantId tenantId = requireTenantId();
         Resource resourceToSave = resource.getId() == null
                 ? Resource.create(
                         ids.resourceId(),
-                        resource.getTenantId(),
                         resource.getCode(),
                         resource.getName(),
                         resource.getResourceType(),
@@ -55,13 +56,18 @@ public class ResourceRepositoryImpl implements ResourceRepository {
                         resource.getStatus())
                 : resource;
         Resource savedResource = support.saveResource(resourceToSave);
-        cacheSupport.evictTenantPermission(savedResource.getTenantId());
+        cacheSupport.evictTenantPermission(tenantId);
         return savedResource;
     }
 
     @Override
-    public void delete(TenantId tenantId, ResourceId resourceId) {
-        support.deleteResource(tenantId, resourceId);
+    public void delete(ResourceId resourceId) {
+        TenantId tenantId = requireTenantId();
+        support.deleteResource(resourceId);
         cacheSupport.evictTenantPermission(tenantId);
+    }
+
+    private TenantId requireTenantId() {
+        return TenantId.of(BaconContextHolder.requireTenantId());
     }
 }

@@ -7,7 +7,7 @@ public interface PaymentOrderRepository {
 
     PaymentOrder save(PaymentOrder paymentOrder);
 
-    Optional<PaymentOrder> findOrderByPaymentNo(Long tenantId, String paymentNo);
+    Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo);
 
-    Optional<PaymentOrder> findOrderByOrderNo(Long tenantId, String orderNo);
+    Optional<PaymentOrder> findOrderByOrderNo(String orderNo);
 }

@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.payment.application.query;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
@@ -24,23 +23,21 @@ public class PaymentQueryApplicationService {
         this.paymentCallbackRecordRepository = paymentCallbackRecordRepository;
     }
 
-    public PaymentDetailDTO getByPaymentNo(Long tenantId, String paymentNo) {
+    public PaymentDetailDTO getByPaymentNo(String paymentNo) {
         return toDetail(paymentOrderRepository
-                .findOrderByPaymentNo(tenantId, paymentNo)
+                .findOrderByPaymentNo(paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo)));
     }
 
-    public PaymentDetailDTO getByOrderNo(Long tenantId, String orderNo) {
+    public PaymentDetailDTO getByOrderNo(String orderNo) {
         return toDetail(paymentOrderRepository
-                .findOrderByOrderNo(tenantId, orderNo)
+                .findOrderByOrderNo(orderNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, orderNo)));
     }
 
     private PaymentDetailDTO toDetail(PaymentOrder paymentOrder) {
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
-                .findLatestCallbackByPaymentNo(
-                        toLongTenantValue(paymentOrder.getTenantId()),
-                        paymentOrder.getPaymentNo().value())
+                .findLatestCallbackByPaymentNo(paymentOrder.getPaymentNo().value())
                 .orElse(null);
         // 详情查询优先使用主单快照字段；只有主单还没固化对应信息时，才退回最近回调记录补齐展示字段。
         String channelTransactionNo = paymentOrder.getChannelTransactionNo() != null
@@ -53,7 +50,6 @@ public class PaymentQueryApplicationService {
                 ? paymentOrder.getCallbackSummary()
                 : latestRecord != null ? latestRecord.summarize() : null;
         return new PaymentDetailDTO(
-                toLongTenantValue(paymentOrder.getTenantId()),
                 paymentOrder.getPaymentNo().value(),
                 paymentOrder.getOrderNo().value(),
                 toLongUserValue(paymentOrder.getUserId()),
@@ -69,10 +65,6 @@ public class PaymentQueryApplicationService {
                 channelTransactionNo,
                 channelStatus,
                 callbackSummary);
-    }
-
-    private Long toLongTenantValue(TenantId tenantId) {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
     }
 
     private Long toLongUserValue(UserId userId) {

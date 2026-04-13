@@ -7,8 +7,6 @@ import java.time.Instant;
  * 支付详情响应对象。
  */
 public record PaymentDetailResponse(
-        /** 所属租户主键。 */
-        Long tenantId,
         /** 支付单号。 */
         String paymentNo,
         /** 关联订单号。 */

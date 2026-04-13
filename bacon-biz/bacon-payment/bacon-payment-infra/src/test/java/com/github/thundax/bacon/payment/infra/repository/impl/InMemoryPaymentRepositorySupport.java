@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
-import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -39,9 +39,8 @@ public class InMemoryPaymentRepositorySupport {
 
     public PaymentOrder saveOrder(PaymentOrder paymentOrder) {
         PaymentOrder persisted = paymentOrder.getId() == null
-                ? PaymentOrder.rehydrate(
+                ? PaymentOrder.reconstruct(
                         PaymentOrderId.of(paymentOrderIdGenerator.getAndIncrement()),
-                        paymentOrder.getTenantId(),
                         paymentOrder.getPaymentNo(),
                         paymentOrder.getOrderNo(),
                         paymentOrder.getUserId(),
@@ -58,24 +57,23 @@ public class InMemoryPaymentRepositorySupport {
                         paymentOrder.getChannelStatus(),
                         paymentOrder.getCallbackSummary())
                 : paymentOrder;
-        paymentsByPaymentNo.put(paymentKey(persisted.getTenantId(), persisted.getPaymentNo()), persisted);
-        paymentsByOrderNo.put(orderKey(persisted.getTenantId(), persisted.getOrderNo()), persisted);
+        paymentsByPaymentNo.put(paymentKey(currentTenantId(), persisted.getPaymentNo().value()), persisted);
+        paymentsByOrderNo.put(orderKey(currentTenantId(), persisted.getOrderNo().value()), persisted);
         return persisted;
     }
 
-    public Optional<PaymentOrder> findOrderByPaymentNo(Long tenantId, String paymentNo) {
-        return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(tenantId, paymentNo)));
+    public Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo) {
+        return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(currentTenantId(), paymentNo)));
     }
 
-    public Optional<PaymentOrder> findOrderByOrderNo(Long tenantId, String orderNo) {
-        return Optional.ofNullable(paymentsByOrderNo.get(orderKey(tenantId, orderNo)));
+    public Optional<PaymentOrder> findOrderByOrderNo(String orderNo) {
+        return Optional.ofNullable(paymentsByOrderNo.get(orderKey(currentTenantId(), orderNo)));
     }
 
     public PaymentCallbackRecord saveCallbackRecord(PaymentCallbackRecord callbackRecord) {
         PaymentCallbackRecord persisted = callbackRecord.getId() == null
-                ? new PaymentCallbackRecord(
+                ? PaymentCallbackRecord.reconstruct(
                         callbackRecordIdGenerator.getAndIncrement(),
-                        callbackRecord.getTenantId(),
                         callbackRecord.getPaymentNo(),
                         callbackRecord.getOrderNo(),
                         callbackRecord.getChannelCode(),
@@ -85,38 +83,36 @@ public class InMemoryPaymentRepositorySupport {
                         callbackRecord.getReceivedAt())
                 : callbackRecord;
         callbackRecordsByPaymentNo
-                .computeIfAbsent(
-                        paymentKey(persisted.getTenantId(), persisted.getPaymentNo()), ignored -> new ArrayList<>())
+                .computeIfAbsent(paymentKey(currentTenantId(), persisted.getPaymentNo().value()), ignored -> new ArrayList<>())
                 .add(persisted);
         if (persisted.getChannelTransactionNo() != null
                 && !persisted.getChannelTransactionNo().isBlank()) {
             callbackRecordsByTxn.put(
-                    txnKey(persisted.getTenantId(), persisted.getChannelCode(), persisted.getChannelTransactionNo()),
+                    txnKey(currentTenantId(), persisted.getChannelCode().value(), persisted.getChannelTransactionNo()),
                     persisted);
         }
         return persisted;
     }
 
-    public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(Long tenantId, String paymentNo) {
-        return findCallbacksByPaymentNo(tenantId, paymentNo).stream()
+    public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(String paymentNo) {
+        return findCallbacksByPaymentNo(paymentNo).stream()
                 .max(Comparator.comparing(PaymentCallbackRecord::getReceivedAt)
                         .thenComparing(PaymentCallbackRecord::getId));
     }
 
     public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
-            Long tenantId, String channelCode, String channelTransactionNo) {
-        return Optional.ofNullable(callbackRecordsByTxn.get(txnKey(tenantId, channelCode, channelTransactionNo)));
+            String channelCode, String channelTransactionNo) {
+        return Optional.ofNullable(callbackRecordsByTxn.get(txnKey(currentTenantId(), channelCode, channelTransactionNo)));
     }
 
-    public List<PaymentCallbackRecord> findCallbacksByPaymentNo(Long tenantId, String paymentNo) {
-        return List.copyOf(callbackRecordsByPaymentNo.getOrDefault(paymentKey(tenantId, paymentNo), List.of()));
+    public List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo) {
+        return List.copyOf(callbackRecordsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
     }
 
     public void saveAuditLog(PaymentAuditLog auditLog) {
         PaymentAuditLog persisted = auditLog.getId() == null
-                ? new PaymentAuditLog(
+                ? PaymentAuditLog.reconstruct(
                         auditLogIdGenerator.getAndIncrement(),
-                        auditLog.getTenantId(),
                         auditLog.getPaymentNo(),
                         auditLog.getActionType(),
                         auditLog.getBeforeStatus(),
@@ -126,33 +122,16 @@ public class InMemoryPaymentRepositorySupport {
                         auditLog.getOccurredAt())
                 : auditLog;
         auditLogsByPaymentNo
-                .computeIfAbsent(
-                        paymentKey(persisted.getTenantId(), persisted.getPaymentNo()), ignored -> new ArrayList<>())
+                .computeIfAbsent(paymentKey(currentTenantId(), persisted.getPaymentNo().value()), ignored -> new ArrayList<>())
                 .add(persisted);
     }
 
-    public List<PaymentAuditLog> findAuditLogsByPaymentNo(Long tenantId, String paymentNo) {
-        return List.copyOf(auditLogsByPaymentNo.getOrDefault(paymentKey(tenantId, paymentNo), List.of()));
-    }
-
-    private static String paymentKey(TenantId tenantId, String paymentNo) {
-        return tenantId.value() + ":" + paymentNo;
-    }
-
-    private static String paymentKey(TenantId tenantId, PaymentNo paymentNo) {
-        return paymentKey(tenantId, paymentNo.value());
+    public List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo) {
+        return List.copyOf(auditLogsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
     }
 
     private static String paymentKey(Long tenantId, String paymentNo) {
         return tenantId + ":" + paymentNo;
-    }
-
-    private static String orderKey(TenantId tenantId, String orderNo) {
-        return tenantId.value() + ":" + orderNo;
-    }
-
-    private static String orderKey(TenantId tenantId, OrderNo orderNo) {
-        return orderKey(tenantId, orderNo.value());
     }
 
     private static String orderKey(Long tenantId, String orderNo) {
@@ -163,11 +142,7 @@ public class InMemoryPaymentRepositorySupport {
         return tenantId + ":" + channelCode + ":" + channelTransactionNo;
     }
 
-    private static String txnKey(TenantId tenantId, PaymentChannelCode channelCode, String channelTransactionNo) {
-        return txnKey(Long.valueOf(tenantId.value()), channelCode.value(), channelTransactionNo);
-    }
-
-    private static String txnKey(Long tenantId, PaymentChannelCode channelCode, String channelTransactionNo) {
-        return txnKey(tenantId, channelCode.value(), channelTransactionNo);
+    private static Long currentTenantId() {
+        return BaconContextHolder.requireTenantId();
     }
 }

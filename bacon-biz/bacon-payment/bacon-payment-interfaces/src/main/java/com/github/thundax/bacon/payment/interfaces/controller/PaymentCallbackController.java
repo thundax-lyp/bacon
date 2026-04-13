@@ -30,11 +30,9 @@ public class PaymentCallbackController {
     public void callback(
             @PathVariable("channelCode") @NotBlank String channelCode,
             @Valid @RequestBody PaymentCallbackRequest request) {
-        Long tenantId = Long.valueOf(request.getTenantCode());
         if (request.isSuccess()) {
             paymentCallbackApplicationService.callbackPaid(
                     channelCode,
-                    tenantId,
                     request.getPaymentNo(),
                     request.getChannelTransactionNo(),
                     request.getChannelStatus(),
@@ -43,7 +41,6 @@ public class PaymentCallbackController {
         }
         paymentCallbackApplicationService.callbackFailed(
                 channelCode,
-                tenantId,
                 request.getPaymentNo(),
                 request.getChannelStatus(),
                 request.getRawPayload(),

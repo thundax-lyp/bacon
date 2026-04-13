@@ -37,7 +37,7 @@ class PaymentProviderControllerContractTest {
         PaymentProviderController controller = new PaymentProviderController(
                 new StubPaymentQueryApplicationService(),
                 new StubPaymentAuditQueryApplicationService(),
-                new PaymentCreateApplicationService(null, null, null),
+                new PaymentCreateApplicationService(null, null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -48,7 +48,6 @@ class PaymentProviderControllerContractTest {
         mockMvc.perform(get("/providers/payment/PAY-10001").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paymentNo").value("PAY-10001"))
-                .andExpect(jsonPath("$.tenantId").value(1001))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -57,7 +56,7 @@ class PaymentProviderControllerContractTest {
         PaymentProviderController controller = new PaymentProviderController(
                 new StubPaymentQueryApplicationService(),
                 new StubPaymentAuditQueryApplicationService(),
-                new PaymentCreateApplicationService(null, null, null),
+                new PaymentCreateApplicationService(null, null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -74,7 +73,7 @@ class PaymentProviderControllerContractTest {
         PaymentProviderController controller = new PaymentProviderController(
                 new StubPaymentQueryApplicationService(),
                 new StubPaymentAuditQueryApplicationService(),
-                new PaymentCreateApplicationService(null, null, null),
+                new PaymentCreateApplicationService(null, null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -96,7 +95,7 @@ class PaymentProviderControllerContractTest {
         PaymentProviderController controller = new PaymentProviderController(
                 new StubPaymentQueryApplicationService(),
                 new StubPaymentAuditQueryApplicationService(),
-                new PaymentCreateApplicationService(null, null, null),
+                new PaymentCreateApplicationService(null, null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -115,7 +114,7 @@ class PaymentProviderControllerContractTest {
         PaymentProviderController controller = new PaymentProviderController(
                 new StubPaymentQueryApplicationService(),
                 new StubPaymentAuditQueryApplicationService(),
-                new PaymentCreateApplicationService(null, null, null),
+                new PaymentCreateApplicationService(null, null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -131,7 +130,7 @@ class PaymentProviderControllerContractTest {
         PaymentProviderController controller = new PaymentProviderController(
                 new StubPaymentQueryApplicationService(),
                 new StubPaymentAuditQueryApplicationService(),
-                new PaymentCreateApplicationService(null, null, null),
+                new PaymentCreateApplicationService(null, null, null, null),
                 new PaymentCloseApplicationService(null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
@@ -159,12 +158,11 @@ class PaymentProviderControllerContractTest {
         }
 
         @Override
-        public PaymentDetailDTO getByPaymentNo(Long tenantId, String paymentNo) {
-            if (Long.valueOf(9999L).equals(tenantId)) {
+        public PaymentDetailDTO getByPaymentNo(String paymentNo) {
+            if (Long.valueOf(9999L).equals(BaconContextHolder.currentTenantId())) {
                 throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
             }
             return new PaymentDetailDTO(
-                    tenantId,
                     paymentNo,
                     "ORD-10001",
                     2001L,
@@ -190,9 +188,8 @@ class PaymentProviderControllerContractTest {
         }
 
         @Override
-        public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
+        public List<PaymentAuditLogDTO> getByPaymentNo(String paymentNo) {
             return List.of(new PaymentAuditLogDTO(
-                    tenantId,
                     paymentNo,
                     "CREATE",
                     null,

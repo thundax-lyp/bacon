@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -18,8 +20,10 @@ import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionTyp
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
-import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
+import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentAuditLogPersistenceAssembler;
+import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentCallbackRecordPersistenceAssembler;
+import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentOrderPersistenceAssembler;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentAuditLogDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentCallbackRecordDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentOrderDO;
@@ -32,9 +36,15 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class PaymentRepositorySupportTest {
+
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
+    }
 
     @Test
     void shouldInsertPaymentOrderAndMapGeneratedIdBackToDomain() {
@@ -43,11 +53,14 @@ class PaymentRepositorySupportTest {
                 createOrderMapper(insertedRef, null, null),
                 createCallbackMapper(null, null, null),
                 createAuditLogMapper(null, null),
-                createIdGenerator());
+                createIdGenerator(),
+                new PaymentOrderPersistenceAssembler(),
+                new PaymentCallbackRecordPersistenceAssembler(),
+                new PaymentAuditLogPersistenceAssembler());
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        PaymentOrder persisted = support.saveOrder(new PaymentOrder(
-                null,
-                TenantId.of(1001L),
+        PaymentOrder persisted = support.saveOrder(PaymentOrder.create(
+                PaymentOrderId.of(8001L),
                 PaymentNo.of("PAY-10001"),
                 OrderNo.of("ORD-10001"),
                 UserId.of(2001L),
@@ -70,10 +83,13 @@ class PaymentRepositorySupportTest {
                 createOrderMapper(null, updatedRef, null),
                 createCallbackMapper(null, null, null),
                 createAuditLogMapper(null, null),
-                createIdGenerator());
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(
+                createIdGenerator(),
+                new PaymentOrderPersistenceAssembler(),
+                new PaymentCallbackRecordPersistenceAssembler(),
+                new PaymentAuditLogPersistenceAssembler());
+        BaconContextHolder.set(new BaconContext(1001L, 2002L));
+        PaymentOrder paymentOrder = PaymentOrder.reconstruct(
                 PaymentOrderId.of(9001L),
-                TenantId.of(1001L),
                 PaymentNo.of("PAY-10002"),
                 OrderNo.of("ORD-10002"),
                 UserId.of(2002L),
@@ -105,10 +121,13 @@ class PaymentRepositorySupportTest {
                 createOrderMapper(null, null, null, 0),
                 createCallbackMapper(null, null, null),
                 createAuditLogMapper(null, null),
-                createIdGenerator());
-        PaymentOrder paymentOrder = PaymentOrder.rehydrate(
+                createIdGenerator(),
+                new PaymentOrderPersistenceAssembler(),
+                new PaymentCallbackRecordPersistenceAssembler(),
+                new PaymentAuditLogPersistenceAssembler());
+        BaconContextHolder.set(new BaconContext(1001L, 2009L));
+        PaymentOrder paymentOrder = PaymentOrder.reconstruct(
                 PaymentOrderId.of(9002L),
-                TenantId.of(1001L),
                 PaymentNo.of("PAY-10009"),
                 OrderNo.of("ORD-10009"),
                 UserId.of(2009L),
@@ -184,13 +203,15 @@ class PaymentRepositorySupportTest {
                 createOrderMapper(null, null, orderDataObject),
                 createCallbackMapper(callbackDataObject, callbackDataObject, List.of(callbackDataObject)),
                 createAuditLogMapper(null, List.of(createLog, paidLog)),
-                createIdGenerator());
+                createIdGenerator(),
+                new PaymentOrderPersistenceAssembler(),
+                new PaymentCallbackRecordPersistenceAssembler(),
+                new PaymentAuditLogPersistenceAssembler());
 
-        PaymentOrder paymentOrder =
-                support.findOrderByPaymentNo(1001L, "PAY-10003").orElseThrow();
-        PaymentCallbackRecord latestCallback =
-                support.findLatestCallbackByPaymentNo(1001L, "PAY-10003").orElseThrow();
-        List<PaymentAuditLog> auditLogs = support.findAuditLogsByPaymentNo(1001L, "PAY-10003");
+        BaconContextHolder.set(new BaconContext(1001L, 2003L));
+        PaymentOrder paymentOrder = support.findOrderByPaymentNo("PAY-10003").orElseThrow();
+        PaymentCallbackRecord latestCallback = support.findLatestCallbackByPaymentNo("PAY-10003").orElseThrow();
+        List<PaymentAuditLog> auditLogs = support.findAuditLogsByPaymentNo("PAY-10003");
 
         assertEquals(PaymentStatus.PAID.value(), paymentOrder.getPaymentStatus().value());
         assertEquals("TXN-10003", latestCallback.getChannelTransactionNo());
@@ -219,7 +240,6 @@ class PaymentRepositorySupportTest {
                 (proxy, method, args) -> {
                     if ("insert".equals(method.getName())) {
                         PaymentOrderDO dataObject = (PaymentOrderDO) args[0];
-                        dataObject.setId(8001L);
                         insertedRef.set(dataObject);
                         return 1;
                     }
@@ -231,6 +251,12 @@ class PaymentRepositorySupportTest {
                     }
                     if ("selectOne".equals(method.getName())) {
                         return selectedOrder;
+                    }
+                    if ("selectById".equals(method.getName())) {
+                        if (selectedOrder != null) {
+                            return selectedOrder;
+                        }
+                        return insertedRef == null ? new PaymentOrderDO() : null;
                     }
                     return null;
                 });

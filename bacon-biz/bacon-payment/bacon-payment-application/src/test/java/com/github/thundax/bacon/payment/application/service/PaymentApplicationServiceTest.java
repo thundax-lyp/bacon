@@ -3,8 +3,11 @@ package com.github.thundax.bacon.payment.application.service;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
@@ -20,7 +23,6 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
-import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentCallbackRecordRepository;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
@@ -32,18 +34,33 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class PaymentApplicationServiceTest {
 
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
+    }
+
+    private PaymentOperationLogSupport paymentOperationLogSupport(TestPaymentRepository repository) {
+        IdGenerator idGenerator = bizTag -> 1L;
+        return new PaymentOperationLogSupport(repository, idGenerator);
+    }
+
+    private IdGenerator idGenerator() {
+        return bizTag -> 1L;
+    }
+
     @Test
     void createPaymentShouldGeneratePaymentNoInsideModule() {
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
         TestPaymentRepository repository = new TestPaymentRepository();
         PaymentCreateApplicationService service = new PaymentCreateApplicationService(
-                repository, new PaymentOperationLogSupport(repository), () -> "PAY-20001");
+                repository, paymentOperationLogSupport(repository), () -> "PAY-20001", idGenerator());
 
         PaymentCreateResultDTO result = service.createPayment(
-                1001L,
                 "ORD-10001",
                 2001L,
                 BigDecimal.TEN,
@@ -54,17 +71,17 @@ class PaymentApplicationServiceTest {
         assertEquals("PAY-20001", result.getPaymentNo());
         assertEquals("ORD-10001", result.getOrderNo());
         assertEquals(PaymentStatus.PAYING.value(), result.getPaymentStatus());
-        assertEquals(1, repository.findAuditLogsByPaymentNo(1001L, "PAY-20001").size());
+        assertEquals(1, repository.findAuditLogsByPaymentNo("PAY-20001").size());
     }
 
     @Test
     void createPaymentShouldBeIdempotentByOrderNo() {
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
         TestPaymentRepository repository = new TestPaymentRepository();
         PaymentCreateApplicationService service = new PaymentCreateApplicationService(
-                repository, new PaymentOperationLogSupport(repository), new SequencePaymentNoGenerator());
+                repository, paymentOperationLogSupport(repository), new SequencePaymentNoGenerator(), idGenerator());
 
         PaymentCreateResultDTO first = service.createPayment(
-                1001L,
                 "ORD-10002",
                 2001L,
                 BigDecimal.ONE,
@@ -72,7 +89,6 @@ class PaymentApplicationServiceTest {
                 "test",
                 Instant.now().plusSeconds(1800));
         PaymentCreateResultDTO second = service.createPayment(
-                1001L,
                 "ORD-10002",
                 2001L,
                 BigDecimal.ONE,
@@ -81,25 +97,23 @@ class PaymentApplicationServiceTest {
                 Instant.now().plusSeconds(1800));
 
         assertEquals(first.getPaymentNo(), second.getPaymentNo());
-        assertEquals(
-                1,
-                repository.findAuditLogsByPaymentNo(1001L, first.getPaymentNo()).size());
+        assertEquals(1, repository.findAuditLogsByPaymentNo(first.getPaymentNo()).size());
     }
 
     @Test
     void callbackAndCloseShouldRespectStateRules() {
+        BaconContextHolder.set(new BaconContext(1001L, 2003L));
         TestPaymentRepository repository = new TestPaymentRepository();
         StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
         PaymentCreateApplicationService createService = new PaymentCreateApplicationService(
-                repository, new PaymentOperationLogSupport(repository), () -> "PAY-20003");
+                repository, paymentOperationLogSupport(repository), () -> "PAY-20003", idGenerator());
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(
-                repository, repository, new PaymentOperationLogSupport(repository), orderCommandFacade);
+                repository, repository, paymentOperationLogSupport(repository), orderCommandFacade, idGenerator());
         PaymentQueryApplicationService queryService = new PaymentQueryApplicationService(repository, repository);
         PaymentCloseApplicationService closeService =
-                new PaymentCloseApplicationService(repository, new PaymentOperationLogSupport(repository));
+                new PaymentCloseApplicationService(repository, paymentOperationLogSupport(repository));
 
         PaymentCreateResultDTO created = createService.createPayment(
-                1001L,
                 "ORD-10003",
                 2003L,
                 new BigDecimal("18.80"),
@@ -107,10 +121,10 @@ class PaymentApplicationServiceTest {
                 "callback",
                 Instant.now().plusSeconds(1800));
         callbackService.callbackPaid(
-                "MOCK", 1001L, created.getPaymentNo(), "TXN-1", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
+                "MOCK", created.getPaymentNo(), "TXN-1", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
         callbackService.callbackFailed(
-                "MOCK", 1001L, created.getPaymentNo(), "FAILED", "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL");
-        PaymentDetailDTO detail = queryService.getByPaymentNo(1001L, created.getPaymentNo());
+                "MOCK", created.getPaymentNo(), "FAILED", "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL");
+        PaymentDetailDTO detail = queryService.getByPaymentNo(created.getPaymentNo());
 
         assertEquals(PaymentStatus.PAID.value(), detail.getPaymentStatus());
         assertEquals("TXN-1", detail.getChannelTransactionNo());
@@ -120,22 +134,20 @@ class PaymentApplicationServiceTest {
 
         assertEquals(
                 "FAILED",
-                closeService
-                        .closePayment(1001L, created.getPaymentNo(), "USER_CANCELLED")
-                        .getCloseResult());
+                closeService.closePayment(created.getPaymentNo(), "USER_CANCELLED").getCloseResult());
     }
 
     @Test
     void duplicateOrIgnoredCallbacksShouldStillWriteAuditLog() {
+        BaconContextHolder.set(new BaconContext(1001L, 2007L));
         TestPaymentRepository repository = new TestPaymentRepository();
         StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
         PaymentCreateApplicationService createService = new PaymentCreateApplicationService(
-                repository, new PaymentOperationLogSupport(repository), () -> "PAY-20007");
+                repository, paymentOperationLogSupport(repository), () -> "PAY-20007", idGenerator());
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(
-                repository, repository, new PaymentOperationLogSupport(repository), orderCommandFacade);
+                repository, repository, paymentOperationLogSupport(repository), orderCommandFacade, idGenerator());
 
         PaymentCreateResultDTO created = createService.createPayment(
-                1001L,
                 "ORD-10007",
                 2007L,
                 new BigDecimal("20.00"),
@@ -143,13 +155,13 @@ class PaymentApplicationServiceTest {
                 "duplicate-callback",
                 Instant.now().plusSeconds(1800));
         callbackService.callbackPaid(
-                "MOCK", 1001L, created.getPaymentNo(), "TXN-20007", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
+                "MOCK", created.getPaymentNo(), "TXN-20007", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
         callbackService.callbackPaid(
-                "MOCK", 1001L, created.getPaymentNo(), "TXN-20007", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
+                "MOCK", created.getPaymentNo(), "TXN-20007", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}");
         callbackService.callbackFailed(
-                "MOCK", 1001L, created.getPaymentNo(), "FAILED", "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL");
+                "MOCK", created.getPaymentNo(), "FAILED", "{\"tradeStatus\":\"FAILED\"}", "CHANNEL_FAIL");
 
-        List<PaymentAuditLog> auditLogs = repository.findAuditLogsByPaymentNo(1001L, created.getPaymentNo());
+        List<PaymentAuditLog> auditLogs = repository.findAuditLogsByPaymentNo(created.getPaymentNo());
 
         assertEquals(4, auditLogs.size());
         assertEquals(PaymentAuditActionType.CREATE, auditLogs.get(0).getActionType());
@@ -166,42 +178,38 @@ class PaymentApplicationServiceTest {
 
     @Test
     void closePaymentShouldBeIdempotentForClosedPayment() {
+        BaconContextHolder.set(new BaconContext(1001L, 2004L));
         TestPaymentRepository repository = new TestPaymentRepository();
         PaymentCreateApplicationService createService = new PaymentCreateApplicationService(
-                repository, new PaymentOperationLogSupport(repository), () -> "PAY-20004");
+                repository, paymentOperationLogSupport(repository), () -> "PAY-20004", idGenerator());
         PaymentCloseApplicationService closeService =
-                new PaymentCloseApplicationService(repository, new PaymentOperationLogSupport(repository));
+                new PaymentCloseApplicationService(repository, paymentOperationLogSupport(repository));
 
         PaymentCreateResultDTO created = createService.createPayment(
-                1001L,
                 "ORD-10004",
                 2004L,
                 new BigDecimal("28.00"),
                 "MOCK",
                 "close",
                 Instant.now().plusSeconds(1800));
-        PaymentCloseResultDTO first = closeService.closePayment(1001L, created.getPaymentNo(), "SYSTEM_CANCELLED");
-        PaymentCloseResultDTO second = closeService.closePayment(1001L, created.getPaymentNo(), "SYSTEM_CANCELLED");
+        PaymentCloseResultDTO first = closeService.closePayment(created.getPaymentNo(), "SYSTEM_CANCELLED");
+        PaymentCloseResultDTO second = closeService.closePayment(created.getPaymentNo(), "SYSTEM_CANCELLED");
 
         assertEquals("SUCCESS", first.getCloseResult());
         assertEquals("SUCCESS", second.getCloseResult());
         assertEquals(PaymentStatus.CLOSED.value(), second.getPaymentStatus());
-        assertEquals(
-                2,
-                repository
-                        .findAuditLogsByPaymentNo(1001L, created.getPaymentNo())
-                        .size());
+        assertEquals(2, repository.findAuditLogsByPaymentNo(created.getPaymentNo()).size());
     }
 
     @Test
     void createPaymentShouldNotRollbackWhenAuditWriteFails() {
+        BaconContextHolder.set(new BaconContext(1001L, 2005L));
         TestPaymentRepository repository = new TestPaymentRepository();
         repository.failAuditSave = true;
         PaymentCreateApplicationService service = new PaymentCreateApplicationService(
-                repository, new PaymentOperationLogSupport(repository), () -> "PAY-20005");
+                repository, paymentOperationLogSupport(repository), () -> "PAY-20005", idGenerator());
 
         PaymentCreateResultDTO result = assertDoesNotThrow(() -> service.createPayment(
-                1001L,
                 "ORD-10005",
                 2005L,
                 BigDecimal.ONE,
@@ -212,21 +220,18 @@ class PaymentApplicationServiceTest {
         assertEquals("PAY-20005", result.getPaymentNo());
         assertEquals(
                 PaymentStatus.PAYING,
-                repository
-                        .findOrderByPaymentNo(1001L, "PAY-20005")
-                        .orElseThrow()
-                        .getPaymentStatus());
-        assertEquals(0, repository.findAuditLogsByPaymentNo(1001L, "PAY-20005").size());
+                repository.findOrderByPaymentNo("PAY-20005").orElseThrow().getPaymentStatus());
+        assertEquals(0, repository.findAuditLogsByPaymentNo("PAY-20005").size());
     }
 
     @Test
     void callbackPaidShouldNotRollbackWhenAuditWriteFails() {
+        BaconContextHolder.set(new BaconContext(1001L, 2006L));
         TestPaymentRepository repository = new TestPaymentRepository();
         StubOrderCommandFacade orderCommandFacade = new StubOrderCommandFacade();
         PaymentCreateApplicationService createService = new PaymentCreateApplicationService(
-                repository, new PaymentOperationLogSupport(repository), () -> "PAY-20006");
+                repository, paymentOperationLogSupport(repository), () -> "PAY-20006", idGenerator());
         createService.createPayment(
-                1001L,
                 "ORD-10006",
                 2006L,
                 new BigDecimal("18.00"),
@@ -235,13 +240,12 @@ class PaymentApplicationServiceTest {
                 Instant.now().plusSeconds(1800));
         repository.failAuditSave = true;
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(
-                repository, repository, new PaymentOperationLogSupport(repository), orderCommandFacade);
+                repository, repository, paymentOperationLogSupport(repository), orderCommandFacade, idGenerator());
 
         assertDoesNotThrow(() -> callbackService.callbackPaid(
-                "MOCK", 1001L, "PAY-20006", "TXN-20006", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}"));
+                "MOCK", "PAY-20006", "TXN-20006", "SUCCESS", "{\"tradeStatus\":\"SUCCESS\"}"));
 
-        PaymentOrder paymentOrder =
-                repository.findOrderByPaymentNo(1001L, "PAY-20006").orElseThrow();
+        PaymentOrder paymentOrder = repository.findOrderByPaymentNo("PAY-20006").orElseThrow();
         assertEquals(PaymentStatus.PAID, paymentOrder.getPaymentStatus());
         assertEquals(1, orderCommandFacade.markPaidCount);
     }
@@ -259,55 +263,50 @@ class PaymentApplicationServiceTest {
 
         @Override
         public PaymentOrder save(PaymentOrder paymentOrder) {
-            paymentsByPaymentNo.put(paymentKey(paymentOrder.getTenantId(), paymentOrder.getPaymentNo()), paymentOrder);
-            paymentsByOrderNo.put(orderKey(paymentOrder.getTenantId(), paymentOrder.getOrderNo()), paymentOrder);
+            paymentsByPaymentNo.put(paymentKey(currentTenantId(), paymentOrder.getPaymentNo().value()), paymentOrder);
+            paymentsByOrderNo.put(orderKey(currentTenantId(), paymentOrder.getOrderNo().value()), paymentOrder);
             return paymentOrder;
         }
 
         @Override
-        public Optional<PaymentOrder> findOrderByPaymentNo(Long tenantId, String paymentNo) {
-            return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(tenantId, paymentNo)));
+        public Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo) {
+            return Optional.ofNullable(paymentsByPaymentNo.get(paymentKey(currentTenantId(), paymentNo)));
         }
 
         @Override
-        public Optional<PaymentOrder> findOrderByOrderNo(Long tenantId, String orderNo) {
-            return Optional.ofNullable(paymentsByOrderNo.get(orderKey(tenantId, orderNo)));
+        public Optional<PaymentOrder> findOrderByOrderNo(String orderNo) {
+            return Optional.ofNullable(paymentsByOrderNo.get(orderKey(currentTenantId(), orderNo)));
         }
 
         @Override
         public PaymentCallbackRecord save(PaymentCallbackRecord callbackRecord) {
             callbacksByPaymentNo
-                    .computeIfAbsent(
-                            paymentKey(callbackRecord.getTenantId(), callbackRecord.getPaymentNo()),
-                            ignored -> new ArrayList<>())
+                    .computeIfAbsent(paymentKey(currentTenantId(), callbackRecord.getPaymentNo().value()), ignored -> new ArrayList<>())
                     .add(callbackRecord);
             if (callbackRecord.getChannelTransactionNo() != null) {
                 callbacksByTxn.put(
-                        txnKey(
-                                callbackRecord.getTenantId(),
-                                callbackRecord.getChannelCode(),
-                                callbackRecord.getChannelTransactionNo()),
+                        txnKey(currentTenantId(), callbackRecord.getChannelCode().value(), callbackRecord.getChannelTransactionNo()),
                         callbackRecord);
             }
             return callbackRecord;
         }
 
         @Override
-        public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(Long tenantId, String paymentNo) {
-            return findCallbacksByPaymentNo(tenantId, paymentNo).stream()
+        public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(String paymentNo) {
+            return findCallbacksByPaymentNo(paymentNo).stream()
                     .max(Comparator.comparing(PaymentCallbackRecord::getReceivedAt)
                             .thenComparing(PaymentCallbackRecord::getId));
         }
 
         @Override
         public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
-                Long tenantId, String channelCode, String channelTransactionNo) {
-            return Optional.ofNullable(callbacksByTxn.get(txnKey(tenantId, channelCode, channelTransactionNo)));
+                String channelCode, String channelTransactionNo) {
+            return Optional.ofNullable(callbacksByTxn.get(txnKey(currentTenantId(), channelCode, channelTransactionNo)));
         }
 
         @Override
-        public List<PaymentCallbackRecord> findCallbacksByPaymentNo(Long tenantId, String paymentNo) {
-            return List.copyOf(callbacksByPaymentNo.getOrDefault(paymentKey(tenantId, paymentNo), List.of()));
+        public List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo) {
+            return List.copyOf(callbacksByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
         }
 
         @Override
@@ -316,34 +315,17 @@ class PaymentApplicationServiceTest {
                 throw new IllegalStateException("audit unavailable");
             }
             auditLogsByPaymentNo
-                    .computeIfAbsent(
-                            paymentKey(auditLog.getTenantId(), auditLog.getPaymentNo()), ignored -> new ArrayList<>())
+                    .computeIfAbsent(paymentKey(currentTenantId(), auditLog.getPaymentNo().value()), ignored -> new ArrayList<>())
                     .add(auditLog);
         }
 
         @Override
-        public List<PaymentAuditLog> findAuditLogsByPaymentNo(Long tenantId, String paymentNo) {
-            return List.copyOf(auditLogsByPaymentNo.getOrDefault(paymentKey(tenantId, paymentNo), List.of()));
-        }
-
-        private static String paymentKey(TenantId tenantId, String paymentNo) {
-            return tenantId.value() + ":" + paymentNo;
-        }
-
-        private static String paymentKey(TenantId tenantId, PaymentNo paymentNo) {
-            return paymentKey(tenantId, paymentNo.value());
+        public List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo) {
+            return List.copyOf(auditLogsByPaymentNo.getOrDefault(paymentKey(currentTenantId(), paymentNo), List.of()));
         }
 
         private static String paymentKey(Long tenantId, String paymentNo) {
             return tenantId + ":" + paymentNo;
-        }
-
-        private static String orderKey(TenantId tenantId, String orderNo) {
-            return tenantId.value() + ":" + orderNo;
-        }
-
-        private static String orderKey(TenantId tenantId, OrderNo orderNo) {
-            return orderKey(tenantId, orderNo.value());
         }
 
         private static String orderKey(Long tenantId, String orderNo) {
@@ -354,12 +336,8 @@ class PaymentApplicationServiceTest {
             return tenantId + ":" + channelCode + ":" + channelTransactionNo;
         }
 
-        private static String txnKey(TenantId tenantId, PaymentChannelCode channelCode, String channelTransactionNo) {
-            return txnKey(Long.valueOf(tenantId.value()), channelCode.value(), channelTransactionNo);
-        }
-
-        private static String txnKey(Long tenantId, PaymentChannelCode channelCode, String channelTransactionNo) {
-            return txnKey(tenantId, channelCode.value(), channelTransactionNo);
+        private static Long currentTenantId() {
+            return BaconContextHolder.requireTenantId();
         }
     }
 

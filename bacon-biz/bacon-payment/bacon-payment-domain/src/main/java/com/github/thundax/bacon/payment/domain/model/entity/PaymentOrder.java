@@ -1,40 +1,45 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
-import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 支付主单领域实体。
  */
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PaymentOrder {
 
     /** 支付主单主键。 */
-    private final PaymentOrderId id;
+    private PaymentOrderId id;
     /** 支付单号。 */
-    private final PaymentNo paymentNo;
+    private PaymentNo paymentNo;
     /** 关联订单号。 */
-    private final OrderNo orderNo;
+    private OrderNo orderNo;
     /** 支付用户主键。 */
-    private final UserId userId;
+    private UserId userId;
     /** 支付渠道编码。 */
-    private final PaymentChannelCode channelCode;
+    private PaymentChannelCode channelCode;
     /** 支付金额。 */
-    private final Money amount;
+    private Money amount;
     /** 支付标题。 */
-    private final String subject;
+    private String subject;
     /** 过期时间。 */
-    private final Instant expiredAt;
+    private Instant expiredAt;
     /** 创建时间。 */
-    private final Instant createdAt;
+    private Instant createdAt;
     /** 支付状态。 */
     private PaymentStatus paymentStatus;
     /** 已支付金额。 */
@@ -50,7 +55,7 @@ public class PaymentOrder {
     /** 最近一次回调摘要。 */
     private String callbackSummary;
 
-    public PaymentOrder(
+    public static PaymentOrder create(
             PaymentOrderId id,
             PaymentNo paymentNo,
             OrderNo orderNo,
@@ -60,20 +65,26 @@ public class PaymentOrder {
             String subject,
             Instant expiredAt,
             Instant createdAt) {
-        this.id = id;
-        this.paymentNo = paymentNo;
-        this.orderNo = orderNo;
-        this.userId = userId;
-        this.channelCode = channelCode;
-        this.amount = amount;
-        this.subject = subject;
-        this.expiredAt = expiredAt;
-        this.createdAt = createdAt;
-        this.paymentStatus = PaymentStatus.CREATED;
-        this.paidAmount = Money.zero();
+        return new PaymentOrder(
+                id,
+                paymentNo,
+                orderNo,
+                userId,
+                channelCode,
+                amount,
+                subject,
+                expiredAt,
+                createdAt,
+                PaymentStatus.CREATED,
+                Money.zero(),
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 
-    public static PaymentOrder rehydrate(
+    public static PaymentOrder reconstruct(
             PaymentOrderId id,
             PaymentNo paymentNo,
             OrderNo orderNo,
@@ -91,16 +102,23 @@ public class PaymentOrder {
             PaymentChannelStatus channelStatus,
             String callbackSummary) {
         // 查询和回调处理依赖主单快照，因此重建时必须带回最新终态、渠道交易号和回调摘要。
-        PaymentOrder paymentOrder = new PaymentOrder(
-                id, paymentNo, orderNo, userId, channelCode, amount, subject, expiredAt, createdAt);
-        paymentOrder.paidAmount = paidAmount == null ? Money.zero() : paidAmount;
-        paymentOrder.paidAt = paidAt;
-        paymentOrder.closedAt = closedAt;
-        paymentOrder.paymentStatus = paymentStatus;
-        paymentOrder.channelTransactionNo = channelTransactionNo;
-        paymentOrder.channelStatus = channelStatus;
-        paymentOrder.callbackSummary = callbackSummary;
-        return paymentOrder;
+        return new PaymentOrder(
+                id,
+                paymentNo,
+                orderNo,
+                userId,
+                channelCode,
+                amount,
+                subject,
+                expiredAt,
+                createdAt,
+                paymentStatus,
+                paidAmount == null ? Money.zero() : paidAmount,
+                paidAt,
+                closedAt,
+                channelTransactionNo,
+                channelStatus,
+                callbackSummary);
     }
 
     public void markPaying() {

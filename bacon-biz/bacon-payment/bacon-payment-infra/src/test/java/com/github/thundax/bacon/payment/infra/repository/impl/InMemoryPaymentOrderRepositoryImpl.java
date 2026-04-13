@@ -24,12 +24,12 @@ public class InMemoryPaymentOrderRepositoryImpl implements PaymentOrderRepositor
     }
 
     @Override
-    public Optional<PaymentOrder> findOrderByPaymentNo(Long tenantId, String paymentNo) {
-        return support.findOrderByPaymentNo(tenantId, paymentNo);
+    public Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo) {
+        return support.findOrderByPaymentNo(paymentNo);
     }
 
     @Override
-    public Optional<PaymentOrder> findOrderByOrderNo(Long tenantId, String orderNo) {
-        return support.findOrderByOrderNo(tenantId, orderNo);
+    public Optional<PaymentOrder> findOrderByOrderNo(String orderNo) {
+        return support.findOrderByOrderNo(orderNo);
     }
 }

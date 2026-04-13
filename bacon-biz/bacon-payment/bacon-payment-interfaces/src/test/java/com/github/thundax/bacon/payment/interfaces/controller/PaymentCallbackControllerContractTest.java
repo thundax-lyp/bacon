@@ -22,7 +22,6 @@ class PaymentCallbackControllerContractTest {
                                 .content(
                                         """
                                 {
-                                  "tenantCode": "1001",
                                   "paymentNo": "PAY-10001",
                                   "success": true,
                                   "channelStatus": "SUCCESS",
@@ -42,7 +41,6 @@ class PaymentCallbackControllerContractTest {
                                 .content(
                                         """
                                 {
-                                  "tenantCode": "1001",
                                   "paymentNo": "PAY-10001",
                                   "success": false,
                                   "channelStatus": "FAILED",
@@ -62,7 +60,6 @@ class PaymentCallbackControllerContractTest {
                                 .content(
                                         """
                                 {
-                                  "tenantCode": "1001",
                                   "paymentNo": "PAY-10001",
                                   "success": true,
                                   "channelTransactionNo": "TXN-10001",
@@ -86,13 +83,12 @@ class PaymentCallbackControllerContractTest {
     private static final class StubPaymentCallbackApplicationService extends PaymentCallbackApplicationService {
 
         private StubPaymentCallbackApplicationService() {
-            super(null, null, null, null);
+            super(null, null, null, null, null);
         }
 
         @Override
         public void callbackPaid(
                 String channelCode,
-                Long tenantId,
                 String paymentNo,
                 String channelTransactionNo,
                 String channelStatus,
@@ -101,7 +97,6 @@ class PaymentCallbackControllerContractTest {
         @Override
         public void callbackFailed(
                 String channelCode,
-                Long tenantId,
                 String paymentNo,
                 String channelStatus,
                 String rawPayload,

@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.payment.application.command;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
@@ -24,17 +25,17 @@ public class PaymentCloseApplicationService {
         this.paymentOperationLogSupport = paymentOperationLogSupport;
     }
 
-    public PaymentCloseResultDTO closePayment(Long tenantId, String paymentNo, String reason) {
+    public PaymentCloseResultDTO closePayment(String paymentNo, String reason) {
+        BaconContextHolder.requireTenantId();
         if (!VALID_REASONS.contains(reason)) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_CLOSE_REASON, reason);
         }
         PaymentOrder paymentOrder = paymentOrderRepository
-                .findOrderByPaymentNo(tenantId, paymentNo)
+                .findOrderByPaymentNo(paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         // 已关闭视为幂等成功；已支付和已失败则显式拒绝关闭，避免把终态单误判成可关闭状态。
         if (PaymentStatus.CLOSED == paymentOrder.getPaymentStatus()) {
             return new PaymentCloseResultDTO(
-                    tenantId,
                     paymentNo,
                     paymentOrder.getOrderNo().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -44,7 +45,6 @@ public class PaymentCloseApplicationService {
         }
         if (PaymentStatus.PAID == paymentOrder.getPaymentStatus()) {
             return new PaymentCloseResultDTO(
-                    tenantId,
                     paymentNo,
                     paymentOrder.getOrderNo().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -54,7 +54,6 @@ public class PaymentCloseApplicationService {
         }
         if (PaymentStatus.FAILED == paymentOrder.getPaymentStatus()) {
             return new PaymentCloseResultDTO(
-                    tenantId,
                     paymentNo,
                     paymentOrder.getOrderNo().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -66,14 +65,8 @@ public class PaymentCloseApplicationService {
         Instant closedAt = Instant.now();
         paymentOrder.close(closedAt);
         paymentOrderRepository.save(paymentOrder);
-        paymentOperationLogSupport.recordClose(
-                tenantId,
-                paymentNo,
-                beforeStatus,
-                paymentOrder.getPaymentStatus().value(),
-                closedAt);
+        paymentOperationLogSupport.recordClose(paymentNo, beforeStatus, paymentOrder.getPaymentStatus().value(), closedAt);
         return new PaymentCloseResultDTO(
-                tenantId,
                 paymentNo,
                 paymentOrder.getOrderNo().value(),
                 paymentOrder.getPaymentStatus().value(),

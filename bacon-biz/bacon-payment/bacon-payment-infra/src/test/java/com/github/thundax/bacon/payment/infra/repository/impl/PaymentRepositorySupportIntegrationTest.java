@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
@@ -17,8 +19,10 @@ import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorT
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
-import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
+import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentAuditLogPersistenceAssembler;
+import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentCallbackRecordPersistenceAssembler;
+import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentOrderPersistenceAssembler;
 import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentAuditLogMapper;
 import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentCallbackRecordMapper;
 import com.github.thundax.bacon.payment.infra.persistence.mapper.PaymentOrderMapper;
@@ -29,6 +33,7 @@ import java.time.Instant;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.h2.jdbcx.JdbcDataSource;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.annotation.MapperScan;
@@ -41,6 +46,11 @@ class PaymentRepositorySupportIntegrationTest {
     private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(TestConfig.class);
     private final DataSource dataSource = context.getBean(DataSource.class);
     private final PaymentRepositorySupport paymentRepositorySupport = context.getBean(PaymentRepositorySupport.class);
+
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
+    }
 
     @BeforeEach
     void setUpSchema() throws Exception {
@@ -110,9 +120,9 @@ class PaymentRepositorySupportIntegrationTest {
 
     @Test
     void shouldPersistAndReadBackOrderCallbackAndAuditLog() {
-        PaymentOrder paymentOrder = new PaymentOrder(
-                null,
-                TenantId.of(1001L),
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
+        PaymentOrder paymentOrder = PaymentOrder.create(
+                PaymentOrderId.of(1L),
                 PaymentNo.of("PAY-IT-10001"),
                 OrderNo.of("ORD-IT-10001"),
                 UserId.of(2001L),
@@ -124,9 +134,8 @@ class PaymentRepositorySupportIntegrationTest {
         paymentOrder.markPaying();
 
         PaymentOrder persistedOrder = paymentRepositorySupport.saveOrder(paymentOrder);
-        PaymentCallbackRecord persistedCallback = paymentRepositorySupport.saveCallbackRecord(new PaymentCallbackRecord(
-                null,
-                TenantId.of(1001L),
+        PaymentCallbackRecord persistedCallback = paymentRepositorySupport.saveCallbackRecord(PaymentCallbackRecord.create(
+                1L,
                 persistedOrder.getPaymentNo(),
                 persistedOrder.getOrderNo(),
                 PaymentChannelCode.MOCK,
@@ -134,9 +143,8 @@ class PaymentRepositorySupportIntegrationTest {
                 PaymentChannelStatus.SUCCESS,
                 "{\"tradeStatus\":\"SUCCESS\"}",
                 Instant.parse("2026-03-27T10:01:00Z")));
-        paymentRepositorySupport.saveAuditLog(new PaymentAuditLog(
-                null,
-                TenantId.of(1001L),
+        paymentRepositorySupport.saveAuditLog(PaymentAuditLog.create(
+                1L,
                 persistedOrder.getPaymentNo(),
                 PaymentAuditActionType.CREATE,
                 null,
@@ -145,11 +153,9 @@ class PaymentRepositorySupportIntegrationTest {
                 "0",
                 Instant.parse("2026-03-27T10:00:00Z")));
 
-        PaymentOrder reloadedOrder = paymentRepositorySupport
-                .findOrderByPaymentNo(1001L, "PAY-IT-10001")
-                .orElseThrow();
+        PaymentOrder reloadedOrder = paymentRepositorySupport.findOrderByPaymentNo("PAY-IT-10001").orElseThrow();
         PaymentCallbackRecord reloadedCallback = paymentRepositorySupport
-                .findCallbackByChannelTransactionNo(1001L, "MOCK", "TXN-IT-10001")
+                .findCallbackByChannelTransactionNo("MOCK", "TXN-IT-10001")
                 .orElseThrow();
 
         assertNotNull(persistedOrder.getId());
@@ -157,12 +163,7 @@ class PaymentRepositorySupportIntegrationTest {
         assertNotNull(persistedCallback.getId());
         assertEquals("ORD-IT-10001", reloadedOrder.getOrderNo().value());
         assertEquals("TXN-IT-10001", reloadedCallback.getChannelTransactionNo());
-        assertEquals(
-                1,
-                paymentRepositorySupport
-                        .findAuditLogsByPaymentNo(
-                                1001L, persistedOrder.getPaymentNo().value())
-                        .size());
+        assertEquals(1, paymentRepositorySupport.findAuditLogsByPaymentNo(persistedOrder.getPaymentNo().value()).size());
     }
 
     @Configuration(proxyBeanMethods = false)
@@ -192,7 +193,13 @@ class PaymentRepositorySupportIntegrationTest {
                 PaymentAuditLogMapper paymentAuditLogMapper,
                 IdGenerator idGenerator) {
             return new PaymentRepositorySupport(
-                    paymentOrderMapper, paymentCallbackRecordMapper, paymentAuditLogMapper, idGenerator);
+                    paymentOrderMapper,
+                    paymentCallbackRecordMapper,
+                    paymentAuditLogMapper,
+                    idGenerator,
+                    new PaymentOrderPersistenceAssembler(),
+                    new PaymentCallbackRecordPersistenceAssembler(),
+                    new PaymentAuditLogPersistenceAssembler());
         }
 
         @Bean

@@ -22,7 +22,7 @@ public class PaymentAuditLogRepositoryImpl implements PaymentAuditLogRepository 
     }
 
     @Override
-    public List<PaymentAuditLog> findAuditLogsByPaymentNo(Long tenantId, String paymentNo) {
-        return support.findAuditLogsByPaymentNo(tenantId, paymentNo);
+    public List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo) {
+        return support.findAuditLogsByPaymentNo(paymentNo);
     }
 }

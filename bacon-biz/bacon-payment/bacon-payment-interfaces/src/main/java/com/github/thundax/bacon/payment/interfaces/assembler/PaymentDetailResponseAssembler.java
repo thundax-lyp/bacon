@@ -9,7 +9,6 @@ public final class PaymentDetailResponseAssembler {
 
     public static PaymentDetailResponse from(PaymentDetailDTO dto) {
         return new PaymentDetailResponse(
-                dto.getTenantId(),
                 dto.getPaymentNo(),
                 dto.getOrderNo(),
                 dto.getUserId(),

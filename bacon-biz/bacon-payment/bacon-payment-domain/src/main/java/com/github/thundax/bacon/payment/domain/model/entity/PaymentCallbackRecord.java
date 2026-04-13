@@ -1,36 +1,41 @@
 package com.github.thundax.bacon.payment.domain.model.entity;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
-import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 支付渠道回调记录。
  */
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PaymentCallbackRecord {
 
     /** 回调记录主键。 */
-    private final Long id;
+    private Long id;
     /** 支付单号。 */
-    private final PaymentNo paymentNo;
+    private PaymentNo paymentNo;
     /** 关联订单号。 */
-    private final OrderNo orderNo;
+    private OrderNo orderNo;
     /** 支付渠道编码。 */
-    private final PaymentChannelCode channelCode;
+    private PaymentChannelCode channelCode;
     /** 支付渠道交易号。 */
-    private final String channelTransactionNo;
+    private String channelTransactionNo;
     /** 支付渠道状态。 */
-    private final PaymentChannelStatus channelStatus;
+    private PaymentChannelStatus channelStatus;
     /** 原始回调载荷。 */
-    private final String rawPayload;
+    private String rawPayload;
     /** 接收时间。 */
-    private final Instant receivedAt;
+    private Instant receivedAt;
 
-    public PaymentCallbackRecord(
+    public static PaymentCallbackRecord create(
             Long id,
             PaymentNo paymentNo,
             OrderNo orderNo,
@@ -39,14 +44,21 @@ public class PaymentCallbackRecord {
             PaymentChannelStatus channelStatus,
             String rawPayload,
             Instant receivedAt) {
-        this.id = id;
-        this.paymentNo = paymentNo;
-        this.orderNo = orderNo;
-        this.channelCode = channelCode;
-        this.channelTransactionNo = channelTransactionNo;
-        this.channelStatus = channelStatus;
-        this.rawPayload = rawPayload;
-        this.receivedAt = receivedAt;
+        return new PaymentCallbackRecord(
+                id, paymentNo, orderNo, channelCode, channelTransactionNo, channelStatus, rawPayload, receivedAt);
+    }
+
+    public static PaymentCallbackRecord reconstruct(
+            Long id,
+            PaymentNo paymentNo,
+            OrderNo orderNo,
+            PaymentChannelCode channelCode,
+            String channelTransactionNo,
+            PaymentChannelStatus channelStatus,
+            String rawPayload,
+            Instant receivedAt) {
+        return new PaymentCallbackRecord(
+                id, paymentNo, orderNo, channelCode, channelTransactionNo, channelStatus, rawPayload, receivedAt);
     }
 
     public String summarize() {

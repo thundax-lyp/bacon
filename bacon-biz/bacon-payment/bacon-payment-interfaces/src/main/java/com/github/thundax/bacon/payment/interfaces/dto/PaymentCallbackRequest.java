@@ -15,10 +15,6 @@ import lombok.NoArgsConstructor;
 public class PaymentCallbackRequest {
 
     @NotBlank
-    @Schema(description = "租户编码", example = "TENANT_DEMO")
-    private String tenantCode;
-
-    @NotBlank
     @Schema(description = "支付单号", example = "PAY202603230001")
     private String paymentNo;
 

@@ -2,7 +2,7 @@ package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
@@ -21,42 +21,42 @@ import org.springframework.stereotype.Service;
 @Service
 public class PaymentCallbackApplicationService {
 
+    private static final String PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG = "payment_callback_record_id";
+
     private final PaymentOrderRepository paymentOrderRepository;
     private final PaymentCallbackRecordRepository paymentCallbackRecordRepository;
     private final PaymentOperationLogSupport paymentOperationLogSupport;
     private final OrderCommandFacade orderCommandFacade;
+    private final IdGenerator idGenerator;
 
     public PaymentCallbackApplicationService(
             PaymentOrderRepository paymentOrderRepository,
             PaymentCallbackRecordRepository paymentCallbackRecordRepository,
             PaymentOperationLogSupport paymentOperationLogSupport,
-            OrderCommandFacade orderCommandFacade) {
+            OrderCommandFacade orderCommandFacade,
+            IdGenerator idGenerator) {
         this.paymentOrderRepository = paymentOrderRepository;
         this.paymentCallbackRecordRepository = paymentCallbackRecordRepository;
         this.paymentOperationLogSupport = paymentOperationLogSupport;
         this.orderCommandFacade = orderCommandFacade;
+        this.idGenerator = idGenerator;
     }
 
     public void callbackPaid(
-            String channelCode,
-            Long tenantId,
-            String paymentNo,
-            String channelTransactionNo,
-            String channelStatus,
-            String rawPayload) {
+            String channelCode, String paymentNo, String channelTransactionNo, String channelStatus, String rawPayload) {
+        BaconContextHolder.requireTenantId();
         validateChannel(channelCode);
         validateSuccessCallbackPayload(channelTransactionNo, channelStatus, rawPayload);
         PaymentOrder paymentOrder = paymentOrderRepository
-                .findOrderByPaymentNo(tenantId, paymentNo)
+                .findOrderByPaymentNo(paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         PaymentCallbackRecord existing = paymentCallbackRecordRepository
-                .findCallbackByChannelTransactionNo(tenantId, channelCode, channelTransactionNo)
+                .findCallbackByChannelTransactionNo(channelCode, channelTransactionNo)
                 .orElse(null);
         // 成功回调先按渠道交易号落幂等记录，再驱动主单状态；这样即使后续编排失败，也不会丢失渠道侧证据。
         PaymentCallbackRecord callbackRecord = existing == null
-                ? paymentCallbackRecordRepository.save(new PaymentCallbackRecord(
-                        null,
-                        toTenantId(tenantId),
+                ? paymentCallbackRecordRepository.save(PaymentCallbackRecord.create(
+                        idGenerator.nextId(PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG),
                         PaymentNo.of(paymentNo),
                         paymentOrder.getOrderNo(),
                         PaymentChannelCode.fromValue(channelCode),
@@ -69,7 +69,6 @@ public class PaymentCallbackApplicationService {
         if (PaymentStatus.PAID == paymentOrder.getPaymentStatus()) {
             paymentOperationLogSupport.recordCallback(
                     PaymentAuditActionType.CALLBACK_PAID,
-                    tenantId,
                     paymentNo,
                     paymentOrder.getPaymentStatus().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -80,7 +79,6 @@ public class PaymentCallbackApplicationService {
                 || PaymentStatus.CLOSED == paymentOrder.getPaymentStatus()) {
             paymentOperationLogSupport.recordCallback(
                     PaymentAuditActionType.CALLBACK_PAID,
-                    tenantId,
                     paymentNo,
                     paymentOrder.getPaymentStatus().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -99,43 +97,35 @@ public class PaymentCallbackApplicationService {
         paymentOrderRepository.save(paymentOrder);
         paymentOperationLogSupport.recordCallback(
                 PaymentAuditActionType.CALLBACK_PAID,
-                tenantId,
                 paymentNo,
                 beforeStatus,
                 paymentOrder.getPaymentStatus().value(),
                 paidTime);
-        BaconContextHolder.runWithTenantId(
-                tenantId,
-                () -> orderCommandFacade.markPaid(
-                        paymentOrder.getOrderNo().value(),
-                        paymentNo,
-                        channelCode,
-                        paymentOrder.getAmount().value(),
-                        paidTime));
+        BaconContextHolder.runWithCurrentContext(() -> orderCommandFacade.markPaid(
+                paymentOrder.getOrderNo().value(),
+                paymentNo,
+                channelCode,
+                paymentOrder.getAmount().value(),
+                paidTime));
     }
 
     public void callbackFailed(
-            String channelCode,
-            Long tenantId,
-            String paymentNo,
-            String channelStatus,
-            String rawPayload,
-            String reason) {
+            String channelCode, String paymentNo, String channelStatus, String rawPayload, String reason) {
+        BaconContextHolder.requireTenantId();
         validateChannel(channelCode);
         validateFailedCallbackPayload(channelStatus, rawPayload, reason);
         PaymentOrder paymentOrder = paymentOrderRepository
-                .findOrderByPaymentNo(tenantId, paymentNo)
+                .findOrderByPaymentNo(paymentNo)
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         PaymentCallbackRecord latestRecord = paymentCallbackRecordRepository
-                .findLatestCallbackByPaymentNo(tenantId, paymentNo)
+                .findLatestCallbackByPaymentNo(paymentNo)
                 .orElse(null);
         // 失败回调没有稳定的渠道交易号时，只能按“最近一条内容是否相同”去重，避免同一失败通知被无限累积。
         if (latestRecord == null
                 || !channelStatus.equals(latestRecord.getChannelStatus().value())
                 || !rawPayload.equals(latestRecord.getRawPayload())) {
-            paymentCallbackRecordRepository.save(new PaymentCallbackRecord(
-                    null,
-                    toTenantId(tenantId),
+            paymentCallbackRecordRepository.save(PaymentCallbackRecord.create(
+                    idGenerator.nextId(PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG),
                     PaymentNo.of(paymentNo),
                     paymentOrder.getOrderNo(),
                     PaymentChannelCode.fromValue(channelCode),
@@ -148,7 +138,6 @@ public class PaymentCallbackApplicationService {
         if (PaymentStatus.PAID == paymentOrder.getPaymentStatus()) {
             paymentOperationLogSupport.recordCallback(
                     PaymentAuditActionType.CALLBACK_FAILED,
-                    tenantId,
                     paymentNo,
                     paymentOrder.getPaymentStatus().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -159,7 +148,6 @@ public class PaymentCallbackApplicationService {
                 || PaymentStatus.CLOSED == paymentOrder.getPaymentStatus()) {
             paymentOperationLogSupport.recordCallback(
                     PaymentAuditActionType.CALLBACK_FAILED,
-                    tenantId,
                     paymentNo,
                     paymentOrder.getPaymentStatus().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -175,15 +163,12 @@ public class PaymentCallbackApplicationService {
         paymentOrderRepository.save(paymentOrder);
         paymentOperationLogSupport.recordCallback(
                 PaymentAuditActionType.CALLBACK_FAILED,
-                tenantId,
                 paymentNo,
                 beforeStatus,
                 paymentOrder.getPaymentStatus().value(),
                 failedTime);
-        BaconContextHolder.runWithTenantId(
-                tenantId,
-                () -> orderCommandFacade.markPaymentFailed(
-                        paymentOrder.getOrderNo().value(), paymentNo, reason, channelStatus, failedTime));
+        BaconContextHolder.runWithCurrentContext(() -> orderCommandFacade.markPaymentFailed(
+                paymentOrder.getOrderNo().value(), paymentNo, reason, channelStatus, failedTime));
     }
 
     private void validateChannel(String channelCode) {
@@ -214,9 +199,5 @@ public class PaymentCallbackApplicationService {
         if (reason == null || reason.isBlank()) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_CALLBACK_REQUEST, "reason");
         }
-    }
-
-    private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
     }
 }

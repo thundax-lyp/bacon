@@ -13,9 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentSummaryDTO {
-
-    /** 所属租户主键。 */
-    private Long tenantId;
     /** 支付单号。 */
     private String paymentNo;
     /** 关联订单号。 */

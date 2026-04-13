@@ -5,32 +5,37 @@ import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionTyp
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 支付操作审计日志。
  */
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PaymentAuditLog {
 
     /** 审计日志主键。 */
-    private final Long id;
+    private Long id;
     /** 支付单号。 */
-    private final PaymentNo paymentNo;
+    private PaymentNo paymentNo;
     /** 操作类型。 */
-    private final PaymentAuditActionType actionType;
+    private PaymentAuditActionType actionType;
     /** 操作前状态。 */
-    private final PaymentStatus beforeStatus;
+    private PaymentStatus beforeStatus;
     /** 操作后状态。 */
-    private final PaymentStatus afterStatus;
+    private PaymentStatus afterStatus;
     /** 操作人类型。 */
-    private final PaymentAuditOperatorType operatorType;
+    private PaymentAuditOperatorType operatorType;
     /** 操作人主键。 */
-    private final String operatorId;
+    private String operatorId;
     /** 发生时间。 */
-    private final Instant occurredAt;
+    private Instant occurredAt;
 
-    public PaymentAuditLog(
+    public static PaymentAuditLog create(
             Long id,
             PaymentNo paymentNo,
             PaymentAuditActionType actionType,
@@ -39,13 +44,19 @@ public class PaymentAuditLog {
             PaymentAuditOperatorType operatorType,
             String operatorId,
             Instant occurredAt) {
-        this.id = id;
-        this.paymentNo = paymentNo;
-        this.actionType = actionType;
-        this.beforeStatus = beforeStatus;
-        this.afterStatus = afterStatus;
-        this.operatorType = operatorType;
-        this.operatorId = operatorId;
-        this.occurredAt = occurredAt;
+        return new PaymentAuditLog(
+                id, paymentNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
+    }
+
+    public static PaymentAuditLog reconstruct(
+            Long id,
+            PaymentNo paymentNo,
+            PaymentAuditActionType actionType,
+            PaymentStatus beforeStatus,
+            PaymentStatus afterStatus,
+            PaymentAuditOperatorType operatorType,
+            String operatorId,
+            Instant occurredAt) {
+        return new PaymentAuditLog(id, paymentNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
     }
 }

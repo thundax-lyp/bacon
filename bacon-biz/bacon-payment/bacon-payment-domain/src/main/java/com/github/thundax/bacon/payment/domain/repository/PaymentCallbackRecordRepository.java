@@ -8,10 +8,9 @@ public interface PaymentCallbackRecordRepository {
 
     PaymentCallbackRecord save(PaymentCallbackRecord callbackRecord);
 
-    Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(Long tenantId, String paymentNo);
+    Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(String paymentNo);
 
-    Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
-            Long tenantId, String channelCode, String channelTransactionNo);
+    Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(String channelCode, String channelTransactionNo);
 
-    List<PaymentCallbackRecord> findCallbacksByPaymentNo(Long tenantId, String paymentNo);
+    List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo);
 }

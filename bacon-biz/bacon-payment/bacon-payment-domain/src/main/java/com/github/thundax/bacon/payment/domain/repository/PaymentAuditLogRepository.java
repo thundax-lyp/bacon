@@ -7,5 +7,5 @@ public interface PaymentAuditLogRepository {
 
     void save(PaymentAuditLog auditLog);
 
-    List<PaymentAuditLog> findAuditLogsByPaymentNo(Long tenantId, String paymentNo);
+    List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo);
 }

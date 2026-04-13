@@ -6,8 +6,6 @@ import java.time.Instant;
  * 支付审计日志响应对象。
  */
 public record PaymentAuditLogResponse(
-        /** 所属租户主键。 */
-        Long tenantId,
         /** 支付单号。 */
         String paymentNo,
         /** 操作类型。 */

@@ -1,23 +1,16 @@
 package com.github.thundax.bacon.payment.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentAuditLog;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
-import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditActionType;
-import com.github.thundax.bacon.payment.domain.model.enums.PaymentAuditOperatorType;
-import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
-import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelStatus;
-import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
-import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
-import com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId;
+import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentAuditLogPersistenceAssembler;
+import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentCallbackRecordPersistenceAssembler;
+import com.github.thundax.bacon.payment.infra.persistence.assembler.PaymentOrderPersistenceAssembler;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentAuditLogDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentCallbackRecordDO;
 import com.github.thundax.bacon.payment.infra.persistence.dataobject.PaymentOrderDO;
@@ -36,32 +29,40 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 public class PaymentRepositorySupport {
 
-    private static final String PAYMENT_ORDER_ID_BIZ_TAG = "payment_order_id";
-    private static final String PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG = "payment_callback_record_id";
-    private static final String PAYMENT_AUDIT_LOG_ID_BIZ_TAG = "payment_audit_log_id";
-
     private final PaymentOrderMapper paymentOrderMapper;
     private final PaymentCallbackRecordMapper paymentCallbackRecordMapper;
     private final PaymentAuditLogMapper paymentAuditLogMapper;
     private final IdGenerator idGenerator;
+    private final PaymentOrderPersistenceAssembler paymentOrderPersistenceAssembler;
+    private final PaymentCallbackRecordPersistenceAssembler paymentCallbackRecordPersistenceAssembler;
+    private final PaymentAuditLogPersistenceAssembler paymentAuditLogPersistenceAssembler;
 
     public PaymentRepositorySupport(
             PaymentOrderMapper paymentOrderMapper,
             PaymentCallbackRecordMapper paymentCallbackRecordMapper,
             PaymentAuditLogMapper paymentAuditLogMapper,
-            IdGenerator idGenerator) {
+            IdGenerator idGenerator,
+            PaymentOrderPersistenceAssembler paymentOrderPersistenceAssembler,
+            PaymentCallbackRecordPersistenceAssembler paymentCallbackRecordPersistenceAssembler,
+            PaymentAuditLogPersistenceAssembler paymentAuditLogPersistenceAssembler) {
         this.paymentOrderMapper = paymentOrderMapper;
         this.paymentCallbackRecordMapper = paymentCallbackRecordMapper;
         this.paymentAuditLogMapper = paymentAuditLogMapper;
         this.idGenerator = idGenerator;
+        this.paymentOrderPersistenceAssembler = paymentOrderPersistenceAssembler;
+        this.paymentCallbackRecordPersistenceAssembler = paymentCallbackRecordPersistenceAssembler;
+        this.paymentAuditLogPersistenceAssembler = paymentAuditLogPersistenceAssembler;
         log.info("Using MyBatis-Plus payment repository");
     }
 
     public PaymentOrder saveOrder(PaymentOrder paymentOrder) {
         Instant now = Instant.now();
-        PaymentOrderDO dataObject = toDataObject(paymentOrder, now);
+        PaymentOrderDO dataObject = paymentOrderPersistenceAssembler.toDataObject(paymentOrder, now);
         if (dataObject.getId() == null) {
-            dataObject.setId(idGenerator.nextId(PAYMENT_ORDER_ID_BIZ_TAG));
+            throw new IllegalArgumentException("payment order id must not be null");
+        }
+        PaymentOrderDO existing = paymentOrderMapper.selectById(dataObject.getId());
+        if (existing == null) {
             paymentOrderMapper.insert(dataObject);
         } else {
             // 更新 0 行直接视为持久化冲突，避免应用层把“对象已保存”误判成成功。
@@ -71,225 +72,83 @@ public class PaymentRepositorySupport {
                         paymentOrder.getPaymentNo().value());
             }
         }
-        return toDomain(dataObject);
+        return paymentOrderPersistenceAssembler.toDomain(dataObject);
     }
 
-    public Optional<PaymentOrder> findOrderByPaymentNo(Long tenantId, String paymentNo) {
+    public Optional<PaymentOrder> findOrderByPaymentNo(String paymentNo) {
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(paymentOrderMapper.selectOne(Wrappers.<PaymentOrderDO>lambdaQuery()
-                        .eq(PaymentOrderDO::getTenantId, tenantId)
                         .eq(PaymentOrderDO::getPaymentNo, paymentNo)))
-                .map(this::toDomain);
+                .map(paymentOrderPersistenceAssembler::toDomain);
     }
 
-    public Optional<PaymentOrder> findOrderByOrderNo(Long tenantId, String orderNo) {
+    public Optional<PaymentOrder> findOrderByOrderNo(String orderNo) {
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(paymentOrderMapper.selectOne(Wrappers.<PaymentOrderDO>lambdaQuery()
-                        .eq(PaymentOrderDO::getTenantId, tenantId)
                         .eq(PaymentOrderDO::getOrderNo, orderNo)))
-                .map(this::toDomain);
+                .map(paymentOrderPersistenceAssembler::toDomain);
     }
 
     public PaymentCallbackRecord saveCallbackRecord(PaymentCallbackRecord callbackRecord) {
-        PaymentCallbackRecordDO dataObject = toDataObject(callbackRecord);
-        // 回调记录以追加为主；只有明确带 id 的场景才走更新，避免正常回调把历史证据覆盖掉。
+        PaymentCallbackRecordDO dataObject = paymentCallbackRecordPersistenceAssembler.toDataObject(callbackRecord);
+        // 回调记录是证据追加模型；带上上游生成的 id 后直接插入，不在仓储层做“空 id 补发号”。
         if (dataObject.getId() == null) {
-            dataObject.setId(idGenerator.nextId(PAYMENT_CALLBACK_RECORD_ID_BIZ_TAG));
-            paymentCallbackRecordMapper.insert(dataObject);
-        } else {
-            paymentCallbackRecordMapper.updateById(dataObject);
+            throw new IllegalArgumentException("payment callback record id must not be null");
         }
-        return toDomain(dataObject);
+        paymentCallbackRecordMapper.insert(dataObject);
+        return paymentCallbackRecordPersistenceAssembler.toDomain(dataObject);
     }
 
-    public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(Long tenantId, String paymentNo) {
+    public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(String paymentNo) {
+        BaconContextHolder.requireTenantId();
         // “最新回调”按 receivedAt + id 倒序取一条，用于查询兜底补全，而不是主单最终状态来源。
         return paymentCallbackRecordMapper
                 .selectList(Wrappers.<PaymentCallbackRecordDO>lambdaQuery()
-                        .eq(PaymentCallbackRecordDO::getTenantId, tenantId)
                         .eq(PaymentCallbackRecordDO::getPaymentNo, paymentNo)
                         .orderByDesc(PaymentCallbackRecordDO::getReceivedAt, PaymentCallbackRecordDO::getId)
                         .last("limit 1"))
                 .stream()
                 .findFirst()
-                .map(this::toDomain);
+                .map(paymentCallbackRecordPersistenceAssembler::toDomain);
     }
 
     public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
-            Long tenantId, String channelCode, String channelTransactionNo) {
+            String channelCode, String channelTransactionNo) {
+        BaconContextHolder.requireTenantId();
         return Optional.ofNullable(paymentCallbackRecordMapper.selectOne(Wrappers.<PaymentCallbackRecordDO>lambdaQuery()
-                        .eq(PaymentCallbackRecordDO::getTenantId, tenantId)
                         .eq(PaymentCallbackRecordDO::getChannelCode, channelCode)
                         .eq(PaymentCallbackRecordDO::getChannelTransactionNo, channelTransactionNo)))
-                .map(this::toDomain);
+                .map(paymentCallbackRecordPersistenceAssembler::toDomain);
     }
 
-    public List<PaymentCallbackRecord> findCallbacksByPaymentNo(Long tenantId, String paymentNo) {
+    public List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo) {
+        BaconContextHolder.requireTenantId();
         return paymentCallbackRecordMapper
                 .selectList(Wrappers.<PaymentCallbackRecordDO>lambdaQuery()
-                        .eq(PaymentCallbackRecordDO::getTenantId, tenantId)
                         .eq(PaymentCallbackRecordDO::getPaymentNo, paymentNo)
                         .orderByDesc(PaymentCallbackRecordDO::getReceivedAt, PaymentCallbackRecordDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(paymentCallbackRecordPersistenceAssembler::toDomain)
                 .toList();
     }
 
     public void saveAuditLog(PaymentAuditLog auditLog) {
-        PaymentAuditLogDO dataObject = toDataObject(auditLog);
-        // 支付审计正常情况下只追加；保留 updateById 只是为了兼容少量测试或补数据场景。
+        PaymentAuditLogDO dataObject = paymentAuditLogPersistenceAssembler.toDataObject(auditLog);
+        // 支付审计 id 由上游发号后带入，这里只负责追加落库，不再在仓储层补发 id。
         if (dataObject.getId() == null) {
-            dataObject.setId(idGenerator.nextId(PAYMENT_AUDIT_LOG_ID_BIZ_TAG));
-            paymentAuditLogMapper.insert(dataObject);
-            return;
+            throw new IllegalArgumentException("payment audit log id must not be null");
         }
-        paymentAuditLogMapper.updateById(dataObject);
+        paymentAuditLogMapper.insert(dataObject);
     }
 
-    public List<PaymentAuditLog> findAuditLogsByPaymentNo(Long tenantId, String paymentNo) {
+    public List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo) {
+        BaconContextHolder.requireTenantId();
         return paymentAuditLogMapper
                 .selectList(Wrappers.<PaymentAuditLogDO>lambdaQuery()
-                        .eq(PaymentAuditLogDO::getTenantId, tenantId)
                         .eq(PaymentAuditLogDO::getPaymentNo, paymentNo)
                         .orderByAsc(PaymentAuditLogDO::getOccurredAt, PaymentAuditLogDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(paymentAuditLogPersistenceAssembler::toDomain)
                 .toList();
-    }
-
-    private PaymentOrderDO toDataObject(PaymentOrder paymentOrder, Instant now) {
-        // strict 持久化模型里，主表只固化主单核心字段；渠道交易号、回调摘要等证据留在回调表。
-        return new PaymentOrderDO(
-                toDatabaseId(paymentOrder.getId()),
-                toDatabaseTenantId(paymentOrder.getTenantId()),
-                paymentOrder.getPaymentNo().value(),
-                paymentOrder.getOrderNo().value(),
-                toDatabaseUserId(paymentOrder.getUserId()),
-                paymentOrder.getChannelCode().value(),
-                paymentOrder.getPaymentStatus().value(),
-                paymentOrder.getAmount().value(),
-                paymentOrder.getPaidAmount().value(),
-                paymentOrder.getSubject(),
-                paymentOrder.getCreatedAt(),
-                now,
-                paymentOrder.getExpiredAt(),
-                paymentOrder.getPaidAt(),
-                paymentOrder.getClosedAt());
-    }
-
-    private PaymentOrder toDomain(PaymentOrderDO dataObject) {
-        // rehydrate 主单时不会从主表反填渠道回调细节，查询层需要时再结合 callback record 补足展示信息。
-        return PaymentOrder.rehydrate(
-                toDomainId(dataObject.getId()),
-                toDomainTenantId(dataObject.getTenantId()),
-                toPaymentNo(dataObject.getPaymentNo()),
-                toOrderNo(dataObject.getOrderNo()),
-                toDomainUserId(dataObject.getUserId()),
-                PaymentChannelCode.fromValue(dataObject.getChannelCode()),
-                Money.of(dataObject.getAmount()),
-                toMoney(dataObject.getPaidAmount()),
-                dataObject.getSubject(),
-                dataObject.getCreatedAt(),
-                dataObject.getExpiredAt(),
-                dataObject.getPaidAt(),
-                dataObject.getClosedAt(),
-                PaymentStatus.fromValue(dataObject.getPaymentStatus()),
-                null,
-                null,
-                null);
-    }
-
-    private Money toMoney(java.math.BigDecimal value) {
-        return value == null ? Money.zero() : Money.of(value);
-    }
-
-    private Long toDatabaseId(PaymentOrderId paymentOrderId) {
-        return paymentOrderId == null ? null : paymentOrderId.value();
-    }
-
-    private PaymentOrderId toDomainId(Long id) {
-        return id == null ? null : PaymentOrderId.of(id);
-    }
-
-    private Long toDatabaseTenantId(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    private TenantId toDomainTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
-    private Long toDatabaseUserId(UserId userId) {
-        return userId == null ? null : userId.value();
-    }
-
-    private UserId toDomainUserId(Long userId) {
-        return userId == null ? null : UserId.of(userId);
-    }
-
-    private PaymentNo toPaymentNo(String paymentNo) {
-        return paymentNo == null ? null : PaymentNo.of(paymentNo);
-    }
-
-    private OrderNo toOrderNo(String orderNo) {
-        return orderNo == null ? null : OrderNo.of(orderNo);
-    }
-
-    private PaymentCallbackRecordDO toDataObject(PaymentCallbackRecord callbackRecord) {
-        return new PaymentCallbackRecordDO(
-                callbackRecord.getId(),
-                toDatabaseTenantId(callbackRecord.getTenantId()),
-                callbackRecord.getPaymentNo().value(),
-                callbackRecord.getOrderNo().value(),
-                callbackRecord.getChannelCode().value(),
-                callbackRecord.getChannelTransactionNo(),
-                callbackRecord.getChannelStatus().value(),
-                callbackRecord.getRawPayload(),
-                callbackRecord.getReceivedAt());
-    }
-
-    private PaymentCallbackRecord toDomain(PaymentCallbackRecordDO dataObject) {
-        return new PaymentCallbackRecord(
-                dataObject.getId(),
-                toDomainTenantId(dataObject.getTenantId()),
-                toPaymentNo(dataObject.getPaymentNo()),
-                toOrderNo(dataObject.getOrderNo()),
-                PaymentChannelCode.fromValue(dataObject.getChannelCode()),
-                dataObject.getChannelTransactionNo(),
-                PaymentChannelStatus.fromValue(dataObject.getChannelStatus()),
-                dataObject.getRawPayload(),
-                dataObject.getReceivedAt());
-    }
-
-    private PaymentAuditLogDO toDataObject(PaymentAuditLog auditLog) {
-        return new PaymentAuditLogDO(
-                auditLog.getId(),
-                auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(),
-                auditLog.getPaymentNo().value(),
-                auditLog.getActionType().value(),
-                toStatusValue(auditLog.getBeforeStatus()),
-                toStatusValue(auditLog.getAfterStatus()),
-                auditLog.getOperatorType().value(),
-                auditLog.getOperatorId(),
-                auditLog.getOccurredAt());
-    }
-
-    private PaymentAuditLog toDomain(PaymentAuditLogDO dataObject) {
-        return new PaymentAuditLog(
-                dataObject.getId(),
-                toDomainTenantId(dataObject.getTenantId()),
-                toPaymentNo(dataObject.getPaymentNo()),
-                PaymentAuditActionType.fromValue(dataObject.getActionType()),
-                toPaymentStatus(dataObject.getBeforeStatus()),
-                toPaymentStatus(dataObject.getAfterStatus()),
-                PaymentAuditOperatorType.fromValue(dataObject.getOperatorType()),
-                dataObject.getOperatorId(),
-                dataObject.getOccurredAt());
-    }
-
-    private String toStatusValue(PaymentStatus paymentStatus) {
-        return paymentStatus == null ? null : paymentStatus.value();
-    }
-
-    private PaymentStatus toPaymentStatus(String paymentStatus) {
-        return paymentStatus == null ? null : PaymentStatus.fromValue(paymentStatus);
     }
 }

@@ -11,7 +11,6 @@ public final class PaymentAuditLogResponseAssembler {
     public static List<PaymentAuditLogResponse> from(List<PaymentAuditLogDTO> auditLogs) {
         return auditLogs.stream()
                 .map(dto -> new PaymentAuditLogResponse(
-                        dto.tenantId(),
                         dto.paymentNo(),
                         dto.actionType(),
                         dto.beforeStatus(),

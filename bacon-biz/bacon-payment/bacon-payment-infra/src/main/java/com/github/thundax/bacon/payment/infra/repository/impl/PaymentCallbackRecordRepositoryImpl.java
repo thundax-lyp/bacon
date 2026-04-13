@@ -23,18 +23,17 @@ public class PaymentCallbackRecordRepositoryImpl implements PaymentCallbackRecor
     }
 
     @Override
-    public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(Long tenantId, String paymentNo) {
-        return support.findLatestCallbackByPaymentNo(tenantId, paymentNo);
+    public Optional<PaymentCallbackRecord> findLatestCallbackByPaymentNo(String paymentNo) {
+        return support.findLatestCallbackByPaymentNo(paymentNo);
     }
 
     @Override
-    public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(
-            Long tenantId, String channelCode, String channelTransactionNo) {
-        return support.findCallbackByChannelTransactionNo(tenantId, channelCode, channelTransactionNo);
+    public Optional<PaymentCallbackRecord> findCallbackByChannelTransactionNo(String channelCode, String channelTransactionNo) {
+        return support.findCallbackByChannelTransactionNo(channelCode, channelTransactionNo);
     }
 
     @Override
-    public List<PaymentCallbackRecord> findCallbacksByPaymentNo(Long tenantId, String paymentNo) {
-        return support.findCallbacksByPaymentNo(tenantId, paymentNo);
+    public List<PaymentCallbackRecord> findCallbacksByPaymentNo(String paymentNo) {
+        return support.findCallbacksByPaymentNo(paymentNo);
     }
 }

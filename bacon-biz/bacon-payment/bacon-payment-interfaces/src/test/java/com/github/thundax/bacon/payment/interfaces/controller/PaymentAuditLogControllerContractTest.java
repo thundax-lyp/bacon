@@ -35,15 +35,10 @@ class PaymentAuditLogControllerContractTest {
 
     @Test
     void shouldReturnWrappedAuditLogs() throws Exception {
-        mockMvc.perform(get("/payments/PAY-10001/audit-logs").param("tenantId", "1001"))
+        mockMvc.perform(get("/payments/PAY-10001/audit-logs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].paymentNo").value("PAY-10001"))
                 .andExpect(jsonPath("$.data[0].actionType").value("CREATE"));
-    }
-
-    @Test
-    void shouldRejectAuditLogQueryWhenTenantIdMissing() throws Exception {
-        mockMvc.perform(get("/payments/PAY-10001/audit-logs")).andExpect(status().isBadRequest());
     }
 
     private static final class StubPaymentAuditQueryApplicationService extends PaymentAuditQueryApplicationService {
@@ -53,9 +48,8 @@ class PaymentAuditLogControllerContractTest {
         }
 
         @Override
-        public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
+        public List<PaymentAuditLogDTO> getByPaymentNo(String paymentNo) {
             return List.of(new PaymentAuditLogDTO(
-                    tenantId,
                     paymentNo,
                     "CREATE",
                     null,

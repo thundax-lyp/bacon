@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.payment.interfaces.provider;
 
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
@@ -49,45 +48,38 @@ public class PaymentProviderController {
 
     @Operation(summary = "按支付单号查询支付单")
     @GetMapping("/{paymentNo}")
-    public PaymentDetailDTO getByPaymentNo(
-            @CurrentTenant Long tenantId, @PathVariable("paymentNo") @NotBlank String paymentNo) {
-        return paymentQueryService.getByPaymentNo(tenantId, paymentNo);
+    public PaymentDetailDTO getByPaymentNo(@PathVariable("paymentNo") @NotBlank String paymentNo) {
+        return paymentQueryService.getByPaymentNo(paymentNo);
     }
 
     @Operation(summary = "按订单号查询支付单")
     @GetMapping
-    public PaymentDetailDTO getByOrderNo(
-            @CurrentTenant Long tenantId, @RequestParam("orderNo") @NotBlank String orderNo) {
-        return paymentQueryService.getByOrderNo(tenantId, orderNo);
+    public PaymentDetailDTO getByOrderNo(@RequestParam("orderNo") @NotBlank String orderNo) {
+        return paymentQueryService.getByOrderNo(orderNo);
     }
 
     @Operation(summary = "按支付单号查询支付审计日志")
     @GetMapping("/{paymentNo}/audit-logs")
-    public List<PaymentAuditLogDTO> getAuditLogsByPaymentNo(
-            @CurrentTenant Long tenantId, @PathVariable("paymentNo") @NotBlank String paymentNo) {
-        return paymentAuditQueryApplicationService.getByPaymentNo(tenantId, paymentNo);
+    public List<PaymentAuditLogDTO> getAuditLogsByPaymentNo(@PathVariable("paymentNo") @NotBlank String paymentNo) {
+        return paymentAuditQueryApplicationService.getByPaymentNo(paymentNo);
     }
 
     @Operation(summary = "创建支付单")
     @PostMapping("/create")
     public PaymentCreateResultDTO createPayment(
-            @CurrentTenant Long tenantId,
             @RequestParam("orderNo") @NotBlank String orderNo,
             @RequestParam("userId") @NotNull @Positive Long userId,
             @RequestParam("amount") @NotNull BigDecimal amount,
             @RequestParam("channelCode") @NotBlank String channelCode,
             @RequestParam("subject") @NotBlank String subject,
             @RequestParam("expiredAt") @NotNull Instant expiredAt) {
-        return paymentCreateApplicationService.createPayment(
-                tenantId, orderNo, userId, amount, channelCode, subject, expiredAt);
+        return paymentCreateApplicationService.createPayment(orderNo, userId, amount, channelCode, subject, expiredAt);
     }
 
     @Operation(summary = "关闭支付单")
     @PostMapping("/close")
     public PaymentCloseResultDTO closePayment(
-            @CurrentTenant Long tenantId,
-            @RequestParam("paymentNo") @NotBlank String paymentNo,
-            @RequestParam("reason") @NotBlank String reason) {
-        return paymentCloseApplicationService.closePayment(tenantId, paymentNo, reason);
+            @RequestParam("paymentNo") @NotBlank String paymentNo, @RequestParam("reason") @NotBlank String reason) {
+        return paymentCloseApplicationService.closePayment(paymentNo, reason);
     }
 }

@@ -38,20 +38,15 @@ class PaymentQueryControllerContractTest {
 
     @Test
     void shouldReturnWrappedResponseWhenRequestIsValid() throws Exception {
-        mockMvc.perform(get("/payments/PAY-10001").param("tenantId", "1001"))
+        mockMvc.perform(get("/payments/PAY-10001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.paymentNo").value("PAY-10001"))
                 .andExpect(jsonPath("$.data.orderNo").value("ORD-10001"));
     }
 
     @Test
-    void shouldRejectRequestWhenTenantIdMissing() throws Exception {
-        mockMvc.perform(get("/payments/PAY-10001")).andExpect(status().isBadRequest());
-    }
-
-    @Test
     void shouldExposePaymentErrorCodeWhenBusinessExceptionOccurs() throws Exception {
-        mockMvc.perform(get("/payments/PAY-40401").param("tenantId", "1001"))
+        mockMvc.perform(get("/payments/PAY-40401"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(PaymentErrorCode.PAYMENT_NOT_FOUND.code()));
     }
@@ -63,12 +58,11 @@ class PaymentQueryControllerContractTest {
         }
 
         @Override
-        public PaymentDetailDTO getByPaymentNo(Long tenantId, String paymentNo) {
+        public PaymentDetailDTO getByPaymentNo(String paymentNo) {
             if ("PAY-40401".equals(paymentNo)) {
                 throw new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo);
             }
             return new PaymentDetailDTO(
-                    tenantId,
                     paymentNo,
                     "ORD-10001",
                     2001L,

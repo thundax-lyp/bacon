@@ -1,9 +1,10 @@
 package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
@@ -13,7 +14,6 @@ import com.github.thundax.bacon.payment.domain.model.entity.PaymentChannelPayloa
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentChannelCode;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
-import com.github.thundax.bacon.payment.domain.model.valueobject.OrderNo;
 import com.github.thundax.bacon.payment.domain.repository.PaymentOrderRepository;
 import com.github.thundax.bacon.payment.domain.service.PaymentNoGenerator;
 import java.math.BigDecimal;
@@ -23,30 +23,29 @@ import org.springframework.stereotype.Service;
 @Service
 public class PaymentCreateApplicationService {
 
+    private static final String PAYMENT_ORDER_ID_BIZ_TAG = "payment_order_id";
+
     private final PaymentOrderRepository paymentOrderRepository;
     private final PaymentOperationLogSupport paymentOperationLogSupport;
     private final PaymentNoGenerator paymentNoGenerator;
+    private final IdGenerator idGenerator;
 
     public PaymentCreateApplicationService(
             PaymentOrderRepository paymentOrderRepository,
             PaymentOperationLogSupport paymentOperationLogSupport,
-            PaymentNoGenerator paymentNoGenerator) {
+            PaymentNoGenerator paymentNoGenerator,
+            IdGenerator idGenerator) {
         this.paymentOrderRepository = paymentOrderRepository;
         this.paymentOperationLogSupport = paymentOperationLogSupport;
         this.paymentNoGenerator = paymentNoGenerator;
+        this.idGenerator = idGenerator;
     }
 
     public PaymentCreateResultDTO createPayment(
-            Long tenantId,
-            String orderNo,
-            Long userId,
-            BigDecimal amount,
-            String channelCode,
-            String subject,
-            Instant expiredAt) {
+            String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
+        BaconContextHolder.requireTenantId();
         validateCreateRequest(amount, channelCode, expiredAt);
-        PaymentOrder existing =
-                paymentOrderRepository.findOrderByOrderNo(tenantId, orderNo).orElse(null);
+        PaymentOrder existing = paymentOrderRepository.findOrderByOrderNo(orderNo).orElse(null);
         // 按 orderNo 保证创建幂等；同一订单重复创建时直接返回已存在支付单，而不是重新生成 paymentNo。
         if (existing != null) {
             return toCreateResult(existing, buildPayload(existing), null);
@@ -56,9 +55,8 @@ public class PaymentCreateApplicationService {
             throw new PaymentDomainException(PaymentErrorCode.PAYMENT_REMOTE_UNAVAILABLE, "payment-no-generator");
         }
         PaymentNo paymentNo = PaymentNo.of(nextPaymentNo);
-        PaymentOrder paymentOrder = new PaymentOrder(
-                null,
-                TenantIdMapper.toDomain(tenantId),
+        PaymentOrder paymentOrder = PaymentOrder.create(
+                com.github.thundax.bacon.payment.domain.model.valueobject.PaymentOrderId.of(idGenerator.nextId(PAYMENT_ORDER_ID_BIZ_TAG)),
                 paymentNo,
                 OrderNo.of(orderNo),
                 UserIdMapper.toDomain(userId),
@@ -71,7 +69,7 @@ public class PaymentCreateApplicationService {
         paymentOrder.markPaying();
         PaymentOrder persistedOrder = paymentOrderRepository.save(paymentOrder);
         paymentOperationLogSupport.recordCreate(
-                tenantId, paymentNo.value(), paymentOrder.getPaymentStatus().value(), persistedOrder.getCreatedAt());
+                paymentNo.value(), paymentOrder.getPaymentStatus().value(), persistedOrder.getCreatedAt());
         return toCreateResult(persistedOrder, buildPayload(persistedOrder), null);
     }
 
@@ -99,7 +97,6 @@ public class PaymentCreateApplicationService {
         Instant dtoExpiredAt =
                 PaymentStatus.PAYING == paymentOrder.getPaymentStatus() ? paymentOrder.getExpiredAt() : null;
         return new PaymentCreateResultDTO(
-                toTenantValue(paymentOrder.getTenantId()),
                 paymentOrder.getPaymentNo().value(),
                 paymentOrder.getOrderNo().value(),
                 paymentOrder.getChannelCode().value(),
@@ -107,9 +104,5 @@ public class PaymentCreateApplicationService {
                 payPayload,
                 dtoExpiredAt,
                 failureReason);
-    }
-
-    private Long toTenantValue(TenantId tenantId) {
-        return tenantId == null ? null : Long.valueOf(tenantId.value());
     }
 }

@@ -28,22 +28,13 @@ public class PaymentCommandFacadeLocalImpl implements PaymentCommandFacade {
     @Override
     public PaymentCreateResultDTO createPayment(
             String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
-        Long tenantId = requireTenantId();
-        return paymentCreateApplicationService.createPayment(
-                tenantId, orderNo, userId, amount, channelCode, subject, expiredAt);
+        BaconContextHolder.requireTenantId();
+        return paymentCreateApplicationService.createPayment(orderNo, userId, amount, channelCode, subject, expiredAt);
     }
 
     @Override
     public PaymentCloseResultDTO closePayment(String paymentNo, String reason) {
-        Long tenantId = requireTenantId();
-        return paymentCloseApplicationService.closePayment(tenantId, paymentNo, reason);
-    }
-
-    private Long requireTenantId() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        if (tenantId == null) {
-            throw new IllegalStateException("tenantId must not be null");
-        }
-        return tenantId;
+        BaconContextHolder.requireTenantId();
+        return paymentCloseApplicationService.closePayment(paymentNo, reason);
     }
 }

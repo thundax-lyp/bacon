@@ -24,7 +24,7 @@ public class InMemoryPaymentAuditLogRepositoryImpl implements PaymentAuditLogRep
     }
 
     @Override
-    public List<PaymentAuditLog> findAuditLogsByPaymentNo(Long tenantId, String paymentNo) {
-        return support.findAuditLogsByPaymentNo(tenantId, paymentNo);
+    public List<PaymentAuditLog> findAuditLogsByPaymentNo(String paymentNo) {
+        return support.findAuditLogsByPaymentNo(paymentNo);
     }
 }

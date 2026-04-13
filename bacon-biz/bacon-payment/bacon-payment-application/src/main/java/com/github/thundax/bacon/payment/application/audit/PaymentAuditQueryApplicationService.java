@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.payment.application.audit;
 
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import java.util.List;
@@ -15,10 +14,9 @@ public class PaymentAuditQueryApplicationService {
         this.paymentAuditLogRepository = paymentAuditLogRepository;
     }
 
-    public List<PaymentAuditLogDTO> getByPaymentNo(Long tenantId, String paymentNo) {
-        return paymentAuditLogRepository.findAuditLogsByPaymentNo(tenantId, paymentNo).stream()
+    public List<PaymentAuditLogDTO> getByPaymentNo(String paymentNo) {
+        return paymentAuditLogRepository.findAuditLogsByPaymentNo(paymentNo).stream()
                 .map(auditLog -> new PaymentAuditLogDTO(
-                        toLongTenantValue(auditLog.getTenantId()),
                         auditLog.getPaymentNo().value(),
                         auditLog.getActionType().value(),
                         toStatusValue(auditLog.getBeforeStatus()),
@@ -27,10 +25,6 @@ public class PaymentAuditQueryApplicationService {
                         auditLog.getOperatorId(),
                         auditLog.getOccurredAt()))
                 .toList();
-    }
-
-    private Long toLongTenantValue(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
     }
 
     private String toStatusValue(com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus status) {

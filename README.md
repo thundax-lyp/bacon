@@ -70,7 +70,7 @@ bacon
 - 多实现互斥装配使用显式配置项配合 `@ConditionalOnProperty`
 - 环境边界切换优先使用 `@Profile`
 
-更多细节见 [ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)。
+更多细节见 [docs/00-governance/ARCHITECTURE.md](docs/00-governance/ARCHITECTURE.md)。
 
 ## Engineering Style
 
@@ -100,6 +100,7 @@ bacon
 mvn clean verify
 mvn test
 mvn checkstyle:check
+mvn spotless:check
 ```
 
 按模块构建示例：
@@ -108,7 +109,7 @@ mvn checkstyle:check
 mvn -pl bacon-app/bacon-order-starter -am -DskipTests install
 ```
 
-## Run
+### Run
 
 单体模式：
 
@@ -129,6 +130,12 @@ mvn -pl bacon-app/bacon-order-starter -am -DskipTests install
 mvn -pl bacon-app/bacon-order-starter spring-boot:run
 ```
 
+## 质量工具
+
+- `spotless`：负责 formatter、import 排序与版式整理
+- `checkstyle`：负责规约检查与阻断，不负责改代码
+- `ArchUnit`：负责分层、命名与关键架构约束
+
 ## Development Rules
 
 - 基础包名：`com.github.thundax.bacon`
@@ -141,15 +148,15 @@ mvn -pl bacon-app/bacon-order-starter spring-boot:run
 
 ## Key Docs
 
-- [docs/AGENT.md](/Volumes/storage/workspace/bacon/docs/AGENT.md)
-- [docs/00-governance/ARCHITECTURE.md](/Volumes/storage/workspace/bacon/docs/00-governance/ARCHITECTURE.md)
-- [docs/10-requirements/AUTH-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/AUTH-REQUIREMENTS.md)
-- [docs/10-requirements/UPMS-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/UPMS-REQUIREMENTS.md)
-- [docs/10-requirements/ORDER-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/ORDER-REQUIREMENTS.md)
-- [docs/10-requirements/INVENTORY-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/INVENTORY-REQUIREMENTS.md)
-- [docs/10-requirements/PAYMENT-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/PAYMENT-REQUIREMENTS.md)
-- [docs/10-requirements/STORAGE-REQUIREMENTS.md](/Volumes/storage/workspace/bacon/docs/10-requirements/STORAGE-REQUIREMENTS.md)
+- [docs/AGENT.md](docs/AGENT.md)
+- [docs/00-governance/ARCHITECTURE.md](docs/00-governance/ARCHITECTURE.md)
+- [docs/10-requirements/AUTH-REQUIREMENTS.md](docs/10-requirements/AUTH-REQUIREMENTS.md)
+- [docs/10-requirements/UPMS-REQUIREMENTS.md](docs/10-requirements/UPMS-REQUIREMENTS.md)
+- [docs/10-requirements/ORDER-REQUIREMENTS.md](docs/10-requirements/ORDER-REQUIREMENTS.md)
+- [docs/10-requirements/INVENTORY-REQUIREMENTS.md](docs/10-requirements/INVENTORY-REQUIREMENTS.md)
+- [docs/10-requirements/PAYMENT-REQUIREMENTS.md](docs/10-requirements/PAYMENT-REQUIREMENTS.md)
+- [docs/10-requirements/STORAGE-REQUIREMENTS.md](docs/10-requirements/STORAGE-REQUIREMENTS.md)
 
 ## License
 
-Apache License 2.0，详见 [LICENSE](/Volumes/storage/workspace/bacon/LICENSE)。
+Apache License 2.0，详见 [LICENSE](LICENSE)。

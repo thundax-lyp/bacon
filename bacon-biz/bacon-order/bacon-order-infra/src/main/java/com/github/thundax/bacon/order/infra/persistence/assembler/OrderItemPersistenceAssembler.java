@@ -25,8 +25,7 @@ public class OrderItemPersistenceAssembler {
                 item.getLineAmount() == null ? null : item.getLineAmount().value());
     }
 
-    public OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
-        CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(currencyCode);
+    public OrderItem toDomain(OrderItemDO dataObject) {
         return OrderItem.reconstruct(
                 dataObject.getId(),
                 dataObject.getOrderId() == null ? null : OrderId.of(dataObject.getOrderId()),
@@ -34,11 +33,11 @@ public class OrderItemPersistenceAssembler {
                 dataObject.getSkuName(),
                 dataObject.getImageUrl(),
                 dataObject.getQuantity(),
-                toMoney(dataObject.getSalePrice(), resolvedCurrencyCode),
-                toMoney(dataObject.getLineAmount(), resolvedCurrencyCode));
-    }
-
-    private Money toMoney(java.math.BigDecimal value, CurrencyCode currencyCode) {
-        return value == null ? null : Money.of(value, currencyCode);
+                dataObject.getSalePrice() == null
+                        ? null
+                        : Money.of(dataObject.getSalePrice(), CurrencyCode.UNSPECIFIED),
+                dataObject.getLineAmount() == null
+                        ? null
+                        : Money.of(dataObject.getLineAmount(), CurrencyCode.UNSPECIFIED));
     }
 }

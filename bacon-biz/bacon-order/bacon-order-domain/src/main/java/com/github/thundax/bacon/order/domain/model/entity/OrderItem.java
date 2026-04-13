@@ -2,9 +2,9 @@ package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
+import com.github.thundax.bacon.common.commerce.util.MoneyValidator;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
-import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -42,9 +42,9 @@ public class OrderItem {
             String skuName,
             String imageUrl,
             Integer quantity,
-            CurrencyCode currencyCode,
-            String salePrice,
-            String lineAmount) {
+            Money salePrice,
+            Money lineAmount) {
+        MoneyValidator.ensureSameCurrency(salePrice, lineAmount);
         return new OrderItem(
                 id,
                 orderId == null ? null : OrderId.of(orderId),
@@ -52,8 +52,8 @@ public class OrderItem {
                 skuName,
                 imageUrl,
                 quantity,
-                salePrice == null ? null : Money.of(new BigDecimal(salePrice), currencyCode),
-                lineAmount == null ? null : Money.of(new BigDecimal(lineAmount), currencyCode));
+                salePrice,
+                lineAmount);
     }
 
     public static OrderItem reconstruct(
@@ -65,6 +65,7 @@ public class OrderItem {
             Integer quantity,
             Money salePrice,
             Money lineAmount) {
+        MoneyValidator.ensureSameCurrency(salePrice, lineAmount);
         return new OrderItem(id, orderId, skuId, skuName, imageUrl, quantity, salePrice, lineAmount);
     }
 }

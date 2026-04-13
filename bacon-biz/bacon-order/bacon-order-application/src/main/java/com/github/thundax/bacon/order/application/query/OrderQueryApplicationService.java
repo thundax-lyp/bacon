@@ -98,14 +98,14 @@ public class OrderQueryApplicationService {
     private OrderDetailDTO toDetail(Order order) {
         Long tenantId = BaconContextHolder.currentTenantId();
         OrderPaymentSnapshot paymentSnapshot = orderRepository
-                .findPaymentSnapshotByOrderId(valueOf(order.getId()), valueOf(order.getCurrencyCode()))
+                .findPaymentSnapshotByOrderId(valueOf(order.getId()))
                 .orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository
                 .findInventorySnapshotByOrderNo(valueOf(order.getOrderNo()))
                 .orElse(null);
         List<OrderItemDTO> itemDtos =
                 orderRepository
-                        .findItemsByOrderId(valueOf(order.getId()), valueOf(order.getCurrencyCode()))
+                        .findItemsByOrderId(valueOf(order.getId()))
                         .stream()
                         .map(item -> new OrderItemDTO(
                                 item.getSkuId() == null ? null : item.getSkuId().value(),

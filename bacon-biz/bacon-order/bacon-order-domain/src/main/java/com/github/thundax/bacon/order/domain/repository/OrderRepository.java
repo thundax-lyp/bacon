@@ -19,11 +19,11 @@ public interface OrderRepository {
 
     void saveItems(Long orderId, List<OrderItem> items);
 
-    List<OrderItem> findItemsByOrderId(Long orderId, String currencyCode);
+    List<OrderItem> findItemsByOrderId(Long orderId);
 
     void savePaymentSnapshot(OrderPaymentSnapshot snapshot);
 
-    Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId, String currencyCode);
+    Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId);
 
     void saveInventorySnapshot(OrderInventorySnapshot snapshot);
 

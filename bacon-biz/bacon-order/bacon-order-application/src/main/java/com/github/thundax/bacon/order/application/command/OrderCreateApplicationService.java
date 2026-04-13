@@ -79,9 +79,8 @@ public class OrderCreateApplicationService {
                                 item.skuName(),
                                 item.imageUrl(),
                                 item.quantity(),
-                                currencyCode,
-                                item.salePrice().toPlainString(),
-                                calculateLineAmount(item).toPlainString()))
+                                Money.of(item.salePrice(), currencyCode),
+                                Money.of(calculateLineAmount(item), currencyCode)))
                         .toList());
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);

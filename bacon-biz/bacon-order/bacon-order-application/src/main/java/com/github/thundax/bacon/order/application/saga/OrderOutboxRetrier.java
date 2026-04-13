@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.application.saga;
 
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
@@ -18,10 +19,12 @@ import org.springframework.stereotype.Service;
 public class OrderOutboxRetrier {
 
     private static final int MAX_EXPONENT = 20;
+    private static final String DEAD_LETTER_ID_BIZ_TAG = "order_outbox_dead_letter_id";
 
     private final OrderOutboxRepository orderOutboxRepository;
     private final OrderOutboxDeadLetterRepository orderOutboxDeadLetterRepository;
     private final OrderOutboxActionExecutor orderOutboxActionExecutor;
+    private final IdGenerator idGenerator;
 
     @Value("${bacon.order.outbox.retry.enabled:true}")
     private boolean enabled;
@@ -49,10 +52,12 @@ public class OrderOutboxRetrier {
     public OrderOutboxRetrier(
             OrderOutboxRepository orderOutboxRepository,
             OrderOutboxDeadLetterRepository orderOutboxDeadLetterRepository,
-            OrderOutboxActionExecutor orderOutboxActionExecutor) {
+            OrderOutboxActionExecutor orderOutboxActionExecutor,
+            IdGenerator idGenerator) {
         this.orderOutboxRepository = orderOutboxRepository;
         this.orderOutboxDeadLetterRepository = orderOutboxDeadLetterRepository;
         this.orderOutboxActionExecutor = orderOutboxActionExecutor;
+        this.idGenerator = idGenerator;
     }
 
     @Scheduled(fixedDelayString = "${bacon.order.outbox.retry.fixed-delay-ms:10000}")
@@ -91,6 +96,7 @@ public class OrderOutboxRetrier {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (orderOutboxRepository.markDeadClaimed(event.getId(), owner, nextRetryCount, deadReason, message, now)) {
                 orderOutboxDeadLetterRepository.saveDeadLetter(OrderOutboxDeadLetter.create(
+                        idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG),
                         event.getId() == null ? null : event.getId().value(),
                         event.getEventCode() == null ? null : event.getEventCode().value(),
                         event.getOrderNo() == null ? null : event.getOrderNo().value(),

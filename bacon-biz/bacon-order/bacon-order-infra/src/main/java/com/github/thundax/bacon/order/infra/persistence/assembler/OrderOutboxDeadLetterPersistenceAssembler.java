@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderOutboxDeadLetterPersistenceAssembler {
 
-    public OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter, Long id) {
+    public OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {
         return new OrderOutboxDeadLetterDO(
-                id,
+                deadLetter.getId(),
                 deadLetter.getOutboxId() == null ? null : deadLetter.getOutboxId().value(),
                 deadLetter.getEventCode() == null ? null : deadLetter.getEventCode().value(),
                 BaconContextHolder.requireTenantId(),
@@ -37,6 +37,7 @@ public class OrderOutboxDeadLetterPersistenceAssembler {
 
     public OrderOutboxDeadLetter toDomain(OrderOutboxDeadLetterDO dataObject) {
         return OrderOutboxDeadLetter.reconstruct(
+                dataObject.getId(),
                 dataObject.getOutboxId() == null ? null : OutboxId.of(dataObject.getOutboxId()),
                 dataObject.getEventCode() == null ? null : EventCode.of(dataObject.getEventCode()),
                 dataObject.getOrderNo() == null ? null : OrderNo.of(dataObject.getOrderNo()),

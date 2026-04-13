@@ -121,7 +121,7 @@ public class OrderRepositorySupport {
         }
     }
 
-    public List<OrderItem> findItemsByOrderId(Long orderId, String currencyCode) {
+    public List<OrderItem> findItemsByOrderId(Long orderId) {
         Long tenantId = requireTenantId();
         return orderItemMapper
                 .selectList(Wrappers.<OrderItemDO>lambdaQuery()
@@ -129,7 +129,7 @@ public class OrderRepositorySupport {
                         .eq(OrderItemDO::getOrderId, orderId)
                         .orderByAsc(OrderItemDO::getId))
                 .stream()
-                .map(dataObject -> orderItemPersistenceAssembler.toDomain(dataObject, currencyCode))
+                .map(orderItemPersistenceAssembler::toDomain)
                 .toList();
     }
 
@@ -153,12 +153,12 @@ public class OrderRepositorySupport {
         orderPaymentSnapshotMapper.updateById(dataObject);
     }
 
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId, String currencyCode) {
+    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId) {
         Long tenantId = requireTenantId();
         return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
                         .eq(OrderPaymentSnapshotDO::getTenantId, tenantId)
                         .eq(OrderPaymentSnapshotDO::getOrderId, orderId)))
-                .map(dataObject -> orderPaymentSnapshotPersistenceAssembler.toDomain(dataObject, currencyCode));
+                .map(orderPaymentSnapshotPersistenceAssembler::toDomain);
     }
 
     public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {

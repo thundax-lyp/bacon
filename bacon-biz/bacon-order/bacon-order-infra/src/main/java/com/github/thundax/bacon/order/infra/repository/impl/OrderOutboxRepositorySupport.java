@@ -31,7 +31,6 @@ public class OrderOutboxRepositorySupport {
 
     private static final String OUTBOX_ID_BIZ_TAG = "order_outbox_id";
     private static final String OUTBOX_EVENT_CODE_BIZ_TAG = "order_outbox_event_code";
-    private static final String DEAD_LETTER_ID_BIZ_TAG = "order_outbox_dead_letter_id";
     private static final DateTimeFormatter EVENT_CODE_TIMESTAMP_FORMATTER =
             DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
@@ -201,7 +200,7 @@ public class OrderOutboxRepositorySupport {
     }
 
     public void saveDeadLetter(OrderOutboxDeadLetter deadLetter) {
-        OrderOutboxDeadLetterDO dataObject = orderOutboxDeadLetterPersistenceAssembler.toDataObject(deadLetter, null);
+        OrderOutboxDeadLetterDO dataObject = orderOutboxDeadLetterPersistenceAssembler.toDataObject(deadLetter);
         Instant now = Instant.now();
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
         dataObject.setUpdatedAt(now);
@@ -210,9 +209,6 @@ public class OrderOutboxRepositorySupport {
         }
         if (dataObject.getReplayCount() == null) {
             dataObject.setReplayCount(0);
-        }
-        if (dataObject.getId() == null) {
-            dataObject.setId(idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG));
         }
         deadLetterMapper.insert(dataObject);
     }

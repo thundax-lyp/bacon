@@ -21,6 +21,8 @@ import lombok.Setter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderOutboxDeadLetter {
 
+    /** 死信记录主键。 */
+    private Long id;
     /** 出站事件主键。 */
     private OutboxId outboxId;
     /** 出站事件业务标识。 */
@@ -55,6 +57,7 @@ public class OrderOutboxDeadLetter {
     private Instant updatedAt;
 
     public static OrderOutboxDeadLetter create(
+            Long id,
             Long outboxId,
             String eventCode,
             String orderNo,
@@ -72,6 +75,7 @@ public class OrderOutboxDeadLetter {
             Instant createdAt,
             Instant updatedAt) {
         return new OrderOutboxDeadLetter(
+                id,
                 outboxId == null ? null : OutboxId.of(outboxId),
                 eventCode == null ? null : EventCode.of(eventCode),
                 orderNo == null ? null : OrderNo.of(orderNo),
@@ -91,6 +95,7 @@ public class OrderOutboxDeadLetter {
     }
 
     public static OrderOutboxDeadLetter reconstruct(
+            Long id,
             OutboxId outboxId,
             EventCode eventCode,
             OrderNo orderNo,
@@ -108,6 +113,7 @@ public class OrderOutboxDeadLetter {
             Instant createdAt,
             Instant updatedAt) {
         return new OrderOutboxDeadLetter(
+                id,
                 outboxId,
                 eventCode,
                 orderNo,

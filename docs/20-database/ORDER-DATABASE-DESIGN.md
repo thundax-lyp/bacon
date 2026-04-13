@@ -179,6 +179,7 @@
 | `payment_no` | `varchar(64)` | N | 支付单号，全局唯一 |
 | `channel_code` | `varchar(32)` | N | 渠道编码 |
 | `pay_status` | `varchar(16)` | N | 支付状态，取值见 `pay_status` |
+| `currency_code` | `varchar(16)` | N | 金额币种编码 |
 | `paid_amount` | `decimal(18,2)` | Y | 已付金额 |
 | `paid_time` | `datetime(3)` | Y | 已付时间 |
 | `failure_reason` | `varchar(255)` | Y | 支付失败原因摘要 |

@@ -43,8 +43,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<OrderItem> findItemsByOrderId(Long orderId, String currencyCode) {
-        return support.findItemsByOrderId(orderId, currencyCode);
+    public List<OrderItem> findItemsByOrderId(Long orderId) {
+        return support.findItemsByOrderId(orderId);
     }
 
     @Override
@@ -53,8 +53,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId, String currencyCode) {
-        return support.findPaymentSnapshotByOrderId(orderId, currencyCode);
+    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId) {
+        return support.findPaymentSnapshotByOrderId(orderId);
     }
 
     @Override

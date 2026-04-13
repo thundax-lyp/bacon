@@ -24,6 +24,7 @@ public class OrderPaymentSnapshotPersistenceAssembler {
                 snapshot.getPaymentNo() == null ? null : snapshot.getPaymentNo().value(),
                 snapshot.getChannelCode() == null ? null : snapshot.getChannelCode().value(),
                 snapshot.getPayStatus() == null ? null : snapshot.getPayStatus().value(),
+                snapshot.getPaidAmount() == null ? null : snapshot.getPaidAmount().currencyCode().value(),
                 snapshot.getPaidAmount() == null ? null : snapshot.getPaidAmount().value(),
                 snapshot.getPaidTime(),
                 snapshot.getFailureReason(),
@@ -31,14 +32,14 @@ public class OrderPaymentSnapshotPersistenceAssembler {
                 snapshot.getUpdatedAt());
     }
 
-    public OrderPaymentSnapshot toDomain(OrderPaymentSnapshotDO dataObject, String currencyCode) {
+    public OrderPaymentSnapshot toDomain(OrderPaymentSnapshotDO dataObject) {
         return OrderPaymentSnapshot.reconstruct(
                 dataObject.getId(),
                 dataObject.getOrderId() == null ? null : OrderId.of(dataObject.getOrderId()),
                 dataObject.getPaymentNo() == null ? null : PaymentNo.of(dataObject.getPaymentNo()),
                 dataObject.getChannelCode() == null ? null : PaymentChannel.from(dataObject.getChannelCode()),
                 dataObject.getPayStatus() == null ? null : PayStatus.from(dataObject.getPayStatus()),
-                toMoney(dataObject.getPaidAmount(), currencyCode),
+                toMoney(dataObject.getPaidAmount(), dataObject.getCurrencyCode()),
                 dataObject.getPaidTime(),
                 dataObject.getFailureReason(),
                 dataObject.getChannelStatus() == null ? null : PaymentChannelStatus.from(dataObject.getChannelStatus()),

@@ -36,6 +36,9 @@ public class OrderPaymentSnapshotDO {
     @TableField("pay_status")
     private String payStatus;
 
+    @TableField("currency_code")
+    private String currencyCode;
+
     @TableField("paid_amount")
     private BigDecimal paidAmount;
 

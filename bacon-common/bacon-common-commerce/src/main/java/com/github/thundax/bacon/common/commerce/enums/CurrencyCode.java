@@ -4,6 +4,7 @@ package com.github.thundax.bacon.common.commerce.enums;
  * 币种编码。
  */
 public enum CurrencyCode {
+    UNSPECIFIED("UNSPECIFIED"),
     RMB("RMB"),
     USD("USD"),
     JPY("JPY");

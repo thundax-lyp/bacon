@@ -63,9 +63,9 @@ class PaymentProviderControllerContractTest {
                 .addInterceptors(providerGuardInterceptor())
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
-        BaconContextHolder.clear();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/payment/PAY-10001").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
+        mockMvc.perform(get("/providers/payment").header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isBadRequest());
     }
 

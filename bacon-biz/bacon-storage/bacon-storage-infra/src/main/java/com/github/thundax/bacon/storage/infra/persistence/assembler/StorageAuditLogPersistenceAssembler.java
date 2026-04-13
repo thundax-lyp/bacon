@@ -19,10 +19,14 @@ public final class StorageAuditLogPersistenceAssembler {
         return new StorageAuditLogDO(
                 storageAuditLog.getId(),
                 BaconContextHolder.requireTenantId(),
-                storageAuditLog.getObjectId() == null ? null : storageAuditLog.getObjectId().value(),
+                storageAuditLog.getObjectId() == null
+                        ? null
+                        : storageAuditLog.getObjectId().value(),
                 storageAuditLog.getOwnerType(),
                 storageAuditLog.getOwnerId(),
-                storageAuditLog.getActionType() == null ? null : storageAuditLog.getActionType().value(),
+                storageAuditLog.getActionType() == null
+                        ? null
+                        : storageAuditLog.getActionType().value(),
                 storageAuditLog.getBeforeStatus(),
                 storageAuditLog.getAfterStatus(),
                 storageAuditLog.getOperatorType(),

@@ -53,9 +53,8 @@ class StorageAuditOutboxRetryServiceTest {
         properties.setBaseDelaySeconds(30L);
         properties.setMaxDelaySeconds(300L);
         lenient().when(idGenerator.nextId("storage_audit_log")).thenReturn(1001L);
-        service =
-                new StorageAuditOutboxRetryService(
-                        idGenerator, storageAuditLogRepository, storageAuditOutboxRepository, properties);
+        service = new StorageAuditOutboxRetryService(
+                idGenerator, storageAuditLogRepository, storageAuditOutboxRepository, properties);
     }
 
     @AfterEach

@@ -76,23 +76,22 @@ public class StorageAuditApplicationService {
 
     private void saveAuditOutboxSafely(StorageAuditLog auditLog, RuntimeException ex) {
         try {
-            storageAuditOutboxRepository.insert(
-                    StorageAuditOutbox.create(
-                            null,
-                            auditLog.getObjectId(),
-                            auditLog.getOwnerType(),
-                            auditLog.getOwnerId(),
-                            auditLog.getActionType(),
-                            auditLog.getBeforeStatus(),
-                            auditLog.getAfterStatus(),
-                            auditLog.getOperatorType(),
-                            auditLog.getOperatorId(),
-                            auditLog.getOccurredAt(),
-                            truncateMessage(ex.getMessage()),
-                            StorageAuditOutboxStatus.NEW,
-                            0,
-                            Instant.now(),
-                            Instant.now()));
+            storageAuditOutboxRepository.insert(StorageAuditOutbox.create(
+                    null,
+                    auditLog.getObjectId(),
+                    auditLog.getOwnerType(),
+                    auditLog.getOwnerId(),
+                    auditLog.getActionType(),
+                    auditLog.getBeforeStatus(),
+                    auditLog.getAfterStatus(),
+                    auditLog.getOperatorType(),
+                    auditLog.getOperatorId(),
+                    auditLog.getOccurredAt(),
+                    truncateMessage(ex.getMessage()),
+                    StorageAuditOutboxStatus.NEW,
+                    0,
+                    Instant.now(),
+                    Instant.now()));
             Metrics.counter(
                             "bacon.storage.audit.outbox.persist.success.total",
                             "actionType",

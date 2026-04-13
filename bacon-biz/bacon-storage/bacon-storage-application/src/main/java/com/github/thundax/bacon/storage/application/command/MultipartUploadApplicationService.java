@@ -117,14 +117,13 @@ public class MultipartUploadApplicationService {
                         etag,
                         command.getSize(),
                         existingPart.getCreatedAt()))
-                .orElseGet(
-                        () -> MultipartUploadPart.create(
-                                idGenerator.nextId(MULTIPART_UPLOAD_PART_BIZ_TAG),
-                                uploadId,
-                                command.getPartNumber(),
-                                etag,
-                                command.getSize(),
-                                Instant.now()));
+                .orElseGet(() -> MultipartUploadPart.create(
+                        idGenerator.nextId(MULTIPART_UPLOAD_PART_BIZ_TAG),
+                        uploadId,
+                        command.getPartNumber(),
+                        etag,
+                        command.getSize(),
+                        Instant.now()));
         MultipartUploadPart savedPart = existingPartPresent
                 ? multipartUploadPartRepository.update(part)
                 : multipartUploadPartRepository.insert(part);
@@ -179,5 +178,4 @@ public class MultipartUploadApplicationService {
         storedObjectStorageRepository.abortMultipartUpload(session);
         multipartUploadPartRepository.deleteByUploadId(uploadId);
     }
-
 }

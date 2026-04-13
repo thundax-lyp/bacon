@@ -75,8 +75,8 @@ class StoredObjectQueryApplicationServiceTest {
                         eq(200)))
                 .thenReturn(List.of(storedObject));
 
-        StoredObjectPageResultDTO result = service.pageObjects(new StoredObjectPageQueryDTO(
-                "LOCAL_FILE", "ACTIVE", "UNREFERENCED", "e.bin", "attachment", 0, 500));
+        StoredObjectPageResultDTO result = service.pageObjects(
+                new StoredObjectPageQueryDTO("LOCAL_FILE", "ACTIVE", "UNREFERENCED", "e.bin", "attachment", 0, 500));
 
         assertEquals(1L, result.getTotal());
         assertEquals(1, result.getPageNo());

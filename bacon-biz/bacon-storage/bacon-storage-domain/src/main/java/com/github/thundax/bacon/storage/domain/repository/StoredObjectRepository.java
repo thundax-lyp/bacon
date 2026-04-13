@@ -26,9 +26,5 @@ public interface StoredObjectRepository {
             int limit);
 
     long countObjects(
-            String storageType,
-            String objectStatus,
-            String referenceStatus,
-            String originalFilename,
-            String objectKey);
+            String storageType, String objectStatus, String referenceStatus, String originalFilename, String objectKey);
 }

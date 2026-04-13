@@ -12,9 +12,7 @@ public final class MultipartUploadPartAssembler {
             return null;
         }
         return new MultipartUploadPartDTO(
-                multipartUploadPart.getUploadId(),
-                multipartUploadPart.getPartNumber(),
-                multipartUploadPart.getEtag());
+                multipartUploadPart.getUploadId(), multipartUploadPart.getPartNumber(), multipartUploadPart.getEtag());
     }
 
     public static MultipartUploadPart toDomain(MultipartUploadPartDTO multipartUploadPartDTO) {

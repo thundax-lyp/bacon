@@ -52,7 +52,16 @@ public class StorageAuditLog {
             Long operatorId,
             Instant occurredAt) {
         return new StorageAuditLog(
-                id, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
+                id,
+                objectId,
+                ownerType,
+                ownerId,
+                actionType,
+                beforeStatus,
+                afterStatus,
+                operatorType,
+                operatorId,
+                occurredAt);
     }
 
     public static StorageAuditLog reconstruct(
@@ -67,6 +76,15 @@ public class StorageAuditLog {
             Long operatorId,
             Instant occurredAt) {
         return new StorageAuditLog(
-                id, objectId, ownerType, ownerId, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
+                id,
+                objectId,
+                ownerType,
+                ownerId,
+                actionType,
+                beforeStatus,
+                afterStatus,
+                operatorType,
+                operatorId,
+                occurredAt);
     }
 }

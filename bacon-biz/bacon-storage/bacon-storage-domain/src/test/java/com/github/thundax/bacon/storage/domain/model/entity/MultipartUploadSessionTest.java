@@ -85,9 +85,7 @@ class MultipartUploadSessionTest {
         session.recordUploadedPart();
 
         session.assertOwnership("GENERIC_ATTACHMENT", "owner-3");
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> session.assertOwnership("GENERIC_ATTACHMENT", "owner-4"));
+        assertThrows(IllegalArgumentException.class, () -> session.assertOwnership("GENERIC_ATTACHMENT", "owner-4"));
 
         List<MultipartUploadPart> validParts = List.of(
                 MultipartUploadPart.create(null, "upload-3", 1, "etag-1", 5_120L, java.time.Instant.now()),

@@ -21,15 +21,21 @@ public final class StoredObjectPersistenceAssembler {
         return new StoredObjectDO(
                 storedObject.getId() == null ? null : storedObject.getId().value(),
                 BaconContextHolder.requireTenantId(),
-                storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
+                storedObject.getStorageType() == null
+                        ? null
+                        : storedObject.getStorageType().value(),
                 storedObject.getBucketName(),
                 storedObject.getObjectKey(),
                 storedObject.getOriginalFilename(),
                 storedObject.getContentType(),
                 storedObject.getSize(),
                 storedObject.getAccessEndpoint(),
-                storedObject.getObjectStatus() == null ? null : storedObject.getObjectStatus().value(),
-                storedObject.getReferenceStatus() == null ? null : storedObject.getReferenceStatus().value());
+                storedObject.getObjectStatus() == null
+                        ? null
+                        : storedObject.getObjectStatus().value(),
+                storedObject.getReferenceStatus() == null
+                        ? null
+                        : storedObject.getReferenceStatus().value());
     }
 
     public static StoredObject toDomain(StoredObjectDO dataObject) {

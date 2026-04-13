@@ -41,7 +41,8 @@ class StorageAuditApplicationServiceTest {
         meterRegistry = new SimpleMeterRegistry();
         Metrics.addRegistry(meterRegistry);
         when(idGenerator.nextId("storage_audit_log")).thenReturn(1001L);
-        service = new StorageAuditApplicationService(idGenerator, storageAuditLogRepository, storageAuditOutboxRepository);
+        service = new StorageAuditApplicationService(
+                idGenerator, storageAuditLogRepository, storageAuditOutboxRepository);
     }
 
     @AfterEach

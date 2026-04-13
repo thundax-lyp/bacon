@@ -196,8 +196,8 @@ class MultipartUploadApplicationServiceTest {
                 Instant.now(),
                 null,
                 null);
-        MultipartUploadPart existingPart = MultipartUploadPart.reconstruct(
-                10L, "3", 1, "etag-old", 512L, Instant.now());
+        MultipartUploadPart existingPart =
+                MultipartUploadPart.reconstruct(10L, "3", 1, "etag-old", 512L, Instant.now());
         when(multipartUploadSessionRepository.findByUploadId("3")).thenReturn(Optional.of(session));
         when(multipartUploadPartRepository.findByUploadIdAndPartNumber("3", 1))
                 .thenReturn(Optional.of(existingPart), Optional.of(existingPart));

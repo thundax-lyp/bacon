@@ -89,7 +89,8 @@ public class StorageProviderController {
             @PathVariable("uploadId") String uploadId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId) {
-        return storedObjectFacade.completeMultipartUpload(new CompleteMultipartUploadCommand(uploadId, ownerType, ownerId));
+        return storedObjectFacade.completeMultipartUpload(
+                new CompleteMultipartUploadCommand(uploadId, ownerType, ownerId));
     }
 
     @Operation(summary = "取消大文件分段上传")

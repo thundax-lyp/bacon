@@ -16,15 +16,21 @@ public final class StoredObjectAssembler {
         }
         return new StoredObjectDTO(
                 storedObject.getId(),
-                storedObject.getStorageType() == null ? null : storedObject.getStorageType().value(),
+                storedObject.getStorageType() == null
+                        ? null
+                        : storedObject.getStorageType().value(),
                 storedObject.getBucketName(),
                 storedObject.getObjectKey(),
                 storedObject.getOriginalFilename(),
                 storedObject.getContentType(),
                 storedObject.getSize(),
                 storedObject.getAccessEndpoint(),
-                storedObject.getObjectStatus() == null ? null : storedObject.getObjectStatus().value(),
-                storedObject.getReferenceStatus() == null ? null : storedObject.getReferenceStatus().value(),
+                storedObject.getObjectStatus() == null
+                        ? null
+                        : storedObject.getObjectStatus().value(),
+                storedObject.getReferenceStatus() == null
+                        ? null
+                        : storedObject.getReferenceStatus().value(),
                 null);
     }
 
@@ -34,9 +40,7 @@ public final class StoredObjectAssembler {
         }
         return StoredObject.reconstruct(
                 storedObjectDTO.getId(),
-                storedObjectDTO.getStorageType() == null
-                        ? null
-                        : StorageType.from(storedObjectDTO.getStorageType()),
+                storedObjectDTO.getStorageType() == null ? null : StorageType.from(storedObjectDTO.getStorageType()),
                 storedObjectDTO.getBucketName(),
                 storedObjectDTO.getObjectKey(),
                 storedObjectDTO.getOriginalFilename(),

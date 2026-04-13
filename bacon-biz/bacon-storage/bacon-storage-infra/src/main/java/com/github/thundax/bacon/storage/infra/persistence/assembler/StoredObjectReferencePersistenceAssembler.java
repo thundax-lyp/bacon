@@ -13,7 +13,9 @@ public final class StoredObjectReferencePersistenceAssembler {
             return null;
         }
         return new StoredObjectReferenceDO(
-                storedObjectReference.getObjectId() == null ? null : storedObjectReference.getObjectId().value(),
+                storedObjectReference.getObjectId() == null
+                        ? null
+                        : storedObjectReference.getObjectId().value(),
                 storedObjectReference.getOwnerType(),
                 storedObjectReference.getOwnerId());
     }

@@ -20,17 +20,23 @@ public final class StorageAuditOutboxPersistenceAssembler {
         return new StorageAuditOutboxDO(
                 storageAuditOutbox.getId(),
                 BaconContextHolder.requireTenantId(),
-                storageAuditOutbox.getObjectId() == null ? null : storageAuditOutbox.getObjectId().value(),
+                storageAuditOutbox.getObjectId() == null
+                        ? null
+                        : storageAuditOutbox.getObjectId().value(),
                 storageAuditOutbox.getOwnerType(),
                 storageAuditOutbox.getOwnerId(),
-                storageAuditOutbox.getActionType() == null ? null : storageAuditOutbox.getActionType().value(),
+                storageAuditOutbox.getActionType() == null
+                        ? null
+                        : storageAuditOutbox.getActionType().value(),
                 storageAuditOutbox.getBeforeStatus(),
                 storageAuditOutbox.getAfterStatus(),
                 storageAuditOutbox.getOperatorType(),
                 storageAuditOutbox.getOperatorId(),
                 storageAuditOutbox.getOccurredAt(),
                 storageAuditOutbox.getErrorMessage(),
-                storageAuditOutbox.getStatus() == null ? null : storageAuditOutbox.getStatus().value(),
+                storageAuditOutbox.getStatus() == null
+                        ? null
+                        : storageAuditOutbox.getStatus().value(),
                 storageAuditOutbox.getRetryCount(),
                 storageAuditOutbox.getNextRetryAt(),
                 storageAuditOutbox.getUpdatedAt());
@@ -45,9 +51,7 @@ public final class StorageAuditOutboxPersistenceAssembler {
                 dataObject.getObjectId() == null ? null : StoredObjectId.of(dataObject.getObjectId()),
                 dataObject.getOwnerType(),
                 dataObject.getOwnerId(),
-                dataObject.getActionType() == null
-                        ? null
-                        : StorageAuditActionType.from(dataObject.getActionType()),
+                dataObject.getActionType() == null ? null : StorageAuditActionType.from(dataObject.getActionType()),
                 dataObject.getBeforeStatus(),
                 dataObject.getAfterStatus(),
                 dataObject.getOperatorType(),

@@ -84,10 +84,8 @@ public class OrderQueryApplicationService {
     }
 
     private OrderSummaryDTO toSummary(Order order) {
-        Long tenantId = BaconContextHolder.currentTenantId();
         return new OrderSummaryDTO(
                 order.getId() == null ? null : OrderIdCodec.toValue(order.getId()),
-                tenantId,
                 order.getOrderNo() == null ? null : order.getOrderNo().value(),
                 order.getUserId() == null ? null : order.getUserId().value(),
                 order.getOrderStatus() == null ? null : order.getOrderStatus().value(),
@@ -105,7 +103,6 @@ public class OrderQueryApplicationService {
     }
 
     private OrderDetailDTO toDetail(Order order) {
-        Long tenantId = BaconContextHolder.currentTenantId();
         OrderPaymentSnapshot paymentSnapshot = orderRepository
                 .findPaymentSnapshotByOrderId(order.getId() == null ? null : OrderIdCodec.toValue(order.getId()))
                 .orElse(null);
@@ -126,7 +123,6 @@ public class OrderQueryApplicationService {
                         .toList();
         return new OrderDetailDTO(
                 order.getId() == null ? null : OrderIdCodec.toValue(order.getId()),
-                tenantId,
                 order.getOrderNo() == null ? null : order.getOrderNo().value(),
                 order.getUserId() == null ? null : order.getUserId().value(),
                 order.getOrderStatus() == null ? null : order.getOrderStatus().value(),

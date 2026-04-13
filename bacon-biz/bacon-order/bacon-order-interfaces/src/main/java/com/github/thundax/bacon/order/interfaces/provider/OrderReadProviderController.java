@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.order.interfaces.provider;
 
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -36,24 +35,22 @@ public class OrderReadProviderController {
     }
 
     @GetMapping("/{orderId}")
-    public OrderDetailDTO getById(@CurrentTenant Long tenantId, @PathVariable Long orderId) {
+    public OrderDetailDTO getById(@PathVariable Long orderId) {
         return orderQueryService.getById(orderId);
     }
 
     @GetMapping("/by-order-no/{orderNo}")
-    public OrderDetailDTO getByOrderNo(@CurrentTenant Long tenantId, @PathVariable String orderNo) {
+    public OrderDetailDTO getByOrderNo(@PathVariable String orderNo) {
         return orderQueryService.getByOrderNo(orderNo);
     }
 
     @GetMapping
-    public OrderPageResultDTO pageOrders(@CurrentTenant Long tenantId, OrderPageQueryDTO query) {
-        query.setTenantId(tenantId);
+    public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
         return orderQueryService.pageOrders(query);
     }
 
     @PostMapping("/mark-paid")
     public void markPaid(
-            @CurrentTenant Long tenantId,
             @RequestParam("orderNo") String orderNo,
             @RequestParam("paymentNo") String paymentNo,
             @RequestParam("channelCode") String channelCode,
@@ -64,7 +61,6 @@ public class OrderReadProviderController {
 
     @PostMapping("/mark-payment-failed")
     public void markPaymentFailed(
-            @CurrentTenant Long tenantId,
             @RequestParam("orderNo") String orderNo,
             @RequestParam("paymentNo") String paymentNo,
             @RequestParam("reason") String reason,
@@ -75,7 +71,6 @@ public class OrderReadProviderController {
 
     @PostMapping("/close-expired")
     public void closeExpired(
-            @CurrentTenant Long tenantId,
             @RequestParam("orderNo") String orderNo,
             @RequestParam("reason") String reason) {
         orderTimeoutApplicationService.closeExpiredOrder(orderNo, reason);

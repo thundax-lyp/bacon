@@ -21,26 +21,18 @@ public class OrderReadFacadeLocalImpl implements OrderReadFacade {
 
     @Override
     public OrderDetailDTO getById(Long orderId) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         return orderQueryService.getById(orderId);
     }
 
     @Override
     public OrderDetailDTO getByOrderNo(String orderNo) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         return orderQueryService.getByOrderNo(orderNo);
     }
 
     @Override
     public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
         return orderQueryService.pageOrders(query);
-    }
-
-    private Long requireTenantId() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        if (tenantId == null) {
-            throw new IllegalStateException("tenantId must not be null");
-        }
-        return tenantId;
     }
 }

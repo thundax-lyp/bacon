@@ -13,8 +13,6 @@ import java.util.List;
 public record OrderDetailResponse(
         /** 订单主键。 */
         @Schema(description = "订单ID", example = "1") Long id,
-        /** 所属租户主键。 */
-        @Schema(description = "租户ID", example = "1001") Long tenantId,
         /** 订单号。 */
         @Schema(description = "订单号", example = "ORD202603230001") String orderNo,
         /** 下单用户主键。 */
@@ -60,7 +58,6 @@ public record OrderDetailResponse(
                 : dto.getItems().stream().map(OrderItemResponse::from).toList();
         return new OrderDetailResponse(
                 dto.getId(),
-                dto.getTenantId(),
                 dto.getOrderNo(),
                 dto.getUserId(),
                 dto.getOrderStatus(),

@@ -26,28 +26,20 @@ public class OrderCommandFacadeLocalImpl implements OrderCommandFacade {
     @Override
     public void markPaid(
             String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         orderPaymentResultApplicationService.markPaid(orderNo, paymentNo, channelCode, paidAmount, paidTime);
     }
 
     @Override
     public void markPaymentFailed(
             String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         orderPaymentResultApplicationService.markPaymentFailed(orderNo, paymentNo, reason, channelStatus, failedTime);
     }
 
     @Override
     public void closeExpiredOrder(String orderNo, String reason) {
-        requireTenantId();
+        BaconContextHolder.requireTenantId();
         orderTimeoutApplicationService.closeExpiredOrder(orderNo, reason);
-    }
-
-    private Long requireTenantId() {
-        Long tenantId = BaconContextHolder.currentTenantId();
-        if (tenantId == null) {
-            throw new IllegalStateException("tenantId must not be null");
-        }
-        return tenantId;
     }
 }

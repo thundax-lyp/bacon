@@ -48,7 +48,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
     @Override
     public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
         // 分页查询只透传当前 provider 实际支持的条件；其余筛选条件应先在契约层明确后再下沉到这里。
-        return BaconContextHolder.callWithTenantId(query == null ? null : query.getTenantId(), () -> restClient
+        return restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/providers/orders")
@@ -56,6 +56,6 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
                         .queryParam("orderNo", query.getOrderNo())
                         .build())
                 .retrieve()
-                .body(OrderPageResultDTO.class));
+                .body(OrderPageResultDTO.class);
     }
 }

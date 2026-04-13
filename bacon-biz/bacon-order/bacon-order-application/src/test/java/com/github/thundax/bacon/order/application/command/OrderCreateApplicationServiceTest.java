@@ -74,7 +74,6 @@ class OrderCreateApplicationServiceTest {
                         101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
 
         assertEquals("ORD-10001", result.getOrderNo());
-        assertEquals(1001L, result.getTenantId());
         assertEquals(new BigDecimal("20.00"), result.getTotalAmount());
         assertEquals("RESERVING_STOCK", result.getOrderStatus());
         assertEquals("UNPAID", result.getPayStatus());
@@ -141,7 +140,7 @@ class OrderCreateApplicationServiceTest {
                 1001L,
                 2001L,
                 () -> queryService.pageOrders(
-                        new OrderPageQueryDTO(1001L, 2001L, null, null, "UNPAID", null, null, null, 1, 10)));
+                        new OrderPageQueryDTO(2001L, null, null, "UNPAID", null, null, null, 1, 10)));
 
         assertEquals(1, page.getTotal());
         assertEquals(1, page.getRecords().size());
@@ -687,12 +686,12 @@ class OrderCreateApplicationServiceTest {
         public PaymentCreateResultDTO createPayment(
                 String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
             return new PaymentCreateResultDTO(
-                    1001L, "PAY-" + orderNo, orderNo, channelCode, "PAYING", "mock://pay/" + orderNo, expiredAt, null);
+                    "PAY-" + orderNo, orderNo, channelCode, "PAYING", "mock://pay/" + orderNo, expiredAt, null);
         }
 
         @Override
         public PaymentCloseResultDTO closePayment(String paymentNo, String reason) {
-            return new PaymentCloseResultDTO(1001L, paymentNo, null, "CLOSED", "SUCCESS", reason, null);
+            return new PaymentCloseResultDTO(paymentNo, null, "CLOSED", "SUCCESS", reason, null);
         }
     }
 
@@ -702,7 +701,7 @@ class OrderCreateApplicationServiceTest {
         public PaymentCreateResultDTO createPayment(
                 String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
             return new PaymentCreateResultDTO(
-                    1001L, null, orderNo, channelCode, "FAILED", null, expiredAt, "payment channel unavailable");
+                    null, orderNo, channelCode, "FAILED", null, expiredAt, "payment channel unavailable");
         }
     }
 }

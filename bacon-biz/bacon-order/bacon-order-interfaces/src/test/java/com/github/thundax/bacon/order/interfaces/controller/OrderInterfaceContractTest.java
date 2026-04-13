@@ -179,7 +179,6 @@ class OrderInterfaceContractTest {
         public OrderDetailDTO getById(Long orderId) {
             return new OrderDetailDTO(
                     orderId,
-                    1001L,
                     "ORD-1",
                     2001L,
                     "CREATED",
@@ -203,12 +202,12 @@ class OrderInterfaceContractTest {
 
         @Override
         public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
-            if (Long.valueOf(9999L).equals(query.getTenantId())) {
-                throw new IllegalArgumentException("Invalid tenant: " + query.getTenantId());
+            if (Long.valueOf(9999L).equals(com.github.thundax.bacon.common.core.context.BaconContextHolder.currentTenantId())) {
+                throw new IllegalArgumentException(
+                        "Invalid tenant: " + com.github.thundax.bacon.common.core.context.BaconContextHolder.currentTenantId());
             }
             OrderSummaryDTO summary = new OrderSummaryDTO(
                     1L,
-                    1001L,
                     "ORD-1",
                     2001L,
                     "CREATED",

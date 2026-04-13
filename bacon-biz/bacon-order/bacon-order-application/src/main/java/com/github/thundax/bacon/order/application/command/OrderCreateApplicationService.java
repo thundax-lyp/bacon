@@ -91,7 +91,6 @@ public class OrderCreateApplicationService {
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
         return new OrderSummaryDTO(
                 savedOrder.getId() == null ? null : savedOrder.getId().value(),
-                BaconContextHolder.requireTenantId(),
                 savedOrder.getOrderNo() == null ? null : savedOrder.getOrderNo().value(),
                 savedOrder.getUserId() == null ? null : savedOrder.getUserId().value(),
                 savedOrder.getOrderStatus() == null ? null : savedOrder.getOrderStatus().value(),

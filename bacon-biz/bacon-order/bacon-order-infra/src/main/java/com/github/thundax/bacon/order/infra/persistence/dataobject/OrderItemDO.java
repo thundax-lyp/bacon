@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_order_item")
+@TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class OrderItemDO {
 
     @TableId(type = IdType.INPUT)
@@ -22,10 +24,10 @@ public class OrderItemDO {
     private Long tenantId;
 
     @TableField("order_id")
-    private String orderId;
+    private Long orderId;
 
     @TableField("sku_id")
-    private String skuId;
+    private Long skuId;
 
     @TableField("sku_name")
     private String skuName;

@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
@@ -26,8 +25,6 @@ public class OrderOutboxDeadLetter {
     private OutboxId outboxId;
     /** 出站事件业务标识。 */
     private EventCode eventCode;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 订单号。 */
     private OrderNo orderNo;
     /** 事件类型。 */
@@ -60,7 +57,6 @@ public class OrderOutboxDeadLetter {
     public static OrderOutboxDeadLetter create(
             Long outboxId,
             String eventCode,
-            Long tenantId,
             String orderNo,
             OrderOutboxEventType eventType,
             String businessKey,
@@ -78,7 +74,6 @@ public class OrderOutboxDeadLetter {
         return new OrderOutboxDeadLetter(
                 outboxId == null ? null : OutboxId.of(outboxId),
                 eventCode == null ? null : EventCode.of(eventCode),
-                tenantId == null ? null : TenantId.of(tenantId),
                 orderNo == null ? null : OrderNo.of(orderNo),
                 eventType,
                 businessKey,
@@ -98,7 +93,6 @@ public class OrderOutboxDeadLetter {
     public static OrderOutboxDeadLetter reconstruct(
             OutboxId outboxId,
             EventCode eventCode,
-            TenantId tenantId,
             OrderNo orderNo,
             OrderOutboxEventType eventType,
             String businessKey,
@@ -116,7 +110,6 @@ public class OrderOutboxDeadLetter {
         return new OrderOutboxDeadLetter(
                 outboxId,
                 eventCode,
-                tenantId,
                 orderNo,
                 eventType,
                 businessKey,

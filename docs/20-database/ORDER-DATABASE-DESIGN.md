@@ -147,8 +147,8 @@
 |----|----|----|----|
 | `id` | `bigint` | N | 雪花主键，由应用侧发号写入 |
 | `tenant_id` | `varchar(64)` | N | 租户业务键 |
-| `order_id` | `varchar(64)` | N | 订单主键，关联 `bacon_order_order.id` |
-| `sku_id` | `varchar(64)` | N | SKU 主键文本值 |
+| `order_id` | `bigint` | N | 订单主键，关联 `bacon_order_order.id` |
+| `sku_id` | `bigint` | N | SKU 主键 |
 | `sku_name` | `varchar(128)` | N | SKU 名称快照 |
 | `image_url` | `varchar(512)` | Y | 商品图片地址快照 |
 | `quantity` | `int` | N | 下单数量 |

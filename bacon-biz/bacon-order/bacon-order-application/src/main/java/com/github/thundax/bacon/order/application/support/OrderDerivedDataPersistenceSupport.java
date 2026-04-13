@@ -29,7 +29,6 @@ public class OrderDerivedDataPersistenceSupport {
         Instant now = Instant.now();
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
             orderRepository.savePaymentSnapshot(OrderPaymentSnapshot.create(
-                    order.getTenantId(),
                     order.getId(),
                     order.getPaymentNo(),
                     order.getPaymentChannelCode(),
@@ -43,7 +42,6 @@ public class OrderDerivedDataPersistenceSupport {
         if (order.getReservationNo() != null
                 && !order.getReservationNo().value().isBlank()) {
             orderRepository.saveInventorySnapshot(OrderInventorySnapshot.create(
-                    order.getTenantId(),
                     order.getOrderNo(),
                     order.getReservationNo(),
                     order.getInventoryStatus(),
@@ -52,7 +50,6 @@ public class OrderDerivedDataPersistenceSupport {
                     now));
         }
         orderRepository.saveAuditLog(OrderAuditLog.create(
-                order.getTenantId(),
                 order.getOrderNo(),
                 actionType,
                 beforeStatus,

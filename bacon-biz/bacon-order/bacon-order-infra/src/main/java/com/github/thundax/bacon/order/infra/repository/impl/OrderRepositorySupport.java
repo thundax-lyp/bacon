@@ -6,23 +6,20 @@ import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
-import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
-import com.github.thundax.bacon.order.domain.model.enums.OperatorType;
-import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
-import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
-import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
-import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
-import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
-import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderAuditLogPersistenceAssembler;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderInventorySnapshotPersistenceAssembler;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderItemPersistenceAssembler;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderPaymentSnapshotPersistenceAssembler;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderAuditLogDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderInventorySnapshotDO;
@@ -60,6 +57,11 @@ public class OrderRepositorySupport {
     private final OrderInventorySnapshotMapper orderInventorySnapshotMapper;
     private final OrderAuditLogMapper orderAuditLogMapper;
     private final IdGenerator idGenerator;
+    private final OrderPersistenceAssembler orderPersistenceAssembler;
+    private final OrderItemPersistenceAssembler orderItemPersistenceAssembler;
+    private final OrderPaymentSnapshotPersistenceAssembler orderPaymentSnapshotPersistenceAssembler;
+    private final OrderInventorySnapshotPersistenceAssembler orderInventorySnapshotPersistenceAssembler;
+    private final OrderAuditLogPersistenceAssembler orderAuditLogPersistenceAssembler;
 
     public OrderRepositorySupport(
             OrderMapper orderMapper,
@@ -67,18 +69,28 @@ public class OrderRepositorySupport {
             OrderPaymentSnapshotMapper orderPaymentSnapshotMapper,
             OrderInventorySnapshotMapper orderInventorySnapshotMapper,
             OrderAuditLogMapper orderAuditLogMapper,
-            IdGenerator idGenerator) {
+            IdGenerator idGenerator,
+            OrderPersistenceAssembler orderPersistenceAssembler,
+            OrderItemPersistenceAssembler orderItemPersistenceAssembler,
+            OrderPaymentSnapshotPersistenceAssembler orderPaymentSnapshotPersistenceAssembler,
+            OrderInventorySnapshotPersistenceAssembler orderInventorySnapshotPersistenceAssembler,
+            OrderAuditLogPersistenceAssembler orderAuditLogPersistenceAssembler) {
         this.orderMapper = orderMapper;
         this.orderItemMapper = orderItemMapper;
         this.orderPaymentSnapshotMapper = orderPaymentSnapshotMapper;
         this.orderInventorySnapshotMapper = orderInventorySnapshotMapper;
         this.orderAuditLogMapper = orderAuditLogMapper;
         this.idGenerator = idGenerator;
+        this.orderPersistenceAssembler = orderPersistenceAssembler;
+        this.orderItemPersistenceAssembler = orderItemPersistenceAssembler;
+        this.orderPaymentSnapshotPersistenceAssembler = orderPaymentSnapshotPersistenceAssembler;
+        this.orderInventorySnapshotPersistenceAssembler = orderInventorySnapshotPersistenceAssembler;
+        this.orderAuditLogPersistenceAssembler = orderAuditLogPersistenceAssembler;
         log.info("Using MyBatis-Plus order repository");
     }
 
     public Order saveOrder(Order order) {
-        OrderDO dataObject = toDataObject(order);
+        OrderDO dataObject = orderPersistenceAssembler.toDataObject(order, requireTenantId());
         dataObject.setUpdatedAt(Instant.now());
         if (dataObject.getId() == null) {
             dataObject.setId(idGenerator.nextId(ORDER_ID_BIZ_TAG));
@@ -95,53 +107,50 @@ public class OrderRepositorySupport {
         return Optional.ofNullable(orderMapper.selectById(id)).map(this::toDomainWithSnapshots);
     }
 
-    public Optional<Order> findOrderByOrderNo(Long tenantId, String orderNo) {
+    public Optional<Order> findOrderByOrderNo(String orderNo) {
+        Long tenantId = requireTenantId();
         return Optional.ofNullable(orderMapper.selectOne(Wrappers.<OrderDO>lambdaQuery()
                         .eq(OrderDO::getTenantId, tenantId)
                         .eq(OrderDO::getOrderNo, orderNo)))
                 .map(this::toDomainWithSnapshots);
     }
 
-    public void saveItems(Long tenantId, Long orderId, List<OrderItem> items) {
+    public void saveItems(Long orderId, List<OrderItem> items) {
+        Long tenantId = requireTenantId();
         // 订单项采用“先删后插”的整包替换策略，保持应用层传入的 items 列表就是该订单的权威快照。
         orderItemMapper.delete(Wrappers.<OrderItemDO>lambdaQuery()
                 .eq(OrderItemDO::getTenantId, tenantId)
-                .eq(OrderItemDO::getOrderId, String.valueOf(orderId)));
+                .eq(OrderItemDO::getOrderId, orderId));
         if (items == null || items.isEmpty()) {
             return;
         }
         for (OrderItem item : items) {
-            orderItemMapper.insert(new OrderItemDO(
-                    idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG),
-                    valueOf(item.getTenantId()),
-                    String.valueOf(valueOf(item.getOrderId())),
-                    String.valueOf(
-                            item.getSkuId() == null ? null : item.getSkuId().value()),
-                    item.getSkuName(),
-                    item.getImageUrl(),
-                    item.getQuantity(),
-                    item.getSalePrice().value(),
-                    item.getLineAmount().value()));
+            orderItemMapper.insert(
+                    orderItemPersistenceAssembler.toDataObject(item, idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG), tenantId));
         }
     }
 
-    public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
+    public List<OrderItem> findItemsByOrderId(Long orderId, String currencyCode) {
+        Long tenantId = requireTenantId();
         return orderItemMapper
                 .selectList(Wrappers.<OrderItemDO>lambdaQuery()
                         .eq(OrderItemDO::getTenantId, tenantId)
-                        .eq(OrderItemDO::getOrderId, String.valueOf(orderId))
+                        .eq(OrderItemDO::getOrderId, orderId)
                         .orderByAsc(OrderItemDO::getId))
                 .stream()
-                .map(dataObject -> toDomain(dataObject, currencyCode))
+                .map(dataObject -> orderItemPersistenceAssembler.toDomain(dataObject, currencyCode))
                 .toList();
     }
 
     public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        Long tenantId = requireTenantId();
         OrderPaymentSnapshotDO existing =
                 orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
-                        .eq(OrderPaymentSnapshotDO::getTenantId, valueOf(snapshot.getTenantId()))
-                        .eq(OrderPaymentSnapshotDO::getOrderId, valueOf(snapshot.getOrderId())));
-        OrderPaymentSnapshotDO dataObject = toDataObject(snapshot);
+                        .eq(OrderPaymentSnapshotDO::getTenantId, tenantId)
+                        .eq(
+                                OrderPaymentSnapshotDO::getOrderId,
+                                snapshot.getOrderId() == null ? null : snapshot.getOrderId().value()));
+        OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot, tenantId);
         dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
         if (existing == null) {
@@ -153,20 +162,24 @@ public class OrderRepositorySupport {
         orderPaymentSnapshotMapper.updateById(dataObject);
     }
 
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(
-            Long tenantId, Long orderId, String currencyCode) {
+    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId, String currencyCode) {
+        Long tenantId = requireTenantId();
         return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
                         .eq(OrderPaymentSnapshotDO::getTenantId, tenantId)
                         .eq(OrderPaymentSnapshotDO::getOrderId, orderId)))
-                .map(dataObject -> toDomain(dataObject, currencyCode));
+                .map(dataObject -> orderPaymentSnapshotPersistenceAssembler.toDomain(dataObject, currencyCode));
     }
 
     public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
+        Long tenantId = requireTenantId();
         OrderInventorySnapshotDO existing =
                 orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
-                        .eq(OrderInventorySnapshotDO::getTenantId, valueOf(snapshot.getTenantId()))
-                        .eq(OrderInventorySnapshotDO::getOrderNo, valueOf(snapshot.getOrderNo())));
-        OrderInventorySnapshotDO dataObject = toDataObject(snapshot);
+                        .eq(OrderInventorySnapshotDO::getTenantId, tenantId)
+                        .eq(
+                                OrderInventorySnapshotDO::getOrderNo,
+                                snapshot.getOrderNo() == null ? null : snapshot.getOrderNo().value()));
+        OrderInventorySnapshotDO dataObject =
+                orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot, null, tenantId);
         dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
         if (existing == null) {
@@ -178,35 +191,36 @@ public class OrderRepositorySupport {
         orderInventorySnapshotMapper.updateById(dataObject);
     }
 
-    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
+    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo) {
+        Long tenantId = requireTenantId();
         return Optional.ofNullable(
-                        orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
+                orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
                                 .eq(OrderInventorySnapshotDO::getTenantId, tenantId)
                                 .eq(OrderInventorySnapshotDO::getOrderNo, orderNo)))
-                .map(this::toDomain);
+                .map(orderInventorySnapshotPersistenceAssembler::toDomain);
     }
 
     public void saveAuditLog(OrderAuditLog auditLog) {
-        OrderAuditLogDO dataObject = toDataObject(auditLog);
+        OrderAuditLogDO dataObject = orderAuditLogPersistenceAssembler.toDataObject(auditLog, requireTenantId());
         if (dataObject.getId() == null) {
             dataObject.setId(idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG));
         }
         orderAuditLogMapper.insert(dataObject);
     }
 
-    public List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo) {
+    public List<OrderAuditLog> findAuditLogs(String orderNo) {
+        Long tenantId = requireTenantId();
         return orderAuditLogMapper
                 .selectList(Wrappers.<OrderAuditLogDO>lambdaQuery()
                         .eq(OrderAuditLogDO::getTenantId, tenantId)
                         .eq(OrderAuditLogDO::getOrderNo, orderNo)
                         .orderByAsc(OrderAuditLogDO::getOccurredAt, OrderAuditLogDO::getId))
                 .stream()
-                .map(this::toDomain)
+                .map(orderAuditLogPersistenceAssembler::toDomain)
                 .toList();
     }
 
     public long countOrders(
-            Long tenantId,
             Long userId,
             String orderNo,
             String orderStatus,
@@ -214,6 +228,7 @@ public class OrderRepositorySupport {
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
+        Long tenantId = requireTenantId();
         return Optional.ofNullable(orderMapper.selectCount(buildPageQuery(
                         tenantId,
                         userId,
@@ -227,7 +242,6 @@ public class OrderRepositorySupport {
     }
 
     public List<Order> pageOrders(
-            Long tenantId,
             Long userId,
             String orderNo,
             String orderStatus,
@@ -237,6 +251,7 @@ public class OrderRepositorySupport {
             Instant createdAtTo,
             int offset,
             int limit) {
+        Long tenantId = requireTenantId();
         List<OrderDO> pageOrders = orderMapper.selectList(buildPageQuery(
                         tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
                 .orderByDesc(OrderDO::getCreatedAt, OrderDO::getId)
@@ -260,10 +275,8 @@ public class OrderRepositorySupport {
                 .collect(Collectors.toMap(
                         OrderInventorySnapshotDO::getOrderNo, Function.identity(), (left, right) -> left));
         List<Order> records = pageOrders.stream()
-                .map(orderData -> toDomain(
-                        orderData,
-                        paymentSnapshotMap.get(orderData.getId()),
-                        inventorySnapshotMap.get(orderData.getOrderNo())))
+                .map(orderData -> orderPersistenceAssembler.toDomain(
+                        orderData, paymentSnapshotMap.get(orderData.getId()), inventorySnapshotMap.get(orderData.getOrderNo())))
                 .toList();
         return records;
     }
@@ -296,28 +309,6 @@ public class OrderRepositorySupport {
                 .le(createdAtTo != null, OrderDO::getCreatedAt, createdAtTo);
     }
 
-    private OrderDO toDataObject(Order order) {
-        return new OrderDO(
-                order.getId() == null ? null : order.getId().value(),
-                order.getTenantId() == null ? null : order.getTenantId().value(),
-                toDatabaseOrderNo(order.getOrderNo()),
-                order.getUserId() == null ? null : order.getUserId().value(),
-                valueOf(order.getOrderStatus()),
-                valueOf(order.getPayStatus()),
-                valueOf(order.getInventoryStatus()),
-                valueOf(order.getCurrencyCode()),
-                order.getTotalAmount().value(),
-                order.getPayableAmount().value(),
-                order.getRemark(),
-                order.getCancelReason(),
-                order.getCloseReason(),
-                order.getCreatedAt(),
-                Instant.now(),
-                order.getExpiredAt(),
-                order.getPaidAt(),
-                order.getClosedAt());
-    }
-
     private Order toDomainWithSnapshots(OrderDO dataObject) {
         // 详情查询需要把主表和两张快照表重新拼成完整领域对象，保证应用层看到的是统一视图。
         OrderPaymentSnapshotDO paymentSnapshot =
@@ -328,236 +319,14 @@ public class OrderRepositorySupport {
                 orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
                         .eq(OrderInventorySnapshotDO::getTenantId, dataObject.getTenantId())
                         .eq(OrderInventorySnapshotDO::getOrderNo, dataObject.getOrderNo()));
-        return toDomain(dataObject, paymentSnapshot, inventorySnapshot);
-    }
-
-    private Order toDomain(
-            OrderDO dataObject, OrderPaymentSnapshotDO paymentSnapshot, OrderInventorySnapshotDO inventorySnapshot) {
-        // rehydrate 时优先用快照表补回 paymentNo/reservationNo 等派生字段，
-        // 因为这些字段在 strict 持久化模型里并不全部固化在订单主表。
-        return Order.reconstruct(
-                toDomainOrderId(dataObject.getId()),
-                toDomainOrderTenantId(dataObject.getTenantId()),
-                toDomainOrderNo(dataObject.getOrderNo()),
-                toDomainOrderUserId(dataObject.getUserId()),
-                toDomainOrderStatus(dataObject.getOrderStatus()),
-                dataObject.getPayStatus() == null ? null : PayStatus.from(dataObject.getPayStatus()),
-                dataObject.getInventoryStatus() == null ? null : InventoryStatus.from(dataObject.getInventoryStatus()),
-                toDomainPaymentNo(paymentSnapshot == null ? null : paymentSnapshot.getPaymentNo()),
-                inventorySnapshot == null || inventorySnapshot.getReservationNo() == null
-                        ? null
-                        : ReservationNo.of(inventorySnapshot.getReservationNo()),
-                dataObject.getCurrencyCode() == null ? null : CurrencyCode.fromValue(dataObject.getCurrencyCode()),
-                toMoney(dataObject.getTotalAmount(), dataObject.getCurrencyCode()),
-                toMoney(dataObject.getPayableAmount(), dataObject.getCurrencyCode()),
-                dataObject.getRemark(),
-                dataObject.getCancelReason(),
-                dataObject.getCloseReason(),
-                dataObject.getCreatedAt(),
-                dataObject.getExpiredAt(),
-                dataObject.getPaidAt(),
-                dataObject.getClosedAt(),
-                paymentSnapshot == null || paymentSnapshot.getChannelCode() == null
-                        ? null
-                        : PaymentChannel.from(paymentSnapshot.getChannelCode()),
-                paymentSnapshot == null ? null : toMoney(paymentSnapshot.getPaidAmount(), dataObject.getCurrencyCode()),
-                paymentSnapshot == null ? null : paymentSnapshot.getChannelStatus(),
-                paymentSnapshot == null ? null : paymentSnapshot.getFailureReason(),
-                null,
-                inventorySnapshot == null || inventorySnapshot.getWarehouseCode() == null
-                        ? null
-                        : WarehouseCode.of(inventorySnapshot.getWarehouseCode()),
-                inventorySnapshot == null ? null : inventorySnapshot.getFailureReason(),
-                null,
-                null,
-                null);
-    }
-
-    private Money toMoney(java.math.BigDecimal value, String currencyCode) {
-        if (value == null || currencyCode == null || currencyCode.isBlank()) {
-            return null;
-        }
-        return Money.of(value, CurrencyCode.fromValue(currencyCode));
+        return orderPersistenceAssembler.toDomain(dataObject, paymentSnapshot, inventorySnapshot);
     }
 
     private OrderId toDomainOrderId(Long orderId) {
         return orderId == null ? null : OrderId.of(orderId);
     }
 
-    private String toDatabaseOrderNo(OrderNo orderNo) {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    private OrderNo toDomainOrderNo(String orderNo) {
-        return orderNo == null ? null : OrderNo.of(orderNo);
-    }
-
-    private PaymentNo toDomainPaymentNo(String paymentNo) {
-        return paymentNo == null ? null : PaymentNo.of(paymentNo);
-    }
-
-    private TenantId toDomainOrderTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
-    private UserId toDomainOrderUserId(Long userId) {
-        return userId == null ? null : UserId.of(userId);
-    }
-
-    private OrderStatus toDomainOrderStatus(String orderStatus) {
-        return orderStatus == null ? null : OrderStatus.from(orderStatus);
-    }
-
-    private OrderItem toDomain(OrderItemDO dataObject, String currencyCode) {
-        CurrencyCode resolvedCurrencyCode = CurrencyCode.fromValue(currencyCode);
-        return OrderItem.create(
-                dataObject.getTenantId(),
-                dataObject.getOrderId() == null ? null : Long.valueOf(dataObject.getOrderId()),
-                dataObject.getSkuId() == null ? null : Long.valueOf(dataObject.getSkuId()),
-                dataObject.getSkuName(),
-                dataObject.getImageUrl(),
-                dataObject.getQuantity(),
-                resolvedCurrencyCode,
-                dataObject.getSalePrice() == null
-                        ? null
-                        : dataObject.getSalePrice().toPlainString(),
-                dataObject.getLineAmount() == null
-                        ? null
-                        : dataObject.getLineAmount().toPlainString());
-    }
-
-    private OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {
-        return new OrderPaymentSnapshotDO(
-                snapshot.getId(),
-                valueOf(snapshot.getTenantId()),
-                valueOf(snapshot.getOrderId()),
-                valueOf(snapshot.getPaymentNo()),
-                valueOf(snapshot.getChannelCode()),
-                valueOf(snapshot.getPayStatus()),
-                snapshot.getPaidAmount() == null ? null : snapshot.getPaidAmount().value(),
-                snapshot.getPaidTime(),
-                snapshot.getFailureReason(),
-                valueOf(snapshot.getChannelStatus()),
-                snapshot.getUpdatedAt());
-    }
-
-    private OrderPaymentSnapshot toDomain(OrderPaymentSnapshotDO dataObject, String currencyCode) {
-        return OrderPaymentSnapshot.reconstruct(
-                dataObject.getId(),
-                toDomainOrderTenantId(dataObject.getTenantId()),
-                toDomainOrderId(dataObject.getOrderId()),
-                toDomainPaymentNo(dataObject.getPaymentNo()),
-                dataObject.getChannelCode() == null ? null : PaymentChannel.from(dataObject.getChannelCode()),
-                dataObject.getPayStatus() == null ? null : PayStatus.from(dataObject.getPayStatus()),
-                toMoney(dataObject.getPaidAmount(), currencyCode),
-                dataObject.getPaidTime(),
-                dataObject.getFailureReason(),
-                dataObject.getChannelStatus() == null ? null : PaymentChannelStatus.from(dataObject.getChannelStatus()),
-                dataObject.getUpdatedAt());
-    }
-
-    private OrderInventorySnapshotDO toDataObject(OrderInventorySnapshot snapshot) {
-        return new OrderInventorySnapshotDO(
-                null,
-                valueOf(snapshot.getTenantId()),
-                valueOf(snapshot.getOrderNo()),
-                valueOf(snapshot.getReservationNo()),
-                valueOf(snapshot.getInventoryStatus()),
-                valueOf(snapshot.getWarehouseCode()),
-                snapshot.getFailureReason(),
-                snapshot.getUpdatedAt());
-    }
-
-    private OrderInventorySnapshot toDomain(OrderInventorySnapshotDO dataObject) {
-        return OrderInventorySnapshot.reconstruct(
-                toDomainOrderTenantId(dataObject.getTenantId()),
-                toDomainOrderNo(dataObject.getOrderNo()),
-                dataObject.getReservationNo() == null ? null : ReservationNo.of(dataObject.getReservationNo()),
-                dataObject.getInventoryStatus() == null ? null : InventoryStatus.from(dataObject.getInventoryStatus()),
-                dataObject.getWarehouseCode() == null ? null : WarehouseCode.of(dataObject.getWarehouseCode()),
-                dataObject.getFailureReason(),
-                dataObject.getUpdatedAt());
-    }
-
-    private OrderAuditLogDO toDataObject(OrderAuditLog auditLog) {
-        return new OrderAuditLogDO(
-                auditLog.getId(),
-                auditLog.getTenantId() == null ? null : auditLog.getTenantId().value(),
-                toDatabaseOrderNo(auditLog.getOrderNo()),
-                valueOf(auditLog.getActionType()),
-                valueOf(auditLog.getBeforeStatus()),
-                valueOf(auditLog.getAfterStatus()),
-                valueOf(auditLog.getOperatorType()),
-                auditLog.getOperatorId(),
-                auditLog.getOccurredAt());
-    }
-
-    private OrderAuditLog toDomain(OrderAuditLogDO dataObject) {
-        return OrderAuditLog.reconstruct(
-                dataObject.getId(),
-                dataObject.getTenantId() == null ? null : TenantId.of(dataObject.getTenantId()),
-                toDomainOrderNo(dataObject.getOrderNo()),
-                dataObject.getActionType() == null ? null : OrderAuditActionType.from(dataObject.getActionType()),
-                toDomainOrderStatus(dataObject.getBeforeStatus()),
-                toDomainOrderStatus(dataObject.getAfterStatus()),
-                dataObject.getOperatorType() == null ? null : OperatorType.from(dataObject.getOperatorType()),
-                dataObject.getOperatorId(),
-                dataObject.getOccurredAt());
-    }
-
-    private Long valueOf(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    private Long valueOf(OrderId orderId) {
-        return orderId == null ? null : orderId.value();
-    }
-
-    private String valueOf(OrderNo orderNo) {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    private String valueOf(PaymentNo paymentNo) {
-        return paymentNo == null ? null : paymentNo.value();
-    }
-
-    private String valueOf(ReservationNo reservationNo) {
-        return reservationNo == null ? null : reservationNo.value();
-    }
-
-    private String valueOf(WarehouseCode warehouseCode) {
-        return warehouseCode == null ? null : warehouseCode.value();
-    }
-
-    private String valueOf(CurrencyCode currencyCode) {
-        return currencyCode == null ? null : currencyCode.value();
-    }
-
-    private String valueOf(PaymentChannel channel) {
-        return channel == null ? null : channel.value();
-    }
-
-    private String valueOf(PaymentChannelStatus channelStatus) {
-        return channelStatus == null ? null : channelStatus.value();
-    }
-
-    private String valueOf(OrderStatus orderStatus) {
-        return orderStatus == null ? null : orderStatus.value();
-    }
-
-    private String valueOf(PayStatus payStatus) {
-        return payStatus == null ? null : payStatus.value();
-    }
-
-    private String valueOf(InventoryStatus inventoryStatus) {
-        return inventoryStatus == null ? null : inventoryStatus.value();
-    }
-
-    private String valueOf(OrderAuditActionType actionType) {
-        return actionType == null ? null : actionType.value();
-    }
-
-    private String valueOf(OperatorType operatorType) {
-        return operatorType == null ? null : operatorType.value();
+    private Long requireTenantId() {
+        return BaconContextHolder.requireTenantId();
     }
 }

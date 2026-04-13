@@ -15,26 +15,25 @@ public interface OrderRepository {
 
     Optional<Order> findById(Long id);
 
-    Optional<Order> findByOrderNo(Long tenantId, String orderNo);
+    Optional<Order> findByOrderNo(String orderNo);
 
-    void saveItems(Long tenantId, Long orderId, List<OrderItem> items);
+    void saveItems(Long orderId, List<OrderItem> items);
 
-    List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode);
+    List<OrderItem> findItemsByOrderId(Long orderId, String currencyCode);
 
     void savePaymentSnapshot(OrderPaymentSnapshot snapshot);
 
-    Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long tenantId, Long orderId, String currencyCode);
+    Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId, String currencyCode);
 
     void saveInventorySnapshot(OrderInventorySnapshot snapshot);
 
-    Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo);
+    Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo);
 
     void saveAuditLog(OrderAuditLog auditLog);
 
-    List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo);
+    List<OrderAuditLog> findAuditLogs(String orderNo);
 
     long countOrders(
-            Long tenantId,
             Long userId,
             String orderNo,
             String orderStatus,
@@ -44,7 +43,6 @@ public interface OrderRepository {
             Instant createdAtTo);
 
     List<Order> pageOrders(
-            Long tenantId,
             Long userId,
             String orderNo,
             String orderStatus,

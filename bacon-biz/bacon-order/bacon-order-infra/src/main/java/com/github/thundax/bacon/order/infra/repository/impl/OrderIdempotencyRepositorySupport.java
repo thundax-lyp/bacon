@@ -2,10 +2,11 @@ package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderIdempotencyRecordPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderIdempotencyRecordDO;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderIdempotencyRecordMapper;
 import java.time.Instant;
@@ -21,13 +22,18 @@ public class OrderIdempotencyRepositorySupport {
     private static final int LAST_ERROR_MAX_LENGTH = 512;
 
     private final OrderIdempotencyRecordMapper mapper;
+    private final OrderIdempotencyRecordPersistenceAssembler orderIdempotencyRecordPersistenceAssembler;
 
-    public OrderIdempotencyRepositorySupport(OrderIdempotencyRecordMapper mapper) {
+    public OrderIdempotencyRepositorySupport(
+            OrderIdempotencyRecordMapper mapper,
+            OrderIdempotencyRecordPersistenceAssembler orderIdempotencyRecordPersistenceAssembler) {
         this.mapper = mapper;
+        this.orderIdempotencyRecordPersistenceAssembler = orderIdempotencyRecordPersistenceAssembler;
     }
 
     public boolean createProcessing(OrderIdempotencyRecord record) {
-        OrderIdempotencyRecordDO dataObject = toDataObject(record);
+        OrderIdempotencyRecordDO dataObject =
+                orderIdempotencyRecordPersistenceAssembler.toDataObject(record, requireTenantId());
         Instant now = Instant.now();
         dataObject.setStatus(OrderIdempotencyStatus.PROCESSING.value());
         dataObject.setAttemptCount(dataObject.getAttemptCount() == null ? 1 : dataObject.getAttemptCount());
@@ -60,7 +66,7 @@ public class OrderIdempotencyRepositorySupport {
         return mapper.update(
                         null,
                         Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
-                                .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                                .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                                 .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
@@ -76,10 +82,10 @@ public class OrderIdempotencyRepositorySupport {
 
     public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
         return Optional.ofNullable(mapper.selectOne(Wrappers.<OrderIdempotencyRecordDO>lambdaQuery()
-                        .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                        .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                         .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
                         .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())))
-                .map(this::toDomain);
+                .map(orderIdempotencyRecordPersistenceAssembler::toDomain);
     }
 
     public boolean markSuccess(OrderIdempotencyRecordKey key, Instant updatedAt) {
@@ -87,7 +93,7 @@ public class OrderIdempotencyRepositorySupport {
         return mapper.update(
                         null,
                         Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
-                                .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                                .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                                 .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
@@ -105,7 +111,7 @@ public class OrderIdempotencyRepositorySupport {
         return mapper.update(
                         null,
                         Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
-                                .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                                .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                                 .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
@@ -132,7 +138,7 @@ public class OrderIdempotencyRepositorySupport {
         return mapper.update(
                         null,
                         Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
-                                .eq(OrderIdempotencyRecordDO::getTenantId, toDatabaseTenantId(key.tenantId()))
+                                .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                                 .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.FAILED.value())
@@ -168,51 +174,11 @@ public class OrderIdempotencyRepositorySupport {
         return value.length() <= LAST_ERROR_MAX_LENGTH ? value : value.substring(0, LAST_ERROR_MAX_LENGTH);
     }
 
-    private OrderIdempotencyRecordDO toDataObject(OrderIdempotencyRecord record) {
-        // paymentNo 在无值场景统一归一化为空串，确保数据库唯一键对“无支付单号事件”也稳定生效。
-        return new OrderIdempotencyRecordDO(
-                toDatabaseTenantId(record.getTenantId()),
-                toDatabaseOrderNo(record.getOrderNo()),
-                record.getEventType(),
-                record.getStatus() == null ? null : record.getStatus().value(),
-                record.getAttemptCount(),
-                record.getLastError(),
-                record.getProcessingOwner(),
-                record.getLeaseUntil(),
-                record.getClaimedAt(),
-                record.getCreatedAt(),
-                record.getUpdatedAt());
-    }
-
-    private OrderIdempotencyRecord toDomain(OrderIdempotencyRecordDO dataObject) {
-        return OrderIdempotencyRecord.reconstruct(
-                OrderIdempotencyRecordKey.of(
-                        toDomainTenantId(dataObject.getTenantId()),
-                        toDomainOrderNo(dataObject.getOrderNo()),
-                        dataObject.getEventType()),
-                OrderIdempotencyStatus.from(dataObject.getStatus()),
-                dataObject.getAttemptCount(),
-                dataObject.getLastError(),
-                dataObject.getProcessingOwner(),
-                dataObject.getLeaseUntil(),
-                dataObject.getClaimedAt(),
-                dataObject.getCreatedAt(),
-                dataObject.getUpdatedAt());
-    }
-
-    private Long toDatabaseTenantId(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    private TenantId toDomainTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
     private String toDatabaseOrderNo(OrderNo orderNo) {
         return orderNo == null ? null : orderNo.value();
     }
 
-    private OrderNo toDomainOrderNo(String orderNo) {
-        return orderNo == null ? null : OrderNo.of(orderNo);
+    private Long requireTenantId() {
+        return BaconContextHolder.requireTenantId();
     }
 }

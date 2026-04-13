@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.List;
 
 public record CreateOrderCommand(
-        Long tenantId,
         Long userId,
         String currencyCode,
         String channelCode,

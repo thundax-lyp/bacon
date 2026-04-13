@@ -2,8 +2,8 @@ package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
@@ -11,6 +11,8 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderOutboxDeadLetterPersistenceAssembler;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderOutboxEventPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxDeadLetterDO;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderOutboxEventDO;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderOutboxDeadLetterMapper;
@@ -37,18 +39,24 @@ public class OrderOutboxRepositorySupport {
     private final OrderOutboxEventMapper outboxEventMapper;
     private final OrderOutboxDeadLetterMapper deadLetterMapper;
     private final IdGenerator idGenerator;
+    private final OrderOutboxEventPersistenceAssembler orderOutboxEventPersistenceAssembler;
+    private final OrderOutboxDeadLetterPersistenceAssembler orderOutboxDeadLetterPersistenceAssembler;
 
     public OrderOutboxRepositorySupport(
             OrderOutboxEventMapper outboxEventMapper,
             OrderOutboxDeadLetterMapper deadLetterMapper,
-            IdGenerator idGenerator) {
+            IdGenerator idGenerator,
+            OrderOutboxEventPersistenceAssembler orderOutboxEventPersistenceAssembler,
+            OrderOutboxDeadLetterPersistenceAssembler orderOutboxDeadLetterPersistenceAssembler) {
         this.outboxEventMapper = outboxEventMapper;
         this.deadLetterMapper = deadLetterMapper;
         this.idGenerator = idGenerator;
+        this.orderOutboxEventPersistenceAssembler = orderOutboxEventPersistenceAssembler;
+        this.orderOutboxDeadLetterPersistenceAssembler = orderOutboxDeadLetterPersistenceAssembler;
     }
 
     public void saveOutboxEvent(OrderOutboxEvent event) {
-        OrderOutboxEventDO dataObject = toDataObject(event);
+        OrderOutboxEventDO dataObject = orderOutboxEventPersistenceAssembler.toDataObject(event, requireTenantId());
         Instant now = Instant.now();
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
         dataObject.setUpdatedAt(now);
@@ -66,7 +74,7 @@ public class OrderOutboxRepositorySupport {
         }
         // outbox 插入即进入可调度状态，后续所有处理权转移都通过 status + processingOwner + leaseUntil 控制。
         outboxEventMapper.insert(dataObject);
-        event.setId(toDomainOutboxId(dataObject.getId()));
+        event.setId(dataObject.getId() == null ? null : OutboxId.of(dataObject.getId()));
         event.setEventCode(EventCode.of(dataObject.getEventCode()));
     }
 
@@ -115,7 +123,7 @@ public class OrderOutboxRepositorySupport {
             }
             OrderOutboxEventDO claimedDo = outboxEventMapper.selectById(candidate.getId());
             if (claimedDo != null) {
-                claimed.add(toDomain(claimedDo));
+                claimed.add(orderOutboxEventPersistenceAssembler.toDomain(claimedDo));
             }
         }
         return List.copyOf(claimed);
@@ -194,7 +202,8 @@ public class OrderOutboxRepositorySupport {
     }
 
     public void saveDeadLetter(OrderOutboxDeadLetter deadLetter) {
-        OrderOutboxDeadLetterDO dataObject = toDataObject(deadLetter);
+        OrderOutboxDeadLetterDO dataObject =
+                orderOutboxDeadLetterPersistenceAssembler.toDataObject(deadLetter, null, requireTenantId());
         Instant now = Instant.now();
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
         dataObject.setUpdatedAt(now);
@@ -217,48 +226,6 @@ public class OrderOutboxRepositorySupport {
         return message.length() <= 512 ? message : message.substring(0, 512);
     }
 
-    private OrderOutboxEventDO toDataObject(OrderOutboxEvent event) {
-        return new OrderOutboxEventDO(
-                toDatabaseOutboxId(event.getId()),
-                toDatabaseEventCode(event.getEventCode()),
-                toDatabaseTenantId(event.getTenantId()),
-                toDatabaseOrderNo(event.getOrderNo()),
-                toDatabaseEventType(event.getEventType()),
-                event.getBusinessKey(),
-                event.getPayload(),
-                toDatabaseStatus(event.getStatus()),
-                event.getRetryCount(),
-                event.getNextRetryAt(),
-                event.getProcessingOwner(),
-                event.getLeaseUntil(),
-                event.getClaimedAt(),
-                event.getErrorMessage(),
-                event.getDeadReason(),
-                event.getCreatedAt(),
-                event.getUpdatedAt());
-    }
-
-    private OrderOutboxEvent toDomain(OrderOutboxEventDO dataObject) {
-        return OrderOutboxEvent.reconstruct(
-                toDomainOutboxId(dataObject.getId()),
-                toDomainEventCode(dataObject.getEventCode()),
-                toDomainTenantId(dataObject.getTenantId()),
-                toDomainOrderNo(dataObject.getOrderNo()),
-                toDomainEventType(dataObject.getEventType()),
-                dataObject.getBusinessKey(),
-                dataObject.getPayload(),
-                toDomainStatus(dataObject.getStatus()),
-                dataObject.getRetryCount(),
-                dataObject.getNextRetryAt(),
-                dataObject.getProcessingOwner(),
-                dataObject.getLeaseUntil(),
-                dataObject.getClaimedAt(),
-                dataObject.getErrorMessage(),
-                dataObject.getDeadReason(),
-                dataObject.getCreatedAt(),
-                dataObject.getUpdatedAt());
-    }
-
     private EventCode generateEventCode() {
         long id = idGenerator.nextId(OUTBOX_EVENT_CODE_BIZ_TAG);
         String timestamp = LocalDateTime.now().format(EVENT_CODE_TIMESTAMP_FORMATTER);
@@ -266,73 +233,11 @@ public class OrderOutboxRepositorySupport {
         return EventCode.of("EVT" + timestamp + "-" + suffix);
     }
 
-    private String toDatabaseEventCode(EventCode eventCode) {
-        return eventCode == null ? null : eventCode.value();
-    }
-
     private Long toDatabaseOutboxId(OutboxId outboxId) {
         return outboxId == null ? null : outboxId.value();
     }
 
-    private EventCode toDomainEventCode(String eventCode) {
-        return eventCode == null ? null : EventCode.of(eventCode);
-    }
-
-    private OutboxId toDomainOutboxId(Long outboxId) {
-        return outboxId == null ? null : OutboxId.of(outboxId);
-    }
-
-    private Long toDatabaseTenantId(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
-    }
-
-    private TenantId toDomainTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
-    private String toDatabaseOrderNo(OrderNo orderNo) {
-        return orderNo == null ? null : orderNo.value();
-    }
-
-    private OrderNo toDomainOrderNo(String orderNo) {
-        return orderNo == null ? null : OrderNo.of(orderNo);
-    }
-
-    private String toDatabaseEventType(OrderOutboxEventType eventType) {
-        return eventType == null ? null : eventType.value();
-    }
-
-    private OrderOutboxEventType toDomainEventType(String eventType) {
-        return eventType == null ? null : OrderOutboxEventType.from(eventType);
-    }
-
-    private String toDatabaseStatus(OrderOutboxStatus status) {
-        return status == null ? null : status.value();
-    }
-
-    private OrderOutboxStatus toDomainStatus(String status) {
-        return status == null ? null : OrderOutboxStatus.from(status);
-    }
-
-    private OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {
-        return new OrderOutboxDeadLetterDO(
-                null,
-                toDatabaseOutboxId(deadLetter.getOutboxId()),
-                toDatabaseEventCode(deadLetter.getEventCode()),
-                toDatabaseTenantId(deadLetter.getTenantId()),
-                toDatabaseOrderNo(deadLetter.getOrderNo()),
-                toDatabaseEventType(deadLetter.getEventType()),
-                deadLetter.getBusinessKey(),
-                deadLetter.getPayload(),
-                deadLetter.getRetryCount(),
-                deadLetter.getErrorMessage(),
-                deadLetter.getDeadReason(),
-                deadLetter.getDeadAt(),
-                deadLetter.getReplayStatus() == null ? null : deadLetter.getReplayStatus().value(),
-                deadLetter.getReplayCount(),
-                deadLetter.getLastReplayAt(),
-                deadLetter.getLastReplayMessage(),
-                deadLetter.getCreatedAt(),
-                deadLetter.getUpdatedAt());
+    private Long requireTenantId() {
+        return BaconContextHolder.requireTenantId();
     }
 }

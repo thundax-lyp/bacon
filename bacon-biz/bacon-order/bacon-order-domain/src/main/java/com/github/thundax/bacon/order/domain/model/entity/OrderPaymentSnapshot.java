@@ -2,7 +2,6 @@ package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannelStatus;
@@ -23,8 +22,6 @@ public class OrderPaymentSnapshot {
 
     /** 快照主键。 */
     private Long id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 订单主键。 */
     private OrderId orderId;
     /** 支付单号。 */
@@ -45,7 +42,6 @@ public class OrderPaymentSnapshot {
     private Instant updatedAt;
 
     public static OrderPaymentSnapshot create(
-            TenantId tenantId,
             OrderId orderId,
             PaymentNo paymentNo,
             PaymentChannel channelCode,
@@ -57,7 +53,6 @@ public class OrderPaymentSnapshot {
             Instant updatedAt) {
         return new OrderPaymentSnapshot(
                 null,
-                tenantId,
                 orderId,
                 paymentNo,
                 channelCode,
@@ -71,7 +66,6 @@ public class OrderPaymentSnapshot {
 
     public static OrderPaymentSnapshot reconstruct(
             Long id,
-            TenantId tenantId,
             OrderId orderId,
             PaymentNo paymentNo,
             PaymentChannel channelCode,
@@ -83,7 +77,6 @@ public class OrderPaymentSnapshot {
             Instant updatedAt) {
         return new OrderPaymentSnapshot(
                 id,
-                tenantId,
                 orderId,
                 paymentNo,
                 channelCode,

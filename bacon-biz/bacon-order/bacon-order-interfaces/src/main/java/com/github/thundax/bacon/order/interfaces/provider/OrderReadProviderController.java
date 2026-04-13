@@ -59,7 +59,7 @@ public class OrderReadProviderController {
             @RequestParam("channelCode") String channelCode,
             @RequestParam("paidAmount") BigDecimal paidAmount,
             @RequestParam("paidTime") Instant paidTime) {
-        orderPaymentResultApplicationService.markPaid(tenantId, orderNo, paymentNo, channelCode, paidAmount, paidTime);
+        orderPaymentResultApplicationService.markPaid(orderNo, paymentNo, channelCode, paidAmount, paidTime);
     }
 
     @PostMapping("/mark-payment-failed")
@@ -70,8 +70,7 @@ public class OrderReadProviderController {
             @RequestParam("reason") String reason,
             @RequestParam("channelStatus") String channelStatus,
             @RequestParam("failedTime") Instant failedTime) {
-        orderPaymentResultApplicationService.markPaymentFailed(
-                tenantId, orderNo, paymentNo, reason, channelStatus, failedTime);
+        orderPaymentResultApplicationService.markPaymentFailed(orderNo, paymentNo, reason, channelStatus, failedTime);
     }
 
     @PostMapping("/close-expired")
@@ -79,6 +78,6 @@ public class OrderReadProviderController {
             @CurrentTenant Long tenantId,
             @RequestParam("orderNo") String orderNo,
             @RequestParam("reason") String reason) {
-        orderTimeoutApplicationService.closeExpiredOrder(tenantId, orderNo, reason);
+        orderTimeoutApplicationService.closeExpiredOrder(orderNo, reason);
     }
 }

@@ -3,7 +3,7 @@ package com.github.thundax.bacon.order.application.command;
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.mapper.TenantIdMapper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
@@ -43,19 +43,19 @@ public class OrderCreateApplicationService {
     }
 
     public OrderSummaryDTO create(CreateOrderCommand command) {
-        if (command.tenantId() == null || command.userId() == null) {
-            throw new IllegalArgumentException("tenantId and userId are required");
+        if (command.userId() == null) {
+            throw new IllegalArgumentException("userId is required");
         }
         List<CreateOrderItemCommand> items = command.items() == null ? List.of() : command.items();
         if (items.isEmpty()) {
             throw new IllegalArgumentException("items must not be empty");
         }
+        BaconContextHolder.requireTenantId();
         BigDecimal totalAmount = items.stream().map(this::calculateLineAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         OrderNo orderNo = orderNoGenerator.nextOrderNo();
         CurrencyCode currencyCode = resolveCurrencyCode(command.currencyCode());
         Order order = Order.create(
                 null,
-                command.tenantId(),
                 orderNo.value(),
                 command.userId(),
                 currencyCode,
@@ -65,11 +65,9 @@ public class OrderCreateApplicationService {
                 command.expiredAt());
         Order savedOrder = orderRepository.save(order);
         orderRepository.saveItems(
-                valueOf(savedOrder.getTenantId()),
                 valueOf(savedOrder.getId()),
                 items.stream()
                         .map(item -> OrderItem.create(
-                                valueOf(savedOrder.getTenantId()),
                                 valueOf(savedOrder.getId()),
                                 item.skuId(),
                                 item.skuName(),
@@ -81,12 +79,11 @@ public class OrderCreateApplicationService {
                         .toList());
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);
-        orderOutboxActionExecutor.enqueueReserveStock(
-                valueOf(savedOrder.getTenantId()), valueOf(savedOrder.getOrderNo()), command.channelCode());
+        orderOutboxActionExecutor.enqueueReserveStock(valueOf(savedOrder.getOrderNo()), command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
         return new OrderSummaryDTO(
                 valueOf(savedOrder.getId()),
-                valueOf(savedOrder.getTenantId()),
+                BaconContextHolder.requireTenantId(),
                 valueOf(savedOrder.getOrderNo()),
                 savedOrder.getUserId() == null ? null : savedOrder.getUserId().value(),
                 valueOf(savedOrder.getOrderStatus()),
@@ -116,10 +113,6 @@ public class OrderCreateApplicationService {
 
     private Long valueOf(OrderId orderId) {
         return OrderIdCodec.toValue(orderId);
-    }
-
-    private Long valueOf(com.github.thundax.bacon.common.id.domain.TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
     }
 
     private String valueOf(OrderNo orderNo) {

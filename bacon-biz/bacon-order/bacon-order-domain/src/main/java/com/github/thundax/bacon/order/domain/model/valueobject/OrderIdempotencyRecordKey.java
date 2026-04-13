@@ -1,17 +1,13 @@
 package com.github.thundax.bacon.order.domain.model.valueobject;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 
 /**
  * 订单幂等记录业务键。
  */
-public record OrderIdempotencyRecordKey(TenantId tenantId, OrderNo orderNo, String eventType) {
+public record OrderIdempotencyRecordKey(OrderNo orderNo, String eventType) {
 
     public OrderIdempotencyRecordKey {
-        if (tenantId == null) {
-            throw new IllegalArgumentException("tenantId must not be null");
-        }
         if (orderNo == null) {
             throw new IllegalArgumentException("orderNo must not be null");
         }
@@ -20,7 +16,7 @@ public record OrderIdempotencyRecordKey(TenantId tenantId, OrderNo orderNo, Stri
         }
     }
 
-    public static OrderIdempotencyRecordKey of(TenantId tenantId, OrderNo orderNo, String eventType) {
-        return new OrderIdempotencyRecordKey(tenantId, orderNo, eventType);
+    public static OrderIdempotencyRecordKey of(OrderNo orderNo, String eventType) {
+        return new OrderIdempotencyRecordKey(orderNo, eventType);
     }
 }

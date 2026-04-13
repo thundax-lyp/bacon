@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.OperatorType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
@@ -21,8 +20,6 @@ public class OrderAuditLog {
 
     /** 审计日志主键。 */
     private Long id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 订单号。 */
     private OrderNo orderNo;
     /** 操作类型。 */
@@ -39,7 +36,6 @@ public class OrderAuditLog {
     private Instant occurredAt;
 
     public static OrderAuditLog create(
-            TenantId tenantId,
             OrderNo orderNo,
             OrderAuditActionType actionType,
             OrderStatus beforeStatus,
@@ -47,13 +43,11 @@ public class OrderAuditLog {
             OperatorType operatorType,
             String operatorId,
             Instant occurredAt) {
-        return new OrderAuditLog(
-                null, tenantId, orderNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
+        return new OrderAuditLog(null, orderNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
     }
 
     public static OrderAuditLog reconstruct(
             Long id,
-            TenantId tenantId,
             OrderNo orderNo,
             OrderAuditActionType actionType,
             OrderStatus beforeStatus,
@@ -61,7 +55,6 @@ public class OrderAuditLog {
             OperatorType operatorType,
             String operatorId,
             Instant occurredAt) {
-        return new OrderAuditLog(
-                id, tenantId, orderNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
+        return new OrderAuditLog(id, orderNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
     }
 }

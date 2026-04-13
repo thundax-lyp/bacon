@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
 import java.time.Instant;
@@ -57,10 +56,6 @@ public class OrderIdempotencyRecord {
             Instant updatedAt) {
         return new OrderIdempotencyRecord(
                 key, status, attemptCount, lastError, processingOwner, leaseUntil, claimedAt, createdAt, updatedAt);
-    }
-
-    public TenantId getTenantId() {
-        return key == null ? null : key.tenantId();
     }
 
     public OrderNo getOrderNo() {

@@ -40,29 +40,27 @@ public class OrderTimeoutApplicationService {
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
     }
 
-    public void closeExpiredOrder(Long tenantId, String orderNo, String reason) {
+    public void closeExpiredOrder(String orderNo, String reason) {
+        BaconContextHolder.requireTenantId();
         // 超时关单同样走幂等执行器，防止定时任务重复扫描时对同一订单反复关单和释放资源。
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_CLOSE_EXPIRED,
-                tenantId,
                 orderNo,
                 null,
-                () -> doCloseExpiredOrder(tenantId, orderNo, reason));
+                () -> doCloseExpiredOrder(orderNo, reason));
     }
 
-    private void doCloseExpiredOrder(Long tenantId, String orderNo, String reason) {
+    private void doCloseExpiredOrder(String orderNo, String reason) {
         Order order = orderRepository
-                .findByOrderNo(tenantId, orderNo)
+                .findByOrderNo(orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.closeExpired(reason);
         // 超时关单的资源回收顺序固定为“先关支付，再释放库存”，与订单生命周期的依赖方向保持一致。
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
-            BaconContextHolder.runWithTenantId(
-                    tenantId, () -> paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason));
+            paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason);
         }
-        InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
-                tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, reason));
+        InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(orderNo, reason);
         applyReleaseResult(order, releaseResult, reason);
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CLOSE_EXPIRED, beforeStatus);

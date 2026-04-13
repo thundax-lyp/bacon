@@ -6,7 +6,6 @@ import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
@@ -33,8 +32,6 @@ public class Order {
     /** 订单主键。 */
     @Setter
     private OrderId id;
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 订单号。 */
     private OrderNo orderNo;
     /** 下单用户主键。 */
@@ -92,7 +89,6 @@ public class Order {
 
     public static Order create(
             Long id,
-            Long tenantId,
             String orderNo,
             Long userId,
             CurrencyCode currencyCode,
@@ -103,7 +99,6 @@ public class Order {
         BoundaryInit init = buildBoundaryInit(currencyCode, totalAmount, payableAmount, expiredAt);
         return new Order(
                 id == null ? null : OrderId.of(id),
-                tenantId == null ? null : TenantId.of(tenantId),
                 orderNo == null ? null : OrderNo.of(orderNo),
                 userId == null ? null : UserId.of(userId),
                 OrderStatus.CREATED,
@@ -135,7 +130,6 @@ public class Order {
 
     public static Order reconstruct(
             OrderId id,
-            TenantId tenantId,
             OrderNo orderNo,
             UserId userId,
             OrderStatus orderStatus,
@@ -173,7 +167,6 @@ public class Order {
         // 持久化重建必须保留主单与支付/库存派生状态，避免查询和回写时把终态信息重置成初始值。
         return new Order(
                 id,
-                tenantId,
                 orderNo,
                 userId,
                 orderStatus,

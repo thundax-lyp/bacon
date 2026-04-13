@@ -26,22 +26,21 @@ public class OrderCommandFacadeLocalImpl implements OrderCommandFacade {
     @Override
     public void markPaid(
             String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
-        Long tenantId = requireTenantId();
-        orderPaymentResultApplicationService.markPaid(tenantId, orderNo, paymentNo, channelCode, paidAmount, paidTime);
+        requireTenantId();
+        orderPaymentResultApplicationService.markPaid(orderNo, paymentNo, channelCode, paidAmount, paidTime);
     }
 
     @Override
     public void markPaymentFailed(
             String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
-        Long tenantId = requireTenantId();
-        orderPaymentResultApplicationService.markPaymentFailed(
-                tenantId, orderNo, paymentNo, reason, channelStatus, failedTime);
+        requireTenantId();
+        orderPaymentResultApplicationService.markPaymentFailed(orderNo, paymentNo, reason, channelStatus, failedTime);
     }
 
     @Override
     public void closeExpiredOrder(String orderNo, String reason) {
-        Long tenantId = requireTenantId();
-        orderTimeoutApplicationService.closeExpiredOrder(tenantId, orderNo, reason);
+        requireTenantId();
+        orderTimeoutApplicationService.closeExpiredOrder(orderNo, reason);
     }
 
     private Long requireTenantId() {

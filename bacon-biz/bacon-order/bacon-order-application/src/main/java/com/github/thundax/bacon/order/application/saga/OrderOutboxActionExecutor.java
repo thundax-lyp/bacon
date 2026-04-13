@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
@@ -57,14 +56,13 @@ public class OrderOutboxActionExecutor {
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
     }
 
-    public void enqueueReserveStock(Long tenantId, String orderNo, String channelCode) {
+    public void enqueueReserveStock(String orderNo, String channelCode) {
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode == null ? "MOCK" : channelCode);
         orderOutboxRepository.saveOutboxEvent(OrderOutboxEvent.create(
-                tenantId,
                 orderNo,
                 OrderOutboxEventType.RESERVE_STOCK,
-                tenantId + ":" + orderNo + ":RESERVE",
+                orderNo + ":RESERVE",
                 OrderOutboxPayloadCodec.encode(payload),
                 OrderOutboxStatus.NEW,
                 0,
@@ -96,15 +94,14 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReserveStock(OrderOutboxEvent event) {
-        Order order = findOrder(valueOf(event.getTenantId()), valueOf(event.getOrderNo()));
-        List<OrderItem> items = orderRepository.findItemsByOrderId(
-                valueOf(order.getTenantId()), valueOf(order.getId()), valueOf(order.getCurrencyCode()));
+        Order order = findOrder(valueOf(event.getOrderNo()));
+        List<OrderItem> items = orderRepository.findItemsByOrderId(valueOf(order.getId()), valueOf(order.getCurrencyCode()));
         List<InventoryReservationItemDTO> reserveItems = items.stream()
                 .map(item -> new InventoryReservationItemDTO(
                         item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
                 .toList();
         InventoryReservationResultDTO reserveResult = BaconContextHolder.callWithTenantId(
-                valueOf(order.getTenantId()),
+                BaconContextHolder.requireTenantId(),
                 () -> inventoryCommandFacade.reserveStock(valueOf(order.getOrderNo()), reserveItems));
         // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
         if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
@@ -131,10 +128,9 @@ public class OrderOutboxActionExecutor {
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("channelCode", channelCode);
         orderOutboxRepository.saveOutboxEvent(OrderOutboxEvent.create(
-                valueOf(order.getTenantId()),
                 valueOf(order.getOrderNo()),
                 OrderOutboxEventType.CREATE_PAYMENT,
-                valueOf(order.getTenantId()) + ":" + valueOf(order.getOrderNo()) + ":CREATE_PAYMENT",
+                valueOf(order.getOrderNo()) + ":CREATE_PAYMENT",
                 OrderOutboxPayloadCodec.encode(payload),
                 OrderOutboxStatus.NEW,
                 0,
@@ -149,11 +145,11 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeCreatePayment(OrderOutboxEvent event) {
-        Order order = findOrder(valueOf(event.getTenantId()), valueOf(event.getOrderNo()));
+        Order order = findOrder(valueOf(event.getOrderNo()));
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
         PaymentCreateResultDTO paymentResult = BaconContextHolder.callWithTenantId(
-                valueOf(order.getTenantId()),
+                BaconContextHolder.requireTenantId(),
                 () -> paymentCommandFacade.createPayment(
                         valueOf(order.getOrderNo()),
                         order.getUserId() == null ? null : order.getUserId().value(),
@@ -173,10 +169,9 @@ public class OrderOutboxActionExecutor {
             Map<String, String> releasePayload = new LinkedHashMap<>();
             releasePayload.put("reason", CLOSE_REASON_PAYMENT_CREATE_FAILED);
             orderOutboxRepository.saveOutboxEvent(OrderOutboxEvent.create(
-                    valueOf(order.getTenantId()),
                     valueOf(order.getOrderNo()),
                     OrderOutboxEventType.RELEASE_STOCK,
-                    valueOf(order.getTenantId()) + ":" + valueOf(order.getOrderNo()) + ":RELEASE_PAYMENT_CREATE_FAILED",
+                    valueOf(order.getOrderNo()) + ":RELEASE_PAYMENT_CREATE_FAILED",
                     OrderOutboxPayloadCodec.encode(releasePayload),
                     OrderOutboxStatus.NEW,
                     0,
@@ -197,10 +192,10 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReleaseStock(OrderOutboxEvent event) {
-        Order order = findOrder(valueOf(event.getTenantId()), valueOf(event.getOrderNo()));
+        Order order = findOrder(valueOf(event.getOrderNo()));
         String reason = OrderOutboxPayloadCodec.decode(event.getPayload()).getOrDefault("reason", "SYSTEM_CANCELLED");
         InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
-                valueOf(order.getTenantId()),
+                BaconContextHolder.requireTenantId(),
                 () -> inventoryCommandFacade.releaseReservedStock(valueOf(order.getOrderNo()), reason));
         // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
@@ -219,10 +214,8 @@ public class OrderOutboxActionExecutor {
         orderDerivedDataPersistenceSupport.persist(order, OrderAuditActionType.OUTBOX_RELEASE, order.getOrderStatus());
     }
 
-    private Order findOrder(Long tenantId, String orderNo) {
-        return orderRepository
-                .findByOrderNo(tenantId, orderNo)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+    private Order findOrder(String orderNo) {
+        return orderRepository.findByOrderNo(orderNo).orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
     }
 
     private String resolveFailureReason(String reason, String defaultReason) {
@@ -237,16 +230,8 @@ public class OrderOutboxActionExecutor {
         return warehouseCode == null ? null : WarehouseCode.of(warehouseCode);
     }
 
-    private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
     private OrderNo toOrderNo(String orderNo) {
         return orderNo == null ? null : OrderNo.of(orderNo);
-    }
-
-    private Long valueOf(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
     }
 
     private String valueOf(OrderNo orderNo) {

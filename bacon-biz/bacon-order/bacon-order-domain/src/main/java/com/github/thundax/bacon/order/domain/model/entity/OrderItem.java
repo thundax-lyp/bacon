@@ -3,7 +3,6 @@ package com.github.thundax.bacon.order.domain.model.entity;
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import java.math.BigDecimal;
 import lombok.AccessLevel;
@@ -19,8 +18,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderItem {
 
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 所属订单主键。 */
     private OrderId orderId;
     /** 商品 SKU 主键。 */
@@ -37,7 +34,6 @@ public class OrderItem {
     private Money lineAmount;
 
     public static OrderItem create(
-            Long tenantId,
             Long orderId,
             Long skuId,
             String skuName,
@@ -47,7 +43,6 @@ public class OrderItem {
             String salePrice,
             String lineAmount) {
         return new OrderItem(
-                tenantId == null ? null : TenantId.of(tenantId),
                 orderId == null ? null : OrderId.of(orderId),
                 skuId == null ? null : SkuId.of(skuId),
                 skuName,
@@ -58,7 +53,6 @@ public class OrderItem {
     }
 
     public static OrderItem reconstruct(
-            TenantId tenantId,
             OrderId orderId,
             SkuId skuId,
             String skuName,
@@ -66,6 +60,6 @@ public class OrderItem {
             Integer quantity,
             Money salePrice,
             Money lineAmount) {
-        return new OrderItem(tenantId, orderId, skuId, skuName, imageUrl, quantity, salePrice, lineAmount);
+        return new OrderItem(orderId, skuId, skuName, imageUrl, quantity, salePrice, lineAmount);
     }
 }

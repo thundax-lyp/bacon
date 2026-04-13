@@ -2,7 +2,6 @@ package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import java.time.Instant;
@@ -19,8 +18,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderInventorySnapshot {
 
-    /** 所属租户主键。 */
-    private TenantId tenantId;
     /** 订单号。 */
     private OrderNo orderNo;
     /** 库存预占单号。 */
@@ -35,26 +32,22 @@ public class OrderInventorySnapshot {
     private Instant updatedAt;
 
     public static OrderInventorySnapshot create(
-            TenantId tenantId,
             OrderNo orderNo,
             ReservationNo reservationNo,
             InventoryStatus inventoryStatus,
             WarehouseCode warehouseCode,
             String failureReason,
             Instant updatedAt) {
-        return new OrderInventorySnapshot(
-                tenantId, orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
+        return new OrderInventorySnapshot(orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
     }
 
     public static OrderInventorySnapshot reconstruct(
-            TenantId tenantId,
             OrderNo orderNo,
             ReservationNo reservationNo,
             InventoryStatus inventoryStatus,
             WarehouseCode warehouseCode,
             String failureReason,
             Instant updatedAt) {
-        return new OrderInventorySnapshot(
-                tenantId, orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
+        return new OrderInventorySnapshot(orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
     }
 }

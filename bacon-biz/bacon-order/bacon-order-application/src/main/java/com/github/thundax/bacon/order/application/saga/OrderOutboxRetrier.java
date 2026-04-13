@@ -93,7 +93,6 @@ public class OrderOutboxRetrier {
                 orderOutboxDeadLetterRepository.saveDeadLetter(OrderOutboxDeadLetter.create(
                         event.getId() == null ? null : event.getId().value(),
                         event.getEventCode() == null ? null : event.getEventCode().value(),
-                        event.getTenantId() == null ? null : event.getTenantId().value(),
                         event.getOrderNo() == null ? null : event.getOrderNo().value(),
                         event.getEventType(),
                         event.getBusinessKey(),

@@ -44,41 +44,38 @@ public class OrderPaymentResultApplicationService {
     }
 
     public void markPaid(
-            Long tenantId,
             String orderNo,
             String paymentNo,
             String channelCode,
             BigDecimal paidAmount,
             Instant paidTime) {
+        BaconContextHolder.requireTenantId();
         // 支付成功回写是跨域回调入口，必须走幂等执行器，避免同一支付结果被重复扣减库存。
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_MARK_PAID,
-                tenantId,
                 orderNo,
                 paymentNo,
-                () -> doMarkPaid(tenantId, orderNo, paymentNo, channelCode, paidAmount, paidTime));
+                () -> doMarkPaid(orderNo, paymentNo, channelCode, paidAmount, paidTime));
     }
 
-    public void markPaymentFailed(
-            Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
+    public void markPaymentFailed(String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
+        BaconContextHolder.requireTenantId();
         // 支付失败回写同样需要幂等，避免重复失败通知把释放库存动作执行多次。
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_MARK_PAYMENT_FAILED,
-                tenantId,
                 orderNo,
                 paymentNo,
-                () -> doMarkPaymentFailed(tenantId, orderNo, paymentNo, reason, channelStatus, failedTime));
+                () -> doMarkPaymentFailed(orderNo, paymentNo, reason, channelStatus, failedTime));
     }
 
     private void doMarkPaid(
-            Long tenantId,
             String orderNo,
             String paymentNo,
             String channelCode,
             BigDecimal paidAmount,
             Instant paidTime) {
         Order order = orderRepository
-                .findByOrderNo(tenantId, orderNo)
+                .findByOrderNo(orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaid(
@@ -87,8 +84,7 @@ public class OrderPaymentResultApplicationService {
                 Money.of(paidAmount, order.getCurrencyCode()),
                 paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
-        InventoryReservationResultDTO deductResult = BaconContextHolder.callWithTenantId(
-                tenantId, () -> inventoryCommandFacade.deductReservedStock(orderNo));
+        InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(orderNo);
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
             String reason = resolveFailureReason(deductResult.getFailureReason(), "inventory deduct failed");
             order.markInventoryFailed(
@@ -106,16 +102,14 @@ public class OrderPaymentResultApplicationService {
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
     }
 
-    private void doMarkPaymentFailed(
-            Long tenantId, String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
+    private void doMarkPaymentFailed(String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
         Order order = orderRepository
-                .findByOrderNo(tenantId, orderNo)
+                .findByOrderNo(orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaymentFailed(toPaymentNo(paymentNo), reason, channelStatus, failedTime);
         // 支付失败后的主目标是回收预占库存，因此这里固定走 releaseReservedStock，而不是尝试别的库存路径。
-        InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
-                tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, "PAYMENT_FAILED"));
+        InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(orderNo, "PAYMENT_FAILED");
         applyReleaseResult(order, releaseResult, "PAYMENT_FAILED");
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAYMENT_FAILED, beforeStatus);

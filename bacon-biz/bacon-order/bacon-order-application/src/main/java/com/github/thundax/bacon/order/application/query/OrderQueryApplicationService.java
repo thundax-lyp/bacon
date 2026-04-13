@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.application.query;
 
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
@@ -40,7 +41,7 @@ public class OrderQueryApplicationService {
 
     public OrderDetailDTO getByOrderNo(Long tenantId, String orderNo) {
         return orderRepository
-                .findByOrderNo(tenantId, orderNo)
+                .findByOrderNo(orderNo)
                 .map(this::toDetail)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
     }
@@ -50,7 +51,6 @@ public class OrderQueryApplicationService {
         int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
         int offset = Math.max(0, (pageNo - 1) * pageSize);
         long total = orderRepository.countOrders(
-                query.getTenantId(),
                 query.getUserId(),
                 query.getOrderNo(),
                 query.getOrderStatus(),
@@ -61,7 +61,6 @@ public class OrderQueryApplicationService {
         List<Order> pageOrders = total <= 0
                 ? List.of()
                 : orderRepository.pageOrders(
-                        query.getTenantId(),
                         query.getUserId(),
                         query.getOrderNo(),
                         query.getOrderStatus(),
@@ -76,9 +75,10 @@ public class OrderQueryApplicationService {
     }
 
     private OrderSummaryDTO toSummary(Order order) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         return new OrderSummaryDTO(
                 valueOf(order.getId()),
-                valueOf(order.getTenantId()),
+                tenantId,
                 valueOf(order.getOrderNo()),
                 order.getUserId() == null ? null : order.getUserId().value(),
                 valueOf(order.getOrderStatus()),
@@ -96,15 +96,16 @@ public class OrderQueryApplicationService {
     }
 
     private OrderDetailDTO toDetail(Order order) {
+        Long tenantId = BaconContextHolder.currentTenantId();
         OrderPaymentSnapshot paymentSnapshot = orderRepository
-                .findPaymentSnapshotByOrderId(valueOf(order.getTenantId()), valueOf(order.getId()), valueOf(order.getCurrencyCode()))
+                .findPaymentSnapshotByOrderId(valueOf(order.getId()), valueOf(order.getCurrencyCode()))
                 .orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository
-                .findInventorySnapshotByOrderNo(valueOf(order.getTenantId()), valueOf(order.getOrderNo()))
+                .findInventorySnapshotByOrderNo(valueOf(order.getOrderNo()))
                 .orElse(null);
         List<OrderItemDTO> itemDtos =
                 orderRepository
-                        .findItemsByOrderId(valueOf(order.getTenantId()), valueOf(order.getId()), valueOf(order.getCurrencyCode()))
+                        .findItemsByOrderId(valueOf(order.getId()), valueOf(order.getCurrencyCode()))
                         .stream()
                         .map(item -> new OrderItemDTO(
                                 item.getSkuId() == null ? null : item.getSkuId().value(),
@@ -116,7 +117,7 @@ public class OrderQueryApplicationService {
                         .toList();
         return new OrderDetailDTO(
                 valueOf(order.getId()),
-                valueOf(order.getTenantId()),
+                tenantId,
                 valueOf(order.getOrderNo()),
                 order.getUserId() == null ? null : order.getUserId().value(),
                 valueOf(order.getOrderStatus()),
@@ -184,10 +185,6 @@ public class OrderQueryApplicationService {
 
     private Long valueOf(com.github.thundax.bacon.order.domain.model.valueobject.OrderId orderId) {
         return OrderIdCodec.toValue(orderId);
-    }
-
-    private Long valueOf(com.github.thundax.bacon.common.id.domain.TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
     }
 
     private String valueOf(com.github.thundax.bacon.common.commerce.valueobject.OrderNo orderNo) {

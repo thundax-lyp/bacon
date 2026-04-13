@@ -40,30 +40,28 @@ public class OrderCancelApplicationService {
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
     }
 
-    public void cancel(Long tenantId, String orderNo, String reason) {
+    public void cancel(String orderNo, String reason) {
+        BaconContextHolder.requireTenantId();
         String resolvedReason = reason == null || reason.isBlank() ? "USER_CANCELLED" : reason;
         // 取消订单走幂等执行器，避免用户重复点击或上游重复投递时把关单/释放库存执行多次。
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_CANCEL,
-                tenantId,
                 orderNo,
                 null,
-                () -> doCancel(tenantId, orderNo, resolvedReason));
+                () -> doCancel(orderNo, resolvedReason));
     }
 
-    private void doCancel(Long tenantId, String orderNo, String reason) {
+    private void doCancel(String orderNo, String reason) {
         Order order = orderRepository
-                .findByOrderNo(tenantId, orderNo)
+                .findByOrderNo(orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.cancel(reason);
         // 同步主流程里先改订单主状态，再尝试释放库存和关闭支付；即使后续远程动作部分失败，主单也已明确进入取消态。
-        InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
-                tenantId, () -> inventoryCommandFacade.releaseReservedStock(orderNo, reason));
+        InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(orderNo, reason);
         applyReleaseResult(order, releaseResult, reason);
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
-            BaconContextHolder.runWithTenantId(
-                    tenantId, () -> paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason));
+            paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason);
         }
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CANCEL, beforeStatus);

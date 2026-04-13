@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
+import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
@@ -44,15 +45,14 @@ public class OrderController {
     @Operation(summary = "创建订单")
     @HasPermission("order:order:create")
     @PostMapping
-    public OrderSummaryResponse create(@RequestBody CreateOrderRequest request) {
+    public OrderSummaryResponse create(@CurrentTenant Long tenantId, @RequestBody CreateOrderRequest request) {
         return OrderSummaryResponse.from(orderCreateApplicationService.create(request.toCommand()));
     }
 
     @Operation(summary = "按 ID 查询订单")
     @HasPermission("order:order:view")
     @GetMapping("/{orderId}")
-    public OrderDetailResponse getById(
-            @RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId, @PathVariable Long orderId) {
+    public OrderDetailResponse getById(@CurrentTenant Long tenantId, @PathVariable Long orderId) {
         return OrderDetailResponse.from(orderQueryService.getById(tenantId, orderId));
     }
 
@@ -60,7 +60,7 @@ public class OrderController {
     @HasPermission("order:order:view")
     @GetMapping
     public OrderPageResponse pageOrders(
-            @RequestParam(value = "tenantId", defaultValue = "1001") Long tenantId,
+            @CurrentTenant Long tenantId,
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "orderNo", required = false) String orderNo,
             @RequestParam(value = "orderStatus", required = false) String orderStatus,
@@ -86,7 +86,8 @@ public class OrderController {
     @Operation(summary = "取消订单")
     @HasPermission("order:order:cancel")
     @PostMapping("/{orderNo}/cancel")
-    public void cancel(@PathVariable String orderNo, @RequestBody CancelOrderRequest request) {
-        orderCancelApplicationService.cancel(Long.parseLong(request.tenantCode().trim()), orderNo, request.reason());
+    public void cancel(
+            @CurrentTenant Long tenantId, @PathVariable String orderNo, @RequestBody CancelOrderRequest request) {
+        orderCancelApplicationService.cancel(orderNo, request.reason());
     }
 }

@@ -33,18 +33,18 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<Order> findByOrderNo(Long tenantId, String orderNo) {
-        return support.findOrderByOrderNo(tenantId, orderNo);
+    public Optional<Order> findByOrderNo(String orderNo) {
+        return support.findOrderByOrderNo(orderNo);
     }
 
     @Override
-    public void saveItems(Long tenantId, Long orderId, List<OrderItem> items) {
-        support.saveItems(tenantId, orderId, items);
+    public void saveItems(Long orderId, List<OrderItem> items) {
+        support.saveItems(orderId, items);
     }
 
     @Override
-    public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
-        return support.findItemsByOrderId(tenantId, orderId, currencyCode);
+    public List<OrderItem> findItemsByOrderId(Long orderId, String currencyCode) {
+        return support.findItemsByOrderId(orderId, currencyCode);
     }
 
     @Override
@@ -53,9 +53,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(
-            Long tenantId, Long orderId, String currencyCode) {
-        return support.findPaymentSnapshotByOrderId(tenantId, orderId, currencyCode);
+    public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId, String currencyCode) {
+        return support.findPaymentSnapshotByOrderId(orderId, currencyCode);
     }
 
     @Override
@@ -64,8 +63,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
-        return support.findInventorySnapshotByOrderNo(tenantId, orderNo);
+    public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo) {
+        return support.findInventorySnapshotByOrderNo(orderNo);
     }
 
     @Override
@@ -74,13 +73,12 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo) {
-        return support.findAuditLogs(tenantId, orderNo);
+    public List<OrderAuditLog> findAuditLogs(String orderNo) {
+        return support.findAuditLogs(orderNo);
     }
 
     @Override
     public long countOrders(
-            Long tenantId,
             Long userId,
             String orderNo,
             String orderStatus,
@@ -88,13 +86,11 @@ public class OrderRepositoryImpl implements OrderRepository {
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
-        return support.countOrders(
-                tenantId, userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
+        return support.countOrders(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
     }
 
     @Override
     public List<Order> pageOrders(
-            Long tenantId,
             Long userId,
             String orderNo,
             String orderStatus,
@@ -105,7 +101,6 @@ public class OrderRepositoryImpl implements OrderRepository {
             int offset,
             int limit) {
         return support.pageOrders(
-                tenantId,
                 userId,
                 orderNo,
                 orderStatus,

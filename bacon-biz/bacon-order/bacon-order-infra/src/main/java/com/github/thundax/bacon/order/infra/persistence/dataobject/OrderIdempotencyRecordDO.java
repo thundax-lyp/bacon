@@ -2,6 +2,7 @@ package com.github.thundax.bacon.order.infra.persistence.dataobject;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.github.thundax.bacon.common.mybatis.annotation.TenantScoped;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("bacon_order_idempotency_record")
+@TenantScoped(read = true, insert = true, verifyOnUpdate = true)
 public class OrderIdempotencyRecordDO {
 
     @TableField("tenant_id")

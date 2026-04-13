@@ -93,8 +93,8 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         if (roles.isEmpty()) {
             return Set.of();
         }
-        Map<MenuId, Menu> menuMap = menuRepository.listMenus().stream()
-                .collect(Collectors.toMap(Menu::getId, menu -> menu));
+        Map<MenuId, Menu> menuMap =
+                menuRepository.listMenus().stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
         Set<String> permissionCodes = new HashSet<>();
         roles.forEach(role -> {
             roleRepository.getAssignedMenus(role.getId()).forEach(menuId -> {
@@ -112,14 +112,16 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 
     private Set<DepartmentId> loadUserDepartmentIds(TenantId tenantId, UserId userId) {
         Set<DepartmentId> departmentIds = new HashSet<>();
-        roleRepository.findRolesByUserId(userId)
+        roleRepository
+                .findRolesByUserId(userId)
                 .forEach(role -> departmentIds.addAll(roleRepository.getAssignedDataScopeDepartments(role.getId())));
         return Set.copyOf(departmentIds);
     }
 
     private Set<String> loadUserScopeTypes(TenantId tenantId, UserId userId) {
         Set<String> scopeTypes = new HashSet<>();
-        roleRepository.findRolesByUserId(userId)
+        roleRepository
+                .findRolesByUserId(userId)
                 .forEach(role -> scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getId())));
         return Set.copyOf(scopeTypes);
     }

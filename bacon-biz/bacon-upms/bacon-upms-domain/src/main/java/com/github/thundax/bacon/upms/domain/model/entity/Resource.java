@@ -60,12 +60,7 @@ public class Resource {
     }
 
     public Resource update(
-            String code,
-            String name,
-            ResourceType resourceType,
-            String httpMethod,
-            String uri,
-            ResourceStatus status) {
+            String code, String name, ResourceType resourceType, String httpMethod, String uri, ResourceStatus status) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");

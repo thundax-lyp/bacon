@@ -19,7 +19,9 @@ public final class SysLogRecordPersistenceAssembler {
                 sysLogRecord.getAction(),
                 sysLogRecord.getEventType(),
                 sysLogRecord.getResult(),
-                sysLogRecord.getOperatorId() == null ? null : sysLogRecord.getOperatorId().value(),
+                sysLogRecord.getOperatorId() == null
+                        ? null
+                        : sysLogRecord.getOperatorId().value(),
                 sysLogRecord.getOperatorName(),
                 sysLogRecord.getClientIp(),
                 sysLogRecord.getRequestUri(),

@@ -5,18 +5,15 @@ import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
-import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
-import com.github.thundax.bacon.upms.application.codec.RoleIdCodec;
-import com.github.thundax.bacon.upms.application.codec.TenantCodeCodec;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -25,6 +22,9 @@ import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
+import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
+import com.github.thundax.bacon.upms.application.codec.RoleIdCodec;
+import com.github.thundax.bacon.upms.application.codec.TenantCodeCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -249,7 +249,8 @@ public class UserApplicationService {
                 resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE) == null ? null : nextUserIdentityId(),
                 nextUserCredentialId());
         if (UserStatus.DISABLED == savedUser.getStatus()) {
-            sessionCommandFacade.invalidateUserSessions(BaconContextHolder.requireTenantId(), domainUserId.value(), "USER_DISABLED");
+            sessionCommandFacade.invalidateUserSessions(
+                    BaconContextHolder.requireTenantId(), domainUserId.value(), "USER_DISABLED");
         }
         return toDetailedDto(savedUser);
     }
@@ -271,7 +272,8 @@ public class UserApplicationService {
             storedObjectFacade.clearObjectReference(
                     currentUser.getAvatarObjectId().externalValue(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId));
         }
-        sessionCommandFacade.invalidateUserSessions(BaconContextHolder.requireTenantId(), domainUserId.value(), "USER_DELETED");
+        sessionCommandFacade.invalidateUserSessions(
+                BaconContextHolder.requireTenantId(), domainUserId.value(), "USER_DELETED");
     }
 
     @Transactional
@@ -317,8 +319,9 @@ public class UserApplicationService {
     public List<RoleDTO> assignRoles(Long userId, List<Long> roleIds) {
         UserId domainUserId = UserIdCodec.toDomain(userId);
         requireUser(domainUserId);
-        List<RoleId> domainRoleIds =
-                roleIds == null ? List.of() : roleIds.stream().map(RoleIdCodec::toDomain).toList();
+        List<RoleId> domainRoleIds = roleIds == null
+                ? List.of()
+                : roleIds.stream().map(RoleIdCodec::toDomain).toList();
         return userRepository.assignRoles(domainUserId, domainRoleIds).stream()
                 .map(this::toRoleDto)
                 .toList();
@@ -358,11 +361,7 @@ public class UserApplicationService {
     }
 
     public UserDTO updateAvatar(
-            Long userId,
-            String originalFilename,
-            String contentType,
-            Long size,
-            InputStream inputStream) {
+            Long userId, String originalFilename, String contentType, Long size, InputStream inputStream) {
         User currentUser = requireUser(UserIdCodec.toDomain(userId));
         AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
         StoredObjectDTO storedObject = uploadAvatarObject(avatarImage);
@@ -380,7 +379,9 @@ public class UserApplicationService {
                     requireIdentityValue(currentUser.getId(), UserIdentityType.ACCOUNT),
                     resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE),
                     nextUserIdentityId(),
-                    resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE) == null ? null : nextUserIdentityId(),
+                    resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE) == null
+                            ? null
+                            : nextUserIdentityId(),
                     nextUserCredentialId());
             if (previousAvatarObjectId != null && !previousAvatarObjectId.equals(storedObjectId)) {
                 storedObjectFacade.clearObjectReference(

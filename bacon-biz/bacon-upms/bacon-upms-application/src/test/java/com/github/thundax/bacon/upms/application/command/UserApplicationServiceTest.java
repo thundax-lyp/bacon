@@ -126,7 +126,8 @@ class UserApplicationServiceTest {
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
         when(storedObjectFacade.uploadObject(any())).thenReturn(storedObject);
-        when(userRepository.save(any(User.class), any(), any(), any(), any(), any())).thenReturn(savedUser);
+        when(userRepository.save(any(User.class), any(), any(), any(), any(), any()))
+                .thenReturn(savedUser);
 
         UserDTO result = service.updateAvatar(
                 101L, "avatar.png", "image/png", 1024L, new ByteArrayInputStream(createImageBytes("png", 256, 256)));
@@ -153,8 +154,8 @@ class UserApplicationServiceTest {
         User currentUser = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ENABLED);
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
-        assertThatThrownBy(
-                        () -> service.updateAvatar(101L, "avatar.gif", "image/gif", 12L, new ByteArrayInputStream(new byte[] {1, 2, 3})))
+        assertThatThrownBy(() -> service.updateAvatar(
+                        101L, "avatar.gif", "image/gif", 12L, new ByteArrayInputStream(new byte[] {1, 2, 3})))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("avatar contentType must be image/jpeg or image/png");
     }
@@ -165,7 +166,8 @@ class UserApplicationServiceTest {
         byte[] bytes = createImageBytes("png", 256, 180);
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
-        assertThatThrownBy(() -> service.updateAvatar(101L, "avatar.png", "image/png", (long) bytes.length, new ByteArrayInputStream(bytes)))
+        assertThatThrownBy(() -> service.updateAvatar(
+                        101L, "avatar.png", "image/png", (long) bytes.length, new ByteArrayInputStream(bytes)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("avatar image must be square");
     }
@@ -214,8 +216,7 @@ class UserApplicationServiceTest {
         User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ENABLED);
         UserIdentity accountIdentity = identity(201L, 101L, UserIdentityType.ACCOUNT, "alice");
         UserIdentity phoneIdentity = identity(202L, 101L, UserIdentityType.PHONE, "13800000001");
-        UserCredential passwordCredential =
-                credential(301L, 101L, 201L, "{noop}identity", true);
+        UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", true);
         when(userRepository.findUserIdentity(UserIdentityType.ACCOUNT, "alice"))
                 .thenReturn(Optional.of(accountIdentity));
         when(userRepository.findUserIdentityByUserId(UserId.of(101L), UserIdentityType.ACCOUNT))
@@ -238,8 +239,7 @@ class UserApplicationServiceTest {
     @Test
     void shouldValidateOldPasswordAgainstAccountIdentity() {
         User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ENABLED);
-        UserCredential passwordCredential =
-                credential(301L, 101L, 201L, "{noop}identity", false);
+        UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", false);
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
         when(userRepository.findUserCredential(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
@@ -262,7 +262,8 @@ class UserApplicationServiceTest {
         return Tenant.create(TenantId.of(id), name, TenantCode.of(code), status, expiredAt);
     }
 
-    private static User user(Long id, String name, StoredObjectId avatarObjectId, DepartmentId departmentId, UserStatus status) {
+    private static User user(
+            Long id, String name, StoredObjectId avatarObjectId, DepartmentId departmentId, UserStatus status) {
         return User.create(UserId.of(id), name, avatarObjectId, departmentId, status);
     }
 

@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
-import com.github.thundax.bacon.upms.application.codec.RoleIdCodec;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
+import com.github.thundax.bacon.upms.application.codec.RoleIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 
 public final class RoleAssembler {

@@ -26,15 +26,15 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Optional<Department> findDepartmentById(DepartmentId departmentId) {
         requireTenantId();
-        return Optional.ofNullable(departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
-                        .eq(DepartmentDO::getId, departmentId.value())))
+        return Optional.ofNullable(departmentMapper.selectOne(
+                        Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getId, departmentId.value())))
                 .map(DepartmentPersistenceAssembler::toDomain);
     }
 
     Optional<Department> findDepartmentByCode(String code) {
         requireTenantId();
-        return Optional.ofNullable(departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery()
-                        .eq(DepartmentDO::getCode, code)))
+        return Optional.ofNullable(departmentMapper.selectOne(
+                        Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getCode, code)))
                 .map(DepartmentPersistenceAssembler::toDomain);
     }
 
@@ -45,7 +45,9 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
         requireTenantId();
         return departmentMapper
                 .selectList(Wrappers.<DepartmentDO>lambdaQuery()
-                        .in(DepartmentDO::getId, departmentIds.stream().map(DepartmentId::value).toList())
+                        .in(
+                                DepartmentDO::getId,
+                                departmentIds.stream().map(DepartmentId::value).toList())
                         .orderByAsc(DepartmentDO::getId))
                 .stream()
                 .map(DepartmentPersistenceAssembler::toDomain)
@@ -66,7 +68,8 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
         DepartmentDO dataObject = DepartmentPersistenceAssembler.toDataObject(department);
         Long departmentId = dataObject.getId();
         boolean exists = departmentId != null
-                && departmentMapper.selectOne(Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getId, departmentId))
+                && departmentMapper.selectOne(
+                                Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getId, departmentId))
                         != null;
         if (!exists) {
             departmentMapper.insert(dataObject);

@@ -25,18 +25,15 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     List<Menu> listMenus() {
         requireTenantId();
-        return menuMapper
-                .selectList(Wrappers.<MenuDO>lambdaQuery()
-                        .orderByAsc(MenuDO::getSort, MenuDO::getId))
-                .stream()
+        return menuMapper.selectList(Wrappers.<MenuDO>lambdaQuery().orderByAsc(MenuDO::getSort, MenuDO::getId)).stream()
                 .map(MenuPersistenceAssembler::toDomain)
                 .toList();
     }
 
     Optional<Menu> findMenuById(MenuId menuId) {
         requireTenantId();
-        return Optional.ofNullable(menuMapper.selectOne(Wrappers.<MenuDO>lambdaQuery()
-                        .eq(MenuDO::getId, menuId.value())))
+        return Optional.ofNullable(
+                        menuMapper.selectOne(Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getId, menuId.value())))
                 .map(MenuPersistenceAssembler::toDomain);
     }
 
@@ -57,8 +54,8 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     boolean existsChildMenu(MenuId menuId) {
         requireTenantId();
-        return Optional.ofNullable(menuMapper.selectCount(Wrappers.<MenuDO>lambdaQuery()
-                                .eq(MenuDO::getParentId, menuId.value())))
+        return Optional.ofNullable(menuMapper.selectCount(
+                                Wrappers.<MenuDO>lambdaQuery().eq(MenuDO::getParentId, menuId.value())))
                         .orElse(0L)
                 > 0L;
     }

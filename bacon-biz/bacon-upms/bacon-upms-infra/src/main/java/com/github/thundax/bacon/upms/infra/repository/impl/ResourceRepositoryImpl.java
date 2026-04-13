@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
@@ -33,7 +33,8 @@ public class ResourceRepositoryImpl implements ResourceRepository {
     }
 
     @Override
-    public List<Resource> pageResources(String code, String name, String resourceType, String status, int pageNo, int pageSize) {
+    public List<Resource> pageResources(
+            String code, String name, String resourceType, String status, int pageNo, int pageSize) {
         return support.listResources(code, name, resourceType, status, pageNo, pageSize);
     }
 

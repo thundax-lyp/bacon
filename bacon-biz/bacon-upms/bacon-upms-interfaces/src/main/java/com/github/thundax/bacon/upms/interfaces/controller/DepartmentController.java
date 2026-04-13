@@ -57,11 +57,7 @@ public class DepartmentController {
     public DepartmentResponse createDepartment(
             @CurrentTenant Long tenantId, @RequestBody DepartmentCreateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.createDepartment(
-                request.code(),
-                request.name(),
-                request.parentId(),
-                request.leaderUserId(),
-                request.sort()));
+                request.code(), request.name(), request.parentId(), request.leaderUserId(), request.sort()));
     }
 
     @Operation(summary = "按部门 ID 查询部门")

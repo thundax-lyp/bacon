@@ -49,8 +49,8 @@ public class MenuRepositoryImpl implements MenuRepository {
     @Override
     public Menu updateSort(MenuId menuId, Integer sort) {
         TenantId tenantId = requireTenantId();
-        Menu currentMenu = findMenuById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
+        Menu currentMenu =
+                findMenuById(menuId).orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
         return support.saveMenu(Menu.create(
                 currentMenu.getId(),
                 currentMenu.getMenuType(),

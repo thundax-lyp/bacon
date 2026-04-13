@@ -51,7 +51,8 @@ class UserPersistenceSupportTest {
     @Test
     void shouldInsertUserAndMapGeneratedId() {
         ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
-        User newUser = User.create(UserId.of(101L), "Alice", StoredObjectId.of(9001L), DepartmentId.of(11L), UserStatus.ENABLED);
+        User newUser = User.create(
+                UserId.of(101L), "Alice", StoredObjectId.of(9001L), DepartmentId.of(11L), UserStatus.ENABLED);
         UserId generatedId = UserId.of(101L);
 
         when(userMapper.insert(any(UserDO.class))).thenAnswer(invocation -> {

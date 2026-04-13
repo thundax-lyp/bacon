@@ -59,16 +59,14 @@ public class UpmsProviderController {
     @Operation(summary = "按身份标识查询用户身份")
     @GetMapping("/user-identities")
     public UserIdentityDTO getUserIdentity(
-            @RequestParam("identityType") String identityType,
-            @RequestParam("identityValue") String identityValue) {
+            @RequestParam("identityType") String identityType, @RequestParam("identityValue") String identityValue) {
         return userApplicationService.getUserIdentity(identityType, identityValue);
     }
 
     @Operation(summary = "按身份标识查询用户登录凭据")
     @GetMapping("/user-credentials")
     public UserLoginCredentialDTO getUserLoginCredential(
-            @RequestParam("identityType") String identityType,
-            @RequestParam("identityValue") String identityValue) {
+            @RequestParam("identityType") String identityType, @RequestParam("identityValue") String identityValue) {
         return userApplicationService.getUserLoginCredential(identityType, identityValue);
     }
 

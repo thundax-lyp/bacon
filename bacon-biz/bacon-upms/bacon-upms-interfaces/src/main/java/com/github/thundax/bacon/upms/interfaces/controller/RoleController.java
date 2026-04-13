@@ -76,11 +76,7 @@ public class RoleController {
     public RoleResponse updateRole(
             @CurrentTenant Long tenantId, @PathVariable String roleId, @RequestBody RoleUpdateRequest request) {
         return RoleResponse.from(roleApplicationService.updateRole(
-                roleId,
-                request.code(),
-                request.name(),
-                request.roleType(),
-                request.dataScopeType()));
+                roleId, request.code(), request.name(), request.roleType(), request.dataScopeType()));
     }
 
     @Operation(summary = "按角色 ID 查询角色")
@@ -162,9 +158,7 @@ public class RoleController {
             @CurrentTenant Long tenantId,
             @PathVariable String roleId,
             @RequestBody RoleDataScopeAssignRequest request) {
-        return roleApplicationService
-                .assignDataScope(roleId, request.dataScopeType(), request.departmentIds())
-                .stream()
+        return roleApplicationService.assignDataScope(roleId, request.dataScopeType(), request.departmentIds()).stream()
                 .map(DepartmentId::value)
                 .collect(Collectors.toSet());
     }

@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.upms.infra.persistence.assembler;
 
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.TenantDO;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 
 public final class TenantPersistenceAssembler {
 

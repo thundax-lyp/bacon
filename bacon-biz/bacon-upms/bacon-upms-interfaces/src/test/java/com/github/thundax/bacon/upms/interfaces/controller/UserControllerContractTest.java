@@ -46,11 +46,7 @@ class UserControllerContractTest {
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
         when(userApplicationService.updateAvatar(
-                        eq(101L),
-                        eq("avatar.png"),
-                        eq("image/png"),
-                        eq(4L),
-                        org.mockito.ArgumentMatchers.any()))
+                        eq(101L), eq("avatar.png"), eq("image/png"), eq(4L), org.mockito.ArgumentMatchers.any()))
                 .thenReturn(new UserDTO(
                         101L,
                         "alice",

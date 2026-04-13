@@ -3,10 +3,10 @@ package com.github.thundax.bacon.upms.application.command;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.application.assembler.DepartmentAssembler;
-import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
+import com.github.thundax.bacon.upms.application.assembler.DepartmentAssembler;
+import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -60,8 +60,7 @@ public class DepartmentApplicationService {
 
         departments.forEach(department -> {
             if (hasParent(department.getParentId())) {
-                DepartmentTreeDTO parent =
-                        treeNodeMap.get(DepartmentIdCodec.toValue(department.getParentId()));
+                DepartmentTreeDTO parent = treeNodeMap.get(DepartmentIdCodec.toValue(department.getParentId()));
                 if (parent != null) {
                     parent.getChildren().add(treeNodeMap.get(DepartmentIdCodec.toValue(department.getId())));
                 }
@@ -77,7 +76,8 @@ public class DepartmentApplicationService {
     }
 
     @Transactional
-    public DepartmentDTO createDepartment(String code, String name, String parentId, String leaderUserId, Integer sort) {
+    public DepartmentDTO createDepartment(
+            String code, String name, String parentId, String leaderUserId, Integer sort) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         DepartmentId parentDepartmentId = normalizeParentId(parentId);
@@ -95,12 +95,7 @@ public class DepartmentApplicationService {
 
     @Transactional
     public DepartmentDTO updateDepartment(
-            DepartmentId departmentId,
-            String code,
-            String name,
-            String parentId,
-            String leaderUserId,
-            Integer sort) {
+            DepartmentId departmentId, String code, String name, String parentId, String leaderUserId, Integer sort) {
         Department currentDepartment = departmentRepository
                 .findDepartmentById(departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));

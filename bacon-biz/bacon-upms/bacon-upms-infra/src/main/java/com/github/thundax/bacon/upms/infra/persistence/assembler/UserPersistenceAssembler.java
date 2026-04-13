@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.upms.infra.persistence.assembler;
 
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
+import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
-import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
@@ -28,7 +28,9 @@ public final class UserPersistenceAssembler {
                 user.getId() == null ? null : user.getId().value(),
                 BaconContextHolder.requireTenantId(),
                 user.getName(),
-                user.getAvatarObjectId() == null ? null : user.getAvatarObjectId().value(),
+                user.getAvatarObjectId() == null
+                        ? null
+                        : user.getAvatarObjectId().value(),
                 user.getDepartmentId() == null ? null : user.getDepartmentId().value(),
                 user.getStatus().value(),
                 false);
@@ -47,10 +49,16 @@ public final class UserPersistenceAssembler {
         return new UserIdentityDO(
                 userIdentity.getId() == null ? null : userIdentity.getId().value(),
                 BaconContextHolder.requireTenantId(),
-                userIdentity.getUserId() == null ? null : userIdentity.getUserId().value(),
-                userIdentity.getIdentityType() == null ? null : userIdentity.getIdentityType().value(),
+                userIdentity.getUserId() == null
+                        ? null
+                        : userIdentity.getUserId().value(),
+                userIdentity.getIdentityType() == null
+                        ? null
+                        : userIdentity.getIdentityType().value(),
                 userIdentity.getIdentityValue(),
-                userIdentity.getStatus() == null ? null : userIdentity.getStatus().value());
+                userIdentity.getStatus() == null
+                        ? null
+                        : userIdentity.getStatus().value());
     }
 
     public static UserIdentity toDomain(UserIdentityDO dataObject) {
@@ -66,10 +74,18 @@ public final class UserPersistenceAssembler {
         return new UserCredentialDO(
                 userCredential.getId() == null ? null : userCredential.getId().value(),
                 BaconContextHolder.requireTenantId(),
-                userCredential.getUserId() == null ? null : userCredential.getUserId().value(),
-                userCredential.getIdentityId() == null ? null : userCredential.getIdentityId().value(),
-                userCredential.getCredentialType() == null ? null : userCredential.getCredentialType().value(),
-                userCredential.getFactorLevel() == null ? null : userCredential.getFactorLevel().value(),
+                userCredential.getUserId() == null
+                        ? null
+                        : userCredential.getUserId().value(),
+                userCredential.getIdentityId() == null
+                        ? null
+                        : userCredential.getIdentityId().value(),
+                userCredential.getCredentialType() == null
+                        ? null
+                        : userCredential.getCredentialType().value(),
+                userCredential.getFactorLevel() == null
+                        ? null
+                        : userCredential.getFactorLevel().value(),
                 userCredential.getCredentialValue(),
                 userCredential.getStatus().value(),
                 userCredential.isNeedChangePassword(),

@@ -56,7 +56,8 @@ public class SysLogRepositoryImpl implements SysLogRepository {
     }
 
     @Override
-    public List<SysLogRecord> pageLogs(String module, String eventType, String result, String operatorName, int pageNo, int pageSize) {
+    public List<SysLogRecord> pageLogs(
+            String module, String eventType, String result, String operatorName, int pageNo, int pageSize) {
         return support.listSysLogs(module, eventType, result, operatorName, pageNo, pageSize);
     }
 

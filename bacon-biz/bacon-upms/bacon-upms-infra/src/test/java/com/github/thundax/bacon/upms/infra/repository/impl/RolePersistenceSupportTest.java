@@ -88,7 +88,8 @@ class RolePersistenceSupportTest {
         ArgumentCaptor<RoleDataScopeRelDO> relationCaptor = ArgumentCaptor.forClass(RoleDataScopeRelDO.class);
         when(dataPermissionRuleMapper.selectOne(any(Wrapper.class))).thenReturn(null);
 
-        support.replaceRoleDataScope(RoleId.of(9L), RoleDataScopeType.CUSTOM, Set.of(DepartmentId.of(11L), DepartmentId.of(12L)));
+        support.replaceRoleDataScope(
+                RoleId.of(9L), RoleDataScopeType.CUSTOM, Set.of(DepartmentId.of(11L), DepartmentId.of(12L)));
 
         verify(dataPermissionRuleMapper).insert(ruleCaptor.capture());
         verify(roleDataScopeRelMapper, Mockito.times(2)).insert(relationCaptor.capture());
@@ -106,9 +107,8 @@ class RolePersistenceSupportTest {
     @Test
     void shouldResolveAssignedResourceCodesFromRelationRows() {
         when(roleResourceRelMapper.selectList(any(Wrapper.class)))
-                .thenReturn(List.of(
-                        new RoleResourceRelDO(1L, 1001L, 9L, 21L),
-                        new RoleResourceRelDO(2L, 1001L, 9L, 22L)));
+                .thenReturn(
+                        List.of(new RoleResourceRelDO(1L, 1001L, 9L, 21L), new RoleResourceRelDO(2L, 1001L, 9L, 22L)));
         when(resourceMapper.selectList(any(Wrapper.class)))
                 .thenReturn(List.of(
                         new ResourceDO(21L, 1001L, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE"),
@@ -123,15 +123,8 @@ class RolePersistenceSupportTest {
     void shouldPersistRoleResourceRelationsByResourceCode() {
         ArgumentCaptor<RoleResourceRelDO> captor = ArgumentCaptor.forClass(RoleResourceRelDO.class);
         when(resourceMapper.selectList(any(Wrapper.class)))
-                .thenReturn(List.of(new ResourceDO(
-                        21L,
-                        1001L,
-                        "upms:user:view",
-                        "User View",
-                        "API",
-                        "GET",
-                        "/users",
-                        "ACTIVE")));
+                .thenReturn(List.of(
+                        new ResourceDO(21L, 1001L, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE")));
 
         support.replaceRoleResources(RoleId.of(9L), Set.of("upms:user:view"));
 

@@ -19,10 +19,6 @@ public record UserIdentityResponse(
 
     public static UserIdentityResponse from(UserIdentityDTO dto) {
         return new UserIdentityResponse(
-                dto.getId(),
-                dto.getUserId(),
-                dto.getIdentityType(),
-                dto.getIdentityValue(),
-                dto.getStatus());
+                dto.getId(), dto.getUserId(), dto.getIdentityType(), dto.getIdentityValue(), dto.getStatus());
     }
 }

@@ -26,8 +26,8 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Optional<Post> findPostById(PostId postId) {
         requireTenantId();
-        return Optional.ofNullable(postMapper.selectOne(Wrappers.<PostDO>lambdaQuery()
-                        .eq(PostDO::getId, postId)))
+        return Optional.ofNullable(
+                        postMapper.selectOne(Wrappers.<PostDO>lambdaQuery().eq(PostDO::getId, postId)))
                 .map(PostPersistenceAssembler::toDomain);
     }
 

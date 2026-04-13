@@ -81,16 +81,14 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public Set<MenuId> getAssignedMenus(RoleId roleId) {
-        findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedMenuIds(roleId);
     }
 
     @Override
     public Set<MenuId> assignMenus(RoleId roleId, Set<MenuId> menuIds) {
         TenantId tenantId = requireTenantId();
-        findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         Set<MenuId> safeMenuIds = menuIds == null ? Set.of() : Set.copyOf(menuIds);
         support.replaceRoleMenus(roleId, safeMenuIds);
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
@@ -99,16 +97,14 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public Set<String> getAssignedResources(RoleId roleId) {
-        findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedResourceCodes(roleId);
     }
 
     @Override
     public Set<String> assignResources(RoleId roleId, Set<String> resourceCodes) {
         TenantId tenantId = requireTenantId();
-        findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         Set<String> safeResourceCodes = resourceCodes == null ? Set.of() : Set.copyOf(resourceCodes);
         support.replaceRoleResources(roleId, safeResourceCodes);
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
@@ -117,23 +113,21 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public String getAssignedDataScopeType(RoleId roleId) {
-        findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedDataScopeType(roleId);
     }
 
     @Override
     public Set<DepartmentId> getAssignedDataScopeDepartments(RoleId roleId) {
-        findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedDataScopeDepartments(roleId);
     }
 
     @Override
-    public Set<DepartmentId> assignDataScope(RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
+    public Set<DepartmentId> assignDataScope(
+            RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
         TenantId tenantId = requireTenantId();
-        findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
+        findRoleById(roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         Set<DepartmentId> safeDepartmentIds = departmentIds == null ? Set.of() : Set.copyOf(departmentIds);
         support.replaceRoleDataScope(roleId, dataScopeType, safeDepartmentIds);
         Role currentRole = findRoleById(roleId).orElseThrow();

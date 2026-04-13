@@ -21,7 +21,6 @@ import com.github.thundax.bacon.upms.interfaces.dto.UserStatusUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserIdentityResponse;
-import java.util.Optional;
 import com.github.thundax.bacon.upms.interfaces.response.UserPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +29,7 @@ import jakarta.validation.Valid;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -76,8 +76,8 @@ public class UserController {
     @SysLog(module = "UPMS", action = "创建用户", eventType = LogEventType.CREATE)
     @PostMapping
     public UserResponse createUser(@CurrentTenant Long tenantId, @RequestBody UserCreateRequest request) {
-        return UserResponse.from(
-                userApplicationService.createUser(request.account(), request.name(), request.phone(), request.departmentId()));
+        return UserResponse.from(userApplicationService.createUser(
+                request.account(), request.name(), request.phone(), request.departmentId()));
     }
 
     @Operation(summary = "修改用户基本信息")
@@ -86,8 +86,8 @@ public class UserController {
     @PutMapping("/{userId}")
     public UserResponse updateUser(
             @CurrentTenant Long tenantId, @PathVariable Long userId, @RequestBody UserUpdateRequest request) {
-        return UserResponse.from(
-                userApplicationService.updateUser(userId, request.account(), request.name(), request.phone(), request.departmentId()));
+        return UserResponse.from(userApplicationService.updateUser(
+                userId, request.account(), request.name(), request.phone(), request.departmentId()));
     }
 
     @Operation(summary = "按用户 ID 查询用户")
@@ -175,11 +175,7 @@ public class UserController {
             @CurrentTenant Long tenantId, @PathVariable("userId") Long userId, @RequestParam("file") MultipartFile file)
             throws IOException {
         return UserResponse.from(userApplicationService.updateAvatar(
-                userId,
-                file.getOriginalFilename(),
-                file.getContentType(),
-                file.getSize(),
-                file.getInputStream()));
+                userId, file.getOriginalFilename(), file.getContentType(), file.getSize(), file.getInputStream()));
     }
 
     @Operation(summary = "查询用户角色列表")
@@ -200,8 +196,8 @@ public class UserController {
         List<UserImportItem> items = request.items() == null ? List.of() : request.items();
         return userApplicationService
                 .importUsers(items.stream()
-                        .map(item -> new UserImportCommand(
-                                item.account(), item.name(), item.phone(), item.departmentCode()))
+                        .map(item ->
+                                new UserImportCommand(item.account(), item.name(), item.phone(), item.departmentCode()))
                         .toList())
                 .stream()
                 .map(UserResponse::from)

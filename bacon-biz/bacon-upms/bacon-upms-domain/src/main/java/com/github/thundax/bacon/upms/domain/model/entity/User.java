@@ -30,11 +30,7 @@ public class User {
     private UserStatus status;
 
     public static User create(
-            UserId id,
-            String name,
-            StoredObjectId avatarObjectId,
-            DepartmentId departmentId,
-            UserStatus status) {
+            UserId id, String name, StoredObjectId avatarObjectId, DepartmentId departmentId, UserStatus status) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(status, "status must not be null");
@@ -42,16 +38,11 @@ public class User {
     }
 
     public static User reconstruct(
-            UserId id,
-            String name,
-            StoredObjectId avatarObjectId,
-            DepartmentId departmentId,
-            UserStatus status) {
+            UserId id, String name, StoredObjectId avatarObjectId, DepartmentId departmentId, UserStatus status) {
         return new User(id, name, avatarObjectId, departmentId, status);
     }
 
-    public User update(
-            String name, StoredObjectId avatarObjectId, DepartmentId departmentId, UserStatus status) {
+    public User update(String name, StoredObjectId avatarObjectId, DepartmentId departmentId, UserStatus status) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(status, "status must not be null");

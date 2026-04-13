@@ -57,11 +57,7 @@ public class Role {
     }
 
     public Role update(
-            String code,
-            String name,
-            RoleType roleType,
-            RoleDataScopeType dataScopeType,
-            RoleStatus status) {
+            String code, String name, RoleType roleType, RoleDataScopeType dataScopeType, RoleStatus status) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(name, "name must not be null");

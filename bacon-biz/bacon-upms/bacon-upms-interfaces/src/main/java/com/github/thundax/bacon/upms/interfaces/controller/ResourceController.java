@@ -68,11 +68,7 @@ public class ResourceController {
     @PostMapping
     public ResourceResponse createResource(@CurrentTenant Long tenantId, @RequestBody ResourceCreateRequest request) {
         return ResourceResponse.from(resourceApplicationService.createResource(
-                request.code(),
-                request.name(),
-                request.resourceType(),
-                request.httpMethod(),
-                request.uri()));
+                request.code(), request.name(), request.resourceType(), request.httpMethod(), request.uri()));
     }
 
     @Operation(summary = "修改资源")

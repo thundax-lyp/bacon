@@ -74,19 +74,19 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Optional<Role> findRoleById(RoleId roleId) {
         requireTenantId();
-        return Optional.ofNullable(roleMapper.selectOne(Wrappers.<RoleDO>lambdaQuery()
-                        .eq(RoleDO::getId, roleId.value())))
+        return Optional.ofNullable(
+                        roleMapper.selectOne(Wrappers.<RoleDO>lambdaQuery().eq(RoleDO::getId, roleId.value())))
                 .map(RolePersistenceAssembler::toDomain);
     }
 
     List<Role> findRolesByUserId(UserId userId) {
         requireTenantId();
-        List<Long> roleIds = userRoleRelMapper
-                .selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
-                        .eq(UserRoleRelDO::getUserId, userId.value()))
-                .stream()
-                .map(UserRoleRelDO::getRoleId)
-                .toList();
+        List<Long> roleIds =
+                userRoleRelMapper
+                        .selectList(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getUserId, userId.value()))
+                        .stream()
+                        .map(UserRoleRelDO::getRoleId)
+                        .toList();
         if (roleIds.isEmpty()) {
             return List.of();
         }
@@ -101,8 +101,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     List<UserId> findAssignedUserIds(TenantId tenantId, RoleId roleId) {
         return userRoleRelMapper
-                .selectList(Wrappers.<UserRoleRelDO>lambdaQuery()
-                        .eq(UserRoleRelDO::getRoleId, roleId.value()))
+                .selectList(Wrappers.<UserRoleRelDO>lambdaQuery().eq(UserRoleRelDO::getRoleId, roleId.value()))
                 .stream()
                 .map(UserRoleRelDO::getUserId)
                 .map(UserId::of)
@@ -142,7 +141,10 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         } else {
             roleMapper.updateById(roleDO);
         }
-        upsertDataPermissionRule(TenantId.of(roleDO.getTenantId()), RoleId.of(roleDO.getId()), RoleDataScopeType.from(roleDO.getDataScopeType()));
+        upsertDataPermissionRule(
+                TenantId.of(roleDO.getTenantId()),
+                RoleId.of(roleDO.getId()),
+                RoleDataScopeType.from(roleDO.getDataScopeType()));
         return RolePersistenceAssembler.toDomain(roleDO);
     }
 
@@ -166,12 +168,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             return;
         }
         for (RoleId roleId : new LinkedHashSet<>(roleIds)) {
-            userRoleRelMapper.insert(
-                    new UserRoleRelDO(
-                            idGenerator.nextId(USER_ROLE_REL_ID_BIZ_TAG),
-                            tenantId.value(),
-                            userId.value(),
-                            roleId.value()));
+            userRoleRelMapper.insert(new UserRoleRelDO(
+                    idGenerator.nextId(USER_ROLE_REL_ID_BIZ_TAG), tenantId.value(), userId.value(), roleId.value()));
         }
     }
 
@@ -183,8 +181,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     Set<MenuId> getAssignedMenuIds(RoleId roleId) {
         requireTenantId();
         return roleMenuRelMapper
-                .selectList(Wrappers.<RoleMenuRelDO>lambdaQuery()
-                        .eq(RoleMenuRelDO::getRoleId, roleId.value()))
+                .selectList(Wrappers.<RoleMenuRelDO>lambdaQuery().eq(RoleMenuRelDO::getRoleId, roleId.value()))
                 .stream()
                 .map(RoleMenuRelDO::getMenuId)
                 .map(MenuId::of)
@@ -198,30 +195,22 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             return;
         }
         for (MenuId menuId : new LinkedHashSet<>(menuIds)) {
-            roleMenuRelMapper.insert(
-                    new RoleMenuRelDO(
-                            idGenerator.nextId(ROLE_MENU_REL_ID_BIZ_TAG),
-                            tenantId.value(),
-                            roleId.value(),
-                            menuId.value()));
+            roleMenuRelMapper.insert(new RoleMenuRelDO(
+                    idGenerator.nextId(ROLE_MENU_REL_ID_BIZ_TAG), tenantId.value(), roleId.value(), menuId.value()));
         }
     }
 
     Set<String> getAssignedResourceCodes(RoleId roleId) {
         requireTenantId();
         List<Long> resourceIds = roleResourceRelMapper
-                .selectList(Wrappers.<RoleResourceRelDO>lambdaQuery()
-                        .eq(RoleResourceRelDO::getRoleId, roleId.value()))
+                .selectList(Wrappers.<RoleResourceRelDO>lambdaQuery().eq(RoleResourceRelDO::getRoleId, roleId.value()))
                 .stream()
                 .map(RoleResourceRelDO::getResourceId)
                 .toList();
         if (resourceIds.isEmpty()) {
             return Set.of();
         }
-        return resourceMapper
-                .selectList(Wrappers.<ResourceDO>lambdaQuery()
-                        .in(ResourceDO::getId, resourceIds))
-                .stream()
+        return resourceMapper.selectList(Wrappers.<ResourceDO>lambdaQuery().in(ResourceDO::getId, resourceIds)).stream()
                 .map(ResourceDO::getCode)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -255,8 +244,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     Set<DepartmentId> getAssignedDataScopeDepartments(RoleId roleId) {
         requireTenantId();
         return roleDataScopeRelMapper
-                .selectList(Wrappers.<RoleDataScopeRelDO>lambdaQuery()
-                        .eq(RoleDataScopeRelDO::getRoleId, roleId.value()))
+                .selectList(
+                        Wrappers.<RoleDataScopeRelDO>lambdaQuery().eq(RoleDataScopeRelDO::getRoleId, roleId.value()))
                 .stream()
                 .map(RoleDataScopeRelDO::getDepartmentId)
                 .map(DepartmentId::of)
@@ -286,8 +275,8 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     private void upsertDataPermissionRule(TenantId tenantId, RoleId roleId, RoleDataScopeType dataScopeType) {
-        DataPermissionRuleDO existing = dataPermissionRuleMapper.selectOne(Wrappers.<DataPermissionRuleDO>lambdaQuery()
-                .eq(DataPermissionRuleDO::getRoleId, roleId.value()));
+        DataPermissionRuleDO existing = dataPermissionRuleMapper.selectOne(
+                Wrappers.<DataPermissionRuleDO>lambdaQuery().eq(DataPermissionRuleDO::getRoleId, roleId.value()));
         if (existing == null) {
             dataPermissionRuleMapper.insert(new DataPermissionRuleDO(
                     idGenerator.nextId(DATA_PERMISSION_RULE_ID_BIZ_TAG),

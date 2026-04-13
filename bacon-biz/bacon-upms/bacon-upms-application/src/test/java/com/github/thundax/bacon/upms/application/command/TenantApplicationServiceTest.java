@@ -42,8 +42,13 @@ class TenantApplicationServiceTest {
     void shouldCreateTenantWithTenantId() {
         when(tenantRepository.findTenantByTenantId(TenantId.of(1001L))).thenReturn(Optional.empty());
         when(tenantRepository.findTenantByCode("TENANT_DEMO")).thenReturn(Optional.empty());
-        when(tenantRepository.saveTenant(any(Tenant.class))).thenReturn(tenant(
-                1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z")));
+        when(tenantRepository.saveTenant(any(Tenant.class)))
+                .thenReturn(tenant(
+                        1001L,
+                        "Demo Tenant",
+                        "TENANT_DEMO",
+                        TenantStatus.ACTIVE,
+                        Instant.parse("2099-01-01T00:00:00Z")));
 
         TenantDTO result =
                 service.createTenant(1001L, "Demo Tenant", "TENANT_DEMO", Instant.parse("2099-01-01T00:00:00Z"));
@@ -58,7 +63,11 @@ class TenantApplicationServiceTest {
     void shouldRejectDuplicateTenantId() {
         when(tenantRepository.findTenantByTenantId(TenantId.of(1001L)))
                 .thenReturn(Optional.of(tenant(
-                        1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, Instant.parse("2099-01-01T00:00:00Z"))));
+                        1001L,
+                        "Demo Tenant",
+                        "TENANT_DEMO",
+                        TenantStatus.ACTIVE,
+                        Instant.parse("2099-01-01T00:00:00Z"))));
 
         assertThatThrownBy(() -> service.createTenant(1001L, "Other", "OTHER", null))
                 .isInstanceOf(IllegalArgumentException.class)

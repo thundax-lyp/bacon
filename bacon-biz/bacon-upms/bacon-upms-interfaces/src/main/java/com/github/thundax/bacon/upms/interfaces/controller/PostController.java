@@ -69,7 +69,8 @@ public class PostController {
     @SysLog(module = "UPMS", action = "创建岗位", eventType = LogEventType.CREATE)
     @PostMapping
     public PostResponse createPost(@CurrentTenant Long tenantId, @RequestBody PostCreateRequest request) {
-        return PostResponse.from(postApplicationService.createPost(request.code(), request.name(), request.departmentId()));
+        return PostResponse.from(
+                postApplicationService.createPost(request.code(), request.name(), request.departmentId()));
     }
 
     @Operation(summary = "修改岗位")

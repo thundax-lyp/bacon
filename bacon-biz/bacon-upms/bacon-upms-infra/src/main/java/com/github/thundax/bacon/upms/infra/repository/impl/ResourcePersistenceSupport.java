@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.ResourcePersistenceAssembler;
@@ -29,12 +29,13 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Optional<Resource> findResourceById(ResourceId resourceId) {
         requireTenantId();
-        return Optional.ofNullable(resourceMapper.selectOne(Wrappers.<ResourceDO>lambdaQuery()
-                        .eq(ResourceDO::getId, resourceId.value())))
+        return Optional.ofNullable(resourceMapper.selectOne(
+                        Wrappers.<ResourceDO>lambdaQuery().eq(ResourceDO::getId, resourceId.value())))
                 .map(ResourcePersistenceAssembler::toDomain);
     }
 
-    List<Resource> listResources(String code, String name, String resourceType, String status, int pageNo, int pageSize) {
+    List<Resource> listResources(
+            String code, String name, String resourceType, String status, int pageNo, int pageSize) {
         return resourceMapper
                 .selectList(Wrappers.<ResourceDO>lambdaQuery()
                         .like(hasText(code), ResourceDO::getCode, code)

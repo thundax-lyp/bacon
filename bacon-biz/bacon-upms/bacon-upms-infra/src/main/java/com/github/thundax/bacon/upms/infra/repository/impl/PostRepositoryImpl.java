@@ -25,7 +25,8 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> pagePosts(String code, String name, DepartmentId departmentId, String status, int pageNo, int pageSize) {
+    public List<Post> pagePosts(
+            String code, String name, DepartmentId departmentId, String status, int pageNo, int pageSize) {
         return support.listPosts(code, name, departmentId, status, pageNo, pageSize);
     }
 

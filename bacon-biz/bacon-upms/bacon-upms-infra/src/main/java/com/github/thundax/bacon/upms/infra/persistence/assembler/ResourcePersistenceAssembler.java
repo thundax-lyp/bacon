@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.infra.persistence.assembler;
 
-import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
@@ -17,7 +17,9 @@ public final class ResourcePersistenceAssembler {
                 BaconContextHolder.requireTenantId(),
                 resource.getCode(),
                 resource.getName(),
-                resource.getResourceType() == null ? null : resource.getResourceType().value(),
+                resource.getResourceType() == null
+                        ? null
+                        : resource.getResourceType().value(),
                 resource.getHttpMethod(),
                 resource.getUri(),
                 resource.getStatus() == null ? null : resource.getStatus().value());

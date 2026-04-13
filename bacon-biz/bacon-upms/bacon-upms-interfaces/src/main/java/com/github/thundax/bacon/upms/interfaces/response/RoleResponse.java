@@ -21,11 +21,6 @@ public record RoleResponse(
 
     public static RoleResponse from(RoleDTO dto) {
         return new RoleResponse(
-                dto.getId(),
-                dto.getCode(),
-                dto.getName(),
-                dto.getRoleType(),
-                dto.getDataScopeType(),
-                dto.getStatus());
+                dto.getId(), dto.getCode(), dto.getName(), dto.getRoleType(), dto.getDataScopeType(), dto.getStatus());
     }
 }

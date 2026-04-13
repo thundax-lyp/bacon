@@ -29,7 +29,8 @@ public class Tenant {
     /** 过期时间。 */
     private Instant expiredAt;
 
-    public static Tenant create(TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
+    public static Tenant create(
+            TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(name, "name must not be null");
         Objects.requireNonNull(tenantCode, "tenantCode must not be null");

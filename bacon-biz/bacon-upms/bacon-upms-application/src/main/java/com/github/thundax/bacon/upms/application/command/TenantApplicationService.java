@@ -3,11 +3,11 @@ package com.github.thundax.bacon.upms.application.command;
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.upms.application.codec.TenantCodeCodec;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
 import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
+import com.github.thundax.bacon.upms.application.codec.TenantCodeCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
@@ -53,11 +53,7 @@ public class TenantApplicationService {
             throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
         });
         return toDto(tenantRepository.saveTenant(Tenant.create(
-                normalizedTenantId,
-                normalize(name),
-                normalizedTenantCode,
-                TenantStatus.ACTIVE,
-                expiredAt)));
+                normalizedTenantId, normalize(name), normalizedTenantCode, TenantStatus.ACTIVE, expiredAt)));
     }
 
     @Transactional
@@ -74,11 +70,8 @@ public class TenantApplicationService {
                     throw new IllegalArgumentException(
                             "Tenant tenantCode already exists: " + normalizedTenantCode.value());
                 });
-        return toDto(tenantRepository.saveTenant(currentTenant.update(
-                normalize(name),
-                normalizedTenantCode,
-                currentTenant.getStatus(),
-                expiredAt)));
+        return toDto(tenantRepository.saveTenant(
+                currentTenant.update(normalize(name), normalizedTenantCode, currentTenant.getStatus(), expiredAt)));
     }
 
     @Transactional

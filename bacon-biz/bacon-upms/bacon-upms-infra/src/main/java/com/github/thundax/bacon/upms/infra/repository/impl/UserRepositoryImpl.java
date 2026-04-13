@@ -102,7 +102,8 @@ public class UserRepositoryImpl implements UserRepository {
             UserIdentityId phoneIdentityId,
             UserCredentialId passwordCredentialIdIfAbsent) {
         TenantId tenantId = requireTenantId();
-        boolean newUser = user.getId() == null || support.findUserById(user.getId()).isEmpty();
+        boolean newUser =
+                user.getId() == null || support.findUserById(user.getId()).isEmpty();
         User savedUser = updateUser(user);
         savedUser = support.saveUser(savedUser);
         UserIdentity accountIdentity = replaceAccountIdentity(tenantId, savedUser, account, accountIdentityId);
@@ -120,13 +121,10 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User updatePassword(
-            UserId userId,
-            String password,
-            boolean needChangePassword,
-            UserCredentialId passwordCredentialIdIfAbsent) {
+            UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent) {
         TenantId tenantId = requireTenantId();
-        User currentUser = findUserById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        User currentUser =
+                findUserById(userId).orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         User updatedUser = User.create(
                 currentUser.getId(),
                 currentUser.getName(),
@@ -171,11 +169,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     private User updateUser(User user) {
         return User.create(
-                user.getId(),
-                user.getName(),
-                user.getAvatarObjectId(),
-                user.getDepartmentId(),
-                user.getStatus());
+                user.getId(), user.getName(), user.getAvatarObjectId(), user.getDepartmentId(), user.getStatus());
     }
 
     private UserIdentity replaceAccountIdentity(
@@ -193,11 +187,7 @@ public class UserRepositoryImpl implements UserRepository {
         support.deleteUserIdentitiesByUserAndType(tenantId, user.getId(), UserIdentityType.PHONE);
         if (phone != null && !phone.isBlank()) {
             support.saveUserIdentity(UserIdentity.create(
-                    phoneIdentityId,
-                    user.getId(),
-                    UserIdentityType.PHONE,
-                    phone.trim(),
-                    ACTIVE_IDENTITY_STATUS));
+                    phoneIdentityId, user.getId(), UserIdentityType.PHONE, phone.trim(), ACTIVE_IDENTITY_STATUS));
         }
     }
 

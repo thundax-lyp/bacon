@@ -17,8 +17,12 @@ public final class DepartmentPersistenceAssembler {
                 BaconContextHolder.requireTenantId(),
                 department.getCode(),
                 department.getName(),
-                department.getParentId() == null ? null : department.getParentId().value(),
-                department.getLeaderUserId() == null ? null : department.getLeaderUserId().value(),
+                department.getParentId() == null
+                        ? null
+                        : department.getParentId().value(),
+                department.getLeaderUserId() == null
+                        ? null
+                        : department.getLeaderUserId().value(),
                 department.getSort(),
                 department.getStatus() == null ? null : department.getStatus().value());
     }

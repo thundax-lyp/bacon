@@ -9,7 +9,8 @@ public interface ResourceRepository {
 
     Optional<Resource> findById(ResourceId resourceId);
 
-    List<Resource> pageResources(String code, String name, String resourceType, String status, int pageNo, int pageSize);
+    List<Resource> pageResources(
+            String code, String name, String resourceType, String status, int pageNo, int pageSize);
 
     long countResources(String code, String name, String resourceType, String status);
 

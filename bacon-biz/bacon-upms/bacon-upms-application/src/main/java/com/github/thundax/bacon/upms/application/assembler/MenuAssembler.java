@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.application.assembler;
 
-import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.api.dto.MenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
+import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import java.util.List;
 
@@ -22,7 +22,9 @@ public final class MenuAssembler {
                 menu.getSort(),
                 menu.getChildren() == null
                         ? List.of()
-                        : menu.getChildren().stream().map(MenuAssembler::toUserMenuTreeDto).toList());
+                        : menu.getChildren().stream()
+                                .map(MenuAssembler::toUserMenuTreeDto)
+                                .toList());
     }
 
     public static MenuTreeDTO toTreeDto(Menu menu) {

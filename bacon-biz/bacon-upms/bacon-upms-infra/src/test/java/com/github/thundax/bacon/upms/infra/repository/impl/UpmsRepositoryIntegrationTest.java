@@ -72,8 +72,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.sql.DataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.annotation.MapperScan;
@@ -300,13 +300,7 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
         Department rootDepartment = departmentRepository.save(Department.create(
-                HEADQUARTERS_DEPARTMENT_ID,
-                "ROOT",
-                "Headquarters",
-                null,
-                null,
-                1,
-                DepartmentStatus.ENABLED));
+                HEADQUARTERS_DEPARTMENT_ID, "ROOT", "Headquarters", null, null, 1, DepartmentStatus.ENABLED));
         Department childDepartment = departmentRepository.save(Department.create(
                 OPERATIONS_DEPARTMENT_ID,
                 "OPS",
@@ -358,15 +352,13 @@ class UpmsRepositoryIntegrationTest {
 
         roleRepository.assignMenus(role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
         roleRepository.assignResources(role.getId(), Set.of(resource.getCode()));
-        roleRepository.assignDataScope(role.getId(),
-                RoleDataScopeType.CUSTOM,
-                Set.of(rootDepartment.getId(), childDepartment.getId()));
+        roleRepository.assignDataScope(
+                role.getId(), RoleDataScopeType.CUSTOM, Set.of(rootDepartment.getId(), childDepartment.getId()));
         userRepository.assignRoles(user.getId(), List.of(role.getId()));
 
         assertEquals(1, permissionRepository.listMenus().size());
 
-        User persistedUser =
-                userRepository.findUserByAccount("alice").orElseThrow();
+        User persistedUser = userRepository.findUserByAccount("alice").orElseThrow();
         assertNotNull(persistedUser.getId());
         assertTrue(persistedUser.getId().value() > 0);
         assertEquals(StoredObjectId.of(901L), persistedUser.getAvatarObjectId());
@@ -405,13 +397,7 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
         Department department = departmentRepository.save(Department.create(
-                OPERATIONS_DEPARTMENT_ID,
-                "OPS",
-                "Operations",
-                null,
-                null,
-                1,
-                DepartmentStatus.ENABLED));
+                OPERATIONS_DEPARTMENT_ID, "OPS", "Operations", null, null, 1, DepartmentStatus.ENABLED));
         Role role = roleRepository.save(Role.create(
                 RoleId.of(2102L),
                 "OPS_ADMIN",
@@ -420,12 +406,7 @@ class UpmsRepositoryIntegrationTest {
                 RoleDataScopeType.SELF,
                 RoleStatus.ENABLED));
         User createdUser = userRepository.save(
-                User.create(
-                        UserId.of(2202L),
-                        "Bob",
-                        StoredObjectId.of(1001L),
-                        department.getId(),
-                        UserStatus.ENABLED),
+                User.create(UserId.of(2202L), "Bob", StoredObjectId.of(1001L), department.getId(), UserStatus.ENABLED),
                 "bob",
                 "13800000002",
                 UserIdentityId.of(3101L),
@@ -435,11 +416,7 @@ class UpmsRepositoryIntegrationTest {
         userRepository.assignRoles(createdUser.getId(), List.of(role.getId()));
         User updatedUser = userRepository.save(
                 User.create(
-                        createdUser.getId(),
-                        "Bob",
-                        StoredObjectId.of(1002L),
-                        department.getId(),
-                        UserStatus.ENABLED),
+                        createdUser.getId(), "Bob", StoredObjectId.of(1002L), department.getId(), UserStatus.ENABLED),
                 "bob",
                 "13900000003",
                 UserIdentityId.of(3201L),
@@ -458,20 +435,15 @@ class UpmsRepositoryIntegrationTest {
                 .getCredentialValue());
         assertEquals(
                 StoredObjectId.of(1002L),
-                userRepository
-                        .findUserById(updatedUser.getId())
-                        .orElseThrow()
-                        .getAvatarObjectId());
+                userRepository.findUserById(updatedUser.getId()).orElseThrow().getAvatarObjectId());
         assertTrue(departmentRepository.existsUserInDepartment(department.getId()));
 
         userRepository.deleteUser(updatedUser.getId());
 
         assertFalse(userRepository.findUserById(updatedUser.getId()).isPresent());
-        assertFalse(userRepository
-                .findUserIdentity(UserIdentityType.ACCOUNT, "bob")
-                .isPresent());
-        assertTrue(
-                roleRepository.findRolesByUserId(updatedUser.getId()).isEmpty());
+        assertFalse(
+                userRepository.findUserIdentity(UserIdentityType.ACCOUNT, "bob").isPresent());
+        assertTrue(roleRepository.findRolesByUserId(updatedUser.getId()).isEmpty());
         assertFalse(departmentRepository.existsUserInDepartment(department.getId()));
         assertTrue(isUserDeleted(String.valueOf(updatedUser.getId().value())));
     }
@@ -479,13 +451,7 @@ class UpmsRepositoryIntegrationTest {
     @Test
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
         Department department = departmentRepository.save(Department.create(
-                OPERATIONS_DEPARTMENT_ID,
-                "OPS",
-                "Operations",
-                null,
-                null,
-                1,
-                DepartmentStatus.ENABLED));
+                OPERATIONS_DEPARTMENT_ID, "OPS", "Operations", null, null, 1, DepartmentStatus.ENABLED));
         User createdUser = userRepository.save(
                 User.create(UserId.of(2203L), "Carol", null, department.getId(), UserStatus.ENABLED),
                 "carol",
@@ -515,22 +481,10 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
-        Department root = departmentRepository.save(Department.create(
-                HEADQUARTERS_DEPARTMENT_ID,
-                "ROOT",
-                "Root",
-                null,
-                null,
-                1,
-                DepartmentStatus.ENABLED));
+        Department root = departmentRepository.save(
+                Department.create(HEADQUARTERS_DEPARTMENT_ID, "ROOT", "Root", null, null, 1, DepartmentStatus.ENABLED));
         Department child = departmentRepository.save(Department.create(
-                CHILD_DEPARTMENT_ID,
-                "CHILD",
-                "Child",
-                root.getId(),
-                null,
-                2,
-                DepartmentStatus.ENABLED));
+                CHILD_DEPARTMENT_ID, "CHILD", "Child", root.getId(), null, 2, DepartmentStatus.ENABLED));
         Menu oldMenu = menuRepository.save(Menu.create(
                 MenuId.of(2003L), "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
         Menu newMenu = menuRepository.save(Menu.create(
@@ -573,11 +527,9 @@ class UpmsRepositoryIntegrationTest {
         userRepository.assignRoles(user.getId(), List.of(role.getId()));
 
         assertEquals(
-                Set.of("upms:old:view", "upms:old:edit"),
-                permissionRepository.getUserPermissionCodes(user.getId()));
+                Set.of("upms:old:view", "upms:old:edit"), permissionRepository.getUserPermissionCodes(user.getId()));
         assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(user.getId()));
-        assertEquals(
-                1, permissionRepository.getUserMenuTree(user.getId()).size());
+        assertEquals(1, permissionRepository.getUserMenuTree(user.getId()).size());
 
         roleRepository.assignMenus(role.getId(), Set.of(newMenu.getId()));
         roleRepository.assignResources(role.getId(), Set.of(newResource.getCode()));
@@ -588,8 +540,7 @@ class UpmsRepositoryIntegrationTest {
         assertEquals("ALL", roleRepository.getAssignedDataScopeType(role.getId()));
         assertEquals(Set.of(child.getId()), roleRepository.getAssignedDataScopeDepartments(role.getId()));
         assertEquals(
-                Set.of("upms:new:view", "upms:new:edit"),
-                permissionRepository.getUserPermissionCodes(user.getId()));
+                Set.of("upms:new:view", "upms:new:edit"), permissionRepository.getUserPermissionCodes(user.getId()));
         assertEquals(Set.of("ALL"), permissionRepository.getUserScopeTypes(user.getId()));
         assertTrue(departmentRepository.existsChildDepartment(root.getId()));
         assertEquals(
@@ -603,9 +554,7 @@ class UpmsRepositoryIntegrationTest {
 
         assertTrue(roleRepository.getAssignedMenus(role.getId()).isEmpty());
         assertTrue(roleRepository.getAssignedResources(role.getId()).isEmpty());
-        assertTrue(permissionRepository
-                .getUserPermissionCodes(user.getId())
-                .isEmpty());
+        assertTrue(permissionRepository.getUserPermissionCodes(user.getId()).isEmpty());
         assertNotEquals(oldMenu.getId(), newMenu.getId());
         assertNotEquals(oldResource.getId(), newResource.getId());
     }
@@ -756,10 +705,7 @@ class UpmsRepositoryIntegrationTest {
                 Ids ids,
                 IdGenerator idGenerator) {
             return new UserRepositoryImpl(
-                    userPersistenceSupport,
-                    roleRepository,
-                    passwordEncoder,
-                    upmsPermissionCacheSupport);
+                    userPersistenceSupport, roleRepository, passwordEncoder, upmsPermissionCacheSupport);
         }
 
         @Bean
@@ -787,8 +733,7 @@ class UpmsRepositoryIntegrationTest {
                 RoleRepositoryImpl roleRepository,
                 UpmsPermissionCacheSupport upmsPermissionCacheSupport,
                 IdGenerator idGenerator) {
-            return new MenuRepositoryImpl(
-                    menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport);
+            return new MenuRepositoryImpl(menuPersistenceSupport, roleRepository, upmsPermissionCacheSupport);
         }
     }
 

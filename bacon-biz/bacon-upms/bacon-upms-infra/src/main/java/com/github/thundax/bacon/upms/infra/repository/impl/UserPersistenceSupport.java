@@ -153,9 +153,8 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     void deleteUser(UserId userId) {
         requireTenantId();
-        UserDO userDO = userMapper.selectOne(Wrappers.<UserDO>lambdaQuery()
-                .eq(UserDO::getId, userId.value())
-                .eq(UserDO::getDeleted, false));
+        UserDO userDO = userMapper.selectOne(
+                Wrappers.<UserDO>lambdaQuery().eq(UserDO::getId, userId.value()).eq(UserDO::getDeleted, false));
         if (userDO == null) {
             return;
         }

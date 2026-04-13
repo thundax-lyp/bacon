@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 class StorageControllerContractTest {
 
@@ -36,8 +37,11 @@ class StorageControllerContractTest {
         storedObjectQueryApplicationService = Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageController controller =
                 new StorageController(storedObjectApplicationService, storedObjectQueryApplicationService);
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
+                .setValidator(validator)
                 .build();
     }
 
@@ -115,6 +119,26 @@ class StorageControllerContractTest {
     void shouldRejectIllegalEnumValueForAdminFrontend() throws Exception {
         mockMvc.perform(get("/api/storage/objects")
                         .param("storageType", "INVALID")
+                        .param("pageNo", "1")
+                        .param("pageSize", "20"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
+
+    @Test
+    void shouldRejectIllegalObjectStatusForAdminFrontend() throws Exception {
+        mockMvc.perform(get("/api/storage/objects")
+                        .param("objectStatus", "INVALID")
+                        .param("pageNo", "1")
+                        .param("pageSize", "20"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
+    }
+
+    @Test
+    void shouldRejectIllegalReferenceStatusForAdminFrontend() throws Exception {
+        mockMvc.perform(get("/api/storage/objects")
+                        .param("referenceStatus", "INVALID")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
                 .andExpect(status().isBadRequest())

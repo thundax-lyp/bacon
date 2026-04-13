@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
@@ -23,7 +22,7 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
 
     @Override
     public boolean createProcessing(OrderIdempotencyRecord record) {
-        String key = businessKey(valueOf(record.getTenantId()), valueOf(record.getOrderNo()), record.getEventType());
+        String key = businessKey(valueOf(record.getOrderNo()), record.getEventType());
         OrderIdempotencyRecord created = copy(record);
         return storage.putIfAbsent(key, created) == null;
     }
@@ -36,10 +35,7 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
             Instant claimedAt,
             Instant updatedAt) {
         return storage.computeIfPresent(
-                        businessKey(
-                                Long.valueOf(key.tenantId().value()),
-                                key.orderNo().value(),
-                                key.eventType()),
+                        businessKey(key.orderNo().value(), key.eventType()),
                         (mapKey, record) -> {
                             if (record.getStatus() != OrderIdempotencyStatus.PROCESSING) {
                                 return record;
@@ -59,8 +55,7 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
 
     @Override
     public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
-        return Optional.ofNullable(storage.get(businessKey(
-                        Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType())))
+        return Optional.ofNullable(storage.get(businessKey(key.orderNo().value(), key.eventType())))
                 .map(this::copy);
     }
 
@@ -87,10 +82,7 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
             Instant claimedAt,
             Instant updatedAt) {
         return storage.computeIfPresent(
-                        businessKey(
-                                Long.valueOf(key.tenantId().value()),
-                                key.orderNo().value(),
-                                key.eventType()),
+                        businessKey(key.orderNo().value(), key.eventType()),
                         (mapKey, record) -> {
                             if (record.getStatus() != OrderIdempotencyStatus.FAILED) {
                                 return record;
@@ -127,10 +119,7 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
     private boolean updateStatus(
             OrderIdempotencyRecordKey key, OrderIdempotencyStatus status, String lastError, Instant updatedAt) {
         return storage.computeIfPresent(
-                        businessKey(
-                                Long.valueOf(key.tenantId().value()),
-                                key.orderNo().value(),
-                                key.eventType()),
+                        businessKey(key.orderNo().value(), key.eventType()),
                         (mapKey, record) -> {
                             record.setStatus(status);
                             record.setLastError(lastError);
@@ -140,13 +129,13 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
                 != null;
     }
 
-    private String businessKey(Long tenantId, String orderNo, String eventType) {
-        return tenantId + ":" + orderNo + ":" + eventType;
+    private String businessKey(String orderNo, String eventType) {
+        return orderNo + ":" + eventType;
     }
 
     private OrderIdempotencyRecord copy(OrderIdempotencyRecord source) {
         return OrderIdempotencyRecord.reconstruct(
-                OrderIdempotencyRecordKey.of(source.getTenantId(), source.getOrderNo(), source.getEventType()),
+                OrderIdempotencyRecordKey.of(source.getOrderNo(), source.getEventType()),
                 source.getStatus(),
                 source.getAttemptCount(),
                 source.getLastError(),
@@ -155,18 +144,6 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
                 source.getClaimedAt(),
                 source.getCreatedAt(),
                 source.getUpdatedAt());
-    }
-
-    private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
-    }
-
-    private OrderNo toOrderNo(String orderNo) {
-        return orderNo == null ? null : OrderNo.of(orderNo);
-    }
-
-    private Long valueOf(TenantId tenantId) {
-        return tenantId == null ? null : tenantId.value();
     }
 
     private String valueOf(OrderNo orderNo) {

@@ -16,10 +16,9 @@ class InMemoryOrderOutboxSupportTest {
     void saveOutboxEventShouldGenerateTechnicalIdAndBusinessEventCode() {
         InMemoryOrderOutboxSupport support = new InMemoryOrderOutboxSupport();
         OrderOutboxEvent event = OrderOutboxEvent.create(
-                1001L,
                 "ORD-1",
                 OrderOutboxEventType.RESERVE_STOCK,
-                "1001:ORD-1:RESERVE",
+                "ORD-1:RESERVE",
                 "{\"channelCode\":\"MOCK\"}",
                 null,
                 null,

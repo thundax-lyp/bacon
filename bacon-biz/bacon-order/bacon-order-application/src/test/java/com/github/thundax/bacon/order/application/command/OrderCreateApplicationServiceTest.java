@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
-import com.github.thundax.bacon.common.id.domain.TenantId;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
@@ -41,9 +43,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class OrderCreateApplicationServiceTest {
+
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
+    }
 
     @Test
     void createShouldGenerateOrderNoInsideModule() {
@@ -55,15 +64,14 @@ class OrderCreateApplicationServiceTest {
                 new SuccessPaymentCommandFacade());
         OrderQueryApplicationService queryService = new OrderQueryApplicationService(repository);
 
-        OrderSummaryDTO result = service.create(new CreateOrderCommand(
-                1001L,
+        OrderSummaryDTO result = runWithContext(1001L, 2001L, () -> service.create(new CreateOrderCommand(
                 2001L,
                 "CNY",
                 "MOCK",
                 "remark",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(
-                        101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10)))));
+                        101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
 
         assertEquals("ORD-10001", result.getOrderNo());
         assertEquals(1001L, result.getTenantId());
@@ -71,10 +79,13 @@ class OrderCreateApplicationServiceTest {
         assertEquals("RESERVING_STOCK", result.getOrderStatus());
         assertEquals("UNPAID", result.getPayStatus());
         assertEquals("RESERVING", result.getInventoryStatus());
-        assertEquals(1, queryService.getByOrderNo(1001L, "ORD-10001").getItems().size());
+        assertEquals(1, runWithContext(1001L, 2001L, () -> queryService.getByOrderNo("ORD-10001")).getItems().size());
         assertEquals(
                 "https://cdn.example.com/101.png",
-                queryService.getByOrderNo(1001L, "ORD-10001").getItems().get(0).getImageUrl());
+                runWithContext(1001L, 2001L, () -> queryService.getByOrderNo("ORD-10001"))
+                        .getItems()
+                        .get(0)
+                        .getImageUrl());
     }
 
     @Test
@@ -87,49 +98,50 @@ class OrderCreateApplicationServiceTest {
                 repository,
                 inventoryFacade,
                 new OrderIdempotencyExecutor(new TestOrderIdempotencyRepository()),
-                new OrderDerivedDataPersistenceSupport(repository));
+                new OrderDerivedDataPersistenceSupport(repository, new TestIdGenerator()));
         OrderQueryApplicationService queryService = new OrderQueryApplicationService(repository);
-        createService.create(new CreateOrderCommand(
-                1001L,
+        runWithContext(1001L, 2001L, () -> createService.create(new CreateOrderCommand(
                 2001L,
                 "CNY",
                 "MOCK",
                 "r1",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(
-                        101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10)))));
-        OrderSummaryDTO paid = createService.create(new CreateOrderCommand(
-                1001L,
+                        101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10))))));
+        OrderSummaryDTO paid = runWithContext(1001L, 2001L, () -> createService.create(new CreateOrderCommand(
                 2001L,
                 "CNY",
                 "MOCK",
                 "r2",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(
-                        102L, "item-2", "https://cdn.example.com/102.png", 1, BigDecimal.valueOf(20)))));
-        createService.create(new CreateOrderCommand(
-                1002L,
+                        102L, "item-2", "https://cdn.example.com/102.png", 1, BigDecimal.valueOf(20))))));
+        runWithContext(1002L, 2002L, () -> createService.create(new CreateOrderCommand(
                 2002L,
                 "CNY",
                 "MOCK",
                 "r3",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(
-                        103L, "item-3", "https://cdn.example.com/103.png", 1, BigDecimal.valueOf(30)))));
-        Order paidOrder = repository.findByOrderNo(1001L, paid.getOrderNo()).orElseThrow();
-        paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseCode.of("1"));
-        paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
-        repository.save(paidOrder);
-        paymentResultService.markPaid(
-                1001L,
-                paid.getOrderNo(),
-                "PAY-1",
-                "MOCK",
-                BigDecimal.valueOf(20),
-                Instant.parse("2026-03-26T10:00:00Z"));
+                        103L, "item-3", "https://cdn.example.com/103.png", 1, BigDecimal.valueOf(30))))));
+        runWithContext(1001L, 2001L, () -> {
+            Order paidOrder = repository.findByOrderNo(paid.getOrderNo()).orElseThrow();
+            paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseCode.of("1"));
+            paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
+            repository.save(paidOrder);
+            paymentResultService.markPaid(
+                    paid.getOrderNo(),
+                    "PAY-1",
+                    "MOCK",
+                    BigDecimal.valueOf(20),
+                    Instant.parse("2026-03-26T10:00:00Z"));
+        });
 
-        OrderPageResultDTO page = queryService.pageOrders(
-                new OrderPageQueryDTO(1001L, 2001L, null, null, "UNPAID", null, null, null, 1, 10));
+        OrderPageResultDTO page = runWithContext(
+                1001L,
+                2001L,
+                () -> queryService.pageOrders(
+                        new OrderPageQueryDTO(1001L, 2001L, null, null, "UNPAID", null, null, null, 1, 10)));
 
         assertEquals(1, page.getTotal());
         assertEquals(1, page.getRecords().size());
@@ -148,19 +160,18 @@ class OrderCreateApplicationServiceTest {
                 inventoryFacade,
                 paymentFacade,
                 new OrderIdempotencyExecutor(new TestOrderIdempotencyRepository()),
-                new OrderDerivedDataPersistenceSupport(repository));
-        OrderSummaryDTO created = createService.create(new CreateOrderCommand(
-                1001L,
+                new OrderDerivedDataPersistenceSupport(repository, new TestIdGenerator()));
+        OrderSummaryDTO created = runWithContext(1001L, 2001L, () -> createService.create(new CreateOrderCommand(
                 2001L,
                 "CNY",
                 "MOCK",
                 "r1",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(
-                        101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10)))));
+                        101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10))))));
 
-        cancelService.cancel(1001L, created.getOrderNo(), "SYSTEM_CANCELLED");
-        Order found = repository.findByOrderNo(1001L, created.getOrderNo()).orElseThrow();
+        runWithContext(1001L, 2001L, () -> cancelService.cancel(created.getOrderNo(), "SYSTEM_CANCELLED"));
+        Order found = runWithContext(1001L, 2001L, () -> repository.findByOrderNo(created.getOrderNo()).orElseThrow());
 
         assertEquals("CANCELLED", found.getOrderStatus().value());
         assertEquals("SYSTEM_CANCELLED", found.getCancelReason());
@@ -175,15 +186,14 @@ class OrderCreateApplicationServiceTest {
                 () -> OrderNo.of("ORD-FAIL-1"),
                 new FailedInventoryCommandFacade(),
                 new SuccessPaymentCommandFacade());
-        OrderSummaryDTO summary = service.create(new CreateOrderCommand(
-                1001L,
+        OrderSummaryDTO summary = runWithContext(1001L, 2001L, () -> service.create(new CreateOrderCommand(
                 2001L,
                 "CNY",
                 "MOCK",
                 "remark",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(
-                        101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10)))));
+                        101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
         assertEquals("RESERVING_STOCK", summary.getOrderStatus());
     }
 
@@ -193,15 +203,14 @@ class OrderCreateApplicationServiceTest {
         TestOrderRepository repository = new TestOrderRepository();
         OrderCreateApplicationService service = newCreateService(
                 repository, () -> OrderNo.of("ORD-FAIL-2"), inventoryFacade, new FailedPaymentCommandFacade());
-        OrderSummaryDTO summary = service.create(new CreateOrderCommand(
-                1001L,
+        OrderSummaryDTO summary = runWithContext(1001L, 2001L, () -> service.create(new CreateOrderCommand(
                 2001L,
                 "CNY",
                 "MOCK",
                 "remark",
                 Instant.parse("2026-03-30T00:00:00Z"),
                 List.of(new CreateOrderItemCommand(
-                        101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10)))));
+                        101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
         assertEquals("RESERVING_STOCK", summary.getOrderStatus());
     }
 
@@ -210,13 +219,32 @@ class OrderCreateApplicationServiceTest {
             OrderNoGenerator generator,
             InventoryCommandFacade inventoryFacade,
             PaymentCommandFacade paymentFacade) {
-        OrderDerivedDataPersistenceSupport support = new OrderDerivedDataPersistenceSupport(repository);
+        IdGenerator idGenerator = new TestIdGenerator();
+        OrderDerivedDataPersistenceSupport support = new OrderDerivedDataPersistenceSupport(repository, idGenerator);
         return new OrderCreateApplicationService(
                 repository,
                 generator,
                 new OrderOutboxActionExecutor(
                         repository, new TestOrderOutboxRepository(), inventoryFacade, paymentFacade, support),
-                support);
+                support,
+                idGenerator);
+    }
+
+    private static void runWithContext(Long tenantId, Long userId, Runnable action) {
+        runWithContext(tenantId, userId, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    private static <T> T runWithContext(Long tenantId, Long userId, Supplier<T> action) {
+        BaconContext previous = BaconContextHolder.snapshot();
+        try {
+            BaconContextHolder.set(new BaconContext(tenantId, userId));
+            return action.get();
+        } finally {
+            BaconContextHolder.restore(previous);
+        }
     }
 
     private static final class TestOrderOutboxRepository implements OrderOutboxRepository {
@@ -233,10 +261,10 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public boolean createProcessing(OrderIdempotencyRecord record) {
-            String key = keyOf(valueOf(record.getTenantId()), valueOf(record.getOrderNo()), record.getEventType());
+            String key = keyOf(valueOf(record.getOrderNo()), record.getEventType());
             OrderIdempotencyRecord value = OrderIdempotencyRecord.reconstruct(
                     com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey.of(
-                            record.getTenantId(), record.getOrderNo(), record.getEventType()),
+                            record.getOrderNo(), record.getEventType()),
                     com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING,
                     1,
                     null,
@@ -251,8 +279,7 @@ class OrderCreateApplicationServiceTest {
         @Override
         public Optional<OrderIdempotencyRecord> findByBusinessKey(
                 com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key) {
-            return Optional.ofNullable(storage.get(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType())));
+            return Optional.ofNullable(storage.get(keyOf(key.orderNo().value(), key.eventType())));
         }
 
         @Override
@@ -261,7 +288,7 @@ class OrderCreateApplicationServiceTest {
                 Instant updatedAt) {
             AtomicLong updated = new AtomicLong(0);
             storage.computeIfPresent(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    keyOf(key.orderNo().value(), key.eventType()),
                     (mapKey, existing) -> {
                         if (existing.getStatus()
                                 != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus
@@ -288,7 +315,7 @@ class OrderCreateApplicationServiceTest {
                 Instant updatedAt) {
             AtomicLong updated = new AtomicLong(0);
             storage.computeIfPresent(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    keyOf(key.orderNo().value(), key.eventType()),
                     (mapKey, existing) -> {
                         if (existing.getStatus()
                                 != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus
@@ -317,7 +344,7 @@ class OrderCreateApplicationServiceTest {
                 Instant updatedAt) {
             AtomicLong updated = new AtomicLong(0);
             storage.computeIfPresent(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    keyOf(key.orderNo().value(), key.eventType()),
                     (mapKey, existing) -> {
                         if (existing.getStatus()
                                 != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.FAILED) {
@@ -346,7 +373,7 @@ class OrderCreateApplicationServiceTest {
                 Instant updatedAt) {
             AtomicLong updated = new AtomicLong(0);
             storage.computeIfPresent(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    keyOf(key.orderNo().value(), key.eventType()),
                     (mapKey, existing) -> {
                         if (existing.getStatus()
                                 != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus
@@ -367,16 +394,22 @@ class OrderCreateApplicationServiceTest {
             return updated.get() > 0;
         }
 
-        private String keyOf(Long tenantId, String orderNo, String eventType) {
-            return tenantId + ":" + orderNo + ":" + eventType;
-        }
-
-        private Long valueOf(TenantId tenantId) {
-            return tenantId == null ? null : Long.valueOf(tenantId.value());
+        private String keyOf(String orderNo, String eventType) {
+            return orderNo + ":" + eventType;
         }
 
         private String valueOf(OrderNo orderNo) {
             return orderNo == null ? null : orderNo.value();
+        }
+    }
+
+    private static final class TestIdGenerator implements IdGenerator {
+
+        private final AtomicLong sequence = new AtomicLong(1L);
+
+        @Override
+        public long nextId(String bizTag) {
+            return sequence.getAndIncrement();
         }
     }
 
@@ -393,9 +426,13 @@ class OrderCreateApplicationServiceTest {
     private static final class TestOrderRepository implements OrderRepository {
 
         private final Map<Long, Order> storage = new ConcurrentHashMap<>();
+        private final Map<Long, Long> orderTenantStorage = new ConcurrentHashMap<>();
         private final Map<Long, List<OrderItem>> itemStorage = new ConcurrentHashMap<>();
+        private final Map<Long, Long> itemTenantStorage = new ConcurrentHashMap<>();
         private final Map<Long, OrderPaymentSnapshot> paymentSnapshots = new ConcurrentHashMap<>();
+        private final Map<Long, Long> paymentSnapshotTenantStorage = new ConcurrentHashMap<>();
         private final Map<String, OrderInventorySnapshot> inventorySnapshots = new ConcurrentHashMap<>();
+        private final Map<String, Long> inventorySnapshotTenantStorage = new ConcurrentHashMap<>();
         private final Map<String, List<OrderAuditLog>> auditLogs = new ConcurrentHashMap<>();
         private final AtomicLong idGenerator = new AtomicLong(1000L);
 
@@ -405,44 +442,51 @@ class OrderCreateApplicationServiceTest {
                 order.setId(OrderId.of(idGenerator.getAndIncrement()));
             }
             storage.put(toOrderIdValue(order), order);
+            orderTenantStorage.put(toOrderIdValue(order), currentTenantId());
             return order;
         }
 
         @Override
         public Optional<Order> findById(Long id) {
+            if (!isTenantMatched(orderTenantStorage.get(id))) {
+                return Optional.empty();
+            }
             return Optional.ofNullable(storage.get(id));
         }
 
         @Override
-        public Optional<Order> findByOrderNo(Long tenantId, String orderNo) {
+        public Optional<Order> findByOrderNo(String orderNo) {
             return storage.values().stream()
-                    .filter(order -> tenantId.equals(toTenantIdValue(order.getTenantId())))
+                    .filter(order -> isTenantMatched(orderTenantStorage.get(toOrderIdValue(order))))
                     .filter(order -> orderNo.equals(toOrderNoValue(order.getOrderNo())))
                     .findFirst();
         }
 
         @Override
-        public void saveItems(Long tenantId, Long orderId, List<OrderItem> items) {
+        public void saveItems(Long orderId, List<OrderItem> items) {
             itemStorage.put(orderId, items == null ? List.of() : List.copyOf(items));
+            itemTenantStorage.put(orderId, currentTenantId());
         }
 
         @Override
-        public List<OrderItem> findItemsByOrderId(Long tenantId, Long orderId, String currencyCode) {
-            return itemStorage.getOrDefault(orderId, List.of()).stream()
-                    .filter(item -> tenantId.equals(toTenantIdValue(item.getTenantId())))
-                    .toList();
+        public List<OrderItem> findItemsByOrderId(Long orderId) {
+            if (!isTenantMatched(itemTenantStorage.get(orderId))) {
+                return List.of();
+            }
+            return itemStorage.getOrDefault(orderId, List.of());
         }
 
         @Override
         public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
-            paymentSnapshots.put(toOrderIdValue(snapshot.getOrderId()), snapshot);
+            Long orderId = toOrderIdValue(snapshot.getOrderId());
+            paymentSnapshots.put(orderId, snapshot);
+            paymentSnapshotTenantStorage.put(orderId, currentTenantId());
         }
 
         @Override
-        public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(
-                Long tenantId, Long orderId, String currencyCode) {
+        public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId) {
             OrderPaymentSnapshot snapshot = paymentSnapshots.get(orderId);
-            if (snapshot == null || !tenantId.equals(toTenantIdValue(snapshot.getTenantId()))) {
+            if (snapshot == null || !isTenantMatched(paymentSnapshotTenantStorage.get(orderId))) {
                 return Optional.empty();
             }
             return Optional.of(snapshot);
@@ -450,13 +494,15 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
-            inventorySnapshots.put(toOrderNoValue(snapshot.getOrderNo()), snapshot);
+            String orderNo = toOrderNoValue(snapshot.getOrderNo());
+            inventorySnapshots.put(orderNo, snapshot);
+            inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
         }
 
         @Override
-        public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(Long tenantId, String orderNo) {
+        public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo) {
             OrderInventorySnapshot snapshot = inventorySnapshots.get(orderNo);
-            if (snapshot == null || !tenantId.equals(toTenantIdValue(snapshot.getTenantId()))) {
+            if (snapshot == null || !isTenantMatched(inventorySnapshotTenantStorage.get(orderNo))) {
                 return Optional.empty();
             }
             return Optional.of(snapshot);
@@ -464,21 +510,19 @@ class OrderCreateApplicationServiceTest {
 
         @Override
         public void saveAuditLog(OrderAuditLog auditLog) {
-            String key = toTenantIdValue(auditLog.getTenantId()) + ":"
-                    + toOrderNoValue(auditLog.getOrderNo());
+            String key = currentTenantId() + ":" + toOrderNoValue(auditLog.getOrderNo());
             auditLogs
                     .computeIfAbsent(key, unused -> new java.util.ArrayList<>())
                     .add(auditLog);
         }
 
         @Override
-        public List<OrderAuditLog> findAuditLogs(Long tenantId, String orderNo) {
-            return List.copyOf(auditLogs.getOrDefault(tenantId + ":" + orderNo, List.of()));
+        public List<OrderAuditLog> findAuditLogs(String orderNo) {
+            return List.copyOf(auditLogs.getOrDefault(currentTenantId() + ":" + orderNo, List.of()));
         }
 
         @Override
         public long countOrders(
-                Long tenantId,
                 Long userId,
                 String orderNo,
                 String orderStatus,
@@ -486,21 +530,12 @@ class OrderCreateApplicationServiceTest {
                 String inventoryStatus,
                 Instant createdAtFrom,
                 Instant createdAtTo) {
-            return filterOrders(
-                            tenantId,
-                            userId,
-                            orderNo,
-                            orderStatus,
-                            payStatus,
-                            inventoryStatus,
-                            createdAtFrom,
-                            createdAtTo)
+            return filterOrders(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
                     .size();
         }
 
         @Override
         public List<Order> pageOrders(
-                Long tenantId,
                 Long userId,
                 String orderNo,
                 String orderStatus,
@@ -510,15 +545,7 @@ class OrderCreateApplicationServiceTest {
                 Instant createdAtTo,
                 int offset,
                 int limit) {
-            return filterOrders(
-                            tenantId,
-                            userId,
-                            orderNo,
-                            orderStatus,
-                            payStatus,
-                            inventoryStatus,
-                            createdAtFrom,
-                            createdAtTo)
+            return filterOrders(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
                     .stream()
                     .skip(offset)
                     .limit(limit)
@@ -526,7 +553,6 @@ class OrderCreateApplicationServiceTest {
         }
 
         private List<Order> filterOrders(
-                Long tenantId,
                 Long userId,
                 String orderNo,
                 String orderStatus,
@@ -535,7 +561,7 @@ class OrderCreateApplicationServiceTest {
                 Instant createdAtFrom,
                 Instant createdAtTo) {
             List<Order> filtered = storage.values().stream()
-                    .filter(order -> tenantId == null || tenantId.equals(toTenantIdValue(order.getTenantId())))
+                    .filter(order -> isTenantMatched(orderTenantStorage.get(toOrderIdValue(order))))
                     .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
                     .filter(order -> orderNo == null || toOrderNoValue(order.getOrderNo()).contains(orderNo))
                     .filter(order -> orderStatus == null || orderStatus.equals(toOrderStatusValue(order.getOrderStatus())))
@@ -568,10 +594,6 @@ class OrderCreateApplicationServiceTest {
                     : Long.valueOf(order.getUserId().value());
         }
 
-        private Long toTenantIdValue(TenantId tenantId) {
-            return tenantId == null ? null : Long.valueOf(tenantId.value());
-        }
-
         private Long toOrderIdValue(OrderId orderId) {
             return orderId == null ? null : orderId.value();
         }
@@ -593,12 +615,12 @@ class OrderCreateApplicationServiceTest {
             return inventoryStatus == null ? null : inventoryStatus.value();
         }
 
-        private Long valueOf(TenantId tenantId) {
-            return tenantId == null ? null : Long.valueOf(tenantId.value());
+        private Long currentTenantId() {
+            return BaconContextHolder.requireTenantId();
         }
 
-        private String valueOf(OrderNo orderNo) {
-            return orderNo == null ? null : orderNo.value();
+        private boolean isTenantMatched(Long tenantId) {
+            return tenantId != null && tenantId.equals(currentTenantId());
         }
     }
 

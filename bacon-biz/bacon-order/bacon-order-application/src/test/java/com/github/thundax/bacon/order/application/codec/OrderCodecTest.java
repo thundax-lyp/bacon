@@ -18,9 +18,8 @@ class OrderCodecTest {
 
     @Test
     void shouldConvertOrderIdempotencyRecordKey() {
-        OrderIdempotencyRecordKey key = OrderIdempotencyRecordKeyCodec.toDomain(1L, "ORD-1", "MARK_PAID");
+        OrderIdempotencyRecordKey key = OrderIdempotencyRecordKeyCodec.toDomain("ORD-1", "MARK_PAID");
 
-        assertEquals(1L, OrderIdempotencyRecordKeyCodec.toTenantIdValue(key));
         assertEquals("ORD-1", OrderIdempotencyRecordKeyCodec.toOrderNoValue(key));
         assertEquals("MARK_PAID", OrderIdempotencyRecordKeyCodec.toEventTypeValue(key));
     }
@@ -35,8 +34,7 @@ class OrderCodecTest {
         assertNull(OutboxIdCodec.toValue(null));
         assertNull(ReservationNoCodec.toDomain(null));
         assertNull(ReservationNoCodec.toValue(null));
-        assertNull(OrderIdempotencyRecordKeyCodec.toDomain(null, null, null));
-        assertNull(OrderIdempotencyRecordKeyCodec.toTenantIdValue(null));
+        assertNull(OrderIdempotencyRecordKeyCodec.toDomain(null, null));
         assertNull(OrderIdempotencyRecordKeyCodec.toOrderNoValue(null));
         assertNull(OrderIdempotencyRecordKeyCodec.toEventTypeValue(null));
     }

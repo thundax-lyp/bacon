@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.AsyncTaskWrapper;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
@@ -28,8 +27,8 @@ class OrderIdempotencyExecutorTest {
         OrderIdempotencyExecutor executor = new OrderIdempotencyExecutor(new InMemoryOrderIdempotencyRepositoryImpl());
         AtomicInteger executedTimes = new AtomicInteger(0);
 
-        executor.execute(OrderIdempotencyExecutor.EVENT_CANCEL, 1001L, "ORD-1", null, executedTimes::incrementAndGet);
-        executor.execute(OrderIdempotencyExecutor.EVENT_CANCEL, 1001L, "ORD-1", null, executedTimes::incrementAndGet);
+        executor.execute(OrderIdempotencyExecutor.EVENT_CANCEL, "ORD-1", null, executedTimes::incrementAndGet);
+        executor.execute(OrderIdempotencyExecutor.EVENT_CANCEL, "ORD-1", null, executedTimes::incrementAndGet);
 
         assertEquals(1, executedTimes.get());
     }
@@ -41,13 +40,12 @@ class OrderIdempotencyExecutorTest {
 
         assertThrows(
                 IllegalStateException.class,
-                () -> executor.execute(OrderIdempotencyExecutor.EVENT_MARK_PAID, 1001L, "ORD-2", "PAY-2", () -> {
+                () -> executor.execute(OrderIdempotencyExecutor.EVENT_MARK_PAID, "ORD-2", "PAY-2", () -> {
                     if (executedTimes.incrementAndGet() == 1) {
                         throw new IllegalStateException("mock failure");
                     }
                 }));
-        executor.execute(
-                OrderIdempotencyExecutor.EVENT_MARK_PAID, 1001L, "ORD-2", "PAY-2", executedTimes::incrementAndGet);
+        executor.execute(OrderIdempotencyExecutor.EVENT_MARK_PAID, "ORD-2", "PAY-2", executedTimes::incrementAndGet);
 
         assertEquals(2, executedTimes.get());
     }
@@ -59,8 +57,7 @@ class OrderIdempotencyExecutorTest {
         AtomicInteger executedTimes = new AtomicInteger(0);
 
         OrderIdempotencyRecord stale = OrderIdempotencyRecord.reconstruct(
-                OrderIdempotencyRecordKey.of(
-                        TenantId.of(1001L), OrderNo.of("ORD-3"), OrderIdempotencyExecutor.EVENT_MARK_PAID),
+                OrderIdempotencyRecordKey.of(OrderNo.of("ORD-3"), OrderIdempotencyExecutor.EVENT_MARK_PAID),
                 OrderIdempotencyStatus.PROCESSING,
                 1,
                 null,
@@ -70,8 +67,7 @@ class OrderIdempotencyExecutorTest {
                 Instant.now().minusSeconds(120),
                 Instant.now().minusSeconds(60));
         repository.forcePut(stale);
-        executor.execute(
-                OrderIdempotencyExecutor.EVENT_MARK_PAID, 1001L, "ORD-3", "PAY-3", executedTimes::incrementAndGet);
+        executor.execute(OrderIdempotencyExecutor.EVENT_MARK_PAID, "ORD-3", "PAY-3", executedTimes::incrementAndGet);
 
         assertEquals(1, executedTimes.get());
     }
@@ -93,7 +89,6 @@ class OrderIdempotencyExecutorTest {
                         start.await();
                         executor.execute(
                                 OrderIdempotencyExecutor.EVENT_MARK_PAID,
-                                1001L,
                                 "ORD-CONCURRENT-1",
                                 "PAY-CONCURRENT-1",
                                 executedTimes::incrementAndGet);
@@ -119,9 +114,9 @@ class OrderIdempotencyExecutorTest {
 
         @Override
         public boolean createProcessing(OrderIdempotencyRecord record) {
-            String key = keyOf(valueOf(record.getTenantId()), valueOf(record.getOrderNo()), record.getEventType());
+            String key = keyOf(valueOf(record.getOrderNo()), record.getEventType());
             OrderIdempotencyRecord value = OrderIdempotencyRecord.reconstruct(
-                    OrderIdempotencyRecordKey.of(record.getTenantId(), record.getOrderNo(), record.getEventType()),
+                    OrderIdempotencyRecordKey.of(record.getOrderNo(), record.getEventType()),
                     OrderIdempotencyStatus.PROCESSING,
                     1,
                     null,
@@ -135,15 +130,14 @@ class OrderIdempotencyExecutorTest {
 
         @Override
         public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
-            return Optional.ofNullable(storage.get(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType())));
+            return Optional.ofNullable(storage.get(keyOf(key.orderNo().value(), key.eventType())));
         }
 
         @Override
         public boolean markSuccess(OrderIdempotencyRecordKey key, Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
             storage.computeIfPresent(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    keyOf(key.orderNo().value(), key.eventType()),
                     (mapKey, existing) -> {
                         if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
                             return existing;
@@ -164,7 +158,7 @@ class OrderIdempotencyExecutorTest {
         public boolean markFailed(OrderIdempotencyRecordKey key, String lastError, Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
             storage.computeIfPresent(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    keyOf(key.orderNo().value(), key.eventType()),
                     (mapKey, existing) -> {
                         if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
                             return existing;
@@ -190,7 +184,7 @@ class OrderIdempotencyExecutorTest {
                 Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
             storage.computeIfPresent(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    keyOf(key.orderNo().value(), key.eventType()),
                     (mapKey, existing) -> {
                         if (existing.getStatus() != OrderIdempotencyStatus.FAILED) {
                             return existing;
@@ -217,7 +211,7 @@ class OrderIdempotencyExecutorTest {
                 Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
             storage.computeIfPresent(
-                    keyOf(Long.valueOf(key.tenantId().value()), key.orderNo().value(), key.eventType()),
+                    keyOf(key.orderNo().value(), key.eventType()),
                     (mapKey, existing) -> {
                         if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
                             return existing;
@@ -259,23 +253,15 @@ class OrderIdempotencyExecutorTest {
         }
 
         void forcePut(OrderIdempotencyRecord record) {
-            storage.put(keyOf(valueOf(record.getTenantId()), valueOf(record.getOrderNo()), record.getEventType()), record);
+            storage.put(keyOf(valueOf(record.getOrderNo()), record.getEventType()), record);
         }
 
-        private String keyOf(Long tenantId, String orderNo, String eventType) {
-            return tenantId + ":" + orderNo + ":" + eventType;
-        }
-
-        private TenantId toTenantId(Long tenantId) {
-            return tenantId == null ? null : TenantId.of(tenantId);
+        private String keyOf(String orderNo, String eventType) {
+            return orderNo + ":" + eventType;
         }
 
         private OrderNo toOrderNo(String orderNo) {
             return orderNo == null ? null : OrderNo.of(orderNo);
-        }
-
-        private Long valueOf(TenantId tenantId) {
-            return tenantId == null ? null : tenantId.value();
         }
 
         private String valueOf(OrderNo orderNo) {

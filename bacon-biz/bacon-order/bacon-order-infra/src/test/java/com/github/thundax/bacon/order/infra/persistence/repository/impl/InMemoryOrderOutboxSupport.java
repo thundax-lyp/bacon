@@ -7,7 +7,6 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.id.domain.TenantId;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -196,7 +195,6 @@ public class InMemoryOrderOutboxSupport {
         return OrderOutboxEvent.reconstruct(
                 source.getId(),
                 source.getEventCode(),
-                source.getTenantId(),
                 source.getOrderNo(),
                 source.getEventType(),
                 source.getBusinessKey(),
@@ -215,9 +213,9 @@ public class InMemoryOrderOutboxSupport {
 
     private OrderOutboxDeadLetter copy(OrderOutboxDeadLetter source) {
         return OrderOutboxDeadLetter.create(
+                source.getId(),
                 source.getOutboxId() == null ? null : source.getOutboxId().value(),
                 source.getEventCode() == null ? null : source.getEventCode().value(),
-                source.getTenantId() == null ? null : source.getTenantId().value(),
                 source.getOrderNo() == null ? null : source.getOrderNo().value(),
                 source.getEventType(),
                 source.getBusinessKey(),
@@ -232,10 +230,6 @@ public class InMemoryOrderOutboxSupport {
                 source.getLastReplayMessage(),
                 source.getCreatedAt(),
                 source.getUpdatedAt());
-    }
-
-    private TenantId toTenantId(Long tenantId) {
-        return tenantId == null ? null : TenantId.of(tenantId);
     }
 
     private OrderNo toOrderNo(String orderNo) {

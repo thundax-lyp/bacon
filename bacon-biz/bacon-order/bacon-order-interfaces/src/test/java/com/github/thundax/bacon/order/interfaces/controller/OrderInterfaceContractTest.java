@@ -7,10 +7,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
+import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
@@ -24,6 +27,7 @@ import jakarta.servlet.ServletException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -33,6 +37,11 @@ class OrderInterfaceContractTest {
     private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
     private static final String PROVIDER_TOKEN = "order-token";
 
+    @AfterEach
+    void tearDown() {
+        BaconContextHolder.clear();
+    }
+
     @Test
     void wrappedControllerShouldReturnUnifiedSuccessEnvelope() throws Exception {
         OrderController controller = new OrderController(
@@ -41,10 +50,11 @@ class OrderInterfaceContractTest {
                 new OrderCancelApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/api/orders")
-                        .param("tenantId", "1001")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
                 .andExpect(status().isOk())
@@ -60,10 +70,11 @@ class OrderInterfaceContractTest {
                 new OrderCancelApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(9999L, 2001L));
 
         mockMvc.perform(get("/api/orders")
-                        .param("tenantId", "9999")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
                 .andExpect(status().isBadRequest())
@@ -78,10 +89,11 @@ class OrderInterfaceContractTest {
                 new OrderTimeoutApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/providers/orders")
-                        .param("tenantId", "1001")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
@@ -98,12 +110,13 @@ class OrderInterfaceContractTest {
                 new OrderTimeoutApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(9999L, 2001L));
 
         ServletException exception = assertThrows(
                 ServletException.class,
                 () -> mockMvc.perform(get("/providers/orders")
-                        .param("tenantId", "9999")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
@@ -118,10 +131,11 @@ class OrderInterfaceContractTest {
                 new OrderTimeoutApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/providers/orders")
-                        .param("tenantId", "1001")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
                 .andExpect(status().isUnauthorized());
@@ -135,10 +149,11 @@ class OrderInterfaceContractTest {
                 new OrderTimeoutApplicationService(null, null, null, null, null));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         mockMvc.perform(get("/providers/orders")
-                        .param("tenantId", "1001")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, "wrong-token"))
@@ -161,13 +176,10 @@ class OrderInterfaceContractTest {
         }
 
         @Override
-        public OrderDetailDTO getById(Long tenantId, Long orderId) {
-            if (!Long.valueOf(1001L).equals(tenantId)) {
-                throw new IllegalArgumentException("Order not found: " + orderId);
-            }
+        public OrderDetailDTO getById(Long orderId) {
             return new OrderDetailDTO(
                     orderId,
-                    tenantId,
+                    1001L,
                     "ORD-1",
                     2001L,
                     "CREATED",

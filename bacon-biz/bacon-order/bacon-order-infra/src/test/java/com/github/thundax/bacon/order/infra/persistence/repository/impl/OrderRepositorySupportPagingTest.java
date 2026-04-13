@@ -4,8 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.infra.persistence.dataobject.OrderDO;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderAuditLogPersistenceAssembler;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderInventorySnapshotPersistenceAssembler;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderItemPersistenceAssembler;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderPaymentSnapshotPersistenceAssembler;
+import com.github.thundax.bacon.order.infra.persistence.assembler.OrderPersistenceAssembler;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderAuditLogMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderInventorySnapshotMapper;
 import com.github.thundax.bacon.order.infra.persistence.mapper.OrderItemMapper;
@@ -35,11 +42,23 @@ class OrderRepositorySupportPagingTest {
                 paymentMapper,
                 inventoryMapper,
                 createNoopMapper(OrderAuditLogMapper.class),
-                idGenerator);
+                idGenerator,
+                new OrderPersistenceAssembler(),
+                new OrderItemPersistenceAssembler(),
+                new OrderPaymentSnapshotPersistenceAssembler(),
+                new OrderInventorySnapshotPersistenceAssembler(),
+                new OrderAuditLogPersistenceAssembler());
 
-        long total = support.countOrders(1001L, null, null, null, null, null, null, null);
-        java.util.List<com.github.thundax.bacon.order.domain.model.entity.Order> result =
-                support.pageOrders(1001L, null, null, null, null, null, null, null, 1, 2);
+        BaconContext previous = BaconContextHolder.snapshot();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
+        long total;
+        java.util.List<com.github.thundax.bacon.order.domain.model.entity.Order> result;
+        try {
+            total = support.countOrders(null, null, null, null, null, null, null);
+            result = support.pageOrders(null, null, null, null, null, null, null, 1, 2);
+        } finally {
+            BaconContextHolder.restore(previous);
+        }
 
         assertEquals(3L, total);
         assertEquals(2, result.size());

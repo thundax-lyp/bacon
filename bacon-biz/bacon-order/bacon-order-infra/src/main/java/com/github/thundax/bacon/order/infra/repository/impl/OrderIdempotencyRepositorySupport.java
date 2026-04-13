@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
@@ -32,8 +31,7 @@ public class OrderIdempotencyRepositorySupport {
     }
 
     public boolean createProcessing(OrderIdempotencyRecord record) {
-        OrderIdempotencyRecordDO dataObject =
-                orderIdempotencyRecordPersistenceAssembler.toDataObject(record, requireTenantId());
+        OrderIdempotencyRecordDO dataObject = orderIdempotencyRecordPersistenceAssembler.toDataObject(record);
         Instant now = Instant.now();
         dataObject.setStatus(OrderIdempotencyStatus.PROCESSING.value());
         dataObject.setAttemptCount(dataObject.getAttemptCount() == null ? 1 : dataObject.getAttemptCount());
@@ -67,7 +65,9 @@ public class OrderIdempotencyRepositorySupport {
                         null,
                         Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
                                 .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
-                                .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                                .eq(
+                                        OrderIdempotencyRecordDO::getOrderNo,
+                                        key.orderNo() == null ? null : key.orderNo().value())
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
                                 .and(wrapper -> wrapper.isNull(OrderIdempotencyRecordDO::getLeaseUntil)
@@ -83,7 +83,7 @@ public class OrderIdempotencyRepositorySupport {
     public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
         return Optional.ofNullable(mapper.selectOne(Wrappers.<OrderIdempotencyRecordDO>lambdaQuery()
                         .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
-                        .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                        .eq(OrderIdempotencyRecordDO::getOrderNo, key.orderNo() == null ? null : key.orderNo().value())
                         .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())))
                 .map(orderIdempotencyRecordPersistenceAssembler::toDomain);
     }
@@ -94,7 +94,9 @@ public class OrderIdempotencyRepositorySupport {
                         null,
                         Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
                                 .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
-                                .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                                .eq(
+                                        OrderIdempotencyRecordDO::getOrderNo,
+                                        key.orderNo() == null ? null : key.orderNo().value())
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
                                 .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.SUCCESS.value())
@@ -112,7 +114,9 @@ public class OrderIdempotencyRepositorySupport {
                         null,
                         Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
                                 .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
-                                .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                                .eq(
+                                        OrderIdempotencyRecordDO::getOrderNo,
+                                        key.orderNo() == null ? null : key.orderNo().value())
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
                                 .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.FAILED.value())
@@ -139,7 +143,9 @@ public class OrderIdempotencyRepositorySupport {
                         null,
                         Wrappers.<OrderIdempotencyRecordDO>lambdaUpdate()
                                 .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
-                                .eq(OrderIdempotencyRecordDO::getOrderNo, toDatabaseOrderNo(key.orderNo()))
+                                .eq(
+                                        OrderIdempotencyRecordDO::getOrderNo,
+                                        key.orderNo() == null ? null : key.orderNo().value())
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.FAILED.value())
                                 .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
@@ -172,10 +178,6 @@ public class OrderIdempotencyRepositorySupport {
             return null;
         }
         return value.length() <= LAST_ERROR_MAX_LENGTH ? value : value.substring(0, LAST_ERROR_MAX_LENGTH);
-    }
-
-    private String toDatabaseOrderNo(OrderNo orderNo) {
-        return orderNo == null ? null : orderNo.value();
     }
 
     private Long requireTenantId() {

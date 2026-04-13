@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.mapper.UserIdMapper;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
@@ -25,21 +26,25 @@ import org.springframework.stereotype.Service;
 public class OrderCreateApplicationService {
 
     private static final OrderAuditActionType ACTION_CREATE = OrderAuditActionType.ORDER_CREATE;
+    private static final String ORDER_ITEM_ID_BIZ_TAG = "order_item_id";
 
     private final OrderRepository orderRepository;
     private final OrderNoGenerator orderNoGenerator;
     private final OrderOutboxActionExecutor orderOutboxActionExecutor;
     private final OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport;
+    private final IdGenerator idGenerator;
 
     public OrderCreateApplicationService(
             OrderRepository orderRepository,
             OrderNoGenerator orderNoGenerator,
             OrderOutboxActionExecutor orderOutboxActionExecutor,
-            OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport) {
+            OrderDerivedDataPersistenceSupport orderDerivedDataPersistenceSupport,
+            IdGenerator idGenerator) {
         this.orderRepository = orderRepository;
         this.orderNoGenerator = orderNoGenerator;
         this.orderOutboxActionExecutor = orderOutboxActionExecutor;
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
+        this.idGenerator = idGenerator;
     }
 
     public OrderSummaryDTO create(CreateOrderCommand command) {
@@ -68,6 +73,7 @@ public class OrderCreateApplicationService {
                 valueOf(savedOrder.getId()),
                 items.stream()
                         .map(item -> OrderItem.create(
+                                idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG),
                                 valueOf(savedOrder.getId()),
                                 item.skuId(),
                                 item.skuName(),

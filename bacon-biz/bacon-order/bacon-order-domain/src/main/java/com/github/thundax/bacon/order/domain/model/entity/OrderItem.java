@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderItem {
 
+    /** 订单项主键。 */
+    private Long id;
     /** 所属订单主键。 */
     private OrderId orderId;
     /** 商品 SKU 主键。 */
@@ -34,6 +36,7 @@ public class OrderItem {
     private Money lineAmount;
 
     public static OrderItem create(
+            Long id,
             Long orderId,
             Long skuId,
             String skuName,
@@ -43,6 +46,7 @@ public class OrderItem {
             String salePrice,
             String lineAmount) {
         return new OrderItem(
+                id,
                 orderId == null ? null : OrderId.of(orderId),
                 skuId == null ? null : SkuId.of(skuId),
                 skuName,
@@ -53,6 +57,7 @@ public class OrderItem {
     }
 
     public static OrderItem reconstruct(
+            Long id,
             OrderId orderId,
             SkuId skuId,
             String skuName,
@@ -60,6 +65,6 @@ public class OrderItem {
             Integer quantity,
             Money salePrice,
             Money lineAmount) {
-        return new OrderItem(orderId, skuId, skuName, imageUrl, quantity, salePrice, lineAmount);
+        return new OrderItem(id, orderId, skuId, skuName, imageUrl, quantity, salePrice, lineAmount);
     }
 }

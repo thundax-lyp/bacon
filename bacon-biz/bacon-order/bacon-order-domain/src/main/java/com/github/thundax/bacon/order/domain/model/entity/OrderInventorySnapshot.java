@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderInventorySnapshot {
 
+    /** 快照主键。 */
+    private Long id;
     /** 订单号。 */
     private OrderNo orderNo;
     /** 库存预占单号。 */
@@ -32,22 +34,26 @@ public class OrderInventorySnapshot {
     private Instant updatedAt;
 
     public static OrderInventorySnapshot create(
+            Long id,
             OrderNo orderNo,
             ReservationNo reservationNo,
             InventoryStatus inventoryStatus,
             WarehouseCode warehouseCode,
             String failureReason,
             Instant updatedAt) {
-        return new OrderInventorySnapshot(orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
+        return new OrderInventorySnapshot(
+                id, orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
     }
 
     public static OrderInventorySnapshot reconstruct(
+            Long id,
             OrderNo orderNo,
             ReservationNo reservationNo,
             InventoryStatus inventoryStatus,
             WarehouseCode warehouseCode,
             String failureReason,
             Instant updatedAt) {
-        return new OrderInventorySnapshot(orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
+        return new OrderInventorySnapshot(
+                id, orderNo, reservationNo, inventoryStatus, warehouseCode, failureReason, updatedAt);
     }
 }

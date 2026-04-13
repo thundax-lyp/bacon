@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
@@ -10,9 +11,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderIdempotencyRecordPersistenceAssembler {
 
-    public OrderIdempotencyRecordDO toDataObject(OrderIdempotencyRecord record, Long tenantId) {
+    public OrderIdempotencyRecordDO toDataObject(OrderIdempotencyRecord record) {
         return new OrderIdempotencyRecordDO(
-                tenantId,
+                BaconContextHolder.requireTenantId(),
                 record.getOrderNo() == null ? null : record.getOrderNo().value(),
                 record.getEventType(),
                 record.getStatus() == null ? null : record.getStatus().value(),

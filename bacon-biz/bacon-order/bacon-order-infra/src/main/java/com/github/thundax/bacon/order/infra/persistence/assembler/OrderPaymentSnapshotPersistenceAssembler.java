@@ -3,6 +3,7 @@ package com.github.thundax.bacon.order.infra.persistence.assembler;
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PaymentChannel;
@@ -15,10 +16,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderPaymentSnapshotPersistenceAssembler {
 
-    public OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot, Long tenantId) {
+    public OrderPaymentSnapshotDO toDataObject(OrderPaymentSnapshot snapshot) {
         return new OrderPaymentSnapshotDO(
                 snapshot.getId(),
-                tenantId,
+                BaconContextHolder.requireTenantId(),
                 snapshot.getOrderId() == null ? null : snapshot.getOrderId().value(),
                 snapshot.getPaymentNo() == null ? null : snapshot.getPaymentNo().value(),
                 snapshot.getChannelCode() == null ? null : snapshot.getChannelCode().value(),

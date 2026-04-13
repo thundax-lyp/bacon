@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
@@ -12,11 +13,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderOutboxEventPersistenceAssembler {
 
-    public OrderOutboxEventDO toDataObject(OrderOutboxEvent event, Long tenantId) {
+    public OrderOutboxEventDO toDataObject(OrderOutboxEvent event) {
         return new OrderOutboxEventDO(
                 event.getId() == null ? null : event.getId().value(),
                 event.getEventCode() == null ? null : event.getEventCode().value(),
-                tenantId,
+                BaconContextHolder.requireTenantId(),
                 event.getOrderNo() == null ? null : event.getOrderNo().value(),
                 event.getEventType() == null ? null : event.getEventType().value(),
                 event.getBusinessKey(),

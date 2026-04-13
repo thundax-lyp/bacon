@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
@@ -22,10 +23,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderPersistenceAssembler {
 
-    public OrderDO toDataObject(Order order, Long tenantId) {
+    public OrderDO toDataObject(Order order) {
         return new OrderDO(
                 order.getId() == null ? null : order.getId().value(),
-                tenantId,
+                BaconContextHolder.requireTenantId(),
                 order.getOrderNo() == null ? null : order.getOrderNo().value(),
                 order.getUserId() == null ? null : order.getUserId().value(),
                 order.getOrderStatus() == null ? null : order.getOrderStatus().value(),

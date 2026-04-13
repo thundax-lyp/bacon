@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.infra.persistence.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
@@ -12,12 +13,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderOutboxDeadLetterPersistenceAssembler {
 
-    public OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter, Long id, Long tenantId) {
+    public OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter, Long id) {
         return new OrderOutboxDeadLetterDO(
                 id,
                 deadLetter.getOutboxId() == null ? null : deadLetter.getOutboxId().value(),
                 deadLetter.getEventCode() == null ? null : deadLetter.getEventCode().value(),
-                tenantId,
+                BaconContextHolder.requireTenantId(),
                 deadLetter.getOrderNo() == null ? null : deadLetter.getOrderNo().value(),
                 deadLetter.getEventType() == null ? null : deadLetter.getEventType().value(),
                 deadLetter.getBusinessKey(),

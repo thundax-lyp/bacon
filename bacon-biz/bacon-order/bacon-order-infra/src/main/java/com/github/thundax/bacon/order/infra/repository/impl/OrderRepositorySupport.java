@@ -1,14 +1,8 @@
 package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
-import com.github.thundax.bacon.common.commerce.valueobject.Money;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
-import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
@@ -48,8 +42,6 @@ public class OrderRepositorySupport {
     private static final String ORDER_ID_BIZ_TAG = "order-id";
     private static final String AUDIT_LOG_ID_BIZ_TAG = "order_audit_log_id";
     private static final String PAYMENT_SNAPSHOT_ID_BIZ_TAG = "order_payment_snapshot_id";
-    private static final String INVENTORY_SNAPSHOT_ID_BIZ_TAG = "order_inventory_snapshot_id";
-    private static final String ORDER_ITEM_ID_BIZ_TAG = "order_item_id";
 
     private final OrderMapper orderMapper;
     private final OrderItemMapper orderItemMapper;
@@ -90,7 +82,7 @@ public class OrderRepositorySupport {
     }
 
     public Order saveOrder(Order order) {
-        OrderDO dataObject = orderPersistenceAssembler.toDataObject(order, requireTenantId());
+        OrderDO dataObject = orderPersistenceAssembler.toDataObject(order);
         dataObject.setUpdatedAt(Instant.now());
         if (dataObject.getId() == null) {
             dataObject.setId(idGenerator.nextId(ORDER_ID_BIZ_TAG));
@@ -125,8 +117,7 @@ public class OrderRepositorySupport {
             return;
         }
         for (OrderItem item : items) {
-            orderItemMapper.insert(
-                    orderItemPersistenceAssembler.toDataObject(item, idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG), tenantId));
+            orderItemMapper.insert(orderItemPersistenceAssembler.toDataObject(item));
         }
     }
 
@@ -150,7 +141,7 @@ public class OrderRepositorySupport {
                         .eq(
                                 OrderPaymentSnapshotDO::getOrderId,
                                 snapshot.getOrderId() == null ? null : snapshot.getOrderId().value()));
-        OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot, tenantId);
+        OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
         if (existing == null) {
@@ -178,12 +169,10 @@ public class OrderRepositorySupport {
                         .eq(
                                 OrderInventorySnapshotDO::getOrderNo,
                                 snapshot.getOrderNo() == null ? null : snapshot.getOrderNo().value()));
-        OrderInventorySnapshotDO dataObject =
-                orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot, null, tenantId);
+        OrderInventorySnapshotDO dataObject = orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
         if (existing == null) {
-            dataObject.setId(idGenerator.nextId(INVENTORY_SNAPSHOT_ID_BIZ_TAG));
             orderInventorySnapshotMapper.insert(dataObject);
             return;
         }
@@ -201,7 +190,7 @@ public class OrderRepositorySupport {
     }
 
     public void saveAuditLog(OrderAuditLog auditLog) {
-        OrderAuditLogDO dataObject = orderAuditLogPersistenceAssembler.toDataObject(auditLog, requireTenantId());
+        OrderAuditLogDO dataObject = orderAuditLogPersistenceAssembler.toDataObject(auditLog);
         if (dataObject.getId() == null) {
             dataObject.setId(idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG));
         }
@@ -320,10 +309,6 @@ public class OrderRepositorySupport {
                         .eq(OrderInventorySnapshotDO::getTenantId, dataObject.getTenantId())
                         .eq(OrderInventorySnapshotDO::getOrderNo, dataObject.getOrderNo()));
         return orderPersistenceAssembler.toDomain(dataObject, paymentSnapshot, inventorySnapshot);
-    }
-
-    private OrderId toDomainOrderId(Long orderId) {
-        return orderId == null ? null : OrderId.of(orderId);
     }
 
     private Long requireTenantId() {

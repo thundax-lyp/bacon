@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.order.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
@@ -56,7 +55,7 @@ public class OrderOutboxRepositorySupport {
     }
 
     public void saveOutboxEvent(OrderOutboxEvent event) {
-        OrderOutboxEventDO dataObject = orderOutboxEventPersistenceAssembler.toDataObject(event, requireTenantId());
+        OrderOutboxEventDO dataObject = orderOutboxEventPersistenceAssembler.toDataObject(event);
         Instant now = Instant.now();
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
         dataObject.setUpdatedAt(now);
@@ -154,7 +153,7 @@ public class OrderOutboxRepositorySupport {
         return outboxEventMapper.update(
                         null,
                         Wrappers.<OrderOutboxEventDO>lambdaUpdate()
-                                .eq(OrderOutboxEventDO::getId, toDatabaseOutboxId(outboxId))
+                                .eq(OrderOutboxEventDO::getId, outboxId == null ? null : outboxId.value())
                                 .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
                                 .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)
                                 .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.RETRYING.value())
@@ -179,7 +178,7 @@ public class OrderOutboxRepositorySupport {
         return outboxEventMapper.update(
                         null,
                         Wrappers.<OrderOutboxEventDO>lambdaUpdate()
-                                .eq(OrderOutboxEventDO::getId, toDatabaseOutboxId(outboxId))
+                                .eq(OrderOutboxEventDO::getId, outboxId == null ? null : outboxId.value())
                                 .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
                                 .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner)
                                 .set(OrderOutboxEventDO::getStatus, OrderOutboxStatus.DEAD.value())
@@ -195,15 +194,14 @@ public class OrderOutboxRepositorySupport {
 
     public boolean deleteClaimed(OutboxId outboxId, String processingOwner) {
         return outboxEventMapper.delete(Wrappers.<OrderOutboxEventDO>lambdaQuery()
-                        .eq(OrderOutboxEventDO::getId, toDatabaseOutboxId(outboxId))
+                        .eq(OrderOutboxEventDO::getId, outboxId == null ? null : outboxId.value())
                         .eq(OrderOutboxEventDO::getStatus, OrderOutboxStatus.PROCESSING.value())
                         .eq(OrderOutboxEventDO::getProcessingOwner, processingOwner))
                 > 0;
     }
 
     public void saveDeadLetter(OrderOutboxDeadLetter deadLetter) {
-        OrderOutboxDeadLetterDO dataObject =
-                orderOutboxDeadLetterPersistenceAssembler.toDataObject(deadLetter, null, requireTenantId());
+        OrderOutboxDeadLetterDO dataObject = orderOutboxDeadLetterPersistenceAssembler.toDataObject(deadLetter, null);
         Instant now = Instant.now();
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
         dataObject.setUpdatedAt(now);
@@ -231,10 +229,6 @@ public class OrderOutboxRepositorySupport {
         String timestamp = LocalDateTime.now().format(EVENT_CODE_TIMESTAMP_FORMATTER);
         String suffix = String.format("%06d", Math.floorMod(id, 1_000_000L));
         return EventCode.of("EVT" + timestamp + "-" + suffix);
-    }
-
-    private Long toDatabaseOutboxId(OutboxId outboxId) {
-        return outboxId == null ? null : outboxId.value();
     }
 
     private Long requireTenantId() {

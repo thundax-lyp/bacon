@@ -2,6 +2,7 @@ package com.github.thundax.bacon.order.application.support;
 
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
@@ -18,11 +19,14 @@ import org.springframework.stereotype.Service;
 public class OrderDerivedDataPersistenceSupport {
 
     private static final String OPERATOR_ID_SYSTEM = "0";
+    private static final String INVENTORY_SNAPSHOT_ID_BIZ_TAG = "order_inventory_snapshot_id";
 
     private final OrderRepository orderRepository;
+    private final IdGenerator idGenerator;
 
-    public OrderDerivedDataPersistenceSupport(OrderRepository orderRepository) {
+    public OrderDerivedDataPersistenceSupport(OrderRepository orderRepository, IdGenerator idGenerator) {
         this.orderRepository = orderRepository;
+        this.idGenerator = idGenerator;
     }
 
     public void persist(Order order, OrderAuditActionType actionType, OrderStatus beforeStatus) {
@@ -42,6 +46,7 @@ public class OrderDerivedDataPersistenceSupport {
         if (order.getReservationNo() != null
                 && !order.getReservationNo().value().isBlank()) {
             orderRepository.saveInventorySnapshot(OrderInventorySnapshot.create(
+                    idGenerator.nextId(INVENTORY_SNAPSHOT_ID_BIZ_TAG),
                     order.getOrderNo(),
                     order.getReservationNo(),
                     order.getInventoryStatus(),

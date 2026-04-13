@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.regex.Pattern;
 
 public final class NamingAndPlacementRuleSupport {
 
@@ -297,7 +299,7 @@ public final class NamingAndPlacementRuleSupport {
         String[] segments = pattern.split("\\*", -1);
         StringBuilder regex = new StringBuilder();
         for (int i = 0; i < segments.length; i++) {
-            regex.append(java.util.regex.Pattern.quote(segments[i]));
+            regex.append(Pattern.quote(segments[i]));
             if (i < segments.length - 1) {
                 regex.append(".*");
             }
@@ -379,7 +381,7 @@ public final class NamingAndPlacementRuleSupport {
         if (Files.exists(directPath)) {
             return Optional.of(directPath);
         }
-        try (java.util.stream.Stream<Path> paths = Files.find(
+        try (Stream<Path> paths = Files.find(
                 workspaceRoot, 20, (path, attributes) -> attributes.isRegularFile() && path.endsWith(relativePath))) {
             return paths.findFirst();
         } catch (Exception ignored) {

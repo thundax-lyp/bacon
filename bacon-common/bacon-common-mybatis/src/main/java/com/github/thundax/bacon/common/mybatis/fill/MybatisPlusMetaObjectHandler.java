@@ -12,8 +12,7 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
     private static final String TENANT_ID = "tenantId";
 
-    public MybatisPlusMetaObjectHandler(Clock clock, CurrentUserProvider currentUserProvider) {
-    }
+    public MybatisPlusMetaObjectHandler(Clock clock, CurrentUserProvider currentUserProvider) {}
 
     @Override
     public void insertFill(MetaObject metaObject) {

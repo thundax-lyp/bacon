@@ -19,6 +19,7 @@ import com.github.thundax.bacon.order.infra.persistence.mapper.OrderOutboxEventM
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -94,7 +95,7 @@ public class OrderOutboxRepositorySupport {
         if (candidates.isEmpty()) {
             return List.of();
         }
-        java.util.List<OrderOutboxEvent> claimed = new java.util.ArrayList<>(limit);
+        List<OrderOutboxEvent> claimed = new ArrayList<>(limit);
         // 先粗查候选，再逐条 CAS 抢占，避免多节点并发扫描时把同一批事件都误认为可处理。
         for (OrderOutboxEventDO candidate : candidates) {
             if (claimed.size() >= limit) {

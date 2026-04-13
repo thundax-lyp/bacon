@@ -30,6 +30,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -191,7 +192,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(RoleMenuRelDO::getRoleId, roleId))
                 .stream()
                 .map(RoleMenuRelDO::getMenuId)
-                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     void replaceRoleMenus(TenantId tenantId, RoleId roleId, Collection<MenuId> menuIds) {
@@ -224,7 +225,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .in(ResourceDO::getId, resourceIds))
                 .stream()
                 .map(ResourceDO::getCode)
-                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     void replaceRoleResources(TenantId tenantId, RoleId roleId, Collection<String> resourceCodes) {
@@ -258,7 +259,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(RoleDataScopeRelDO::getRoleId, roleId))
                 .stream()
                 .map(RoleDataScopeRelDO::getDepartmentId)
-                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     void replaceRoleDataScope(

@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.core.service.RsaKeyPair;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
+import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -31,7 +32,7 @@ public class DefaultRsaCryptoServiceImpl implements RsaCryptoService {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(ALGORITHM);
             keyPairGenerator.initialize(KEY_SIZE);
-            java.security.KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
             return new RsaKeyPair(
                     encode(keyPair.getPublic().getEncoded()),
                     encode(keyPair.getPrivate().getEncoded()));

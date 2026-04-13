@@ -20,13 +20,20 @@ class MoneyCodecTest {
 
     @Test
     void shouldConvertMoneyWithDefaultCurrency() {
-        assertEquals(new BigDecimal("18.80"), MoneyCodec.toDomain(new BigDecimal("18.8")).value());
-        assertEquals(CurrencyCode.RMB, MoneyCodec.toDomain(new BigDecimal("18.8")).currencyCode());
+        assertEquals(
+                new BigDecimal("18.80"),
+                MoneyCodec.toDomain(new BigDecimal("18.8")).value());
+        assertEquals(
+                CurrencyCode.RMB, MoneyCodec.toDomain(new BigDecimal("18.8")).currencyCode());
     }
 
     @Test
     void shouldConvertMoneyWithExplicitCurrency() {
-        assertEquals(new BigDecimal("66.00"), MoneyCodec.toValue(MoneyCodec.toDomain(new BigDecimal("66"), CurrencyCode.USD)));
-        assertEquals(CurrencyCode.USD, MoneyCodec.toCurrencyCode(MoneyCodec.toDomain(new BigDecimal("66"), CurrencyCode.USD)));
+        assertEquals(
+                new BigDecimal("66.00"),
+                MoneyCodec.toValue(MoneyCodec.toDomain(new BigDecimal("66"), CurrencyCode.USD)));
+        assertEquals(
+                CurrencyCode.USD,
+                MoneyCodec.toCurrencyCode(MoneyCodec.toDomain(new BigDecimal("66"), CurrencyCode.USD)));
     }
 }

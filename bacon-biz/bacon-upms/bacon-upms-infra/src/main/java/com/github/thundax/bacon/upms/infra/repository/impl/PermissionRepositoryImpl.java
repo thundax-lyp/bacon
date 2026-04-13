@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -14,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -65,8 +67,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     private List<Menu> loadUserMenuTree(TenantId tenantId, UserId userId) {
-        List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles =
-                roleRepository.findRolesByUserId(tenantId, userId);
+        List<Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
         if (roles.isEmpty()) {
             return List.of();
         }
@@ -82,13 +83,12 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     private Set<String> loadUserPermissionCodes(TenantId tenantId, UserId userId) {
-        List<com.github.thundax.bacon.upms.domain.model.entity.Role> roles =
-                roleRepository.findRolesByUserId(tenantId, userId);
+        List<Role> roles = roleRepository.findRolesByUserId(tenantId, userId);
         if (roles.isEmpty()) {
             return Set.of();
         }
         Map<MenuId, Menu> menuMap = menuRepository.listMenus(tenantId).stream()
-                .collect(java.util.stream.Collectors.toMap(Menu::getId, menu -> menu));
+                .collect(Collectors.toMap(Menu::getId, menu -> menu));
         Set<String> permissionCodes = new HashSet<>();
         roles.forEach(role -> {
             roleRepository.getAssignedMenus(role.getTenantId(), role.getId()).forEach(menuId -> {

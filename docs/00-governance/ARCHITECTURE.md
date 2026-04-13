@@ -104,6 +104,13 @@
 - `Order`、`Payment`、`Inventory` 等业务单号由 `infra` 集成发号能力
 - 业务域不直接在 `domain` 手写基础设施型发号逻辑
 
+## Quality Tooling
+
+- 给 AI 的默认判断：`spotless` 是 formatter，只负责整理代码格式、import 和版式，不承载规约语义。
+- 给 AI 的默认判断：`checkstyle` 是 rule gate，只负责检查、报错和阻断，不负责改代码，也不替代 formatter。
+- 新增或调整静态规则时，先判断这是“格式整理”还是“规约约束”：前者放 `spotless`，后者放 `checkstyle`。
+- 不要把同一类职责同时配到 `spotless` 和 `checkstyle`，避免重复约束、相互打架和误导后续 AI。
+
 ## Implementation Default
 
 - 先保证分层正确，再写代码

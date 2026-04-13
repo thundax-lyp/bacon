@@ -27,8 +27,8 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Run unit tests
-        run: mvn -q test
+      - name: Run checkstyle and unit tests
+        run: mvn -q checkstyle:check test
 
       - name: Run spotless check
         run: mvn -q spotless:check

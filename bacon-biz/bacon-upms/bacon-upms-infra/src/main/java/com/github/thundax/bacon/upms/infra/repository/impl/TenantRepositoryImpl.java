@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +57,7 @@ public class TenantRepositoryImpl implements TenantRepository {
                 currentTenant.getId(),
                 currentTenant.getName(),
                 currentTenant.getTenantCode(),
-                com.github.thundax.bacon.upms.domain.model.enums.TenantStatus.from(status),
+                TenantStatus.from(status),
                 currentTenant.getExpiredAt()));
     }
 }

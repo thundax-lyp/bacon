@@ -27,8 +27,7 @@ public class SysLogAspect {
         this.sysLogMessageProducer = sysLogMessageProducer;
     }
 
-    @Around("@annotation(com.github.thundax.bacon.common.log.annotation.SysLog)"
-            + " || @within(com.github.thundax.bacon.common.log.annotation.SysLog)")
+    @Around("@annotation(SysLog) || @within(SysLog)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         SysLog sysLog = resolveSysLog(joinPoint);
         if (sysLog == null) {

@@ -44,10 +44,7 @@ public class OrderCancelApplicationService {
         String resolvedReason = reason == null || reason.isBlank() ? "USER_CANCELLED" : reason;
         // 取消订单走幂等执行器，避免用户重复点击或上游重复投递时把关单/释放库存执行多次。
         orderIdempotencyExecutor.execute(
-                OrderIdempotencyExecutor.EVENT_CANCEL,
-                orderNo,
-                null,
-                () -> doCancel(orderNo, resolvedReason));
+                OrderIdempotencyExecutor.EVENT_CANCEL, orderNo, null, () -> doCancel(orderNo, resolvedReason));
     }
 
     private void doCancel(String orderNo, String reason) {
@@ -70,7 +67,9 @@ public class OrderCancelApplicationService {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(
                     ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                    releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
+                    releaseResult.getWarehouseCode() == null
+                            ? null
+                            : WarehouseCode.of(releaseResult.getWarehouseCode()),
                     releaseResult.getReleaseReason(),
                     releaseResult.getReleasedAt());
             return;
@@ -79,7 +78,8 @@ public class OrderCancelApplicationService {
         order.markInventoryFailed(
                 ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
                 releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                releaseResult.getFailureReason() == null || releaseResult.getFailureReason().isBlank()
+                releaseResult.getFailureReason() == null
+                                || releaseResult.getFailureReason().isBlank()
                         ? fallbackReason
                         : releaseResult.getFailureReason());
     }

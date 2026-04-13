@@ -69,7 +69,9 @@ public class OrderTimeoutApplicationService {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(
                     ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                    releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
+                    releaseResult.getWarehouseCode() == null
+                            ? null
+                            : WarehouseCode.of(releaseResult.getWarehouseCode()),
                     releaseResult.getReleaseReason(),
                     releaseResult.getReleasedAt());
             return;
@@ -78,7 +80,8 @@ public class OrderTimeoutApplicationService {
         order.markInventoryFailed(
                 ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
                 releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                releaseResult.getFailureReason() == null || releaseResult.getFailureReason().isBlank()
+                releaseResult.getFailureReason() == null
+                                || releaseResult.getFailureReason().isBlank()
                         ? fallbackReason
                         : releaseResult.getFailureReason());
     }

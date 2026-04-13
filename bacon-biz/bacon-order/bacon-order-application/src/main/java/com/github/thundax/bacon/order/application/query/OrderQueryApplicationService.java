@@ -78,7 +78,9 @@ public class OrderQueryApplicationService {
                 order.getUserId() == null ? null : order.getUserId().value(),
                 order.getOrderStatus() == null ? null : order.getOrderStatus().value(),
                 order.getPayStatus() == null ? null : order.getPayStatus().value(),
-                order.getInventoryStatus() == null ? null : order.getInventoryStatus().value(),
+                order.getInventoryStatus() == null
+                        ? null
+                        : order.getInventoryStatus().value(),
                 order.getPaymentNo() == null ? null : order.getPaymentNo().value(),
                 order.getReservationNo() == null ? null : ReservationNoCodec.toValue(order.getReservationNo()),
                 order.getCurrencyCode() == null ? null : order.getCurrencyCode().value(),
@@ -95,7 +97,8 @@ public class OrderQueryApplicationService {
                 .findPaymentSnapshotByOrderId(order.getId() == null ? null : OrderIdCodec.toValue(order.getId()))
                 .orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository
-                .findInventorySnapshotByOrderNo(order.getOrderNo() == null ? null : order.getOrderNo().value())
+                .findInventorySnapshotByOrderNo(
+                        order.getOrderNo() == null ? null : order.getOrderNo().value())
                 .orElse(null);
         List<OrderItemDTO> itemDtos =
                 orderRepository
@@ -115,12 +118,20 @@ public class OrderQueryApplicationService {
                 order.getUserId() == null ? null : order.getUserId().value(),
                 order.getOrderStatus() == null ? null : order.getOrderStatus().value(),
                 order.getPayStatus() == null ? null : order.getPayStatus().value(),
-                order.getInventoryStatus() == null ? null : order.getInventoryStatus().value(),
+                order.getInventoryStatus() == null
+                        ? null
+                        : order.getInventoryStatus().value(),
                 paymentSnapshot == null
-                        ? (order.getPaymentNo() == null ? null : order.getPaymentNo().value())
-                        : (paymentSnapshot.getPaymentNo() == null ? null : paymentSnapshot.getPaymentNo().value()),
+                        ? (order.getPaymentNo() == null
+                                ? null
+                                : order.getPaymentNo().value())
+                        : (paymentSnapshot.getPaymentNo() == null
+                                ? null
+                                : paymentSnapshot.getPaymentNo().value()),
                 inventorySnapshot == null
-                        ? (order.getReservationNo() == null ? null : ReservationNoCodec.toValue(order.getReservationNo()))
+                        ? (order.getReservationNo() == null
+                                ? null
+                                : ReservationNoCodec.toValue(order.getReservationNo()))
                         : (inventorySnapshot.getReservationNo() == null
                                 ? null
                                 : ReservationNoCodec.toValue(inventorySnapshot.getReservationNo())),
@@ -144,19 +155,31 @@ public class OrderQueryApplicationService {
         }
         String paymentNo = paymentSnapshot == null
                 ? (order.getPaymentNo() == null ? null : order.getPaymentNo().value())
-                : (paymentSnapshot.getPaymentNo() == null ? null : paymentSnapshot.getPaymentNo().value());
+                : (paymentSnapshot.getPaymentNo() == null
+                        ? null
+                        : paymentSnapshot.getPaymentNo().value());
         String payStatus = paymentSnapshot == null
                 ? (order.getPayStatus() == null ? null : order.getPayStatus().value())
-                : (paymentSnapshot.getPayStatus() == null ? null : paymentSnapshot.getPayStatus().value());
+                : (paymentSnapshot.getPayStatus() == null
+                        ? null
+                        : paymentSnapshot.getPayStatus().value());
         String channelCode = paymentSnapshot == null
-                ? (order.getPaymentChannelCode() == null ? null : order.getPaymentChannelCode().value())
-                : (paymentSnapshot.getChannelCode() == null ? null : paymentSnapshot.getChannelCode().value());
+                ? (order.getPaymentChannelCode() == null
+                        ? null
+                        : order.getPaymentChannelCode().value())
+                : (paymentSnapshot.getChannelCode() == null
+                        ? null
+                        : paymentSnapshot.getChannelCode().value());
         BigDecimal paidAmount = paymentSnapshot == null
                 ? (order.getPaidAmount() == null ? null : order.getPaidAmount().value())
-                : (paymentSnapshot.getPaidAmount() == null ? null : paymentSnapshot.getPaidAmount().value());
+                : (paymentSnapshot.getPaidAmount() == null
+                        ? null
+                        : paymentSnapshot.getPaidAmount().value());
         String channelStatus = paymentSnapshot == null
                 ? order.getPaymentChannelStatus()
-                : (paymentSnapshot.getChannelStatus() == null ? null : paymentSnapshot.getChannelStatus().value());
+                : (paymentSnapshot.getChannelStatus() == null
+                        ? null
+                        : paymentSnapshot.getChannelStatus().value());
         String failureReason =
                 paymentSnapshot == null ? order.getPaymentFailureReason() : paymentSnapshot.getFailureReason();
         return "paymentNo=" + paymentNo
@@ -170,17 +193,27 @@ public class OrderQueryApplicationService {
     private String buildInventorySnapshot(Order order, OrderInventorySnapshot inventorySnapshot) {
         String reservationNo = Objects.toString(
                 inventorySnapshot == null
-                        ? (order.getReservationNo() == null ? null : ReservationNoCodec.toValue(order.getReservationNo()))
+                        ? (order.getReservationNo() == null
+                                ? null
+                                : ReservationNoCodec.toValue(order.getReservationNo()))
                         : (inventorySnapshot.getReservationNo() == null
                                 ? null
                                 : ReservationNoCodec.toValue(inventorySnapshot.getReservationNo())),
                 "N/A");
         String inventoryStatus = inventorySnapshot == null
-                ? (order.getInventoryStatus() == null ? null : order.getInventoryStatus().value())
-                : (inventorySnapshot.getInventoryStatus() == null ? null : inventorySnapshot.getInventoryStatus().value());
+                ? (order.getInventoryStatus() == null
+                        ? null
+                        : order.getInventoryStatus().value())
+                : (inventorySnapshot.getInventoryStatus() == null
+                        ? null
+                        : inventorySnapshot.getInventoryStatus().value());
         String warehouseCode = inventorySnapshot == null
-                ? (order.getWarehouseCode() == null ? null : order.getWarehouseCode().value())
-                : (inventorySnapshot.getWarehouseCode() == null ? null : inventorySnapshot.getWarehouseCode().value());
+                ? (order.getWarehouseCode() == null
+                        ? null
+                        : order.getWarehouseCode().value())
+                : (inventorySnapshot.getWarehouseCode() == null
+                        ? null
+                        : inventorySnapshot.getWarehouseCode().value());
         String failureReason =
                 inventorySnapshot == null ? order.getInventoryFailureReason() : inventorySnapshot.getFailureReason();
         return "reservationNo=" + reservationNo

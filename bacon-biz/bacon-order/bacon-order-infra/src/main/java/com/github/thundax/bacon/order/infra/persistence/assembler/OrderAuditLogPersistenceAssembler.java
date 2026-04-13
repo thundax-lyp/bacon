@@ -17,10 +17,18 @@ public class OrderAuditLogPersistenceAssembler {
                 auditLog.getId(),
                 BaconContextHolder.requireTenantId(),
                 auditLog.getOrderNo() == null ? null : auditLog.getOrderNo().value(),
-                auditLog.getActionType() == null ? null : auditLog.getActionType().value(),
-                auditLog.getBeforeStatus() == null ? null : auditLog.getBeforeStatus().value(),
-                auditLog.getAfterStatus() == null ? null : auditLog.getAfterStatus().value(),
-                auditLog.getOperatorType() == null ? null : auditLog.getOperatorType().value(),
+                auditLog.getActionType() == null
+                        ? null
+                        : auditLog.getActionType().value(),
+                auditLog.getBeforeStatus() == null
+                        ? null
+                        : auditLog.getBeforeStatus().value(),
+                auditLog.getAfterStatus() == null
+                        ? null
+                        : auditLog.getAfterStatus().value(),
+                auditLog.getOperatorType() == null
+                        ? null
+                        : auditLog.getOperatorType().value(),
                 auditLog.getOperatorId(),
                 auditLog.getOccurredAt());
     }

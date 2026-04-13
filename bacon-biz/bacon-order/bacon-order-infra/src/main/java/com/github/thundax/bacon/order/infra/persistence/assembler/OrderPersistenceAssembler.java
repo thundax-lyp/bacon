@@ -31,10 +31,14 @@ public class OrderPersistenceAssembler {
                 order.getUserId() == null ? null : order.getUserId().value(),
                 order.getOrderStatus() == null ? null : order.getOrderStatus().value(),
                 order.getPayStatus() == null ? null : order.getPayStatus().value(),
-                order.getInventoryStatus() == null ? null : order.getInventoryStatus().value(),
+                order.getInventoryStatus() == null
+                        ? null
+                        : order.getInventoryStatus().value(),
                 order.getCurrencyCode() == null ? null : order.getCurrencyCode().value(),
                 order.getTotalAmount() == null ? null : order.getTotalAmount().value(),
-                order.getPayableAmount() == null ? null : order.getPayableAmount().value(),
+                order.getPayableAmount() == null
+                        ? null
+                        : order.getPayableAmount().value(),
                 order.getRemark(),
                 order.getCancelReason(),
                 order.getCloseReason(),

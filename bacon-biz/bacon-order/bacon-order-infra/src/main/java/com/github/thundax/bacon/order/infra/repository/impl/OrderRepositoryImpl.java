@@ -86,7 +86,8 @@ public class OrderRepositoryImpl implements OrderRepository {
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo) {
-        return support.countOrders(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
+        return support.countOrders(
+                userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
     }
 
     @Override
@@ -101,15 +102,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             int offset,
             int limit) {
         return support.pageOrders(
-                userId,
-                orderNo,
-                orderStatus,
-                payStatus,
-                inventoryStatus,
-                createdAtFrom,
-                createdAtTo,
-                offset,
-                limit);
+                userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, offset, limit);
     }
 
     @Override

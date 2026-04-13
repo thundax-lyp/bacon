@@ -102,16 +102,15 @@ public class OrderRepositorySupport {
 
     public Optional<Order> findOrderByOrderNo(String orderNo) {
         BaconContextHolder.requireTenantId();
-        return Optional.ofNullable(orderMapper.selectOne(Wrappers.<OrderDO>lambdaQuery()
-                        .eq(OrderDO::getOrderNo, orderNo)))
+        return Optional.ofNullable(
+                        orderMapper.selectOne(Wrappers.<OrderDO>lambdaQuery().eq(OrderDO::getOrderNo, orderNo)))
                 .map(this::toDomainWithSnapshots);
     }
 
     public void saveItems(Long orderId, List<OrderItem> items) {
         BaconContextHolder.requireTenantId();
         // 订单项采用“先删后插”的整包替换策略，保持应用层传入的 items 列表就是该订单的权威快照。
-        orderItemMapper.delete(Wrappers.<OrderItemDO>lambdaQuery()
-                .eq(OrderItemDO::getOrderId, orderId));
+        orderItemMapper.delete(Wrappers.<OrderItemDO>lambdaQuery().eq(OrderItemDO::getOrderId, orderId));
         if (items == null || items.isEmpty()) {
             return;
         }
@@ -137,7 +136,9 @@ public class OrderRepositorySupport {
                 orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
                         .eq(
                                 OrderPaymentSnapshotDO::getOrderId,
-                                snapshot.getOrderId() == null ? null : snapshot.getOrderId().value()));
+                                snapshot.getOrderId() == null
+                                        ? null
+                                        : snapshot.getOrderId().value()));
         OrderPaymentSnapshotDO dataObject = orderPaymentSnapshotPersistenceAssembler.toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 支付快照按 orderId 唯一覆盖，目标是保留“当前支付视图”，而不是积累每次变化历史。
@@ -152,8 +153,8 @@ public class OrderRepositorySupport {
 
     public Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId) {
         BaconContextHolder.requireTenantId();
-        return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
-                        .eq(OrderPaymentSnapshotDO::getOrderId, orderId)))
+        return Optional.ofNullable(orderPaymentSnapshotMapper.selectOne(
+                        Wrappers.<OrderPaymentSnapshotDO>lambdaQuery().eq(OrderPaymentSnapshotDO::getOrderId, orderId)))
                 .map(orderPaymentSnapshotPersistenceAssembler::toDomain);
     }
 
@@ -163,7 +164,9 @@ public class OrderRepositorySupport {
                 orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
                         .eq(
                                 OrderInventorySnapshotDO::getOrderNo,
-                                snapshot.getOrderNo() == null ? null : snapshot.getOrderNo().value()));
+                                snapshot.getOrderNo() == null
+                                        ? null
+                                        : snapshot.getOrderNo().value()));
         OrderInventorySnapshotDO dataObject = orderInventorySnapshotPersistenceAssembler.toDataObject(snapshot);
         dataObject.setUpdatedAt(snapshot.getUpdatedAt() == null ? Instant.now() : snapshot.getUpdatedAt());
         // 库存快照和支付快照一样采用唯一覆盖模型，分页/详情查询只需要当前库存派生状态。
@@ -178,7 +181,7 @@ public class OrderRepositorySupport {
     public Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(
-                orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
+                        orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
                                 .eq(OrderInventorySnapshotDO::getOrderNo, orderNo)))
                 .map(orderInventorySnapshotPersistenceAssembler::toDomain);
     }
@@ -212,13 +215,7 @@ public class OrderRepositorySupport {
             Instant createdAtTo) {
         BaconContextHolder.requireTenantId();
         return Optional.ofNullable(orderMapper.selectCount(buildPageQuery(
-                        userId,
-                        orderNo,
-                        orderStatus,
-                        payStatus,
-                        inventoryStatus,
-                        createdAtFrom,
-                        createdAtTo)))
+                        userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)))
                 .orElse(0L);
     }
 
@@ -233,10 +230,10 @@ public class OrderRepositorySupport {
             int offset,
             int limit) {
         BaconContextHolder.requireTenantId();
-        List<OrderDO> pageOrders = orderMapper.selectList(buildPageQuery(
-                        userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
-                .orderByDesc(OrderDO::getCreatedAt, OrderDO::getId)
-                .last("limit " + offset + "," + limit));
+        List<OrderDO> pageOrders = orderMapper.selectList(
+                buildPageQuery(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
+                        .orderByDesc(OrderDO::getCreatedAt, OrderDO::getId)
+                        .last("limit " + offset + "," + limit));
         if (pageOrders.isEmpty()) {
             return List.of();
         }
@@ -257,7 +254,9 @@ public class OrderRepositorySupport {
                         OrderInventorySnapshotDO::getOrderNo, Function.identity(), (left, right) -> left));
         List<Order> records = pageOrders.stream()
                 .map(orderData -> orderPersistenceAssembler.toDomain(
-                        orderData, paymentSnapshotMap.get(orderData.getId()), inventorySnapshotMap.get(orderData.getOrderNo())))
+                        orderData,
+                        paymentSnapshotMap.get(orderData.getId()),
+                        inventorySnapshotMap.get(orderData.getOrderNo())))
                 .toList();
         return records;
     }
@@ -300,5 +299,4 @@ public class OrderRepositorySupport {
                         .eq(OrderInventorySnapshotDO::getOrderNo, dataObject.getOrderNo()));
         return orderPersistenceAssembler.toDomain(dataObject, paymentSnapshot, inventorySnapshot);
     }
-
 }

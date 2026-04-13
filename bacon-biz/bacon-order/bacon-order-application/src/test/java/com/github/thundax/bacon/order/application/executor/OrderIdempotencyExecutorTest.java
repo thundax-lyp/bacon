@@ -136,42 +136,38 @@ class OrderIdempotencyExecutorTest {
         @Override
         public boolean markSuccess(OrderIdempotencyRecordKey key, Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
-            storage.computeIfPresent(
-                    keyOf(key.orderNo().value(), key.eventType()),
-                    (mapKey, existing) -> {
-                        if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
-                            return existing;
-                        }
-                        existing.setStatus(OrderIdempotencyStatus.SUCCESS);
-                        existing.setLastError(null);
-                        existing.setProcessingOwner(null);
-                        existing.setLeaseUntil(null);
-                        existing.setClaimedAt(null);
-                        existing.setUpdatedAt(updatedAt);
-                        updated.incrementAndGet();
-                        return existing;
-                    });
+            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
+                if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
+                    return existing;
+                }
+                existing.setStatus(OrderIdempotencyStatus.SUCCESS);
+                existing.setLastError(null);
+                existing.setProcessingOwner(null);
+                existing.setLeaseUntil(null);
+                existing.setClaimedAt(null);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
             return updated.get() > 0;
         }
 
         @Override
         public boolean markFailed(OrderIdempotencyRecordKey key, String lastError, Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
-            storage.computeIfPresent(
-                    keyOf(key.orderNo().value(), key.eventType()),
-                    (mapKey, existing) -> {
-                        if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
-                            return existing;
-                        }
-                        existing.setStatus(OrderIdempotencyStatus.FAILED);
-                        existing.setLastError(lastError);
-                        existing.setProcessingOwner(null);
-                        existing.setLeaseUntil(null);
-                        existing.setClaimedAt(null);
-                        existing.setUpdatedAt(updatedAt);
-                        updated.incrementAndGet();
-                        return existing;
-                    });
+            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
+                if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
+                    return existing;
+                }
+                existing.setStatus(OrderIdempotencyStatus.FAILED);
+                existing.setLastError(lastError);
+                existing.setProcessingOwner(null);
+                existing.setLeaseUntil(null);
+                existing.setClaimedAt(null);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
             return updated.get() > 0;
         }
 
@@ -183,22 +179,20 @@ class OrderIdempotencyExecutorTest {
                 Instant claimedAt,
                 Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
-            storage.computeIfPresent(
-                    keyOf(key.orderNo().value(), key.eventType()),
-                    (mapKey, existing) -> {
-                        if (existing.getStatus() != OrderIdempotencyStatus.FAILED) {
-                            return existing;
-                        }
-                        existing.setStatus(OrderIdempotencyStatus.PROCESSING);
-                        existing.setAttemptCount(existing.getAttemptCount() + 1);
-                        existing.setLastError(null);
-                        existing.setProcessingOwner(processingOwner);
-                        existing.setLeaseUntil(leaseUntil);
-                        existing.setClaimedAt(claimedAt);
-                        existing.setUpdatedAt(updatedAt);
-                        updated.incrementAndGet();
-                        return existing;
-                    });
+            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
+                if (existing.getStatus() != OrderIdempotencyStatus.FAILED) {
+                    return existing;
+                }
+                existing.setStatus(OrderIdempotencyStatus.PROCESSING);
+                existing.setAttemptCount(existing.getAttemptCount() + 1);
+                existing.setLastError(null);
+                existing.setProcessingOwner(processingOwner);
+                existing.setLeaseUntil(leaseUntil);
+                existing.setClaimedAt(claimedAt);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
             return updated.get() > 0;
         }
 
@@ -210,23 +204,21 @@ class OrderIdempotencyExecutorTest {
                 Instant claimedAt,
                 Instant updatedAt) {
             AtomicInteger updated = new AtomicInteger(0);
-            storage.computeIfPresent(
-                    keyOf(key.orderNo().value(), key.eventType()),
-                    (mapKey, existing) -> {
-                        if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
-                            return existing;
-                        }
-                        Instant existingLease = existing.getLeaseUntil();
-                        if (existingLease != null && existingLease.isAfter(claimedAt)) {
-                            return existing;
-                        }
-                        existing.setProcessingOwner(processingOwner);
-                        existing.setLeaseUntil(leaseUntil);
-                        existing.setClaimedAt(claimedAt);
-                        existing.setUpdatedAt(updatedAt);
-                        updated.incrementAndGet();
-                        return existing;
-                    });
+            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
+                if (existing.getStatus() != OrderIdempotencyStatus.PROCESSING) {
+                    return existing;
+                }
+                Instant existingLease = existing.getLeaseUntil();
+                if (existingLease != null && existingLease.isAfter(claimedAt)) {
+                    return existing;
+                }
+                existing.setProcessingOwner(processingOwner);
+                existing.setLeaseUntil(leaseUntil);
+                existing.setClaimedAt(claimedAt);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
             return updated.get() > 0;
         }
 

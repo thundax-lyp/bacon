@@ -337,7 +337,6 @@ public class Order {
                 return;
             }
         }
-        throw new IllegalStateException(
-                "Invalid order status: " + (orderStatus == null ? null : orderStatus.value()));
+        throw new IllegalStateException("Invalid order status: " + (orderStatus == null ? null : orderStatus.value()));
     }
 }

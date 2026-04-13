@@ -22,13 +22,21 @@ public class OrderPaymentSnapshotPersistenceAssembler {
                 BaconContextHolder.requireTenantId(),
                 snapshot.getOrderId() == null ? null : snapshot.getOrderId().value(),
                 snapshot.getPaymentNo() == null ? null : snapshot.getPaymentNo().value(),
-                snapshot.getChannelCode() == null ? null : snapshot.getChannelCode().value(),
+                snapshot.getChannelCode() == null
+                        ? null
+                        : snapshot.getChannelCode().value(),
                 snapshot.getPayStatus() == null ? null : snapshot.getPayStatus().value(),
-                snapshot.getPaidAmount() == null ? null : snapshot.getPaidAmount().currencyCode().value(),
-                snapshot.getPaidAmount() == null ? null : snapshot.getPaidAmount().value(),
+                snapshot.getPaidAmount() == null
+                        ? null
+                        : snapshot.getPaidAmount().currencyCode().value(),
+                snapshot.getPaidAmount() == null
+                        ? null
+                        : snapshot.getPaidAmount().value(),
                 snapshot.getPaidTime(),
                 snapshot.getFailureReason(),
-                snapshot.getChannelStatus() == null ? null : snapshot.getChannelStatus().value(),
+                snapshot.getChannelStatus() == null
+                        ? null
+                        : snapshot.getChannelStatus().value(),
                 snapshot.getUpdatedAt());
     }
 

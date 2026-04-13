@@ -91,9 +91,10 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReserveStock(OrderOutboxEvent event) {
-        Order order = findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
-        List<OrderItem> items =
-                orderRepository.findItemsByOrderId(order.getId() == null ? null : order.getId().value());
+        Order order =
+                findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
+        List<OrderItem> items = orderRepository.findItemsByOrderId(
+                order.getId() == null ? null : order.getId().value());
         List<InventoryReservationItemDTO> reserveItems = items.stream()
                 .map(item -> new InventoryReservationItemDTO(
                         item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
@@ -104,12 +105,15 @@ public class OrderOutboxActionExecutor {
                         order.getOrderNo() == null ? null : order.getOrderNo().value(), reserveItems));
         // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
         if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
-            String reason = reserveResult.getFailureReason() == null || reserveResult.getFailureReason().isBlank()
+            String reason = reserveResult.getFailureReason() == null
+                            || reserveResult.getFailureReason().isBlank()
                     ? "inventory reserve failed"
                     : reserveResult.getFailureReason();
             order.markInventoryFailed(
                     ReservationNoCodec.toDomain(reserveResult.getReservationNo()),
-                    reserveResult.getWarehouseCode() == null ? null : WarehouseCode.of(reserveResult.getWarehouseCode()),
+                    reserveResult.getWarehouseCode() == null
+                            ? null
+                            : WarehouseCode.of(reserveResult.getWarehouseCode()),
                     reason);
             order.closeByInventoryReserveFailed(CLOSE_REASON_INVENTORY_RESERVE_FAILED);
             orderRepository.save(order);
@@ -147,7 +151,8 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeCreatePayment(OrderOutboxEvent event) {
-        Order order = findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
+        Order order =
+                findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
         PaymentCreateResultDTO paymentResult = BaconContextHolder.callWithTenantId(
@@ -157,7 +162,10 @@ public class OrderOutboxActionExecutor {
                         order.getUserId() == null ? null : order.getUserId().value(),
                         order.getPayableAmount().value(),
                         channelCode,
-                        "order:" + (order.getOrderNo() == null ? null : order.getOrderNo().value()),
+                        "order:"
+                                + (order.getOrderNo() == null
+                                        ? null
+                                        : order.getOrderNo().value()),
                         order.getExpiredAt()));
         // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
         if (paymentResult.getPaymentNo() == null
@@ -173,8 +181,7 @@ public class OrderOutboxActionExecutor {
             orderOutboxRepository.saveOutboxEvent(OrderOutboxEvent.create(
                     order.getOrderNo() == null ? null : order.getOrderNo().value(),
                     OrderOutboxEventType.RELEASE_STOCK,
-                    (order.getOrderNo() == null ? null : order.getOrderNo().value())
-                            + ":RELEASE_PAYMENT_CREATE_FAILED",
+                    (order.getOrderNo() == null ? null : order.getOrderNo().value()) + ":RELEASE_PAYMENT_CREATE_FAILED",
                     OrderOutboxPayloadCodec.encode(releasePayload),
                     OrderOutboxStatus.NEW,
                     0,
@@ -195,7 +202,8 @@ public class OrderOutboxActionExecutor {
     }
 
     private void executeReleaseStock(OrderOutboxEvent event) {
-        Order order = findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
+        Order order =
+                findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
         String reason = OrderOutboxPayloadCodec.decode(event.getPayload()).getOrDefault("reason", "SYSTEM_CANCELLED");
         InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
                 BaconContextHolder.requireTenantId(),
@@ -205,14 +213,19 @@ public class OrderOutboxActionExecutor {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(
                     ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                    releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
+                    releaseResult.getWarehouseCode() == null
+                            ? null
+                            : WarehouseCode.of(releaseResult.getWarehouseCode()),
                     releaseResult.getReleaseReason(),
                     releaseResult.getReleasedAt());
         } else {
             order.markInventoryFailed(
                     ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                    releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                    releaseResult.getFailureReason() == null || releaseResult.getFailureReason().isBlank()
+                    releaseResult.getWarehouseCode() == null
+                            ? null
+                            : WarehouseCode.of(releaseResult.getWarehouseCode()),
+                    releaseResult.getFailureReason() == null
+                                    || releaseResult.getFailureReason().isBlank()
                             ? reason
                             : releaseResult.getFailureReason());
         }
@@ -221,6 +234,8 @@ public class OrderOutboxActionExecutor {
     }
 
     private Order findOrder(String orderNo) {
-        return orderRepository.findByOrderNo(orderNo).orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+        return orderRepository
+                .findByOrderNo(orderNo)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
     }
 }

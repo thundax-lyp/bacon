@@ -34,22 +34,20 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
             Instant leaseUntil,
             Instant claimedAt,
             Instant updatedAt) {
-        return storage.computeIfPresent(
-                        businessKey(key.orderNo().value(), key.eventType()),
-                        (mapKey, record) -> {
-                            if (record.getStatus() != OrderIdempotencyStatus.PROCESSING) {
-                                return record;
-                            }
-                            if (record.getLeaseUntil() != null
-                                    && !record.getLeaseUntil().isBefore(claimedAt)) {
-                                return record;
-                            }
-                            record.setProcessingOwner(processingOwner);
-                            record.setLeaseUntil(leaseUntil);
-                            record.setClaimedAt(claimedAt);
-                            record.setUpdatedAt(updatedAt);
-                            return record;
-                        })
+        return storage.computeIfPresent(businessKey(key.orderNo().value(), key.eventType()), (mapKey, record) -> {
+                    if (record.getStatus() != OrderIdempotencyStatus.PROCESSING) {
+                        return record;
+                    }
+                    if (record.getLeaseUntil() != null
+                            && !record.getLeaseUntil().isBefore(claimedAt)) {
+                        return record;
+                    }
+                    record.setProcessingOwner(processingOwner);
+                    record.setLeaseUntil(leaseUntil);
+                    record.setClaimedAt(claimedAt);
+                    record.setUpdatedAt(updatedAt);
+                    return record;
+                })
                 != null;
     }
 
@@ -81,22 +79,19 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
             Instant leaseUntil,
             Instant claimedAt,
             Instant updatedAt) {
-        return storage.computeIfPresent(
-                        businessKey(key.orderNo().value(), key.eventType()),
-                        (mapKey, record) -> {
-                            if (record.getStatus() != OrderIdempotencyStatus.FAILED) {
-                                return record;
-                            }
-                            record.setStatus(OrderIdempotencyStatus.PROCESSING);
-                            record.setAttemptCount(
-                                    (record.getAttemptCount() == null ? 0 : record.getAttemptCount()) + 1);
-                            record.setProcessingOwner(processingOwner);
-                            record.setLeaseUntil(leaseUntil);
-                            record.setClaimedAt(claimedAt);
-                            record.setLastError(null);
-                            record.setUpdatedAt(updatedAt);
-                            return record;
-                        })
+        return storage.computeIfPresent(businessKey(key.orderNo().value(), key.eventType()), (mapKey, record) -> {
+                    if (record.getStatus() != OrderIdempotencyStatus.FAILED) {
+                        return record;
+                    }
+                    record.setStatus(OrderIdempotencyStatus.PROCESSING);
+                    record.setAttemptCount((record.getAttemptCount() == null ? 0 : record.getAttemptCount()) + 1);
+                    record.setProcessingOwner(processingOwner);
+                    record.setLeaseUntil(leaseUntil);
+                    record.setClaimedAt(claimedAt);
+                    record.setLastError(null);
+                    record.setUpdatedAt(updatedAt);
+                    return record;
+                })
                 != null;
     }
 
@@ -118,14 +113,12 @@ public class InMemoryOrderIdempotencyRepositoryImpl implements OrderIdempotencyR
 
     private boolean updateStatus(
             OrderIdempotencyRecordKey key, OrderIdempotencyStatus status, String lastError, Instant updatedAt) {
-        return storage.computeIfPresent(
-                        businessKey(key.orderNo().value(), key.eventType()),
-                        (mapKey, record) -> {
-                            record.setStatus(status);
-                            record.setLastError(lastError);
-                            record.setUpdatedAt(updatedAt);
-                            return record;
-                        })
+        return storage.computeIfPresent(businessKey(key.orderNo().value(), key.eventType()), (mapKey, record) -> {
+                    record.setStatus(status);
+                    record.setLastError(lastError);
+                    record.setUpdatedAt(updatedAt);
+                    return record;
+                })
                 != null;
     }
 

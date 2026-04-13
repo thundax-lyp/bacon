@@ -64,21 +64,28 @@ class OrderCreateApplicationServiceTest {
                 new SuccessPaymentCommandFacade());
         OrderQueryApplicationService queryService = new OrderQueryApplicationService(repository);
 
-        OrderSummaryDTO result = runWithContext(1001L, 2001L, () -> service.create(new CreateOrderCommand(
+        OrderSummaryDTO result = runWithContext(
+                1001L,
                 2001L,
-                "CNY",
-                "MOCK",
-                "remark",
-                Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(
-                        101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
+                () -> service.create(new CreateOrderCommand(
+                        2001L,
+                        "CNY",
+                        "MOCK",
+                        "remark",
+                        Instant.parse("2026-03-30T00:00:00Z"),
+                        List.of(new CreateOrderItemCommand(
+                                101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
 
         assertEquals("ORD-10001", result.getOrderNo());
         assertEquals(new BigDecimal("20.00"), result.getTotalAmount());
         assertEquals("RESERVING_STOCK", result.getOrderStatus());
         assertEquals("UNPAID", result.getPayStatus());
         assertEquals("RESERVING", result.getInventoryStatus());
-        assertEquals(1, runWithContext(1001L, 2001L, () -> queryService.getByOrderNo("ORD-10001")).getItems().size());
+        assertEquals(
+                1,
+                runWithContext(1001L, 2001L, () -> queryService.getByOrderNo("ORD-10001"))
+                        .getItems()
+                        .size());
         assertEquals(
                 "https://cdn.example.com/101.png",
                 runWithContext(1001L, 2001L, () -> queryService.getByOrderNo("ORD-10001"))
@@ -99,41 +106,46 @@ class OrderCreateApplicationServiceTest {
                 new OrderIdempotencyExecutor(new TestOrderIdempotencyRepository()),
                 new OrderDerivedDataPersistenceSupport(repository, new TestIdGenerator()));
         OrderQueryApplicationService queryService = new OrderQueryApplicationService(repository);
-        runWithContext(1001L, 2001L, () -> createService.create(new CreateOrderCommand(
+        runWithContext(
+                1001L,
                 2001L,
-                "CNY",
-                "MOCK",
-                "r1",
-                Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(
-                        101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10))))));
-        OrderSummaryDTO paid = runWithContext(1001L, 2001L, () -> createService.create(new CreateOrderCommand(
+                () -> createService.create(new CreateOrderCommand(
+                        2001L,
+                        "CNY",
+                        "MOCK",
+                        "r1",
+                        Instant.parse("2026-03-30T00:00:00Z"),
+                        List.of(new CreateOrderItemCommand(
+                                101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10))))));
+        OrderSummaryDTO paid = runWithContext(
+                1001L,
                 2001L,
-                "CNY",
-                "MOCK",
-                "r2",
-                Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(
-                        102L, "item-2", "https://cdn.example.com/102.png", 1, BigDecimal.valueOf(20))))));
-        runWithContext(1002L, 2002L, () -> createService.create(new CreateOrderCommand(
+                () -> createService.create(new CreateOrderCommand(
+                        2001L,
+                        "CNY",
+                        "MOCK",
+                        "r2",
+                        Instant.parse("2026-03-30T00:00:00Z"),
+                        List.of(new CreateOrderItemCommand(
+                                102L, "item-2", "https://cdn.example.com/102.png", 1, BigDecimal.valueOf(20))))));
+        runWithContext(
+                1002L,
                 2002L,
-                "CNY",
-                "MOCK",
-                "r3",
-                Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(
-                        103L, "item-3", "https://cdn.example.com/103.png", 1, BigDecimal.valueOf(30))))));
+                () -> createService.create(new CreateOrderCommand(
+                        2002L,
+                        "CNY",
+                        "MOCK",
+                        "r3",
+                        Instant.parse("2026-03-30T00:00:00Z"),
+                        List.of(new CreateOrderItemCommand(
+                                103L, "item-3", "https://cdn.example.com/103.png", 1, BigDecimal.valueOf(30))))));
         runWithContext(1001L, 2001L, () -> {
             Order paidOrder = repository.findByOrderNo(paid.getOrderNo()).orElseThrow();
             paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseCode.of("1"));
             paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
             repository.save(paidOrder);
             paymentResultService.markPaid(
-                    paid.getOrderNo(),
-                    "PAY-1",
-                    "MOCK",
-                    BigDecimal.valueOf(20),
-                    Instant.parse("2026-03-26T10:00:00Z"));
+                    paid.getOrderNo(), "PAY-1", "MOCK", BigDecimal.valueOf(20), Instant.parse("2026-03-26T10:00:00Z"));
         });
 
         OrderPageResultDTO page = runWithContext(
@@ -160,17 +172,22 @@ class OrderCreateApplicationServiceTest {
                 paymentFacade,
                 new OrderIdempotencyExecutor(new TestOrderIdempotencyRepository()),
                 new OrderDerivedDataPersistenceSupport(repository, new TestIdGenerator()));
-        OrderSummaryDTO created = runWithContext(1001L, 2001L, () -> createService.create(new CreateOrderCommand(
+        OrderSummaryDTO created = runWithContext(
+                1001L,
                 2001L,
-                "CNY",
-                "MOCK",
-                "r1",
-                Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(
-                        101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10))))));
+                () -> createService.create(new CreateOrderCommand(
+                        2001L,
+                        "CNY",
+                        "MOCK",
+                        "r1",
+                        Instant.parse("2026-03-30T00:00:00Z"),
+                        List.of(new CreateOrderItemCommand(
+                                101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10))))));
 
         runWithContext(1001L, 2001L, () -> cancelService.cancel(created.getOrderNo(), "SYSTEM_CANCELLED"));
-        Order found = runWithContext(1001L, 2001L, () -> repository.findByOrderNo(created.getOrderNo()).orElseThrow());
+        Order found = runWithContext(1001L, 2001L, () -> repository
+                .findByOrderNo(created.getOrderNo())
+                .orElseThrow());
 
         assertEquals("CANCELLED", found.getOrderStatus().value());
         assertEquals("SYSTEM_CANCELLED", found.getCancelReason());
@@ -185,14 +202,17 @@ class OrderCreateApplicationServiceTest {
                 () -> OrderNo.of("ORD-FAIL-1"),
                 new FailedInventoryCommandFacade(),
                 new SuccessPaymentCommandFacade());
-        OrderSummaryDTO summary = runWithContext(1001L, 2001L, () -> service.create(new CreateOrderCommand(
+        OrderSummaryDTO summary = runWithContext(
+                1001L,
                 2001L,
-                "CNY",
-                "MOCK",
-                "remark",
-                Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(
-                        101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
+                () -> service.create(new CreateOrderCommand(
+                        2001L,
+                        "CNY",
+                        "MOCK",
+                        "remark",
+                        Instant.parse("2026-03-30T00:00:00Z"),
+                        List.of(new CreateOrderItemCommand(
+                                101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
         assertEquals("RESERVING_STOCK", summary.getOrderStatus());
     }
 
@@ -202,14 +222,17 @@ class OrderCreateApplicationServiceTest {
         TestOrderRepository repository = new TestOrderRepository();
         OrderCreateApplicationService service = newCreateService(
                 repository, () -> OrderNo.of("ORD-FAIL-2"), inventoryFacade, new FailedPaymentCommandFacade());
-        OrderSummaryDTO summary = runWithContext(1001L, 2001L, () -> service.create(new CreateOrderCommand(
+        OrderSummaryDTO summary = runWithContext(
+                1001L,
                 2001L,
-                "CNY",
-                "MOCK",
-                "remark",
-                Instant.parse("2026-03-30T00:00:00Z"),
-                List.of(new CreateOrderItemCommand(
-                        101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
+                () -> service.create(new CreateOrderCommand(
+                        2001L,
+                        "CNY",
+                        "MOCK",
+                        "remark",
+                        Instant.parse("2026-03-30T00:00:00Z"),
+                        List.of(new CreateOrderItemCommand(
+                                101L, "demo-item", "https://cdn.example.com/101.png", 2, BigDecimal.valueOf(10))))));
         assertEquals("RESERVING_STOCK", summary.getOrderStatus());
     }
 
@@ -286,24 +309,20 @@ class OrderCreateApplicationServiceTest {
                 com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key,
                 Instant updatedAt) {
             AtomicLong updated = new AtomicLong(0);
-            storage.computeIfPresent(
-                    keyOf(key.orderNo().value(), key.eventType()),
-                    (mapKey, existing) -> {
-                        if (existing.getStatus()
-                                != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus
-                                        .PROCESSING) {
-                            return existing;
-                        }
-                        existing.setStatus(
-                                com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.SUCCESS);
-                        existing.setLastError(null);
-                        existing.setProcessingOwner(null);
-                        existing.setLeaseUntil(null);
-                        existing.setClaimedAt(null);
-                        existing.setUpdatedAt(updatedAt);
-                        updated.incrementAndGet();
-                        return existing;
-                    });
+            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
+                if (existing.getStatus()
+                        != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING) {
+                    return existing;
+                }
+                existing.setStatus(com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.SUCCESS);
+                existing.setLastError(null);
+                existing.setProcessingOwner(null);
+                existing.setLeaseUntil(null);
+                existing.setClaimedAt(null);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
             return updated.get() > 0;
         }
 
@@ -313,24 +332,20 @@ class OrderCreateApplicationServiceTest {
                 String lastError,
                 Instant updatedAt) {
             AtomicLong updated = new AtomicLong(0);
-            storage.computeIfPresent(
-                    keyOf(key.orderNo().value(), key.eventType()),
-                    (mapKey, existing) -> {
-                        if (existing.getStatus()
-                                != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus
-                                        .PROCESSING) {
-                            return existing;
-                        }
-                        existing.setStatus(
-                                com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.FAILED);
-                        existing.setLastError(lastError);
-                        existing.setProcessingOwner(null);
-                        existing.setLeaseUntil(null);
-                        existing.setClaimedAt(null);
-                        existing.setUpdatedAt(updatedAt);
-                        updated.incrementAndGet();
-                        return existing;
-                    });
+            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
+                if (existing.getStatus()
+                        != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING) {
+                    return existing;
+                }
+                existing.setStatus(com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.FAILED);
+                existing.setLastError(lastError);
+                existing.setProcessingOwner(null);
+                existing.setLeaseUntil(null);
+                existing.setClaimedAt(null);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
             return updated.get() > 0;
         }
 
@@ -342,24 +357,21 @@ class OrderCreateApplicationServiceTest {
                 Instant claimedAt,
                 Instant updatedAt) {
             AtomicLong updated = new AtomicLong(0);
-            storage.computeIfPresent(
-                    keyOf(key.orderNo().value(), key.eventType()),
-                    (mapKey, existing) -> {
-                        if (existing.getStatus()
-                                != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.FAILED) {
-                            return existing;
-                        }
-                        existing.setStatus(
-                                com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING);
-                        existing.setAttemptCount(existing.getAttemptCount() + 1);
-                        existing.setLastError(null);
-                        existing.setProcessingOwner(processingOwner);
-                        existing.setLeaseUntil(leaseUntil);
-                        existing.setClaimedAt(claimedAt);
-                        existing.setUpdatedAt(updatedAt);
-                        updated.incrementAndGet();
-                        return existing;
-                    });
+            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
+                if (existing.getStatus()
+                        != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.FAILED) {
+                    return existing;
+                }
+                existing.setStatus(com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING);
+                existing.setAttemptCount(existing.getAttemptCount() + 1);
+                existing.setLastError(null);
+                existing.setProcessingOwner(processingOwner);
+                existing.setLeaseUntil(leaseUntil);
+                existing.setClaimedAt(claimedAt);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
             return updated.get() > 0;
         }
 
@@ -371,25 +383,22 @@ class OrderCreateApplicationServiceTest {
                 Instant claimedAt,
                 Instant updatedAt) {
             AtomicLong updated = new AtomicLong(0);
-            storage.computeIfPresent(
-                    keyOf(key.orderNo().value(), key.eventType()),
-                    (mapKey, existing) -> {
-                        if (existing.getStatus()
-                                != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus
-                                        .PROCESSING) {
-                            return existing;
-                        }
-                        Instant existingLease = existing.getLeaseUntil();
-                        if (existingLease != null && existingLease.isAfter(claimedAt)) {
-                            return existing;
-                        }
-                        existing.setProcessingOwner(processingOwner);
-                        existing.setLeaseUntil(leaseUntil);
-                        existing.setClaimedAt(claimedAt);
-                        existing.setUpdatedAt(updatedAt);
-                        updated.incrementAndGet();
-                        return existing;
-                    });
+            storage.computeIfPresent(keyOf(key.orderNo().value(), key.eventType()), (mapKey, existing) -> {
+                if (existing.getStatus()
+                        != com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus.PROCESSING) {
+                    return existing;
+                }
+                Instant existingLease = existing.getLeaseUntil();
+                if (existingLease != null && existingLease.isAfter(claimedAt)) {
+                    return existing;
+                }
+                existing.setProcessingOwner(processingOwner);
+                existing.setLeaseUntil(leaseUntil);
+                existing.setClaimedAt(claimedAt);
+                existing.setUpdatedAt(updatedAt);
+                updated.incrementAndGet();
+                return existing;
+            });
             return updated.get() > 0;
         }
 
@@ -562,8 +571,10 @@ class OrderCreateApplicationServiceTest {
             List<Order> filtered = storage.values().stream()
                     .filter(order -> isTenantMatched(orderTenantStorage.get(toOrderIdValue(order))))
                     .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
-                    .filter(order -> orderNo == null || toOrderNoValue(order.getOrderNo()).contains(orderNo))
-                    .filter(order -> orderStatus == null || orderStatus.equals(toOrderStatusValue(order.getOrderStatus())))
+                    .filter(order -> orderNo == null
+                            || toOrderNoValue(order.getOrderNo()).contains(orderNo))
+                    .filter(order ->
+                            orderStatus == null || orderStatus.equals(toOrderStatusValue(order.getOrderStatus())))
                     .filter(order -> payStatus == null || payStatus.equals(toPayStatusValue(order.getPayStatus())))
                     .filter(order -> inventoryStatus == null
                             || inventoryStatus.equals(toInventoryStatusValue(order.getInventoryStatus())))

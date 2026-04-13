@@ -71,7 +71,9 @@ public class OrderCreateApplicationService {
                 items.stream()
                         .map(item -> OrderItem.create(
                                 idGenerator.nextId(ORDER_ITEM_ID_BIZ_TAG),
-                                savedOrder.getId() == null ? null : savedOrder.getId().value(),
+                                savedOrder.getId() == null
+                                        ? null
+                                        : savedOrder.getId().value(),
                                 item.skuId(),
                                 item.skuName(),
                                 item.imageUrl(),
@@ -88,12 +90,24 @@ public class OrderCreateApplicationService {
                 savedOrder.getId() == null ? null : savedOrder.getId().value(),
                 savedOrder.getOrderNo() == null ? null : savedOrder.getOrderNo().value(),
                 savedOrder.getUserId() == null ? null : savedOrder.getUserId().value(),
-                savedOrder.getOrderStatus() == null ? null : savedOrder.getOrderStatus().value(),
-                savedOrder.getPayStatus() == null ? null : savedOrder.getPayStatus().value(),
-                savedOrder.getInventoryStatus() == null ? null : savedOrder.getInventoryStatus().value(),
-                savedOrder.getPaymentNo() == null ? null : savedOrder.getPaymentNo().value(),
-                savedOrder.getReservationNo() == null ? null : ReservationNoCodec.toValue(savedOrder.getReservationNo()),
-                savedOrder.getCurrencyCode() == null ? null : savedOrder.getCurrencyCode().value(),
+                savedOrder.getOrderStatus() == null
+                        ? null
+                        : savedOrder.getOrderStatus().value(),
+                savedOrder.getPayStatus() == null
+                        ? null
+                        : savedOrder.getPayStatus().value(),
+                savedOrder.getInventoryStatus() == null
+                        ? null
+                        : savedOrder.getInventoryStatus().value(),
+                savedOrder.getPaymentNo() == null
+                        ? null
+                        : savedOrder.getPaymentNo().value(),
+                savedOrder.getReservationNo() == null
+                        ? null
+                        : ReservationNoCodec.toValue(savedOrder.getReservationNo()),
+                savedOrder.getCurrencyCode() == null
+                        ? null
+                        : savedOrder.getCurrencyCode().value(),
                 savedOrder.getTotalAmount().value(),
                 savedOrder.getPayableAmount().value(),
                 savedOrder.getCancelReason(),

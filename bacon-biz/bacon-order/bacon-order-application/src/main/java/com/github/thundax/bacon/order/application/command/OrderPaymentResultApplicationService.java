@@ -42,11 +42,7 @@ public class OrderPaymentResultApplicationService {
     }
 
     public void markPaid(
-            String orderNo,
-            String paymentNo,
-            String channelCode,
-            BigDecimal paidAmount,
-            Instant paidTime) {
+            String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
         BaconContextHolder.requireTenantId();
         // 支付成功回写是跨域回调入口，必须走幂等执行器，避免同一支付结果被重复扣减库存。
         orderIdempotencyExecutor.execute(
@@ -56,7 +52,8 @@ public class OrderPaymentResultApplicationService {
                 () -> doMarkPaid(orderNo, paymentNo, channelCode, paidAmount, paidTime));
     }
 
-    public void markPaymentFailed(String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
+    public void markPaymentFailed(
+            String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
         BaconContextHolder.requireTenantId();
         // 支付失败回写同样需要幂等，避免重复失败通知把释放库存动作执行多次。
         orderIdempotencyExecutor.execute(
@@ -67,24 +64,17 @@ public class OrderPaymentResultApplicationService {
     }
 
     private void doMarkPaid(
-            String orderNo,
-            String paymentNo,
-            String channelCode,
-            BigDecimal paidAmount,
-            Instant paidTime) {
+            String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
         Order order = orderRepository
                 .findByOrderNo(orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
-        order.markPaid(
-                toPaymentNo(paymentNo),
-                channelCode,
-                Money.of(paidAmount, order.getCurrencyCode()),
-                paidTime);
+        order.markPaid(toPaymentNo(paymentNo), channelCode, Money.of(paidAmount, order.getCurrencyCode()), paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
         InventoryReservationResultDTO deductResult = inventoryCommandFacade.deductReservedStock(orderNo);
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
-            String reason = deductResult.getFailureReason() == null || deductResult.getFailureReason().isBlank()
+            String reason = deductResult.getFailureReason() == null
+                            || deductResult.getFailureReason().isBlank()
                     ? "inventory deduct failed"
                     : deductResult.getFailureReason();
             order.markInventoryFailed(
@@ -102,14 +92,16 @@ public class OrderPaymentResultApplicationService {
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
     }
 
-    private void doMarkPaymentFailed(String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
+    private void doMarkPaymentFailed(
+            String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
         Order order = orderRepository
                 .findByOrderNo(orderNo)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaymentFailed(toPaymentNo(paymentNo), reason, channelStatus, failedTime);
         // 支付失败后的主目标是回收预占库存，因此这里固定走 releaseReservedStock，而不是尝试别的库存路径。
-        InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(orderNo, "PAYMENT_FAILED");
+        InventoryReservationResultDTO releaseResult =
+                inventoryCommandFacade.releaseReservedStock(orderNo, "PAYMENT_FAILED");
         applyReleaseResult(order, releaseResult, "PAYMENT_FAILED");
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAYMENT_FAILED, beforeStatus);
@@ -119,7 +111,9 @@ public class OrderPaymentResultApplicationService {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(
                     ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
-                    releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
+                    releaseResult.getWarehouseCode() == null
+                            ? null
+                            : WarehouseCode.of(releaseResult.getWarehouseCode()),
                     releaseResult.getReleaseReason(),
                     releaseResult.getReleasedAt());
             return;
@@ -127,7 +121,8 @@ public class OrderPaymentResultApplicationService {
         order.markInventoryFailed(
                 ReservationNoCodec.toDomain(releaseResult.getReservationNo()),
                 releaseResult.getWarehouseCode() == null ? null : WarehouseCode.of(releaseResult.getWarehouseCode()),
-                releaseResult.getFailureReason() == null || releaseResult.getFailureReason().isBlank()
+                releaseResult.getFailureReason() == null
+                                || releaseResult.getFailureReason().isBlank()
                         ? fallbackReason
                         : releaseResult.getFailureReason());
     }

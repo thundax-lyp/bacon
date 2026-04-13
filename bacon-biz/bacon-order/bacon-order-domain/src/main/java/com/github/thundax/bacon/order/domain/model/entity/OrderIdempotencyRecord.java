@@ -40,8 +40,7 @@ public class OrderIdempotencyRecord {
 
     public static OrderIdempotencyRecord create(
             OrderIdempotencyRecordKey key, String processingOwner, Instant leaseUntil, Instant claimedAt) {
-        return new OrderIdempotencyRecord(
-                key, null, null, null, processingOwner, leaseUntil, claimedAt, null, null);
+        return new OrderIdempotencyRecord(key, null, null, null, processingOwner, leaseUntil, claimedAt, null, null);
     }
 
     public static OrderIdempotencyRecord reconstruct(

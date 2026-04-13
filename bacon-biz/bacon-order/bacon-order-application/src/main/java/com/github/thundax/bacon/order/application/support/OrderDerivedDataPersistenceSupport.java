@@ -41,7 +41,8 @@ public class OrderDerivedDataPersistenceSupport {
                             : Money.of(order.getPaidAmount().value(), order.getCurrencyCode()),
                     order.getPaidAt(),
                     order.getPaymentFailureReason(),
-                    order.getPaymentChannelStatus() == null || order.getPaymentChannelStatus().isBlank()
+                    order.getPaymentChannelStatus() == null
+                                    || order.getPaymentChannelStatus().isBlank()
                             ? null
                             : PaymentChannelStatus.from(order.getPaymentChannelStatus()),
                     now));

@@ -43,7 +43,8 @@ public class OrderAuditLog {
             OperatorType operatorType,
             String operatorId,
             Instant occurredAt) {
-        return new OrderAuditLog(null, orderNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
+        return new OrderAuditLog(
+                null, orderNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
     }
 
     public static OrderAuditLog reconstruct(
@@ -55,6 +56,7 @@ public class OrderAuditLog {
             OperatorType operatorType,
             String operatorId,
             Instant occurredAt) {
-        return new OrderAuditLog(id, orderNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
+        return new OrderAuditLog(
+                id, orderNo, actionType, beforeStatus, afterStatus, operatorType, operatorId, occurredAt);
     }
 }

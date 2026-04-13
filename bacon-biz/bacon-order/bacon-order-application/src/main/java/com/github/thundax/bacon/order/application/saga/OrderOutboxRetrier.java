@@ -98,7 +98,9 @@ public class OrderOutboxRetrier {
                 orderOutboxDeadLetterRepository.saveDeadLetter(OrderOutboxDeadLetter.create(
                         idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG),
                         event.getId() == null ? null : event.getId().value(),
-                        event.getEventCode() == null ? null : event.getEventCode().value(),
+                        event.getEventCode() == null
+                                ? null
+                                : event.getEventCode().value(),
                         event.getOrderNo() == null ? null : event.getOrderNo().value(),
                         event.getEventType(),
                         event.getBusinessKey(),
@@ -116,7 +118,9 @@ public class OrderOutboxRetrier {
                 log.error(
                         "ALERT order outbox retry exhausted, outboxId={}, eventType={}, orderNo={}",
                         event.getId(),
-                        event.getEventType() == null ? null : event.getEventType().value(),
+                        event.getEventType() == null
+                                ? null
+                                : event.getEventType().value(),
                         event.getOrderNo() == null ? null : event.getOrderNo().value(),
                         ex);
             }

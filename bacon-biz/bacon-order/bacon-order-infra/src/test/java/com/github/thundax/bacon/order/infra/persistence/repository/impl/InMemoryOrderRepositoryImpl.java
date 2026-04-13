@@ -162,7 +162,8 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
         List<Order> filtered = storage.values().stream()
                 .filter(order -> isTenantMatched(orderTenantStorage.get(toOrderIdValue(order))))
                 .filter(order -> userId == null || userId.equals(toUserIdValue(order)))
-                .filter(order -> orderNo == null || toOrderNoValue(order.getOrderNo()).contains(orderNo))
+                .filter(order ->
+                        orderNo == null || toOrderNoValue(order.getOrderNo()).contains(orderNo))
                 .filter(order -> orderStatus == null || orderStatus.equals(toOrderStatusValue(order.getOrderStatus())))
                 .filter(order -> payStatus == null || payStatus.equals(toPayStatusValue(order.getPayStatus())))
                 .filter(order -> inventoryStatus == null

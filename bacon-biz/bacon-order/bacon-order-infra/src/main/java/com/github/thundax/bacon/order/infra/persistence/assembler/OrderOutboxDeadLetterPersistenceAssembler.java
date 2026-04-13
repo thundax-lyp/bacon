@@ -16,18 +16,26 @@ public class OrderOutboxDeadLetterPersistenceAssembler {
     public OrderOutboxDeadLetterDO toDataObject(OrderOutboxDeadLetter deadLetter) {
         return new OrderOutboxDeadLetterDO(
                 deadLetter.getId(),
-                deadLetter.getOutboxId() == null ? null : deadLetter.getOutboxId().value(),
-                deadLetter.getEventCode() == null ? null : deadLetter.getEventCode().value(),
+                deadLetter.getOutboxId() == null
+                        ? null
+                        : deadLetter.getOutboxId().value(),
+                deadLetter.getEventCode() == null
+                        ? null
+                        : deadLetter.getEventCode().value(),
                 BaconContextHolder.requireTenantId(),
                 deadLetter.getOrderNo() == null ? null : deadLetter.getOrderNo().value(),
-                deadLetter.getEventType() == null ? null : deadLetter.getEventType().value(),
+                deadLetter.getEventType() == null
+                        ? null
+                        : deadLetter.getEventType().value(),
                 deadLetter.getBusinessKey(),
                 deadLetter.getPayload(),
                 deadLetter.getRetryCount(),
                 deadLetter.getErrorMessage(),
                 deadLetter.getDeadReason(),
                 deadLetter.getDeadAt(),
-                deadLetter.getReplayStatus() == null ? null : deadLetter.getReplayStatus().value(),
+                deadLetter.getReplayStatus() == null
+                        ? null
+                        : deadLetter.getReplayStatus().value(),
                 deadLetter.getReplayCount(),
                 deadLetter.getLastReplayAt(),
                 deadLetter.getLastReplayMessage(),
@@ -48,7 +56,9 @@ public class OrderOutboxDeadLetterPersistenceAssembler {
                 dataObject.getErrorMessage(),
                 dataObject.getDeadReason(),
                 dataObject.getDeadAt(),
-                dataObject.getReplayStatus() == null ? null : OrderOutboxReplayStatus.from(dataObject.getReplayStatus()),
+                dataObject.getReplayStatus() == null
+                        ? null
+                        : OrderOutboxReplayStatus.from(dataObject.getReplayStatus()),
                 dataObject.getReplayCount(),
                 dataObject.getLastReplayAt(),
                 dataObject.getLastReplayMessage(),

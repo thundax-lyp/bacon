@@ -17,9 +17,15 @@ public class OrderInventorySnapshotPersistenceAssembler {
                 snapshot.getId(),
                 BaconContextHolder.requireTenantId(),
                 snapshot.getOrderNo() == null ? null : snapshot.getOrderNo().value(),
-                snapshot.getReservationNo() == null ? null : snapshot.getReservationNo().value(),
-                snapshot.getInventoryStatus() == null ? null : snapshot.getInventoryStatus().value(),
-                snapshot.getWarehouseCode() == null ? null : snapshot.getWarehouseCode().value(),
+                snapshot.getReservationNo() == null
+                        ? null
+                        : snapshot.getReservationNo().value(),
+                snapshot.getInventoryStatus() == null
+                        ? null
+                        : snapshot.getInventoryStatus().value(),
+                snapshot.getWarehouseCode() == null
+                        ? null
+                        : snapshot.getWarehouseCode().value(),
                 snapshot.getFailureReason(),
                 snapshot.getUpdatedAt());
     }

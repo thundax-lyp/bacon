@@ -1,12 +1,12 @@
 package com.github.thundax.bacon.order.infra.persistence.repository.impl;
 
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxDeadLetter;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxReplayStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -62,7 +62,9 @@ public class InMemoryOrderOutboxSupport {
                         || !event.getNextRetryAt().isAfter(now))
                 .sorted(Comparator.comparing(OrderOutboxEvent::getCreatedAt)
                         .thenComparing(
-                                event -> event.getId() == null ? null : event.getId().value(),
+                                event -> event.getId() == null
+                                        ? null
+                                        : event.getId().value(),
                                 Comparator.nullsLast(Comparator.naturalOrder())))
                 .limit(Math.max(limit, 1))
                 .toList();

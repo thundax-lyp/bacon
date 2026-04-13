@@ -67,7 +67,9 @@ public class OrderIdempotencyRepositorySupport {
                                 .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                                 .eq(
                                         OrderIdempotencyRecordDO::getOrderNo,
-                                        key.orderNo() == null ? null : key.orderNo().value())
+                                        key.orderNo() == null
+                                                ? null
+                                                : key.orderNo().value())
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
                                 .and(wrapper -> wrapper.isNull(OrderIdempotencyRecordDO::getLeaseUntil)
@@ -83,7 +85,9 @@ public class OrderIdempotencyRepositorySupport {
     public Optional<OrderIdempotencyRecord> findByBusinessKey(OrderIdempotencyRecordKey key) {
         return Optional.ofNullable(mapper.selectOne(Wrappers.<OrderIdempotencyRecordDO>lambdaQuery()
                         .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
-                        .eq(OrderIdempotencyRecordDO::getOrderNo, key.orderNo() == null ? null : key.orderNo().value())
+                        .eq(
+                                OrderIdempotencyRecordDO::getOrderNo,
+                                key.orderNo() == null ? null : key.orderNo().value())
                         .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())))
                 .map(orderIdempotencyRecordPersistenceAssembler::toDomain);
     }
@@ -96,7 +100,9 @@ public class OrderIdempotencyRepositorySupport {
                                 .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                                 .eq(
                                         OrderIdempotencyRecordDO::getOrderNo,
-                                        key.orderNo() == null ? null : key.orderNo().value())
+                                        key.orderNo() == null
+                                                ? null
+                                                : key.orderNo().value())
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
                                 .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.SUCCESS.value())
@@ -116,7 +122,9 @@ public class OrderIdempotencyRepositorySupport {
                                 .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                                 .eq(
                                         OrderIdempotencyRecordDO::getOrderNo,
-                                        key.orderNo() == null ? null : key.orderNo().value())
+                                        key.orderNo() == null
+                                                ? null
+                                                : key.orderNo().value())
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())
                                 .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.FAILED.value())
@@ -145,7 +153,9 @@ public class OrderIdempotencyRepositorySupport {
                                 .eq(OrderIdempotencyRecordDO::getTenantId, requireTenantId())
                                 .eq(
                                         OrderIdempotencyRecordDO::getOrderNo,
-                                        key.orderNo() == null ? null : key.orderNo().value())
+                                        key.orderNo() == null
+                                                ? null
+                                                : key.orderNo().value())
                                 .eq(OrderIdempotencyRecordDO::getEventType, key.eventType())
                                 .eq(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.FAILED.value())
                                 .set(OrderIdempotencyRecordDO::getStatus, OrderIdempotencyStatus.PROCESSING.value())

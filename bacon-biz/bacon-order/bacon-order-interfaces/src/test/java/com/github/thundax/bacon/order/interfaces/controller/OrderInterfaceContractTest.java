@@ -54,9 +54,7 @@ class OrderInterfaceContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/api/orders")
-                        .param("pageNo", "1")
-                        .param("pageSize", "20"))
+        mockMvc.perform(get("/api/orders").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.records[0].orderNo").value("ORD-1"));
@@ -74,9 +72,7 @@ class OrderInterfaceContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(9999L, 2001L));
 
-        mockMvc.perform(get("/api/orders")
-                        .param("pageNo", "1")
-                        .param("pageSize", "20"))
+        mockMvc.perform(get("/api/orders").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }
@@ -135,9 +131,7 @@ class OrderInterfaceContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/orders")
-                        .param("pageNo", "1")
-                        .param("pageSize", "20"))
+        mockMvc.perform(get("/providers/orders").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -202,9 +196,10 @@ class OrderInterfaceContractTest {
 
         @Override
         public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
-            if (Long.valueOf(9999L).equals(com.github.thundax.bacon.common.core.context.BaconContextHolder.currentTenantId())) {
-                throw new IllegalArgumentException(
-                        "Invalid tenant: " + com.github.thundax.bacon.common.core.context.BaconContextHolder.currentTenantId());
+            if (Long.valueOf(9999L)
+                    .equals(com.github.thundax.bacon.common.core.context.BaconContextHolder.currentTenantId())) {
+                throw new IllegalArgumentException("Invalid tenant: "
+                        + com.github.thundax.bacon.common.core.context.BaconContextHolder.currentTenantId());
             }
             OrderSummaryDTO summary = new OrderSummaryDTO(
                     1L,

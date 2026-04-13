@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.infra.repository.impl;
 
-import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
+import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
@@ -15,7 +15,6 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTaskItem;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
-import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOutboxStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
@@ -142,7 +141,9 @@ public class InMemoryInventoryRepositorySupport {
     public InventoryReservation saveReservation(InventoryReservation reservation) {
         Long tenantId = BaconContextHolder.currentTenantId();
         java.util.Objects.requireNonNull(reservation.getId(), "reservation.id must not be null");
-        reservation.getItems().forEach(item -> java.util.Objects.requireNonNull(item.getId(), "reservationItem.id must not be null"));
+        reservation
+                .getItems()
+                .forEach(item -> java.util.Objects.requireNonNull(item.getId(), "reservationItem.id must not be null"));
         reservations.put(
                 reservationKey(
                         tenantId,
@@ -463,7 +464,8 @@ public class InMemoryInventoryRepositorySupport {
                 .filter(task ->
                         task.getLeaseUntil() == null || !task.getLeaseUntil().isAfter(now))
                 .sorted(java.util.Comparator.comparing(InventoryAuditReplayTask::getCreatedAt)
-                        .thenComparing(task -> task.getId() == null ? null : task.getId().value()))
+                        .thenComparing(task ->
+                                task.getId() == null ? null : task.getId().value()))
                 .limit(limit)
                 .peek(task -> task.claim(processingOwner, leaseUntil, now))
                 .toList();

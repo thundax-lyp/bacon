@@ -72,7 +72,11 @@ class InventoryWorkflowIntegrationTest {
         InventoryOperationLogSupport operationLogService =
                 new InventoryOperationLogSupport(repository, repository, ID_GENERATOR);
         InventoryReservationApplicationService service = new InventoryReservationApplicationService(
-                repository, repository, operationLogService, new SequenceInventoryReservationNoGenerator(), ID_GENERATOR);
+                repository,
+                repository,
+                operationLogService,
+                new SequenceInventoryReservationNoGenerator(),
+                ID_GENERATOR);
 
         CountDownLatch start = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(2);

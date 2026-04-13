@@ -19,7 +19,6 @@ import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditRepl
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditActionType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditOperatorType;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayStatus;
-import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskItemStatus;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryAuditReplayTaskStatus;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.DeadLetterId;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.EventCode;
@@ -34,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -169,8 +167,11 @@ class InventoryAuditCompensationControllerContractTest {
             if (items == null || items.isEmpty()) {
                 return;
             }
-            taskItems.computeIfAbsent(
-                            items.get(0).getTaskId() == null ? null : items.get(0).getTaskId().value(),
+            taskItems
+                    .computeIfAbsent(
+                            items.get(0).getTaskId() == null
+                                    ? null
+                                    : items.get(0).getTaskId().value(),
                             key -> new ArrayList<>())
                     .addAll(items);
         }
@@ -190,7 +191,9 @@ class InventoryAuditCompensationControllerContractTest {
             Long tenantId = BaconContextHolder.requireTenantId();
             return findAuditReplayTaskById(taskId)
                     .filter(task -> java.util.Objects.equals(
-                            tenantId, taskTenants.get(task.getId() == null ? null : task.getId().value())))
+                            tenantId,
+                            taskTenants.get(
+                                    task.getId() == null ? null : task.getId().value())))
                     .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
                             || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
                     .map(task -> {
@@ -205,7 +208,9 @@ class InventoryAuditCompensationControllerContractTest {
             Long tenantId = BaconContextHolder.requireTenantId();
             return findAuditReplayTaskById(taskId)
                     .filter(task -> java.util.Objects.equals(
-                            tenantId, taskTenants.get(task.getId() == null ? null : task.getId().value())))
+                            tenantId,
+                            taskTenants.get(
+                                    task.getId() == null ? null : task.getId().value())))
                     .filter(task -> InventoryAuditReplayTaskStatus.PAUSED.equals(task.getStatus()))
                     .map(task -> {
                         task.resume(updatedAt);

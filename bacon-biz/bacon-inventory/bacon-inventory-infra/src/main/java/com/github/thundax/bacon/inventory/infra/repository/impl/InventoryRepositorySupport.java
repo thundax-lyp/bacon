@@ -131,10 +131,8 @@ public class InventoryRepositorySupport {
         if (skuIds == null || skuIds.isEmpty()) {
             return List.of();
         }
-        List<Long> skuIdValues = skuIds.stream()
-                .filter(Objects::nonNull)
-                .map(SkuId::value)
-                .toList();
+        List<Long> skuIdValues =
+                skuIds.stream().filter(Objects::nonNull).map(SkuId::value).toList();
         if (skuIdValues.isEmpty()) {
             return List.of();
         }
@@ -311,9 +309,7 @@ public class InventoryRepositorySupport {
             InventoryAuditOutboxDO claimedDataObject = auditOutboxMapper.selectById(candidate.getId());
             if (claimedDataObject != null) {
                 claimed.add(new InventoryAuditOutboxRepository.TenantScopedAuditOutbox(
-                        claimedDataObject.getTenantId() == null
-                                ? null
-                                : TenantId.of(claimedDataObject.getTenantId()),
+                        claimedDataObject.getTenantId() == null ? null : TenantId.of(claimedDataObject.getTenantId()),
                         InventoryAuditOutboxPersistenceAssembler.toDomain(claimedDataObject)));
             }
         }

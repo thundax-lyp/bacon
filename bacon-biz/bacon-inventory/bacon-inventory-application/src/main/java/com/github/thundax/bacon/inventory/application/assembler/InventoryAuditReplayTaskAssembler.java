@@ -15,7 +15,11 @@ public final class InventoryAuditReplayTaskAssembler {
     private InventoryAuditReplayTaskAssembler() {}
 
     public static InventoryAuditReplayTask toDomain(
-            InventoryAuditReplayTaskCreateDTO createDTO, TaskId taskId, TaskNo taskNo, String operatorType, Instant now) {
+            InventoryAuditReplayTaskCreateDTO createDTO,
+            TaskId taskId,
+            TaskNo taskNo,
+            String operatorType,
+            Instant now) {
         return InventoryAuditReplayTask.create(
                 taskId,
                 taskNo,

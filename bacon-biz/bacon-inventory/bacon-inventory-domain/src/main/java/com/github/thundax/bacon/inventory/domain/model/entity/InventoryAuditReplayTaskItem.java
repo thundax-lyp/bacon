@@ -40,7 +40,8 @@ public class InventoryAuditReplayTaskItem {
     /** 最后更新时间。 */
     private Instant updatedAt;
 
-    public static InventoryAuditReplayTaskItem create(Long id, TaskId taskId, DeadLetterId deadLetterId, Instant updatedAt) {
+    public static InventoryAuditReplayTaskItem create(
+            Long id, TaskId taskId, DeadLetterId deadLetterId, Instant updatedAt) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(taskId, "taskId must not be null");
         Objects.requireNonNull(deadLetterId, "deadLetterId must not be null");

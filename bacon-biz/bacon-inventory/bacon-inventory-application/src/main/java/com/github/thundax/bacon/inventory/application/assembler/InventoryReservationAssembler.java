@@ -45,13 +45,9 @@ public final class InventoryReservationAssembler {
                 dto.getWarehouseCode() == null ? null : WarehouseCode.of(dto.getWarehouseCode()),
                 dto.getCreatedAt(),
                 toDomainItems(dto.getReservationNo(), dto.getItems()),
-                dto.getReservationStatus() == null
-                        ? null
-                        : InventoryReservationStatus.from(dto.getReservationStatus()),
+                dto.getReservationStatus() == null ? null : InventoryReservationStatus.from(dto.getReservationStatus()),
                 dto.getFailureReason(),
-                dto.getReleaseReason() == null
-                        ? null
-                        : InventoryReleaseReason.from(dto.getReleaseReason()),
+                dto.getReleaseReason() == null ? null : InventoryReleaseReason.from(dto.getReleaseReason()),
                 dto.getReleasedAt(),
                 dto.getDeductedAt());
     }

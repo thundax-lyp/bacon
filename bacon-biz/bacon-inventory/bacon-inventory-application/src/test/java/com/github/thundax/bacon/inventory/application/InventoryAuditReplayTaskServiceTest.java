@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 
 class InventoryAuditReplayTaskApplicationServiceTest {
@@ -189,8 +188,11 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                 return;
             }
             items.forEach(item -> assertNotNull(item.getId()));
-            taskItems.computeIfAbsent(
-                            items.get(0).getTaskId() == null ? null : items.get(0).getTaskId().value(),
+            taskItems
+                    .computeIfAbsent(
+                            items.get(0).getTaskId() == null
+                                    ? null
+                                    : items.get(0).getTaskId().value(),
                             key -> new ArrayList<>())
                     .addAll(items);
         }
@@ -209,11 +211,12 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         public List<InventoryAuditReplayTask> claimRunnableAuditReplayTasks(
                 Instant now, int limit, String processingOwner, Instant leaseUntil) {
             return tasks.values().stream()
-                .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
-                        || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
-                .filter(task -> task.getLeaseUntil() == null
-                        || !task.getLeaseUntil().isAfter(now))
-                    .sorted(Comparator.comparing(task -> task.getId() == null ? null : task.getId().value()))
+                    .filter(task -> InventoryAuditReplayTaskStatus.PENDING.equals(task.getStatus())
+                            || InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))
+                    .filter(task -> task.getLeaseUntil() == null
+                            || !task.getLeaseUntil().isAfter(now))
+                    .sorted(Comparator.comparing(
+                            task -> task.getId() == null ? null : task.getId().value()))
                     .limit(limit)
                     .peek(task -> task.claim(processingOwner, leaseUntil, now))
                     .toList();
@@ -247,9 +250,9 @@ class InventoryAuditReplayTaskApplicationServiceTest {
                 Instant startedAt,
                 Instant finishedAt) {
             taskItems.values().forEach(items -> items.stream()
-                .filter(item -> item.getId().equals(itemId))
-                .findFirst()
-                .ifPresent(item -> {
+                    .filter(item -> item.getId().equals(itemId))
+                    .findFirst()
+                    .ifPresent(item -> {
                         item.markResult(itemStatus, replayStatus, replayKey, resultMessage, startedAt, finishedAt);
                     }));
         }

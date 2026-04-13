@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.inventory.infra.persistence.assembler;
 
-import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
+import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservationItem;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
@@ -19,15 +19,9 @@ public final class InventoryReservationPersistenceAssembler {
             InventoryReservationDO reservation, List<InventoryReservationItem> items) {
         return InventoryReservation.reconstruct(
                 reservation.getId(),
-                reservation.getReservationNo() == null
-                        ? null
-                        : ReservationNo.of(reservation.getReservationNo()),
-                reservation.getOrderNo() == null
-                        ? null
-                        : OrderNo.of(reservation.getOrderNo()),
-                reservation.getWarehouseCode() == null
-                        ? null
-                        : WarehouseCode.of(reservation.getWarehouseCode()),
+                reservation.getReservationNo() == null ? null : ReservationNo.of(reservation.getReservationNo()),
+                reservation.getOrderNo() == null ? null : OrderNo.of(reservation.getOrderNo()),
+                reservation.getWarehouseCode() == null ? null : WarehouseCode.of(reservation.getWarehouseCode()),
                 reservation.getCreatedAt(),
                 items,
                 reservation.getReservationStatus() == null

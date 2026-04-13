@@ -96,5 +96,4 @@ public class InventoryReleaseApplicationService {
         inventory.release(quantity);
         inventoryStockRepository.saveInventory(inventory);
     }
-
 }

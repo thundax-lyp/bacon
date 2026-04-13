@@ -91,5 +91,4 @@ public class InventoryDeductionApplicationService {
         inventory.deduct(quantity);
         inventoryStockRepository.saveInventory(inventory);
     }
-
 }

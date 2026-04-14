@@ -100,7 +100,7 @@
 - `micro` 默认只暴露 `nginx`。
 - `ops nginx` 只允许本机或内网访问。
 - `gateway`、业务服务、`MySQL`、`Redis`、`RocketMQ` 默认不映射公网端口。
-- `MinIO Console`、`register` 控制台如需暴露，必须在部署样例中明确标注为调试用途。
+- `MinIO Console`、`Nacos Console` 如需暴露，必须在部署样例中明确标注为调试用途。
 
 ## 12. Nacos Rule
 
@@ -111,4 +111,4 @@
 
 ## 13. Open Items
 
-- `bacon-register` 启动模块与 `Nacos Server` 运行时的最终收敛方式待后续实现统一。当前部署样例以 `Nacos Server` 运行时为准。
+- 无

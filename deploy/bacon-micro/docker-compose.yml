@@ -58,8 +58,8 @@ services:
     networks:
       - backend
 
-  bacon-register:
-    image: nacos/nacos-server:v2.4.3
+  nacos-server:
+    image: nacos/nacos-server:v3.1.1
     environment:
       MODE: standalone
       NACOS_AUTH_ENABLE: "false"
@@ -73,7 +73,7 @@ services:
     working_dir: /app
     command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
     depends_on:
-      - bacon-register
+      - nacos-server
     environment:
       BACON_SERVER_PORT: 8080
       BACON_NACOS_SERVER_ADDR: "${BACON_NACOS_SERVER_ADDR}"
@@ -94,7 +94,7 @@ services:
     working_dir: /app
     command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
     depends_on:
-      - bacon-register
+      - nacos-server
       - mysql
       - redis
       - rocketmq-nameserver
@@ -114,7 +114,7 @@ services:
     working_dir: /app
     command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
     depends_on:
-      - bacon-register
+      - nacos-server
       - mysql
       - redis
       - minio
@@ -133,7 +133,7 @@ services:
     working_dir: /app
     command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
     depends_on:
-      - bacon-register
+      - nacos-server
       - mysql
       - redis
       - rocketmq-nameserver
@@ -153,7 +153,7 @@ services:
     working_dir: /app
     command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
     depends_on:
-      - bacon-register
+      - nacos-server
       - mysql
       - redis
       - rocketmq-nameserver
@@ -173,7 +173,7 @@ services:
     working_dir: /app
     command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
     depends_on:
-      - bacon-register
+      - nacos-server
       - mysql
       - redis
       - rocketmq-nameserver
@@ -193,7 +193,7 @@ services:
     working_dir: /app
     command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
     depends_on:
-      - bacon-register
+      - nacos-server
       - mysql
       - minio
     environment:

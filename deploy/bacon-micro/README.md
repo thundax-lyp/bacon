@@ -20,7 +20,7 @@
 
 - `nginx`
 - `ops-nginx`
-- `bacon-register`，当前以 `Nacos Server` 运行时提供注册发现
+- `nacos-server`，固定使用 `nacos/nacos-server:v3.1.1` 提供注册发现
 - `bacon-gateway`
 - `bacon-auth-service`
 - `bacon-upms-service`
@@ -131,7 +131,7 @@ curl -i http://127.0.0.1:18080/api/providers/auth/tokens/verify
 
 ## Troubleshooting
 
-- 服务未注册到 Nacos，先看 `BACON_NACOS_SERVER_ADDR` 是否指向 `bacon-register:8848`
+- 服务未注册到 Nacos，先看 `BACON_NACOS_SERVER_ADDR` 是否指向 `nacos-server:8848`
 - `gateway` 转发失败，先看 `bacon-gateway` 日志和 `ops-nginx` 健康接口
 - `provider` 调用报 `401/403`，先核对 `BACON_*_PROVIDER_TOKEN` 与 `BACON_REMOTE_*_PROVIDER_TOKEN`
 - `MySQL` 库表缺失，先导入 `db/schema/*.sql` 与 `db/data/*.sql`

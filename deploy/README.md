@@ -71,5 +71,5 @@ mvn -q -pl bacon-app/bacon-gateway,bacon-app/bacon-auth-starter,bacon-app/bacon-
 
 - `/api/providers/**` 是内部路径，外部经过 `nginx` 会直接得到 `403`
 - `micro` 下内部 `provider` 调用不经过 `gateway`
-- 当前部署样例中 `Nacos Server` 运行时由容器提供；仓库里的 `bacon-register` 启动模块后续再与其统一
+- 当前 `micro` 部署样例固定使用 `nacos/nacos-server:v3.1.1` 作为注册中心运行时
 - `MySQL` 初始化脚本仍以仓库 `db/schema/*.sql` 与 `db/data/*.sql` 为准

@@ -59,8 +59,7 @@ public class MenuRepositoryImpl implements MenuRepository {
         TenantId tenantId = requireTenantId();
         Menu currentMenu =
                 findMenuById(menuId).orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
-        return support.updateMenu(Menu.create(
-                currentMenu.getId(),
+        Menu savedMenu = support.updateMenu(currentMenu.update(
                 currentMenu.getMenuType(),
                 currentMenu.getName(),
                 currentMenu.getParentId(),
@@ -70,13 +69,15 @@ public class MenuRepositoryImpl implements MenuRepository {
                 sort,
                 currentMenu.getPermissionCode(),
                 List.of()));
+        cacheSupport.evictTenantPermission(tenantId);
+        return savedMenu;
     }
 
     @Override
     public void deleteMenu(MenuId menuId) {
         TenantId tenantId = requireTenantId();
         support.deleteMenu(menuId);
-        roleRepository.removeMenuFromAssignments(tenantId, menuId);
+        roleRepository.removeMenuFromAssignments(menuId);
         cacheSupport.evictTenantPermission(tenantId);
     }
 

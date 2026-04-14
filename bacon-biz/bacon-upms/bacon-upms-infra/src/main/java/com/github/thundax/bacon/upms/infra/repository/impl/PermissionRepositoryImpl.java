@@ -46,25 +46,25 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     @Override
     public List<Menu> getUserMenuTree(UserId userId) {
         TenantId tenantId = requireTenantId();
-        return cacheSupport.getUserMenuTree(tenantId, userId, () -> loadUserMenuTree(tenantId, userId));
+        return cacheSupport.getUserMenuTree(tenantId, userId, () -> loadUserMenuTree(userId));
     }
 
     @Override
     public Set<String> getUserPermissionCodes(UserId userId) {
         TenantId tenantId = requireTenantId();
-        return cacheSupport.getUserPermissionCodes(tenantId, userId, () -> loadUserPermissionCodes(tenantId, userId));
+        return cacheSupport.getUserPermissionCodes(tenantId, userId, () -> loadUserPermissionCodes(userId));
     }
 
     @Override
     public Set<DepartmentId> getUserDepartmentIds(UserId userId) {
         TenantId tenantId = requireTenantId();
-        return cacheSupport.getUserDepartmentIds(tenantId, userId, () -> loadUserDepartmentIds(tenantId, userId));
+        return cacheSupport.getUserDepartmentIds(tenantId, userId, () -> loadUserDepartmentIds(userId));
     }
 
     @Override
     public Set<String> getUserScopeTypes(UserId userId) {
         TenantId tenantId = requireTenantId();
-        return cacheSupport.getUserScopeTypes(tenantId, userId, () -> loadUserScopeTypes(tenantId, userId));
+        return cacheSupport.getUserScopeTypes(tenantId, userId, () -> loadUserScopeTypes(userId));
     }
 
     @Override
@@ -72,7 +72,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         return getUserScopeTypes(userId).contains("ALL");
     }
 
-    private List<Menu> loadUserMenuTree(TenantId tenantId, UserId userId) {
+    private List<Menu> loadUserMenuTree(UserId userId) {
         List<Role> roles = roleRepository.findRolesByUserId(userId);
         if (roles.isEmpty()) {
             return List.of();
@@ -88,7 +88,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         return buildMenuTree(menus);
     }
 
-    private Set<String> loadUserPermissionCodes(TenantId tenantId, UserId userId) {
+    private Set<String> loadUserPermissionCodes(UserId userId) {
         List<Role> roles = roleRepository.findRolesByUserId(userId);
         if (roles.isEmpty()) {
             return Set.of();
@@ -110,7 +110,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         return Set.copyOf(permissionCodes);
     }
 
-    private Set<DepartmentId> loadUserDepartmentIds(TenantId tenantId, UserId userId) {
+    private Set<DepartmentId> loadUserDepartmentIds(UserId userId) {
         Set<DepartmentId> departmentIds = new HashSet<>();
         roleRepository
                 .findRolesByUserId(userId)
@@ -118,11 +118,11 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         return Set.copyOf(departmentIds);
     }
 
-    private Set<String> loadUserScopeTypes(TenantId tenantId, UserId userId) {
+    private Set<String> loadUserScopeTypes(UserId userId) {
         Set<String> scopeTypes = new HashSet<>();
         roleRepository
                 .findRolesByUserId(userId)
-                .forEach(role -> scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getId())));
+                .forEach(role -> scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getId()).value()));
         return Set.copyOf(scopeTypes);
     }
 

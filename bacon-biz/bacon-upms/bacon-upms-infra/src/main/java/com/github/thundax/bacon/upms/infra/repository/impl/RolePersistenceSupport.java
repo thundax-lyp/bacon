@@ -239,12 +239,13 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
     }
 
-    String getAssignedDataScopeType(RoleId roleId) {
+    RoleDataScopeType getAssignedDataScopeType(RoleId roleId) {
         requireTenantId();
         return Optional.ofNullable(dataPermissionRuleMapper.selectOne(Wrappers.<DataPermissionRuleDO>lambdaQuery()
                         .eq(DataPermissionRuleDO::getRoleId, roleId.value())))
                 .map(DataPermissionRuleDO::getDataScopeType)
-                .orElse("SELF");
+                .map(RoleDataScopeType::from)
+                .orElse(RoleDataScopeType.SELF);
     }
 
     Set<DepartmentId> getAssignedDataScopeDepartments(RoleId roleId) {

@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
 import java.util.List;
 import java.util.Optional;
@@ -25,39 +26,35 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public Optional<Tenant> findTenantByTenantId(TenantId tenantId) {
-        return support.findTenantByTenantId(tenantId);
+    public Optional<Tenant> findTenantByCode(TenantCode tenantCode) {
+        return Optional.ofNullable(tenantCode).flatMap(code -> support.findTenantByCode(code.value()));
     }
 
     @Override
-    public Optional<Tenant> findTenantByCode(String tenantCode) {
-        return support.findTenantByCode(tenantCode);
+    public List<Tenant> pageTenants(String name, TenantStatus status, int pageNo, int pageSize) {
+        return support.listTenants(name, status == null ? null : status.value(), pageNo, pageSize);
     }
 
     @Override
-    public List<Tenant> pageTenants(String name, String status, int pageNo, int pageSize) {
-        return support.listTenants(name, status, pageNo, pageSize);
+    public long countTenants(String name, TenantStatus status) {
+        return support.countTenants(name, status == null ? null : status.value());
     }
 
     @Override
-    public long countTenants(String name, String status) {
-        return support.countTenants(name, status);
-    }
-
-    @Override
-    public Tenant saveTenant(Tenant tenant) {
+    public Tenant insert(Tenant tenant) {
         return support.saveTenant(tenant);
     }
 
     @Override
-    public Tenant updateTenantStatus(TenantId tenantId, String status) {
-        Tenant currentTenant = findTenantByTenantId(tenantId)
+    public Tenant save(Tenant tenant) {
+        return support.saveTenant(tenant);
+    }
+
+    @Override
+    public Tenant updateStatus(TenantId tenantId, TenantStatus status) {
+        Tenant currentTenant = findTenantById(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
-        return support.saveTenant(Tenant.create(
-                currentTenant.getId(),
-                currentTenant.getName(),
-                currentTenant.getTenantCode(),
-                TenantStatus.from(status),
-                currentTenant.getExpiredAt()));
+        return support.saveTenant(currentTenant.update(
+                currentTenant.getName(), currentTenant.getTenantCode(), status, currentTenant.getExpiredAt()));
     }
 }

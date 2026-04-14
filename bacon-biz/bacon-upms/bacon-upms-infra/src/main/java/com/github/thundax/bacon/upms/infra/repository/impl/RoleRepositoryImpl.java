@@ -69,15 +69,18 @@ public class RoleRepositoryImpl implements RoleRepository {
     @Override
     public Role updateStatus(RoleId roleId, RoleStatus status) {
         TenantId tenantId = requireTenantId();
+        List<UserId> assignedUserIds = support.findAssignedUserIds(tenantId, roleId);
         Role currentRole = findRoleById(roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
-        return support.updateRole(Role.create(
+        Role savedRole = support.updateRole(Role.create(
                 currentRole.getId(),
                 currentRole.getCode(),
                 currentRole.getName(),
                 currentRole.getRoleType(),
                 currentRole.getDataScopeType(),
                 status));
+        cacheSupport.evictUsersPermission(tenantId, assignedUserIds);
+        return savedRole;
     }
 
     @Override
@@ -121,7 +124,7 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public String getAssignedDataScopeType(RoleId roleId) {
+    public RoleDataScopeType getAssignedDataScopeType(RoleId roleId) {
         findRoleById(roleId).orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
         return support.getAssignedDataScopeType(roleId);
     }
@@ -161,7 +164,7 @@ public class RoleRepositoryImpl implements RoleRepository {
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 
-    void removeMenuFromAssignments(TenantId tenantId, MenuId menuId) {
+    void removeMenuFromAssignments(MenuId menuId) {
         support.removeMenuFromAssignments(menuId);
     }
 

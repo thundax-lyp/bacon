@@ -376,7 +376,7 @@ class UpmsRepositoryIntegrationTest {
         assertTrue(userRepository
                 .findUserIdentity(UserIdentityType.PHONE, "13800000001")
                 .isPresent());
-        assertEquals(1L, userRepository.countUsers("ali", null, null, "ENABLED"));
+        assertEquals(1L, userRepository.countUsers("ali", null, null, UserStatus.ENABLED));
 
         List<Menu> menuTree = permissionRepository.getUserMenuTree(user.getId());
         assertEquals(1, menuTree.size());
@@ -537,7 +537,7 @@ class UpmsRepositoryIntegrationTest {
 
         assertEquals(Set.of(newMenu.getId()), roleRepository.getAssignedMenus(role.getId()));
         assertEquals(Set.of(newResource.getCode()), roleRepository.getAssignedResources(role.getId()));
-        assertEquals("ALL", roleRepository.getAssignedDataScopeType(role.getId()));
+        assertEquals(RoleDataScopeType.ALL, roleRepository.getAssignedDataScopeType(role.getId()));
         assertEquals(Set.of(child.getId()), roleRepository.getAssignedDataScopeDepartments(role.getId()));
         assertEquals(
                 Set.of("upms:new:view", "upms:new:edit"), permissionRepository.getUserPermissionCodes(user.getId()));
@@ -685,9 +685,8 @@ class UpmsRepositoryIntegrationTest {
         @Bean
         ResourceRepository resourceRepository(
                 ResourcePersistenceSupport resourcePersistenceSupport,
-                UpmsPermissionCacheSupport upmsPermissionCacheSupport,
-                Ids ids) {
-            return new ResourceRepositoryImpl(resourcePersistenceSupport, upmsPermissionCacheSupport, ids);
+                UpmsPermissionCacheSupport upmsPermissionCacheSupport) {
+            return new ResourceRepositoryImpl(resourcePersistenceSupport, upmsPermissionCacheSupport);
         }
 
         @Bean

@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuSortUpdateRequest;
@@ -11,6 +12,7 @@ import com.github.thundax.bacon.upms.interfaces.dto.MenuUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.response.MenuTreeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,48 +49,52 @@ public class MenuController {
     @HasPermission("sys:menu:create")
     @SysLog(module = "UPMS", action = "创建菜单", eventType = LogEventType.CREATE)
     @PostMapping
-    public MenuTreeResponse createMenu(@RequestBody MenuCreateRequest request) {
+    public MenuTreeResponse createMenu(@Valid @RequestBody MenuCreateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.createMenu(
-                request.menuType(),
-                request.name(),
-                request.parentId(),
-                request.routePath(),
-                request.componentName(),
-                request.icon(),
+                normalize(request.menuType()),
+                normalize(request.name()),
+                MenuIdCodec.toDomain(request.parentId()),
+                normalize(request.routePath()),
+                normalize(request.componentName()),
+                normalize(request.icon()),
                 request.sort(),
-                request.permissionCode()));
+                normalize(request.permissionCode())));
     }
 
     @Operation(summary = "修改菜单")
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "修改菜单", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}")
-    public MenuTreeResponse updateMenu(@PathVariable String menuId, @RequestBody MenuUpdateRequest request) {
+    public MenuTreeResponse updateMenu(@PathVariable Long menuId, @Valid @RequestBody MenuUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenu(
-                menuId,
-                request.menuType(),
-                request.name(),
-                request.parentId(),
-                request.routePath(),
-                request.componentName(),
-                request.icon(),
+                MenuIdCodec.toDomain(menuId),
+                normalize(request.menuType()),
+                normalize(request.name()),
+                MenuIdCodec.toDomain(request.parentId()),
+                normalize(request.routePath()),
+                normalize(request.componentName()),
+                normalize(request.icon()),
                 request.sort(),
-                request.permissionCode()));
+                normalize(request.permissionCode())));
     }
 
     @Operation(summary = "删除菜单")
     @HasPermission("sys:menu:delete")
     @SysLog(module = "UPMS", action = "删除菜单", eventType = LogEventType.DELETE)
     @DeleteMapping("/{menuId}")
-    public void deleteMenu(@PathVariable String menuId) {
-        menuApplicationService.deleteMenu(menuId);
+    public void deleteMenu(@PathVariable Long menuId) {
+        menuApplicationService.deleteMenu(MenuIdCodec.toDomain(menuId));
     }
 
     @Operation(summary = "调整菜单排序")
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "调整菜单排序", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}/sort")
-    public MenuTreeResponse updateSort(@PathVariable String menuId, @RequestBody MenuSortUpdateRequest request) {
-        return MenuTreeResponse.from(menuApplicationService.updateMenuSort(menuId, request.sort()));
+    public MenuTreeResponse updateSort(@PathVariable Long menuId, @RequestBody MenuSortUpdateRequest request) {
+        return MenuTreeResponse.from(menuApplicationService.updateMenuSort(MenuIdCodec.toDomain(menuId), request.sort()));
+    }
+
+    private String normalize(String value) {
+        return value == null ? null : value.trim();
     }
 }

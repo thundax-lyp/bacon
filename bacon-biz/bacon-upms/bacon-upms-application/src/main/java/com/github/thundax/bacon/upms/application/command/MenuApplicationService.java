@@ -51,19 +51,17 @@ public class MenuApplicationService {
             String icon,
             Integer sort,
             String permissionCode) {
-        validateRequired(menuType, "menuType");
-        validateRequired(name, "name");
         validateParent(parentId);
         return toTreeDto(menuRepository.insert(Menu.create(
                 MenuIdCodec.toDomain(idGenerator.nextId(MENU_ID_BIZ_TAG)),
-                normalize(menuType),
-                normalize(name),
+                menuType,
+                name,
                 parentId,
-                normalize(routePath),
-                normalize(componentName),
-                normalize(icon),
+                routePath,
+                componentName,
+                icon,
                 sort == null ? 0 : sort,
-                normalize(permissionCode),
+                permissionCode,
                 List.<Menu>of())));
     }
 
@@ -81,21 +79,19 @@ public class MenuApplicationService {
         Menu currentMenu = menuRepository
                 .findMenuById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
-        validateRequired(menuType, "menuType");
-        validateRequired(name, "name");
         validateParent(parentId);
         if (menuId.equals(parentId)) {
             throw new IllegalArgumentException("Menu parent cannot be self");
         }
         return toTreeDto(menuRepository.update(currentMenu.update(
-                normalize(menuType),
-                normalize(name),
+                menuType,
+                name,
                 parentId,
-                normalize(routePath),
-                normalize(componentName),
-                normalize(icon),
+                routePath,
+                componentName,
+                icon,
                 sort == null ? currentMenu.getSort() : sort,
-                normalize(permissionCode),
+                permissionCode,
                 List.<Menu>of())));
     }
 
@@ -132,13 +128,4 @@ public class MenuApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Parent menu not found: " + parentId));
     }
 
-    private void validateRequired(String value, String fieldName) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
-        }
-    }
-
-    private String normalize(String value) {
-        return value == null ? null : value.trim();
-    }
 }

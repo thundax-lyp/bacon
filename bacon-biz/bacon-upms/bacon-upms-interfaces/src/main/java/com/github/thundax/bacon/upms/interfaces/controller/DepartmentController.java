@@ -15,6 +15,7 @@ import com.github.thundax.bacon.upms.interfaces.response.DepartmentResponse;
 import com.github.thundax.bacon.upms.interfaces.response.DepartmentTreeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,10 +55,10 @@ public class DepartmentController {
     @HasPermission("sys:department:create")
     @SysLog(module = "UPMS", action = "创建部门", eventType = LogEventType.CREATE)
     @PostMapping
-    public DepartmentResponse createDepartment(@RequestBody DepartmentCreateRequest request) {
+    public DepartmentResponse createDepartment(@Valid @RequestBody DepartmentCreateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.createDepartment(
-                request.code(),
-                request.name(),
+                normalize(request.code()),
+                normalize(request.name()),
                 DepartmentIdCodec.toDomain(request.parentId()),
                 request.leaderUserId(),
                 request.sort()));
@@ -77,7 +78,7 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "按编码查询部门", eventType = LogEventType.QUERY)
     @GetMapping("/code/{departmentCode}")
     public DepartmentResponse getDepartmentByCode(@PathVariable String departmentCode) {
-        return DepartmentResponse.from(departmentApplicationService.getDepartmentByCode(departmentCode));
+        return DepartmentResponse.from(departmentApplicationService.getDepartmentByCode(normalize(departmentCode)));
     }
 
     @Operation(summary = "批量查询部门")
@@ -105,11 +106,11 @@ public class DepartmentController {
     @PutMapping("/{departmentId}")
     public DepartmentResponse updateDepartment(
             @PathVariable Long departmentId,
-            @RequestBody DepartmentUpdateRequest request) {
+            @Valid @RequestBody DepartmentUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartment(
                 DepartmentId.of(departmentId),
-                request.code(),
-                request.name(),
+                normalize(request.code()),
+                normalize(request.name()),
                 DepartmentIdCodec.toDomain(request.parentId()),
                 request.leaderUserId(),
                 request.sort()));
@@ -132,5 +133,9 @@ public class DepartmentController {
     @DeleteMapping("/{departmentId}")
     public void deleteDepartment(@PathVariable Long departmentId) {
         departmentApplicationService.deleteDepartment(DepartmentId.of(departmentId));
+    }
+
+    private String normalize(String value) {
+        return value == null ? null : value.trim();
     }
 }

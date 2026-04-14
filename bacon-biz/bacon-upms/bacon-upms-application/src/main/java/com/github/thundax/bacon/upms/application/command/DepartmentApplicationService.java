@@ -10,6 +10,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +26,13 @@ public class DepartmentApplicationService {
     private static final String DEPARTMENT_ID_BIZ_TAG = "department-id";
 
     private final DepartmentRepository departmentRepository;
+    private final UserRepository userRepository;
     private final IdGenerator idGenerator;
 
-    public DepartmentApplicationService(DepartmentRepository departmentRepository, IdGenerator idGenerator) {
+    public DepartmentApplicationService(
+            DepartmentRepository departmentRepository, UserRepository userRepository, IdGenerator idGenerator) {
         this.departmentRepository = departmentRepository;
+        this.userRepository = userRepository;
         this.idGenerator = idGenerator;
     }
 
@@ -77,13 +81,12 @@ public class DepartmentApplicationService {
     @Transactional
     public DepartmentDTO createDepartment(
             String code, String name, DepartmentId parentId, Long leaderUserId, Integer sort) {
-        validateRequired(code, "code");
-        validateRequired(name, "name");
         validateParent(parentId);
+        validateLeaderUser(leaderUserId);
         return DepartmentAssembler.toDto(departmentRepository.insert(Department.create(
                 DepartmentIdCodec.toDomain(idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG)),
-                normalize(code),
-                normalize(name),
+                code,
+                name,
                 parentId,
                 UserIdCodec.toDomain(leaderUserId),
                 defaultSort(sort),
@@ -96,15 +99,14 @@ public class DepartmentApplicationService {
         Department currentDepartment = departmentRepository
                 .findDepartmentById(departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
-        validateRequired(code, "code");
-        validateRequired(name, "name");
         validateParent(parentId);
+        validateLeaderUser(leaderUserId);
         if (departmentId.equals(parentId)) {
             throw new IllegalArgumentException("Department parent cannot be self");
         }
         return DepartmentAssembler.toDto(departmentRepository.update(currentDepartment.update(
-                normalize(code),
-                normalize(name),
+                code,
+                name,
                 parentId,
                 UserIdCodec.toDomain(leaderUserId),
                 sort == null ? currentDepartment.getSort() : sort,
@@ -151,17 +153,16 @@ public class DepartmentApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Parent department not found: " + parentId));
     }
 
+    private void validateLeaderUser(Long leaderUserId) {
+        if (leaderUserId == null) {
+            return;
+        }
+        userRepository
+                .findUserById(UserIdCodec.toDomain(leaderUserId))
+                .orElseThrow(() -> new IllegalArgumentException("Leader user not found: " + leaderUserId));
+    }
+
     private boolean hasParent(DepartmentId parentId) {
         return parentId != null;
-    }
-
-    private void validateRequired(String value, String fieldName) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
-        }
-    }
-
-    private String normalize(String value) {
-        return value == null ? null : value.trim();
     }
 }

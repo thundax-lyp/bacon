@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.Ids;
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
@@ -39,7 +40,7 @@ public class ResourceApplicationService {
                                 pageNo,
                                 pageSize)
                         .stream()
-                        .map(this::toDto)
+                        .map(ResourceAssembler::toDto)
                         .toList(),
                 resourceRepository.countResources(
                         query.getCode(), query.getName(), query.getResourceType(), query.getStatus()),
@@ -47,21 +48,20 @@ public class ResourceApplicationService {
                 pageSize);
     }
 
-    public ResourceDTO getResourceById(String resourceId) {
-        return toDto(requireResource(resourceId));
+    public ResourceDTO getResourceById(ResourceId resourceId) {
+        return ResourceAssembler.toDto(requireResource(resourceId));
     }
 
     @Transactional
-    public ResourceDTO createResource(String code, String name, String resourceType, String httpMethod, String uri) {
+    public ResourceDTO createResource(String code, String name, ResourceType resourceType, String httpMethod, String uri) {
         validateRequired(code, "code");
         validateRequired(name, "name");
-        validateRequired(resourceType, "resourceType");
         validateRequired(uri, "uri");
-        return toDto(resourceRepository.save(Resource.create(
+        return ResourceAssembler.toDto(resourceRepository.insert(Resource.create(
                 ids.resourceId(),
                 normalize(code),
                 normalize(name),
-                toResourceType(resourceType),
+                resourceType,
                 normalize(httpMethod),
                 normalize(uri),
                 ResourceStatus.ENABLED)));
@@ -69,41 +69,39 @@ public class ResourceApplicationService {
 
     @Transactional
     public ResourceDTO updateResource(
-            String resourceId,
+            ResourceId resourceId,
             String code,
             String name,
-            String resourceType,
+            ResourceType resourceType,
             String httpMethod,
             String uri,
-            String status) {
+            ResourceStatus status) {
         Resource currentResource = requireResource(resourceId);
         validateRequired(code, "code");
         validateRequired(name, "name");
-        validateRequired(resourceType, "resourceType");
+        if (resourceType == null) {
+            throw new IllegalArgumentException("resourceType must not be null");
+        }
         validateRequired(uri, "uri");
-        return toDto(resourceRepository.save(currentResource.update(
+        return ResourceAssembler.toDto(resourceRepository.update(currentResource.update(
                 normalize(code),
                 normalize(name),
-                toResourceType(resourceType),
+                resourceType,
                 normalize(httpMethod),
                 normalize(uri),
-                toResourceStatus(status, currentResource.getStatus()))));
+                status == null ? currentResource.getStatus() : status)));
     }
 
     @Transactional
-    public void deleteResource(String resourceId) {
+    public void deleteResource(ResourceId resourceId) {
         requireResource(resourceId);
-        resourceRepository.delete(ResourceIdCodec.toDomain(Long.parseLong(resourceId)));
+        resourceRepository.delete(resourceId);
     }
 
-    private Resource requireResource(String resourceId) {
+    private Resource requireResource(ResourceId resourceId) {
         return resourceRepository
-                .findById(ResourceIdCodec.toDomain(Long.parseLong(resourceId)))
+                .findById(resourceId)
                 .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + resourceId));
-    }
-
-    private ResourceDTO toDto(Resource resource) {
-        return ResourceAssembler.toDto(resource);
     }
 
     private void validateRequired(String value, String fieldName) {
@@ -116,15 +114,4 @@ public class ResourceApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private ResourceType toResourceType(String resourceType) {
-        validateRequired(resourceType, "resourceType");
-        return ResourceType.from(normalize(resourceType).toUpperCase(Locale.ROOT));
-    }
-
-    private ResourceStatus toResourceStatus(String status, ResourceStatus defaultValue) {
-        if (status == null || status.isBlank()) {
-            return defaultValue;
-        }
-        return ResourceStatus.from(normalize(status).toUpperCase(Locale.ROOT));
-    }
 }

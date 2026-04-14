@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.upms.api.dto;
 
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,9 +19,9 @@ public class ResourcePageQueryDTO {
     /** 资源名称。 */
     private String name;
     /** 资源类型。 */
-    private String resourceType;
+    private ResourceType resourceType;
     /** 资源状态。 */
-    private String status;
+    private ResourceStatus status;
     /** 页码，从 1 开始。 */
     private Integer pageNo;
     /** 每页大小。 */

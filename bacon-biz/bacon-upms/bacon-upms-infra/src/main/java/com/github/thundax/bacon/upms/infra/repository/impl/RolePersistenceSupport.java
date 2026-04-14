@@ -7,6 +7,8 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
@@ -109,13 +111,13 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    List<Role> listRoles(String code, String name, String roleType, String status, int pageNo, int pageSize) {
+    List<Role> listRoles(String code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
         return roleMapper
                 .selectList(Wrappers.<RoleDO>lambdaQuery()
                         .like(hasText(code), RoleDO::getCode, code)
                         .like(hasText(name), RoleDO::getName, name)
-                        .eq(hasText(roleType), RoleDO::getRoleType, trim(roleType))
-                        .eq(hasText(status), RoleDO::getStatus, trim(status))
+                        .eq(roleType != null, RoleDO::getRoleType, roleType.value())
+                        .eq(status != null, RoleDO::getStatus, status.value())
                         .orderByAsc(RoleDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
@@ -123,24 +125,28 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countRoles(String code, String name, String roleType, String status) {
+    long countRoles(String code, String name, RoleType roleType, RoleStatus status) {
         return Optional.ofNullable(roleMapper.selectCount(Wrappers.<RoleDO>lambdaQuery()
                         .like(hasText(code), RoleDO::getCode, code)
                         .like(hasText(name), RoleDO::getName, name)
-                        .eq(hasText(roleType), RoleDO::getRoleType, trim(roleType))
-                        .eq(hasText(status), RoleDO::getStatus, trim(status))))
+                        .eq(roleType != null, RoleDO::getRoleType, roleType.value())
+                        .eq(status != null, RoleDO::getStatus, status.value())))
                 .orElse(0L);
     }
 
-    Role saveRole(Role role) {
-        TenantId tenantId = requireTenantId();
+    Role insertRole(Role role) {
         RoleDO roleDO = RolePersistenceAssembler.toDataObject(role);
-        boolean exists = roleDO.getId() != null && roleMapper.selectById(roleDO.getId()) != null;
-        if (!exists) {
-            roleMapper.insert(roleDO);
-        } else {
-            roleMapper.updateById(roleDO);
-        }
+        roleMapper.insert(roleDO);
+        upsertDataPermissionRule(
+                TenantId.of(roleDO.getTenantId()),
+                RoleId.of(roleDO.getId()),
+                RoleDataScopeType.from(roleDO.getDataScopeType()));
+        return RolePersistenceAssembler.toDomain(roleDO);
+    }
+
+    Role updateRole(Role role) {
+        RoleDO roleDO = RolePersistenceAssembler.toDataObject(role);
+        roleMapper.updateById(roleDO);
         upsertDataPermissionRule(
                 TenantId.of(roleDO.getTenantId()),
                 RoleId.of(roleDO.getId()),

@@ -13,7 +13,6 @@ import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
-import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +42,7 @@ public class PostApplicationService {
                                 pageNo,
                                 pageSize)
                         .stream()
-                        .map(this::toDto)
+                        .map(PostAssembler::toDto)
                         .toList(),
                 postRepository.countPosts(query.getCode(), query.getName(), query.getDepartmentId(), query.getStatus()),
                 pageNo,
@@ -51,32 +50,31 @@ public class PostApplicationService {
     }
 
     public PostDTO getPostById(PostId postId) {
-        return toDto(requirePost(postId));
+        return PostAssembler.toDto(requirePost(postId));
     }
 
     @Transactional
-    public PostDTO createPost(String code, String name, String departmentId) {
+    public PostDTO createPost(String code, String name, DepartmentId departmentId) {
         validateRequired(code, "code");
         validateRequired(name, "name");
-        DepartmentId domainDepartmentId = toDepartmentId(departmentId);
-        return toDto(postRepository.save(Post.create(
+        return PostAssembler.toDto(postRepository.insert(Post.create(
                 PostIdCodec.toDomain(idGenerator.nextId(POST_ID_BIZ_TAG)),
                 normalize(code),
                 normalize(name),
-                domainDepartmentId,
+                departmentId,
                 PostStatus.ENABLED)));
     }
 
     @Transactional
-    public PostDTO updatePost(PostId postId, String code, String name, String departmentId, String status) {
+    public PostDTO updatePost(PostId postId, String code, String name, DepartmentId departmentId, PostStatus status) {
         Post currentPost = requirePost(postId);
         validateRequired(code, "code");
         validateRequired(name, "name");
-        return toDto(postRepository.save(currentPost.update(
+        return PostAssembler.toDto(postRepository.update(currentPost.update(
                 normalize(code),
                 normalize(name),
-                toDepartmentId(departmentId),
-                toPostStatus(status, currentPost.getStatus()))));
+                departmentId,
+                status == null ? currentPost.getStatus() : status)));
     }
 
     @Transactional
@@ -91,16 +89,6 @@ public class PostApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + postId));
     }
 
-    private PostDTO toDto(Post post) {
-        return PostAssembler.toDto(post);
-    }
-
-    private DepartmentId toDepartmentId(String departmentId) {
-        return departmentId == null || departmentId.isBlank()
-                ? null
-                : DepartmentIdCodec.toDomain(Long.parseLong(departmentId.trim()));
-    }
-
     private void validateRequired(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " must not be blank");
@@ -111,10 +99,4 @@ public class PostApplicationService {
         return value == null ? null : value.trim();
     }
 
-    private PostStatus toPostStatus(String value, PostStatus defaultValue) {
-        if (value == null || value.isBlank()) {
-            return defaultValue;
-        }
-        return PostStatus.from(normalize(value).toUpperCase(Locale.ROOT));
-    }
 }

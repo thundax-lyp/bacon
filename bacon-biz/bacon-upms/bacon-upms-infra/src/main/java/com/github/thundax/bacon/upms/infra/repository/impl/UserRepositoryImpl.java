@@ -14,6 +14,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -79,33 +80,55 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<User> pageUsers(String account, String name, String phone, String status, int pageNo, int pageSize) {
+    public List<User> pageUsers(String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
         return support.listUsers(account, name, phone, status, pageNo, pageSize);
     }
 
     @Override
-    public long countUsers(String account, String name, String phone, String status) {
+    public long countUsers(String account, String name, String phone, UserStatus status) {
         return support.countUsers(account, name, phone, status);
     }
 
     @Override
-    public List<User> listUsers(String account, String name, String phone, String status) {
+    public List<User> listUsers(String account, String name, String phone, UserStatus status) {
         return support.listUsers(account, name, phone, status, 1, Integer.MAX_VALUE);
     }
 
     @Override
-    public User save(
+    public User insert(
             User user,
             String account,
             String phone,
             UserIdentityId accountIdentityId,
             UserIdentityId phoneIdentityId,
             UserCredentialId passwordCredentialIdIfAbsent) {
+        return persistUser(
+                user, account, phone, accountIdentityId, phoneIdentityId, passwordCredentialIdIfAbsent, true);
+    }
+
+    @Override
+    public User update(
+            User user,
+            String account,
+            String phone,
+            UserIdentityId accountIdentityId,
+            UserIdentityId phoneIdentityId,
+            UserCredentialId passwordCredentialIdIfAbsent) {
+        return persistUser(
+                user, account, phone, accountIdentityId, phoneIdentityId, passwordCredentialIdIfAbsent, false);
+    }
+
+    private User persistUser(
+            User user,
+            String account,
+            String phone,
+            UserIdentityId accountIdentityId,
+            UserIdentityId phoneIdentityId,
+            UserCredentialId passwordCredentialIdIfAbsent,
+            boolean newUser) {
         TenantId tenantId = requireTenantId();
-        boolean newUser =
-                user.getId() == null || support.findUserById(user.getId()).isEmpty();
-        User savedUser = updateUser(user);
-        savedUser = support.saveUser(savedUser);
+        User savedUser = copyUser(user);
+        savedUser = newUser ? support.insertUser(savedUser) : support.updateUser(savedUser);
         UserIdentity accountIdentity = replaceAccountIdentity(tenantId, savedUser, account, accountIdentityId);
         upsertPasswordCredential(
                 tenantId,
@@ -131,7 +154,7 @@ public class UserRepositoryImpl implements UserRepository {
                 currentUser.getAvatarObjectId(),
                 currentUser.getDepartmentId(),
                 currentUser.getStatus());
-        User savedUser = support.saveUser(updatedUser);
+        User savedUser = support.updateUser(updatedUser);
         UserIdentity accountIdentity = requireUserIdentity(userId, UserIdentityType.ACCOUNT);
         upsertPasswordCredential(
                 tenantId,
@@ -167,7 +190,7 @@ public class UserRepositoryImpl implements UserRepository {
         cacheSupport.evictUserPermission(tenantId, userId);
     }
 
-    private User updateUser(User user) {
+    private User copyUser(User user) {
         return User.create(
                 user.getId(), user.getName(), user.getAvatarObjectId(), user.getDepartmentId(), user.getStatus());
     }

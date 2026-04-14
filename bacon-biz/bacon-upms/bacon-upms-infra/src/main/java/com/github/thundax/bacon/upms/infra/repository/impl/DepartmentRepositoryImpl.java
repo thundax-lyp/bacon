@@ -42,8 +42,13 @@ public class DepartmentRepositoryImpl implements DepartmentRepository {
     }
 
     @Override
-    public Department save(Department department) {
-        return support.saveDepartment(department);
+    public Department insert(Department department) {
+        return support.insertDepartment(department);
+    }
+
+    @Override
+    public Department update(Department department) {
+        return support.updateDepartment(department);
     }
 
     @Override

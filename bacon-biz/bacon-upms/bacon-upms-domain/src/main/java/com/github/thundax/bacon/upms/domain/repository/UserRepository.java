@@ -9,6 +9,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
 import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import java.util.List;
 import java.util.Optional;
@@ -25,13 +26,21 @@ public interface UserRepository {
 
     Optional<UserCredential> findUserCredential(UserId userId, UserCredentialType credentialType);
 
-    List<User> pageUsers(String account, String name, String phone, String status, int pageNo, int pageSize);
+    List<User> pageUsers(String account, String name, String phone, UserStatus status, int pageNo, int pageSize);
 
-    long countUsers(String account, String name, String phone, String status);
+    long countUsers(String account, String name, String phone, UserStatus status);
 
-    List<User> listUsers(String account, String name, String phone, String status);
+    List<User> listUsers(String account, String name, String phone, UserStatus status);
 
-    User save(
+    User insert(
+            User user,
+            String account,
+            String phone,
+            UserIdentityId accountIdentityId,
+            UserIdentityId phoneIdentityId,
+            UserCredentialId passwordCredentialIdIfAbsent);
+
+    User update(
             User user,
             String account,
             String phone,

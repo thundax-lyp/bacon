@@ -197,7 +197,7 @@ public class UserApplicationService {
         String normalizedAccount = normalize(account);
         String normalizedPhone = normalize(phone);
         DepartmentId domainDepartmentId = toDepartmentId(departmentId);
-        User savedUser = userRepository.save(
+        User savedUser = userRepository.insert(
                 User.create(ids.userId(), normalize(name), null, domainDepartmentId, UserStatus.ENABLED),
                 normalizedAccount,
                 normalizedPhone,
@@ -216,7 +216,7 @@ public class UserApplicationService {
         ensureAccountUnique(account, domainUserId);
         String normalizedAccount = normalize(account);
         String normalizedPhone = normalize(phone);
-        User savedUser = userRepository.save(
+        User savedUser = userRepository.update(
                 currentUser.update(
                         normalize(name),
                         currentUser.getAvatarObjectId(),
@@ -237,7 +237,7 @@ public class UserApplicationService {
         if (status == null) {
             throw new IllegalArgumentException("status must not be null");
         }
-        User savedUser = userRepository.save(
+        User savedUser = userRepository.update(
                 currentUser.update(
                         currentUser.getName(),
                         currentUser.getAvatarObjectId(),
@@ -370,7 +370,7 @@ public class UserApplicationService {
                 storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId));
         StoredObjectId previousAvatarObjectId = currentUser.getAvatarObjectId();
         try {
-            User savedUser = userRepository.save(
+            User savedUser = userRepository.update(
                     currentUser.update(
                             currentUser.getName(),
                             storedObjectId,

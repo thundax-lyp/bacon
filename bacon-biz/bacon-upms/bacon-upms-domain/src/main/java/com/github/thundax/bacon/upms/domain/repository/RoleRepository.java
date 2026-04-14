@@ -1,9 +1,11 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
+import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
@@ -17,11 +19,13 @@ public interface RoleRepository {
 
     List<Role> findRolesByUserId(UserId userId);
 
-    List<Role> pageRoles(String code, String name, String roleType, String status, int pageNo, int pageSize);
+    List<Role> pageRoles(String code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize);
 
-    long countRoles(String code, String name, String roleType, String status);
+    long countRoles(String code, String name, RoleType roleType, RoleStatus status);
 
-    Role save(Role role);
+    Role insert(Role role);
+
+    Role update(Role role);
 
     Role updateStatus(RoleId roleId, RoleStatus status);
 
@@ -35,7 +39,7 @@ public interface RoleRepository {
 
     Set<String> assignResources(RoleId roleId, Set<String> resourceCodes);
 
-    String getAssignedDataScopeType(RoleId roleId);
+    RoleDataScopeType getAssignedDataScopeType(RoleId roleId);
 
     Set<DepartmentId> getAssignedDataScopeDepartments(RoleId roleId);
 

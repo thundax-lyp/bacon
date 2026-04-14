@@ -10,6 +10,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.UserPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredentialDO;
@@ -81,7 +82,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(UserPersistenceAssembler::toDomain);
     }
 
-    List<User> listUsers(String account, String name, String phone, String status, int pageNo, int pageSize) {
+    List<User> listUsers(String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
         Set<Long> userIds = resolveUserIdsByIdentityFilters(account, phone);
         if (userIds != null && userIds.isEmpty()) {
             return List.of();
@@ -91,7 +92,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(UserDO::getDeleted, false)
                         .in(userIds != null, UserDO::getId, userIds)
                         .like(hasText(name), UserDO::getName, name)
-                        .eq(hasText(status), UserDO::getStatus, trim(status))
+                        .eq(status != null, UserDO::getStatus, status.value())
                         .orderByAsc(UserDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
@@ -99,7 +100,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countUsers(String account, String name, String phone, String status) {
+    long countUsers(String account, String name, String phone, UserStatus status) {
         Set<Long> userIds = resolveUserIdsByIdentityFilters(account, phone);
         if (userIds != null && userIds.isEmpty()) {
             return 0L;
@@ -108,7 +109,7 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                         .eq(UserDO::getDeleted, false)
                         .in(userIds != null, UserDO::getId, userIds)
                         .like(hasText(name), UserDO::getName, name)
-                        .eq(hasText(status), UserDO::getStatus, trim(status))))
+                        .eq(status != null, UserDO::getStatus, status.value())))
                 .orElse(0L);
     }
 
@@ -139,15 +140,16 @@ class UserPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList());
     }
 
-    User saveUser(User user) {
+    User insertUser(User user) {
         UserDO userDO = UserPersistenceAssembler.toDataObject(user);
-        boolean insert = userDO.getId() == null || userMapper.selectById(userDO.getId()) == null;
-        if (insert) {
-            userDO.setDeleted(false);
-            userMapper.insert(userDO);
-        } else {
-            userMapper.updateById(userDO);
-        }
+        userDO.setDeleted(false);
+        userMapper.insert(userDO);
+        return UserPersistenceAssembler.toDomain(userDO);
+    }
+
+    User updateUser(User user) {
+        UserDO userDO = UserPersistenceAssembler.toDataObject(user);
+        userMapper.updateById(userDO);
         return UserPersistenceAssembler.toDomain(userDO);
     }
 

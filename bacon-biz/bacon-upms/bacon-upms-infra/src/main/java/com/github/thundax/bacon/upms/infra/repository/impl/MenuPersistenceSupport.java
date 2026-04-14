@@ -37,13 +37,15 @@ class MenuPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(MenuPersistenceAssembler::toDomain);
     }
 
-    Menu saveMenu(Menu menu) {
+    Menu insertMenu(Menu menu) {
         MenuDO dataObject = MenuPersistenceAssembler.toDataObject(menu);
-        if (dataObject.getId() == null || menuMapper.selectById(dataObject.getId()) == null) {
-            menuMapper.insert(dataObject);
-        } else {
-            menuMapper.updateById(dataObject);
-        }
+        menuMapper.insert(dataObject);
+        return MenuPersistenceAssembler.toDomain(dataObject);
+    }
+
+    Menu updateMenu(Menu menu) {
+        MenuDO dataObject = MenuPersistenceAssembler.toDataObject(menu);
+        menuMapper.updateById(dataObject);
         return MenuPersistenceAssembler.toDomain(dataObject);
     }
 

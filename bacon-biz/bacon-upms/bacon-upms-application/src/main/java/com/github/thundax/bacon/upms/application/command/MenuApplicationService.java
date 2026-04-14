@@ -45,7 +45,7 @@ public class MenuApplicationService {
     public MenuTreeDTO createMenu(
             String menuType,
             String name,
-            String parentId,
+            MenuId parentId,
             String routePath,
             String componentName,
             String icon,
@@ -53,13 +53,12 @@ public class MenuApplicationService {
             String permissionCode) {
         validateRequired(menuType, "menuType");
         validateRequired(name, "name");
-        MenuId domainParentId = normalizeParentId(parentId);
-        validateParent(domainParentId);
-        return toTreeDto(menuRepository.save(Menu.create(
+        validateParent(parentId);
+        return toTreeDto(menuRepository.insert(Menu.create(
                 MenuIdCodec.toDomain(idGenerator.nextId(MENU_ID_BIZ_TAG)),
                 normalize(menuType),
                 normalize(name),
-                domainParentId,
+                parentId,
                 normalize(routePath),
                 normalize(componentName),
                 normalize(icon),
@@ -70,30 +69,28 @@ public class MenuApplicationService {
 
     @Transactional
     public MenuTreeDTO updateMenu(
-            String menuId,
+            MenuId menuId,
             String menuType,
             String name,
-            String parentId,
+            MenuId parentId,
             String routePath,
             String componentName,
             String icon,
             Integer sort,
             String permissionCode) {
-        MenuId domainMenuId = MenuIdCodec.toDomain(Long.parseLong(menuId));
-        MenuId domainParentId = normalizeParentId(parentId);
         Menu currentMenu = menuRepository
-                .findMenuById(domainMenuId)
+                .findMenuById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
         validateRequired(menuType, "menuType");
         validateRequired(name, "name");
-        validateParent(domainParentId);
-        if (domainMenuId.equals(domainParentId)) {
+        validateParent(parentId);
+        if (menuId.equals(parentId)) {
             throw new IllegalArgumentException("Menu parent cannot be self");
         }
-        return toTreeDto(menuRepository.save(currentMenu.update(
+        return toTreeDto(menuRepository.update(currentMenu.update(
                 normalize(menuType),
                 normalize(name),
-                domainParentId,
+                parentId,
                 normalize(routePath),
                 normalize(componentName),
                 normalize(icon),
@@ -103,23 +100,22 @@ public class MenuApplicationService {
     }
 
     @Transactional
-    public void deleteMenu(String menuId) {
-        MenuId domainMenuId = MenuIdCodec.toDomain(Long.parseLong(menuId));
+    public void deleteMenu(MenuId menuId) {
         menuRepository
-                .findMenuById(domainMenuId)
+                .findMenuById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
-        if (menuRepository.existsChildMenu(domainMenuId)) {
+        if (menuRepository.existsChildMenu(menuId)) {
             throw new IllegalArgumentException("Menu has child menus: " + menuId);
         }
-        menuRepository.deleteMenu(domainMenuId);
+        menuRepository.deleteMenu(menuId);
     }
 
     @Transactional
-    public MenuTreeDTO updateMenuSort(String menuId, Integer sort) {
+    public MenuTreeDTO updateMenuSort(MenuId menuId, Integer sort) {
         if (sort == null) {
             throw new IllegalArgumentException("sort must not be null");
         }
-        return toTreeDto(menuRepository.updateSort(MenuIdCodec.toDomain(Long.parseLong(menuId)), sort));
+        return toTreeDto(menuRepository.updateSort(menuId, sort));
     }
 
     private MenuTreeDTO toTreeDto(Menu menu) {
@@ -134,13 +130,6 @@ public class MenuApplicationService {
         menuRepository
                 .findMenuById(parentId)
                 .orElseThrow(() -> new IllegalArgumentException("Parent menu not found: " + parentId));
-    }
-
-    private MenuId normalizeParentId(String parentId) {
-        if (parentId == null || parentId.isBlank()) {
-            return null;
-        }
-        return MenuIdCodec.toDomain(Long.parseLong(parentId.trim()));
     }
 
     private void validateRequired(String value, String fieldName) {

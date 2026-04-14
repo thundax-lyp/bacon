@@ -9,6 +9,7 @@ import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserImportCommand;
+import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.interfaces.dto.UserCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserIdentityQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserImportItem;
@@ -66,7 +67,7 @@ public class UserController {
                 request.getAccount(),
                 request.getName(),
                 request.getPhone(),
-                request.getStatus() == null ? null : request.getStatus().name(),
+                request.getStatus() == null ? null : UserStatus.valueOf(request.getStatus().name()),
                 request.getPageNo(),
                 request.getPageSize())));
     }
@@ -214,7 +215,7 @@ public class UserController {
                         request.getAccount(),
                         request.getName(),
                         request.getPhone(),
-                        request.getStatus() == null ? null : request.getStatus().name(),
+                        request.getStatus() == null ? null : UserStatus.valueOf(request.getStatus().name()),
                         1,
                         Integer.MAX_VALUE))
                 .stream()

@@ -2,7 +2,6 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.application.assembler.DepartmentAssembler;
@@ -34,13 +33,13 @@ public class DepartmentApplicationService {
     }
 
     public DepartmentDTO getDepartmentById(DepartmentId departmentId) {
-        return toDto(departmentRepository
+        return DepartmentAssembler.toDto(departmentRepository
                 .findDepartmentById(departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId)));
     }
 
     public DepartmentDTO getDepartmentByCode(String departmentCode) {
-        return toDto(departmentRepository
+        return DepartmentAssembler.toDto(departmentRepository
                 .findDepartmentByCode(departmentCode)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentCode)));
     }
@@ -77,40 +76,37 @@ public class DepartmentApplicationService {
 
     @Transactional
     public DepartmentDTO createDepartment(
-            String code, String name, String parentId, String leaderUserId, Integer sort) {
+            String code, String name, DepartmentId parentId, Long leaderUserId, Integer sort) {
         validateRequired(code, "code");
         validateRequired(name, "name");
-        DepartmentId parentDepartmentId = normalizeParentId(parentId);
-        validateParent(parentDepartmentId);
-        UserId leaderId = toUserId(leaderUserId);
-        return toDto(departmentRepository.save(Department.create(
+        validateParent(parentId);
+        return DepartmentAssembler.toDto(departmentRepository.insert(Department.create(
                 DepartmentIdCodec.toDomain(idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG)),
                 normalize(code),
                 normalize(name),
-                parentDepartmentId,
-                leaderId,
+                parentId,
+                UserIdCodec.toDomain(leaderUserId),
                 defaultSort(sort),
                 DepartmentStatus.ENABLED)));
     }
 
     @Transactional
     public DepartmentDTO updateDepartment(
-            DepartmentId departmentId, String code, String name, String parentId, String leaderUserId, Integer sort) {
+            DepartmentId departmentId, String code, String name, DepartmentId parentId, Long leaderUserId, Integer sort) {
         Department currentDepartment = departmentRepository
                 .findDepartmentById(departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
         validateRequired(code, "code");
         validateRequired(name, "name");
-        DepartmentId parentDepartmentId = normalizeParentId(parentId);
-        validateParent(parentDepartmentId);
-        if (departmentId.equals(parentDepartmentId)) {
+        validateParent(parentId);
+        if (departmentId.equals(parentId)) {
             throw new IllegalArgumentException("Department parent cannot be self");
         }
-        return toDto(departmentRepository.save(currentDepartment.update(
+        return DepartmentAssembler.toDto(departmentRepository.update(currentDepartment.update(
                 normalize(code),
                 normalize(name),
-                parentDepartmentId,
-                toUserId(leaderUserId),
+                parentId,
+                UserIdCodec.toDomain(leaderUserId),
                 sort == null ? currentDepartment.getSort() : sort,
                 currentDepartment.getStatus())));
     }
@@ -120,7 +116,7 @@ public class DepartmentApplicationService {
         if (sort == null) {
             throw new IllegalArgumentException("sort must not be null");
         }
-        return toDto(departmentRepository.updateSort(departmentId, sort));
+        return DepartmentAssembler.toDto(departmentRepository.updateSort(departmentId, sort));
     }
 
     @Transactional
@@ -146,10 +142,6 @@ public class DepartmentApplicationService {
         return sort == null ? 0 : sort;
     }
 
-    private UserId toUserId(String userId) {
-        return userId == null || userId.isBlank() ? null : UserIdCodec.toDomain(Long.valueOf(userId.trim()));
-    }
-
     private void validateParent(DepartmentId parentId) {
         if (!hasParent(parentId)) {
             return;
@@ -157,10 +149,6 @@ public class DepartmentApplicationService {
         departmentRepository
                 .findDepartmentById(parentId)
                 .orElseThrow(() -> new IllegalArgumentException("Parent department not found: " + parentId));
-    }
-
-    private DepartmentId normalizeParentId(String parentId) {
-        return parentId == null || parentId.isBlank() ? null : DepartmentIdCodec.toDomain(parseDepartmentId(parentId));
     }
 
     private boolean hasParent(DepartmentId parentId) {
@@ -175,13 +163,5 @@ public class DepartmentApplicationService {
 
     private String normalize(String value) {
         return value == null ? null : value.trim();
-    }
-
-    private Long parseDepartmentId(String departmentId) {
-        return Long.parseLong(departmentId.trim());
-    }
-
-    private DepartmentDTO toDto(Department department) {
-        return DepartmentAssembler.toDto(department);
     }
 }

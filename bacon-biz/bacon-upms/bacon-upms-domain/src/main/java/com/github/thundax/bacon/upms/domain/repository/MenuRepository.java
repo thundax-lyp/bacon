@@ -11,7 +11,9 @@ public interface MenuRepository {
 
     Optional<Menu> findMenuById(MenuId menuId);
 
-    Menu save(Menu menu);
+    Menu insert(Menu menu);
+
+    Menu update(Menu menu);
 
     Menu updateSort(MenuId menuId, Integer sort);
 

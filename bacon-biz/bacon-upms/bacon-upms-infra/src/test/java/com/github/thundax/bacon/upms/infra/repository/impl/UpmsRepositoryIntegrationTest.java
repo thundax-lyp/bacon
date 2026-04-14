@@ -299,9 +299,9 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
-        Department rootDepartment = departmentRepository.save(Department.create(
+        Department rootDepartment = departmentRepository.insert(Department.create(
                 HEADQUARTERS_DEPARTMENT_ID, "ROOT", "Headquarters", null, null, 1, DepartmentStatus.ENABLED));
-        Department childDepartment = departmentRepository.save(Department.create(
+        Department childDepartment = departmentRepository.insert(Department.create(
                 OPERATIONS_DEPARTMENT_ID,
                 "OPS",
                 "Operations",
@@ -309,9 +309,9 @@ class UpmsRepositoryIntegrationTest {
                 null,
                 2,
                 DepartmentStatus.ENABLED));
-        Menu rootMenu = menuRepository.save(Menu.create(
+        Menu rootMenu = menuRepository.insert(Menu.create(
                 MenuId.of(2001L), "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
-        Menu childMenu = menuRepository.save(Menu.create(
+        Menu childMenu = menuRepository.insert(Menu.create(
                 MenuId.of(2002L),
                 "MENU",
                 "Users",
@@ -322,7 +322,7 @@ class UpmsRepositoryIntegrationTest {
                 2,
                 "upms:user:view",
                 List.of()));
-        Resource resource = resourceRepository.save(Resource.create(
+        Resource resource = resourceRepository.insert(Resource.create(
                 ResourceId.of(2301L),
                 "upms:user:edit",
                 "Edit User",
@@ -330,14 +330,14 @@ class UpmsRepositoryIntegrationTest {
                 "POST",
                 "/users",
                 ResourceStatus.ENABLED));
-        Role role = roleRepository.save(Role.create(
+        Role role = roleRepository.insert(Role.create(
                 RoleId.of(2101L),
                 "ADMIN",
                 "Administrator",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
                 RoleStatus.ENABLED));
-        User user = userRepository.save(
+        User user = userRepository.insert(
                 User.create(
                         UserId.of(2201L),
                         "Alice",
@@ -396,16 +396,16 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
-        Department department = departmentRepository.save(Department.create(
+        Department department = departmentRepository.insert(Department.create(
                 OPERATIONS_DEPARTMENT_ID, "OPS", "Operations", null, null, 1, DepartmentStatus.ENABLED));
-        Role role = roleRepository.save(Role.create(
+        Role role = roleRepository.insert(Role.create(
                 RoleId.of(2102L),
                 "OPS_ADMIN",
                 "Ops Admin",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
                 RoleStatus.ENABLED));
-        User createdUser = userRepository.save(
+        User createdUser = userRepository.insert(
                 User.create(UserId.of(2202L), "Bob", StoredObjectId.of(1001L), department.getId(), UserStatus.ENABLED),
                 "bob",
                 "13800000002",
@@ -414,7 +414,7 @@ class UpmsRepositoryIntegrationTest {
                 UserCredentialId.of(3103L));
 
         userRepository.assignRoles(createdUser.getId(), List.of(role.getId()));
-        User updatedUser = userRepository.save(
+        User updatedUser = userRepository.update(
                 User.create(
                         createdUser.getId(), "Bob", StoredObjectId.of(1002L), department.getId(), UserStatus.ENABLED),
                 "bob",
@@ -450,9 +450,9 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
-        Department department = departmentRepository.save(Department.create(
+        Department department = departmentRepository.insert(Department.create(
                 OPERATIONS_DEPARTMENT_ID, "OPS", "Operations", null, null, 1, DepartmentStatus.ENABLED));
-        User createdUser = userRepository.save(
+        User createdUser = userRepository.insert(
                 User.create(UserId.of(2203L), "Carol", null, department.getId(), UserStatus.ENABLED),
                 "carol",
                 "13600000001",
@@ -481,15 +481,15 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
-        Department root = departmentRepository.save(
+        Department root = departmentRepository.insert(
                 Department.create(HEADQUARTERS_DEPARTMENT_ID, "ROOT", "Root", null, null, 1, DepartmentStatus.ENABLED));
-        Department child = departmentRepository.save(Department.create(
+        Department child = departmentRepository.insert(Department.create(
                 CHILD_DEPARTMENT_ID, "CHILD", "Child", root.getId(), null, 2, DepartmentStatus.ENABLED));
-        Menu oldMenu = menuRepository.save(Menu.create(
+        Menu oldMenu = menuRepository.insert(Menu.create(
                 MenuId.of(2003L), "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
-        Menu newMenu = menuRepository.save(Menu.create(
+        Menu newMenu = menuRepository.insert(Menu.create(
                 MenuId.of(2004L), "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
-        Resource oldResource = resourceRepository.save(Resource.create(
+        Resource oldResource = resourceRepository.insert(Resource.create(
                 ResourceId.of(2302L),
                 "upms:old:edit",
                 "Old Edit",
@@ -497,7 +497,7 @@ class UpmsRepositoryIntegrationTest {
                 "POST",
                 "/old",
                 ResourceStatus.ENABLED));
-        Resource newResource = resourceRepository.save(Resource.create(
+        Resource newResource = resourceRepository.insert(Resource.create(
                 ResourceId.of(2303L),
                 "upms:new:edit",
                 "New Edit",
@@ -505,7 +505,7 @@ class UpmsRepositoryIntegrationTest {
                 "PUT",
                 "/new",
                 ResourceStatus.ENABLED));
-        Role role = roleRepository.save(Role.create(
+        Role role = roleRepository.insert(Role.create(
                 RoleId.of(2103L),
                 "MANAGER",
                 "Manager",
@@ -517,7 +517,7 @@ class UpmsRepositoryIntegrationTest {
         roleRepository.assignResources(role.getId(), Set.of(oldResource.getCode()));
         roleRepository.assignDataScope(role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
 
-        User user = userRepository.save(
+        User user = userRepository.insert(
                 User.create(UserId.of(2204L), "Manager", null, child.getId(), UserStatus.ENABLED),
                 "manager",
                 "13700000001",

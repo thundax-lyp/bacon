@@ -5,6 +5,8 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.ResourcePersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleResourceRelDO;
@@ -35,13 +37,13 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     List<Resource> listResources(
-            String code, String name, String resourceType, String status, int pageNo, int pageSize) {
+            String code, String name, ResourceType resourceType, ResourceStatus status, int pageNo, int pageSize) {
         return resourceMapper
                 .selectList(Wrappers.<ResourceDO>lambdaQuery()
                         .like(hasText(code), ResourceDO::getCode, code)
                         .like(hasText(name), ResourceDO::getName, name)
-                        .eq(hasText(resourceType), ResourceDO::getResourceType, trim(resourceType))
-                        .eq(hasText(status), ResourceDO::getStatus, trim(status))
+                        .eq(resourceType != null, ResourceDO::getResourceType, resourceType.value())
+                        .eq(status != null, ResourceDO::getStatus, status.value())
                         .orderByAsc(ResourceDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
@@ -49,22 +51,24 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countResources(String code, String name, String resourceType, String status) {
+    long countResources(String code, String name, ResourceType resourceType, ResourceStatus status) {
         return Optional.ofNullable(resourceMapper.selectCount(Wrappers.<ResourceDO>lambdaQuery()
                         .like(hasText(code), ResourceDO::getCode, code)
                         .like(hasText(name), ResourceDO::getName, name)
-                        .eq(hasText(resourceType), ResourceDO::getResourceType, trim(resourceType))
-                        .eq(hasText(status), ResourceDO::getStatus, trim(status))))
+                        .eq(resourceType != null, ResourceDO::getResourceType, resourceType.value())
+                        .eq(status != null, ResourceDO::getStatus, status.value())))
                 .orElse(0L);
     }
 
-    Resource saveResource(Resource resource) {
+    Resource insertResource(Resource resource) {
         ResourceDO dataObject = ResourcePersistenceAssembler.toDataObject(resource);
-        if (dataObject.getId() == null || resourceMapper.selectById(dataObject.getId()) == null) {
-            resourceMapper.insert(dataObject);
-        } else {
-            resourceMapper.updateById(dataObject);
-        }
+        resourceMapper.insert(dataObject);
+        return ResourcePersistenceAssembler.toDomain(dataObject);
+    }
+
+    Resource updateResource(Resource resource) {
+        ResourceDO dataObject = ResourcePersistenceAssembler.toDataObject(resource);
+        resourceMapper.updateById(dataObject);
         return ResourcePersistenceAssembler.toDomain(dataObject);
     }
 

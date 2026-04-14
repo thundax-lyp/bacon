@@ -7,6 +7,8 @@ import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
 import com.github.thundax.bacon.upms.application.command.ResourceApplicationService;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.interfaces.dto.ResourceCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.ResourcePageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.ResourceUpdateRequest;
@@ -46,10 +48,8 @@ public class ResourceController {
         return ResourcePageResponse.from(resourceApplicationService.pageResources(new ResourcePageQueryDTO(
                 request.getCode(),
                 request.getName(),
-                request.getResourceType() == null
-                        ? null
-                        : request.getResourceType().name(),
-                request.getStatus() == null ? null : request.getStatus().name(),
+                request.getResourceType() == null ? null : ResourceType.valueOf(request.getResourceType().name()),
+                request.getStatus() == null ? null : ResourceStatus.valueOf(request.getStatus().name()),
                 request.getPageNo(),
                 request.getPageSize())));
     }
@@ -81,10 +81,12 @@ public class ResourceController {
                 resourceId,
                 request.code(),
                 request.name(),
-                request.resourceType(),
+                ResourceType.from(request.resourceType()),
                 request.httpMethod(),
                 request.uri(),
-                request.status()));
+                request.status() == null || request.status().isBlank()
+                        ? null
+                        : ResourceStatus.from(request.status().trim())));
     }
 
     @Operation(summary = "删除资源")

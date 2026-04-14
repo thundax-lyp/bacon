@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -21,10 +22,12 @@ public class TenantApplicationService {
 
     private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
+    private final IdGenerator idGenerator;
 
-    public TenantApplicationService(TenantRepository tenantRepository, SessionCommandFacade sessionCommandFacade) {
+    public TenantApplicationService(TenantRepository tenantRepository, SessionCommandFacade sessionCommandFacade, IdGenerator idGenerator) {
         this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
+        this.idGenerator = idGenerator;
     }
 
     public PageResultDTO<TenantDTO> pageTenants(TenantPageQueryDTO query) {
@@ -41,15 +44,9 @@ public class TenantApplicationService {
     }
 
     @Transactional
-    public TenantDTO createTenant(Long tenantId, String name, String tenantCode, Instant expiredAt) {
+    public TenantDTO createTenant(String name, TenantCode tenantCode, Instant expiredAt) {
         validateRequired(name, "name");
-        validateRequired(tenantCode, "tenantCode");
-        TenantId normalizedTenantId = TenantId.of(tenantId);
-        TenantCode normalizedTenantCode = TenantCodeCodec.toDomain(tenantCode);
-        tenantRepository.findTenantByTenantId(normalizedTenantId).ifPresent(tenant -> {
-            throw new IllegalArgumentException("Tenant tenantId already exists: " + normalizedTenantId.value());
-        });
-        tenantRepository.findTenantByCode(normalizedTenantCode.value()).ifPresent(tenant -> {
+        tenantRepository.findTenantByCode(tenantCode).ifPresent(tenant -> {
             throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
         });
         return toDto(tenantRepository.saveTenant(Tenant.create(

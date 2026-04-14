@@ -64,25 +64,22 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    Department saveDepartment(Department department) {
+    Department insertDepartment(Department department) {
         DepartmentDO dataObject = DepartmentPersistenceAssembler.toDataObject(department);
-        Long departmentId = dataObject.getId();
-        boolean exists = departmentId != null
-                && departmentMapper.selectOne(
-                                Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getId, departmentId))
-                        != null;
-        if (!exists) {
-            departmentMapper.insert(dataObject);
-        } else {
-            departmentMapper.updateById(dataObject);
-        }
+        departmentMapper.insert(dataObject);
+        return DepartmentPersistenceAssembler.toDomain(dataObject);
+    }
+
+    Department updateDepartment(Department department) {
+        DepartmentDO dataObject = DepartmentPersistenceAssembler.toDataObject(department);
+        departmentMapper.updateById(dataObject);
         return DepartmentPersistenceAssembler.toDomain(dataObject);
     }
 
     Department updateDepartmentSort(DepartmentId departmentId, Integer sort) {
         Department currentDepartment = findDepartmentById(departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
-        return saveDepartment(Department.create(
+        return updateDepartment(Department.create(
                 currentDepartment.getId(),
                 currentDepartment.getCode(),
                 currentDepartment.getName(),

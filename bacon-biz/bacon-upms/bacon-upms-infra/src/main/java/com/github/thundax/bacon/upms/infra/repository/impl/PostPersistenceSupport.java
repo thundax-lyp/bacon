@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
+import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.PostPersistenceAssembler;
@@ -31,13 +32,14 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(PostPersistenceAssembler::toDomain);
     }
 
-    List<Post> listPosts(String code, String name, DepartmentId departmentId, String status, int pageNo, int pageSize) {
+    List<Post> listPosts(
+            String code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize) {
         return postMapper
                 .selectList(Wrappers.<PostDO>lambdaQuery()
                         .like(hasText(code), PostDO::getCode, code)
                         .like(hasText(name), PostDO::getName, name)
                         .eq(departmentId != null, PostDO::getDepartmentId, departmentId)
-                        .eq(hasText(status), PostDO::getStatus, trim(status))
+                        .eq(status != null, PostDO::getStatus, status.value())
                         .orderByAsc(PostDO::getId)
                         .last(limit(pageNo, pageSize)))
                 .stream()
@@ -45,22 +47,24 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countPosts(String code, String name, DepartmentId departmentId, String status) {
+    long countPosts(String code, String name, DepartmentId departmentId, PostStatus status) {
         return Optional.ofNullable(postMapper.selectCount(Wrappers.<PostDO>lambdaQuery()
                         .like(hasText(code), PostDO::getCode, code)
                         .like(hasText(name), PostDO::getName, name)
                         .eq(departmentId != null, PostDO::getDepartmentId, departmentId)
-                        .eq(hasText(status), PostDO::getStatus, trim(status))))
+                        .eq(status != null, PostDO::getStatus, status.value())))
                 .orElse(0L);
     }
 
-    Post savePost(Post post) {
+    Post insertPost(Post post) {
         PostDO dataObject = PostPersistenceAssembler.toDataObject(post);
-        if (dataObject.getId() == null) {
-            postMapper.insert(dataObject);
-        } else {
-            postMapper.updateById(dataObject);
-        }
+        postMapper.insert(dataObject);
+        return PostPersistenceAssembler.toDomain(dataObject);
+    }
+
+    Post updatePost(Post post) {
+        PostDO dataObject = PostPersistenceAssembler.toDataObject(post);
+        postMapper.updateById(dataObject);
         return PostPersistenceAssembler.toDomain(dataObject);
     }
 

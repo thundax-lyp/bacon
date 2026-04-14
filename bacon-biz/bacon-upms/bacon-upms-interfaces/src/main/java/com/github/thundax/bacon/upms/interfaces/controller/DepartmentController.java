@@ -3,8 +3,8 @@ package com.github.thundax.bacon.upms.interfaces.controller;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.interfaces.dto.DepartmentBatchQueryRequest;
@@ -44,7 +44,7 @@ public class DepartmentController {
     @HasPermission("sys:department:view")
     @SysLog(module = "UPMS", action = "查询部门树", eventType = LogEventType.QUERY)
     @GetMapping("/tree")
-    public List<DepartmentTreeResponse> getDepartmentTree(@CurrentTenant Long tenantId) {
+    public List<DepartmentTreeResponse> getDepartmentTree() {
         return departmentApplicationService.getDepartmentTree().stream()
                 .map(DepartmentTreeResponse::from)
                 .toList();
@@ -54,26 +54,29 @@ public class DepartmentController {
     @HasPermission("sys:department:create")
     @SysLog(module = "UPMS", action = "创建部门", eventType = LogEventType.CREATE)
     @PostMapping
-    public DepartmentResponse createDepartment(
-            @CurrentTenant Long tenantId, @RequestBody DepartmentCreateRequest request) {
+    public DepartmentResponse createDepartment(@RequestBody DepartmentCreateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.createDepartment(
-                request.code(), request.name(), request.parentId(), request.leaderUserId(), request.sort()));
+                request.code(),
+                request.name(),
+                DepartmentIdCodec.toDomain(request.parentId()),
+                request.leaderUserId(),
+                request.sort()));
     }
 
     @Operation(summary = "按部门 ID 查询部门")
     @HasPermission("sys:department:view")
     @SysLog(module = "UPMS", action = "查询部门详情", eventType = LogEventType.QUERY)
     @GetMapping("/{departmentId}")
-    public DepartmentResponse getDepartmentById(@CurrentTenant Long tenantId, @PathVariable String departmentId) {
+    public DepartmentResponse getDepartmentById(@PathVariable Long departmentId) {
         return DepartmentResponse.from(
-                departmentApplicationService.getDepartmentById(DepartmentId.of(Long.parseLong(departmentId.trim()))));
+                departmentApplicationService.getDepartmentById(DepartmentId.of(departmentId)));
     }
 
     @Operation(summary = "按部门编码查询部门")
     @HasPermission("sys:department:view")
     @SysLog(module = "UPMS", action = "按编码查询部门", eventType = LogEventType.QUERY)
     @GetMapping("/code/{departmentCode}")
-    public DepartmentResponse getDepartmentByCode(@CurrentTenant Long tenantId, @PathVariable String departmentCode) {
+    public DepartmentResponse getDepartmentByCode(@PathVariable String departmentCode) {
         return DepartmentResponse.from(departmentApplicationService.getDepartmentByCode(departmentCode));
     }
 
@@ -82,7 +85,7 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "批量查询部门", eventType = LogEventType.QUERY)
     @GetMapping
     public List<DepartmentResponse> listDepartmentsByIds(
-            @CurrentTenant Long tenantId, @ModelAttribute DepartmentBatchQueryRequest request) {
+            @ModelAttribute DepartmentBatchQueryRequest request) {
         Set<DepartmentId> departmentIds = request.getDepartmentIds() == null
                 ? Set.of()
                 : request.getDepartmentIds().stream()
@@ -101,14 +104,13 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "修改部门", eventType = LogEventType.UPDATE)
     @PutMapping("/{departmentId}")
     public DepartmentResponse updateDepartment(
-            @CurrentTenant Long tenantId,
-            @PathVariable String departmentId,
+            @PathVariable Long departmentId,
             @RequestBody DepartmentUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartment(
-                DepartmentId.of(Long.parseLong(departmentId.trim())),
+                DepartmentId.of(departmentId),
                 request.code(),
                 request.name(),
-                request.parentId(),
+                DepartmentIdCodec.toDomain(request.parentId()),
                 request.leaderUserId(),
                 request.sort()));
     }
@@ -118,18 +120,17 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "调整部门排序", eventType = LogEventType.UPDATE)
     @PutMapping("/{departmentId}/sort")
     public DepartmentResponse updateSort(
-            @CurrentTenant Long tenantId,
-            @PathVariable String departmentId,
+            @PathVariable Long departmentId,
             @RequestBody DepartmentSortUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartmentSort(
-                DepartmentId.of(Long.parseLong(departmentId.trim())), request.sort()));
+                DepartmentId.of(departmentId), request.sort()));
     }
 
     @Operation(summary = "删除部门")
     @HasPermission("sys:department:delete")
     @SysLog(module = "UPMS", action = "删除部门", eventType = LogEventType.DELETE)
     @DeleteMapping("/{departmentId}")
-    public void deleteDepartment(@CurrentTenant Long tenantId, @PathVariable String departmentId) {
-        departmentApplicationService.deleteDepartment(DepartmentId.of(Long.parseLong(departmentId.trim())));
+    public void deleteDepartment(@PathVariable Long departmentId) {
+        departmentApplicationService.deleteDepartment(DepartmentId.of(departmentId));
     }
 }

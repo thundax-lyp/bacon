@@ -2,6 +2,9 @@ package com.github.thundax.bacon.upms.domain.repository;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
+import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -9,15 +12,15 @@ public interface TenantRepository {
 
     Optional<Tenant> findTenantById(TenantId tenantId);
 
-    Optional<Tenant> findTenantByTenantId(TenantId tenantId);
+    Optional<Tenant> findTenantByCode(TenantCode tenantCode);
 
-    Optional<Tenant> findTenantByCode(String tenantCode);
+    List<Tenant> pageTenants(String name, TenantStatus status, int pageNo, int pageSize);
 
-    List<Tenant> pageTenants(String name, String status, int pageNo, int pageSize);
+    long countTenants(String name, TenantStatus status);
 
-    long countTenants(String name, String status);
+    Tenant insert(Tenant tenant);
 
-    Tenant saveTenant(Tenant tenant);
+    Tenant save(Tenant tenant);
 
-    Tenant updateTenantStatus(TenantId tenantId, String status);
+    Tenant updateStatus(TenantId tenantId, TenantStatus status);
 }

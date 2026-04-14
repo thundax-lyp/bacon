@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.api.dto;
 
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ public class PostPageQueryDTO {
     /** 所属部门主键。 */
     private DepartmentId departmentId;
     /** 岗位状态。 */
-    private String status;
+    private PostStatus status;
     /** 页码，从 1 开始。 */
     private Integer pageNo;
     /** 每页大小。 */

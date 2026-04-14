@@ -7,6 +7,8 @@ import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
 import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.interfaces.dto.RoleCreateRequest;
@@ -54,8 +56,8 @@ public class RoleController {
         return RolePageResponse.from(roleApplicationService.pageRoles(new RolePageQueryDTO(
                 request.getCode(),
                 request.getName(),
-                request.getRoleType() == null ? null : request.getRoleType().name(),
-                request.getStatus() == null ? null : request.getStatus().name(),
+                request.getRoleType() == null ? null : RoleType.valueOf(request.getRoleType().name()),
+                request.getStatus() == null ? null : RoleStatus.valueOf(request.getStatus().name()),
                 request.getPageNo(),
                 request.getPageSize())));
     }

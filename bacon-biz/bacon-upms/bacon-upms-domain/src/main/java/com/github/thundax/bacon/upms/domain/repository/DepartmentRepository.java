@@ -16,7 +16,9 @@ public interface DepartmentRepository {
 
     List<Department> listDepartmentTree();
 
-    Department save(Department department);
+    Department insert(Department department);
+
+    Department update(Department department);
 
     Department updateSort(DepartmentId departmentId, Integer sort);
 

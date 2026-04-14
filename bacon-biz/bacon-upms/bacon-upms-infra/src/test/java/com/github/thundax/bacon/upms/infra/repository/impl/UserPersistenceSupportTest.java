@@ -61,7 +61,7 @@ class UserPersistenceSupportTest {
             return 1;
         });
 
-        User savedUser = support.saveUser(newUser);
+        User savedUser = support.insertUser(newUser);
 
         verify(userMapper).insert(captor.capture());
         assertThat(captor.getValue().getDeleted()).isFalse();

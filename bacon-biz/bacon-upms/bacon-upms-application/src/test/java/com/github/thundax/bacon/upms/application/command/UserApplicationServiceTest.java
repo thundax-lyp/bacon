@@ -126,7 +126,7 @@ class UserApplicationServiceTest {
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
         when(storedObjectFacade.uploadObject(any())).thenReturn(storedObject);
-        when(userRepository.save(any(User.class), any(), any(), any(), any(), any()))
+        when(userRepository.update(any(User.class), any(), any(), any(), any(), any()))
                 .thenReturn(savedUser);
 
         UserDTO result = service.updateAvatar(
@@ -134,7 +134,7 @@ class UserApplicationServiceTest {
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository)
-                .save(
+                .update(
                         userCaptor.capture(),
                         org.mockito.ArgumentMatchers.eq("alice"),
                         org.mockito.ArgumentMatchers.eq("13800000001"),

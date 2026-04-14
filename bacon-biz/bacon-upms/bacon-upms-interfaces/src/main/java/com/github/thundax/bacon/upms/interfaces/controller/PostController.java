@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.application.command.PostApplicationService;
+import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.interfaces.dto.PostCreateRequest;
@@ -51,7 +52,7 @@ public class PostController {
                         ? null
                         : DepartmentId.of(
                                 Long.parseLong(request.getDepartmentId().trim())),
-                request.getStatus() == null ? null : request.getStatus().name(),
+                request.getStatus() == null ? null : PostStatus.valueOf(request.getStatus().name()),
                 request.getPageNo(),
                 request.getPageSize())));
     }
@@ -84,7 +85,9 @@ public class PostController {
                 request.code(),
                 request.name(),
                 request.departmentId(),
-                request.status()));
+                request.status() == null || request.status().isBlank()
+                        ? null
+                        : PostStatus.from(request.status().trim())));
     }
 
     @Operation(summary = "删除岗位")

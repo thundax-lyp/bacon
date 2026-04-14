@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
@@ -40,19 +41,27 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public List<Role> pageRoles(String code, String name, String roleType, String status, int pageNo, int pageSize) {
+    public List<Role> pageRoles(String code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
         return support.listRoles(code, name, roleType, status, pageNo, pageSize);
     }
 
     @Override
-    public long countRoles(String code, String name, String roleType, String status) {
+    public long countRoles(String code, String name, RoleType roleType, RoleStatus status) {
         return support.countRoles(code, name, roleType, status);
     }
 
     @Override
-    public Role save(Role role) {
+    public Role insert(Role role) {
         TenantId tenantId = requireTenantId();
-        Role savedRole = support.saveRole(role);
+        Role savedRole = support.insertRole(role);
+        cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, savedRole.getId()));
+        return savedRole;
+    }
+
+    @Override
+    public Role update(Role role) {
+        TenantId tenantId = requireTenantId();
+        Role savedRole = support.updateRole(role);
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, savedRole.getId()));
         return savedRole;
     }
@@ -62,7 +71,7 @@ public class RoleRepositoryImpl implements RoleRepository {
         TenantId tenantId = requireTenantId();
         Role currentRole = findRoleById(roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value()));
-        return support.saveRole(Role.create(
+        return support.updateRole(Role.create(
                 currentRole.getId(),
                 currentRole.getCode(),
                 currentRole.getName(),
@@ -131,7 +140,7 @@ public class RoleRepositoryImpl implements RoleRepository {
         Set<DepartmentId> safeDepartmentIds = departmentIds == null ? Set.of() : Set.copyOf(departmentIds);
         support.replaceRoleDataScope(roleId, dataScopeType, safeDepartmentIds);
         Role currentRole = findRoleById(roleId).orElseThrow();
-        support.saveRole(Role.create(
+        support.updateRole(Role.create(
                 currentRole.getId(),
                 currentRole.getCode(),
                 currentRole.getName(),

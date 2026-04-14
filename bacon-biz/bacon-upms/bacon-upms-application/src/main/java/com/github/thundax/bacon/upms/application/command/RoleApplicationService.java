@@ -40,7 +40,7 @@ public class RoleApplicationService {
     }
 
     public RoleDTO getRoleById(RoleId roleId) {
-        return toDto(roleRepository
+        return RoleAssembler.toDto(roleRepository
                 .findRoleById(roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value())));
     }
@@ -64,7 +64,7 @@ public class RoleApplicationService {
                                 pageNo,
                                 pageSize)
                         .stream()
-                        .map(this::toDto)
+                        .map(RoleAssembler::toDto)
                         .toList(),
                 roleRepository.countRoles(query.getCode(), query.getName(), query.getRoleType(), query.getStatus()),
                 pageNo,
@@ -72,90 +72,81 @@ public class RoleApplicationService {
     }
 
     @Transactional
-    public RoleDTO createRole(String code, String name, String roleType, String dataScopeType) {
+    public RoleDTO createRole(String code, String name, RoleType roleType, RoleDataScopeType dataScopeType) {
         validateRequired(code, "code");
         validateRequired(name, "name");
-        validateRequired(roleType, "roleType");
-        validateRequired(dataScopeType, "dataScopeType");
-        return toDto(roleRepository.save(Role.create(
+        return RoleAssembler.toDto(roleRepository.insert(Role.create(
                 RoleIdCodec.toDomain(idGenerator.nextId(ROLE_ID_BIZ_TAG)),
                 normalize(code),
                 normalize(name),
-                toRoleType(roleType),
-                toRoleDataScopeType(dataScopeType),
+                roleType,
+                dataScopeType,
                 RoleStatus.ENABLED)));
     }
 
     @Transactional
-    public RoleDTO updateRole(String roleId, String code, String name, String roleType, String dataScopeType) {
-        RoleId domainRoleId = toRoleId(roleId);
+    public RoleDTO updateRole(RoleId roleId, String code, String name, RoleType roleType, RoleDataScopeType dataScopeType) {
         Role currentRole = roleRepository
-                .findRoleById(domainRoleId)
+                .findRoleById(roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         validateRequired(code, "code");
         validateRequired(name, "name");
-        validateRequired(roleType, "roleType");
-        validateRequired(dataScopeType, "dataScopeType");
-        return toDto(roleRepository.save(currentRole.update(
+        return RoleAssembler.toDto(roleRepository.update(currentRole.update(
                 normalize(code),
                 normalize(name),
-                toRoleType(roleType),
-                toRoleDataScopeType(dataScopeType),
+                roleType,
+                dataScopeType,
                 currentRole.getStatus())));
     }
 
     @Transactional
-    public RoleDTO updateRoleStatus(String roleId, String status) {
-        validateRequired(status, "status");
-        return toDto(roleRepository.updateStatus(toRoleId(roleId), toRoleStatus(status)));
+    public RoleDTO updateRoleStatus(RoleId roleId, RoleStatus status) {
+        return RoleAssembler.toDto(roleRepository.updateStatus(roleId, status));
     }
 
     @Transactional
-    public void deleteRole(String roleId) {
-        RoleId domainRoleId = toRoleId(roleId);
+    public void deleteRole(RoleId roleId) {
         roleRepository
-                .findRoleById(domainRoleId)
+                .findRoleById(roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
-        roleRepository.deleteRole(domainRoleId);
+        roleRepository.deleteRole(roleId);
     }
 
-    public Set<String> getAssignedMenus(String roleId) {
-        return roleRepository.getAssignedMenus(toRoleId(roleId)).stream()
+    public Set<String> getAssignedMenus(RoleId roleId) {
+        return roleRepository.getAssignedMenus(roleId).stream()
                 .map(MenuIdCodec::toValue)
                 .map(String::valueOf)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Transactional
-    public Set<String> assignMenus(String roleId, Set<String> menuIds) {
-        return roleRepository.assignMenus(toRoleId(roleId), toMenuIds(menuIds)).stream()
+    public Set<String> assignMenus(RoleId roleId, Set<MenuId> menuIds) {
+        return roleRepository.assignMenus(roleId, menuIds).stream()
                 .map(MenuIdCodec::toValue)
                 .map(String::valueOf)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public Set<String> getAssignedResources(String roleId) {
-        return roleRepository.getAssignedResources(toRoleId(roleId));
+    public Set<String> getAssignedResources(RoleId roleId) {
+        return roleRepository.getAssignedResources(roleId);
     }
 
     @Transactional
-    public Set<String> assignResources(String roleId, Set<String> resourceCodes) {
-        return roleRepository.assignResources(toRoleId(roleId), resourceCodes);
+    public Set<String> assignResources(RoleId roleId, Set<String> resourceCodes) {
+        return roleRepository.assignResources(roleId, resourceCodes);
     }
 
-    public String getAssignedDataScopeType(String roleId) {
-        return roleRepository.getAssignedDataScopeType(toRoleId(roleId));
+    public RoleDataScopeType getAssignedDataScopeType(RoleId roleId) {
+        return roleRepository.getAssignedDataScopeType(roleId);
     }
 
-    public Set<DepartmentId> getAssignedDataScopeDepartments(String roleId) {
-        return roleRepository.getAssignedDataScopeDepartments(toRoleId(roleId));
+    public Set<DepartmentId> getAssignedDataScopeDepartments(RoleId roleId) {
+        return roleRepository.getAssignedDataScopeDepartments(roleId);
     }
 
     @Transactional
-    public Set<DepartmentId> assignDataScope(String roleId, String dataScopeType, Set<String> departmentIds) {
-        validateRequired(dataScopeType, "dataScopeType");
-        return roleRepository.assignDataScope(
-                toRoleId(roleId), toRoleDataScopeType(dataScopeType), toDepartmentIds(departmentIds));
+    public Set<DepartmentId> assignDataScope(RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
+        return roleRepository.assignDataScope(roleId, dataScopeType, departmentIds);
     }
 
     private void validateRequired(String value, String fieldName) {
@@ -166,51 +157,5 @@ public class RoleApplicationService {
 
     private String normalize(String value) {
         return value == null ? null : value.trim();
-    }
-
-    private RoleType toRoleType(String roleType) {
-        validateRequired(roleType, "roleType");
-        return RoleType.from(normalize(roleType).toUpperCase(Locale.ROOT));
-    }
-
-    private RoleDataScopeType toRoleDataScopeType(String dataScopeType) {
-        validateRequired(dataScopeType, "dataScopeType");
-        return RoleDataScopeType.from(normalize(dataScopeType).toUpperCase(Locale.ROOT));
-    }
-
-    private RoleStatus toRoleStatus(String status) {
-        validateRequired(status, "status");
-        return RoleStatus.from(normalize(status).toUpperCase(Locale.ROOT));
-    }
-
-    private RoleDTO toDto(Role role) {
-        return RoleAssembler.toDto(role);
-    }
-
-    private Set<DepartmentId> toDepartmentIds(Set<String> departmentIds) {
-        return departmentIds == null
-                ? Set.of()
-                : departmentIds.stream()
-                        .map(String::trim)
-                        .filter(value -> !value.isBlank())
-                        .map(Long::parseLong)
-                        .map(DepartmentIdCodec::toDomain)
-                        .collect(Collectors.toSet());
-    }
-
-    private Set<MenuId> toMenuIds(Set<String> menuIds) {
-        return menuIds == null
-                ? Set.of()
-                : menuIds.stream()
-                        .map(String::trim)
-                        .filter(value -> !value.isBlank())
-                        .map(Long::parseLong)
-                        .map(MenuIdCodec::toDomain)
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    private RoleId toRoleId(String roleId) {
-        validateRequired(roleId, "roleId");
-        return RoleIdCodec.toDomain(Long.parseLong(roleId.trim()));
     }
 }

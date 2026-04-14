@@ -39,9 +39,17 @@ public class MenuRepositoryImpl implements MenuRepository {
     }
 
     @Override
-    public Menu save(Menu menu) {
+    public Menu insert(Menu menu) {
         TenantId tenantId = requireTenantId();
-        Menu savedMenu = support.saveMenu(menu);
+        Menu savedMenu = support.insertMenu(menu);
+        cacheSupport.evictTenantPermission(tenantId);
+        return savedMenu;
+    }
+
+    @Override
+    public Menu update(Menu menu) {
+        TenantId tenantId = requireTenantId();
+        Menu savedMenu = support.updateMenu(menu);
         cacheSupport.evictTenantPermission(tenantId);
         return savedMenu;
     }
@@ -51,7 +59,7 @@ public class MenuRepositoryImpl implements MenuRepository {
         TenantId tenantId = requireTenantId();
         Menu currentMenu =
                 findMenuById(menuId).orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
-        return support.saveMenu(Menu.create(
+        return support.updateMenu(Menu.create(
                 currentMenu.getId(),
                 currentMenu.getMenuType(),
                 currentMenu.getName(),

@@ -1,0 +1,265 @@
+x-service-env: &service-env
+  BACON_DB_URL: "${BACON_DB_URL}"
+  BACON_DB_USERNAME: "${BACON_DB_USERNAME}"
+  BACON_DB_PASSWORD: "${BACON_DB_PASSWORD}"
+  BACON_DB_DRIVER: "${BACON_DB_DRIVER}"
+  BACON_REDIS_URL: "${BACON_REDIS_URL}"
+  BACON_REDIS_PASSWORD: "${BACON_REDIS_PASSWORD}"
+  BACON_REDIS_TIMEOUT: "${BACON_REDIS_TIMEOUT}"
+  BACON_MQ_ENABLED: "${BACON_MQ_ENABLED}"
+  BACON_MQ_TYPE: "${BACON_MQ_TYPE}"
+  BACON_ROCKETMQ_NAME_SERVER: "${BACON_ROCKETMQ_NAME_SERVER}"
+  BACON_NACOS_SERVER_ADDR: "${BACON_NACOS_SERVER_ADDR}"
+  BACON_NACOS_DISCOVERY_ENABLED: "${BACON_NACOS_DISCOVERY_ENABLED}"
+  BACON_NACOS_REGISTER_ENABLED: "${BACON_NACOS_REGISTER_ENABLED}"
+  BACON_NACOS_NAMESPACE: "${BACON_NACOS_NAMESPACE}"
+  BACON_NACOS_GROUP: "${BACON_NACOS_GROUP}"
+  BACON_NACOS_USERNAME: "${BACON_NACOS_USERNAME}"
+  BACON_NACOS_PASSWORD: "${BACON_NACOS_PASSWORD}"
+  BACON_STORAGE_TYPE: "${BACON_STORAGE_TYPE}"
+  BACON_COMMON_OSS_ENABLED: "${BACON_STORAGE_OSS_ENABLED}"
+  BACON_COMMON_OSS_TYPE: "${BACON_STORAGE_OSS_KIND}"
+  BACON_COMMON_OSS_ENDPOINT: "${BACON_STORAGE_OSS_ENDPOINT}"
+  BACON_COMMON_OSS_PUBLIC_BASE_URL: "${BACON_STORAGE_OSS_PUBLIC_BASE_URL}"
+  BACON_COMMON_OSS_BUCKET_NAME: "${BACON_STORAGE_OSS_BUCKET_NAME}"
+  BACON_COMMON_OSS_ACCESS_KEY: "${BACON_STORAGE_OSS_ACCESS_KEY}"
+  BACON_COMMON_OSS_SECRET_KEY: "${BACON_STORAGE_OSS_SECRET_KEY}"
+  BACON_COMMON_OSS_REGION: "${BACON_STORAGE_OSS_REGION}"
+  BACON_COMMON_OSS_PATH_STYLE_ACCESS: "${BACON_STORAGE_OSS_PATH_STYLE_ACCESS}"
+  JAVA_OPTS: "${JAVA_OPTS}"
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - bacon-gateway
+    ports:
+      - "${BACON_PUBLIC_HTTP_PORT:-18080}:80"
+    volumes:
+      - ./nginx/public.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - public
+      - backend
+
+  ops-nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - bacon-gateway
+      - bacon-auth-service
+      - bacon-upms-service
+      - bacon-order-service
+      - bacon-inventory-service
+      - bacon-payment-service
+      - bacon-storage-service
+    ports:
+      - "127.0.0.1:${BACON_OPS_HTTP_PORT:-19080}:80"
+    volumes:
+      - ./nginx/ops.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - backend
+
+  bacon-register:
+    image: nacos/nacos-server:v2.4.3
+    environment:
+      MODE: standalone
+      NACOS_AUTH_ENABLE: "false"
+    ports:
+      - "${BACON_NACOS_HTTP_PORT:-18848}:8848"
+    networks:
+      - backend
+
+  bacon-gateway:
+    image: eclipse-temurin:17-jre
+    working_dir: /app
+    command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+    depends_on:
+      - bacon-register
+    environment:
+      BACON_SERVER_PORT: 8080
+      BACON_NACOS_SERVER_ADDR: "${BACON_NACOS_SERVER_ADDR}"
+      BACON_NACOS_DISCOVERY_ENABLED: "${BACON_NACOS_DISCOVERY_ENABLED}"
+      BACON_NACOS_REGISTER_ENABLED: "${BACON_NACOS_REGISTER_ENABLED}"
+      BACON_NACOS_NAMESPACE: "${BACON_NACOS_NAMESPACE}"
+      BACON_NACOS_GROUP: "${BACON_NACOS_GROUP}"
+      BACON_NACOS_USERNAME: "${BACON_NACOS_USERNAME}"
+      BACON_NACOS_PASSWORD: "${BACON_NACOS_PASSWORD}"
+      JAVA_OPTS: "${JAVA_OPTS}"
+    volumes:
+      - "${BACON_GATEWAY_JAR}:/app/app.jar:ro"
+    networks:
+      - backend
+
+  bacon-auth-service:
+    image: eclipse-temurin:17-jre
+    working_dir: /app
+    command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+    depends_on:
+      - bacon-register
+      - mysql
+      - redis
+      - rocketmq-nameserver
+      - rocketmq-broker
+    environment:
+      <<: *service-env
+      BACON_SERVER_PORT: 8081
+      BACON_AUTH_PROVIDER_TOKEN: "${BACON_AUTH_PROVIDER_TOKEN}"
+      BACON_REMOTE_UPMS_PROVIDER_TOKEN: "${BACON_UPMS_PROVIDER_TOKEN}"
+    volumes:
+      - "${BACON_AUTH_JAR}:/app/app.jar:ro"
+    networks:
+      - backend
+
+  bacon-upms-service:
+    image: eclipse-temurin:17-jre
+    working_dir: /app
+    command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+    depends_on:
+      - bacon-register
+      - mysql
+      - redis
+      - minio
+    environment:
+      <<: *service-env
+      BACON_SERVER_PORT: 8082
+      BACON_UPMS_PROVIDER_TOKEN: "${BACON_UPMS_PROVIDER_TOKEN}"
+      BACON_REMOTE_AUTH_PROVIDER_TOKEN: "${BACON_AUTH_PROVIDER_TOKEN}"
+    volumes:
+      - "${BACON_UPMS_JAR}:/app/app.jar:ro"
+    networks:
+      - backend
+
+  bacon-order-service:
+    image: eclipse-temurin:17-jre
+    working_dir: /app
+    command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+    depends_on:
+      - bacon-register
+      - mysql
+      - redis
+      - rocketmq-nameserver
+      - rocketmq-broker
+    environment:
+      <<: *service-env
+      BACON_SERVER_PORT: 8083
+      BACON_ORDER_PROVIDER_TOKEN: "${BACON_ORDER_PROVIDER_TOKEN}"
+      BACON_REMOTE_PAYMENT_PROVIDER_TOKEN: "${BACON_PAYMENT_PROVIDER_TOKEN}"
+    volumes:
+      - "${BACON_ORDER_JAR}:/app/app.jar:ro"
+    networks:
+      - backend
+
+  bacon-inventory-service:
+    image: eclipse-temurin:17-jre
+    working_dir: /app
+    command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+    depends_on:
+      - bacon-register
+      - mysql
+      - redis
+      - rocketmq-nameserver
+      - rocketmq-broker
+    environment:
+      <<: *service-env
+      BACON_SERVER_PORT: 8084
+      BACON_INVENTORY_PROVIDER_TOKEN: "${BACON_INVENTORY_PROVIDER_TOKEN}"
+      BACON_REMOTE_INVENTORY_PROVIDER_TOKEN: "${BACON_INVENTORY_PROVIDER_TOKEN}"
+    volumes:
+      - "${BACON_INVENTORY_JAR}:/app/app.jar:ro"
+    networks:
+      - backend
+
+  bacon-payment-service:
+    image: eclipse-temurin:17-jre
+    working_dir: /app
+    command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+    depends_on:
+      - bacon-register
+      - mysql
+      - redis
+      - rocketmq-nameserver
+      - rocketmq-broker
+    environment:
+      <<: *service-env
+      BACON_SERVER_PORT: 8085
+      BACON_PAYMENT_PROVIDER_TOKEN: "${BACON_PAYMENT_PROVIDER_TOKEN}"
+      BACON_REMOTE_ORDER_PROVIDER_TOKEN: "${BACON_ORDER_PROVIDER_TOKEN}"
+    volumes:
+      - "${BACON_PAYMENT_JAR}:/app/app.jar:ro"
+    networks:
+      - backend
+
+  bacon-storage-service:
+    image: eclipse-temurin:17-jre
+    working_dir: /app
+    command: ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+    depends_on:
+      - bacon-register
+      - mysql
+      - minio
+    environment:
+      <<: *service-env
+      BACON_SERVER_PORT: 8086
+      BACON_STORAGE_PROVIDER_TOKEN: "${BACON_STORAGE_PROVIDER_TOKEN}"
+      BACON_REMOTE_STORAGE_CLIENT_PROVIDER_TOKEN: "${BACON_STORAGE_PROVIDER_TOKEN}"
+    volumes:
+      - "${BACON_STORAGE_JAR}:/app/app.jar:ro"
+    networks:
+      - backend
+
+  mysql:
+    image: mysql:8.4
+    command: ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    volumes:
+      - micro-mysql-data:/var/lib/mysql
+    networks:
+      - backend
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - micro-redis-data:/data
+    networks:
+      - backend
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-28T09-55-16Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: "${BACON_STORAGE_OSS_ACCESS_KEY}"
+      MINIO_ROOT_PASSWORD: "${BACON_STORAGE_OSS_SECRET_KEY}"
+    ports:
+      - "${MINIO_API_PORT:-19000}:9000"
+      - "${MINIO_CONSOLE_PORT:-19001}:9001"
+    volumes:
+      - micro-minio-data:/data
+    networks:
+      - backend
+
+  rocketmq-nameserver:
+    image: apache/rocketmq:5.3.2
+    command: ["sh", "mqnamesrv"]
+    networks:
+      - backend
+
+  rocketmq-broker:
+    image: apache/rocketmq:5.3.2
+    command: ["sh", "mqbroker", "-n", "rocketmq-nameserver:9876", "--enable-proxy"]
+    depends_on:
+      - rocketmq-nameserver
+    networks:
+      - backend
+
+networks:
+  public:
+  backend:
+
+volumes:
+  micro-mysql-data:
+  micro-redis-data:
+  micro-minio-data:

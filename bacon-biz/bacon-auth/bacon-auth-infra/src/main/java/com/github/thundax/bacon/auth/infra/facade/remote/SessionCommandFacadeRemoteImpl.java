@@ -17,7 +17,7 @@ public class SessionCommandFacadeRemoteImpl implements SessionCommandFacade {
 
     public SessionCommandFacadeRemoteImpl(
             RestClientFactory restClientFactory,
-            @Value("${bacon.remote.auth-base-url:http://127.0.0.1:8081/api}") String baseUrl,
+            @Value("${bacon.remote.auth-base-url:http://bacon-auth-service/api}") String baseUrl,
             @Value("${bacon.remote.auth.provider-token:}") String providerToken) {
         this.restClient = restClientFactory.create(baseUrl, PROVIDER_TOKEN_HEADER, providerToken);
     }

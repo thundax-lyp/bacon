@@ -20,7 +20,7 @@ public class UserPasswordFacadeRemoteImpl implements UserPasswordFacade {
 
     public UserPasswordFacadeRemoteImpl(
             RestClientFactory restClientFactory,
-            @Value("${bacon.remote.upms-base-url:http://127.0.0.1:8082/api}") String baseUrl,
+            @Value("${bacon.remote.upms-base-url:http://bacon-upms-service/api}") String baseUrl,
             @Value("${bacon.remote.upms.provider-token:}") String providerToken) {
         this.restClient = restClientFactory.create(baseUrl, PROVIDER_TOKEN_HEADER, providerToken);
     }

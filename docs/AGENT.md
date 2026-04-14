@@ -30,6 +30,7 @@
 - 改文档：
   再读 `00-governance/DOCUMENT-RULES.md`
 - 上线准备、运维、发布：
+  先读 `00-governance/DEPLOYMENT-AND-TRAFFIC-BOUNDARY-RULES.md`
   读 `40-readiness/`
 - 专项方案、路线图、跨域设计：
   按需读 `30-designs/`

@@ -10,14 +10,14 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 /**
- * OAuth2 授权服务安全配置，仅对 /oauth2/** 请求生效。
+ * OAuth2 授权服务安全配置，仅对 /auth/oauth2/** 请求生效。
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class AuthorizationServerConfiguration {
 
     private static final PathPatternRequestMatcher OAUTH2_PATH_MATCHER =
-            PathPatternRequestMatcher.withDefaults().matcher("/oauth2/**");
+            PathPatternRequestMatcher.withDefaults().matcher("/auth/oauth2/**");
 
     @Bean
     @Order(1)

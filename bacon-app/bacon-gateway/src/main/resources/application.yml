@@ -22,7 +22,7 @@ spring:
           - id: auth-public
             uri: lb://bacon-auth-service
             predicates:
-              - Path=/api/auth/**,/api/oauth2/**
+              - Path=/api/auth/**
           - id: upms-public
             uri: lb://bacon-upms-service
             predicates:
@@ -30,15 +30,15 @@ spring:
           - id: order-public
             uri: lb://bacon-order-service
             predicates:
-              - Path=/api/orders/**
+              - Path=/api/order/**
           - id: inventory-public
             uri: lb://bacon-inventory-service
             predicates:
-              - Path=/api/inventories/**,/api/inventory-ledgers/**,/api/inventory-reservations/**,/api/inventory-audit-logs/**,/api/inventory-audit-dead-letters/**
+              - Path=/api/inventory/**
           - id: payment-public
             uri: lb://bacon-payment-service
             predicates:
-              - Path=/api/payments/**
+              - Path=/api/payment/**
           - id: storage-public
             uri: lb://bacon-storage-service
             predicates:

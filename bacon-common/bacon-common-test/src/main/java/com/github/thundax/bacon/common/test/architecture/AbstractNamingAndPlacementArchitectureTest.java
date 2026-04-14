@@ -30,9 +30,23 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
+    @DisplayName("Controller 路径：类级 @RequestMapping 必须以 /{domain} 开头，对外完整路径为 /api/{domain}/**")
+    void shouldFollowControllerRequestMappingPrefixRule() {
+        NamingAndPlacementRuleSupport.controllerRequestMappingShouldUseDomainPrefix(basePackage())
+                .check(classes());
+    }
+
+    @Test
     @DisplayName("ProviderController：对内服务 HTTP 入口，命名 {业务对象}{动作}ProviderController，目录 interfaces/provider/")
     void shouldFollowProviderControllerRule() {
         NamingAndPlacementRuleSupport.providerControllerShouldUseProviderControllerNameAndPackage(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    @DisplayName("ProviderController 路径：类级 @RequestMapping 必须以 /providers/{domain} 开头")
+    void shouldFollowProviderControllerRequestMappingPrefixRule() {
+        NamingAndPlacementRuleSupport.providerControllerRequestMappingShouldUseDomainPrefix(basePackage())
                 .check(classes());
     }
 

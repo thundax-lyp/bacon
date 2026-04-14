@@ -8,6 +8,18 @@ spring:
     name: bacon-auth-service
   main:
     banner-mode: off
+  cloud:
+    nacos:
+      config:
+        enabled: false
+      discovery:
+        enabled: ${BACON_NACOS_DISCOVERY_ENABLED:true}
+        register-enabled: ${BACON_NACOS_REGISTER_ENABLED:true}
+        server-addr: ${BACON_NACOS_SERVER_ADDR:127.0.0.1:8848}
+        namespace: ${BACON_NACOS_NAMESPACE:public}
+        group: ${BACON_NACOS_GROUP:DEFAULT_GROUP}
+        username: ${BACON_NACOS_USERNAME:nacos}
+        password: ${BACON_NACOS_PASSWORD:nacos}
   boot:
     admin:
       client:
@@ -21,7 +33,7 @@ bacon:
   runtime:
     mode: micro
   remote:
-    upms-base-url: ${BACON_REMOTE_UPMS_BASE_URL:http://127.0.0.1:8082/api}
+    upms-base-url: ${BACON_REMOTE_UPMS_BASE_URL:http://bacon-upms-service/api}
     upms:
       provider-token: ${BACON_REMOTE_UPMS_PROVIDER_TOKEN:}
   web:

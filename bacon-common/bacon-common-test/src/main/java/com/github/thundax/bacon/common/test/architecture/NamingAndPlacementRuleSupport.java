@@ -191,6 +191,32 @@ public final class NamingAndPlacementRuleSupport {
                 .because("FacadeRemoteImpl -> infra.facade.remote");
     }
 
+    public static ArchRule controllerRequestMappingShouldUseDomainPrefix(String basePackage) {
+        String domain = domainName(basePackage);
+        String prefix = "/" + domain;
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(basePackage + ".interfaces.controller..")
+                .and()
+                .haveSimpleNameEndingWith("Controller")
+                .should(new RequestMappingPathPrefixCondition(prefix, "Controller"))
+                .allowEmptyShould(true)
+                .because("Controller path must use /{domain}/**");
+    }
+
+    public static ArchRule providerControllerRequestMappingShouldUseDomainPrefix(String basePackage) {
+        String domain = domainName(basePackage);
+        String prefix = "/providers/" + domain;
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(basePackage + ".interfaces.provider..")
+                .and()
+                .haveSimpleNameEndingWith("ProviderController")
+                .should(new RequestMappingPathPrefixCondition(prefix, "ProviderController"))
+                .allowEmptyShould(true)
+                .because("ProviderController path must use /providers/{domain}/**");
+    }
+
     public static ArchRule simpleEnumShouldUseNameAndFromConvention(String... fullyQualifiedClassNames) {
         Set<String> classNamePatterns = Set.of(fullyQualifiedClassNames);
         return ArchRuleDefinition.classes()
@@ -423,5 +449,82 @@ public final class NamingAndPlacementRuleSupport {
                         .map(JavaClass::getSimpleName)
                         .collect(Collectors.joining(", ")) + ")";
         return method.getModifiers().contains(JavaModifier.STATIC) ? "static " + methodName : methodName;
+    }
+
+    private static String domainName(String basePackage) {
+        int index = basePackage.lastIndexOf('.');
+        return index >= 0 ? basePackage.substring(index + 1) : basePackage;
+    }
+
+    private static final class RequestMappingPathPrefixCondition extends ArchCondition<JavaClass> {
+
+        private final String requiredPrefix;
+        private final String typeName;
+
+        private RequestMappingPathPrefixCondition(String requiredPrefix, String typeName) {
+            super(typeName + " must declare @RequestMapping with prefix " + requiredPrefix);
+            this.requiredPrefix = requiredPrefix;
+            this.typeName = typeName;
+        }
+
+        @Override
+        public void check(JavaClass item, ConditionEvents events) {
+            try {
+                Optional<Path> sourceFile = resolveSourceFilePath(item.getSource(), item);
+                if (sourceFile.isEmpty()) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, item.getFullName() + " source file not found, cannot inspect @RequestMapping"));
+                    return;
+                }
+                String source = Files.readString(sourceFile.get());
+                int classIndex = source.indexOf("class " + item.getSimpleName());
+                if (classIndex < 0) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, item.getFullName() + " class declaration not found in source"));
+                    return;
+                }
+                String classHeader = source.substring(0, classIndex);
+                int requestMappingIndex = classHeader.lastIndexOf("@RequestMapping(");
+                if (requestMappingIndex < 0) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, typeName + " must declare class-level @RequestMapping"));
+                    return;
+                }
+                int annotationEnd = classHeader.indexOf(")", requestMappingIndex);
+                if (annotationEnd < 0) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, item.getFullName() + " @RequestMapping annotation is not closed"));
+                    return;
+                }
+                String requestMappingContent = classHeader.substring(requestMappingIndex, annotationEnd + 1);
+                List<String> mappings = Pattern.compile("\"([^\"]+)\"")
+                        .matcher(requestMappingContent)
+                        .results()
+                        .map(result -> result.group(1))
+                        .filter(path -> !path.isBlank())
+                        .toList();
+                if (mappings.isEmpty()) {
+                    events.add(SimpleConditionEvent.violated(
+                            item, typeName + " must declare non-empty @RequestMapping path"));
+                    return;
+                }
+                List<String> invalid = mappings.stream()
+                        .filter(mapping -> !mapping.equals(requiredPrefix) && !mapping.startsWith(requiredPrefix + "/"))
+                        .toList();
+                if (invalid.isEmpty()) {
+                    events.add(SimpleConditionEvent.satisfied(
+                            item, item.getFullName() + " uses mapping " + mappings + " with prefix " + requiredPrefix));
+                    return;
+                }
+                events.add(SimpleConditionEvent.violated(
+                        item,
+                        item.getFullName() + " mapping " + invalid + " does not match required prefix "
+                                + requiredPrefix));
+            } catch (Exception ex) {
+                events.add(SimpleConditionEvent.violated(
+                        item,
+                        item.getFullName() + " cannot be checked for @RequestMapping prefix because " + ex.getMessage()));
+            }
+        }
     }
 }

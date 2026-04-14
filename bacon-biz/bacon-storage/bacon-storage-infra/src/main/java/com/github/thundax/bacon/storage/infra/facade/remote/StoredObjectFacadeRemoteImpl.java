@@ -34,7 +34,7 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     public StoredObjectFacadeRemoteImpl(
             RestClientFactory restClientFactory,
             StorageRemoteClientProperties properties,
-            @Value("${bacon.remote.storage-base-url:http://127.0.0.1:8086/api}") String baseUrl) {
+            @Value("${bacon.remote.storage-base-url:http://bacon-storage-service/api}") String baseUrl) {
         Duration connectTimeout = properties.getConnectTimeout();
         Duration readTimeout = properties.getReadTimeout();
         this.restClient = connectTimeout == null || readTimeout == null

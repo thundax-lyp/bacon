@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @WrappedApiController
-@RequestMapping("/api/orders")
+@RequestMapping("/order")
 @Tag(name = "Order-Management", description = "订单创建、查询与取消接口")
 public class OrderController {
 

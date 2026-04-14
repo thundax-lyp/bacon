@@ -1,5 +1,51 @@
+server:
+  port: ${BACON_SERVER_PORT:8080}
+
 spring:
   application:
     name: bacon-gateway
   main:
     banner-mode: off
+  cloud:
+    nacos:
+      discovery:
+        enabled: ${BACON_NACOS_DISCOVERY_ENABLED:true}
+        register-enabled: ${BACON_NACOS_REGISTER_ENABLED:true}
+        server-addr: ${BACON_NACOS_SERVER_ADDR:127.0.0.1:8848}
+        namespace: ${BACON_NACOS_NAMESPACE:public}
+        group: ${BACON_NACOS_GROUP:DEFAULT_GROUP}
+        username: ${BACON_NACOS_USERNAME:nacos}
+        password: ${BACON_NACOS_PASSWORD:nacos}
+    gateway:
+      mvc:
+        routes:
+          - id: auth-public
+            uri: lb://bacon-auth-service
+            predicates:
+              - Path=/api/auth/**
+          - id: upms-public
+            uri: lb://bacon-upms-service
+            predicates:
+              - Path=/api/upms/**
+          - id: order-public
+            uri: lb://bacon-order-service
+            predicates:
+              - Path=/api/order/**
+          - id: inventory-public
+            uri: lb://bacon-inventory-service
+            predicates:
+              - Path=/api/inventory/**
+          - id: payment-public
+            uri: lb://bacon-payment-service
+            predicates:
+              - Path=/api/payment/**
+          - id: storage-public
+            uri: lb://bacon-storage-service
+            predicates:
+              - Path=/api/storage/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

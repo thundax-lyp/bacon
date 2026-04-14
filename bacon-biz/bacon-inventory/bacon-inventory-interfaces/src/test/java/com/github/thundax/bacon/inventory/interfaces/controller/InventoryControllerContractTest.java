@@ -63,7 +63,7 @@ class InventoryControllerContractTest {
 
     @Test
     void shouldAllowPageRequestWithoutTenantIdParam() throws Exception {
-        mockMvc.perform(get("/inventories/page").param("pageNo", "1").param("pageSize", "20"))
+        mockMvc.perform(get("/inventory/inventories/page").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1))
                 .andExpect(jsonPath("$.pageNo").value(1))
@@ -72,13 +72,13 @@ class InventoryControllerContractTest {
 
     @Test
     void shouldRejectPageRequestWithOversizedPageSize() throws Exception {
-        mockMvc.perform(get("/inventories/page").param("pageNo", "1").param("pageSize", "1000"))
+        mockMvc.perform(get("/inventory/inventories/page").param("pageNo", "1").param("pageSize", "1000"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldReturnPagedInventoryWhenRequestIsValid() throws Exception {
-        mockMvc.perform(get("/inventories/page")
+        mockMvc.perform(get("/inventory/inventories/page")
                         .param("status", "ENABLED")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
@@ -90,7 +90,7 @@ class InventoryControllerContractTest {
 
     @Test
     void shouldRejectPageRequestWithIllegalStatus() throws Exception {
-        mockMvc.perform(get("/inventories/page")
+        mockMvc.perform(get("/inventory/inventories/page")
                         .param("status", "INVALID")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
@@ -99,7 +99,7 @@ class InventoryControllerContractTest {
 
     @Test
     void shouldExposeTenantAndUserContextToRepositoryLayer() throws Exception {
-        mockMvc.perform(get("/inventories/page").param("pageNo", "1").param("pageSize", "20"))
+        mockMvc.perform(get("/inventory/inventories/page").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isOk());
 
         org.assertj.core.api.Assertions.assertThat(repository.capturedTenantId).isEqualTo(1001L);

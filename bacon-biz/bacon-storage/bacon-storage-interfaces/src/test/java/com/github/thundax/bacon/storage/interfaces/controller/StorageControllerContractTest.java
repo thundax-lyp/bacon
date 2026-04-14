@@ -65,7 +65,7 @@ class StorageControllerContractTest {
                         1,
                         20));
 
-        mockMvc.perform(get("/api/storage/objects")
+        mockMvc.perform(get("/storage/objects")
                         .param("tenantId", "1")
                         .param("storageType", "LOCAL_FILE")
                         .param("pageNo", "1")
@@ -92,7 +92,7 @@ class StorageControllerContractTest {
                         "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(get("/api/storage/objects/{objectId}", "100"))
+        mockMvc.perform(get("/storage/objects/{objectId}", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.id").value("O100"));
@@ -102,7 +102,7 @@ class StorageControllerContractTest {
     void shouldWrapDeleteForAdminFrontend() throws Exception {
         doNothing().when(storedObjectApplicationService).deleteObject(100L);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/storage/objects/{objectId}", "100"))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/storage/objects/{objectId}", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data").doesNotExist());
@@ -110,14 +110,14 @@ class StorageControllerContractTest {
 
     @Test
     void shouldRejectIllegalPageSizeForAdminFrontend() throws Exception {
-        mockMvc.perform(get("/api/storage/objects").param("pageNo", "1").param("pageSize", "201"))
+        mockMvc.perform(get("/storage/objects").param("pageNo", "1").param("pageSize", "201"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }
 
     @Test
     void shouldRejectIllegalEnumValueForAdminFrontend() throws Exception {
-        mockMvc.perform(get("/api/storage/objects")
+        mockMvc.perform(get("/storage/objects")
                         .param("storageType", "INVALID")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
@@ -127,7 +127,7 @@ class StorageControllerContractTest {
 
     @Test
     void shouldRejectIllegalObjectStatusForAdminFrontend() throws Exception {
-        mockMvc.perform(get("/api/storage/objects")
+        mockMvc.perform(get("/storage/objects")
                         .param("objectStatus", "INVALID")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
@@ -137,7 +137,7 @@ class StorageControllerContractTest {
 
     @Test
     void shouldRejectIllegalReferenceStatusForAdminFrontend() throws Exception {
-        mockMvc.perform(get("/api/storage/objects")
+        mockMvc.perform(get("/storage/objects")
                         .param("referenceStatus", "INVALID")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))

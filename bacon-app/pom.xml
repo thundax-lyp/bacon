@@ -31,7 +31,6 @@
         <module>bacon-payment-starter</module>
         <module>bacon-auth-starter</module>
         <module>bacon-upms-starter</module>
-        <module>bacon-register</module>
         <module>bacon-gateway</module>
     </modules>
 </project>

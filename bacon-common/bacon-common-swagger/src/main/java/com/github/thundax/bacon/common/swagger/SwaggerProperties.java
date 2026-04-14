@@ -17,8 +17,8 @@ public class SwaggerProperties {
         private String authorizationUrl;
         private String tokenUrl;
         private String refreshUrl;
-        private String authorizationPath = "/oauth2/authorize";
-        private String tokenPath = "/oauth2/token";
+        private String authorizationPath = "/auth/oauth2/authorize";
+        private String tokenPath = "/auth/oauth2/token";
         private String refreshPath = "/token/refresh";
 
         public boolean isEnabled() {

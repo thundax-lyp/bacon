@@ -34,7 +34,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Validated
 @RestController
 @WrappedApiController
-@RequestMapping("/inventories")
+@RequestMapping("/inventory/inventories")
 @Tag(name = "Inventory-Management", description = "库存查询接口")
 public class InventoryController {
 

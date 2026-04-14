@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @WrappedApiController
-@RequestMapping("/api/storage/objects")
+@RequestMapping("/storage/objects")
 @Tag(name = "Storage-Management", description = "存储对象管理接口")
 public class StorageController {
 

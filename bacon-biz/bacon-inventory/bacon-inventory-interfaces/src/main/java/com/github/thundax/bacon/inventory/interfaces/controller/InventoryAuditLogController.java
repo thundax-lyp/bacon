@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @WrappedApiController
-@RequestMapping("/inventory-audit-logs")
+@RequestMapping("/inventory/inventory-audit-logs")
 @Tag(name = "Inventory-Audit", description = "库存审计日志查询接口")
 public class InventoryAuditLogController {
 

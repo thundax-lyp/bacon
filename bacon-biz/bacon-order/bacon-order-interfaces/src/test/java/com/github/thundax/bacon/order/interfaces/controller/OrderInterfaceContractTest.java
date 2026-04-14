@@ -54,7 +54,7 @@ class OrderInterfaceContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/api/orders").param("pageNo", "1").param("pageSize", "20"))
+        mockMvc.perform(get("/order").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.records[0].orderNo").value("ORD-1"));
@@ -72,7 +72,7 @@ class OrderInterfaceContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(9999L, 2001L));
 
-        mockMvc.perform(get("/api/orders").param("pageNo", "1").param("pageSize", "20"))
+        mockMvc.perform(get("/order").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }
@@ -89,7 +89,7 @@ class OrderInterfaceContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/orders")
+        mockMvc.perform(get("/providers/order")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
@@ -112,7 +112,7 @@ class OrderInterfaceContractTest {
 
         ServletException exception = assertThrows(
                 ServletException.class,
-                () -> mockMvc.perform(get("/providers/orders")
+                () -> mockMvc.perform(get("/providers/order")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN)));
@@ -131,7 +131,7 @@ class OrderInterfaceContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/orders").param("pageNo", "1").param("pageSize", "20"))
+        mockMvc.perform(get("/providers/order").param("pageNo", "1").param("pageSize", "20"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -147,7 +147,7 @@ class OrderInterfaceContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/orders")
+        mockMvc.perform(get("/providers/order")
                         .param("pageNo", "1")
                         .param("pageSize", "20")
                         .header(PROVIDER_TOKEN_HEADER, "wrong-token"))
@@ -159,7 +159,7 @@ class OrderInterfaceContractTest {
         guardProperties.setEnabled(true);
         guardProperties.setHeaderName(PROVIDER_TOKEN_HEADER);
         guardProperties.setToken(PROVIDER_TOKEN);
-        guardProperties.setIncludePathPatterns(List.of("/providers/orders/**"));
+        guardProperties.setIncludePathPatterns(List.of("/providers/order/**"));
         return new InternalApiGuardInterceptor(guardProperties);
     }
 

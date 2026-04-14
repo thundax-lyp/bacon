@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @WrappedApiController
-@RequestMapping("/payments")
+@RequestMapping("/payment")
 @Tag(name = "Payment-Audit", description = "支付审计日志查询接口")
 public class PaymentAuditLogController {
 

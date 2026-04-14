@@ -31,7 +31,7 @@ public class OrderCommandFacadeRemoteImpl implements OrderCommandFacade {
         restClient
                 .post()
                 .uri(
-                        "/providers/orders/mark-paid?orderNo={orderNo}&paymentNo={paymentNo}"
+                        "/providers/order/mark-paid?orderNo={orderNo}&paymentNo={paymentNo}"
                                 + "&channelCode={channelCode}&paidAmount={paidAmount}&paidTime={paidTime}",
                         orderNo,
                         paymentNo,
@@ -49,7 +49,7 @@ public class OrderCommandFacadeRemoteImpl implements OrderCommandFacade {
         restClient
                 .post()
                 .uri(
-                        "/providers/orders/mark-payment-failed?orderNo={orderNo}&paymentNo={paymentNo}"
+                        "/providers/order/mark-payment-failed?orderNo={orderNo}&paymentNo={paymentNo}"
                                 + "&reason={reason}&channelStatus={channelStatus}&failedTime={failedTime}",
                         orderNo,
                         paymentNo,
@@ -65,7 +65,7 @@ public class OrderCommandFacadeRemoteImpl implements OrderCommandFacade {
         // 超时关单是后台补偿命令，不返回 DTO；只要远端未明确成功，就让调用方继续保留重试机会。
         restClient
                 .post()
-                .uri("/providers/orders/close-expired?orderNo={orderNo}&reason={reason}", orderNo, reason)
+                .uri("/providers/order/close-expired?orderNo={orderNo}&reason={reason}", orderNo, reason)
                 .retrieve()
                 .toBodilessEntity();
     }

@@ -39,7 +39,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Validated
 @RestController
 @WrappedApiController
-@RequestMapping("/inventory-audit-dead-letters")
+@RequestMapping("/inventory/inventory-audit-dead-letters")
 @Tag(name = "Inventory-Audit-Compensation", description = "库存审计死信补偿接口")
 public class InventoryAuditCompensationController {
 

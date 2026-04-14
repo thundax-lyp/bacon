@@ -30,7 +30,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
         // provider 查询返回内部 DTO，remote facade 不再包装，保持跨服务读取模型稳定。
         return restClient
                 .get()
-                .uri("/providers/orders/{orderId}", orderId)
+                .uri("/providers/order/{orderId}", orderId)
                 .retrieve()
                 .body(OrderDetailDTO.class);
     }
@@ -39,7 +39,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
     public OrderDetailDTO getByOrderNo(String orderNo) {
         return restClient
                 .get()
-                .uri("/providers/orders/by-order-no/{orderNo}", orderNo)
+                .uri("/providers/order/by-order-no/{orderNo}", orderNo)
                 .retrieve()
                 .body(OrderDetailDTO.class);
     }
@@ -50,7 +50,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
         return restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/providers/orders")
+                        .path("/providers/order")
                         .queryParam("userId", query.getUserId())
                         .queryParam("orderNo", query.getOrderNo())
                         .build())

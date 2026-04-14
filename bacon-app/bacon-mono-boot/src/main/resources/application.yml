@@ -114,7 +114,7 @@ bacon:
       include-path-patterns:
         - /providers/auth/**
         - /providers/upms/**
-        - /providers/orders/**
+        - /providers/order/**
         - /providers/inventory/**
         - /providers/payment/**
         - /providers/storage/**

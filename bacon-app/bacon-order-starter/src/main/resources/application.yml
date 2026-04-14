@@ -42,7 +42,7 @@ bacon:
       header-name: X-Bacon-Provider-Token
       token: ${BACON_ORDER_PROVIDER_TOKEN:}
       include-path-patterns:
-        - /providers/orders/**
+        - /providers/order/**
 
 management:
   endpoints:

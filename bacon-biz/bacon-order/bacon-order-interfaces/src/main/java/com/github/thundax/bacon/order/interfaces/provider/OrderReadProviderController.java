@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/providers/orders")
+@RequestMapping("/providers/order")
 @Tag(name = "Inner-Order-Management", description = "Order 域内部 Provider 接口")
 public class OrderReadProviderController {
 

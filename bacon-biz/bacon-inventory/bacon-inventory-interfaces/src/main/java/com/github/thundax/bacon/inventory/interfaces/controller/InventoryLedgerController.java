@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @WrappedApiController
-@RequestMapping("/inventory-ledgers")
+@RequestMapping("/inventory/inventory-ledgers")
 @Tag(name = "Inventory-Ledger", description = "库存流水查询接口")
 public class InventoryLedgerController {
 

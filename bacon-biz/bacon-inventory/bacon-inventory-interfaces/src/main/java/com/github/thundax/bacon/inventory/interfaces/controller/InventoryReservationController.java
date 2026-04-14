@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @WrappedApiController
-@RequestMapping("/inventory-reservations")
+@RequestMapping("/inventory/inventory-reservations")
 @Tag(name = "Inventory-Reservation", description = "库存预占查询接口")
 public class InventoryReservationController {
 

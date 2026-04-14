@@ -72,7 +72,7 @@ class InventoryAuditCompensationControllerContractTest {
 
     @Test
     void shouldReturnPagedDeadLettersWhenRequestIsValid() throws Exception {
-        mockMvc.perform(get("/inventory-audit-dead-letters")
+        mockMvc.perform(get("/inventory/inventory-audit-dead-letters")
                         .param("replayStatus", "FAILED")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
@@ -85,7 +85,7 @@ class InventoryAuditCompensationControllerContractTest {
 
     @Test
     void shouldRejectPageRequestWithIllegalReplayStatus() throws Exception {
-        mockMvc.perform(get("/inventory-audit-dead-letters")
+        mockMvc.perform(get("/inventory/inventory-audit-dead-letters")
                         .param("replayStatus", "INVALID")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
@@ -95,7 +95,7 @@ class InventoryAuditCompensationControllerContractTest {
     @Test
     void shouldCreateReplayTaskWithoutTenantIdInResponse() throws Exception {
         mockMvc.perform(
-                        post("/inventory-audit-dead-letters/replay-tasks")
+                        post("/inventory/inventory-audit-dead-letters/replay-tasks")
                                 .contentType(APPLICATION_JSON)
                                 .content(
                                         """

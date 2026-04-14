@@ -30,6 +30,9 @@
 
 - `Controller`、`ProviderController` 直接调用本域 `ApplicationService`
 - 跨域调用统一依赖 `Facade`，不直接依赖对方 `ApplicationService`
+- `interfaces.controller` 路径固定使用 `/{domain}/**`，对外完整路径固定为 `/api/{domain}/**`
+- `interfaces.provider` 路径固定使用 `/providers/{domain}/**`，对内完整路径固定为 `/api/providers/{domain}/**`
+- `{domain}` 固定与业务域目录名一致（`auth`、`upms`、`order`、`inventory`、`payment`、`storage`），不得混用单复数别名
 - `Local`、`Remote` 是运行模式语义，不省略
 - `Codec` 只做基础类型和值对象互转，不做业务编排
 - `Converter` 做通用对象转换，不承载仓储语义

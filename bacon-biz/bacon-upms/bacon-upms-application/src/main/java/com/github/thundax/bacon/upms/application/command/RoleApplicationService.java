@@ -67,8 +67,8 @@ public class RoleApplicationService {
         validateRequired(name, "name");
         return RoleAssembler.toDto(roleRepository.insert(Role.create(
                 RoleIdCodec.toDomain(idGenerator.nextId(ROLE_ID_BIZ_TAG)),
-                normalize(code),
-                normalize(name),
+                trimPreservingNull(code),
+                trimPreservingNull(name),
                 roleType,
                 dataScopeType,
                 RoleStatus.ENABLED)));
@@ -83,7 +83,7 @@ public class RoleApplicationService {
         validateRequired(code, "code");
         validateRequired(name, "name");
         return RoleAssembler.toDto(roleRepository.update(currentRole.update(
-                normalize(code), normalize(name), roleType, dataScopeType, currentRole.getStatus())));
+                trimPreservingNull(code), trimPreservingNull(name), roleType, dataScopeType, currentRole.getStatus())));
     }
 
     @Transactional
@@ -143,7 +143,7 @@ public class RoleApplicationService {
         }
     }
 
-    private String normalize(String value) {
+    private String trimPreservingNull(String value) {
         return value == null ? null : value.trim();
     }
 }

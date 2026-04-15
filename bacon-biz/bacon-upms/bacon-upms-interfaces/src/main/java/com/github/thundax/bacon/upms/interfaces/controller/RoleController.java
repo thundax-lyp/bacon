@@ -79,8 +79,7 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "修改角色", eventType = LogEventType.UPDATE)
     @PutMapping("/{roleId}")
-    public RoleResponse updateRole(
-            @PathVariable("roleId") Long roleId, @RequestBody RoleUpdateRequest request) {
+    public RoleResponse updateRole(@PathVariable("roleId") Long roleId, @RequestBody RoleUpdateRequest request) {
         return RoleResponse.from(roleApplicationService.updateRole(
                 RoleIdCodec.toDomain(roleId),
                 request.code(),
@@ -102,8 +101,7 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "变更角色状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{roleId}/status")
     public RoleResponse updateRoleStatus(
-            @PathVariable("roleId") Long roleId,
-            @RequestBody RoleStatusUpdateRequest request) {
+            @PathVariable("roleId") Long roleId, @RequestBody RoleStatusUpdateRequest request) {
         return RoleResponse.from(roleApplicationService.updateRoleStatus(
                 RoleIdCodec.toDomain(roleId), request.status() == null ? null : RoleStatus.from(request.status())));
     }
@@ -128,16 +126,12 @@ public class RoleController {
     @HasPermission("sys:role:update")
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/menus")
-    public Set<String> assignMenus(
-            @PathVariable("roleId") Long roleId,
-            @RequestBody RoleMenuAssignRequest request) {
+    public Set<String> assignMenus(@PathVariable("roleId") Long roleId, @RequestBody RoleMenuAssignRequest request) {
         return roleApplicationService.assignMenus(
                 RoleIdCodec.toDomain(roleId),
                 request.menuIds() == null
                         ? Set.of()
-                        : request.menuIds().stream()
-                                .map(MenuIdCodec::toDomain)
-                                .collect(Collectors.toSet()));
+                        : request.menuIds().stream().map(MenuIdCodec::toDomain).collect(Collectors.toSet()));
     }
 
     @Operation(summary = "查询角色资源授权")
@@ -153,8 +147,7 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "分配角色资源", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/resources")
     public Set<String> assignResources(
-            @PathVariable("roleId") Long roleId,
-            @RequestBody RoleResourceAssignRequest request) {
+            @PathVariable("roleId") Long roleId, @RequestBody RoleResourceAssignRequest request) {
         return roleApplicationService.assignResources(RoleIdCodec.toDomain(roleId), request.resourceCodes());
     }
 
@@ -177,8 +170,7 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "配置角色数据权限", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/data-scope")
     public Set<Long> assignDataScope(
-            @PathVariable("roleId") Long roleId,
-            @RequestBody RoleDataScopeAssignRequest request) {
+            @PathVariable("roleId") Long roleId, @RequestBody RoleDataScopeAssignRequest request) {
         return roleApplicationService
                 .assignDataScope(
                         RoleIdCodec.toDomain(roleId),

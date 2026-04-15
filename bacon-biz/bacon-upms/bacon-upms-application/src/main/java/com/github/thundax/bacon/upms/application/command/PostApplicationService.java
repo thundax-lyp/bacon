@@ -52,8 +52,8 @@ public class PostApplicationService {
         validateRequired(name, "name");
         return PostAssembler.toDto(postRepository.insert(Post.create(
                 PostIdCodec.toDomain(idGenerator.nextId(POST_ID_BIZ_TAG)),
-                normalize(code),
-                normalize(name),
+                trimPreservingNull(code),
+                trimPreservingNull(name),
                 departmentId,
                 PostStatus.ENABLED)));
     }
@@ -64,7 +64,10 @@ public class PostApplicationService {
         validateRequired(code, "code");
         validateRequired(name, "name");
         return PostAssembler.toDto(postRepository.update(currentPost.update(
-                normalize(code), normalize(name), departmentId, status == null ? currentPost.getStatus() : status)));
+                trimPreservingNull(code),
+                trimPreservingNull(name),
+                departmentId,
+                status == null ? currentPost.getStatus() : status)));
     }
 
     @Transactional
@@ -85,7 +88,7 @@ public class PostApplicationService {
         }
     }
 
-    private String normalize(String value) {
+    private String trimPreservingNull(String value) {
         return value == null ? null : value.trim();
     }
 }

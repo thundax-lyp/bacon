@@ -21,7 +21,10 @@ public class RolePageRequest {
             example = "TENANT_ROLE")
     private String roleType;
 
-    @Schema(description = "启用状态", allowableValues = {"ENABLED", "DISABLED"}, example = "ENABLED")
+    @Schema(
+            description = "启用状态",
+            allowableValues = {"ENABLED", "DISABLED"},
+            example = "ENABLED")
     private String status;
 
     @Min(1)

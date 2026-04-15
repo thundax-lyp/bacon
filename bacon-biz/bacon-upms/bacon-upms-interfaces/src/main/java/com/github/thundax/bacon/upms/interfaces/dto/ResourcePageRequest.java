@@ -15,10 +15,16 @@ public class ResourcePageRequest {
     private String code;
     private String name;
 
-    @Schema(description = "资源类型", allowableValues = {"API", "RPC", "EVENT"}, example = "API")
+    @Schema(
+            description = "资源类型",
+            allowableValues = {"API", "RPC", "EVENT"},
+            example = "API")
     private String resourceType;
 
-    @Schema(description = "启用状态", allowableValues = {"ENABLED", "DISABLED"}, example = "ENABLED")
+    @Schema(
+            description = "启用状态",
+            allowableValues = {"ENABLED", "DISABLED"},
+            example = "ENABLED")
     private String status;
 
     @Min(1)

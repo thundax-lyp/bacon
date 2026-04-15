@@ -79,8 +79,7 @@ public class ResourceController {
     @SysLog(module = "UPMS", action = "修改资源", eventType = LogEventType.UPDATE)
     @PutMapping("/{resourceId}")
     public ResourceResponse updateResource(
-            @PathVariable("resourceId") String resourceId,
-            @RequestBody ResourceUpdateRequest request) {
+            @PathVariable("resourceId") String resourceId, @RequestBody ResourceUpdateRequest request) {
         return ResourceResponse.from(resourceApplicationService.updateResource(
                 ResourceIdCodec.toDomain(Long.parseLong(resourceId.trim())),
                 request.code(),

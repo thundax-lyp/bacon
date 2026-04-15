@@ -14,7 +14,10 @@ public class TenantPageRequest {
 
     private String name;
 
-    @Schema(description = "租户状态", allowableValues = {"ENABLED", "DISABLED"}, example = "ENABLED")
+    @Schema(
+            description = "租户状态",
+            allowableValues = {"ENABLED", "DISABLED"},
+            example = "ENABLED")
     private String status;
 
     @Min(1)

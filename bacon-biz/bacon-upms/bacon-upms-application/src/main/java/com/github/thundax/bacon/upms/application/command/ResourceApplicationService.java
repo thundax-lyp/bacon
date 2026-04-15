@@ -56,11 +56,11 @@ public class ResourceApplicationService {
         validateRequired(uri, "uri");
         return ResourceAssembler.toDto(resourceRepository.insert(Resource.create(
                 ids.resourceId(),
-                normalize(code),
-                normalize(name),
+                trimPreservingNull(code),
+                trimPreservingNull(name),
                 resourceType,
-                normalize(httpMethod),
-                normalize(uri),
+                trimPreservingNull(httpMethod),
+                trimPreservingNull(uri),
                 ResourceStatus.ENABLED)));
     }
 
@@ -81,11 +81,11 @@ public class ResourceApplicationService {
         }
         validateRequired(uri, "uri");
         return ResourceAssembler.toDto(resourceRepository.update(currentResource.update(
-                normalize(code),
-                normalize(name),
+                trimPreservingNull(code),
+                trimPreservingNull(name),
                 resourceType,
-                normalize(httpMethod),
-                normalize(uri),
+                trimPreservingNull(httpMethod),
+                trimPreservingNull(uri),
                 status == null ? currentResource.getStatus() : status)));
     }
 
@@ -107,7 +107,7 @@ public class ResourceApplicationService {
         }
     }
 
-    private String normalize(String value) {
+    private String trimPreservingNull(String value) {
         return value == null ? null : value.trim();
     }
 }

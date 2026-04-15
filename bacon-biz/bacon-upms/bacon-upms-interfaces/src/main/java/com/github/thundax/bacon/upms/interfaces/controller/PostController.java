@@ -74,9 +74,7 @@ public class PostController {
     @HasPermission("sys:post:update")
     @SysLog(module = "UPMS", action = "修改岗位", eventType = LogEventType.UPDATE)
     @PutMapping("/{postId}")
-    public PostResponse updatePost(
-            @PathVariable("postId") String postId,
-            @RequestBody PostUpdateRequest request) {
+    public PostResponse updatePost(@PathVariable("postId") String postId, @RequestBody PostUpdateRequest request) {
         return PostResponse.from(postApplicationService.updatePost(
                 PostIdCodec.toDomain(Long.parseLong(postId.trim())),
                 request.code(),

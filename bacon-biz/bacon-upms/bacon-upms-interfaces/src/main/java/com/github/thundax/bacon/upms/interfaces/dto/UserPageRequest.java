@@ -16,7 +16,10 @@ public class UserPageRequest {
     private String name;
     private String phone;
 
-    @Schema(description = "启用状态", allowableValues = {"ENABLED", "DISABLED"}, example = "ENABLED")
+    @Schema(
+            description = "启用状态",
+            allowableValues = {"ENABLED", "DISABLED"},
+            example = "ENABLED")
     private String status;
 
     @Min(1)

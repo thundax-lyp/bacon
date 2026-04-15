@@ -87,17 +87,17 @@ class BaconMonoTenantConfiguration {
         }
 
         Long findTenantIdByCode(String tenantCode) {
-            String normalizedTenantCode = TenantCode.of(tenantCode).value();
-            Long cachedTenantId = tenantCodeToIdCache.get(normalizedTenantCode);
+            TenantCode normalizedCode = TenantCode.of(tenantCode);
+            String cacheKey = normalizedCode.value();
+            Long cachedTenantId = tenantCodeToIdCache.get(cacheKey);
             if (cachedTenantId != null) {
                 return cachedTenantId;
             }
             Long tenantId = tenantRepository
-                    .findTenantByCode(normalizedTenantCode)
+                    .findTenantByCode(normalizedCode)
                     .map(tenant -> tenant.getId().value())
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("Tenant not found by tenantCode: " + normalizedTenantCode));
-            tenantCodeToIdCache.put(normalizedTenantCode, tenantId);
+                    .orElseThrow(() -> new IllegalArgumentException("Tenant not found by tenantCode: " + cacheKey));
+            tenantCodeToIdCache.put(cacheKey, tenantId);
             return tenantId;
         }
     }

@@ -83,6 +83,27 @@ class OrderInterfaceContractTest {
     }
 
     @Test
+    void wrappedControllerShouldReturnBadRequestForIllegalEnumFilter() throws Exception {
+        OrderController controller = new OrderController(
+                null,
+                new StubOrderQueryApplicationService(),
+                new OrderCancelApplicationService(null, null, null, null, null));
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
+                .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
+
+        mockMvc.perform(get("/order")
+                        .param("orderStatus", "INVALID")
+                        .param("pageNo", "1")
+                        .param("pageSize", "20"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Unsupported order status: INVALID"));
+    }
+
+    @Test
     void providerControllerShouldKeepRawDtoContract() throws Exception {
         OrderReadProviderController controller = new OrderReadProviderController(
                 new StubOrderQueryApplicationService(),

@@ -19,7 +19,6 @@ import jakarta.validation.constraints.Positive;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 @Validated
 @RestController
@@ -52,7 +50,7 @@ public class InventoryController {
     @HasPermission("inventory:stock:create")
     @PostMapping
     public InventoryStockResponse createInventory(@Valid @RequestBody CreateInventoryRequest request) {
-        InventoryStatus status = parseInventoryStatus(request.status());
+        InventoryStatus status = request.status() == null ? null : InventoryStatus.from(request.status());
         return InventoryStockResponse.from(inventoryManagementApplicationService.createInventory(
                 SkuIdCodec.toDomain(request.skuId()), request.onHandQuantity(), status));
     }
@@ -84,7 +82,7 @@ public class InventoryController {
     @HasPermission("inventory:stock:view")
     @GetMapping("/page")
     public InventoryPageResponse pageInventories(@Valid @ModelAttribute InventoryPageRequest request) {
-        InventoryStatus status = parseInventoryStatus(request.getStatus());
+        InventoryStatus status = request.getStatus() == null ? null : InventoryStatus.from(request.getStatus());
         return InventoryPageResponse.from(inventoryQueryService.pageInventories(
                 SkuIdCodec.toDomain(request.getSkuId()), status, request.getPageNo(), request.getPageSize()));
     }
@@ -94,19 +92,8 @@ public class InventoryController {
     @PutMapping("/{skuId}/status")
     public InventoryStockResponse updateInventoryStatus(
             @PathVariable @Positive Long skuId, @Valid @RequestBody InventoryStatusUpdateRequest request) {
-        InventoryStatus status = parseInventoryStatus(request.status());
+        InventoryStatus status = request.status() == null ? null : InventoryStatus.from(request.status());
         return InventoryStockResponse.from(
                 inventoryManagementApplicationService.updateInventoryStatus(SkuIdCodec.toDomain(skuId), status));
-    }
-
-    private InventoryStatus parseInventoryStatus(String status) {
-        if (status == null || status.isBlank()) {
-            return null;
-        }
-        try {
-            return InventoryStatus.from(status);
-        } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
-        }
     }
 }

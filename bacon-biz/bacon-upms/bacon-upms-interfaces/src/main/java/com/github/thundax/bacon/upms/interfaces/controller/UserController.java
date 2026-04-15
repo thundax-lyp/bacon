@@ -5,7 +5,6 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserImportCommand;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
@@ -68,7 +67,7 @@ public class UserController {
                 request.getAccount(),
                 request.getName(),
                 request.getPhone(),
-                request.getStatus() == null ? null : UserStatus.valueOf(request.getStatus()),
+                request.getStatus() == null ? null : UserStatus.from(request.getStatus()),
                 request.getPageNo(),
                 request.getPageSize()));
     }
@@ -132,11 +131,7 @@ public class UserController {
     public UserResponse updateUserStatus(
             @PathVariable("userId") Long userId, @RequestBody UserStatusUpdateRequest request) {
         return UserResponse.from(userApplicationService.updateUserStatus(
-                UserIdCodec.toDomain(userId),
-                request.status() == null
-                        ? null
-                        : UserStatus.valueOf(
-                                EnableStatusEnum.valueOf(request.status()).name())));
+                UserIdCodec.toDomain(userId), request.status() == null ? null : UserStatus.from(request.status())));
     }
 
     @Operation(summary = "删除用户")
@@ -232,7 +227,7 @@ public class UserController {
                         request.getAccount(),
                         request.getName(),
                         request.getPhone(),
-                        request.getStatus() == null ? null : UserStatus.valueOf(request.getStatus()))
+                        request.getStatus() == null ? null : UserStatus.from(request.getStatus()))
                 .stream()
                 .map(UserResponse::from)
                 .toList();

@@ -9,9 +9,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
+import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
@@ -22,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 class UserControllerContractTest {
 
@@ -29,6 +33,7 @@ class UserControllerContractTest {
 
     private UserApplicationService userApplicationService;
     private MockMvc mockMvc;
+    private LocalValidatorFactoryBean validator;
 
     @AfterEach
     void tearDown() {
@@ -39,7 +44,10 @@ class UserControllerContractTest {
     void setUp() {
         BaconContextHolder.set(new BaconContext(TENANT_ID, 2001L));
         userApplicationService = mock(UserApplicationService.class);
+        validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService))
+                .setValidator(validator)
                 .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
                 .build();
     }
@@ -84,5 +92,23 @@ class UserControllerContractTest {
         mockMvc.perform(get("/upms/users/{userId}/avatar", 101L))
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", "https://cdn.example.com/avatar/9001.png"));
+    }
+
+    @Test
+    void shouldReturnBadRequestForIllegalStatusFilter() throws Exception {
+        MockMvc wrappedMockMvc = MockMvcBuilders.standaloneSetup(new UserController(userApplicationService))
+                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
+                .setValidator(validator)
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
+                .build();
+
+        wrappedMockMvc
+                .perform(get("/upms/users/page")
+                        .param("status", "INVALID")
+                        .param("pageNo", "1")
+                        .param("pageSize", "20"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Unknown user status: INVALID"));
     }
 }

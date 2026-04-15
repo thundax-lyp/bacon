@@ -4,12 +4,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.core.valueobject.Version;
+import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
+import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -38,6 +41,8 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 class InventoryControllerContractTest {
 
     private MockMvc mockMvc;
+    private InventoryController controller;
+    private LocalValidatorFactoryBean validator;
     private StubInventoryRepository repository;
 
     @AfterEach
@@ -51,9 +56,9 @@ class InventoryControllerContractTest {
         repository = new StubInventoryRepository();
         InventoryQueryApplicationService inventoryQueryService =
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
-        InventoryController controller = new InventoryController(null, inventoryQueryService);
+        controller = new InventoryController(null, inventoryQueryService);
 
-        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -90,11 +95,19 @@ class InventoryControllerContractTest {
 
     @Test
     void shouldRejectPageRequestWithIllegalStatus() throws Exception {
-        mockMvc.perform(get("/inventory/inventories/page")
+        MockMvc wrappedMockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
+                .setValidator(validator)
+                .build();
+
+        wrappedMockMvc
+                .perform(get("/inventory/inventories/page")
                         .param("status", "INVALID")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Unknown inventory status: INVALID"));
     }
 
     @Test

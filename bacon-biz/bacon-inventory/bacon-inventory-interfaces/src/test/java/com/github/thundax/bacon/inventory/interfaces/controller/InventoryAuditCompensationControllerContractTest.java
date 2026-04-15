@@ -6,11 +6,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
+import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
+import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -45,6 +48,8 @@ class InventoryAuditCompensationControllerContractTest {
     private static final IdGenerator ID_GENERATOR = bizTag -> 1L;
 
     private MockMvc mockMvc;
+    private InventoryAuditCompensationController controller;
+    private LocalValidatorFactoryBean validator;
 
     @AfterEach
     void tearDown() {
@@ -59,10 +64,9 @@ class InventoryAuditCompensationControllerContractTest {
                 new InventoryQueryApplicationService(null, null, null, new StubAuditDeadLetterRepository());
         InventoryAuditReplayTaskApplicationService replayTaskService =
                 new InventoryAuditReplayTaskApplicationService(replayTaskRepository, ID_GENERATOR);
-        InventoryAuditCompensationController controller =
-                new InventoryAuditCompensationController(inventoryQueryService, null, replayTaskService);
+        controller = new InventoryAuditCompensationController(inventoryQueryService, null, replayTaskService);
 
-        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -85,11 +89,19 @@ class InventoryAuditCompensationControllerContractTest {
 
     @Test
     void shouldRejectPageRequestWithIllegalReplayStatus() throws Exception {
-        mockMvc.perform(get("/inventory/inventory-audit-dead-letters")
+        MockMvc wrappedMockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler(), new ApiResponseBodyAdvice(new ObjectMapper()))
+                .setValidator(validator)
+                .build();
+
+        wrappedMockMvc
+                .perform(get("/inventory/inventory-audit-dead-letters")
                         .param("replayStatus", "INVALID")
                         .param("pageNo", "1")
                         .param("pageSize", "20"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Unknown inventory audit replay status: INVALID"));
     }
 
     @Test

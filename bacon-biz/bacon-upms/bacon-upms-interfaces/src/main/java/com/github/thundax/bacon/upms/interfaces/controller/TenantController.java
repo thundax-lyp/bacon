@@ -5,7 +5,6 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
 import com.github.thundax.bacon.upms.application.codec.TenantCodeCodec;
 import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
@@ -46,7 +45,7 @@ public class TenantController {
     public TenantPageResponse pageTenants(@Valid @ModelAttribute TenantPageRequest request) {
         return TenantPageResponse.from(tenantApplicationService.pageTenants(
                 request.getName(),
-                request.getStatus() == null ? null : TenantStatus.valueOf(request.getStatus()),
+                request.getStatus() == null ? null : TenantStatus.from(request.getStatus()),
                 request.getPageNo(),
                 request.getPageSize()));
     }
@@ -88,10 +87,6 @@ public class TenantController {
     public TenantResponse updateTenantStatus(
             @PathVariable("tenantId") Long tenantId, @RequestBody TenantStatusUpdateRequest request) {
         return TenantResponse.from(tenantApplicationService.updateTenantStatus(
-                TenantId.of(tenantId),
-                request.status() == null
-                        ? null
-                        : TenantStatus.from(
-                                TenantStatusEnum.valueOf(request.status()).value())));
+                TenantId.of(tenantId), request.status() == null ? null : TenantStatus.from(request.status())));
     }
 }

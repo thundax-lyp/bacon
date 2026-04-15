@@ -50,6 +50,7 @@
 
 - 负责 HTTP / MQ / provider 入口适配
 - 负责协议参数校验与协议模型转换
+- 领域含义稳定的 `XxxId` / `XxxNo` / `XxxStatus` / `XxxType` 等值对象或领域枚举固定在 `interfaces` 形成
 - 本地 facade 适配实现固定放在 `interfaces.facade`
 - 不直接访问 `domain repository` 或 `infra mapper`
 
@@ -66,6 +67,9 @@
 - 只表达业务动作，不落技术细节
 - 可以依赖本域 `domain` 和外域 `api.facade`
 - 不直接依赖其他域的 `infra`
+- 对外公共方法固定接收领域值对象、领域枚举、`*Command`、`*Query` 等稳定应用契约
+- 不直接接收 `interfaces.dto.*Request`、`interfaces.response.*Response`、`api.dto.*PageQueryDTO`
+- `XxxId` / `XxxNo` 到领域实体的装载固定在 `application`
 - 创建新的领域对象时，调用 `domain entity.create(...)`
 
 ### domain
@@ -101,6 +105,8 @@
 - 进程内 `Map/List/AtomicLong` 只允许用于测试夹具、演示实现、极小范围瞬时状态
 - 正式链路不得依赖内存仓储作为主存储
 - 分页、过滤、排序、聚合优先下推到持久化层
+- `application` 与 `domain.repository` 的分页契约固定使用 `pageNo` / `pageSize`
+- `infra` 如需 `offset` / `limit`，固定在实现层内部换算，不向 `application` 或 `domain.repository` 暴露
 - 缓存只能保存数据库结果的派生读模型，不能替代数据库
 
 ## ID And Number Generation

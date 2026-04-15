@@ -97,4 +97,11 @@ public abstract class AbstractLayeredArchitectureTest {
         LayeredArchitectureRuleSupport.domainEntityReconstructShouldOnlyBeCalledByInfra(basePackage())
                 .check(classes());
     }
+
+    @Test
+    @DisplayName("application 公共方法不得直接暴露 protocol model 或 PageQueryDTO")
+    void shouldKeepApplicationPublicMethodContractsStable() {
+        LayeredArchitectureRuleSupport.applicationPublicMethodsShouldNotUseProtocolModels(basePackage())
+                .check(classes());
+    }
 }

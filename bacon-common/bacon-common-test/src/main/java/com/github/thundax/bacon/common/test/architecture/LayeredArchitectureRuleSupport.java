@@ -5,7 +5,9 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -182,6 +184,33 @@ public final class LayeredArchitectureRuleSupport {
                 basePackage, basePackage + ".infra..", "reconstruct", "domain entity 只能由 infra 重建");
     }
 
+    public static ArchRule applicationPublicMethodsShouldNotUseProtocolModels(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(basePackage + ".application..")
+                .should(new ArchCondition<>("keep public application method contracts away from protocol models") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (JavaMethod method : item.getMethods()) {
+                            if (!method.getOwner().equals(item)
+                                    || !method.getModifiers().contains(JavaModifier.PUBLIC)) {
+                                continue;
+                            }
+                            for (JavaClass parameterType : method.getRawParameterTypes()) {
+                                if (isForbiddenApplicationBoundaryType(basePackage, parameterType)) {
+                                    events.add(SimpleConditionEvent.violated(
+                                            method,
+                                            method.getFullName() + " uses forbidden parameter type "
+                                                    + parameterType.getFullName()));
+                                }
+                            }
+                        }
+                    }
+                })
+                .because(
+                        "application public methods must consume stable application/domain contracts, not protocol models");
+    }
+
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {
         return DOMAIN_FORBIDDEN_TECH_PACKAGES.stream().anyMatch(packageName::startsWith);
     }
@@ -260,5 +289,17 @@ public final class LayeredArchitectureRuleSupport {
                     }
                 })
                 .because(because);
+    }
+
+    private static boolean isForbiddenApplicationBoundaryType(String basePackage, JavaClass parameterType) {
+        String packageName = parameterType.getPackageName();
+        String simpleName = parameterType.getSimpleName();
+        if (packageName.startsWith(basePackage + ".interfaces.dto.")
+                || packageName.startsWith(basePackage + ".interfaces.response.")
+                || packageName.startsWith(basePackage + ".interfaces.vo.")) {
+            return true;
+        }
+        return packageName.startsWith(basePackage + ".api.dto.")
+                && (simpleName.endsWith("QueryDTO") || simpleName.endsWith("PageQueryDTO"));
     }
 }

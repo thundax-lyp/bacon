@@ -13,18 +13,19 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.interfaces.dto.CancelOrderRequest;
 import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
+import com.github.thundax.bacon.order.interfaces.dto.OrderPageRequest;
 import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderPageResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.time.Instant;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -63,26 +64,17 @@ public class OrderController {
     @Operation(summary = "分页查询订单")
     @HasPermission("order:order:view")
     @GetMapping
-    public OrderPageResponse pageOrders(
-            @RequestParam(value = "userId", required = false) Long userId,
-            @RequestParam(value = "orderNo", required = false) String orderNo,
-            @RequestParam(value = "orderStatus", required = false) String orderStatus,
-            @RequestParam(value = "payStatus", required = false) String payStatus,
-            @RequestParam(value = "inventoryStatus", required = false) String inventoryStatus,
-            @RequestParam(value = "createdAtFrom", required = false) Instant createdAtFrom,
-            @RequestParam(value = "createdAtTo", required = false) Instant createdAtTo,
-            @RequestParam(value = "pageNo", required = false) Integer pageNo,
-            @RequestParam(value = "pageSize", required = false) Integer pageSize) {
+    public OrderPageResponse pageOrders(@Valid @ModelAttribute OrderPageRequest request) {
         return OrderPageResponse.from(orderQueryService.pageOrders(
-                UserIdCodec.toDomain(userId),
-                OrderNoCodec.toDomain(orderNo),
-                orderStatus == null ? null : OrderStatus.from(orderStatus),
-                payStatus == null ? null : PayStatus.from(payStatus),
-                inventoryStatus == null ? null : InventoryStatus.from(inventoryStatus),
-                createdAtFrom,
-                createdAtTo,
-                pageNo,
-                pageSize));
+                UserIdCodec.toDomain(request.getUserId()),
+                OrderNoCodec.toDomain(request.getOrderNo()),
+                request.getOrderStatus() == null ? null : OrderStatus.from(request.getOrderStatus()),
+                request.getPayStatus() == null ? null : PayStatus.from(request.getPayStatus()),
+                request.getInventoryStatus() == null ? null : InventoryStatus.from(request.getInventoryStatus()),
+                request.getCreatedAtFrom(),
+                request.getCreatedAtTo(),
+                request.getPageNo(),
+                request.getPageSize()));
     }
 
     @Operation(summary = "取消订单")

@@ -1,5 +1,7 @@
 package com.github.thundax.bacon.order.application.command;
 
+import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
@@ -39,19 +41,19 @@ public class OrderTimeoutApplicationService {
         this.orderDerivedDataPersistenceSupport = orderDerivedDataPersistenceSupport;
     }
 
-    public void closeExpiredOrder(String orderNo, String reason) {
+    public void closeExpiredOrder(OrderNo orderNo, String reason) {
         BaconContextHolder.requireTenantId();
         // 超时关单同样走幂等执行器，防止定时任务重复扫描时对同一订单反复关单和释放资源。
         orderIdempotencyExecutor.execute(
                 OrderIdempotencyExecutor.EVENT_CLOSE_EXPIRED,
-                orderNo,
+                OrderNoCodec.toValue(orderNo),
                 null,
                 () -> doCloseExpiredOrder(orderNo, reason));
     }
 
-    private void doCloseExpiredOrder(String orderNo, String reason) {
+    private void doCloseExpiredOrder(OrderNo orderNo, String reason) {
         Order order = orderRepository
-                .findByOrderNo(orderNo)
+                .findByOrderNo(OrderNoCodec.toValue(orderNo))
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.closeExpired(reason);
@@ -59,7 +61,8 @@ public class OrderTimeoutApplicationService {
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
             paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason);
         }
-        InventoryReservationResultDTO releaseResult = inventoryCommandFacade.releaseReservedStock(orderNo, reason);
+        InventoryReservationResultDTO releaseResult =
+                inventoryCommandFacade.releaseReservedStock(OrderNoCodec.toValue(orderNo), reason);
         applyReleaseResult(order, releaseResult, reason);
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CLOSE_EXPIRED, beforeStatus);

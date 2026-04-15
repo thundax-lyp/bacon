@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.order.interfaces.dto;
 
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;
 import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,6 +20,7 @@ public record CreateOrderRequest(
         List<CreateOrderItemCommand> itemCommands = items == null
                 ? List.of()
                 : items.stream().map(CreateOrderItemRequest::toCommand).toList();
-        return new CreateOrderCommand(userId, currencyCode, channelCode, remark, expiredAt, itemCommands);
+        return new CreateOrderCommand(
+                UserIdCodec.toDomain(userId), currencyCode, channelCode, remark, expiredAt, itemCommands);
     }
 }

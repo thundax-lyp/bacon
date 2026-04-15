@@ -1,10 +1,14 @@
 package com.github.thundax.bacon.order.application.query;
 
+import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
+import com.github.thundax.bacon.common.commerce.codec.PaymentNoCodec;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
 import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
@@ -12,8 +16,13 @@ import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
@@ -27,61 +36,69 @@ public class OrderQueryApplicationService {
         this.orderRepository = orderRepository;
     }
 
-    public OrderDetailDTO getById(Long orderId) {
+    public OrderDetailDTO getById(OrderId orderId) {
         BaconContextHolder.requireTenantId();
         return orderRepository
-                .findById(orderId)
+                .findById(OrderIdCodec.toValue(orderId))
                 .map(this::toDetail)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
     }
 
-    public OrderDetailDTO getByOrderNo(String orderNo) {
+    public OrderDetailDTO getByOrderNo(OrderNo orderNo) {
         BaconContextHolder.requireTenantId();
         return orderRepository
-                .findByOrderNo(orderNo)
+                .findByOrderNo(OrderNoCodec.toValue(orderNo))
                 .map(this::toDetail)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
     }
 
-    public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
-        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
-        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        int offset = Math.max(0, (pageNo - 1) * pageSize);
+    public OrderPageResultDTO pageOrders(
+            UserId userId,
+            OrderNo orderNo,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
+            Instant createdAtFrom,
+            Instant createdAtTo,
+            Integer pageNo,
+            Integer pageSize) {
+        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
+        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         long total = orderRepository.countOrders(
-                query.getUserId(),
-                query.getOrderNo(),
-                query.getOrderStatus(),
-                query.getPayStatus(),
-                query.getInventoryStatus(),
-                query.getCreatedAtFrom(),
-                query.getCreatedAtTo());
+                UserIdCodec.toValue(userId),
+                OrderNoCodec.toValue(orderNo),
+                orderStatus == null ? null : orderStatus.value(),
+                payStatus == null ? null : payStatus.value(),
+                inventoryStatus == null ? null : inventoryStatus.value(),
+                createdAtFrom,
+                createdAtTo);
         List<Order> pageOrders = total <= 0
                 ? List.of()
                 : orderRepository.pageOrders(
-                        query.getUserId(),
-                        query.getOrderNo(),
-                        query.getOrderStatus(),
-                        query.getPayStatus(),
-                        query.getInventoryStatus(),
-                        query.getCreatedAtFrom(),
-                        query.getCreatedAtTo(),
-                        offset,
-                        pageSize);
+                        UserIdCodec.toValue(userId),
+                        OrderNoCodec.toValue(orderNo),
+                        orderStatus == null ? null : orderStatus.value(),
+                        payStatus == null ? null : payStatus.value(),
+                        inventoryStatus == null ? null : inventoryStatus.value(),
+                        createdAtFrom,
+                        createdAtTo,
+                        normalizedPageNo,
+                        normalizedPageSize);
         List<OrderSummaryDTO> records = pageOrders.stream().map(this::toSummary).toList();
-        return new OrderPageResultDTO(records, total, pageNo, pageSize);
+        return new OrderPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
     }
 
     private OrderSummaryDTO toSummary(Order order) {
         return new OrderSummaryDTO(
                 order.getId() == null ? null : OrderIdCodec.toValue(order.getId()),
-                order.getOrderNo() == null ? null : order.getOrderNo().value(),
-                order.getUserId() == null ? null : order.getUserId().value(),
+                OrderNoCodec.toValue(order.getOrderNo()),
+                UserIdCodec.toValue(order.getUserId()),
                 order.getOrderStatus() == null ? null : order.getOrderStatus().value(),
                 order.getPayStatus() == null ? null : order.getPayStatus().value(),
                 order.getInventoryStatus() == null
                         ? null
                         : order.getInventoryStatus().value(),
-                order.getPaymentNo() == null ? null : order.getPaymentNo().value(),
+                PaymentNoCodec.toValue(order.getPaymentNo()),
                 order.getReservationNo() == null ? null : ReservationNoCodec.toValue(order.getReservationNo()),
                 order.getCurrencyCode() == null ? null : order.getCurrencyCode().value(),
                 order.getTotalAmount().value(),
@@ -97,8 +114,7 @@ public class OrderQueryApplicationService {
                 .findPaymentSnapshotByOrderId(order.getId() == null ? null : OrderIdCodec.toValue(order.getId()))
                 .orElse(null);
         OrderInventorySnapshot inventorySnapshot = orderRepository
-                .findInventorySnapshotByOrderNo(
-                        order.getOrderNo() == null ? null : order.getOrderNo().value())
+                .findInventorySnapshotByOrderNo(OrderNoCodec.toValue(order.getOrderNo()))
                 .orElse(null);
         List<OrderItemDTO> itemDtos =
                 orderRepository
@@ -114,17 +130,15 @@ public class OrderQueryApplicationService {
                         .toList();
         return new OrderDetailDTO(
                 order.getId() == null ? null : OrderIdCodec.toValue(order.getId()),
-                order.getOrderNo() == null ? null : order.getOrderNo().value(),
-                order.getUserId() == null ? null : order.getUserId().value(),
+                OrderNoCodec.toValue(order.getOrderNo()),
+                UserIdCodec.toValue(order.getUserId()),
                 order.getOrderStatus() == null ? null : order.getOrderStatus().value(),
                 order.getPayStatus() == null ? null : order.getPayStatus().value(),
                 order.getInventoryStatus() == null
                         ? null
                         : order.getInventoryStatus().value(),
                 paymentSnapshot == null
-                        ? (order.getPaymentNo() == null
-                                ? null
-                                : order.getPaymentNo().value())
+                        ? PaymentNoCodec.toValue(order.getPaymentNo())
                         : (paymentSnapshot.getPaymentNo() == null
                                 ? null
                                 : paymentSnapshot.getPaymentNo().value()),
@@ -154,7 +168,7 @@ public class OrderQueryApplicationService {
             return null;
         }
         String paymentNo = paymentSnapshot == null
-                ? (order.getPaymentNo() == null ? null : order.getPaymentNo().value())
+                ? PaymentNoCodec.toValue(order.getPaymentNo())
                 : (paymentSnapshot.getPaymentNo() == null
                         ? null
                         : paymentSnapshot.getPaymentNo().value());

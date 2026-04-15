@@ -1,11 +1,16 @@
 package com.github.thundax.bacon.order.interfaces.controller;
 
+import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
+import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
 import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderCreateApplicationService;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.interfaces.dto.CancelOrderRequest;
 import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
 import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
@@ -52,7 +57,7 @@ public class OrderController {
     @HasPermission("order:order:view")
     @GetMapping("/{orderId}")
     public OrderDetailResponse getById(@PathVariable Long orderId) {
-        return OrderDetailResponse.from(orderQueryService.getById(orderId));
+        return OrderDetailResponse.from(orderQueryService.getById(OrderIdCodec.toDomain(orderId)));
     }
 
     @Operation(summary = "分页查询订单")
@@ -68,22 +73,22 @@ public class OrderController {
             @RequestParam(value = "createdAtTo", required = false) Instant createdAtTo,
             @RequestParam(value = "pageNo", required = false) Integer pageNo,
             @RequestParam(value = "pageSize", required = false) Integer pageSize) {
-        return OrderPageResponse.from(orderQueryService.pageOrders(new OrderPageQueryDTO(
-                userId,
-                orderNo,
-                orderStatus,
-                payStatus,
-                inventoryStatus,
+        return OrderPageResponse.from(orderQueryService.pageOrders(
+                UserIdCodec.toDomain(userId),
+                OrderNoCodec.toDomain(orderNo),
+                orderStatus == null ? null : OrderStatus.from(orderStatus),
+                payStatus == null ? null : PayStatus.from(payStatus),
+                inventoryStatus == null ? null : InventoryStatus.from(inventoryStatus),
                 createdAtFrom,
                 createdAtTo,
                 pageNo,
-                pageSize)));
+                pageSize));
     }
 
     @Operation(summary = "取消订单")
     @HasPermission("order:order:cancel")
     @PostMapping("/{orderNo}/cancel")
     public void cancel(@PathVariable String orderNo, @RequestBody CancelOrderRequest request) {
-        orderCancelApplicationService.cancel(orderNo, request.reason());
+        orderCancelApplicationService.cancel(OrderNoCodec.toDomain(orderNo), request.reason());
     }
 }

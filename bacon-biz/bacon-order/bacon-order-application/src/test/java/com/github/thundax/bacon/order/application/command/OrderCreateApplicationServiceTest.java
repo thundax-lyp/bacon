@@ -9,10 +9,10 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
-import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
@@ -26,6 +26,7 @@ import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
 import com.github.thundax.bacon.order.domain.model.entity.OrderOutboxEvent;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyRepository;
@@ -68,7 +69,7 @@ class OrderCreateApplicationServiceTest {
                 1001L,
                 2001L,
                 () -> service.create(new CreateOrderCommand(
-                        2001L,
+                        UserId.of(2001L),
                         "CNY",
                         "MOCK",
                         "remark",
@@ -83,12 +84,12 @@ class OrderCreateApplicationServiceTest {
         assertEquals("RESERVING", result.getInventoryStatus());
         assertEquals(
                 1,
-                runWithContext(1001L, 2001L, () -> queryService.getByOrderNo("ORD-10001"))
+                runWithContext(1001L, 2001L, () -> queryService.getByOrderNo(OrderNo.of("ORD-10001")))
                         .getItems()
                         .size());
         assertEquals(
                 "https://cdn.example.com/101.png",
-                runWithContext(1001L, 2001L, () -> queryService.getByOrderNo("ORD-10001"))
+                runWithContext(1001L, 2001L, () -> queryService.getByOrderNo(OrderNo.of("ORD-10001")))
                         .getItems()
                         .get(0)
                         .getImageUrl());
@@ -110,7 +111,7 @@ class OrderCreateApplicationServiceTest {
                 1001L,
                 2001L,
                 () -> createService.create(new CreateOrderCommand(
-                        2001L,
+                        UserId.of(2001L),
                         "CNY",
                         "MOCK",
                         "r1",
@@ -121,7 +122,7 @@ class OrderCreateApplicationServiceTest {
                 1001L,
                 2001L,
                 () -> createService.create(new CreateOrderCommand(
-                        2001L,
+                        UserId.of(2001L),
                         "CNY",
                         "MOCK",
                         "r2",
@@ -132,7 +133,7 @@ class OrderCreateApplicationServiceTest {
                 1002L,
                 2002L,
                 () -> createService.create(new CreateOrderCommand(
-                        2002L,
+                        UserId.of(2002L),
                         "CNY",
                         "MOCK",
                         "r3",
@@ -145,14 +146,17 @@ class OrderCreateApplicationServiceTest {
             paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
             repository.save(paidOrder);
             paymentResultService.markPaid(
-                    paid.getOrderNo(), "PAY-1", "MOCK", BigDecimal.valueOf(20), Instant.parse("2026-03-26T10:00:00Z"));
+                    OrderNo.of(paid.getOrderNo()),
+                    PaymentNo.of("PAY-1"),
+                    "MOCK",
+                    BigDecimal.valueOf(20),
+                    Instant.parse("2026-03-26T10:00:00Z"));
         });
 
         OrderPageResultDTO page = runWithContext(
                 1001L,
                 2001L,
-                () -> queryService.pageOrders(
-                        new OrderPageQueryDTO(2001L, null, null, "UNPAID", null, null, null, 1, 10)));
+                () -> queryService.pageOrders(UserId.of(2001L), null, null, PayStatus.UNPAID, null, null, null, 1, 10));
 
         assertEquals(1, page.getTotal());
         assertEquals(1, page.getRecords().size());
@@ -176,7 +180,7 @@ class OrderCreateApplicationServiceTest {
                 1001L,
                 2001L,
                 () -> createService.create(new CreateOrderCommand(
-                        2001L,
+                        UserId.of(2001L),
                         "CNY",
                         "MOCK",
                         "r1",
@@ -184,7 +188,7 @@ class OrderCreateApplicationServiceTest {
                         List.of(new CreateOrderItemCommand(
                                 101L, "item-1", "https://cdn.example.com/101.png", 1, BigDecimal.valueOf(10))))));
 
-        runWithContext(1001L, 2001L, () -> cancelService.cancel(created.getOrderNo(), "SYSTEM_CANCELLED"));
+        runWithContext(1001L, 2001L, () -> cancelService.cancel(OrderNo.of(created.getOrderNo()), "SYSTEM_CANCELLED"));
         Order found = runWithContext(1001L, 2001L, () -> repository
                 .findByOrderNo(created.getOrderNo())
                 .orElseThrow());
@@ -206,7 +210,7 @@ class OrderCreateApplicationServiceTest {
                 1001L,
                 2001L,
                 () -> service.create(new CreateOrderCommand(
-                        2001L,
+                        UserId.of(2001L),
                         "CNY",
                         "MOCK",
                         "remark",
@@ -226,7 +230,7 @@ class OrderCreateApplicationServiceTest {
                 1001L,
                 2001L,
                 () -> service.create(new CreateOrderCommand(
-                        2001L,
+                        UserId.of(2001L),
                         "CNY",
                         "MOCK",
                         "remark",
@@ -551,12 +555,12 @@ class OrderCreateApplicationServiceTest {
                 String inventoryStatus,
                 Instant createdAtFrom,
                 Instant createdAtTo,
-                int offset,
-                int limit) {
+                int pageNo,
+                int pageSize) {
             return filterOrders(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
                     .stream()
-                    .skip(offset)
-                    .limit(limit)
+                    .skip((long) Math.max(pageNo - 1, 0) * Math.max(pageSize, 1))
+                    .limit(Math.max(pageSize, 1))
                     .toList();
         }
 

@@ -1,9 +1,11 @@
 package com.github.thundax.bacon.order.application.command;
 
+import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
@@ -84,12 +86,12 @@ public class OrderCreateApplicationService {
         savedOrder.markReservingStock();
         orderRepository.save(savedOrder);
         orderOutboxActionExecutor.enqueueReserveStock(
-                savedOrder.getOrderNo() == null ? null : savedOrder.getOrderNo().value(), command.channelCode());
+                OrderNoCodec.toValue(savedOrder.getOrderNo()), command.channelCode());
         orderDerivedDataPersistenceSupport.persist(savedOrder, ACTION_CREATE, OrderStatus.CREATED);
         return new OrderSummaryDTO(
                 savedOrder.getId() == null ? null : savedOrder.getId().value(),
-                savedOrder.getOrderNo() == null ? null : savedOrder.getOrderNo().value(),
-                savedOrder.getUserId() == null ? null : savedOrder.getUserId().value(),
+                OrderNoCodec.toValue(savedOrder.getOrderNo()),
+                UserIdCodec.toValue(savedOrder.getUserId()),
                 savedOrder.getOrderStatus() == null
                         ? null
                         : savedOrder.getOrderStatus().value(),

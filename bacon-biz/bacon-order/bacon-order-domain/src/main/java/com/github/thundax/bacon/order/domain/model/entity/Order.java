@@ -90,7 +90,7 @@ public class Order {
     public static Order create(
             Long id,
             String orderNo,
-            Long userId,
+            UserId userId,
             CurrencyCode currencyCode,
             String totalAmount,
             String payableAmount,
@@ -100,7 +100,7 @@ public class Order {
         return new Order(
                 id == null ? null : OrderId.of(id),
                 orderNo == null ? null : OrderNo.of(orderNo),
-                userId == null ? null : UserId.of(userId),
+                userId,
                 OrderStatus.CREATED,
                 PayStatus.UNPAID,
                 InventoryStatus.UNRESERVED,

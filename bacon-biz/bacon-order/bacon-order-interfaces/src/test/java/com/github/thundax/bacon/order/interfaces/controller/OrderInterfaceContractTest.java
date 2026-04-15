@@ -7,21 +7,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.interfaces.provider.OrderReadProviderController;
 import jakarta.servlet.ServletException;
 import java.math.BigDecimal;
@@ -170,9 +175,9 @@ class OrderInterfaceContractTest {
         }
 
         @Override
-        public OrderDetailDTO getById(Long orderId) {
+        public OrderDetailDTO getById(OrderId orderId) {
             return new OrderDetailDTO(
-                    orderId,
+                    orderId == null ? null : orderId.value(),
                     "ORD-1",
                     2001L,
                     "CREATED",
@@ -195,7 +200,16 @@ class OrderInterfaceContractTest {
         }
 
         @Override
-        public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
+        public OrderPageResultDTO pageOrders(
+                UserId userId,
+                OrderNo orderNo,
+                OrderStatus orderStatus,
+                PayStatus payStatus,
+                InventoryStatus inventoryStatus,
+                Instant createdAtFrom,
+                Instant createdAtTo,
+                Integer pageNo,
+                Integer pageSize) {
             if (Long.valueOf(9999L)
                     .equals(com.github.thundax.bacon.common.core.context.BaconContextHolder.currentTenantId())) {
                 throw new IllegalArgumentException("Invalid tenant: "

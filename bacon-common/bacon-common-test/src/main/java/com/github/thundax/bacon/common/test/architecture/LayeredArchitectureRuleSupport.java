@@ -5,6 +5,7 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -209,6 +210,40 @@ public final class LayeredArchitectureRuleSupport {
                 })
                 .because(
                         "application public methods must consume stable application/domain contracts, not protocol models");
+    }
+
+    public static ArchRule applicationServicesShouldUseAssemblersForDtoMapping(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAnyPackage(
+                        basePackage + ".application.command..",
+                        basePackage + ".application.query..",
+                        basePackage + ".application.audit..")
+                .and()
+                .haveSimpleNameEndingWith("ApplicationService")
+                .should(new ArchCondition<>("avoid local dto mapping helpers and direct dto construction") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (JavaMethod method : item.getMethods()) {
+                            if (method.getOwner().equals(item) && "toDto".equals(method.getName())) {
+                                events.add(SimpleConditionEvent.violated(
+                                        method,
+                                        method.getFullName()
+                                                + " declares local dto mapping; move mapping to application.assembler"));
+                            }
+                        }
+                        for (JavaConstructorCall constructorCall : item.getConstructorCallsFromSelf()) {
+                            JavaClass targetOwner = constructorCall.getTargetOwner();
+                            if (targetOwner.getPackageName().startsWith(basePackage + ".api.dto.")) {
+                                events.add(SimpleConditionEvent.violated(
+                                        item,
+                                        constructorCall.getDescription()
+                                                + " constructs api dto directly; use application.assembler instead"));
+                            }
+                        }
+                    }
+                })
+                .because("application service 应通过 application.assembler 完成 DTO 映射，而不是本地 toDto 或直接 new DTO");
     }
 
     private static boolean isForbiddenDomainTechnologyPackage(String packageName) {

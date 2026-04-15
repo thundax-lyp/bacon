@@ -104,4 +104,11 @@ public abstract class AbstractLayeredArchitectureTest {
         LayeredArchitectureRuleSupport.applicationPublicMethodsShouldNotUseProtocolModels(basePackage())
                 .check(classes());
     }
+
+    @Test
+    @DisplayName("ApplicationService 不得本地 toDto 或直接 new DTO，应使用 application.assembler")
+    void shouldKeepDtoMappingInsideApplicationAssembler() {
+        LayeredArchitectureRuleSupport.applicationServicesShouldUseAssemblersForDtoMapping(basePackage())
+                .check(classes());
+    }
 }

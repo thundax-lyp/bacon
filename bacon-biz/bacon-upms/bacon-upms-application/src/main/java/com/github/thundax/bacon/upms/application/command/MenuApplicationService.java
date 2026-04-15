@@ -6,6 +6,7 @@ import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.assembler.MenuAssembler;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
+import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -43,7 +44,7 @@ public class MenuApplicationService {
 
     @Transactional
     public MenuTreeDTO createMenu(
-            String menuType,
+            MenuType menuType,
             String name,
             MenuId parentId,
             String routePath,
@@ -54,7 +55,7 @@ public class MenuApplicationService {
         validateParent(parentId);
         return toTreeDto(menuRepository.insert(Menu.create(
                 MenuIdCodec.toDomain(idGenerator.nextId(MENU_ID_BIZ_TAG)),
-                menuType,
+                menuType.value(),
                 name,
                 parentId,
                 routePath,
@@ -68,7 +69,7 @@ public class MenuApplicationService {
     @Transactional
     public MenuTreeDTO updateMenu(
             MenuId menuId,
-            String menuType,
+            MenuType menuType,
             String name,
             MenuId parentId,
             String routePath,
@@ -84,7 +85,7 @@ public class MenuApplicationService {
             throw new IllegalArgumentException("Menu parent cannot be self");
         }
         return toTreeDto(menuRepository.update(currentMenu.update(
-                menuType,
+                menuType.value(),
                 name,
                 parentId,
                 routePath,

@@ -1,13 +1,14 @@
 package com.github.thundax.bacon.upms.application.command;
 
-import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.application.assembler.DepartmentAssembler;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -42,10 +43,10 @@ public class DepartmentApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId)));
     }
 
-    public DepartmentDTO getDepartmentByCode(String departmentCode) {
+    public DepartmentDTO getDepartmentByCode(DepartmentCode departmentCode) {
         return DepartmentAssembler.toDto(departmentRepository
                 .findDepartmentByCode(departmentCode)
-                .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentCode)));
+                .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentCode.value())));
     }
 
     public List<DepartmentDTO> listDepartmentsByIds(Set<DepartmentId> departmentIds) {
@@ -80,15 +81,15 @@ public class DepartmentApplicationService {
 
     @Transactional
     public DepartmentDTO createDepartment(
-            String code, String name, DepartmentId parentId, Long leaderUserId, Integer sort) {
+            DepartmentCode code, String name, DepartmentId parentId, UserId leaderUserId, Integer sort) {
         validateParent(parentId);
         validateLeaderUser(leaderUserId);
         return DepartmentAssembler.toDto(departmentRepository.insert(Department.create(
                 DepartmentIdCodec.toDomain(idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG)),
-                code,
+                code.value(),
                 name,
                 parentId,
-                UserIdCodec.toDomain(leaderUserId),
+                leaderUserId,
                 defaultSort(sort),
                 DepartmentStatus.ENABLED)));
     }
@@ -96,10 +97,10 @@ public class DepartmentApplicationService {
     @Transactional
     public DepartmentDTO updateDepartment(
             DepartmentId departmentId,
-            String code,
+            DepartmentCode code,
             String name,
             DepartmentId parentId,
-            Long leaderUserId,
+            UserId leaderUserId,
             Integer sort) {
         Department currentDepartment = departmentRepository
                 .findDepartmentById(departmentId)
@@ -110,10 +111,10 @@ public class DepartmentApplicationService {
             throw new IllegalArgumentException("Department parent cannot be self");
         }
         return DepartmentAssembler.toDto(departmentRepository.update(currentDepartment.update(
-                code,
+                code.value(),
                 name,
                 parentId,
-                UserIdCodec.toDomain(leaderUserId),
+                leaderUserId,
                 sort == null ? currentDepartment.getSort() : sort,
                 currentDepartment.getStatus())));
     }
@@ -158,13 +159,13 @@ public class DepartmentApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Parent department not found: " + parentId));
     }
 
-    private void validateLeaderUser(Long leaderUserId) {
+    private void validateLeaderUser(UserId leaderUserId) {
         if (leaderUserId == null) {
             return;
         }
         userRepository
-                .findUserById(UserIdCodec.toDomain(leaderUserId))
-                .orElseThrow(() -> new IllegalArgumentException("Leader user not found: " + leaderUserId));
+                .findUserById(leaderUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Leader user not found: " + leaderUserId.value()));
     }
 
     private boolean hasParent(DepartmentId parentId) {

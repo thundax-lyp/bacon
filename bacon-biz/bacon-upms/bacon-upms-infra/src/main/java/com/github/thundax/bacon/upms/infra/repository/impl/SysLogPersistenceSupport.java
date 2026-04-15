@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
+import com.github.thundax.bacon.upms.domain.model.valueobject.SysLogId;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.SysLogRecordPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.SysLogRecordDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.SysLogRecordMapper;
@@ -29,8 +30,8 @@ class SysLogPersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
     }
 
-    Optional<SysLogRecord> findSysLogById(Long logId) {
-        return Optional.ofNullable(sysLogRecordMapper.selectById(logId))
+    Optional<SysLogRecord> findSysLogById(SysLogId logId) {
+        return Optional.ofNullable(sysLogRecordMapper.selectById(logId.value()))
                 .map(SysLogRecordPersistenceAssembler::toDomain);
     }
 

@@ -8,6 +8,7 @@ import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
@@ -42,7 +43,7 @@ class DepartmentApplicationServiceTest {
         DepartmentId parentId = DepartmentId.of(11L);
         when(departmentRepository.findDepartmentById(parentId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.createDepartment("OPS", "Operations", parentId, null, 1))
+        assertThatThrownBy(() -> service.createDepartment(DepartmentCode.of("OPS"), "Operations", parentId, null, 1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Parent department not found: " + parentId);
         verifyNoInteractions(userRepository);
@@ -52,7 +53,8 @@ class DepartmentApplicationServiceTest {
     void shouldRejectMissingLeaderUser() {
         when(userRepository.findUserById(UserId.of(2001L))).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.createDepartment("OPS", "Operations", null, 2001L, 1))
+        assertThatThrownBy(() ->
+                        service.createDepartment(DepartmentCode.of("OPS"), "Operations", null, UserId.of(2001L), 1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Leader user not found: 2001");
     }
@@ -64,7 +66,8 @@ class DepartmentApplicationServiceTest {
                 .thenReturn(Optional.of(department(departmentId, "OPS", "Operations", null, null, 1)));
         when(userRepository.findUserById(UserId.of(2002L))).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.updateDepartment(departmentId, "OPS", "Operations", null, 2002L, 2))
+        assertThatThrownBy(() -> service.updateDepartment(
+                        departmentId, DepartmentCode.of("OPS"), "Operations", null, UserId.of(2002L), 2))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Leader user not found: 2002");
     }

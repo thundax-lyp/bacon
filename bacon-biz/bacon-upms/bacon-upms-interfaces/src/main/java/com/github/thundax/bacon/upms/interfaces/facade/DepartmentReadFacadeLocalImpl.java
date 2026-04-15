@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +31,7 @@ public class DepartmentReadFacadeLocalImpl implements DepartmentReadFacade {
     @Override
     public DepartmentDTO getDepartmentByCode(String departmentCode) {
         requireContext();
-        return departmentApplicationService.getDepartmentByCode(departmentCode);
+        return departmentApplicationService.getDepartmentByCode(DepartmentCode.of(departmentCode));
     }
 
     @Override

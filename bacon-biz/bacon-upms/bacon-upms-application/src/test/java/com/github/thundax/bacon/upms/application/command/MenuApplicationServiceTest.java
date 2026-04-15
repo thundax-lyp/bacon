@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -39,7 +40,7 @@ class MenuApplicationServiceTest {
         MenuId parentId = MenuId.of(11L);
         when(menuRepository.findMenuById(parentId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.createMenu("CATALOG", "Catalog", parentId, null, null, null, 1, null))
+        assertThatThrownBy(() -> service.createMenu(MenuType.CATALOG, "Catalog", parentId, null, null, null, 1, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Parent menu not found: " + parentId);
         verifyNoInteractions(permissionRepository);

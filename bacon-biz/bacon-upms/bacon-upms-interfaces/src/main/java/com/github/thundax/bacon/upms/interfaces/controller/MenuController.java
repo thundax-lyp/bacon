@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
+import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuSortUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.MenuUpdateRequest;
@@ -51,14 +52,14 @@ public class MenuController {
     @PostMapping
     public MenuTreeResponse createMenu(@Valid @RequestBody MenuCreateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.createMenu(
-                normalize(request.menuType()),
-                normalize(request.name()),
+                MenuType.from(trimPreservingNull(request.menuType())),
+                trimPreservingNull(request.name()),
                 MenuIdCodec.toDomain(request.parentId()),
-                normalize(request.routePath()),
-                normalize(request.componentName()),
-                normalize(request.icon()),
+                trimPreservingNull(request.routePath()),
+                trimPreservingNull(request.componentName()),
+                trimPreservingNull(request.icon()),
                 request.sort(),
-                normalize(request.permissionCode())));
+                trimPreservingNull(request.permissionCode())));
     }
 
     @Operation(summary = "修改菜单")
@@ -69,14 +70,14 @@ public class MenuController {
             @PathVariable("menuId") Long menuId, @Valid @RequestBody MenuUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenu(
                 MenuIdCodec.toDomain(menuId),
-                normalize(request.menuType()),
-                normalize(request.name()),
+                MenuType.from(trimPreservingNull(request.menuType())),
+                trimPreservingNull(request.name()),
                 MenuIdCodec.toDomain(request.parentId()),
-                normalize(request.routePath()),
-                normalize(request.componentName()),
-                normalize(request.icon()),
+                trimPreservingNull(request.routePath()),
+                trimPreservingNull(request.componentName()),
+                trimPreservingNull(request.icon()),
                 request.sort(),
-                normalize(request.permissionCode())));
+                trimPreservingNull(request.permissionCode())));
     }
 
     @Operation(summary = "删除菜单")
@@ -97,7 +98,7 @@ public class MenuController {
                 menuApplicationService.updateMenuSort(MenuIdCodec.toDomain(menuId), request.sort()));
     }
 
-    private String normalize(String value) {
+    private String trimPreservingNull(String value) {
         return value == null ? null : value.trim();
     }
 }

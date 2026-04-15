@@ -9,8 +9,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -63,7 +65,8 @@ class DepartmentControllerContractTest {
 
     @Test
     void shouldTrimCodeAndNameBeforeCallingApplicationService() throws Exception {
-        when(departmentApplicationService.createDepartment(eq("OPS"), eq("Operations"), eq(null), eq(2001L), eq(1)))
+        when(departmentApplicationService.createDepartment(
+                        eq(DepartmentCode.of("OPS")), eq("Operations"), eq(null), eq(UserId.of(2001L)), eq(1)))
                 .thenReturn(new DepartmentDTO(101L, "OPS", "Operations", null, 2001L, 1, "ENABLED"));
 
         mockMvc.perform(

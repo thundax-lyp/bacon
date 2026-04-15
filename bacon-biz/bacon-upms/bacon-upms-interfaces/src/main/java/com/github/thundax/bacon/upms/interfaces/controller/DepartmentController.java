@@ -1,11 +1,13 @@
 package com.github.thundax.bacon.upms.interfaces.controller;
 
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.interfaces.dto.DepartmentBatchQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.DepartmentCreateRequest;
@@ -57,10 +59,10 @@ public class DepartmentController {
     @PostMapping
     public DepartmentResponse createDepartment(@Valid @RequestBody DepartmentCreateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.createDepartment(
-                normalize(request.code()),
-                normalize(request.name()),
+                DepartmentCode.of(trimPreservingNull(request.code())),
+                trimPreservingNull(request.name()),
                 DepartmentIdCodec.toDomain(request.parentId()),
-                request.leaderUserId(),
+                request.leaderUserId() == null ? null : UserId.of(request.leaderUserId()),
                 request.sort()));
     }
 
@@ -77,7 +79,8 @@ public class DepartmentController {
     @SysLog(module = "UPMS", action = "按编码查询部门", eventType = LogEventType.QUERY)
     @GetMapping("/code/{departmentCode}")
     public DepartmentResponse getDepartmentByCode(@PathVariable("departmentCode") String departmentCode) {
-        return DepartmentResponse.from(departmentApplicationService.getDepartmentByCode(normalize(departmentCode)));
+        return DepartmentResponse.from(departmentApplicationService.getDepartmentByCode(
+                DepartmentCode.of(trimPreservingNull(departmentCode))));
     }
 
     @Operation(summary = "批量查询部门")
@@ -87,9 +90,7 @@ public class DepartmentController {
     public List<DepartmentResponse> listDepartmentsByIds(@ModelAttribute DepartmentBatchQueryRequest request) {
         Set<DepartmentId> departmentIds = request.getDepartmentIds() == null
                 ? Set.of()
-                : request.getDepartmentIds().stream()
-                        .map(DepartmentId::of)
-                        .collect(Collectors.toSet());
+                : request.getDepartmentIds().stream().map(DepartmentId::of).collect(Collectors.toSet());
         return departmentApplicationService.listDepartmentsByIds(departmentIds).stream()
                 .map(DepartmentResponse::from)
                 .toList();
@@ -103,10 +104,10 @@ public class DepartmentController {
             @PathVariable("departmentId") Long departmentId, @Valid @RequestBody DepartmentUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartment(
                 DepartmentId.of(departmentId),
-                normalize(request.code()),
-                normalize(request.name()),
+                DepartmentCode.of(trimPreservingNull(request.code())),
+                trimPreservingNull(request.name()),
                 DepartmentIdCodec.toDomain(request.parentId()),
-                request.leaderUserId(),
+                request.leaderUserId() == null ? null : UserId.of(request.leaderUserId()),
                 request.sort()));
     }
 
@@ -128,7 +129,7 @@ public class DepartmentController {
         departmentApplicationService.deleteDepartment(DepartmentId.of(departmentId));
     }
 
-    private String normalize(String value) {
+    private String trimPreservingNull(String value) {
         return value == null ? null : value.trim();
     }
 }

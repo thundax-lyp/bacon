@@ -1,10 +1,10 @@
 package com.github.thundax.bacon.upms.application.audit;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
-import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.SysLogDTO;
-import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
+import com.github.thundax.bacon.upms.application.assembler.SysLogAssembler;
+import com.github.thundax.bacon.upms.domain.model.valueobject.SysLogId;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import org.springframework.stereotype.Service;
 
@@ -26,35 +26,16 @@ public class SysLogQueryApplicationService {
                 sysLogRepository
                         .pageLogs(module, eventType, result, operatorName, normalizedPageNo, normalizedPageSize)
                         .stream()
-                        .map(this::toDto)
+                        .map(SysLogAssembler::toDto)
                         .toList(),
                 sysLogRepository.countLogs(module, eventType, result, operatorName),
                 normalizedPageNo,
                 normalizedPageSize);
     }
 
-    public SysLogDTO getLogById(Long logId) {
-        return toDto(sysLogRepository
+    public SysLogDTO getLogById(SysLogId logId) {
+        return SysLogAssembler.toDto(sysLogRepository
                 .findById(logId)
-                .orElseThrow(() -> new IllegalArgumentException("Sys log not found: " + logId)));
-    }
-
-    private SysLogDTO toDto(SysLogRecord record) {
-        return new SysLogDTO(
-                record.getId(),
-                record.getTraceId(),
-                record.getRequestId(),
-                record.getModule(),
-                record.getAction(),
-                record.getEventType(),
-                record.getResult(),
-                OperatorIdCodec.toValue(record.getOperatorId()),
-                record.getOperatorName(),
-                record.getClientIp(),
-                record.getRequestUri(),
-                record.getHttpMethod(),
-                record.getCostMs(),
-                record.getErrorMessage(),
-                record.getOccurredAt());
+                .orElseThrow(() -> new IllegalArgumentException("Sys log not found: " + logId.value())));
     }
 }

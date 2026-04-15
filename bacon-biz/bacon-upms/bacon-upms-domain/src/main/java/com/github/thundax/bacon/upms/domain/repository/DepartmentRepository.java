@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.domain.repository;
 
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +11,7 @@ public interface DepartmentRepository {
 
     Optional<Department> findDepartmentById(DepartmentId departmentId);
 
-    Optional<Department> findDepartmentByCode(String departmentCode);
+    Optional<Department> findDepartmentByCode(DepartmentCode departmentCode);
 
     List<Department> listDepartmentsByIds(Set<DepartmentId> departmentIds);
 

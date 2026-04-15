@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.DepartmentPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
@@ -31,10 +32,10 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(DepartmentPersistenceAssembler::toDomain);
     }
 
-    Optional<Department> findDepartmentByCode(String code) {
+    Optional<Department> findDepartmentByCode(DepartmentCode code) {
         requireTenantId();
         return Optional.ofNullable(departmentMapper.selectOne(
-                        Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getCode, code)))
+                        Wrappers.<DepartmentDO>lambdaQuery().eq(DepartmentDO::getCode, code.value())))
                 .map(DepartmentPersistenceAssembler::toDomain);
     }
 

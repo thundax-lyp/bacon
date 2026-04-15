@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.upms.domain.model.entity.SysLogRecord;
+import com.github.thundax.bacon.upms.domain.model.valueobject.SysLogId;
 import com.github.thundax.bacon.upms.domain.repository.SysLogRepository;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -51,7 +52,7 @@ public class SysLogRepositoryImpl implements SysLogRepository {
     }
 
     @Override
-    public Optional<SysLogRecord> findById(Long logId) {
+    public Optional<SysLogRecord> findById(SysLogId logId) {
         return support.findSysLogById(logId);
     }
 

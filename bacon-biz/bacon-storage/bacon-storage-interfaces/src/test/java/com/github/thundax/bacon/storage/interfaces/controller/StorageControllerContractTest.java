@@ -47,7 +47,7 @@ class StorageControllerContractTest {
 
     @Test
     void shouldWrapPageObjectsForAdminFrontend() throws Exception {
-        when(storedObjectQueryApplicationService.pageObjects(any()))
+        when(storedObjectQueryApplicationService.pageObjects(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new StoredObjectPageResultDTO(
                         List.of(new StoredObjectDTO(
                                 StoredObjectId.of(101L),

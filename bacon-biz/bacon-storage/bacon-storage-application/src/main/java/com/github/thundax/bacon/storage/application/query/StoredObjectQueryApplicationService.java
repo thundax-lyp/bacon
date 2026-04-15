@@ -4,7 +4,6 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.application.assembler.StoredObjectAssembler;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
@@ -35,27 +34,29 @@ public class StoredObjectQueryApplicationService {
         return StoredObjectAssembler.toDto(storedObject);
     }
 
-    public StoredObjectPageResultDTO pageObjects(StoredObjectPageQueryDTO query) {
-        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
-        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
-        int offset = Math.max(0, (pageNo - 1) * pageSize);
+    public StoredObjectPageResultDTO pageObjects(
+            String storageType,
+            String objectStatus,
+            String referenceStatus,
+            String originalFilename,
+            String objectKey,
+            Integer pageNo,
+            Integer pageSize) {
+        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
+        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         long total = storedObjectRepository.countObjects(
-                query.getStorageType(),
-                query.getObjectStatus(),
-                query.getReferenceStatus(),
-                query.getOriginalFilename(),
-                query.getObjectKey());
+                storageType, objectStatus, referenceStatus, originalFilename, objectKey);
         List<StoredObjectDTO> records = (total <= 0
                         ? List.<StoredObject>of()
                         : storedObjectRepository.pageObjects(
-                                query.getStorageType(),
-                                query.getObjectStatus(),
-                                query.getReferenceStatus(),
-                                query.getOriginalFilename(),
-                                query.getObjectKey(),
-                                offset,
-                                pageSize))
+                                storageType,
+                                objectStatus,
+                                referenceStatus,
+                                originalFilename,
+                                objectKey,
+                                normalizedPageNo,
+                                normalizedPageSize))
                 .stream().map(StoredObjectAssembler::toDto).toList();
-        return new StoredObjectPageResultDTO(records, total, pageNo, pageSize);
+        return new StoredObjectPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
     }
 }

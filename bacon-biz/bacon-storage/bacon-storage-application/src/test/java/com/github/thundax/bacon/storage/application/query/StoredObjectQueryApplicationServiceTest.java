@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
@@ -71,12 +70,12 @@ class StoredObjectQueryApplicationServiceTest {
                         eq("UNREFERENCED"),
                         eq("e.bin"),
                         eq("attachment"),
-                        eq(0),
+                        eq(1),
                         eq(200)))
                 .thenReturn(List.of(storedObject));
 
-        StoredObjectPageResultDTO result = service.pageObjects(
-                new StoredObjectPageQueryDTO("LOCAL_FILE", "ACTIVE", "UNREFERENCED", "e.bin", "attachment", 0, 500));
+        StoredObjectPageResultDTO result =
+                service.pageObjects("LOCAL_FILE", "ACTIVE", "UNREFERENCED", "e.bin", "attachment", 0, 500);
 
         assertEquals(1L, result.getTotal());
         assertEquals(1, result.getPageNo());

@@ -61,12 +61,15 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
             String referenceStatus,
             String originalFilename,
             String objectKey,
-            int offset,
-            int limit) {
+            int pageNo,
+            int pageSize) {
+        int normalizedPageNo = Math.max(pageNo, 1);
+        int normalizedPageSize = Math.max(pageSize, 1);
+        int offset = Math.max(0, (normalizedPageNo - 1) * normalizedPageSize);
         LambdaQueryWrapper<StoredObjectDO> listWrapper = buildQueryWrapper(
                         storageType, objectStatus, referenceStatus, originalFilename, objectKey)
                 .orderByDesc(StoredObjectDO::getId)
-                .last("LIMIT " + offset + "," + limit);
+                .last("LIMIT " + offset + "," + normalizedPageSize);
         return storedObjectMapper.selectList(listWrapper).stream()
                 .map(StoredObjectPersistenceAssembler::toDomain)
                 .toList();

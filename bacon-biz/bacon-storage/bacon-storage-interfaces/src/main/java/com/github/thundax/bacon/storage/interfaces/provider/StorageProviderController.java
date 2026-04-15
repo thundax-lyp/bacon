@@ -111,7 +111,14 @@ public class StorageProviderController {
     @Operation(summary = "分页查询存储对象")
     @GetMapping("/objects")
     public StoredObjectPageResultDTO pageObjects(StoredObjectPageQueryDTO query) {
-        return storedObjectQueryApplicationService.pageObjects(query);
+        return storedObjectQueryApplicationService.pageObjects(
+                query.getStorageType(),
+                query.getObjectStatus(),
+                query.getReferenceStatus(),
+                query.getOriginalFilename(),
+                query.getObjectKey(),
+                query.getPageNo(),
+                query.getPageSize());
     }
 
     @Operation(summary = "建立存储对象引用")

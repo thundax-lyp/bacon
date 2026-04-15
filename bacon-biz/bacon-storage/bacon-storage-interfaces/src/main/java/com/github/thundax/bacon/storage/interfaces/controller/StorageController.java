@@ -2,7 +2,6 @@ package com.github.thundax.bacon.storage.interfaces.controller;
 
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import com.github.thundax.bacon.storage.interfaces.dto.StoredObjectPageRequest;
@@ -40,15 +39,14 @@ public class StorageController {
     @HasPermission("storage:object:view")
     @GetMapping
     public StoredObjectPageResponse pageObjects(@Valid @ModelAttribute StoredObjectPageRequest request) {
-        return StoredObjectPageResponse.from(
-                storedObjectQueryApplicationService.pageObjects(new StoredObjectPageQueryDTO(
-                        request.getStorageType(),
-                        request.getObjectStatus(),
-                        request.getReferenceStatus(),
-                        request.getOriginalFilename(),
-                        request.getObjectKey(),
-                        request.getPageNo(),
-                        request.getPageSize())));
+        return StoredObjectPageResponse.from(storedObjectQueryApplicationService.pageObjects(
+                request.getStorageType(),
+                request.getObjectStatus(),
+                request.getReferenceStatus(),
+                request.getOriginalFilename(),
+                request.getObjectKey(),
+                request.getPageNo(),
+                request.getPageSize()));
     }
 
     @Operation(summary = "查询存储对象详情")

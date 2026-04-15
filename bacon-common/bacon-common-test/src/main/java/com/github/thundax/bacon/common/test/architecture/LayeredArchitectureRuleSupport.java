@@ -226,10 +226,11 @@ public final class LayeredArchitectureRuleSupport {
                     public void check(JavaClass item, ConditionEvents events) {
                         for (JavaMethod method : item.getMethods()) {
                             if (method.getOwner().equals(item) && "toDto".equals(method.getName())) {
-                                events.add(SimpleConditionEvent.violated(
-                                        method,
-                                        method.getFullName()
-                                                + " declares local dto mapping; move mapping to application.assembler"));
+                                events.add(
+                                        SimpleConditionEvent.violated(
+                                                method,
+                                                method.getFullName()
+                                                        + " declares local dto mapping; move mapping to application.assembler"));
                             }
                         }
                         for (JavaConstructorCall constructorCall : item.getConstructorCallsFromSelf()) {

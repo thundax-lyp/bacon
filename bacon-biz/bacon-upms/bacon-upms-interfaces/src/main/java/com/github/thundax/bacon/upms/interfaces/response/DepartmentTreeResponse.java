@@ -8,13 +8,13 @@ import java.util.List;
  */
 public record DepartmentTreeResponse(
         /** 部门主键。 */
-        String id,
+        Long id,
         /** 部门编码。 */
         String code,
         /** 部门名称。 */
         String name,
         /** 父部门主键，根部门固定为 0。 */
-        String parentId,
+        Long parentId,
         /** 部门负责人用户主键。 */
         Long leaderUserId,
         /** 排序值。 */
@@ -29,17 +29,13 @@ public record DepartmentTreeResponse(
                 ? List.of()
                 : dto.getChildren().stream().map(DepartmentTreeResponse::from).toList();
         return new DepartmentTreeResponse(
-                idValue(dto.getId()),
+                dto.getId(),
                 dto.getCode(),
                 dto.getName(),
-                idValue(dto.getParentId()),
+                dto.getParentId(),
                 dto.getLeaderUserId(),
                 dto.getSort(),
                 dto.getStatus(),
                 childResponses);
-    }
-
-    private static String idValue(Long value) {
-        return value == null ? null : String.valueOf(value);
     }
 }

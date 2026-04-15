@@ -19,8 +19,8 @@ public class ResourceRepositoryImpl implements ResourceRepository {
 
     private final ResourcePersistenceSupport support;
     private final UpmsPermissionCacheSupport cacheSupport;
-    public ResourceRepositoryImpl(
-            ResourcePersistenceSupport support, UpmsPermissionCacheSupport cacheSupport) {
+
+    public ResourceRepositoryImpl(ResourcePersistenceSupport support, UpmsPermissionCacheSupport cacheSupport) {
         this.support = support;
         this.cacheSupport = cacheSupport;
     }

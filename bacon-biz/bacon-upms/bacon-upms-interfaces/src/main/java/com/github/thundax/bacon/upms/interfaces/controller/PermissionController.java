@@ -33,7 +33,7 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/menu-tree")
-    public List<UserMenuTreeResponse> getUserMenuTree(@PathVariable Long userId) {
+    public List<UserMenuTreeResponse> getUserMenuTree(@PathVariable("userId") Long userId) {
         return permissionQueryService.getUserMenuTree(UserIdCodec.toDomain(userId)).stream()
                 .map(UserMenuTreeResponse::from)
                 .toList();
@@ -43,7 +43,7 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户权限码", eventType = LogEventType.QUERY)
     @GetMapping("/permission-codes")
-    public Set<String> getUserPermissionCodes(@PathVariable Long userId) {
+    public Set<String> getUserPermissionCodes(@PathVariable("userId") Long userId) {
         return permissionQueryService.getUserPermissionCodes(UserIdCodec.toDomain(userId));
     }
 
@@ -51,7 +51,7 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户数据范围", eventType = LogEventType.QUERY)
     @GetMapping("/data-scope")
-    public UserDataScopeResponse getUserDataScope(@PathVariable Long userId) {
+    public UserDataScopeResponse getUserDataScope(@PathVariable("userId") Long userId) {
         return UserDataScopeResponse.from(permissionQueryService.getUserDataScope(UserIdCodec.toDomain(userId)));
     }
 }

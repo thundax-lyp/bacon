@@ -3,9 +3,8 @@ package com.github.thundax.bacon.upms.interfaces.controller;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
+import com.github.thundax.bacon.upms.application.codec.ResourceIdCodec;
 import com.github.thundax.bacon.upms.application.command.ResourceApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
@@ -43,32 +42,36 @@ public class ResourceController {
     @HasPermission("sys:resource:view")
     @SysLog(module = "UPMS", action = "分页查询资源", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public ResourcePageResponse pageResources(
-            @CurrentTenant Long tenantId, @Valid @ModelAttribute ResourcePageRequest request) {
-        return ResourcePageResponse.from(resourceApplicationService.pageResources(new ResourcePageQueryDTO(
+    public ResourcePageResponse pageResources(@Valid @ModelAttribute ResourcePageRequest request) {
+        return ResourcePageResponse.from(resourceApplicationService.pageResources(
                 request.getCode(),
                 request.getName(),
-                request.getResourceType() == null ? null : ResourceType.valueOf(request.getResourceType().name()),
-                request.getStatus() == null ? null : ResourceStatus.valueOf(request.getStatus().name()),
+                request.getResourceType() == null ? null : ResourceType.from(request.getResourceType()),
+                request.getStatus() == null ? null : ResourceStatus.from(request.getStatus()),
                 request.getPageNo(),
-                request.getPageSize())));
+                request.getPageSize()));
     }
 
     @Operation(summary = "按资源 ID 查询资源")
     @HasPermission("sys:resource:view")
     @SysLog(module = "UPMS", action = "查询资源详情", eventType = LogEventType.QUERY)
     @GetMapping("/{resourceId}")
-    public ResourceResponse getResourceById(@CurrentTenant Long tenantId, @PathVariable String resourceId) {
-        return ResourceResponse.from(resourceApplicationService.getResourceById(resourceId));
+    public ResourceResponse getResourceById(@PathVariable("resourceId") String resourceId) {
+        return ResourceResponse.from(resourceApplicationService.getResourceById(
+                ResourceIdCodec.toDomain(Long.parseLong(resourceId.trim()))));
     }
 
     @Operation(summary = "创建资源")
     @HasPermission("sys:resource:create")
     @SysLog(module = "UPMS", action = "创建资源", eventType = LogEventType.CREATE)
     @PostMapping
-    public ResourceResponse createResource(@CurrentTenant Long tenantId, @RequestBody ResourceCreateRequest request) {
+    public ResourceResponse createResource(@RequestBody ResourceCreateRequest request) {
         return ResourceResponse.from(resourceApplicationService.createResource(
-                request.code(), request.name(), request.resourceType(), request.httpMethod(), request.uri()));
+                request.code(),
+                request.name(),
+                request.resourceType() == null ? null : ResourceType.from(request.resourceType()),
+                request.httpMethod(),
+                request.uri()));
     }
 
     @Operation(summary = "修改资源")
@@ -76,9 +79,10 @@ public class ResourceController {
     @SysLog(module = "UPMS", action = "修改资源", eventType = LogEventType.UPDATE)
     @PutMapping("/{resourceId}")
     public ResourceResponse updateResource(
-            @CurrentTenant Long tenantId, @PathVariable String resourceId, @RequestBody ResourceUpdateRequest request) {
+            @PathVariable("resourceId") String resourceId,
+            @RequestBody ResourceUpdateRequest request) {
         return ResourceResponse.from(resourceApplicationService.updateResource(
-                resourceId,
+                ResourceIdCodec.toDomain(Long.parseLong(resourceId.trim())),
                 request.code(),
                 request.name(),
                 ResourceType.from(request.resourceType()),
@@ -93,7 +97,7 @@ public class ResourceController {
     @HasPermission("sys:resource:delete")
     @SysLog(module = "UPMS", action = "删除资源", eventType = LogEventType.DELETE)
     @DeleteMapping("/{resourceId}")
-    public void deleteResource(@CurrentTenant Long tenantId, @PathVariable String resourceId) {
-        resourceApplicationService.deleteResource(resourceId);
+    public void deleteResource(@PathVariable("resourceId") String resourceId) {
+        resourceApplicationService.deleteResource(ResourceIdCodec.toDomain(Long.parseLong(resourceId.trim())));
     }
 }

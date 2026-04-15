@@ -65,7 +65,8 @@ public class MenuController {
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "修改菜单", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}")
-    public MenuTreeResponse updateMenu(@PathVariable Long menuId, @Valid @RequestBody MenuUpdateRequest request) {
+    public MenuTreeResponse updateMenu(
+            @PathVariable("menuId") Long menuId, @Valid @RequestBody MenuUpdateRequest request) {
         return MenuTreeResponse.from(menuApplicationService.updateMenu(
                 MenuIdCodec.toDomain(menuId),
                 normalize(request.menuType()),
@@ -82,7 +83,7 @@ public class MenuController {
     @HasPermission("sys:menu:delete")
     @SysLog(module = "UPMS", action = "删除菜单", eventType = LogEventType.DELETE)
     @DeleteMapping("/{menuId}")
-    public void deleteMenu(@PathVariable Long menuId) {
+    public void deleteMenu(@PathVariable("menuId") Long menuId) {
         menuApplicationService.deleteMenu(MenuIdCodec.toDomain(menuId));
     }
 
@@ -90,8 +91,10 @@ public class MenuController {
     @HasPermission("sys:menu:update")
     @SysLog(module = "UPMS", action = "调整菜单排序", eventType = LogEventType.UPDATE)
     @PutMapping("/{menuId}/sort")
-    public MenuTreeResponse updateSort(@PathVariable Long menuId, @RequestBody MenuSortUpdateRequest request) {
-        return MenuTreeResponse.from(menuApplicationService.updateMenuSort(MenuIdCodec.toDomain(menuId), request.sort()));
+    public MenuTreeResponse updateSort(
+            @PathVariable("menuId") Long menuId, @RequestBody MenuSortUpdateRequest request) {
+        return MenuTreeResponse.from(
+                menuApplicationService.updateMenuSort(MenuIdCodec.toDomain(menuId), request.sort()));
     }
 
     private String normalize(String value) {

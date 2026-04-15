@@ -6,7 +6,6 @@ import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
-import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
 import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
 import com.github.thundax.bacon.upms.application.codec.TenantCodeCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
@@ -24,32 +23,38 @@ public class TenantApplicationService {
     private final SessionCommandFacade sessionCommandFacade;
     private final IdGenerator idGenerator;
 
-    public TenantApplicationService(TenantRepository tenantRepository, SessionCommandFacade sessionCommandFacade, IdGenerator idGenerator) {
+    public TenantApplicationService(
+            TenantRepository tenantRepository, SessionCommandFacade sessionCommandFacade, IdGenerator idGenerator) {
         this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
         this.idGenerator = idGenerator;
     }
 
-    public PageResultDTO<TenantDTO> pageTenants(TenantPageQueryDTO query) {
+    public PageResultDTO<TenantDTO> pageTenants(String name, TenantStatus status, Integer pageNo, Integer pageSize) {
         // 租户分页属于运营后台能力，统一先归一化分页参数，避免不同入口传入 0/负数时结果漂移。
-        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
-        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
+        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
-                tenantRepository.pageTenants(query.getName(), query.getStatus(), pageNo, pageSize).stream()
+                tenantRepository.pageTenants(name, status, normalizedPageNo, normalizedPageSize).stream()
                         .map(this::toDto)
                         .toList(),
-                tenantRepository.countTenants(query.getName(), query.getStatus()),
-                pageNo,
-                pageSize);
+                tenantRepository.countTenants(name, status),
+                normalizedPageNo,
+                normalizedPageSize);
     }
 
     @Transactional
     public TenantDTO createTenant(String name, TenantCode tenantCode, Instant expiredAt) {
         validateRequired(name, "name");
+        if (tenantCode == null) {
+            throw new IllegalArgumentException("tenantCode must not be null");
+        }
+        TenantCode normalizedTenantCode = tenantCode;
+        TenantId normalizedTenantId = TenantId.of(idGenerator.nextId("tenant-id"));
         tenantRepository.findTenantByCode(tenantCode).ifPresent(tenant -> {
             throw new IllegalArgumentException("Tenant tenantCode already exists: " + normalizedTenantCode.value());
         });
-        return toDto(tenantRepository.saveTenant(Tenant.create(
+        return toDto(tenantRepository.insert(Tenant.create(
                 normalizedTenantId, normalize(name), normalizedTenantCode, TenantStatus.ACTIVE, expiredAt)));
     }
 
@@ -61,13 +66,13 @@ public class TenantApplicationService {
         Tenant currentTenant = requireTenant(normalizedTenantId);
         TenantCode normalizedTenantCode = TenantCodeCodec.toDomain(tenantCode);
         tenantRepository
-                .findTenantByCode(normalizedTenantCode.value())
+                .findTenantByCode(normalizedTenantCode)
                 .filter(tenant -> !tenant.getId().equals(normalizedTenantId))
                 .ifPresent(tenant -> {
                     throw new IllegalArgumentException(
                             "Tenant tenantCode already exists: " + normalizedTenantCode.value());
                 });
-        return toDto(tenantRepository.saveTenant(
+        return toDto(tenantRepository.save(
                 currentTenant.update(normalize(name), normalizedTenantCode, currentTenant.getStatus(), expiredAt)));
     }
 
@@ -77,7 +82,7 @@ public class TenantApplicationService {
             throw new IllegalArgumentException("status must not be null");
         }
         TenantId normalizedTenantId = TenantId.of(tenantId);
-        Tenant tenant = tenantRepository.updateTenantStatus(normalizedTenantId, status.value());
+        Tenant tenant = tenantRepository.updateStatus(normalizedTenantId, TenantStatus.from(status.value()));
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
         if (TenantStatus.DISABLED == tenant.getStatus()) {
             sessionCommandFacade.invalidateTenantSessions(tenant.getId().value(), "TENANT_DISABLED");
@@ -91,7 +96,7 @@ public class TenantApplicationService {
 
     private Tenant requireTenant(TenantId tenantId) {
         return tenantRepository
-                .findTenantByTenantId(tenantId)
+                .findTenantById(tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
     }
 

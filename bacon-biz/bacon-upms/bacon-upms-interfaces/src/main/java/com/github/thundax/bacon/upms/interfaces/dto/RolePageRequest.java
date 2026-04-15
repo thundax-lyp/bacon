@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -14,8 +14,15 @@ public class RolePageRequest {
 
     private String code;
     private String name;
-    private UpmsRoleTypeQueryEnum roleType;
-    private EnableStatusEnum status;
+
+    @Schema(
+            description = "角色类型",
+            allowableValues = {"SYSTEM_ROLE", "TENANT_ROLE", "CUSTOM_ROLE"},
+            example = "TENANT_ROLE")
+    private String roleType;
+
+    @Schema(description = "启用状态", allowableValues = {"ENABLED", "DISABLED"}, example = "ENABLED")
+    private String status;
 
     @Min(1)
     private Integer pageNo;

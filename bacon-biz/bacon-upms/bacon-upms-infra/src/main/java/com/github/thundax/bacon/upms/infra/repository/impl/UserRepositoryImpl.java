@@ -80,7 +80,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<User> pageUsers(String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
+    public List<User> pageUsers(
+            String account, String name, String phone, UserStatus status, int pageNo, int pageSize) {
         return support.listUsers(account, name, phone, status, pageNo, pageSize);
     }
 

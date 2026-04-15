@@ -122,7 +122,8 @@ public class PermissionRepositoryImpl implements PermissionRepository {
         Set<String> scopeTypes = new HashSet<>();
         roleRepository
                 .findRolesByUserId(userId)
-                .forEach(role -> scopeTypes.add(roleRepository.getAssignedDataScopeType(role.getId()).value()));
+                .forEach(role -> scopeTypes.add(
+                        roleRepository.getAssignedDataScopeType(role.getId()).value()));
         return Set.copyOf(scopeTypes);
     }
 

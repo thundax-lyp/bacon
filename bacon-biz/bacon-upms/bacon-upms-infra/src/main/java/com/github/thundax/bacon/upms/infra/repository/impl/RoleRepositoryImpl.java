@@ -41,7 +41,8 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public List<Role> pageRoles(String code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
+    public List<Role> pageRoles(
+            String code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
         return support.listRoles(code, name, roleType, status, pageNo, pageSize);
     }
 

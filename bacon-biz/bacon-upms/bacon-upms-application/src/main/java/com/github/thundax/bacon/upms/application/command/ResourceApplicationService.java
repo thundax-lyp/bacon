@@ -5,14 +5,11 @@ import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
-import com.github.thundax.bacon.upms.api.dto.ResourcePageQueryDTO;
 import com.github.thundax.bacon.upms.application.assembler.ResourceAssembler;
-import com.github.thundax.bacon.upms.application.codec.ResourceIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
-import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,25 +24,24 @@ public class ResourceApplicationService {
         this.resourceRepository = resourceRepository;
     }
 
-    public PageResultDTO<ResourceDTO> pageResources(ResourcePageQueryDTO query) {
-        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
-        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+    public PageResultDTO<ResourceDTO> pageResources(
+            String code,
+            String name,
+            ResourceType resourceType,
+            ResourceStatus status,
+            Integer pageNo,
+            Integer pageSize) {
+        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
+        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
                 resourceRepository
-                        .pageResources(
-                                query.getCode(),
-                                query.getName(),
-                                query.getResourceType(),
-                                query.getStatus(),
-                                pageNo,
-                                pageSize)
+                        .pageResources(code, name, resourceType, status, normalizedPageNo, normalizedPageSize)
                         .stream()
                         .map(ResourceAssembler::toDto)
                         .toList(),
-                resourceRepository.countResources(
-                        query.getCode(), query.getName(), query.getResourceType(), query.getStatus()),
-                pageNo,
-                pageSize);
+                resourceRepository.countResources(code, name, resourceType, status),
+                normalizedPageNo,
+                normalizedPageSize);
     }
 
     public ResourceDTO getResourceById(ResourceId resourceId) {
@@ -53,7 +49,8 @@ public class ResourceApplicationService {
     }
 
     @Transactional
-    public ResourceDTO createResource(String code, String name, ResourceType resourceType, String httpMethod, String uri) {
+    public ResourceDTO createResource(
+            String code, String name, ResourceType resourceType, String httpMethod, String uri) {
         validateRequired(code, "code");
         validateRequired(name, "name");
         validateRequired(uri, "uri");
@@ -113,5 +110,4 @@ public class ResourceApplicationService {
     private String normalize(String value) {
         return value == null ? null : value.trim();
     }
-
 }

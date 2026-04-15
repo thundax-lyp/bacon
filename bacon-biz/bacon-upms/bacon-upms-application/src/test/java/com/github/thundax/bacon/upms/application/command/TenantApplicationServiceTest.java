@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
@@ -31,18 +32,21 @@ class TenantApplicationServiceTest {
     @Mock
     private SessionCommandFacade sessionCommandFacade;
 
+    @Mock
+    private IdGenerator idGenerator;
+
     private TenantApplicationService service;
 
     @BeforeEach
     void setUp() {
-        service = new TenantApplicationService(tenantRepository, sessionCommandFacade);
+        service = new TenantApplicationService(tenantRepository, sessionCommandFacade, idGenerator);
     }
 
     @Test
     void shouldCreateTenantWithTenantId() {
-        when(tenantRepository.findTenantByTenantId(TenantId.of(1001L))).thenReturn(Optional.empty());
-        when(tenantRepository.findTenantByCode("TENANT_DEMO")).thenReturn(Optional.empty());
-        when(tenantRepository.saveTenant(any(Tenant.class)))
+        when(idGenerator.nextId("tenant-id")).thenReturn(1001L);
+        when(tenantRepository.findTenantByCode(TenantCode.of("TENANT_DEMO"))).thenReturn(Optional.empty());
+        when(tenantRepository.insert(any(Tenant.class)))
                 .thenReturn(tenant(
                         1001L,
                         "Demo Tenant",
@@ -50,8 +54,8 @@ class TenantApplicationServiceTest {
                         TenantStatus.ACTIVE,
                         Instant.parse("2099-01-01T00:00:00Z")));
 
-        TenantDTO result =
-                service.createTenant(1001L, "Demo Tenant", "TENANT_DEMO", Instant.parse("2099-01-01T00:00:00Z"));
+        TenantDTO result = service.createTenant(
+                "Demo Tenant", TenantCode.of("TENANT_DEMO"), Instant.parse("2099-01-01T00:00:00Z"));
 
         assertThat(result.getId().value()).isEqualTo(1001L);
         assertThat(result.getName()).isEqualTo("Demo Tenant");
@@ -60,8 +64,9 @@ class TenantApplicationServiceTest {
     }
 
     @Test
-    void shouldRejectDuplicateTenantId() {
-        when(tenantRepository.findTenantByTenantId(TenantId.of(1001L)))
+    void shouldRejectDuplicateTenantCode() {
+        when(idGenerator.nextId("tenant-id")).thenReturn(1001L);
+        when(tenantRepository.findTenantByCode(TenantCode.of("TENANT_DEMO")))
                 .thenReturn(Optional.of(tenant(
                         1001L,
                         "Demo Tenant",
@@ -69,21 +74,21 @@ class TenantApplicationServiceTest {
                         TenantStatus.ACTIVE,
                         Instant.parse("2099-01-01T00:00:00Z"))));
 
-        assertThatThrownBy(() -> service.createTenant(1001L, "Other", "OTHER", null))
+        assertThatThrownBy(() -> service.createTenant("Other", TenantCode.of("TENANT_DEMO"), null))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Tenant tenantId already exists: 1001");
+                .hasMessage("Tenant tenantCode already exists: TENANT_DEMO");
     }
 
     @Test
     void shouldRejectInvalidTenantCode() {
-        assertThatThrownBy(() -> service.createTenant(1001L, "Demo Tenant", "tenant-demo", null))
+        assertThatThrownBy(() -> service.createTenant("Demo Tenant", TenantCode.of("tenant-demo"), null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("tenantCode must match [A-Z0-9_]+");
     }
 
     @Test
     void shouldInvalidateTenantSessionsWhenTenantDisabled() {
-        when(tenantRepository.updateTenantStatus(TenantId.of(1001L), "DISABLED"))
+        when(tenantRepository.updateStatus(TenantId.of(1001L), TenantStatus.DISABLED))
                 .thenReturn(tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null));
 
         TenantDTO result = service.updateTenantStatus(1001L, TenantStatusEnum.DISABLED);

@@ -4,9 +4,8 @@ import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
+import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserImportCommand;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
@@ -15,7 +14,6 @@ import com.github.thundax.bacon.upms.interfaces.dto.UserIdentityQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserImportItem;
 import com.github.thundax.bacon.upms.interfaces.dto.UserImportRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserPageRequest;
-import com.github.thundax.bacon.upms.interfaces.dto.UserPasswordInitRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserPasswordResetRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserRoleAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.UserStatusUpdateRequest;
@@ -62,21 +60,21 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "分页查询用户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public UserPageResponse pageUsers(@CurrentTenant Long tenantId, @Valid @ModelAttribute UserPageRequest request) {
-        return UserPageResponse.from(userApplicationService.pageUsers(new UserPageQueryDTO(
+    public UserPageResponse pageUsers(@Valid @ModelAttribute UserPageRequest request) {
+        return UserPageResponse.from(userApplicationService.pageUsers(
                 request.getAccount(),
                 request.getName(),
                 request.getPhone(),
-                request.getStatus() == null ? null : UserStatus.valueOf(request.getStatus().name()),
+                request.getStatus() == null ? null : UserStatus.valueOf(request.getStatus()),
                 request.getPageNo(),
-                request.getPageSize())));
+                request.getPageSize()));
     }
 
     @Operation(summary = "创建用户")
     @HasPermission("sys:user:create")
     @SysLog(module = "UPMS", action = "创建用户", eventType = LogEventType.CREATE)
     @PostMapping
-    public UserResponse createUser(@CurrentTenant Long tenantId, @RequestBody UserCreateRequest request) {
+    public UserResponse createUser(@RequestBody UserCreateRequest request) {
         return UserResponse.from(userApplicationService.createUser(
                 request.account(), request.name(), request.phone(), request.departmentId()));
     }
@@ -86,7 +84,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "修改用户基本信息", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}")
     public UserResponse updateUser(
-            @CurrentTenant Long tenantId, @PathVariable Long userId, @RequestBody UserUpdateRequest request) {
+            @PathVariable("userId") Long userId, @RequestBody UserUpdateRequest request) {
         return UserResponse.from(userApplicationService.updateUser(
                 userId, request.account(), request.name(), request.phone(), request.departmentId()));
     }
@@ -95,14 +93,14 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "查询用户详情", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}")
-    public UserResponse getUserById(@CurrentTenant Long tenantId, @PathVariable Long userId) {
+    public UserResponse getUserById(@PathVariable("userId") Long userId) {
         return UserResponse.from(userApplicationService.getUserById(UserIdCodec.toDomain(userId)));
     }
 
     @Operation(summary = "访问用户头像")
     @SysLog(module = "UPMS", action = "访问用户头像", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}/avatar")
-    public ResponseEntity<Void> getAvatar(@CurrentTenant Long tenantId, @PathVariable("userId") Long userId) {
+    public ResponseEntity<Void> getAvatar(@PathVariable("userId") Long userId) {
         Optional<String> avatarAccessUrl = userApplicationService.getAvatarAccessUrl(userId);
         if (avatarAccessUrl.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -117,7 +115,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "查询用户身份", eventType = LogEventType.QUERY)
     @GetMapping("/identity")
     public UserIdentityResponse getUserIdentity(
-            @CurrentTenant Long tenantId, @ModelAttribute UserIdentityQueryRequest request) {
+            @ModelAttribute UserIdentityQueryRequest request) {
         return UserIdentityResponse.from(
                 userApplicationService.getUserIdentity(request.getIdentityType(), request.getIdentityValue()));
     }
@@ -127,15 +125,17 @@ public class UserController {
     @SysLog(module = "UPMS", action = "变更用户状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}/status")
     public UserResponse updateUserStatus(
-            @CurrentTenant Long tenantId, @PathVariable Long userId, @RequestBody UserStatusUpdateRequest request) {
-        return UserResponse.from(userApplicationService.updateUserStatus(userId, request.status()));
+            @PathVariable("userId") Long userId,
+            @RequestBody UserStatusUpdateRequest request) {
+        return UserResponse.from(userApplicationService.updateUserStatus(
+                userId, request.status() == null ? null : EnableStatusEnum.valueOf(request.status())));
     }
 
     @Operation(summary = "删除用户")
     @HasPermission("sys:user:delete")
     @SysLog(module = "UPMS", action = "删除用户", eventType = LogEventType.DELETE)
     @DeleteMapping("/{userId}")
-    public void deleteUser(@CurrentTenant Long tenantId, @PathVariable Long userId) {
+    public void deleteUser(@PathVariable("userId") Long userId) {
         userApplicationService.deleteUser(userId);
     }
 
@@ -143,8 +143,7 @@ public class UserController {
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "初始化用户密码", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}/password/init")
-    public UserResponse initPassword(
-            @CurrentTenant Long tenantId, @PathVariable Long userId, @RequestBody UserPasswordInitRequest request) {
+    public UserResponse initPassword(@PathVariable("userId") Long userId) {
         return UserResponse.from(userApplicationService.initPassword(userId));
     }
 
@@ -153,7 +152,8 @@ public class UserController {
     @SysLog(module = "UPMS", action = "重置用户密码", eventType = LogEventType.UPDATE)
     @PutMapping("/{userId}/password/reset")
     public UserResponse resetPassword(
-            @CurrentTenant Long tenantId, @PathVariable Long userId, @RequestBody UserPasswordResetRequest request) {
+            @PathVariable("userId") Long userId,
+            @RequestBody UserPasswordResetRequest request) {
         return UserResponse.from(userApplicationService.resetPassword(userId, request.newPassword()));
     }
 
@@ -162,7 +162,8 @@ public class UserController {
     @SysLog(module = "UPMS", action = "分配用户角色", eventType = LogEventType.GRANT)
     @PutMapping("/{userId}/roles")
     public List<RoleResponse> assignRoles(
-            @CurrentTenant Long tenantId, @PathVariable Long userId, @RequestBody UserRoleAssignRequest request) {
+            @PathVariable("userId") Long userId,
+            @RequestBody UserRoleAssignRequest request) {
         return userApplicationService.assignRoles(userId, request.roleIds()).stream()
                 .map(RoleResponse::from)
                 .toList();
@@ -173,7 +174,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "上传用户头像", eventType = LogEventType.UPDATE)
     @PutMapping(value = "/{userId}/avatar", consumes = "multipart/form-data")
     public UserResponse uploadAvatar(
-            @CurrentTenant Long tenantId, @PathVariable("userId") Long userId, @RequestParam("file") MultipartFile file)
+            @PathVariable("userId") Long userId, @RequestParam("file") MultipartFile file)
             throws IOException {
         return UserResponse.from(userApplicationService.updateAvatar(
                 userId, file.getOriginalFilename(), file.getContentType(), file.getSize(), file.getInputStream()));
@@ -183,7 +184,8 @@ public class UserController {
     @HasPermission("sys:role:view")
     @SysLog(module = "UPMS", action = "查询用户角色", eventType = LogEventType.QUERY)
     @GetMapping("/{userId}/roles")
-    public List<RoleResponse> getRolesByUserId(@CurrentTenant Long tenantId, @PathVariable Long userId) {
+    public List<RoleResponse> getRolesByUserId(
+            @PathVariable("userId") Long userId) {
         return userApplicationService.getRolesByUserId(userId).stream()
                 .map(RoleResponse::from)
                 .toList();
@@ -193,7 +195,7 @@ public class UserController {
     @HasPermission("sys:user:create")
     @SysLog(module = "UPMS", action = "导入用户", eventType = LogEventType.IMPORT)
     @PostMapping("/import")
-    public List<UserResponse> importUsers(@CurrentTenant Long tenantId, @RequestBody UserImportRequest request) {
+    public List<UserResponse> importUsers(@RequestBody UserImportRequest request) {
         List<UserImportItem> items = request.items() == null ? List.of() : request.items();
         return userApplicationService
                 .importUsers(items.stream()
@@ -209,15 +211,13 @@ public class UserController {
     @HasPermission("sys:user:view")
     @SysLog(module = "UPMS", action = "导出用户", eventType = LogEventType.EXPORT)
     @GetMapping("/export")
-    public List<UserResponse> exportUsers(@CurrentTenant Long tenantId, @ModelAttribute UserPageRequest request) {
+    public List<UserResponse> exportUsers(@ModelAttribute UserPageRequest request) {
         return userApplicationService
-                .exportUsers(new UserPageQueryDTO(
+                .exportUsers(
                         request.getAccount(),
                         request.getName(),
                         request.getPhone(),
-                        request.getStatus() == null ? null : UserStatus.valueOf(request.getStatus().name()),
-                        1,
-                        Integer.MAX_VALUE))
+                        request.getStatus() == null ? null : UserStatus.valueOf(request.getStatus()))
                 .stream()
                 .map(UserResponse::from)
                 .toList();

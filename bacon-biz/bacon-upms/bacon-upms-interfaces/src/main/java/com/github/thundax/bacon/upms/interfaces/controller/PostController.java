@@ -3,13 +3,11 @@ package com.github.thundax.bacon.upms.interfaces.controller;
 import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
-import com.github.thundax.bacon.common.web.annotation.CurrentTenant;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
+import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
+import com.github.thundax.bacon.upms.application.codec.PostIdCodec;
 import com.github.thundax.bacon.upms.application.command.PostApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.interfaces.dto.PostCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.PostUpdateRequest;
@@ -44,34 +42,32 @@ public class PostController {
     @HasPermission("sys:post:view")
     @SysLog(module = "UPMS", action = "分页查询岗位", eventType = LogEventType.QUERY)
     @GetMapping("/page")
-    public PostPageResponse pagePosts(@CurrentTenant Long tenantId, @Valid @ModelAttribute PostPageRequest request) {
-        return PostPageResponse.from(postApplicationService.pagePosts(new PostPageQueryDTO(
+    public PostPageResponse pagePosts(@Valid @ModelAttribute PostPageRequest request) {
+        return PostPageResponse.from(postApplicationService.pagePosts(
                 request.getCode(),
                 request.getName(),
-                request.getDepartmentId() == null || request.getDepartmentId().isBlank()
-                        ? null
-                        : DepartmentId.of(
-                                Long.parseLong(request.getDepartmentId().trim())),
-                request.getStatus() == null ? null : PostStatus.valueOf(request.getStatus().name()),
+                DepartmentIdCodec.toDomain(request.getDepartmentId()),
+                request.getStatus() == null ? null : PostStatus.from(request.getStatus()),
                 request.getPageNo(),
-                request.getPageSize())));
+                request.getPageSize()));
     }
 
     @Operation(summary = "按岗位 ID 查询岗位")
     @HasPermission("sys:post:view")
     @SysLog(module = "UPMS", action = "查询岗位详情", eventType = LogEventType.QUERY)
     @GetMapping("/{postId}")
-    public PostResponse getPostById(@CurrentTenant Long tenantId, @PathVariable String postId) {
-        return PostResponse.from(postApplicationService.getPostById(PostId.of(Long.parseLong(postId.trim()))));
+    public PostResponse getPostById(@PathVariable("postId") String postId) {
+        return PostResponse.from(
+                postApplicationService.getPostById(PostIdCodec.toDomain(Long.parseLong(postId.trim()))));
     }
 
     @Operation(summary = "创建岗位")
     @HasPermission("sys:post:create")
     @SysLog(module = "UPMS", action = "创建岗位", eventType = LogEventType.CREATE)
     @PostMapping
-    public PostResponse createPost(@CurrentTenant Long tenantId, @RequestBody PostCreateRequest request) {
-        return PostResponse.from(
-                postApplicationService.createPost(request.code(), request.name(), request.departmentId()));
+    public PostResponse createPost(@RequestBody PostCreateRequest request) {
+        return PostResponse.from(postApplicationService.createPost(
+                request.code(), request.name(), DepartmentIdCodec.toDomain(request.departmentId())));
     }
 
     @Operation(summary = "修改岗位")
@@ -79,22 +75,21 @@ public class PostController {
     @SysLog(module = "UPMS", action = "修改岗位", eventType = LogEventType.UPDATE)
     @PutMapping("/{postId}")
     public PostResponse updatePost(
-            @CurrentTenant Long tenantId, @PathVariable String postId, @RequestBody PostUpdateRequest request) {
+            @PathVariable("postId") String postId,
+            @RequestBody PostUpdateRequest request) {
         return PostResponse.from(postApplicationService.updatePost(
-                PostId.of(Long.parseLong(postId.trim())),
+                PostIdCodec.toDomain(Long.parseLong(postId.trim())),
                 request.code(),
                 request.name(),
-                request.departmentId(),
-                request.status() == null || request.status().isBlank()
-                        ? null
-                        : PostStatus.from(request.status().trim())));
+                DepartmentIdCodec.toDomain(request.departmentId()),
+                request.status() == null || request.status().isBlank() ? null : PostStatus.from(request.status())));
     }
 
     @Operation(summary = "删除岗位")
     @HasPermission("sys:post:delete")
     @SysLog(module = "UPMS", action = "删除岗位", eventType = LogEventType.DELETE)
     @DeleteMapping("/{postId}")
-    public void deletePost(@CurrentTenant Long tenantId, @PathVariable String postId) {
-        postApplicationService.deletePost(PostId.of(Long.parseLong(postId.trim())));
+    public void deletePost(@PathVariable("postId") String postId) {
+        postApplicationService.deletePost(PostIdCodec.toDomain(Long.parseLong(postId.trim())));
     }
 }

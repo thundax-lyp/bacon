@@ -95,7 +95,12 @@ public class DepartmentApplicationService {
 
     @Transactional
     public DepartmentDTO updateDepartment(
-            DepartmentId departmentId, String code, String name, DepartmentId parentId, Long leaderUserId, Integer sort) {
+            DepartmentId departmentId,
+            String code,
+            String name,
+            DepartmentId parentId,
+            Long leaderUserId,
+            Integer sort) {
         Department currentDepartment = departmentRepository
                 .findDepartmentById(departmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));

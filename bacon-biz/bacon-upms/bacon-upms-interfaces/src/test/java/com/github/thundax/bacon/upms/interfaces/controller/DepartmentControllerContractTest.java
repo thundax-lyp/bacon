@@ -35,10 +35,11 @@ class DepartmentControllerContractTest {
 
     @Test
     void shouldRejectBlankCodeWhenCreatingDepartment() throws Exception {
-        mockMvc.perform(post("/upms/departments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(
-                                """
+        mockMvc.perform(
+                        post("/upms/departments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"code":" ","name":"Operations","parentId":1,"leaderUserId":2001,"sort":1}
                                 """))
                 .andExpect(status().isBadRequest());
@@ -48,10 +49,11 @@ class DepartmentControllerContractTest {
 
     @Test
     void shouldRejectTooLongNameWhenUpdatingDepartment() throws Exception {
-        mockMvc.perform(put("/upms/departments/{departmentId}", 101L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(
-                                """
+        mockMvc.perform(
+                        put("/upms/departments/{departmentId}", 101L)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"code":"OPS","name":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","parentId":1,"leaderUserId":2001,"sort":1}
                                 """))
                 .andExpect(status().isBadRequest());
@@ -64,10 +66,11 @@ class DepartmentControllerContractTest {
         when(departmentApplicationService.createDepartment(eq("OPS"), eq("Operations"), eq(null), eq(2001L), eq(1)))
                 .thenReturn(new DepartmentDTO(101L, "OPS", "Operations", null, 2001L, 1, "ENABLED"));
 
-        mockMvc.perform(post("/upms/departments")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(
-                                """
+        mockMvc.perform(
+                        post("/upms/departments")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"code":" OPS ","name":" Operations ","parentId":null,"leaderUserId":2001,"sort":1}
                                 """))
                 .andExpect(status().isOk())

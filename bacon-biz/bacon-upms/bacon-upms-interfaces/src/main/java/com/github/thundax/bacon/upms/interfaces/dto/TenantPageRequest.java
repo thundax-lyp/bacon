@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -13,7 +13,9 @@ import lombok.NoArgsConstructor;
 public class TenantPageRequest {
 
     private String name;
-    private TenantStatusEnum status;
+
+    @Schema(description = "租户状态", allowableValues = {"ENABLED", "DISABLED"}, example = "ENABLED")
+    private String status;
 
     @Min(1)
     private Integer pageNo;

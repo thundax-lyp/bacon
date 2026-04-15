@@ -127,5 +127,4 @@ public class MenuApplicationService {
                 .findMenuById(parentId)
                 .orElseThrow(() -> new IllegalArgumentException("Parent menu not found: " + parentId));
     }
-
 }

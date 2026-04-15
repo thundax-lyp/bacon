@@ -22,7 +22,6 @@ import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
-import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
@@ -180,7 +179,7 @@ class UserApplicationServiceTest {
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
 
-        PageResultDTO<UserDTO> result = service.pageUsers(new UserPageQueryDTO(null, null, null, null, 1, 20));
+        PageResultDTO<UserDTO> result = service.pageUsers(null, null, null, null, 1, 20);
 
         assertThat(result.getRecords()).hasSize(1);
         assertThat(result.getRecords().get(0).getAvatarObjectId()).isEqualTo(501L);

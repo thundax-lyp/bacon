@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.github.thundax.bacon.upms.api.dto.MenuTreeDTO;
-import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
+import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,10 +37,11 @@ class MenuControllerContractTest {
 
     @Test
     void shouldRejectBlankMenuTypeWhenCreatingMenu() throws Exception {
-        mockMvc.perform(post("/upms/menus")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(
-                                """
+        mockMvc.perform(
+                        post("/upms/menus")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"menuType":" ","name":"Catalog","parentId":1,"routePath":"/catalog","componentName":"CatalogPage","icon":"catalog","sort":1,"permissionCode":"upms:menu:view"}
                                 """))
                 .andExpect(status().isBadRequest());
@@ -71,10 +72,11 @@ class MenuControllerContractTest {
                         "upms:menu:view",
                         List.of()));
 
-        mockMvc.perform(post("/upms/menus")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(
-                                """
+        mockMvc.perform(
+                        post("/upms/menus")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"menuType":" CATALOG ","name":" Catalog ","parentId":1,"routePath":" /catalog ","componentName":" CatalogPage ","icon":" catalog ","sort":1,"permissionCode":" upms:menu:view "}
                                 """))
                 .andExpect(status().isOk())
@@ -111,10 +113,11 @@ class MenuControllerContractTest {
                         "upms:menu:edit",
                         List.of()));
 
-        mockMvc.perform(put("/upms/menus/{menuId}", 101L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(
-                                """
+        mockMvc.perform(
+                        put("/upms/menus/{menuId}", 101L)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
                                 {"menuType":" CATALOG ","name":" Catalog ","parentId":1,"routePath":" /catalog ","componentName":" CatalogPage ","icon":" catalog ","sort":2,"permissionCode":" upms:menu:edit "}
                                 """))
                 .andExpect(status().isOk())

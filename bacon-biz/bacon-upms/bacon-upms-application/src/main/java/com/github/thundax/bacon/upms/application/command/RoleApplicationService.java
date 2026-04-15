@@ -5,9 +5,7 @@ import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
-import com.github.thundax.bacon.upms.api.dto.RolePageQueryDTO;
 import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
-import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
 import com.github.thundax.bacon.upms.application.codec.RoleIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -20,7 +18,6 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -51,24 +48,17 @@ public class RoleApplicationService {
                 .toList();
     }
 
-    public PageResultDTO<RoleDTO> pageRoles(RolePageQueryDTO query) {
-        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
-        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+    public PageResultDTO<RoleDTO> pageRoles(
+            String code, String name, RoleType roleType, RoleStatus status, Integer pageNo, Integer pageSize) {
+        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
+        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
-                roleRepository
-                        .pageRoles(
-                                query.getCode(),
-                                query.getName(),
-                                query.getRoleType(),
-                                query.getStatus(),
-                                pageNo,
-                                pageSize)
-                        .stream()
+                roleRepository.pageRoles(code, name, roleType, status, normalizedPageNo, normalizedPageSize).stream()
                         .map(RoleAssembler::toDto)
                         .toList(),
-                roleRepository.countRoles(query.getCode(), query.getName(), query.getRoleType(), query.getStatus()),
-                pageNo,
-                pageSize);
+                roleRepository.countRoles(code, name, roleType, status),
+                normalizedPageNo,
+                normalizedPageSize);
     }
 
     @Transactional
@@ -85,18 +75,15 @@ public class RoleApplicationService {
     }
 
     @Transactional
-    public RoleDTO updateRole(RoleId roleId, String code, String name, RoleType roleType, RoleDataScopeType dataScopeType) {
+    public RoleDTO updateRole(
+            RoleId roleId, String code, String name, RoleType roleType, RoleDataScopeType dataScopeType) {
         Role currentRole = roleRepository
                 .findRoleById(roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
         validateRequired(code, "code");
         validateRequired(name, "name");
         return RoleAssembler.toDto(roleRepository.update(currentRole.update(
-                normalize(code),
-                normalize(name),
-                roleType,
-                dataScopeType,
-                currentRole.getStatus())));
+                normalize(code), normalize(name), roleType, dataScopeType, currentRole.getStatus())));
     }
 
     @Transactional
@@ -145,7 +132,8 @@ public class RoleApplicationService {
     }
 
     @Transactional
-    public Set<DepartmentId> assignDataScope(RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
+    public Set<DepartmentId> assignDataScope(
+            RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
         return roleRepository.assignDataScope(roleId, dataScopeType, departmentIds);
     }
 

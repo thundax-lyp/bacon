@@ -20,7 +20,6 @@ import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
-import com.github.thundax.bacon.upms.api.dto.UserPageQueryDTO;
 import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.codec.RoleIdCodec;
@@ -159,7 +158,7 @@ public class UserApplicationService {
 
     public TenantDTO getTenantByTenantId(Long tenantId) {
         Tenant tenant = tenantRepository
-                .findTenantByTenantId(TenantId.of(tenantId))
+                .findTenantById(TenantId.of(tenantId))
                 .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId));
         return new TenantDTO(
                 tenant.getId(),
@@ -169,24 +168,17 @@ public class UserApplicationService {
                 tenant.getExpiredAt());
     }
 
-    public PageResultDTO<UserDTO> pageUsers(UserPageQueryDTO query) {
-        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
-        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+    public PageResultDTO<UserDTO> pageUsers(
+            String account, String name, String phone, UserStatus status, Integer pageNo, Integer pageSize) {
+        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
+        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
-                userRepository
-                        .pageUsers(
-                                query.getAccount(),
-                                query.getName(),
-                                query.getPhone(),
-                                query.getStatus(),
-                                pageNo,
-                                pageSize)
-                        .stream()
+                userRepository.pageUsers(account, name, phone, status, normalizedPageNo, normalizedPageSize).stream()
                         .map(this::toSummaryDto)
                         .toList(),
-                userRepository.countUsers(query.getAccount(), query.getName(), query.getPhone(), query.getStatus()),
-                pageNo,
-                pageSize);
+                userRepository.countUsers(account, name, phone, status),
+                normalizedPageNo,
+                normalizedPageSize);
     }
 
     @Transactional
@@ -352,10 +344,8 @@ public class UserApplicationService {
                 .toList();
     }
 
-    public List<UserDTO> exportUsers(UserPageQueryDTO query) {
-        return userRepository
-                .listUsers(query.getAccount(), query.getName(), query.getPhone(), query.getStatus())
-                .stream()
+    public List<UserDTO> exportUsers(String account, String name, String phone, UserStatus status) {
+        return userRepository.listUsers(account, name, phone, status).stream()
                 .map(this::toSummaryDto)
                 .toList();
     }

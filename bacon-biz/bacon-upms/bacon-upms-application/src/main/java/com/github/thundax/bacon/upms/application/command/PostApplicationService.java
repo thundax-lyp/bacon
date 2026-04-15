@@ -4,9 +4,7 @@ import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
-import com.github.thundax.bacon.upms.api.dto.PostPageQueryDTO;
 import com.github.thundax.bacon.upms.application.assembler.PostAssembler;
-import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.codec.PostIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
@@ -29,24 +27,19 @@ public class PostApplicationService {
         this.idGenerator = idGenerator;
     }
 
-    public PageResultDTO<PostDTO> pagePosts(PostPageQueryDTO query) {
-        int pageNo = PageParamNormalizer.normalizePageNo(query.getPageNo());
-        int pageSize = PageParamNormalizer.normalizePageSize(query.getPageSize());
+    public PageResultDTO<PostDTO> pagePosts(
+            String code, String name, DepartmentId departmentId, PostStatus status, Integer pageNo, Integer pageSize) {
+        int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
+        int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
                 postRepository
-                        .pagePosts(
-                                query.getCode(),
-                                query.getName(),
-                                query.getDepartmentId(),
-                                query.getStatus(),
-                                pageNo,
-                                pageSize)
+                        .pagePosts(code, name, departmentId, status, normalizedPageNo, normalizedPageSize)
                         .stream()
                         .map(PostAssembler::toDto)
                         .toList(),
-                postRepository.countPosts(query.getCode(), query.getName(), query.getDepartmentId(), query.getStatus()),
-                pageNo,
-                pageSize);
+                postRepository.countPosts(code, name, departmentId, status),
+                normalizedPageNo,
+                normalizedPageSize);
     }
 
     public PostDTO getPostById(PostId postId) {
@@ -71,10 +64,7 @@ public class PostApplicationService {
         validateRequired(code, "code");
         validateRequired(name, "name");
         return PostAssembler.toDto(postRepository.update(currentPost.update(
-                normalize(code),
-                normalize(name),
-                departmentId,
-                status == null ? currentPost.getStatus() : status)));
+                normalize(code), normalize(name), departmentId, status == null ? currentPost.getStatus() : status)));
     }
 
     @Transactional
@@ -98,5 +88,4 @@ public class PostApplicationService {
     private String normalize(String value) {
         return value == null ? null : value.trim();
     }
-
 }

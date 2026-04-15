@@ -4,8 +4,10 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.upms.api.dto.TenantPageQueryDTO;
+import com.github.thundax.bacon.upms.application.codec.TenantCodeCodec;
 import com.github.thundax.bacon.upms.application.command.TenantApplicationService;
+import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
+import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantPageRequest;
 import com.github.thundax.bacon.upms.interfaces.dto.TenantStatusUpdateRequest;
@@ -41,11 +43,11 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "分页查询租户", eventType = LogEventType.QUERY)
     @GetMapping("/page")
     public TenantPageResponse pageTenants(@Valid @ModelAttribute TenantPageRequest request) {
-        return TenantPageResponse.from(tenantApplicationService.pageTenants(new TenantPageQueryDTO(
+        return TenantPageResponse.from(tenantApplicationService.pageTenants(
                 request.getName(),
-                request.getStatus() == null ? null : request.getStatus().name(),
+                request.getStatus() == null ? null : TenantStatus.valueOf(request.getStatus()),
                 request.getPageNo(),
-                request.getPageSize())));
+                request.getPageSize()));
     }
 
     @Operation(summary = "创建租户")
@@ -54,14 +56,15 @@ public class TenantController {
     @PostMapping
     public TenantResponse createTenant(@RequestBody TenantCreateRequest request) {
         return TenantResponse.from(tenantApplicationService.createTenant(
-                request.tenantId(), request.name(), request.tenantCode(), request.expiredAt()));
+                request.name(), TenantCodeCodec.toDomain(request.tenantCode()), request.expiredAt()));
     }
 
     @Operation(summary = "修改租户")
     @HasPermission("sys:tenant:update")
     @SysLog(module = "UPMS", action = "修改租户", eventType = LogEventType.UPDATE)
     @PutMapping("/{tenantId}")
-    public TenantResponse updateTenant(@PathVariable Long tenantId, @RequestBody TenantUpdateRequest request) {
+    public TenantResponse updateTenant(
+            @PathVariable("tenantId") Long tenantId, @RequestBody TenantUpdateRequest request) {
         return TenantResponse.from(tenantApplicationService.updateTenant(
                 tenantId, request.name(), request.tenantCode(), request.expiredAt()));
     }
@@ -70,7 +73,7 @@ public class TenantController {
     @HasPermission("sys:tenant:view")
     @SysLog(module = "UPMS", action = "查询租户详情", eventType = LogEventType.QUERY)
     @GetMapping("/{tenantId}")
-    public TenantResponse getTenantByTenantId(@PathVariable Long tenantId) {
+    public TenantResponse getTenantByTenantId(@PathVariable("tenantId") Long tenantId) {
         return TenantResponse.from(tenantApplicationService.getTenantByTenantId(tenantId));
     }
 
@@ -79,7 +82,8 @@ public class TenantController {
     @SysLog(module = "UPMS", action = "变更租户状态", eventType = LogEventType.UPDATE)
     @PutMapping("/{tenantId}/status")
     public TenantResponse updateTenantStatus(
-            @PathVariable Long tenantId, @RequestBody TenantStatusUpdateRequest request) {
-        return TenantResponse.from(tenantApplicationService.updateTenantStatus(tenantId, request.status()));
+            @PathVariable("tenantId") Long tenantId, @RequestBody TenantStatusUpdateRequest request) {
+        return TenantResponse.from(tenantApplicationService.updateTenantStatus(
+                tenantId, request.status() == null ? null : TenantStatusEnum.valueOf(request.status())));
     }
 }

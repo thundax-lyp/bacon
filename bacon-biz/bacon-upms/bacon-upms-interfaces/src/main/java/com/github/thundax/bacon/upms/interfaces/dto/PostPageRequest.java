@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.upms.interfaces.dto;
 
-import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -14,8 +14,13 @@ public class PostPageRequest {
 
     private String code;
     private String name;
-    private String departmentId;
-    private EnableStatusEnum status;
+    private Long departmentId;
+
+    @Schema(
+            description = "启用状态",
+            allowableValues = {"ENABLED", "DISABLED"},
+            example = "ENABLED")
+    private String status;
 
     @Min(1)
     private Integer pageNo;

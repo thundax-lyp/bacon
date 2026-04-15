@@ -3,12 +3,11 @@ package com.github.thundax.bacon.upms.application.query;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
+import com.github.thundax.bacon.upms.application.assembler.UserDataScopeAssembler;
 import com.github.thundax.bacon.upms.application.command.MenuApplicationService;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,11 +33,9 @@ public class PermissionQueryApplicationService {
 
     public UserDataScopeDTO getUserDataScope(UserId userId) {
         // 数据权限由多个维度组合而成：是否全量、范围类型集合、部门集合；查询层只做聚合，不引入额外推导。
-        return new UserDataScopeDTO(
+        return UserDataScopeAssembler.toDto(
                 permissionRepository.hasAllAccess(userId),
                 permissionRepository.getUserScopeTypes(userId),
-                permissionRepository.getUserDepartmentIds(userId).stream()
-                        .map(DepartmentId::value)
-                        .collect(Collectors.toSet()));
+                permissionRepository.getUserDepartmentIds(userId));
     }
 }

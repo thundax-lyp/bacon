@@ -22,6 +22,7 @@ import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
 import com.github.thundax.bacon.upms.application.assembler.TenantAssembler;
 import com.github.thundax.bacon.upms.application.assembler.UserAssembler;
+import com.github.thundax.bacon.upms.application.assembler.UserIdentityAssembler;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
@@ -110,14 +111,7 @@ public class UserApplicationService {
         UserIdentity userIdentity = userRepository
                 .findUserIdentity(identityType, identityValue)
                 .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
-        return new UserIdentityDTO(
-                userIdentity.getId() == null ? null : userIdentity.getId().value(),
-                userIdentity.getUserId().value(),
-                userIdentity.getIdentityType().value(),
-                userIdentity.getIdentityValue(),
-                userIdentity.getStatus() == null
-                        ? null
-                        : userIdentity.getStatus().value());
+        return UserIdentityAssembler.toDto(userIdentity);
     }
 
     public UserLoginCredentialDTO getUserLoginCredential(UserIdentityType identityType, String identityValue) {
@@ -132,28 +126,7 @@ public class UserApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
         String account = resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT);
         String phone = resolveIdentityValue(user.getId(), UserIdentityType.PHONE);
-        return new UserLoginCredentialDTO(
-                user.getId().value(),
-                userIdentity.getId() == null ? null : userIdentity.getId().value(),
-                account,
-                phone,
-                userIdentity.getIdentityType().value(),
-                userIdentity.getIdentityValue(),
-                userIdentity.getStatus() == null
-                        ? null
-                        : userIdentity.getStatus().value(),
-                passwordCredential.getId() == null
-                        ? null
-                        : passwordCredential.getId().value(),
-                passwordCredential.getCredentialType().value(),
-                passwordCredential.getStatus().value(),
-                passwordCredential.isNeedChangePassword(),
-                passwordCredential.getExpiresAt(),
-                passwordCredential.getLockedUntil(),
-                false,
-                List.of(),
-                user.getStatus().value(),
-                passwordCredential.getCredentialValue());
+        return UserIdentityAssembler.toLoginCredentialDto(user, userIdentity, passwordCredential, account, phone);
     }
 
     public TenantDTO getTenantByTenantId(TenantId tenantId) {

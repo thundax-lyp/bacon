@@ -142,12 +142,12 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo,
-            int offset,
-            int limit) {
+            int pageNo,
+            int pageSize) {
         List<Order> filtered =
                 filterOrders(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo);
-        int normalizedOffset = Math.max(offset, 0);
-        int normalizedLimit = Math.max(limit, 1);
+        int normalizedLimit = Math.max(pageSize, 1);
+        int normalizedOffset = Math.max(0, (Math.max(pageNo, 1) - 1) * normalizedLimit);
         return filtered.stream().skip(normalizedOffset).limit(normalizedLimit).toList();
     }
 

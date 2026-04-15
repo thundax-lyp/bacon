@@ -227,13 +227,16 @@ public class OrderRepositorySupport {
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo,
-            int offset,
-            int limit) {
+            int pageNo,
+            int pageSize) {
         BaconContextHolder.requireTenantId();
+        int normalizedPageNo = Math.max(pageNo, 1);
+        int normalizedPageSize = Math.max(pageSize, 1);
+        int offset = Math.max(0, (normalizedPageNo - 1) * normalizedPageSize);
         List<OrderDO> pageOrders = orderMapper.selectList(
                 buildPageQuery(userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo)
                         .orderByDesc(OrderDO::getCreatedAt, OrderDO::getId)
-                        .last("limit " + offset + "," + limit));
+                        .last("limit " + offset + "," + normalizedPageSize));
         if (pageOrders.isEmpty()) {
             return List.of();
         }

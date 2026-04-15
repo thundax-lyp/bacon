@@ -99,10 +99,10 @@ public class OrderRepositoryImpl implements OrderRepository {
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo,
-            int offset,
-            int limit) {
+            int pageNo,
+            int pageSize) {
         return support.pageOrders(
-                userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, offset, limit);
+                userId, orderNo, orderStatus, payStatus, inventoryStatus, createdAtFrom, createdAtTo, pageNo, pageSize);
     }
 
     @Override

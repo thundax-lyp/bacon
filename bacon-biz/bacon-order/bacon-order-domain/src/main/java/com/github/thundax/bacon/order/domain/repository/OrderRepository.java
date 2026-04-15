@@ -50,8 +50,8 @@ public interface OrderRepository {
             String inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo,
-            int offset,
-            int limit);
+            int pageNo,
+            int pageSize);
 
     List<Order> findAll();
 }

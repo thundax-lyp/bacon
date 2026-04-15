@@ -51,7 +51,7 @@ public class InventoryQueryApplicationService {
     }
 
     public InventoryStockDTO getAvailableStock(SkuId skuId) {
-        requireTenantContext();
+        BaconContextHolder.requireTenantId();
         return InventoryStockAssembler.fromInventory(inventoryStockRepository
                 .findInventory(skuId)
                 .orElseThrow(() -> new InventoryDomainException(
@@ -59,7 +59,7 @@ public class InventoryQueryApplicationService {
     }
 
     public List<InventoryStockDTO> batchGetAvailableStock(Set<SkuId> skuIds) {
-        requireTenantContext();
+        BaconContextHolder.requireTenantId();
         return inventoryStockRepository.findInventories(skuIds == null ? Set.of() : skuIds).stream()
                 .map(InventoryStockAssembler::fromInventory)
                 .toList();
@@ -67,7 +67,7 @@ public class InventoryQueryApplicationService {
 
     public InventoryPageResultDTO pageInventories(
             SkuId skuId, InventoryStatus status, Integer pageNo, Integer pageSize) {
-        requireTenantContext();
+        BaconContextHolder.requireTenantId();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         List<InventoryStockDTO> records =
@@ -79,7 +79,7 @@ public class InventoryQueryApplicationService {
     }
 
     public InventoryReservationDTO getReservationByOrderNo(OrderNo orderNo) {
-        requireTenantContext();
+        BaconContextHolder.requireTenantId();
         InventoryReservation reservation = inventoryReservationRepository
                 .findReservation(orderNo)
                 .orElseThrow(() -> new InventoryDomainException(
@@ -88,14 +88,14 @@ public class InventoryQueryApplicationService {
     }
 
     public List<InventoryLedgerDTO> listLedgersByOrderNo(OrderNo orderNo) {
-        requireTenantContext();
+        BaconContextHolder.requireTenantId();
         return inventoryAuditRecordRepository.findLedgers(orderNo).stream()
                 .map(InventoryLedgerAssembler::toDto)
                 .toList();
     }
 
     public List<InventoryAuditLogDTO> listAuditLogsByOrderNo(OrderNo orderNo) {
-        requireTenantContext();
+        BaconContextHolder.requireTenantId();
         return inventoryAuditRecordRepository.findAuditLogs(orderNo).stream()
                 .map(InventoryAuditLogAssembler::toDto)
                 .toList();
@@ -103,7 +103,7 @@ public class InventoryQueryApplicationService {
 
     public InventoryAuditDeadLetterPageResultDTO pageAuditDeadLetters(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, Integer pageNo, Integer pageSize) {
-        requireTenantContext();
+        BaconContextHolder.requireTenantId();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         List<InventoryAuditDeadLetterDTO> records =
@@ -116,7 +116,4 @@ public class InventoryQueryApplicationService {
         return new InventoryAuditDeadLetterPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
     }
 
-    private void requireTenantContext() {
-        BaconContextHolder.requireTenantId();
-    }
 }

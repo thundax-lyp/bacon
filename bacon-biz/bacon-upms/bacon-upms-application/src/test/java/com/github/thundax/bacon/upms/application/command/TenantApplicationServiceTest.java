@@ -10,7 +10,6 @@ import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
-import com.github.thundax.bacon.upms.api.enums.TenantStatusEnum;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
@@ -91,7 +90,7 @@ class TenantApplicationServiceTest {
         when(tenantRepository.updateStatus(TenantId.of(1001L), TenantStatus.DISABLED))
                 .thenReturn(tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null));
 
-        TenantDTO result = service.updateTenantStatus(1001L, TenantStatusEnum.DISABLED);
+        TenantDTO result = service.updateTenantStatus(TenantId.of(1001L), TenantStatus.DISABLED);
 
         assertThat(result.getStatus()).isEqualTo("DISABLED");
         verify(sessionCommandFacade).invalidateTenantSessions(1001L, "TENANT_DISABLED");

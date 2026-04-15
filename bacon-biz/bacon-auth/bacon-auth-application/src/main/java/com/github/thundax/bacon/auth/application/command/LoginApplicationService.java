@@ -14,6 +14,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -62,7 +63,8 @@ public class LoginApplicationService {
         String plainPassword =
                 loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
         UserLoginCredentialDTO credential = BaconContextHolder.callWithTenantId(
-                tenantId.value(), () -> userReadFacade.getUserLoginCredential("ACCOUNT", command.getAccount()));
+                tenantId.value(),
+                () -> userReadFacade.getUserLoginCredential(UserIdentityType.ACCOUNT, command.getAccount()));
         validatePasswordLoginCredential(credential, plainPassword);
         return createLoginSession(
                 tenantId.value(),

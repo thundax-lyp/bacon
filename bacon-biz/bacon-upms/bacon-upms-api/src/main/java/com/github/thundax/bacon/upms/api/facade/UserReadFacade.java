@@ -5,15 +5,16 @@ import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import org.springframework.lang.NonNull;
 
 public interface UserReadFacade {
 
     UserDTO getUserById(@NonNull UserId userId);
 
-    UserIdentityDTO getUserIdentity(String identityType, String identityValue);
+    UserIdentityDTO getUserIdentity(UserIdentityType identityType, String identityValue);
 
-    UserLoginCredentialDTO getUserLoginCredential(String identityType, String identityValue);
+    UserLoginCredentialDTO getUserLoginCredential(UserIdentityType identityType, String identityValue);
 
     TenantDTO getTenantByTenantId();
 }

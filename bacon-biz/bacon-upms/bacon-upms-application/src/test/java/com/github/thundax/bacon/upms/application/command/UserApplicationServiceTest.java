@@ -129,7 +129,11 @@ class UserApplicationServiceTest {
                 .thenReturn(savedUser);
 
         UserDTO result = service.updateAvatar(
-                101L, "avatar.png", "image/png", 1024L, new ByteArrayInputStream(createImageBytes("png", 256, 256)));
+                UserId.of(101L),
+                "avatar.png",
+                "image/png",
+                1024L,
+                new ByteArrayInputStream(createImageBytes("png", 256, 256)));
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository)
@@ -154,7 +158,8 @@ class UserApplicationServiceTest {
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
         assertThatThrownBy(() -> service.updateAvatar(
-                        101L, "avatar.gif", "image/gif", 12L, new ByteArrayInputStream(new byte[] {1, 2, 3})))
+                        UserId.of(101L), "avatar.gif", "image/gif", 12L, new ByteArrayInputStream(new byte[] {1, 2, 3
+                        })))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("avatar contentType must be image/jpeg or image/png");
     }
@@ -166,7 +171,11 @@ class UserApplicationServiceTest {
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
         assertThatThrownBy(() -> service.updateAvatar(
-                        101L, "avatar.png", "image/png", (long) bytes.length, new ByteArrayInputStream(bytes)))
+                        UserId.of(101L),
+                        "avatar.png",
+                        "image/png",
+                        (long) bytes.length,
+                        new ByteArrayInputStream(bytes)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("avatar image must be square");
     }
@@ -192,7 +201,7 @@ class UserApplicationServiceTest {
         User user = user(101L, "Alice", StoredObjectId.of(501L), DEPARTMENT_ID, UserStatus.ENABLED);
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
 
-        service.deleteUser(101L);
+        service.deleteUser(UserId.of(101L));
 
         verify(userRepository).deleteUser(UserId.of(101L));
         verify(storedObjectFacade).clearObjectReference("O501", "UPMS_USER_AVATAR", "101");
@@ -207,7 +216,7 @@ class UserApplicationServiceTest {
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
         when(storedObjectFacade.getObjectById("O501")).thenReturn(storedObject);
 
-        assertThat(service.getAvatarAccessUrl(101L)).contains("https://cdn.example.com/avatar/501.png");
+        assertThat(service.getAvatarAccessUrl(UserId.of(101L))).contains("https://cdn.example.com/avatar/501.png");
     }
 
     @Test
@@ -226,7 +235,7 @@ class UserApplicationServiceTest {
                 .thenReturn(Optional.of(passwordCredential));
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
 
-        UserLoginCredentialDTO credential = service.getUserLoginCredential("ACCOUNT", "alice");
+        UserLoginCredentialDTO credential = service.getUserLoginCredential(UserIdentityType.ACCOUNT, "alice");
 
         assertThat(credential.getUserId()).isEqualTo(101L);
         assertThat(credential.getIdentityId()).isEqualTo(201L);
@@ -243,7 +252,7 @@ class UserApplicationServiceTest {
         when(userRepository.findUserCredential(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);
-        service.changePassword(101L, "old-password", "new-password");
+        service.changePassword(UserId.of(101L), "old-password", "new-password");
 
         verify(userRepository).updatePassword(UserId.of(101L), "new-password", false, UserCredentialId.of(10003L));
     }

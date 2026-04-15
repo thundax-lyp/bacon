@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.interfaces.provider;
 
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
+import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -14,6 +15,8 @@ import com.github.thundax.bacon.upms.application.command.DepartmentApplicationSe
 import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,33 +56,34 @@ public class UpmsProviderController {
     @Operation(summary = "按用户 ID 查询用户")
     @GetMapping("/users/{userId}")
     public UserDTO getUserById(@PathVariable Long userId) {
-        return userApplicationService.getUserById(userId);
+        return userApplicationService.getUserById(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "按身份标识查询用户身份")
     @GetMapping("/user-identities")
     public UserIdentityDTO getUserIdentity(
             @RequestParam("identityType") String identityType, @RequestParam("identityValue") String identityValue) {
-        return userApplicationService.getUserIdentity(identityType, identityValue);
+        return userApplicationService.getUserIdentity(UserIdentityType.from(identityType), identityValue);
     }
 
     @Operation(summary = "按身份标识查询用户登录凭据")
     @GetMapping("/user-credentials")
     public UserLoginCredentialDTO getUserLoginCredential(
             @RequestParam("identityType") String identityType, @RequestParam("identityValue") String identityValue) {
-        return userApplicationService.getUserLoginCredential(identityType, identityValue);
+        return userApplicationService.getUserLoginCredential(UserIdentityType.from(identityType), identityValue);
     }
 
     @Operation(summary = "当前用户修改密码")
     @PostMapping("/users/{userId}/password/change")
     public void changePassword(@PathVariable Long userId, @RequestBody UserPasswordChangeDTO request) {
-        userApplicationService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
+        userApplicationService.changePassword(
+                UserIdCodec.toDomain(userId), request.getOldPassword(), request.getNewPassword());
     }
 
     @Operation(summary = "按租户编号查询租户")
     @GetMapping("/tenants/{tenantId}")
     public TenantDTO getTenant(@PathVariable Long tenantId) {
-        return userApplicationService.getTenantByTenantId(tenantId);
+        return userApplicationService.getTenantByTenantId(TenantId.of(tenantId));
     }
 
     @Operation(summary = "按部门 ID 查询部门")
@@ -91,7 +95,7 @@ public class UpmsProviderController {
     @Operation(summary = "按部门编码查询部门")
     @GetMapping("/departments/code/{departmentCode}")
     public DepartmentDTO getDepartmentByCode(@PathVariable String departmentCode) {
-        return departmentApplicationService.getDepartmentByCode(departmentCode);
+        return departmentApplicationService.getDepartmentByCode(DepartmentCode.of(departmentCode));
     }
 
     @Operation(summary = "批量查询部门")

@@ -7,6 +7,7 @@ import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
+import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.lang.NonNull;
@@ -39,26 +40,26 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
     }
 
     @Override
-    public UserIdentityDTO getUserIdentity(String identityType, String identityValue) {
+    public UserIdentityDTO getUserIdentity(UserIdentityType identityType, String identityValue) {
         // 身份映射读取只返回绑定结果，不在 remote facade 里补默认身份，避免认证链路误判“用户不存在”和“未绑定”。
         return restClient
                 .get()
                 .uri(
                         "/providers/upms/user-identities?identityType={identityType}&identityValue={identityValue}",
-                        identityType,
+                        identityType.value(),
                         identityValue)
                 .retrieve()
                 .body(UserIdentityDTO.class);
     }
 
     @Override
-    public UserLoginCredentialDTO getUserLoginCredential(String identityType, String identityValue) {
+    public UserLoginCredentialDTO getUserLoginCredential(UserIdentityType identityType, String identityValue) {
         // 登录凭据查询是 auth 登录链路的基础读操作；provider 负责决定哪些敏感字段可以下发。
         return restClient
                 .get()
                 .uri(
                         "/providers/upms/user-credentials?identityType={identityType}&identityValue={identityValue}",
-                        identityType,
+                        identityType.value(),
                         identityValue)
                 .retrieve()
                 .body(UserLoginCredentialDTO.class);

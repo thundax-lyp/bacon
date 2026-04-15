@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
+import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
@@ -46,7 +47,11 @@ class UserControllerContractTest {
     @Test
     void shouldUploadAvatarThroughMultipartPutEndpoint() throws Exception {
         when(userApplicationService.updateAvatar(
-                        eq(101L), eq("avatar.png"), eq("image/png"), eq(4L), org.mockito.ArgumentMatchers.any()))
+                        eq(UserId.of(101L)),
+                        eq("avatar.png"),
+                        eq("image/png"),
+                        eq(4L),
+                        org.mockito.ArgumentMatchers.any()))
                 .thenReturn(new UserDTO(
                         101L,
                         "alice",
@@ -73,7 +78,7 @@ class UserControllerContractTest {
 
     @Test
     void shouldRedirectAvatarRequestToStorageAccessUrl() throws Exception {
-        when(userApplicationService.getAvatarAccessUrl(101L))
+        when(userApplicationService.getAvatarAccessUrl(UserId.of(101L)))
                 .thenReturn(Optional.of("https://cdn.example.com/avatar/9001.png"));
 
         mockMvc.perform(get("/upms/users/{userId}/avatar", 101L))

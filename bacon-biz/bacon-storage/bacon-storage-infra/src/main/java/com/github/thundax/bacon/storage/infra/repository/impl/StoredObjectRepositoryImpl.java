@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.infra.persistence.assembler.StoredObjectPersistenceAssembler;
@@ -56,9 +58,9 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
 
     @Override
     public List<StoredObject> pageObjects(
-            String storageType,
-            String objectStatus,
-            String referenceStatus,
+            StorageType storageType,
+            StoredObjectStatus objectStatus,
+            StoredObjectReferenceStatus referenceStatus,
             String originalFilename,
             String objectKey,
             int pageNo,
@@ -77,9 +79,9 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
 
     @Override
     public long countObjects(
-            String storageType,
-            String objectStatus,
-            String referenceStatus,
+            StorageType storageType,
+            StoredObjectStatus objectStatus,
+            StoredObjectReferenceStatus referenceStatus,
             String originalFilename,
             String objectKey) {
         LambdaQueryWrapper<StoredObjectDO> countWrapper =
@@ -88,20 +90,20 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     }
 
     private LambdaQueryWrapper<StoredObjectDO> buildQueryWrapper(
-            String storageType,
-            String objectStatus,
-            String referenceStatus,
+            StorageType storageType,
+            StoredObjectStatus objectStatus,
+            StoredObjectReferenceStatus referenceStatus,
             String originalFilename,
             String objectKey) {
         LambdaQueryWrapper<StoredObjectDO> wrapper = Wrappers.lambdaQuery(StoredObjectDO.class);
-        if (storageType != null && !storageType.isBlank()) {
-            wrapper.eq(StoredObjectDO::getStorageType, storageType.trim());
+        if (storageType != null) {
+            wrapper.eq(StoredObjectDO::getStorageType, storageType.value());
         }
-        if (objectStatus != null && !objectStatus.isBlank()) {
-            wrapper.eq(StoredObjectDO::getObjectStatus, objectStatus.trim());
+        if (objectStatus != null) {
+            wrapper.eq(StoredObjectDO::getObjectStatus, objectStatus.value());
         }
-        if (referenceStatus != null && !referenceStatus.isBlank()) {
-            wrapper.eq(StoredObjectDO::getReferenceStatus, referenceStatus.trim());
+        if (referenceStatus != null) {
+            wrapper.eq(StoredObjectDO::getReferenceStatus, referenceStatus.value());
         }
         if (originalFilename != null && !originalFilename.isBlank()) {
             wrapper.like(StoredObjectDO::getOriginalFilename, originalFilename.trim());

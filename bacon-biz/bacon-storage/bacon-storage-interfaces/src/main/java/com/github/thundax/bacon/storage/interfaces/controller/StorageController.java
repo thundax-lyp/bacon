@@ -4,6 +4,9 @@ import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.interfaces.dto.StoredObjectPageRequest;
 import com.github.thundax.bacon.storage.interfaces.response.StoredObjectPageResponse;
 import com.github.thundax.bacon.storage.interfaces.response.StoredObjectResponse;
@@ -40,9 +43,11 @@ public class StorageController {
     @GetMapping
     public StoredObjectPageResponse pageObjects(@Valid @ModelAttribute StoredObjectPageRequest request) {
         return StoredObjectPageResponse.from(storedObjectQueryApplicationService.pageObjects(
-                request.getStorageType(),
-                request.getObjectStatus(),
-                request.getReferenceStatus(),
+                request.getStorageType() == null ? null : StorageType.from(request.getStorageType()),
+                request.getObjectStatus() == null ? null : StoredObjectStatus.from(request.getObjectStatus()),
+                request.getReferenceStatus() == null
+                        ? null
+                        : StoredObjectReferenceStatus.from(request.getReferenceStatus()),
                 request.getOriginalFilename(),
                 request.getObjectKey(),
                 request.getPageNo(),

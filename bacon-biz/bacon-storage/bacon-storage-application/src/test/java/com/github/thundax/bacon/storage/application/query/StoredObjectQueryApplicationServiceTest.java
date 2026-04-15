@@ -10,6 +10,8 @@ import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import java.util.List;
 import java.util.Optional;
@@ -62,20 +64,30 @@ class StoredObjectQueryApplicationServiceTest {
                 2048L,
                 "/files/e.bin");
         when(storedObjectRepository.countObjects(
-                        eq("LOCAL_FILE"), eq("ACTIVE"), eq("UNREFERENCED"), eq("e.bin"), eq("attachment")))
+                        eq(StorageType.LOCAL_FILE),
+                        eq(StoredObjectStatus.ACTIVE),
+                        eq(StoredObjectReferenceStatus.UNREFERENCED),
+                        eq("e.bin"),
+                        eq("attachment")))
                 .thenReturn(1L);
         when(storedObjectRepository.pageObjects(
-                        eq("LOCAL_FILE"),
-                        eq("ACTIVE"),
-                        eq("UNREFERENCED"),
+                        eq(StorageType.LOCAL_FILE),
+                        eq(StoredObjectStatus.ACTIVE),
+                        eq(StoredObjectReferenceStatus.UNREFERENCED),
                         eq("e.bin"),
                         eq("attachment"),
                         eq(1),
                         eq(200)))
                 .thenReturn(List.of(storedObject));
 
-        StoredObjectPageResultDTO result =
-                service.pageObjects("LOCAL_FILE", "ACTIVE", "UNREFERENCED", "e.bin", "attachment", 0, 500);
+        StoredObjectPageResultDTO result = service.pageObjects(
+                StorageType.LOCAL_FILE,
+                StoredObjectStatus.ACTIVE,
+                StoredObjectReferenceStatus.UNREFERENCED,
+                "e.bin",
+                "attachment",
+                0,
+                500);
 
         assertEquals(1L, result.getTotal());
         assertEquals(1, result.getPageNo());

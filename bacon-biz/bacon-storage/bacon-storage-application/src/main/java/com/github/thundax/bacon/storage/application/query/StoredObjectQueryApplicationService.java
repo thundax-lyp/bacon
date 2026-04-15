@@ -7,6 +7,9 @@ import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.application.assembler.StoredObjectAssembler;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -35,9 +38,9 @@ public class StoredObjectQueryApplicationService {
     }
 
     public StoredObjectPageResultDTO pageObjects(
-            String storageType,
-            String objectStatus,
-            String referenceStatus,
+            StorageType storageType,
+            StoredObjectStatus objectStatus,
+            StoredObjectReferenceStatus referenceStatus,
             String originalFilename,
             String objectKey,
             Integer pageNo,

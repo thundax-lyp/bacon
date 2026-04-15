@@ -12,6 +12,9 @@ import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
+import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
+import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
@@ -112,9 +115,11 @@ public class StorageProviderController {
     @GetMapping("/objects")
     public StoredObjectPageResultDTO pageObjects(StoredObjectPageQueryDTO query) {
         return storedObjectQueryApplicationService.pageObjects(
-                query.getStorageType(),
-                query.getObjectStatus(),
-                query.getReferenceStatus(),
+                query.getStorageType() == null ? null : StorageType.from(query.getStorageType()),
+                query.getObjectStatus() == null ? null : StoredObjectStatus.from(query.getObjectStatus()),
+                query.getReferenceStatus() == null
+                        ? null
+                        : StoredObjectReferenceStatus.from(query.getReferenceStatus()),
                 query.getOriginalFilename(),
                 query.getObjectKey(),
                 query.getPageNo(),

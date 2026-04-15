@@ -523,7 +523,8 @@ public final class NamingAndPlacementRuleSupport {
             } catch (Exception ex) {
                 events.add(SimpleConditionEvent.violated(
                         item,
-                        item.getFullName() + " cannot be checked for @RequestMapping prefix because " + ex.getMessage()));
+                        item.getFullName() + " cannot be checked for @RequestMapping prefix because "
+                                + ex.getMessage()));
             }
         }
     }

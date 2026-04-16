@@ -1,11 +1,13 @@
 package com.github.thundax.bacon.auth.api.facade;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
-import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
+import com.github.thundax.bacon.auth.api.request.SessionContextGetFacadeRequest;
+import com.github.thundax.bacon.auth.api.request.TokenVerifyFacadeRequest;
+import com.github.thundax.bacon.auth.api.response.CurrentSessionFacadeResponse;
+import com.github.thundax.bacon.auth.api.response.SessionValidationFacadeResponse;
 
 public interface TokenVerifyFacade {
 
-    SessionValidationDTO verifyAccessToken(String accessToken);
+    SessionValidationFacadeResponse verifyAccessToken(TokenVerifyFacadeRequest request);
 
-    CurrentSessionDTO getSessionContext(String sessionId);
+    CurrentSessionFacadeResponse getSessionContext(SessionContextGetFacadeRequest request);
 }

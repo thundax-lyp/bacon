@@ -54,14 +54,14 @@ public class OAuth2Controller {
     }
 
     @Operation(summary = "提交 OAuth2 授权决策")
-    @PostMapping("/authorize/decision")
+    @PostMapping("/authorize-decision")
     public OAuth2AuthorizationDecisionResponse decide(@Valid @RequestBody OAuth2DecisionRequest request) {
         return OAuth2AuthorizationDecisionResponse.from(oAuth2AuthorizationApplicationService.decide(
                 request.getAuthorizationRequestId(), request.getDecision()));
     }
 
     @Operation(summary = "换取 OAuth2 访问令牌")
-    @PostMapping("/token")
+    @PostMapping("/tokens")
     public OAuth2TokenResponse token(@RequestParam MultiValueMap<String, String> request) {
         return OAuth2TokenResponse.from(oAuth2AuthorizationApplicationService.token(
                 request.getFirst("grant_type"),
@@ -74,7 +74,7 @@ public class OAuth2Controller {
     }
 
     @Operation(summary = "校验 OAuth2 令牌")
-    @PostMapping("/introspect")
+    @PostMapping("/introspections")
     public OAuth2IntrospectionResponse introspect(
             @RequestParam("token") String token,
             @RequestParam("client_id") String clientId,
@@ -84,7 +84,7 @@ public class OAuth2Controller {
     }
 
     @Operation(summary = "撤销 OAuth2 令牌")
-    @PostMapping("/revoke")
+    @PostMapping("/revocations")
     public void revoke(
             @RequestParam("token") String token,
             @RequestParam("client_id") String clientId,

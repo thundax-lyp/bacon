@@ -51,7 +51,7 @@ public class AuthController {
     }
 
     @Operation(summary = "获取账号密码登录挑战")
-    @PostMapping("/login/password/challenge")
+    @PostMapping("/logins/password-challenge")
     public PasswordLoginChallengeResponse passwordLoginChallenge() {
         PasswordLoginChallengeResult result = loginApplicationService.issuePasswordLoginChallenge();
         return new PasswordLoginChallengeResponse(
@@ -64,7 +64,7 @@ public class AuthController {
     }
 
     @Operation(summary = "账号密码登录")
-    @PostMapping("/login/password")
+    @PostMapping("/logins/password")
     public UserLoginResponse passwordLogin(@Valid @RequestBody PasswordLoginRequest request) {
         return UserLoginResponse.from(loginApplicationService.loginByPassword(new PasswordLoginCommand(
                 Long.parseLong(request.getTenantCode().trim()),
@@ -76,37 +76,37 @@ public class AuthController {
     }
 
     @Operation(summary = "短信登录")
-    @PostMapping("/login/sms")
+    @PostMapping("/logins/sms")
     public UserLoginResponse smsLogin(@Valid @RequestBody SmsLoginRequest request) {
         return UserLoginResponse.from(loginApplicationService.loginBySms(request.getPhone(), request.getSmsCaptcha()));
     }
 
     @Operation(summary = "企微登录")
-    @PostMapping("/login/wecom")
+    @PostMapping("/logins/wecom")
     public UserLoginResponse wecomLogin(@Valid @RequestBody WecomLoginRequest request) {
         return UserLoginResponse.from(loginApplicationService.loginByWecom(request.getCode()));
     }
 
     @Operation(summary = "GitHub 登录回调")
-    @GetMapping("/login/github/callback")
+    @GetMapping("/logins/github-callback")
     public UserLoginResponse githubLogin(@RequestParam("code") String code) {
         return UserLoginResponse.from(loginApplicationService.loginByGithub(code));
     }
 
     @Operation(summary = "刷新访问令牌")
-    @PostMapping("/token/refresh")
+    @PostMapping("/tokens/refresh")
     public UserTokenRefreshResponse refresh(@Valid @RequestBody TokenRefreshRequest request) {
         return UserTokenRefreshResponse.from(tokenApplicationService.refresh(request.getRefreshToken()));
     }
 
     @Operation(summary = "退出登录")
-    @PostMapping("/logout")
+    @PostMapping("/sessions/logout")
     public void logout(@RequestHeader("Authorization") String authorization) {
         sessionApplicationService.logout(BearerTokenUtils.extractToken(authorization));
     }
 
     @Operation(summary = "修改当前用户密码")
-    @PostMapping("/password/change")
+    @PostMapping("/passwords/change")
     public void changePassword(
             @RequestHeader("Authorization") String authorization, @Valid @RequestBody PasswordChangeRequest request) {
         passwordApplicationService.changePassword(
@@ -114,7 +114,7 @@ public class AuthController {
     }
 
     @Operation(summary = "获取当前会话信息")
-    @GetMapping("/session/current")
+    @GetMapping("/sessions/current")
     public CurrentSessionResponse currentSession(@RequestHeader("Authorization") String authorization) {
         return CurrentSessionResponse.from(
                 sessionApplicationService.currentSession(BearerTokenUtils.extractToken(authorization)));

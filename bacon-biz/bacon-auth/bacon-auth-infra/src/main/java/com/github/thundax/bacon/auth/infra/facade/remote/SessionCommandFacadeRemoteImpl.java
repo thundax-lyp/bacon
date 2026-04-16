@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.auth.infra.facade.remote;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateFacadeRequest;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRequest;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateUserFacadeRequest;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,35 +26,41 @@ public class SessionCommandFacadeRemoteImpl implements SessionCommandFacade {
     }
 
     @Override
-    public void invalidateUserSessions(Long tenantId, Long userId, String reason) {
+    public void invalidateUserSessions(SessionInvalidateUserFacadeRequest request) {
         // 会话失效走 provider 命令端点，不吞异常；调用方据此决定是回滚主流程还是继续补偿。
         restClient
                 .post()
                 .uri(
-                        "/providers/auth/sessions/invalidate/user?tenantId={tenantId}&userId={userId}&reason={reason}",
-                        tenantId,
-                        userId,
-                        reason)
+                        "/providers/auth/sessions/invalidate-user?tenantId={tenantId}&userId={userId}&reason={reason}",
+                        request.getTenantId(),
+                        request.getUserId(),
+                        request.getReason())
                 .retrieve()
                 .toBodilessEntity();
     }
 
     @Override
-    public void invalidateTenantSessions(Long tenantId, String reason) {
+    public void invalidateTenantSessions(SessionInvalidateTenantFacadeRequest request) {
         // 租户级失效属于批量安全操作，remote facade 只转发命令，不在客户端侧做分批或降级。
         restClient
                 .post()
-                .uri("/providers/auth/sessions/invalidate/tenant?tenantId={tenantId}&reason={reason}", tenantId, reason)
+                .uri(
+                        "/providers/auth/sessions/invalidate-tenant?tenantId={tenantId}&reason={reason}",
+                        request.getTenantId(),
+                        request.getReason())
                 .retrieve()
                 .toBodilessEntity();
     }
 
     @Override
-    public void invalidateSession(String sessionId, String reason) {
+    public void invalidateSession(SessionInvalidateFacadeRequest request) {
         // 单会话失效用于登出或风控封禁，失败时直接把远端异常暴露给上游。
         restClient
                 .post()
-                .uri("/providers/auth/sessions/{sessionId}/invalidate?reason={reason}", sessionId, reason)
+                .uri(
+                        "/providers/auth/sessions/{sessionId}/invalidate?reason={reason}",
+                        request.getSessionId(),
+                        request.getReason())
                 .retrieve()
                 .toBodilessEntity();
     }

@@ -1,10 +1,14 @@
 package com.github.thundax.bacon.auth.api.facade;
 
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateFacadeRequest;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRequest;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateUserFacadeRequest;
+
 public interface SessionCommandFacade {
 
-    void invalidateUserSessions(Long tenantId, Long userId, String reason);
+    void invalidateUserSessions(SessionInvalidateUserFacadeRequest request);
 
-    void invalidateTenantSessions(Long tenantId, String reason);
+    void invalidateTenantSessions(SessionInvalidateTenantFacadeRequest request);
 
-    void invalidateSession(String sessionId, String reason);
+    void invalidateSession(SessionInvalidateFacadeRequest request);
 }

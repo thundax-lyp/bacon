@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.auth.api.facade;
 
-import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
+import com.github.thundax.bacon.auth.api.request.OAuthClientGetFacadeRequest;
+import com.github.thundax.bacon.auth.api.response.OAuthClientFacadeResponse;
 
 public interface OAuthClientReadFacade {
 
-    OAuthClientDTO getClientByClientId(String clientId);
+    OAuthClientFacadeResponse getClientByClientId(OAuthClientGetFacadeRequest request);
 }

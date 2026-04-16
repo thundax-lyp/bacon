@@ -1,7 +1,8 @@
 package com.github.thundax.bacon.auth.infra.facade.remote;
 
-import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
 import com.github.thundax.bacon.auth.api.facade.OAuthClientReadFacade;
+import com.github.thundax.bacon.auth.api.request.OAuthClientGetFacadeRequest;
+import com.github.thundax.bacon.auth.api.response.OAuthClientFacadeResponse;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,12 +25,12 @@ public class OAuthClientReadFacadeRemoteImpl implements OAuthClientReadFacade {
     }
 
     @Override
-    public OAuthClientDTO getClientByClientId(String clientId) {
+    public OAuthClientFacadeResponse getClientByClientId(OAuthClientGetFacadeRequest request) {
         // OAuth client 元数据是授权链路的只读基线，remote facade 只透传 auth 侧定义的客户端配置。
         return restClient
                 .get()
-                .uri("/providers/auth/oauth-clients/{clientId}", clientId)
+                .uri("/providers/auth/oauth-clients/{clientId}", request.getClientId())
                 .retrieve()
-                .body(OAuthClientDTO.class);
+                .body(OAuthClientFacadeResponse.class);
     }
 }

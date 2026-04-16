@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.auth.interfaces.facade;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateFacadeRequest;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRequest;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateUserFacadeRequest;
 import com.github.thundax.bacon.auth.application.command.SessionApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -16,17 +19,17 @@ public class SessionCommandFacadeLocalImpl implements SessionCommandFacade {
     }
 
     @Override
-    public void invalidateUserSessions(Long tenantId, Long userId, String reason) {
-        sessionApplicationService.invalidateUserSessions(tenantId, userId, reason);
+    public void invalidateUserSessions(SessionInvalidateUserFacadeRequest request) {
+        sessionApplicationService.invalidateUserSessions(request.getTenantId(), request.getUserId(), request.getReason());
     }
 
     @Override
-    public void invalidateTenantSessions(Long tenantId, String reason) {
-        sessionApplicationService.invalidateTenantSessions(tenantId, reason);
+    public void invalidateTenantSessions(SessionInvalidateTenantFacadeRequest request) {
+        sessionApplicationService.invalidateTenantSessions(request.getTenantId(), request.getReason());
     }
 
     @Override
-    public void invalidateSession(String sessionId, String reason) {
-        sessionApplicationService.invalidateSession(sessionId, reason);
+    public void invalidateSession(SessionInvalidateFacadeRequest request) {
+        sessionApplicationService.invalidateSession(request.getSessionId(), request.getReason());
     }
 }

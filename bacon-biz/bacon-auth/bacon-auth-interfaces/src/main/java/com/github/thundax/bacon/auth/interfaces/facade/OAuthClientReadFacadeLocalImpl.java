@@ -1,7 +1,8 @@
 package com.github.thundax.bacon.auth.interfaces.facade;
 
-import com.github.thundax.bacon.auth.api.dto.OAuthClientDTO;
 import com.github.thundax.bacon.auth.api.facade.OAuthClientReadFacade;
+import com.github.thundax.bacon.auth.api.request.OAuthClientGetFacadeRequest;
+import com.github.thundax.bacon.auth.api.response.OAuthClientFacadeResponse;
 import com.github.thundax.bacon.auth.application.query.OAuth2ClientApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ public class OAuthClientReadFacadeLocalImpl implements OAuthClientReadFacade {
     }
 
     @Override
-    public OAuthClientDTO getClientByClientId(String clientId) {
-        return oAuth2ClientApplicationService.getClientByClientId(clientId);
+    public OAuthClientFacadeResponse getClientByClientId(OAuthClientGetFacadeRequest request) {
+        return OAuthClientFacadeResponse.from(oAuth2ClientApplicationService.getClientByClientId(request.getClientId()));
     }
 }

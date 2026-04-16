@@ -1,8 +1,10 @@
 package com.github.thundax.bacon.auth.infra.facade.remote;
 
-import com.github.thundax.bacon.auth.api.dto.CurrentSessionDTO;
-import com.github.thundax.bacon.auth.api.dto.SessionValidationDTO;
 import com.github.thundax.bacon.auth.api.facade.TokenVerifyFacade;
+import com.github.thundax.bacon.auth.api.request.SessionContextGetFacadeRequest;
+import com.github.thundax.bacon.auth.api.request.TokenVerifyFacadeRequest;
+import com.github.thundax.bacon.auth.api.response.CurrentSessionFacadeResponse;
+import com.github.thundax.bacon.auth.api.response.SessionValidationFacadeResponse;
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -25,22 +27,22 @@ public class TokenVerifyFacadeRemoteImpl implements TokenVerifyFacade {
     }
 
     @Override
-    public SessionValidationDTO verifyAccessToken(String accessToken) {
+    public SessionValidationFacadeResponse verifyAccessToken(TokenVerifyFacadeRequest request) {
         // 鉴权链路依赖这里返回标准化的 session 校验结果；remote facade 不做本地缓存，始终以 auth 为准。
         return restClient
                 .get()
-                .uri("/providers/auth/tokens/verify?accessToken={accessToken}", accessToken)
+                .uri("/providers/auth/tokens/verify?accessToken={accessToken}", request.getAccessToken())
                 .retrieve()
-                .body(SessionValidationDTO.class);
+                .body(SessionValidationFacadeResponse.class);
     }
 
     @Override
-    public CurrentSessionDTO getSessionContext(String sessionId) {
+    public CurrentSessionFacadeResponse getSessionContext(SessionContextGetFacadeRequest request) {
         // session 上下文查询和 token 校验拆成两个端点，避免每次鉴权都返回超出当前场景的会话细节。
         return restClient
                 .get()
-                .uri("/providers/auth/sessions/{sessionId}", sessionId)
+                .uri("/providers/auth/sessions/{sessionId}", request.getSessionId())
                 .retrieve()
-                .body(CurrentSessionDTO.class);
+                .body(CurrentSessionFacadeResponse.class);
     }
 }

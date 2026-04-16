@@ -46,7 +46,7 @@ public class AuthProviderController {
     }
 
     @Operation(summary = "失效指定用户会话")
-    @PostMapping("/sessions/invalidate/user")
+    @PostMapping("/sessions/invalidate-user")
     public void invalidateUserSessions(
             @RequestParam("tenantId") Long tenantId,
             @RequestParam("userId") Long userId,
@@ -55,7 +55,7 @@ public class AuthProviderController {
     }
 
     @Operation(summary = "失效指定租户会话")
-    @PostMapping("/sessions/invalidate/tenant")
+    @PostMapping("/sessions/invalidate-tenant")
     public void invalidateTenantSessions(
             @RequestParam("tenantId") Long tenantId, @RequestParam("reason") String reason) {
         sessionApplicationService.invalidateTenantSessions(tenantId, reason);

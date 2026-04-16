@@ -30,6 +30,9 @@
 
 - `Controller`、`ProviderController` 直接调用本域 `ApplicationService`
 - 跨域调用统一依赖 `Facade`，不直接依赖对方 `ApplicationService`
+- 仅 `api.facade` 方法签名使用 `FacadeRequest` / `FacadeResponse`
+- `Facade` 方法入参统一为单个 `XxxFacadeRequest`，不再直接暴露离散基础参数、`Command`、`Query`、`DTO`
+- `Facade` 方法返回统一为 `XxxFacadeResponse`，不直接返回 `void`、离散基础类型或非 `FacadeResponse` 契约对象
 - `interfaces.controller` 路径固定使用 `/{domain}/**`，对外完整路径固定为 `/api/{domain}/**`
 - `interfaces.provider` 路径固定使用 `/providers/{domain}/**`，对内完整路径固定为 `/api/providers/{domain}/**`
 - `{domain}` 固定与业务域目录名一致（`auth`、`upms`、`order`、`inventory`、`payment`、`storage`），不得混用单复数别名
@@ -74,6 +77,10 @@
   `PersistenceAssembler`
 - `api/facade/`
   `Facade`
+- `api/request/`
+  `FacadeRequest`
+- `api/response/`
+  `FacadeResponse`
 - `infra/facade/remote/`
   `FacadeRemoteImpl`
 
@@ -107,6 +114,10 @@
   `{业务对象}Codec`
 - `Facade`
   `{业务对象}{动作}Facade`
+- `FacadeRequest`
+  `{业务对象}{动作}FacadeRequest`
+- `FacadeResponse`
+  `{业务对象}{动作}FacadeResponse`
 - `FacadeLocalImpl`
   `{业务对象}{动作}FacadeLocalImpl`
 - `FacadeRemoteImpl`
@@ -130,6 +141,8 @@
 - `OrderConverter`
 - `OrderNoCodec`
 - `UserReadFacade`
+- `UserPageFacadeRequest`
+- `UserPageFacadeResponse`
 - `UserReadFacadeLocalImpl`
 - `UserReadFacadeRemoteImpl`
 - `VerificationCodeService`

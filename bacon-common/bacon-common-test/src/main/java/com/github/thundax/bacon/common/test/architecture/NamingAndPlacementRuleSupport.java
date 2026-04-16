@@ -171,6 +171,51 @@ public final class NamingAndPlacementRuleSupport {
                 .because("Facade -> api.facade");
     }
 
+    public static ArchRule facadeMethodShouldUseFacadeRequestAndResponse(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(basePackage + ".api.facade..")
+                .and()
+                .areInterfaces()
+                .should(new ArchCondition<>("declare Facade methods using FacadeRequest and FacadeResponse") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        item.getMethods().stream()
+                                .filter(method -> method.getOwner().equals(item))
+                                .filter(method -> !method.getModifiers().contains(JavaModifier.STATIC))
+                                .forEach(method -> {
+                                    List<String> violations = new ArrayList<>();
+                                    boolean requestMatched = method.getRawParameterTypes().size() == 1
+                                            && method.getRawParameterTypes().stream()
+                                                    .allMatch(parameterType -> parameterType.getSimpleName()
+                                                                    .endsWith("FacadeRequest")
+                                                            && parameterType.getPackageName()
+                                                                    .startsWith(basePackage + ".api.request"));
+                                    if (!requestMatched) {
+                                        violations.add(
+                                                "parameters must use a single "
+                                                        + basePackage
+                                                        + ".api.request.*FacadeRequest");
+                                    }
+                                    JavaClass returnType = method.getRawReturnType();
+                                    boolean responseMatched = returnType.getSimpleName().endsWith("FacadeResponse")
+                                            && returnType.getPackageName().startsWith(basePackage + ".api.response");
+                                    if (!responseMatched) {
+                                        violations.add("return type must use " + basePackage + ".api.response.*FacadeResponse");
+                                    }
+
+                                    boolean satisfied = violations.isEmpty();
+                                    String detail = satisfied
+                                            ? formatMethod(item, method) + " uses FacadeRequest/FacadeResponse"
+                                            : formatMethod(item, method) + " violation: " + String.join("; ", violations);
+                                    events.add(new SimpleConditionEvent(method, satisfied, detail));
+                                });
+                    }
+                })
+                .allowEmptyShould(true)
+                .because("Facade methods must use FacadeRequest and FacadeResponse only");
+    }
+
     public static ArchRule facadeLocalImplShouldUseFacadeLocalImplNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that()
@@ -337,6 +382,13 @@ public final class NamingAndPlacementRuleSupport {
         return method.getMethodCallsFromSelf().stream()
                 .map(JavaMethodCall::getTarget)
                 .anyMatch(target -> methodName.equals(target.getName()));
+    }
+
+    private static String formatMethod(JavaClass owner, JavaMethod method) {
+        String parameters = method.getRawParameterTypes().stream()
+                .map(JavaClass::getSimpleName)
+                .collect(Collectors.joining(", "));
+        return owner.getFullName() + "#" + method.getName() + "(" + parameters + ")";
     }
 
     static Optional<Path> resolveSourceFilePath(Optional<Source> source, JavaClass item) {

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 public class PaymentCallbackRequest {
 
     @NotBlank
+    @Size(max = 64)
     @Schema(description = "支付单号", example = "PAY202603230001")
     private String paymentNo;
 
@@ -22,15 +24,19 @@ public class PaymentCallbackRequest {
     @Schema(description = "是否成功", example = "true")
     private Boolean success;
 
+    @Size(max = 64)
     @Schema(description = "渠道状态", example = "SUCCESS")
     private String channelStatus;
 
+    @Size(max = 1000)
     @Schema(description = "原始回调载荷", example = "{\"tradeStatus\":\"SUCCESS\"}")
     private String rawPayload;
 
+    @Size(max = 255)
     @Schema(description = "失败原因", example = "CHANNEL_TIMEOUT")
     private String reason;
 
+    @Size(max = 128)
     @Schema(description = "渠道交易流水号", example = "WX202603230001")
     private String channelTransactionNo;
 

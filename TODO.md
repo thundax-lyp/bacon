@@ -258,6 +258,110 @@
   - 验收点：application 层不再直接依赖 `InventoryReservationItemDTO`
   - 重要度：7/10
 
+### P1 - 各模块 `api.dto` 残留治理清单
+
+- [ ] `payment-api`：盘点 facade 真正需要保留在 `api` 的返回模型
+  - 当前对象：`PaymentCreateResultDTO`、`PaymentCloseResultDTO`、`PaymentDetailDTO`
+  - 处理动作：明确哪些属于 `FacadeResponse`，哪些只是应用内部读模型
+  - 验收点：`payment-api` 不再继续扩大 `api.dto` 范围
+  - 重要度：8/10
+
+- [ ] `payment-application`：把 `PaymentDetailDTO` 下沉到 `application.dto`
+  - 影响范围：`PaymentQueryApplicationService`、`PaymentReadFacadeLocalImpl`、`PaymentReadFacadeRemoteImpl`、`PaymentDetailResponseAssembler`、provider/controller contract tests
+  - 验收点：查询读模型不再放在 `payment.api.dto`
+  - 重要度：8/10
+
+- [ ] `payment-application`：把 `PaymentAuditLogDTO` 下沉到 `application.dto`
+  - 影响范围：payment query/provider/assembler/tests
+  - 验收点：审计读模型不再放在 `payment.api.dto`
+  - 重要度：7/10
+
+- [ ] `payment-api`：把 `PaymentCreateResultDTO` / `PaymentCloseResultDTO` 改名并迁到 `api.response`
+  - 影响范围：`PaymentCommandFacade`、local impl、remote impl、`OrderOutboxActionExecutor`
+  - 验收点：facade 输出统一为 `*FacadeResponse`
+  - 重要度：8/10
+
+- [ ] `order-application`：把 `OrderSummaryDTO` 下沉到 `application.dto`
+  - 影响范围：`OrderCreateApplicationService`、`OrderQueryApplicationService`、interfaces response、controller tests
+  - 验收点：订单应用内部摘要模型不再位于 `order.api.dto`
+  - 重要度：8/10
+
+- [ ] `order-application`：把 `OrderDetailDTO` / `OrderItemDTO` 下沉到 `application.dto`
+  - 影响范围：`OrderQueryApplicationService`、`OrderReadFacadeLocalImpl`、`OrderReadFacadeRemoteImpl`、`OrderDetailResponse`、`OrderItemResponse`
+  - 验收点：详情读模型与 facade 契约脱钩
+  - 重要度：8/10
+
+- [ ] `order-application`：把 `OrderPageResultDTO` 下沉到 `application.dto`
+  - 影响范围：分页查询、provider/controller、interfaces response
+  - 验收点：分页结果不再停留在 `order.api.dto`
+  - 重要度：7/10
+
+- [ ] `order-api`：为 `OrderReadFacade` 明确 `FacadeRequest` / `FacadeResponse`
+  - 当前问题：仍直接暴露 `OrderDetailDTO`、`OrderPageResultDTO`
+  - 验收点：读取门面签名与 inventory 新规一致
+  - 重要度：8/10
+
+- [ ] `storage-api`：拆分 `api.dto` 中的 command / query / response 混放问题
+  - 当前对象：`UploadObjectCommand`、`InitMultipartUploadCommand`、`CompleteMultipartUploadCommand`、`AbortMultipartUploadCommand`、`UploadMultipartPartCommand`
+  - 处理动作：迁到 `api.request`
+  - 验收点：`storage.api.dto` 不再承载写入类入参
+  - 重要度：9/10
+
+- [ ] `storage-application`：把 `StoredObjectDTO` / `MultipartUploadSessionDTO` / `MultipartUploadPartDTO` 下沉到 `application.dto`
+  - 影响范围：application services、assemblers、interfaces response、provider tests
+  - 验收点：对象存储内部读模型与 facade 契约分离
+  - 重要度：8/10
+
+- [ ] `storage-application`：把 `StoredObjectPageResultDTO` 下沉到 `application.dto`
+  - 影响范围：`StoredObjectQueryApplicationService`、`StoredObjectPageResponse`
+  - 验收点：分页结果不再留在 `storage.api.dto`
+  - 重要度：7/10
+
+- [ ] `storage-api`：把 `StoredObjectPageQueryDTO` 改为 `query/StoredObjectPageQuery`
+  - 影响范围：provider/controller/facade
+  - 验收点：查询对象命名与 inventory/order 新规一致
+  - 重要度：7/10
+
+- [ ] `storage-api`：重写 `StoredObjectFacade` 的输入输出命名
+  - 目标：输入统一 `*FacadeRequest`，输出统一 `*FacadeResponse`
+  - 验收点：不再通过 `api.dto` 暴露 facade 契约
+  - 重要度：9/10
+
+- [ ] `upms-application`：把通用分页 `PageResultDTO` 下沉到 `application.dto`
+  - 影响范围：租户、用户、角色、岗位、资源、日志等分页查询
+  - 验收点：分页结果不再作为跨模块通用 `api.dto`
+  - 重要度：9/10
+
+- [ ] `upms-application`：按领域拆分并下沉用户/租户/角色/部门/资源/岗位读模型
+  - 当前对象：`UserDTO`、`TenantDTO`、`RoleDTO`、`DepartmentDTO`、`DepartmentTreeDTO`、`ResourceDTO`、`PostDTO`
+  - 验收点：这些对象只在 upms 内部查询与装配链路流转
+  - 重要度：9/10
+
+- [ ] `upms-application`：下沉菜单与权限读模型
+  - 当前对象：`MenuTreeDTO`、`UserMenuTreeDTO`、`UserDataScopeDTO`
+  - 验收点：权限/菜单内部模型退出 `upms.api.dto`
+  - 重要度：8/10
+
+- [ ] `upms-application`：下沉身份与认证辅助模型
+  - 当前对象：`UserIdentityDTO`、`UserLoginCredentialDTO`
+  - 验收点：身份查询内部模型不再暴露为通用 `api.dto`
+  - 重要度：8/10
+
+- [ ] `upms-application`：下沉日志读模型
+  - 当前对象：`SysLogDTO`
+  - 验收点：审计/系统日志 DTO 不再放在 `upms.api.dto`
+  - 重要度：7/10
+
+- [ ] `upms-api`：把修改密码类输入从 `UserPasswordChangeDTO` 改到 `api.request`
+  - 影响范围：`UserPasswordFacadeRemoteImpl`、provider/controller
+  - 验收点：写操作入参不再落在 `api.dto`
+  - 重要度：8/10
+
+- [ ] `upms-api`：逐个 facade 补 `FacadeRequest` / `FacadeResponse` 命名规约
+  - 目标接口：`DepartmentReadFacade`、`RoleReadFacade`、`UserReadFacade`、`PermissionReadFacade`
+  - 验收点：upms facade 契约和 inventory 文档规则一致
+  - 重要度：9/10
+
 - [ ] 形成统一约束：application 公共入口优先使用 `Command / Query / VO`，禁止新增多 primitive 长参数方法
   - 输出物：规则文档或代码检查项
   - 重要度：6/10

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRequest;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -56,7 +57,7 @@ class TenantApplicationServiceTest {
         TenantDTO result = service.createTenant(
                 "Demo Tenant", TenantCode.of("TENANT_DEMO"), Instant.parse("2099-01-01T00:00:00Z"));
 
-        assertThat(result.getId().value()).isEqualTo(1001L);
+        assertThat(result.getId()).isEqualTo(1001L);
         assertThat(result.getName()).isEqualTo("Demo Tenant");
         assertThat(result.getTenantCode()).isEqualTo("TENANT_DEMO");
         assertThat(result.getStatus()).isEqualTo("ACTIVE");
@@ -93,7 +94,8 @@ class TenantApplicationServiceTest {
         TenantDTO result = service.updateTenantStatus(TenantId.of(1001L), TenantStatus.DISABLED);
 
         assertThat(result.getStatus()).isEqualTo("DISABLED");
-        verify(sessionCommandFacade).invalidateTenantSessions(1001L, "TENANT_DISABLED");
+        verify(sessionCommandFacade)
+                .invalidateTenantSessions(new SessionInvalidateTenantFacadeRequest(1001L, "TENANT_DISABLED"));
     }
 
     private static Tenant tenant(Long id, String name, String code, TenantStatus status, Instant expiredAt) {

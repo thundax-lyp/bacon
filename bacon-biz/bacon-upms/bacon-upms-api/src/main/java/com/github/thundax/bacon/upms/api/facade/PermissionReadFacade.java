@@ -1,17 +1,15 @@
 package com.github.thundax.bacon.upms.api.facade;
 
-import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
-import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
-import java.util.List;
-import java.util.Set;
-import org.springframework.lang.NonNull;
+import com.github.thundax.bacon.upms.api.request.UserPermissionGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserMenuTreeFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserPermissionCodeFacadeResponse;
 
 public interface PermissionReadFacade {
 
-    List<UserMenuTreeDTO> getUserMenuTree(@NonNull UserId userId);
+    UserMenuTreeFacadeResponse getUserMenuTree(UserPermissionGetFacadeRequest request);
 
-    Set<String> getUserPermissionCodes(@NonNull UserId userId);
+    UserPermissionCodeFacadeResponse getUserPermissionCodes(UserPermissionGetFacadeRequest request);
 
-    UserDataScopeDTO getUserDataScope(@NonNull UserId userId);
+    UserDataScopeFacadeResponse getUserDataScope(UserPermissionGetFacadeRequest request);
 }

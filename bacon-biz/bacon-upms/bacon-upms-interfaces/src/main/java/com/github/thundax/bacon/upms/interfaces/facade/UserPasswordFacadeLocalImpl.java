@@ -3,9 +3,9 @@ package com.github.thundax.bacon.upms.interfaces.facade;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
+import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,8 +19,9 @@ public class UserPasswordFacadeLocalImpl implements UserPasswordFacade {
     }
 
     @Override
-    public void changePassword(@NonNull UserId userId, String oldPassword, String newPassword) {
+    public void changePassword(UserPasswordChangeFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        userApplicationService.changePassword(userId, oldPassword, newPassword);
+        userApplicationService.changePassword(
+                UserId.of(request.getUserId()), request.getOldPassword(), request.getNewPassword());
     }
 }

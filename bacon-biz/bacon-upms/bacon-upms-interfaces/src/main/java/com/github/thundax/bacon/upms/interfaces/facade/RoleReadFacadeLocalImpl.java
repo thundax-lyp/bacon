@@ -2,13 +2,14 @@ package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
+import com.github.thundax.bacon.upms.api.request.RoleGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.RoleListByUserFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.RoleFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.RoleListFacadeResponse;
 import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
-import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,14 +23,14 @@ public class RoleReadFacadeLocalImpl implements RoleReadFacade {
     }
 
     @Override
-    public RoleDTO getRoleById(@NonNull RoleId roleId) {
+    public RoleFacadeResponse getRoleById(RoleGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        return roleApplicationService.getRoleById(roleId);
+        return RoleFacadeResponse.from(roleApplicationService.getRoleById(RoleId.of(request.getRoleId())));
     }
 
     @Override
-    public List<RoleDTO> getRolesByUserId(@NonNull UserId userId) {
+    public RoleListFacadeResponse getRolesByUserId(RoleListByUserFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        return roleApplicationService.getRolesByUserId(userId);
+        return RoleListFacadeResponse.from(roleApplicationService.getRolesByUserId(UserId.of(request.getUserId())));
     }
 }

@@ -1,16 +1,20 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
-import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
+import com.github.thundax.bacon.upms.api.request.UserGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.UserIdentityGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.UserLoginCredentialGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.TenantFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserIdentityFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserLoginCredentialFacadeResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -30,48 +34,52 @@ public class UserReadFacadeRemoteImpl implements UserReadFacade {
     }
 
     @Override
-    public UserDTO getUserById(@NonNull UserId userId) {
+    public UserFacadeResponse getUserById(UserGetFacadeRequest request) {
         // 用户主数据读取按 tenantId + userId 定位，避免在调用侧绕过租户边界。
-        return restClient
+        UserDTO user = restClient
                 .get()
-                .uri("/providers/upms/users/{userId}", userId.value())
+                .uri("/providers/upms/users/{userId}", request.getUserId())
                 .retrieve()
                 .body(UserDTO.class);
+        return UserFacadeResponse.from(user);
     }
 
     @Override
-    public UserIdentityDTO getUserIdentity(UserIdentityType identityType, String identityValue) {
+    public UserIdentityFacadeResponse getUserIdentity(UserIdentityGetFacadeRequest request) {
         // 身份映射读取只返回绑定结果，不在 remote facade 里补默认身份，避免认证链路误判“用户不存在”和“未绑定”。
-        return restClient
+        UserIdentityDTO userIdentity = restClient
                 .get()
                 .uri(
                         "/providers/upms/user-identities?identityType={identityType}&identityValue={identityValue}",
-                        identityType.value(),
-                        identityValue)
+                        request.getIdentityType(),
+                        request.getIdentityValue())
                 .retrieve()
                 .body(UserIdentityDTO.class);
+        return UserIdentityFacadeResponse.from(userIdentity);
     }
 
     @Override
-    public UserLoginCredentialDTO getUserLoginCredential(UserIdentityType identityType, String identityValue) {
+    public UserLoginCredentialFacadeResponse getUserLoginCredential(UserLoginCredentialGetFacadeRequest request) {
         // 登录凭据查询是 auth 登录链路的基础读操作；provider 负责决定哪些敏感字段可以下发。
-        return restClient
+        UserLoginCredentialDTO credential = restClient
                 .get()
                 .uri(
                         "/providers/upms/user-credentials?identityType={identityType}&identityValue={identityValue}",
-                        identityType.value(),
-                        identityValue)
+                        request.getIdentityType(),
+                        request.getIdentityValue())
                 .retrieve()
                 .body(UserLoginCredentialDTO.class);
+        return UserLoginCredentialFacadeResponse.from(credential);
     }
 
     @Override
-    public TenantDTO getTenantByTenantId() {
+    public TenantFacadeResponse getTenantByTenantId() {
         // tenant 查询固定按 tenantId 读取，不再暴露重复的租户编码语义。
-        return restClient
+        TenantDTO tenant = restClient
                 .get()
                 .uri("/providers/upms/tenants/current")
                 .retrieve()
                 .body(TenantDTO.class);
+        return TenantFacadeResponse.from(tenant);
     }
 }

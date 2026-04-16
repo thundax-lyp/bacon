@@ -1,16 +1,18 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
+import com.github.thundax.bacon.upms.api.request.UserPermissionGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserMenuTreeFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserPermissionCodeFacadeResponse;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -33,32 +35,35 @@ public class PermissionReadFacadeRemoteImpl implements PermissionReadFacade {
     }
 
     @Override
-    public List<UserMenuTreeDTO> getUserMenuTree(@NonNull UserId userId) {
+    public UserMenuTreeFacadeResponse getUserMenuTree(UserPermissionGetFacadeRequest request) {
         // 菜单树属于已聚合好的读取模型，客户端只透传，不在本地再次做权限裁剪。
-        return restClient
+        List<UserMenuTreeDTO> menus = restClient
                 .get()
-                .uri("/providers/upms/permissions/menus?userId={userId}", userId.value())
+                .uri("/providers/upms/permissions/menus?userId={userId}", request.getUserId())
                 .retrieve()
                 .body(MENU_LIST_TYPE);
+        return UserMenuTreeFacadeResponse.from(menus);
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(@NonNull UserId userId) {
+    public UserPermissionCodeFacadeResponse getUserPermissionCodes(UserPermissionGetFacadeRequest request) {
         // 权限码集合用于鉴权快速判断，保持去重后的集合返回，避免调用方再做一次归并。
-        return restClient
+        Set<String> permissionCodes = restClient
                 .get()
-                .uri("/providers/upms/permissions/codes?userId={userId}", userId.value())
+                .uri("/providers/upms/permissions/codes?userId={userId}", request.getUserId())
                 .retrieve()
                 .body(CODE_SET_TYPE);
+        return UserPermissionCodeFacadeResponse.from(permissionCodes);
     }
 
     @Override
-    public UserDataScopeDTO getUserDataScope(@NonNull UserId userId) {
+    public UserDataScopeFacadeResponse getUserDataScope(UserPermissionGetFacadeRequest request) {
         // 数据权限规则统一由 upms 侧计算，remote facade 不在消费者侧复制同样的合并逻辑。
-        return restClient
+        UserDataScopeDTO dataScope = restClient
                 .get()
-                .uri("/providers/upms/permissions/data-scope?userId={userId}", userId.value())
+                .uri("/providers/upms/permissions/data-scope?userId={userId}", request.getUserId())
                 .retrieve()
                 .body(UserDataScopeDTO.class);
+        return UserDataScopeFacadeResponse.from(dataScope);
     }
 }

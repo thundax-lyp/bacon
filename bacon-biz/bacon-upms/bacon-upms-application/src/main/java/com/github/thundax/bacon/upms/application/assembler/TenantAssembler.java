@@ -10,7 +10,7 @@ public final class TenantAssembler {
 
     public static TenantDTO toDto(Tenant tenant) {
         return new TenantDTO(
-                tenant.getId(),
+                tenant.getId() == null ? null : tenant.getId().value(),
                 tenant.getName(),
                 TenantCodeCodec.toValue(tenant.getTenantCode()),
                 tenant.getStatus().value(),

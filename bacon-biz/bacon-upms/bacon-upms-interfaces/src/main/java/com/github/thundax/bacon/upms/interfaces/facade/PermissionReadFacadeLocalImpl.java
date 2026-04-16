@@ -2,14 +2,13 @@ package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.api.dto.UserDataScopeDTO;
-import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.facade.PermissionReadFacade;
+import com.github.thundax.bacon.upms.api.request.UserPermissionGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.UserDataScopeFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserMenuTreeFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.UserPermissionCodeFacadeResponse;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
-import java.util.List;
-import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,20 +22,21 @@ public class PermissionReadFacadeLocalImpl implements PermissionReadFacade {
     }
 
     @Override
-    public List<UserMenuTreeDTO> getUserMenuTree(@NonNull UserId userId) {
+    public UserMenuTreeFacadeResponse getUserMenuTree(UserPermissionGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        return permissionQueryService.getUserMenuTree(userId);
+        return UserMenuTreeFacadeResponse.from(permissionQueryService.getUserMenuTree(UserId.of(request.getUserId())));
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(@NonNull UserId userId) {
+    public UserPermissionCodeFacadeResponse getUserPermissionCodes(UserPermissionGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        return permissionQueryService.getUserPermissionCodes(userId);
+        return UserPermissionCodeFacadeResponse.from(
+                permissionQueryService.getUserPermissionCodes(UserId.of(request.getUserId())));
     }
 
     @Override
-    public UserDataScopeDTO getUserDataScope(@NonNull UserId userId) {
+    public UserDataScopeFacadeResponse getUserDataScope(UserPermissionGetFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        return permissionQueryService.getUserDataScope(userId);
+        return UserDataScopeFacadeResponse.from(permissionQueryService.getUserDataScope(UserId.of(request.getUserId())));
     }
 }

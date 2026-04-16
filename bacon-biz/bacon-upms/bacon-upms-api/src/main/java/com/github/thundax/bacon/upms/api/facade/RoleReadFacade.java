@@ -1,14 +1,13 @@
 package com.github.thundax.bacon.upms.api.facade;
 
-import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.api.dto.RoleDTO;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
-import java.util.List;
-import org.springframework.lang.NonNull;
+import com.github.thundax.bacon.upms.api.request.RoleGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.RoleListByUserFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.RoleFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.RoleListFacadeResponse;
 
 public interface RoleReadFacade {
 
-    RoleDTO getRoleById(@NonNull RoleId roleId);
+    RoleFacadeResponse getRoleById(RoleGetFacadeRequest request);
 
-    List<RoleDTO> getRolesByUserId(@NonNull UserId userId);
+    RoleListFacadeResponse getRolesByUserId(RoleListByUserFacadeRequest request);
 }

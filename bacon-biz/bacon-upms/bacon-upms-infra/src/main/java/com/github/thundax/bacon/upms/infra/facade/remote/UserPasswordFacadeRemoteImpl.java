@@ -1,12 +1,11 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
 import com.github.thundax.bacon.upms.api.facade.UserPasswordFacade;
+import com.github.thundax.bacon.upms.api.request.UserPasswordChangeFacadeRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -26,12 +25,12 @@ public class UserPasswordFacadeRemoteImpl implements UserPasswordFacade {
     }
 
     @Override
-    public void changePassword(@NonNull UserId userId, String oldPassword, String newPassword) {
+    public void changePassword(UserPasswordChangeFacadeRequest request) {
         // 改密走 provider 命令端点并携带 body，避免把旧密码/新密码暴露在查询参数或日志里。
         restClient
                 .post()
-                .uri("/providers/upms/users/{userId}/password/change", userId.value())
-                .body(new UserPasswordChangeDTO(oldPassword, newPassword))
+                .uri("/providers/upms/users/{userId}/passwords/change", request.getUserId())
+                .body(new UserPasswordChangeDTO(request.getOldPassword(), request.getNewPassword()))
                 .retrieve()
                 .toBodilessEntity();
     }

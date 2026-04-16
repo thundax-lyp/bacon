@@ -1,15 +1,18 @@
 package com.github.thundax.bacon.upms.interfaces.facade;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.facade.DepartmentReadFacade;
+import com.github.thundax.bacon.upms.api.request.DepartmentCodeGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.DepartmentGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.DepartmentListFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.DepartmentFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.DepartmentListFacadeResponse;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,21 +26,25 @@ public class DepartmentReadFacadeLocalImpl implements DepartmentReadFacade {
     }
 
     @Override
-    public DepartmentDTO getDepartmentById(@NonNull DepartmentId departmentId) {
+    public DepartmentFacadeResponse getDepartmentById(DepartmentGetFacadeRequest request) {
         requireContext();
-        return departmentApplicationService.getDepartmentById(departmentId);
+        return DepartmentFacadeResponse.from(
+                departmentApplicationService.getDepartmentById(DepartmentId.of(request.getDepartmentId())));
     }
 
     @Override
-    public DepartmentDTO getDepartmentByCode(String departmentCode) {
+    public DepartmentFacadeResponse getDepartmentByCode(DepartmentCodeGetFacadeRequest request) {
         requireContext();
-        return departmentApplicationService.getDepartmentByCode(DepartmentCode.of(departmentCode));
+        return DepartmentFacadeResponse.from(
+                departmentApplicationService.getDepartmentByCode(DepartmentCode.of(request.getDepartmentCode())));
     }
 
     @Override
-    public List<DepartmentDTO> listDepartmentsByIds(@NonNull Set<DepartmentId> departmentIds) {
+    public DepartmentListFacadeResponse listDepartmentsByIds(DepartmentListFacadeRequest request) {
         requireContext();
-        return departmentApplicationService.listDepartmentsByIds(Set.copyOf(departmentIds));
+        Set<DepartmentId> departmentIds =
+                request.getDepartmentIds().stream().map(DepartmentId::of).collect(Collectors.toUnmodifiableSet());
+        return DepartmentListFacadeResponse.from(departmentApplicationService.listDepartmentsByIds(departmentIds));
     }
 
     private void requireContext() {

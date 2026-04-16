@@ -11,10 +11,11 @@ import com.github.thundax.bacon.auth.domain.repository.AuthSessionRepository;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.enums.EnableStatusEnum;
 import com.github.thundax.bacon.upms.api.facade.UserReadFacade;
-import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
+import com.github.thundax.bacon.upms.api.request.UserLoginCredentialGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.UserLoginCredentialFacadeResponse;
+import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -62,9 +63,11 @@ public class LoginApplicationService {
         loginSecurityApplicationService.verifyPasswordCaptcha(command.getCaptchaKey(), command.getCaptchaCode());
         String plainPassword =
                 loginSecurityApplicationService.decryptPassword(command.getRsaKeyId(), command.getPassword());
-        UserLoginCredentialDTO credential = BaconContextHolder.callWithTenantId(
+        UserLoginCredentialFacadeResponse response = BaconContextHolder.callWithTenantId(
                 tenantId.value(),
-                () -> userReadFacade.getUserLoginCredential(UserIdentityType.ACCOUNT, command.getAccount()));
+                () -> userReadFacade.getUserLoginCredential(
+                        new UserLoginCredentialGetFacadeRequest("ACCOUNT", command.getAccount())));
+        UserLoginCredentialDTO credential = response == null ? null : response.getUserLoginCredential();
         validatePasswordLoginCredential(credential, plainPassword);
         return createLoginSession(
                 tenantId.value(),

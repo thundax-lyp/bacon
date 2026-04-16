@@ -1,16 +1,16 @@
 package com.github.thundax.bacon.upms.api.facade;
 
-import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import java.util.List;
-import java.util.Set;
-import org.springframework.lang.NonNull;
+import com.github.thundax.bacon.upms.api.request.DepartmentCodeGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.DepartmentGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.DepartmentListFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.DepartmentFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.DepartmentListFacadeResponse;
 
 public interface DepartmentReadFacade {
 
-    DepartmentDTO getDepartmentById(@NonNull DepartmentId departmentId);
+    DepartmentFacadeResponse getDepartmentById(DepartmentGetFacadeRequest request);
 
-    DepartmentDTO getDepartmentByCode(String departmentCode);
+    DepartmentFacadeResponse getDepartmentByCode(DepartmentCodeGetFacadeRequest request);
 
-    List<DepartmentDTO> listDepartmentsByIds(@NonNull Set<DepartmentId> departmentIds);
+    DepartmentListFacadeResponse listDepartmentsByIds(DepartmentListFacadeRequest request);
 }

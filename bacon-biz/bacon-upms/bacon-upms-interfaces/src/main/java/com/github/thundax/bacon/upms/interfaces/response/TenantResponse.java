@@ -19,7 +19,6 @@ public record TenantResponse(
         Instant expiredAt) {
 
     public static TenantResponse from(TenantDTO dto) {
-        Long tenantId = dto.getId() == null ? null : dto.getId().value();
-        return new TenantResponse(tenantId, dto.getName(), dto.getTenantCode(), dto.getStatus(), dto.getExpiredAt());
+        return new TenantResponse(dto.getId(), dto.getName(), dto.getTenantCode(), dto.getStatus(), dto.getExpiredAt());
     }
 }

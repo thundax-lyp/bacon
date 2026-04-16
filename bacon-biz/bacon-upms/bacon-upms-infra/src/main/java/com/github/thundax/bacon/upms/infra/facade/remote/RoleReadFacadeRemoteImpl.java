@@ -1,15 +1,16 @@
 package com.github.thundax.bacon.upms.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.facade.RoleReadFacade;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
+import com.github.thundax.bacon.upms.api.request.RoleGetFacadeRequest;
+import com.github.thundax.bacon.upms.api.request.RoleListByUserFacadeRequest;
+import com.github.thundax.bacon.upms.api.response.RoleFacadeResponse;
+import com.github.thundax.bacon.upms.api.response.RoleListFacadeResponse;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -30,22 +31,24 @@ public class RoleReadFacadeRemoteImpl implements RoleReadFacade {
     }
 
     @Override
-    public RoleDTO getRoleById(@NonNull RoleId roleId) {
+    public RoleFacadeResponse getRoleById(RoleGetFacadeRequest request) {
         // 单角色读取保持最小读取模型，不把数据权限等衍生信息混进主数据 DTO。
-        return restClient
+        RoleDTO role = restClient
                 .get()
-                .uri("/providers/upms/roles/{roleId}", roleId.value())
+                .uri("/providers/upms/roles/{roleId}", request.getRoleId())
                 .retrieve()
                 .body(RoleDTO.class);
+        return RoleFacadeResponse.from(role);
     }
 
     @Override
-    public List<RoleDTO> getRolesByUserId(@NonNull UserId userId) {
+    public RoleListFacadeResponse getRolesByUserId(RoleListByUserFacadeRequest request) {
         // 用户角色列表直接以 upms 聚合结果为准，调用方不再本地拼接用户-角色关系。
-        return restClient
+        List<RoleDTO> roles = restClient
                 .get()
-                .uri("/providers/upms/roles?userId={userId}", userId.value())
+                .uri("/providers/upms/roles?userId={userId}", request.getUserId())
                 .retrieve()
                 .body(LIST_TYPE);
+        return RoleListFacadeResponse.from(roles);
     }
 }

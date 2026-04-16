@@ -57,6 +57,12 @@ public abstract class AbstractLayeredArchitectureTest {
     }
 
     @Test
+    @DisplayName("api 不得直接依赖本域或他域的 domain")
+    void shouldKeepApiAwayFromDomain() {
+        LayeredArchitectureRuleSupport.apiShouldNotDependOnAnyDomain(basePackage()).check(classes());
+    }
+
+    @Test
     @DisplayName("domain 不得依赖 Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术包")
     void shouldKeepDomainAwayFromTechnicalPackages() {
         LayeredArchitectureRuleSupport.domainShouldNotDependOnTechnicalPackages(basePackage())

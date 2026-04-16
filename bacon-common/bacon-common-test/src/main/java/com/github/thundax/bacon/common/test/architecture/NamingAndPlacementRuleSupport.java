@@ -185,23 +185,28 @@ public final class NamingAndPlacementRuleSupport {
                                 .filter(method -> !method.getModifiers().contains(JavaModifier.STATIC))
                                 .forEach(method -> {
                                     List<String> violations = new ArrayList<>();
-                                    boolean requestMatched = method.getRawParameterTypes().size() == 1
-                                            && method.getRawParameterTypes().stream()
-                                                    .allMatch(parameterType -> parameterType.getSimpleName()
-                                                                    .endsWith("FacadeRequest")
-                                                            && parameterType.getPackageName()
-                                                                    .startsWith(basePackage + ".api.request"));
+                                    boolean requestMatched = method.getRawParameterTypes().isEmpty()
+                                            || (method.getRawParameterTypes().size() == 1
+                                                    && method.getRawParameterTypes().stream()
+                                                            .allMatch(parameterType -> parameterType.getSimpleName()
+                                                                            .endsWith("FacadeRequest")
+                                                                    && parameterType.getPackageName()
+                                                                            .startsWith(basePackage + ".api.request")));
                                     if (!requestMatched) {
                                         violations.add(
-                                                "parameters must use a single "
+                                                "parameters must be empty or use a single "
                                                         + basePackage
                                                         + ".api.request.*FacadeRequest");
                                     }
                                     JavaClass returnType = method.getRawReturnType();
-                                    boolean responseMatched = returnType.getSimpleName().endsWith("FacadeResponse")
-                                            && returnType.getPackageName().startsWith(basePackage + ".api.response");
+                                    boolean responseMatched = returnType.isEquivalentTo(void.class)
+                                            || (returnType.getSimpleName().endsWith("FacadeResponse")
+                                                    && returnType.getPackageName().startsWith(basePackage + ".api.response"));
                                     if (!responseMatched) {
-                                        violations.add("return type must use " + basePackage + ".api.response.*FacadeResponse");
+                                        violations.add(
+                                                "return type must be void or use "
+                                                        + basePackage
+                                                        + ".api.response.*FacadeResponse");
                                     }
 
                                     boolean satisfied = violations.isEmpty();
@@ -213,7 +218,7 @@ public final class NamingAndPlacementRuleSupport {
                     }
                 })
                 .allowEmptyShould(true)
-                .because("Facade methods must use FacadeRequest and FacadeResponse only");
+                .because("Facade methods must use zero-or-one FacadeRequest and optional FacadeResponse");
     }
 
     public static ArchRule facadeLocalImplShouldUseFacadeLocalImplNameAndPackage(String basePackage) {

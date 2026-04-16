@@ -75,6 +75,13 @@ class NamingAndPlacementRuleSupportTest {
     }
 
     @Test
+    void facadeContractShouldAcceptVoidReturnAndNoParameter() {
+        EvaluationResult result = evaluateFacadeContract(VoidFixtureFacade.class);
+
+        assertThat(result.hasViolation()).isFalse();
+    }
+
+    @Test
     void facadeContractShouldRejectNonFacadeRequestAndResponse() {
         EvaluationResult result =
                 evaluateFacadeContract(InvalidFixtureFacade.class, ValidFixtureFacadeRequest.class, InvalidFixtureDTO.class);
@@ -82,13 +89,13 @@ class NamingAndPlacementRuleSupportTest {
         assertThat(result.hasViolation()).isTrue();
         assertThat(result.getFailureReport().getDetails())
                 .anyMatch(detail -> detail.contains("InvalidFixtureFacade#queryById(ValidFixtureFacadeRequest)")
-                        && detail.contains("return type must use")
+                        && detail.contains("return type must be void or use")
                         && detail.contains(".api.response.*FacadeResponse"))
                 .anyMatch(detail -> detail.contains("InvalidFixtureFacade#listByKeyword(String)")
-                        && detail.contains("parameters must use")
+                        && detail.contains("parameters must be empty or use")
                         && detail.contains(".api.request.*FacadeRequest"))
                 .anyMatch(detail -> detail.contains("InvalidFixtureFacade#listByKeyword(String)")
-                        && detail.contains("return type must use")
+                        && detail.contains("return type must be void or use")
                         && detail.contains(".api.response.*FacadeResponse"));
     }
 
@@ -114,4 +121,9 @@ class NamingAndPlacementRuleSupportTest {
 final class ValidAnnotatedEntityFixture {
 
     private String id;
+}
+
+interface VoidFixtureFacade {
+
+    void refresh();
 }

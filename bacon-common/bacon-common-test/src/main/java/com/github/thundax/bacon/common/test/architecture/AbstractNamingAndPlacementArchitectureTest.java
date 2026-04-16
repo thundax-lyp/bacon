@@ -128,6 +128,13 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
+    @DisplayName("Facade 方法签名：统一使用单个 FacadeRequest 和 FacadeResponse")
+    void shouldUseFacadeRequestAndFacadeResponse() {
+        NamingAndPlacementRuleSupport.facadeMethodShouldUseFacadeRequestAndResponse(basePackage())
+                .check(classes());
+    }
+
+    @Test
     @DisplayName("FacadeLocalImpl：单体模式门面实现，命名 {业务对象}{动作}FacadeLocalImpl，目录 interfaces/facade/")
     void shouldFollowFacadeLocalImplRule() {
         NamingAndPlacementRuleSupport.facadeLocalImplShouldUseFacadeLocalImplNameAndPackage(basePackage())

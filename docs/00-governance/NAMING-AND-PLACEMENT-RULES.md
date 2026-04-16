@@ -33,9 +33,11 @@
 - 仅 `api.facade` 方法签名使用 `FacadeRequest` / `FacadeResponse`
 - `Facade` 方法入参统一为单个 `XxxFacadeRequest`，不再直接暴露离散基础参数、`Command`、`Query`、`DTO`
 - `Facade` 方法返回统一为 `XxxFacadeResponse`，不直接返回 `void`、离散基础类型或非 `FacadeResponse` 契约对象
-- `interfaces.controller` 路径固定使用 `/{domain}/**`，对外完整路径固定为 `/api/{domain}/**`
-- `interfaces.provider` 路径固定使用 `/providers/{domain}/**`，对内完整路径固定为 `/api/providers/{domain}/**`
-- `{domain}` 固定与业务域目录名一致（`auth`、`upms`、`order`、`inventory`、`payment`、`storage`），不得混用单复数别名
+- `interfaces.controller` 路径使用 `/api/{bounded-context}/{resource}/{action?}`
+- `interfaces.provider` 路径使用 `/api/providers/{bounded-context}/{resource}/{action?}`
+- `{bounded-context}` 固定与业务域目录名一致，不混用别名
+- `{bounded-context}` 与 `{resource}` 同义、近义或仅单复数差异时，省略其一
+- `{action}` 只在资源名不足以表达语义时出现，不使用 `query`、`list`、`detail`
 - `Local`、`Remote` 是运行模式语义，不省略
 - `Codec` 只做基础类型和值对象互转，不做业务编排
 - `Converter` 做通用对象转换，不承载仓储语义
@@ -83,6 +85,24 @@
   `FacadeResponse`
 - `infra/facade/remote/`
   `FacadeRemoteImpl`
+
+## Good Paths
+
+- `/api/order`
+- `/api/payment/refunds`
+- `/api/inventory/stocks`
+- `/api/inventory/reservations/reserve`
+- `/api/upms/users`
+- `/api/providers/order/mark-paid`
+- `/api/providers/inventory/reservations/release`
+
+## Bad Paths
+
+- `/api/order/orders`
+- `/api/inventory/inventories`
+- `/api/upms/user`
+- `/api/order/detail`
+- `/api/payment/query`
 
 ## Naming
 

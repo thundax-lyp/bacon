@@ -131,6 +131,16 @@ public final class LayeredArchitectureRuleSupport {
                 "application 不得依赖本域或他域的 infra");
     }
 
+    public static ArchRule apiShouldNotDependOnAnyDomain(String basePackage) {
+        return ArchRuleDefinition.noClasses()
+                .that()
+                .resideInAPackage(basePackage + ".api..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAPackage(ROOT_PACKAGE + "..domain..")
+                .because("api 不得依赖本域或他域的 domain");
+    }
+
     public static ArchRule domainShouldNotDependOnTechnicalPackages(String basePackage) {
         return noDirectDependencies(
                 basePackage + ".domain..",

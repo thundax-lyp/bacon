@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @WrappedApiController
-@RequestMapping("/inventory/inventory-audit-dead-letters")
+@RequestMapping("/inventory/audit-dead-letters")
 @Tag(name = "Inventory-Audit-Compensation", description = "库存审计死信补偿接口")
 public class InventoryAuditCompensationController {
 

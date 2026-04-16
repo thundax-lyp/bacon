@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @WrappedApiController
-@RequestMapping("/inventory/inventories")
+@RequestMapping("/inventory/stocks")
 @Tag(name = "Inventory-Management", description = "库存查询接口")
 public class InventoryController {
 

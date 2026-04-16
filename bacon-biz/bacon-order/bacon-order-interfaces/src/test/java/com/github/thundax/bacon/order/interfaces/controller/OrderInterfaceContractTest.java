@@ -16,13 +16,13 @@ import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.common.web.resolver.CurrentTenantArgumentResolver;
-import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
-import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.command.OrderCancelApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
+import com.github.thundax.bacon.order.application.dto.OrderDetailDTO;
+import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
+import com.github.thundax.bacon.order.application.result.OrderPageResult;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
@@ -121,7 +121,28 @@ class OrderInterfaceContractTest {
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.records[0].orderNo").value("ORD-1"))
+                .andExpect(jsonPath("$.records[0].id").doesNotExist())
                 .andExpect(jsonPath("$.code").doesNotExist());
+    }
+
+    @Test
+    void providerDetailControllerShouldUseFacadeRequestContract() throws Exception {
+        OrderReadProviderController controller = new OrderReadProviderController(
+                new StubOrderQueryApplicationService(),
+                new OrderPaymentResultApplicationService(null, null, null, null),
+                new OrderTimeoutApplicationService(null, null, null, null, null));
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .addInterceptors(providerGuardInterceptor())
+                .setCustomArgumentResolvers(new CurrentTenantArgumentResolver())
+                .build();
+        BaconContextHolder.set(new BaconContext(1001L, 2001L));
+
+        mockMvc.perform(get("/providers/order/by-order-no")
+                        .param("orderNo", "ORD-1")
+                        .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderNo").value("ORD-1"))
+                .andExpect(jsonPath("$.id").doesNotExist());
     }
 
     @Test
@@ -221,7 +242,32 @@ class OrderInterfaceContractTest {
         }
 
         @Override
-        public OrderPageResultDTO pageOrders(
+        public OrderDetailDTO getByOrderNo(OrderNo orderNo) {
+            return new OrderDetailDTO(
+                    1L,
+                    orderNo == null ? null : orderNo.value(),
+                    2001L,
+                    "CREATED",
+                    "UNPAID",
+                    "UNRESERVED",
+                    null,
+                    null,
+                    "CNY",
+                    BigDecimal.TEN,
+                    BigDecimal.TEN,
+                    null,
+                    null,
+                    Instant.parse("2026-03-26T10:00:00Z"),
+                    Instant.parse("2026-03-26T10:30:00Z"),
+                    List.of(),
+                    null,
+                    null,
+                    null,
+                    null);
+        }
+
+        @Override
+        public OrderPageResult pageOrders(
                 UserId userId,
                 OrderNo orderNo,
                 OrderStatus orderStatus,
@@ -252,7 +298,7 @@ class OrderInterfaceContractTest {
                     null,
                     Instant.parse("2026-03-26T10:00:00Z"),
                     Instant.parse("2026-03-26T10:30:00Z"));
-            return new OrderPageResultDTO(List.of(summary), 1, 1, 20);
+            return new OrderPageResult(List.of(summary), 1, 1, 20);
         }
     }
 }

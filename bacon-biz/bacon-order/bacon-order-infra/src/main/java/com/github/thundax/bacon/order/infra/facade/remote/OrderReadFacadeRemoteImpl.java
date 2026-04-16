@@ -1,10 +1,11 @@
 package com.github.thundax.bacon.order.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
-import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.facade.OrderReadFacade;
-import com.github.thundax.bacon.order.api.query.OrderPageQuery;
+import com.github.thundax.bacon.order.api.request.OrderDetailFacadeRequest;
+import com.github.thundax.bacon.order.api.request.OrderPageFacadeRequest;
+import com.github.thundax.bacon.order.api.response.OrderDetailFacadeResponse;
+import com.github.thundax.bacon.order.api.response.OrderPageFacadeResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -26,35 +27,28 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
     }
 
     @Override
-    public OrderDetailDTO getById(Long orderId) {
-        // provider 查询返回内部 DTO，remote facade 不再包装，保持跨服务读取模型稳定。
+    public OrderDetailFacadeResponse getByOrderNo(OrderDetailFacadeRequest request) {
         return restClient
                 .get()
-                .uri("/providers/order/{orderId}", orderId)
+                .uri(uriBuilder -> uriBuilder
+                        .path("/providers/order/by-order-no")
+                        .queryParam("orderNo", request.getOrderNo())
+                        .build())
                 .retrieve()
-                .body(OrderDetailDTO.class);
+                .body(OrderDetailFacadeResponse.class);
     }
 
     @Override
-    public OrderDetailDTO getByOrderNo(String orderNo) {
-        return restClient
-                .get()
-                .uri("/providers/order/by-order-no/{orderNo}", orderNo)
-                .retrieve()
-                .body(OrderDetailDTO.class);
-    }
-
-    @Override
-    public OrderPageResultDTO pageOrders(OrderPageQuery query) {
+    public OrderPageFacadeResponse pageOrders(OrderPageFacadeRequest request) {
         // 分页查询只透传当前 provider 实际支持的条件；其余筛选条件应先在契约层明确后再下沉到这里。
         return restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/providers/order")
-                        .queryParam("userId", query.getUserId())
-                        .queryParam("orderNo", query.getOrderNo())
+                        .queryParam("userId", request.getUserId())
+                        .queryParam("orderNo", request.getOrderNo())
                         .build())
                 .retrieve()
-                .body(OrderPageResultDTO.class);
+                .body(OrderPageFacadeResponse.class);
     }
 }

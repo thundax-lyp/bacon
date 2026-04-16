@@ -3,24 +3,26 @@ package com.github.thundax.bacon.order.interfaces.provider;
 import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.commerce.codec.PaymentNoCodec;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
-import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
-import com.github.thundax.bacon.order.api.query.OrderPageQuery;
-import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
+import com.github.thundax.bacon.order.api.request.OrderDetailFacadeRequest;
+import com.github.thundax.bacon.order.api.request.OrderPageFacadeRequest;
+import com.github.thundax.bacon.order.api.request.OrderCloseExpiredFacadeRequest;
+import com.github.thundax.bacon.order.api.request.OrderMarkPaidFacadeRequest;
+import com.github.thundax.bacon.order.api.request.OrderMarkPaymentFailedFacadeRequest;
+import com.github.thundax.bacon.order.api.response.OrderDetailFacadeResponse;
+import com.github.thundax.bacon.order.api.response.OrderPageFacadeResponse;
 import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.interfaces.assembler.OrderFacadeResponseAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.math.BigDecimal;
-import java.time.Instant;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -41,54 +43,48 @@ public class OrderReadProviderController {
         this.orderTimeoutApplicationService = orderTimeoutApplicationService;
     }
 
-    @GetMapping("/{orderId}")
-    public OrderDetailDTO getById(@PathVariable Long orderId) {
-        return orderQueryService.getById(OrderIdCodec.toDomain(orderId));
-    }
-
-    @GetMapping("/by-order-no/{orderNo}")
-    public OrderDetailDTO getByOrderNo(@PathVariable String orderNo) {
-        return orderQueryService.getByOrderNo(OrderNoCodec.toDomain(orderNo));
+    @GetMapping("/by-order-no")
+    public OrderDetailFacadeResponse getByOrderNo(@Valid OrderDetailFacadeRequest request) {
+        return OrderFacadeResponseAssembler.fromDetailDto(
+                orderQueryService.getByOrderNo(OrderNoCodec.toDomain(request.getOrderNo())));
     }
 
     @GetMapping
-    public OrderPageResultDTO pageOrders(OrderPageQuery query) {
-        return orderQueryService.pageOrders(
-                UserIdCodec.toDomain(query.getUserId()),
-                OrderNoCodec.toDomain(query.getOrderNo()),
-                query.getOrderStatus() == null ? null : OrderStatus.from(query.getOrderStatus()),
-                query.getPayStatus() == null ? null : PayStatus.from(query.getPayStatus()),
-                query.getInventoryStatus() == null ? null : InventoryStatus.from(query.getInventoryStatus()),
-                query.getCreatedAtFrom(),
-                query.getCreatedAtTo(),
-                query.getPageNo(),
-                query.getPageSize());
+    public OrderPageFacadeResponse pageOrders(@Valid OrderPageFacadeRequest request) {
+        return OrderFacadeResponseAssembler.fromPageDto(orderQueryService.pageOrders(
+                UserIdCodec.toDomain(request.getUserId()),
+                OrderNoCodec.toDomain(request.getOrderNo()),
+                request.getOrderStatus() == null ? null : OrderStatus.from(request.getOrderStatus()),
+                request.getPayStatus() == null ? null : PayStatus.from(request.getPayStatus()),
+                request.getInventoryStatus() == null ? null : InventoryStatus.from(request.getInventoryStatus()),
+                request.getCreatedAtFrom(),
+                request.getCreatedAtTo(),
+                request.getPageNo(),
+                request.getPageSize()));
     }
 
     @PostMapping("/mark-paid")
-    public void markPaid(
-            @RequestParam("orderNo") String orderNo,
-            @RequestParam("paymentNo") String paymentNo,
-            @RequestParam("channelCode") String channelCode,
-            @RequestParam("paidAmount") BigDecimal paidAmount,
-            @RequestParam("paidTime") Instant paidTime) {
+    public void markPaid(@Valid @RequestBody OrderMarkPaidFacadeRequest request) {
         orderPaymentResultApplicationService.markPaid(
-                OrderNoCodec.toDomain(orderNo), PaymentNoCodec.toDomain(paymentNo), channelCode, paidAmount, paidTime);
+                OrderNoCodec.toDomain(request.getOrderNo()),
+                PaymentNoCodec.toDomain(request.getPaymentNo()),
+                request.getChannelCode(),
+                request.getPaidAmount(),
+                request.getPaidTime());
     }
 
     @PostMapping("/mark-payment-failed")
-    public void markPaymentFailed(
-            @RequestParam("orderNo") String orderNo,
-            @RequestParam("paymentNo") String paymentNo,
-            @RequestParam("reason") String reason,
-            @RequestParam("channelStatus") String channelStatus,
-            @RequestParam("failedTime") Instant failedTime) {
+    public void markPaymentFailed(@Valid @RequestBody OrderMarkPaymentFailedFacadeRequest request) {
         orderPaymentResultApplicationService.markPaymentFailed(
-                OrderNoCodec.toDomain(orderNo), PaymentNoCodec.toDomain(paymentNo), reason, channelStatus, failedTime);
+                OrderNoCodec.toDomain(request.getOrderNo()),
+                PaymentNoCodec.toDomain(request.getPaymentNo()),
+                request.getReason(),
+                request.getChannelStatus(),
+                request.getFailedTime());
     }
 
     @PostMapping("/close-expired")
-    public void closeExpired(@RequestParam("orderNo") String orderNo, @RequestParam("reason") String reason) {
-        orderTimeoutApplicationService.closeExpiredOrder(OrderNoCodec.toDomain(orderNo), reason);
+    public void closeExpired(@Valid @RequestBody OrderCloseExpiredFacadeRequest request) {
+        orderTimeoutApplicationService.closeExpiredOrder(OrderNoCodec.toDomain(request.getOrderNo()), request.getReason());
     }
 }

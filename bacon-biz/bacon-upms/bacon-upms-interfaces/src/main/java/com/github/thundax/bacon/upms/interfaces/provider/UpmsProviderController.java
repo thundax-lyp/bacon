@@ -74,7 +74,7 @@ public class UpmsProviderController {
     }
 
     @Operation(summary = "当前用户修改密码")
-    @PostMapping("/users/{userId}/password/change")
+    @PostMapping("/users/{userId}/passwords/change")
     public void changePassword(@PathVariable Long userId, @RequestBody UserPasswordChangeDTO request) {
         userApplicationService.changePassword(
                 UserIdCodec.toDomain(userId), request.getOldPassword(), request.getNewPassword());

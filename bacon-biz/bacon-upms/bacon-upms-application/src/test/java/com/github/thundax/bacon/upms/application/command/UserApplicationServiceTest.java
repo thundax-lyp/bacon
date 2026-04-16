@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateUserFacadeRequest;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
@@ -205,7 +206,8 @@ class UserApplicationServiceTest {
 
         verify(userRepository).deleteUser(UserId.of(101L));
         verify(storedObjectFacade).clearObjectReference("O501", "UPMS_USER_AVATAR", "101");
-        verify(sessionCommandFacade).invalidateUserSessions(1001L, 101L, "USER_DELETED");
+        verify(sessionCommandFacade)
+                .invalidateUserSessions(new SessionInvalidateUserFacadeRequest(1001L, 101L, "USER_DELETED"));
     }
 
     @Test

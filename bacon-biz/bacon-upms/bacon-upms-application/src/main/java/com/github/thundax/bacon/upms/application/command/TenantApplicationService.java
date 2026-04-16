@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRequest;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -83,7 +84,8 @@ public class TenantApplicationService {
         Tenant tenant = tenantRepository.updateStatus(tenantId, status);
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
         if (TenantStatus.DISABLED == tenant.getStatus()) {
-            sessionCommandFacade.invalidateTenantSessions(tenant.getId().value(), "TENANT_DISABLED");
+            sessionCommandFacade.invalidateTenantSessions(
+                    new SessionInvalidateTenantFacadeRequest(tenant.getId().value(), "TENANT_DISABLED"));
         }
         return TenantAssembler.toDto(tenant);
     }

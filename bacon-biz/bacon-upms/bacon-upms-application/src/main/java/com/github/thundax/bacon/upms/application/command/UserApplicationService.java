@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
+import com.github.thundax.bacon.auth.api.request.SessionInvalidateUserFacadeRequest;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
@@ -214,7 +215,8 @@ public class UserApplicationService {
                 UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
         if (UserStatus.DISABLED == savedUser.getStatus()) {
             sessionCommandFacade.invalidateUserSessions(
-                    BaconContextHolder.requireTenantId(), userId.value(), "USER_DISABLED");
+                    new SessionInvalidateUserFacadeRequest(
+                            BaconContextHolder.requireTenantId(), userId.value(), "USER_DISABLED"));
         }
         return UserAssembler.toDto(
                 savedUser,
@@ -242,7 +244,8 @@ public class UserApplicationService {
                     String.valueOf(userId.value()));
         }
         sessionCommandFacade.invalidateUserSessions(
-                BaconContextHolder.requireTenantId(), userId.value(), "USER_DELETED");
+                new SessionInvalidateUserFacadeRequest(
+                        BaconContextHolder.requireTenantId(), userId.value(), "USER_DELETED"));
     }
 
     @Transactional
@@ -251,7 +254,8 @@ public class UserApplicationService {
         User user = userRepository.updatePassword(
                 userId, DEFAULT_PASSWORD, true, UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
         sessionCommandFacade.invalidateUserSessions(
-                BaconContextHolder.requireTenantId(), userId.value(), "USER_PASSWORD_INITIALIZED");
+                new SessionInvalidateUserFacadeRequest(
+                        BaconContextHolder.requireTenantId(), userId.value(), "USER_PASSWORD_INITIALIZED"));
         return UserAssembler.toDto(
                 user,
                 resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
@@ -266,7 +270,8 @@ public class UserApplicationService {
         User user = userRepository.updatePassword(
                 userId, newPassword.trim(), true, UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
         sessionCommandFacade.invalidateUserSessions(
-                BaconContextHolder.requireTenantId(), userId.value(), "USER_PASSWORD_RESET");
+                new SessionInvalidateUserFacadeRequest(
+                        BaconContextHolder.requireTenantId(), userId.value(), "USER_PASSWORD_RESET"));
         return UserAssembler.toDto(
                 user,
                 resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),

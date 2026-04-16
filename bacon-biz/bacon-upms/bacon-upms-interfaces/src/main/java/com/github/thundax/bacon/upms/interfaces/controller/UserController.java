@@ -145,7 +145,7 @@ public class UserController {
     @Operation(summary = "管理员初始化密码")
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "初始化用户密码", eventType = LogEventType.UPDATE)
-    @PutMapping("/{userId}/password/init")
+    @PutMapping("/{userId}/passwords/init")
     public UserResponse initPassword(@PathVariable("userId") Long userId) {
         return UserResponse.from(userApplicationService.initPassword(UserIdCodec.toDomain(userId)));
     }
@@ -153,7 +153,7 @@ public class UserController {
     @Operation(summary = "管理员重置密码")
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "重置用户密码", eventType = LogEventType.UPDATE)
-    @PutMapping("/{userId}/password/reset")
+    @PutMapping("/{userId}/passwords/reset")
     public UserResponse resetPassword(
             @PathVariable("userId") Long userId, @RequestBody UserPasswordResetRequest request) {
         return UserResponse.from(

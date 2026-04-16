@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.order.interfaces.response;
 
-import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
+import com.github.thundax.bacon.order.application.dto.OrderItemDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 

@@ -3,7 +3,6 @@ package com.github.thundax.bacon.order.interfaces.provider;
 import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.commerce.codec.PaymentNoCodec;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
-import com.github.thundax.bacon.order.api.request.OrderDetailFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderPageFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderCloseExpiredFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderMarkPaidFacadeRequest;
@@ -19,7 +18,9 @@ import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.interfaces.assembler.OrderFacadeResponseAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,10 +44,9 @@ public class OrderReadProviderController {
         this.orderTimeoutApplicationService = orderTimeoutApplicationService;
     }
 
-    @GetMapping("/by-order-no")
-    public OrderDetailFacadeResponse getByOrderNo(@Valid OrderDetailFacadeRequest request) {
-        return OrderFacadeResponseAssembler.fromDetailDto(
-                orderQueryService.getByOrderNo(OrderNoCodec.toDomain(request.getOrderNo())));
+    @GetMapping("/{orderNo}")
+    public OrderDetailFacadeResponse getByOrderNo(@PathVariable("orderNo") @NotBlank String orderNo) {
+        return OrderFacadeResponseAssembler.fromDetailDto(orderQueryService.getByOrderNo(OrderNoCodec.toDomain(orderNo)));
     }
 
     @GetMapping

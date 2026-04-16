@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.order.interfaces.response;
 
-import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
+import com.github.thundax.bacon.order.application.result.OrderPageResult;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
@@ -18,7 +18,7 @@ public record OrderPageResponse(
         /** 每页条数。 */
         @Schema(description = "页大小", example = "20") int pageSize) {
 
-    public static OrderPageResponse from(OrderPageResultDTO dto) {
+    public static OrderPageResponse from(OrderPageResult dto) {
         List<OrderSummaryResponse> recordResponses = dto.getRecords() == null
                 ? List.of()
                 : dto.getRecords().stream().map(OrderSummaryResponse::from).toList();

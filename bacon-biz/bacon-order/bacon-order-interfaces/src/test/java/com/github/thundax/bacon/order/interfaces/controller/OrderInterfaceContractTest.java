@@ -137,8 +137,7 @@ class OrderInterfaceContractTest {
                 .build();
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
-        mockMvc.perform(get("/providers/order/by-order-no")
-                        .param("orderNo", "ORD-1")
+        mockMvc.perform(get("/providers/order/ORD-1")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderNo").value("ORD-1"))

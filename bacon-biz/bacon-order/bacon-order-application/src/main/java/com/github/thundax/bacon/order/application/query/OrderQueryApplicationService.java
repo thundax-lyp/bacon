@@ -7,12 +7,12 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
-import com.github.thundax.bacon.order.api.dto.OrderItemDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
-import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
 import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
+import com.github.thundax.bacon.order.application.dto.OrderDetailDTO;
+import com.github.thundax.bacon.order.application.dto.OrderItemDTO;
+import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
+import com.github.thundax.bacon.order.application.result.OrderPageResult;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
@@ -52,7 +52,7 @@ public class OrderQueryApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
     }
 
-    public OrderPageResultDTO pageOrders(
+    public OrderPageResult pageOrders(
             UserId userId,
             OrderNo orderNo,
             OrderStatus orderStatus,
@@ -85,7 +85,7 @@ public class OrderQueryApplicationService {
                         normalizedPageNo,
                         normalizedPageSize);
         List<OrderSummaryDTO> records = pageOrders.stream().map(this::toSummary).toList();
-        return new OrderPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
+        return new OrderPageResult(records, total, normalizedPageNo, normalizedPageSize);
     }
 
     private OrderSummaryDTO toSummary(Order order) {

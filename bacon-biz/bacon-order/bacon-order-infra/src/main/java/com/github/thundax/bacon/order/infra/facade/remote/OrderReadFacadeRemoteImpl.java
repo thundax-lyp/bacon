@@ -30,10 +30,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
     public OrderDetailFacadeResponse getByOrderNo(OrderDetailFacadeRequest request) {
         return restClient
                 .get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/providers/order/by-order-no")
-                        .queryParam("orderNo", request.getOrderNo())
-                        .build())
+                .uri("/providers/order/{orderNo}", request.getOrderNo())
                 .retrieve()
                 .body(OrderDetailFacadeResponse.class);
     }

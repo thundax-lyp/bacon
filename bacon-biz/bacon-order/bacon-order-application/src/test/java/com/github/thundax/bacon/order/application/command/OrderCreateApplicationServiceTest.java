@@ -10,9 +10,11 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReserveFacadeRequest;
+import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
@@ -641,38 +643,39 @@ class OrderCreateApplicationServiceTest {
     private static class SuccessInventoryCommandFacade implements InventoryCommandFacade {
 
         @Override
-        public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
-            return reservationResult(orderNo, "RESERVED", null, null, null, null);
+        public InventoryReservationFacadeResponse reserveStock(InventoryReserveFacadeRequest command) {
+            return reservationResult(command.getOrderNo(), "RESERVED", null, null, null, null);
         }
 
         @Override
-        public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
-            return reservationResult(orderNo, "RELEASED", null, reason, Instant.now(), null);
+        public InventoryReservationFacadeResponse releaseReservedStock(InventoryReleaseFacadeRequest command) {
+            return reservationResult(command.getOrderNo(), "RELEASED", null, command.getReason(), Instant.now(), null);
         }
 
         @Override
-        public InventoryReservationResultDTO deductReservedStock(String orderNo) {
-            return reservationResult(orderNo, "DEDUCTED", null, null, null, Instant.now());
+        public InventoryReservationFacadeResponse deductReservedStock(InventoryDeductFacadeRequest command) {
+            return reservationResult(command.getOrderNo(), "DEDUCTED", null, null, null, Instant.now());
         }
 
-        protected final InventoryReservationResultDTO reservationResult(
+        protected final InventoryReservationFacadeResponse reservationResult(
                 String orderNo,
                 String reservationStatus,
                 String failureReason,
                 String releaseReason,
                 Instant releasedAt,
                 Instant deductedAt) {
-            InventoryReservationResultDTO result = new InventoryReservationResultDTO();
-            result.setOrderNo(orderNo);
-            result.setReservationNo("RSV-" + orderNo);
-            result.setReservationStatus(reservationStatus);
-            result.setInventoryStatus(reservationStatus);
-            result.setWarehouseCode("DEFAULT");
-            result.setFailureReason(failureReason);
-            result.setReleaseReason(releaseReason);
-            result.setReleasedAt(releasedAt);
-            result.setDeductedAt(deductedAt);
-            return result;
+            return new InventoryReservationFacadeResponse(
+                    orderNo,
+                    "RSV-" + orderNo,
+                    reservationStatus,
+                    reservationStatus,
+                    "DEFAULT",
+                    null,
+                    failureReason,
+                    releaseReason,
+                    null,
+                    releasedAt,
+                    deductedAt);
         }
     }
 
@@ -681,17 +684,17 @@ class OrderCreateApplicationServiceTest {
         private String lastReleaseReason;
 
         @Override
-        public InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason) {
-            this.lastReleaseReason = reason;
-            return super.releaseReservedStock(orderNo, reason);
+        public InventoryReservationFacadeResponse releaseReservedStock(InventoryReleaseFacadeRequest command) {
+            this.lastReleaseReason = command.getReason();
+            return super.releaseReservedStock(command);
         }
     }
 
     private static final class FailedInventoryCommandFacade extends SuccessInventoryCommandFacade {
 
         @Override
-        public InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items) {
-            return reservationResult(orderNo, "FAILED", "stock not enough", null, null, null);
+        public InventoryReservationFacadeResponse reserveStock(InventoryReserveFacadeRequest command) {
+            return reservationResult(command.getOrderNo(), "FAILED", "stock not enough", null, null, null);
         }
     }
 

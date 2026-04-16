@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.order.api.facade;
 
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
+import com.github.thundax.bacon.order.api.query.OrderPageQuery;
 
 public interface OrderReadFacade {
 
@@ -10,5 +10,5 @@ public interface OrderReadFacade {
 
     OrderDetailDTO getByOrderNo(String orderNo);
 
-    OrderPageResultDTO pageOrders(OrderPageQueryDTO query);
+    OrderPageResultDTO pageOrders(OrderPageQuery query);
 }

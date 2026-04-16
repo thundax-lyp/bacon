@@ -4,9 +4,9 @@ import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.facade.OrderReadFacade;
+import com.github.thundax.bacon.order.api.query.OrderPageQuery;
 import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
@@ -38,7 +38,7 @@ public class OrderReadFacadeLocalImpl implements OrderReadFacade {
     }
 
     @Override
-    public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
+    public OrderPageResultDTO pageOrders(OrderPageQuery query) {
         return orderQueryService.pageOrders(
                 UserIdCodec.toDomain(query.getUserId()),
                 OrderNoCodec.toDomain(query.getOrderNo()),

@@ -2,9 +2,9 @@ package com.github.thundax.bacon.order.infra.facade.remote;
 
 import com.github.thundax.bacon.common.core.config.RestClientFactory;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
 import com.github.thundax.bacon.order.api.facade.OrderReadFacade;
+import com.github.thundax.bacon.order.api.query.OrderPageQuery;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -45,7 +45,7 @@ public class OrderReadFacadeRemoteImpl implements OrderReadFacade {
     }
 
     @Override
-    public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
+    public OrderPageResultDTO pageOrders(OrderPageQuery query) {
         // 分页查询只透传当前 provider 实际支持的条件；其余筛选条件应先在契约层明确后再下沉到这里。
         return restClient
                 .get()

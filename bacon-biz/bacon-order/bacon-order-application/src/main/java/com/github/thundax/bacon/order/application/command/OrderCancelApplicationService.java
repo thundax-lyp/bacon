@@ -4,8 +4,9 @@ import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
+import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
 import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
@@ -59,8 +60,8 @@ public class OrderCancelApplicationService {
         OrderStatus beforeStatus = order.getOrderStatus();
         order.cancel(reason);
         // 同步主流程里先改订单主状态，再尝试释放库存和关闭支付；即使后续远程动作部分失败，主单也已明确进入取消态。
-        InventoryReservationResultDTO releaseResult =
-                inventoryCommandFacade.releaseReservedStock(OrderNoCodec.toValue(orderNo), reason);
+        InventoryReservationFacadeResponse releaseResult = inventoryCommandFacade.releaseReservedStock(
+                new InventoryReleaseFacadeRequest(OrderNoCodec.toValue(orderNo), reason));
         applyReleaseResult(order, releaseResult, reason);
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
             paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason);
@@ -69,7 +70,7 @@ public class OrderCancelApplicationService {
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CANCEL, beforeStatus);
     }
 
-    private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
+    private void applyReleaseResult(Order order, InventoryReservationFacadeResponse releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(
                     ReservationNoCodec.toDomain(releaseResult.getReservationNo()),

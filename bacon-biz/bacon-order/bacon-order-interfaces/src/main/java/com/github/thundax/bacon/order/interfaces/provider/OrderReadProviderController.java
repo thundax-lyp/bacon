@@ -4,8 +4,8 @@ import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.commerce.codec.PaymentNoCodec;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.order.api.dto.OrderDetailDTO;
-import com.github.thundax.bacon.order.api.dto.OrderPageQueryDTO;
 import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
+import com.github.thundax.bacon.order.api.query.OrderPageQuery;
 import com.github.thundax.bacon.order.application.codec.OrderIdCodec;
 import com.github.thundax.bacon.order.application.command.OrderPaymentResultApplicationService;
 import com.github.thundax.bacon.order.application.command.OrderTimeoutApplicationService;
@@ -52,7 +52,7 @@ public class OrderReadProviderController {
     }
 
     @GetMapping
-    public OrderPageResultDTO pageOrders(OrderPageQueryDTO query) {
+    public OrderPageResultDTO pageOrders(OrderPageQuery query) {
         return orderQueryService.pageOrders(
                 UserIdCodec.toDomain(query.getUserId()),
                 OrderNoCodec.toDomain(query.getOrderNo()),

@@ -3,9 +3,11 @@ package com.github.thundax.bacon.order.application.saga;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReservationItemFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReserveFacadeRequest;
+import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
 import com.github.thundax.bacon.order.application.codec.OrderOutboxPayloadCodec;
 import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
@@ -95,14 +97,14 @@ public class OrderOutboxActionExecutor {
                 findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
         List<OrderItem> items = orderRepository.findItemsByOrderId(
                 order.getId() == null ? null : order.getId().value());
-        List<InventoryReservationItemDTO> reserveItems = items.stream()
-                .map(item -> new InventoryReservationItemDTO(
+        List<InventoryReservationItemFacadeRequest> reserveItems = items.stream()
+                .map(item -> new InventoryReservationItemFacadeRequest(
                         item.getSkuId() == null ? null : item.getSkuId().value(), item.getQuantity()))
                 .toList();
-        InventoryReservationResultDTO reserveResult = BaconContextHolder.callWithTenantId(
+        InventoryReservationFacadeResponse reserveResult = BaconContextHolder.callWithTenantId(
                 BaconContextHolder.requireTenantId(),
-                () -> inventoryCommandFacade.reserveStock(
-                        order.getOrderNo() == null ? null : order.getOrderNo().value(), reserveItems));
+                () -> inventoryCommandFacade.reserveStock(new InventoryReserveFacadeRequest(
+                        order.getOrderNo() == null ? null : order.getOrderNo().value(), reserveItems)));
         // 预占失败时直接把订单收敛为关闭态，不再继续创建支付单，避免出现“无库存但有支付单”的脏状态。
         if (!InventoryStatus.RESERVED.value().equals(reserveResult.getInventoryStatus())) {
             String reason = reserveResult.getFailureReason() == null
@@ -205,10 +207,10 @@ public class OrderOutboxActionExecutor {
         Order order =
                 findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
         String reason = OrderOutboxPayloadCodec.decode(event.getPayload()).getOrDefault("reason", "SYSTEM_CANCELLED");
-        InventoryReservationResultDTO releaseResult = BaconContextHolder.callWithTenantId(
+        InventoryReservationFacadeResponse releaseResult = BaconContextHolder.callWithTenantId(
                 BaconContextHolder.requireTenantId(),
-                () -> inventoryCommandFacade.releaseReservedStock(
-                        order.getOrderNo() == null ? null : order.getOrderNo().value(), reason));
+                () -> inventoryCommandFacade.releaseReservedStock(new InventoryReleaseFacadeRequest(
+                        order.getOrderNo() == null ? null : order.getOrderNo().value(), reason)));
         // 释放结果只更新库存侧派生状态，不再反向改订单主状态；订单主状态在上游取消/超时/支付失败时已经确定。
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(

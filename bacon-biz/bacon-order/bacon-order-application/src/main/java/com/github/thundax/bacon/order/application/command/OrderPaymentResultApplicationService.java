@@ -7,8 +7,10 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
+import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
+import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
 import com.github.thundax.bacon.order.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
@@ -74,8 +76,8 @@ public class OrderPaymentResultApplicationService {
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaid(paymentNo, channelCode, Money.of(paidAmount, order.getCurrencyCode()), paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
-        InventoryReservationResultDTO deductResult =
-                inventoryCommandFacade.deductReservedStock(OrderNoCodec.toValue(orderNo));
+        InventoryReservationFacadeResponse deductResult = inventoryCommandFacade.deductReservedStock(
+                new InventoryDeductFacadeRequest(OrderNoCodec.toValue(orderNo)));
         if (!InventoryStatus.DEDUCTED.value().equals(deductResult.getInventoryStatus())) {
             String reason = deductResult.getFailureReason() == null
                             || deductResult.getFailureReason().isBlank()
@@ -104,14 +106,14 @@ public class OrderPaymentResultApplicationService {
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaymentFailed(paymentNo, reason, channelStatus, failedTime);
         // 支付失败后的主目标是回收预占库存，因此这里固定走 releaseReservedStock，而不是尝试别的库存路径。
-        InventoryReservationResultDTO releaseResult =
-                inventoryCommandFacade.releaseReservedStock(OrderNoCodec.toValue(orderNo), "PAYMENT_FAILED");
+        InventoryReservationFacadeResponse releaseResult = inventoryCommandFacade.releaseReservedStock(
+                new InventoryReleaseFacadeRequest(OrderNoCodec.toValue(orderNo), "PAYMENT_FAILED"));
         applyReleaseResult(order, releaseResult, "PAYMENT_FAILED");
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAYMENT_FAILED, beforeStatus);
     }
 
-    private void applyReleaseResult(Order order, InventoryReservationResultDTO releaseResult, String fallbackReason) {
+    private void applyReleaseResult(Order order, InventoryReservationFacadeResponse releaseResult, String fallbackReason) {
         if (InventoryStatus.RELEASED.value().equals(releaseResult.getInventoryStatus())) {
             order.markInventoryReleased(
                     ReservationNoCodec.toDomain(releaseResult.getReservationNo()),

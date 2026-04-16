@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-public record InventoryStatusUpdateRequest(@NotNull String status) {}
+public record InventoryStatusUpdateRequest(@NotNull @Size(max = 32) String status) {}

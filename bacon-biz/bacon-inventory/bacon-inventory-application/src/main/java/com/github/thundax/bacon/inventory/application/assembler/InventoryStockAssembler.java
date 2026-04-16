@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.codec.WarehouseCodeCodec;
+import com.github.thundax.bacon.inventory.application.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 
 public final class InventoryStockAssembler {

@@ -4,12 +4,11 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryAuditReplayTaskDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryAuditReplayTaskAssembler;
 import com.github.thundax.bacon.inventory.application.codec.DeadLetterIdCodec;
 import com.github.thundax.bacon.inventory.application.codec.TaskNoCodec;
+import com.github.thundax.bacon.inventory.application.result.InventoryAuditReplayResult;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditReplayTask;
@@ -43,8 +42,9 @@ public class InventoryAuditReplayTaskApplicationService {
         this.idGenerator = idGenerator;
     }
 
-    public InventoryAuditReplayTaskDTO createReplayTask(InventoryAuditReplayTaskCreateDTO createDTO) {
-        if (createDTO.getDeadLetterIds() == null || createDTO.getDeadLetterIds().isEmpty()) {
+    public InventoryAuditReplayTaskDTO createReplayTask(
+            Long operatorId, String replayKeyPrefix, List<Long> deadLetterIds) {
+        if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             throw new InventoryDomainException(
                     InventoryErrorCode.INVENTORY_REMOTE_BAD_REQUEST, "replay-task-empty-dead-letter-ids");
         }
@@ -54,10 +54,27 @@ public class InventoryAuditReplayTaskApplicationService {
         TaskNo taskNo =
                 TaskNoCodec.toDomain("RPT-" + UUID.randomUUID().toString().replace("-", ""));
         // 回放任务只负责“组织一批死信逐条回放”，真正的单条回放语义仍复用 compensation service。
-        InventoryAuditReplayTask task =
-                InventoryAuditReplayTaskAssembler.toDomain(createDTO, taskId, taskNo, OPERATOR_TYPE_MANUAL, now);
+        InventoryAuditReplayTask task = InventoryAuditReplayTask.create(
+                taskId,
+                taskNo,
+                InventoryAuditReplayTaskStatus.PENDING,
+                deadLetterIds.size(),
+                0,
+                0,
+                0,
+                replayKeyPrefix,
+                OPERATOR_TYPE_MANUAL,
+                operatorId == null ? null : String.valueOf(operatorId),
+                null,
+                null,
+                null,
+                now,
+                null,
+                null,
+                null,
+                now);
         InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
-        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(createDTO.getDeadLetterIds().stream()
+        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(deadLetterIds.stream()
                 .map(DeadLetterIdCodec::toDomain)
                 .map(deadLetterId -> InventoryAuditReplayTaskItem.create(
                         idGenerator.nextId(REPLAY_TASK_ITEM_ID_BIZ_TAG), saved.getId(), deadLetterId, now))
@@ -136,7 +153,7 @@ public class InventoryAuditReplayTaskApplicationService {
             Instant startedAt = Instant.now();
             try {
                 String replayKey = buildReplayKey(task, item);
-                InventoryAuditReplayResultDTO result = BaconContextHolder.callWithTenantId(
+                InventoryAuditReplayResult result = BaconContextHolder.callWithTenantId(
                         tenantId,
                         () -> compensationService.replayDeadLetter(
                                 item.getDeadLetterId(), replayKey, OperatorIdCodec.toDomain(task.getOperatorId())));

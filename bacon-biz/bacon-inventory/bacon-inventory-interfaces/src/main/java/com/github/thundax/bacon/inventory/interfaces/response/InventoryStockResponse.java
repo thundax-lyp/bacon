@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.response;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryStockDTO;
 import java.time.Instant;
 
 /**

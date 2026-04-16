@@ -3,10 +3,10 @@ package com.github.thundax.bacon.inventory.application.command;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
+import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
@@ -54,7 +54,7 @@ public class InventoryDeductionApplicationService {
                 new InventoryWriteRetrier());
     }
 
-    public InventoryReservationResultDTO deductReservedStock(OrderNo orderNo) {
+    public InventoryReservationResult deductReservedStock(OrderNo orderNo) {
         Long tenantId = BaconContextHolder.requireTenantId();
         return inventoryWriteRetrier.execute(
                 "deduct",
@@ -62,7 +62,7 @@ public class InventoryDeductionApplicationService {
                 () -> inventoryTransactionExecutor.executeInNewTransaction(() -> deductReservedStockOnce(orderNo)));
     }
 
-    private InventoryReservationResultDTO deductReservedStockOnce(OrderNo orderNo) {
+    private InventoryReservationResult deductReservedStockOnce(OrderNo orderNo) {
         InventoryReservation reservation =
                 inventoryReservationRepository.findReservation(orderNo).orElse(null);
         if (reservation == null) {

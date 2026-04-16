@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.response;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryAuditDeadLetterDTO;
 import java.time.Instant;
 
 /**

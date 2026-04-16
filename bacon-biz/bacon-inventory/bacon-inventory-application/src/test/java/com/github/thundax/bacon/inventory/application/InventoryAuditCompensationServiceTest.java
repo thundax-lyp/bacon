@@ -7,10 +7,10 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
+import com.github.thundax.bacon.inventory.application.result.InventoryAuditReplayResult;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
@@ -56,7 +56,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                         "MAX_RETRIES_EXCEEDED",
                         Instant.parse("2026-03-26T00:01:00Z"))));
 
-        InventoryAuditReplayResultDTO result = BaconContextHolder.callWithTenantId(
+        InventoryAuditReplayResult result = BaconContextHolder.callWithTenantId(
                 3001L,
                 () -> service.replayDeadLetter(DeadLetterId.of(1001L), "MANUAL-REPLAY-1001", OperatorId.of("9001")));
 
@@ -113,7 +113,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                 .markReplayRunning(
                         "RUNNING-1003", InventoryAuditOperatorType.SYSTEM, "0", Instant.parse("2026-03-26T00:02:00Z"));
 
-        List<InventoryAuditReplayResultDTO> results = BaconContextHolder.callWithTenantId(
+        List<InventoryAuditReplayResult> results = BaconContextHolder.callWithTenantId(
                 3001L,
                 () -> service.replayDeadLettersBatch(
                         List.of(DeadLetterId.of(1002L), DeadLetterId.of(1003L)), "BATCH-1", OperatorId.of("9002")));
@@ -146,7 +146,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                         "MAX_RETRIES_EXCEEDED",
                         Instant.parse("2026-03-26T00:01:00Z"))));
 
-        InventoryAuditReplayResultDTO result = BaconContextHolder.callWithTenantId(
+        InventoryAuditReplayResult result = BaconContextHolder.callWithTenantId(
                 3001L,
                 () -> service.replayDeadLetter(DeadLetterId.of(1004L), "MANUAL-REPLAY-1004", OperatorId.of("9001")));
 

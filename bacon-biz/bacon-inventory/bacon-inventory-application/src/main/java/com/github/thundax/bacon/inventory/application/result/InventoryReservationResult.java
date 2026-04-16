@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.api.dto;
+package com.github.thundax.bacon.inventory.application.result;
 
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -6,12 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 库存预占结果传输对象。
+ * 库存预占应用结果。
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InventoryReservationResultDTO {
+public class InventoryReservationResult {
 
     /** 订单号。 */
     private String orderNo;

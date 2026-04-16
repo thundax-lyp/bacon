@@ -2,12 +2,16 @@ package com.github.thundax.bacon.inventory.interfaces.facade;
 
 import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
+import com.github.thundax.bacon.inventory.api.request.InventoryAvailableStockFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryBatchAvailableStockFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReservationGetFacadeRequest;
+import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
+import com.github.thundax.bacon.inventory.api.response.InventoryStockFacadeResponse;
+import com.github.thundax.bacon.inventory.api.response.InventoryStockListFacadeResponse;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
-import java.util.List;
+import com.github.thundax.bacon.inventory.interfaces.assembler.InventoryReservationResponseAssembler;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,24 +28,26 @@ public class InventoryReadFacadeLocalImpl implements InventoryReadFacade {
     }
 
     @Override
-    public InventoryStockDTO getAvailableStock(Long skuId) {
+    public InventoryStockFacadeResponse getAvailableStock(InventoryAvailableStockFacadeRequest request) {
         requireContext();
-        return inventoryQueryService.getAvailableStock(SkuIdCodec.toDomain(skuId));
+        return InventoryReservationResponseAssembler.fromStockDto(
+                inventoryQueryService.getAvailableStock(SkuIdCodec.toDomain(request.getSkuId())));
     }
 
     @Override
-    public List<InventoryStockDTO> batchGetAvailableStock(Set<Long> skuIds) {
+    public InventoryStockListFacadeResponse batchGetAvailableStock(InventoryBatchAvailableStockFacadeRequest request) {
         requireContext();
-        return inventoryQueryService.batchGetAvailableStock(
-                skuIds == null
+        return InventoryReservationResponseAssembler.fromStockDtos(inventoryQueryService.batchGetAvailableStock(
+                request.getSkuIds() == null
                         ? Set.of()
-                        : skuIds.stream().map(SkuIdCodec::toDomain).collect(Collectors.toSet()));
+                        : request.getSkuIds().stream().map(SkuIdCodec::toDomain).collect(Collectors.toSet())));
     }
 
     @Override
-    public InventoryReservationDTO getReservationByOrderNo(String orderNo) {
+    public InventoryReservationFacadeResponse getReservationByOrderNo(InventoryReservationGetFacadeRequest request) {
         requireContext();
-        return inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(orderNo));
+        return InventoryReservationResponseAssembler.fromDto(
+                inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(request.getOrderNo())));
     }
 
     private void requireContext() {

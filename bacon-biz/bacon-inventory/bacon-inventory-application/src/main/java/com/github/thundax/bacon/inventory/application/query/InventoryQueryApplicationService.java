@@ -5,19 +5,19 @@ import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterPageResultDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryAuditDeadLetterAssembler;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryAuditLogAssembler;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryLedgerAssembler;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationAssembler;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryStockAssembler;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
+import com.github.thundax.bacon.inventory.application.dto.InventoryAuditDeadLetterDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryAuditLogDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryLedgerDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryReservationDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.application.result.InventoryAuditDeadLetterPageResult;
+import com.github.thundax.bacon.inventory.application.result.InventoryPageResult;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryReservation;
@@ -65,7 +65,7 @@ public class InventoryQueryApplicationService {
                 .toList();
     }
 
-    public InventoryPageResultDTO pageInventories(
+    public InventoryPageResult pageInventories(
             SkuId skuId, InventoryStatus status, Integer pageNo, Integer pageSize) {
         BaconContextHolder.requireTenantId();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
@@ -75,7 +75,7 @@ public class InventoryQueryApplicationService {
                         .map(InventoryStockAssembler::fromInventory)
                         .toList();
         long total = inventoryStockRepository.countInventories(skuId, status);
-        return new InventoryPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
+        return new InventoryPageResult(records, total, normalizedPageNo, normalizedPageSize);
     }
 
     public InventoryReservationDTO getReservationByOrderNo(OrderNo orderNo) {
@@ -101,7 +101,7 @@ public class InventoryQueryApplicationService {
                 .toList();
     }
 
-    public InventoryAuditDeadLetterPageResultDTO pageAuditDeadLetters(
+    public InventoryAuditDeadLetterPageResult pageAuditDeadLetters(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, Integer pageNo, Integer pageSize) {
         BaconContextHolder.requireTenantId();
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
@@ -113,7 +113,7 @@ public class InventoryQueryApplicationService {
                         .map(InventoryAuditDeadLetterAssembler::toDto)
                         .toList();
         long total = inventoryAuditDeadLetterRepository.countAuditDeadLetters(orderNo, replayStatus);
-        return new InventoryAuditDeadLetterPageResultDTO(records, total, normalizedPageNo, normalizedPageSize);
+        return new InventoryAuditDeadLetterPageResult(records, total, normalizedPageNo, normalizedPageSize);
     }
 
 }

@@ -6,12 +6,12 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationAssembler;
+import com.github.thundax.bacon.inventory.application.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
+import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
@@ -85,7 +85,7 @@ public class InventoryReservationApplicationService {
                 idGenerator);
     }
 
-    public InventoryReservationResultDTO reserveStock(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
+    public InventoryReservationResult reserveStock(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
         Long tenantId = BaconContextHolder.requireTenantId();
         return inventoryWriteRetrier.execute(
                 "reserve",
@@ -93,7 +93,7 @@ public class InventoryReservationApplicationService {
                 () -> inventoryTransactionExecutor.executeInNewTransaction(() -> reserveStockOnce(orderNo, items)));
     }
 
-    private InventoryReservationResultDTO reserveStockOnce(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
+    private InventoryReservationResult reserveStockOnce(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
         InventoryReservation existingReservation =
                 inventoryReservationRepository.findReservation(orderNo).orElse(null);
         if (existingReservation != null) {
@@ -105,7 +105,7 @@ public class InventoryReservationApplicationService {
         return createReservation(orderNo, items);
     }
 
-    private InventoryReservationResultDTO createReservation(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
+    private InventoryReservationResult createReservation(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
         String reservationNo = inventoryReservationNoGenerator.nextReservationNo();
         ReservationNo reservationNoValue = ReservationNoCodec.toDomain(reservationNo);
         WarehouseCode warehouseCodeValue = WarehouseCode.DEFAULT;
@@ -241,7 +241,7 @@ public class InventoryReservationApplicationService {
         inventoryBySku.put(skuId, persistedInventory);
     }
 
-    private InventoryReservationResultDTO completeCreatedReservation(InventoryReservation reservation) {
+    private InventoryReservationResult completeCreatedReservation(InventoryReservation reservation) {
         List<InventoryReservationItemDTO> items = InventoryReservationAssembler.toItemDtos(reservation.getItems());
         ReservationValidationResult validationResult = validateReservation(items);
         String failureReason = validationResult.failureReason();

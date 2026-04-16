@@ -1,16 +1,16 @@
-package com.github.thundax.bacon.inventory.api.dto;
+package com.github.thundax.bacon.inventory.application.result;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 库存审计回放结果传输对象。
+ * 库存审计回放结果。
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InventoryAuditReplayResultDTO {
+public class InventoryAuditReplayResult {
 
     /** 死信记录主键。 */
     private Long deadLetterId;

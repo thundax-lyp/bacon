@@ -1,19 +1,23 @@
 package com.github.thundax.bacon.inventory.interfaces.provider;
 
 import com.github.thundax.bacon.common.commerce.codec.SkuIdCodec;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditLogDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReleaseCommandDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReserveCommandDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReservationItemFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReserveFacadeRequest;
+import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
+import com.github.thundax.bacon.inventory.api.response.InventoryStockFacadeResponse;
+import com.github.thundax.bacon.inventory.api.response.InventoryStockListFacadeResponse;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
+import com.github.thundax.bacon.inventory.application.dto.InventoryAuditLogDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryLedgerDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryReservationItemDTO;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
+import com.github.thundax.bacon.inventory.interfaces.assembler.InventoryReservationResponseAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -50,22 +54,24 @@ public class InventoryProviderController {
 
     @Operation(summary = "查询 SKU 可用库存")
     @GetMapping("/stocks/{skuId}")
-    public InventoryStockDTO getAvailableStock(@PathVariable @NotNull @Positive Long skuId) {
-        return inventoryQueryService.getAvailableStock(SkuIdCodec.toDomain(skuId));
+    public InventoryStockFacadeResponse getAvailableStock(@PathVariable @NotNull @Positive Long skuId) {
+        return InventoryReservationResponseAssembler.fromStockDto(
+                inventoryQueryService.getAvailableStock(SkuIdCodec.toDomain(skuId)));
     }
 
     @Operation(summary = "批量查询 SKU 可用库存")
     @GetMapping("/stocks")
-    public List<InventoryStockDTO> batchGetAvailableStock(
+    public InventoryStockListFacadeResponse batchGetAvailableStock(
             @RequestParam("skuIds") @NotNull Set<@NotNull @Positive Long> skuIds) {
-        return inventoryQueryService.batchGetAvailableStock(
-                skuIds.stream().map(SkuIdCodec::toDomain).collect(Collectors.toSet()));
+        return InventoryReservationResponseAssembler.fromStockDtos(inventoryQueryService.batchGetAvailableStock(
+                skuIds.stream().map(SkuIdCodec::toDomain).collect(Collectors.toSet())));
     }
 
     @Operation(summary = "按订单号查询库存预占结果")
     @GetMapping("/reservations/{orderNo}")
-    public InventoryReservationDTO getReservation(@PathVariable @NotBlank String orderNo) {
-        return inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(orderNo));
+    public InventoryReservationFacadeResponse getReservation(@PathVariable @NotBlank String orderNo) {
+        return InventoryReservationResponseAssembler.fromDto(
+                inventoryQueryService.getReservationByOrderNo(OrderNoCodec.toDomain(orderNo)));
     }
 
     @Operation(summary = "按订单号查询库存流水")
@@ -81,24 +87,24 @@ public class InventoryProviderController {
     }
 
     @Operation(summary = "预占库存")
-    @PostMapping("/reservations/{orderNo}/reserve")
-    public InventoryReservationResultDTO reserve(
-            @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReserveCommandDTO request) {
-        return inventoryApplicationService.reserveStock(OrderNoCodec.toDomain(orderNo), request.getItems());
+    @PostMapping("/reservations/reserve")
+    public InventoryReservationFacadeResponse reserve(@Valid @RequestBody InventoryReserveFacadeRequest request) {
+        return InventoryReservationResponseAssembler.fromResult(inventoryApplicationService.reserveStock(
+                OrderNoCodec.toDomain(request.getOrderNo()), toReservationItemDtos(request.getItems())));
     }
 
     @Operation(summary = "释放预占库存")
-    @PostMapping("/reservations/{orderNo}/release")
-    public InventoryReservationResultDTO release(
-            @PathVariable @NotBlank String orderNo, @Valid @RequestBody InventoryReleaseCommandDTO request) {
-        return inventoryApplicationService.releaseReservedStock(
-                OrderNoCodec.toDomain(orderNo), toReleaseReason(request.getReason()));
+    @PostMapping("/reservations/release")
+    public InventoryReservationFacadeResponse release(@Valid @RequestBody InventoryReleaseFacadeRequest request) {
+        return InventoryReservationResponseAssembler.fromResult(inventoryApplicationService.releaseReservedStock(
+                OrderNoCodec.toDomain(request.getOrderNo()), toReleaseReason(request.getReason())));
     }
 
     @Operation(summary = "扣减预占库存")
-    @PostMapping("/reservations/{orderNo}/deduct")
-    public InventoryReservationResultDTO deduct(@PathVariable @NotBlank String orderNo) {
-        return inventoryApplicationService.deductReservedStock(OrderNoCodec.toDomain(orderNo));
+    @PostMapping("/reservations/deduct")
+    public InventoryReservationFacadeResponse deduct(@Valid @RequestBody InventoryDeductFacadeRequest request) {
+        return InventoryReservationResponseAssembler.fromResult(
+                inventoryApplicationService.deductReservedStock(OrderNoCodec.toDomain(request.getOrderNo())));
     }
 
     private InventoryReleaseReason toReleaseReason(String reason) {
@@ -107,5 +113,11 @@ public class InventoryProviderController {
         } catch (IllegalArgumentException ex) {
             throw new InventoryDomainException(InventoryErrorCode.INVALID_RELEASE_REASON, reason);
         }
+    }
+
+    private List<InventoryReservationItemDTO> toReservationItemDtos(List<InventoryReservationItemFacadeRequest> items) {
+        return items.stream()
+                .map(item -> new InventoryReservationItemDTO(item.getSkuId(), item.getQuantity()))
+                .toList();
     }
 }

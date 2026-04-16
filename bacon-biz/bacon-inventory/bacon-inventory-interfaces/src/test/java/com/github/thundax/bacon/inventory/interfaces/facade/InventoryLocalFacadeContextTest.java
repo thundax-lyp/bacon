@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
+import com.github.thundax.bacon.inventory.api.request.InventoryAvailableStockFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeRequest;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import org.junit.jupiter.api.AfterEach;
@@ -22,7 +24,7 @@ class InventoryLocalFacadeContextTest {
                 new InventoryCommandFacadeLocalImpl(new InventoryApplicationService(null, null, null));
         BaconContextHolder.set(new BaconContext(1001L, null));
 
-        assertThatThrownBy(() -> facade.deductReservedStock("ORD-1"))
+        assertThatThrownBy(() -> facade.deductReservedStock(new InventoryDeductFacadeRequest("ORD-1")))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("userId must not be null");
     }
@@ -33,7 +35,7 @@ class InventoryLocalFacadeContextTest {
                 new InventoryReadFacadeLocalImpl(new InventoryQueryApplicationService(null, null, null, null));
         BaconContextHolder.set(new BaconContext(1001L, null));
 
-        assertThatThrownBy(() -> facade.getAvailableStock(101L))
+        assertThatThrownBy(() -> facade.getAvailableStock(new InventoryAvailableStockFacadeRequest(101L)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("userId must not be null");
     }

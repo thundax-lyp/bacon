@@ -3,7 +3,7 @@ package com.github.thundax.bacon.inventory.application.assembler;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
-import com.github.thundax.bacon.inventory.api.dto.InventoryLedgerDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryLedgerDTO;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryLedgerType;
 import com.github.thundax.bacon.inventory.domain.model.valueobject.ReservationNo;

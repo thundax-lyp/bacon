@@ -2,7 +2,7 @@ package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
+import com.github.thundax.bacon.inventory.application.result.InventoryAuditReplayResult;
 import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -37,7 +37,7 @@ public class InventoryAuditReplayTransactionExecutor {
         this.idGenerator = idGenerator;
     }
 
-    public InventoryAuditReplayResultDTO replayClaimedDeadLetter(
+    public InventoryAuditReplayResult replayClaimedDeadLetter(
             InventoryAuditDeadLetter deadLetter,
             String replayKey,
             InventoryAuditOperatorType operatorType,
@@ -76,7 +76,7 @@ public class InventoryAuditReplayTransactionExecutor {
         });
     }
 
-    private InventoryAuditReplayResultDTO doReplay(
+    private InventoryAuditReplayResult doReplay(
             InventoryAuditDeadLetter deadLetter,
             String replayKey,
             InventoryAuditOperatorType operatorType,
@@ -106,7 +106,7 @@ public class InventoryAuditReplayTransactionExecutor {
                     operatorType,
                     operatorId,
                     replayAt));
-            return new InventoryAuditReplayResultDTO(
+            return new InventoryAuditReplayResult(
                     OutboxIdCodec.toValue(deadLetter.getOutboxId()),
                     InventoryAuditReplayStatus.SUCCEEDED.value(),
                     replayKey,
@@ -128,7 +128,7 @@ public class InventoryAuditReplayTransactionExecutor {
                     operatorType,
                     operatorId,
                     replayAt));
-            return new InventoryAuditReplayResultDTO(
+            return new InventoryAuditReplayResult(
                     OutboxIdCodec.toValue(deadLetter.getOutboxId()),
                     InventoryAuditReplayStatus.FAILED.value(),
                     replayKey,

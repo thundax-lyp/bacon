@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.response;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
+import com.github.thundax.bacon.inventory.application.result.InventoryAuditReplayResult;
 
 /**
  * 库存审计回放结果响应对象。
@@ -15,7 +15,7 @@ public record InventoryAuditReplayResultResponse(
         /** 回放结果信息。 */
         String message) {
 
-    public static InventoryAuditReplayResultResponse from(InventoryAuditReplayResultDTO dto) {
+    public static InventoryAuditReplayResultResponse from(InventoryAuditReplayResult dto) {
         return new InventoryAuditReplayResultResponse(
                 dto.getDeadLetterId(), dto.getReplayStatus(), dto.getReplayKey(), dto.getMessage());
     }

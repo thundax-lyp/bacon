@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.inventory.application.command;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryReservationItemDTO;
+import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.domain.model.enums.InventoryReleaseReason;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -23,15 +23,15 @@ public class InventoryApplicationService {
         this.deductionApplicationService = deductionApplicationService;
     }
 
-    public InventoryReservationResultDTO reserveStock(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
+    public InventoryReservationResult reserveStock(OrderNo orderNo, List<InventoryReservationItemDTO> items) {
         return reservationApplicationService.reserveStock(orderNo, items);
     }
 
-    public InventoryReservationResultDTO releaseReservedStock(OrderNo orderNo, InventoryReleaseReason reason) {
+    public InventoryReservationResult releaseReservedStock(OrderNo orderNo, InventoryReleaseReason reason) {
         return releaseApplicationService.releaseReservedStock(orderNo, reason);
     }
 
-    public InventoryReservationResultDTO deductReservedStock(OrderNo orderNo) {
+    public InventoryReservationResult deductReservedStock(OrderNo orderNo) {
         return deductionApplicationService.deductReservedStock(orderNo);
     }
 }

@@ -7,7 +7,6 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTransactionExecutor;
@@ -71,8 +70,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
 
         var created = BaconContextHolder.callWithTenantId(
                 3001L,
-                () -> taskService.createReplayTask(
-                        new InventoryAuditReplayTaskCreateDTO(9001L, "TASK-BATCH", List.of(101L))));
+                () -> taskService.createReplayTask(9001L, "TASK-BATCH", List.of(101L)));
         assertNotNull(created.getTaskId());
 
         String owner = "test-owner";

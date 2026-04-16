@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.response;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryReservationItemDTO;
 
 /**
  * 库存预占明细响应对象。

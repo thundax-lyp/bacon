@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.application.codec.ReservationNoCodec;
 import com.github.thundax.bacon.inventory.application.codec.WarehouseCodeCodec;
@@ -13,8 +13,8 @@ public final class InventoryReservationResultAssembler {
 
     private InventoryReservationResultAssembler() {}
 
-    public static InventoryReservationResultDTO fromReservation(InventoryReservation reservation) {
-        return new InventoryReservationResultDTO(
+    public static InventoryReservationResult fromReservation(InventoryReservation reservation) {
+        return new InventoryReservationResult(
                 OrderNoCodec.toValue(reservation.getOrderNo()),
                 ReservationNoCodec.toValue(reservation.getReservationNo()),
                 reservation.getReservationStatus() == null
@@ -30,8 +30,8 @@ public final class InventoryReservationResultAssembler {
                 reservation.getDeductedAt());
     }
 
-    public static InventoryReservationResultDTO failed(String orderNo, String failureReason) {
-        return new InventoryReservationResultDTO(
+    public static InventoryReservationResult failed(String orderNo, String failureReason) {
+        return new InventoryReservationResult(
                 orderNo,
                 null,
                 InventoryReservationStatus.FAILED.value(),

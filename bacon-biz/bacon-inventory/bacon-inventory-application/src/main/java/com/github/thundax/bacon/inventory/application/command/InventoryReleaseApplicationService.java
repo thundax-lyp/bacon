@@ -3,10 +3,10 @@ package com.github.thundax.bacon.inventory.application.command;
 import com.github.thundax.bacon.common.commerce.identifier.SkuId;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
 import com.github.thundax.bacon.inventory.application.assembler.InventoryReservationResultAssembler;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
+import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.application.support.InventoryTransactionExecutor;
 import com.github.thundax.bacon.inventory.application.support.InventoryWriteRetrier;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
@@ -56,7 +56,7 @@ public class InventoryReleaseApplicationService {
                 new InventoryWriteRetrier());
     }
 
-    public InventoryReservationResultDTO releaseReservedStock(OrderNo orderNo, InventoryReleaseReason reason) {
+    public InventoryReservationResult releaseReservedStock(OrderNo orderNo, InventoryReleaseReason reason) {
         Long tenantId = BaconContextHolder.requireTenantId();
         Objects.requireNonNull(orderNo, "orderNo must not be null");
         Objects.requireNonNull(reason, "reason must not be null");
@@ -67,7 +67,7 @@ public class InventoryReleaseApplicationService {
                         () -> releaseReservedStockOnce(orderNo, reason)));
     }
 
-    private InventoryReservationResultDTO releaseReservedStockOnce(OrderNo orderNo, InventoryReleaseReason reason) {
+    private InventoryReservationResult releaseReservedStockOnce(OrderNo orderNo, InventoryReleaseReason reason) {
         InventoryReservation reservation =
                 inventoryReservationRepository.findReservation(orderNo).orElse(null);
         if (reservation == null) {

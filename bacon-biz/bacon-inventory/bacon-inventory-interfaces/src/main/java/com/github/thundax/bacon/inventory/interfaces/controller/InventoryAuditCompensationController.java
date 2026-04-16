@@ -3,7 +3,6 @@ package com.github.thundax.bacon.inventory.interfaces.controller;
 import com.github.thundax.bacon.common.id.codec.OperatorIdCodec;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayTaskCreateDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditCompensationApplicationService;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditReplayTaskApplicationService;
 import com.github.thundax.bacon.inventory.application.codec.DeadLetterIdCodec;
@@ -101,9 +100,8 @@ public class InventoryAuditCompensationController {
     @PostMapping("/replay-tasks")
     public InventoryAuditReplayTaskResponse createReplayTask(
             @Valid @RequestBody InventoryAuditReplayTaskCreateRequest request) {
-        return InventoryAuditReplayTaskResponse.from(
-                inventoryAuditReplayTaskService.createReplayTask(new InventoryAuditReplayTaskCreateDTO(
-                        request.operatorId(), request.replayKeyPrefix(), request.deadLetterIds())));
+        return InventoryAuditReplayTaskResponse.from(inventoryAuditReplayTaskService.createReplayTask(
+                request.operatorId(), request.replayKeyPrefix(), request.deadLetterIds()));
     }
 
     @Operation(summary = "查询库存审计死信批量重放任务进度")

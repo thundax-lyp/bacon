@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.inventory.interfaces.response;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryPageResultDTO;
+import com.github.thundax.bacon.inventory.application.result.InventoryPageResult;
 import java.util.List;
 
 /**
@@ -16,7 +16,7 @@ public record InventoryPageResponse(
         /** 每页条数。 */
         int pageSize) {
 
-    public static InventoryPageResponse from(InventoryPageResultDTO dto) {
+    public static InventoryPageResponse from(InventoryPageResult dto) {
         List<InventoryStockResponse> recordResponses = dto.getRecords() == null
                 ? List.of()
                 : dto.getRecords().stream().map(InventoryStockResponse::from).toList();

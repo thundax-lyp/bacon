@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.inventory.application.assembler;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditDeadLetterDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryAuditDeadLetterDTO;
 import com.github.thundax.bacon.inventory.application.codec.DeadLetterIdCodec;
 import com.github.thundax.bacon.inventory.application.codec.EventCodeCodec;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;

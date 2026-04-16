@@ -12,8 +12,8 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryReservationItemDTO;
+import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.application.audit.InventoryAuditOutboxRetrier;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.command.InventoryReservationApplicationService;
@@ -81,27 +81,27 @@ class InventoryWorkflowIntegrationTest {
         CountDownLatch start = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(2);
         try {
-            Supplier<InventoryReservationResultDTO> firstTask = BaconContextHolder.callWithTenantId(
+            Supplier<InventoryReservationResult> firstTask = BaconContextHolder.callWithTenantId(
                     1001L,
-                    () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResultDTO>) () -> {
+                    () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResult>) () -> {
                         await(start);
                         return service.reserveStock(
                                 OrderNo.of("ORDER-C1"), List.of(new InventoryReservationItemDTO(101L, 40)));
                     }));
-            CompletableFuture<InventoryReservationResultDTO> first = CompletableFuture.supplyAsync(firstTask, pool);
-            Supplier<InventoryReservationResultDTO> secondTask = BaconContextHolder.callWithTenantId(
+            CompletableFuture<InventoryReservationResult> first = CompletableFuture.supplyAsync(firstTask, pool);
+            Supplier<InventoryReservationResult> secondTask = BaconContextHolder.callWithTenantId(
                     1001L,
-                    () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResultDTO>) () -> {
+                    () -> AsyncTaskWrapper.wrap((Supplier<InventoryReservationResult>) () -> {
                         await(start);
                         return service.reserveStock(
                                 OrderNo.of("ORDER-C2"), List.of(new InventoryReservationItemDTO(101L, 40)));
                     }));
-            CompletableFuture<InventoryReservationResultDTO> second = CompletableFuture.supplyAsync(secondTask, pool);
+            CompletableFuture<InventoryReservationResult> second = CompletableFuture.supplyAsync(secondTask, pool);
 
             start.countDown();
 
-            InventoryReservationResultDTO firstResult = first.get(5, TimeUnit.SECONDS);
-            InventoryReservationResultDTO secondResult = second.get(5, TimeUnit.SECONDS);
+            InventoryReservationResult firstResult = first.get(5, TimeUnit.SECONDS);
+            InventoryReservationResult secondResult = second.get(5, TimeUnit.SECONDS);
 
             assertEquals(InventoryReservationStatus.RESERVED.value(), firstResult.getReservationStatus());
             assertEquals(InventoryReservationStatus.RESERVED.value(), secondResult.getReservationStatus());

@@ -11,7 +11,7 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
 import jakarta.servlet.ServletException;
@@ -41,7 +41,7 @@ class InventoryProviderControllerContractTest {
                         .param("skuIds", "102")
                         .header(PROVIDER_TOKEN_HEADER, PROVIDER_TOKEN))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].skuId").value(101))
+                .andExpect(jsonPath("$.records[0].skuId").value(101))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 

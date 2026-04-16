@@ -1,15 +1,17 @@
 package com.github.thundax.bacon.inventory.api.facade;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
-import java.util.List;
-import java.util.Set;
+import com.github.thundax.bacon.inventory.api.request.InventoryAvailableStockFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryBatchAvailableStockFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReservationGetFacadeRequest;
+import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
+import com.github.thundax.bacon.inventory.api.response.InventoryStockFacadeResponse;
+import com.github.thundax.bacon.inventory.api.response.InventoryStockListFacadeResponse;
 
 public interface InventoryReadFacade {
 
-    InventoryStockDTO getAvailableStock(Long skuId);
+    InventoryStockFacadeResponse getAvailableStock(InventoryAvailableStockFacadeRequest request);
 
-    List<InventoryStockDTO> batchGetAvailableStock(Set<Long> skuIds);
+    InventoryStockListFacadeResponse batchGetAvailableStock(InventoryBatchAvailableStockFacadeRequest request);
 
-    InventoryReservationDTO getReservationByOrderNo(String orderNo);
+    InventoryReservationFacadeResponse getReservationByOrderNo(InventoryReservationGetFacadeRequest request);
 }

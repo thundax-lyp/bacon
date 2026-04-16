@@ -9,15 +9,15 @@ import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.valueobject.Version;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryReservationItemDTO;
+import com.github.thundax.bacon.inventory.application.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.application.audit.InventoryOperationLogSupport;
 import com.github.thundax.bacon.inventory.application.command.InventoryApplicationService;
 import com.github.thundax.bacon.inventory.application.command.InventoryDeductionApplicationService;
 import com.github.thundax.bacon.inventory.application.command.InventoryReleaseApplicationService;
 import com.github.thundax.bacon.inventory.application.command.InventoryReservationApplicationService;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
+import com.github.thundax.bacon.inventory.application.result.InventoryReservationResult;
 import com.github.thundax.bacon.inventory.domain.model.entity.Inventory;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditLog;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryLedger;
@@ -64,9 +64,9 @@ class InventoryApplicationServiceTest {
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         BaconContextHolder.runWithTenantId(1001L, () -> {
-            InventoryReservationResultDTO first =
+            InventoryReservationResult first =
                     service.reserveStock(OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
-            InventoryReservationResultDTO second =
+            InventoryReservationResult second =
                     service.reserveStock(OrderNo.of("ORDER-1"), List.of(new InventoryReservationItemDTO(101L, 10)));
             InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
             InventoryReservation reservation =
@@ -104,7 +104,7 @@ class InventoryApplicationServiceTest {
                 new InventoryQueryApplicationService(repository, repository, repository, repository);
 
         BaconContextHolder.runWithTenantId(1001L, () -> {
-            InventoryReservationResultDTO result =
+            InventoryReservationResult result =
                     service.reserveStock(OrderNo.of("ORDER-2"), List.of(new InventoryReservationItemDTO(101L, 1000)));
             InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
@@ -137,9 +137,9 @@ class InventoryApplicationServiceTest {
 
         BaconContextHolder.runWithTenantId(1001L, () -> {
             service.reserveStock(OrderNo.of("ORDER-3"), List.of(new InventoryReservationItemDTO(101L, 5)));
-            InventoryReservationResultDTO firstRelease =
+            InventoryReservationResult firstRelease =
                     service.releaseReservedStock(OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
-            InventoryReservationResultDTO secondRelease =
+            InventoryReservationResult secondRelease =
                     service.releaseReservedStock(OrderNo.of("ORDER-3"), InventoryReleaseReason.USER_CANCELLED);
             InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
@@ -173,8 +173,8 @@ class InventoryApplicationServiceTest {
 
         BaconContextHolder.runWithTenantId(1001L, () -> {
             service.reserveStock(OrderNo.of("ORDER-4"), List.of(new InventoryReservationItemDTO(101L, 7)));
-            InventoryReservationResultDTO firstDeduct = service.deductReservedStock(OrderNo.of("ORDER-4"));
-            InventoryReservationResultDTO secondDeduct = service.deductReservedStock(OrderNo.of("ORDER-4"));
+            InventoryReservationResult firstDeduct = service.deductReservedStock(OrderNo.of("ORDER-4"));
+            InventoryReservationResult secondDeduct = service.deductReservedStock(OrderNo.of("ORDER-4"));
             InventoryStockDTO stock = queryService.getAvailableStock(SkuId.of(101L));
 
             assertEquals(InventoryReservationStatus.DEDUCTED.value(), firstDeduct.getReservationStatus());

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.api.dto;
+package com.github.thundax.bacon.inventory.application.dto;
 
 import java.time.Instant;
 import java.util.List;

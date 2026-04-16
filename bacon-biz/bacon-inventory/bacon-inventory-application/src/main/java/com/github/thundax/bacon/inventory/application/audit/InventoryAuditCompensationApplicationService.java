@@ -2,8 +2,8 @@ package com.github.thundax.bacon.inventory.application.audit;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.OperatorId;
-import com.github.thundax.bacon.inventory.api.dto.InventoryAuditReplayResultDTO;
 import com.github.thundax.bacon.inventory.application.codec.OutboxIdCodec;
+import com.github.thundax.bacon.inventory.application.result.InventoryAuditReplayResult;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryDomainException;
 import com.github.thundax.bacon.inventory.domain.exception.InventoryErrorCode;
 import com.github.thundax.bacon.inventory.domain.model.entity.InventoryAuditDeadLetter;
@@ -34,7 +34,7 @@ public class InventoryAuditCompensationApplicationService {
         this.inventoryAuditReplayTransactionService = inventoryAuditReplayTransactionService;
     }
 
-    public InventoryAuditReplayResultDTO replayDeadLetter(
+    public InventoryAuditReplayResult replayDeadLetter(
             DeadLetterId deadLetterId, String replayKey, OperatorId operatorId) {
         requireTenantContext();
         InventoryAuditDeadLetter deadLetter = inventoryAuditDeadLetterRepository
@@ -42,7 +42,7 @@ public class InventoryAuditCompensationApplicationService {
                 .orElseThrow(() -> new InventoryDomainException(
                         InventoryErrorCode.INVENTORY_REMOTE_NOT_FOUND, "dead-letter-not-found:" + deadLetterId));
         if (InventoryAuditReplayStatus.SUCCEEDED.equals(deadLetter.getReplayStatus())) {
-            return new InventoryAuditReplayResultDTO(
+            return new InventoryAuditReplayResult(
                     deadLetterId.value(),
                     deadLetter.getReplayStatus() == null
                             ? null
@@ -56,7 +56,7 @@ public class InventoryAuditCompensationApplicationService {
         boolean claimed = inventoryAuditDeadLetterRepository.claimAuditDeadLetterForReplay(
                 deadLetterId, resolvedReplayKey, REPLAY_OPERATOR_TYPE, operatorId, replayAt);
         if (!claimed) {
-            return new InventoryAuditReplayResultDTO(
+            return new InventoryAuditReplayResult(
                     deadLetterId.value(),
                     InventoryAuditReplayStatus.FAILED.value(),
                     resolvedReplayKey,
@@ -88,7 +88,7 @@ public class InventoryAuditCompensationApplicationService {
                         resolvedReplayKey,
                         compensateException);
             }
-            return new InventoryAuditReplayResultDTO(
+            return new InventoryAuditReplayResult(
                     deadLetterId.value(),
                     InventoryAuditReplayStatus.FAILED.value(),
                     resolvedReplayKey,
@@ -96,13 +96,13 @@ public class InventoryAuditCompensationApplicationService {
         }
     }
 
-    public List<InventoryAuditReplayResultDTO> replayDeadLettersBatch(
+    public List<InventoryAuditReplayResult> replayDeadLettersBatch(
             List<DeadLetterId> deadLetterIds, String replayKeyPrefix, OperatorId operatorId) {
         if (deadLetterIds == null || deadLetterIds.isEmpty()) {
             return List.of();
         }
         // 批量回放本质是对单条回放的串行包装，保证每条死信的认领、事务和失败结果都独立结算。
-        List<InventoryAuditReplayResultDTO> results = new ArrayList<>(deadLetterIds.size());
+        List<InventoryAuditReplayResult> results = new ArrayList<>(deadLetterIds.size());
         for (DeadLetterId deadLetterId : deadLetterIds) {
             String replayKey = replayKeyPrefix == null || replayKeyPrefix.isBlank()
                     ? null

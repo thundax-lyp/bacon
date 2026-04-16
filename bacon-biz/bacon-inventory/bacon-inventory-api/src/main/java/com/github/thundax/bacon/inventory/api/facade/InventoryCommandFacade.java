@@ -1,14 +1,15 @@
 package com.github.thundax.bacon.inventory.api.facade;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationItemDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationResultDTO;
-import java.util.List;
+import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReserveFacadeRequest;
+import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
 
 public interface InventoryCommandFacade {
 
-    InventoryReservationResultDTO reserveStock(String orderNo, List<InventoryReservationItemDTO> items);
+    InventoryReservationFacadeResponse reserveStock(InventoryReserveFacadeRequest request);
 
-    InventoryReservationResultDTO releaseReservedStock(String orderNo, String reason);
+    InventoryReservationFacadeResponse releaseReservedStock(InventoryReleaseFacadeRequest request);
 
-    InventoryReservationResultDTO deductReservedStock(String orderNo);
+    InventoryReservationFacadeResponse deductReservedStock(InventoryDeductFacadeRequest request);
 }

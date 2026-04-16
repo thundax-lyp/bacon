@@ -1,25 +1,23 @@
 package com.github.thundax.bacon.inventory.infra.facade.remote.impl;
 
-import com.github.thundax.bacon.inventory.api.dto.InventoryReservationDTO;
-import com.github.thundax.bacon.inventory.api.dto.InventoryStockDTO;
 import com.github.thundax.bacon.inventory.api.facade.InventoryReadFacade;
+import com.github.thundax.bacon.inventory.api.request.InventoryAvailableStockFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryBatchAvailableStockFacadeRequest;
+import com.github.thundax.bacon.inventory.api.request.InventoryReservationGetFacadeRequest;
+import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
+import com.github.thundax.bacon.inventory.api.response.InventoryStockFacadeResponse;
+import com.github.thundax.bacon.inventory.api.response.InventoryStockListFacadeResponse;
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
-import java.util.List;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
 public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
-
-    private static final ParameterizedTypeReference<List<InventoryStockDTO>> LIST_TYPE =
-            new ParameterizedTypeReference<>() {};
 
     private final RestClient restClient;
 
@@ -31,13 +29,13 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
     @Retry(name = "inventoryRemote", fallbackMethod = "getAvailableStockFallback")
     @CircuitBreaker(name = "inventoryRemote", fallbackMethod = "getAvailableStockFallback")
     @Bulkhead(name = "inventoryRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getAvailableStockFallback")
-    public InventoryStockDTO getAvailableStock(Long skuId) {
+    public InventoryStockFacadeResponse getAvailableStock(InventoryAvailableStockFacadeRequest request) {
         // 查询链路沿用和命令链路一致的 resilience/fallback 规则，避免读接口出现另一套异常语义。
         return restClient
                 .get()
-                .uri("/providers/inventory/stocks/{skuId}", skuId)
+                .uri("/providers/inventory/stocks/{skuId}", request.getSkuId())
                 .retrieve()
-                .body(InventoryStockDTO.class);
+                .body(InventoryStockFacadeResponse.class);
     }
 
     @Override
@@ -47,15 +45,17 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
             name = "inventoryRemote",
             type = Bulkhead.Type.SEMAPHORE,
             fallbackMethod = "batchGetAvailableStockFallback")
-    public List<InventoryStockDTO> batchGetAvailableStock(Set<Long> skuIds) {
+    public InventoryStockListFacadeResponse batchGetAvailableStock(InventoryBatchAvailableStockFacadeRequest request) {
         return restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/providers/inventory/stocks")
-                        .queryParam("skuIds", skuIds.toArray())
+                        .queryParam(
+                                "skuIds",
+                                request.getSkuIds() == null ? new Object[0] : request.getSkuIds().toArray())
                         .build())
                 .retrieve()
-                .body(LIST_TYPE);
+                .body(InventoryStockListFacadeResponse.class);
     }
 
     @Override
@@ -65,26 +65,29 @@ public class InventoryReadFacadeRemoteImpl implements InventoryReadFacade {
             name = "inventoryRemote",
             type = Bulkhead.Type.SEMAPHORE,
             fallbackMethod = "getReservationByOrderNoFallback")
-    public InventoryReservationDTO getReservationByOrderNo(String orderNo) {
+    public InventoryReservationFacadeResponse getReservationByOrderNo(InventoryReservationGetFacadeRequest request) {
         return restClient
                 .get()
-                .uri("/providers/inventory/reservations/{orderNo}", orderNo)
+                .uri("/providers/inventory/reservations/{orderNo}", request.getOrderNo())
                 .retrieve()
-                .body(InventoryReservationDTO.class);
+                .body(InventoryReservationFacadeResponse.class);
     }
 
     @SuppressWarnings("unused")
-    private InventoryStockDTO getAvailableStockFallback(Long skuId, Throwable throwable) {
+    private InventoryStockFacadeResponse getAvailableStockFallback(
+            InventoryAvailableStockFacadeRequest request, Throwable throwable) {
         throw InventoryRemoteExceptionTranslator.translate("getAvailableStock", throwable);
     }
 
     @SuppressWarnings("unused")
-    private List<InventoryStockDTO> batchGetAvailableStockFallback(Set<Long> skuIds, Throwable throwable) {
+    private InventoryStockListFacadeResponse batchGetAvailableStockFallback(
+            InventoryBatchAvailableStockFacadeRequest request, Throwable throwable) {
         throw InventoryRemoteExceptionTranslator.translate("batchGetAvailableStock", throwable);
     }
 
     @SuppressWarnings("unused")
-    private InventoryReservationDTO getReservationByOrderNoFallback(String orderNo, Throwable throwable) {
+    private InventoryReservationFacadeResponse getReservationByOrderNoFallback(
+            InventoryReservationGetFacadeRequest request, Throwable throwable) {
         throw InventoryRemoteExceptionTranslator.translate("getReservationByOrderNo", throwable);
     }
 }

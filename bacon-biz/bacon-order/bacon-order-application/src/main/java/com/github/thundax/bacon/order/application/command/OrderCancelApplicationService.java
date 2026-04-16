@@ -16,6 +16,7 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
+import com.github.thundax.bacon.payment.api.request.PaymentCloseFacadeRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -64,7 +65,7 @@ public class OrderCancelApplicationService {
                 new InventoryReleaseFacadeRequest(OrderNoCodec.toValue(orderNo), reason));
         applyReleaseResult(order, releaseResult, reason);
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
-            paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason);
+            paymentCommandFacade.closePayment(new PaymentCloseFacadeRequest(order.getPaymentNo().value(), reason));
         }
         orderRepository.save(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CANCEL, beforeStatus);

@@ -16,6 +16,7 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderAuditActionType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
+import com.github.thundax.bacon.payment.api.request.PaymentCloseFacadeRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -60,7 +61,7 @@ public class OrderTimeoutApplicationService {
         order.closeExpired(reason);
         // 超时关单的资源回收顺序固定为“先关支付，再释放库存”，与订单生命周期的依赖方向保持一致。
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
-            paymentCommandFacade.closePayment(order.getPaymentNo().value(), reason);
+            paymentCommandFacade.closePayment(new PaymentCloseFacadeRequest(order.getPaymentNo().value(), reason));
         }
         InventoryReservationFacadeResponse releaseResult = inventoryCommandFacade.releaseReservedStock(
                 new InventoryReleaseFacadeRequest(OrderNoCodec.toValue(orderNo), reason));

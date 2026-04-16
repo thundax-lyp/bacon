@@ -1,7 +1,9 @@
 package com.github.thundax.bacon.payment.infra.facade.remote;
 
-import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
+import com.github.thundax.bacon.payment.api.request.PaymentGetByOrderNoFacadeRequest;
+import com.github.thundax.bacon.payment.api.request.PaymentGetByPaymentNoFacadeRequest;
+import com.github.thundax.bacon.payment.api.response.PaymentDetailFacadeResponse;
 import com.github.thundax.bacon.payment.infra.facade.remote.impl.PaymentRemoteExceptionTranslator;
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -25,34 +27,36 @@ public class PaymentReadFacadeRemoteImpl implements PaymentReadFacade {
     @Retry(name = "paymentRemote", fallbackMethod = "getByPaymentNoFallback")
     @CircuitBreaker(name = "paymentRemote", fallbackMethod = "getByPaymentNoFallback")
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getByPaymentNoFallback")
-    public PaymentDetailDTO getByPaymentNo(String paymentNo) {
+    public PaymentDetailFacadeResponse getByPaymentNo(PaymentGetByPaymentNoFacadeRequest request) {
         // 查询链路也沿用同一套 resilience + translator 规则，避免读写远程调用产生不同的失败语义。
         return restClient
                 .get()
-                .uri("/providers/payment/{paymentNo}", paymentNo)
+                .uri("/providers/payment/{paymentNo}", request.getPaymentNo())
                 .retrieve()
-                .body(PaymentDetailDTO.class);
+                .body(PaymentDetailFacadeResponse.class);
     }
 
     @Override
     @Retry(name = "paymentRemote", fallbackMethod = "getByOrderNoFallback")
     @CircuitBreaker(name = "paymentRemote", fallbackMethod = "getByOrderNoFallback")
     @Bulkhead(name = "paymentRemote", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "getByOrderNoFallback")
-    public PaymentDetailDTO getByOrderNo(String orderNo) {
+    public PaymentDetailFacadeResponse getByOrderNo(PaymentGetByOrderNoFacadeRequest request) {
         return restClient
                 .get()
-                .uri("/providers/payment?orderNo={orderNo}", orderNo)
+                .uri("/providers/payment?orderNo={orderNo}", request.getOrderNo())
                 .retrieve()
-                .body(PaymentDetailDTO.class);
+                .body(PaymentDetailFacadeResponse.class);
     }
 
     @SuppressWarnings("unused")
-    private PaymentDetailDTO getByPaymentNoFallback(String paymentNo, Throwable throwable) {
+    private PaymentDetailFacadeResponse getByPaymentNoFallback(
+            PaymentGetByPaymentNoFacadeRequest request, Throwable throwable) {
         throw PaymentRemoteExceptionTranslator.translate("getByPaymentNo", throwable);
     }
 
     @SuppressWarnings("unused")
-    private PaymentDetailDTO getByOrderNoFallback(String orderNo, Throwable throwable) {
+    private PaymentDetailFacadeResponse getByOrderNoFallback(
+            PaymentGetByOrderNoFacadeRequest request, Throwable throwable) {
         throw PaymentRemoteExceptionTranslator.translate("getByOrderNo", throwable);
     }
 }

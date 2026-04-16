@@ -1,14 +1,13 @@
 package com.github.thundax.bacon.payment.api.facade;
 
-import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
-import java.math.BigDecimal;
-import java.time.Instant;
+import com.github.thundax.bacon.payment.api.request.PaymentCloseFacadeRequest;
+import com.github.thundax.bacon.payment.api.request.PaymentCreateFacadeRequest;
+import com.github.thundax.bacon.payment.api.response.PaymentCloseFacadeResponse;
+import com.github.thundax.bacon.payment.api.response.PaymentCreateFacadeResponse;
 
 public interface PaymentCommandFacade {
 
-    PaymentCreateResultDTO createPayment(
-            String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt);
+    PaymentCreateFacadeResponse createPayment(PaymentCreateFacadeRequest request);
 
-    PaymentCloseResultDTO closePayment(String paymentNo, String reason);
+    PaymentCloseFacadeResponse closePayment(PaymentCloseFacadeRequest request);
 }

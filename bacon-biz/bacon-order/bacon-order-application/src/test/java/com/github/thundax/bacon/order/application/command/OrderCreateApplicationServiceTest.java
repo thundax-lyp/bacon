@@ -15,10 +15,10 @@ import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeReque
 import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
 import com.github.thundax.bacon.inventory.api.request.InventoryReserveFacadeRequest;
 import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
-import com.github.thundax.bacon.order.api.dto.OrderPageResultDTO;
-import com.github.thundax.bacon.order.api.dto.OrderSummaryDTO;
+import com.github.thundax.bacon.order.application.dto.OrderSummaryDTO;
 import com.github.thundax.bacon.order.application.executor.OrderIdempotencyExecutor;
 import com.github.thundax.bacon.order.application.query.OrderQueryApplicationService;
+import com.github.thundax.bacon.order.application.result.OrderPageResult;
 import com.github.thundax.bacon.order.application.saga.OrderOutboxActionExecutor;
 import com.github.thundax.bacon.order.application.support.OrderDerivedDataPersistenceSupport;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
@@ -35,9 +35,11 @@ import com.github.thundax.bacon.order.domain.repository.OrderIdempotencyReposito
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
 import com.github.thundax.bacon.order.domain.service.OrderNoGenerator;
-import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
+import com.github.thundax.bacon.payment.api.request.PaymentCloseFacadeRequest;
+import com.github.thundax.bacon.payment.api.request.PaymentCreateFacadeRequest;
+import com.github.thundax.bacon.payment.api.response.PaymentCloseFacadeResponse;
+import com.github.thundax.bacon.payment.api.response.PaymentCreateFacadeResponse;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;
@@ -155,7 +157,7 @@ class OrderCreateApplicationServiceTest {
                     Instant.parse("2026-03-26T10:00:00Z"));
         });
 
-        OrderPageResultDTO page = runWithContext(
+        OrderPageResult page = runWithContext(
                 1001L,
                 2001L,
                 () -> queryService.pageOrders(UserId.of(2001L), null, null, PayStatus.UNPAID, null, null, null, 1, 10));
@@ -701,25 +703,36 @@ class OrderCreateApplicationServiceTest {
     private static class SuccessPaymentCommandFacade implements PaymentCommandFacade {
 
         @Override
-        public PaymentCreateResultDTO createPayment(
-                String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
-            return new PaymentCreateResultDTO(
-                    "PAY-" + orderNo, orderNo, channelCode, "PAYING", "mock://pay/" + orderNo, expiredAt, null);
+        public PaymentCreateFacadeResponse createPayment(PaymentCreateFacadeRequest request) {
+            return new PaymentCreateFacadeResponse(
+                    "PAY-" + request.getOrderNo(),
+                    request.getOrderNo(),
+                    request.getChannelCode(),
+                    "PAYING",
+                    "mock://pay/" + request.getOrderNo(),
+                    request.getExpiredAt(),
+                    null);
         }
 
         @Override
-        public PaymentCloseResultDTO closePayment(String paymentNo, String reason) {
-            return new PaymentCloseResultDTO(paymentNo, null, "CLOSED", "SUCCESS", reason, null);
+        public PaymentCloseFacadeResponse closePayment(PaymentCloseFacadeRequest request) {
+            return new PaymentCloseFacadeResponse(
+                    request.getPaymentNo(), null, "CLOSED", "SUCCESS", request.getReason(), null);
         }
     }
 
     private static final class FailedPaymentCommandFacade extends SuccessPaymentCommandFacade {
 
         @Override
-        public PaymentCreateResultDTO createPayment(
-                String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
-            return new PaymentCreateResultDTO(
-                    null, orderNo, channelCode, "FAILED", null, expiredAt, "payment channel unavailable");
+        public PaymentCreateFacadeResponse createPayment(PaymentCreateFacadeRequest request) {
+            return new PaymentCreateFacadeResponse(
+                    null,
+                    request.getOrderNo(),
+                    request.getChannelCode(),
+                    "FAILED",
+                    null,
+                    request.getExpiredAt(),
+                    "payment channel unavailable");
         }
     }
 }

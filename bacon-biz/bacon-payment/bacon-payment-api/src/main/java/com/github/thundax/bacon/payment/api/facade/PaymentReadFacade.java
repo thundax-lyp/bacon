@@ -1,10 +1,12 @@
 package com.github.thundax.bacon.payment.api.facade;
 
-import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.api.request.PaymentGetByOrderNoFacadeRequest;
+import com.github.thundax.bacon.payment.api.request.PaymentGetByPaymentNoFacadeRequest;
+import com.github.thundax.bacon.payment.api.response.PaymentDetailFacadeResponse;
 
 public interface PaymentReadFacade {
 
-    PaymentDetailDTO getByPaymentNo(String paymentNo);
+    PaymentDetailFacadeResponse getByPaymentNo(PaymentGetByPaymentNoFacadeRequest request);
 
-    PaymentDetailDTO getByOrderNo(String orderNo);
+    PaymentDetailFacadeResponse getByOrderNo(PaymentGetByOrderNoFacadeRequest request);
 }

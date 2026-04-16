@@ -4,10 +4,13 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
+import com.github.thundax.bacon.payment.api.request.PaymentCloseFacadeRequest;
+import com.github.thundax.bacon.payment.api.request.PaymentCreateFacadeRequest;
+import com.github.thundax.bacon.payment.api.response.PaymentCloseFacadeResponse;
+import com.github.thundax.bacon.payment.api.response.PaymentCreateFacadeResponse;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
-import java.math.BigDecimal;
-import java.time.Instant;
+import com.github.thundax.bacon.payment.interfaces.assembler.PaymentFacadeResponseAssembler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -26,15 +29,23 @@ public class PaymentCommandFacadeLocalImpl implements PaymentCommandFacade {
     }
 
     @Override
-    public PaymentCreateResultDTO createPayment(
-            String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
+    public PaymentCreateFacadeResponse createPayment(PaymentCreateFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        return paymentCreateApplicationService.createPayment(orderNo, userId, amount, channelCode, subject, expiredAt);
+        PaymentCreateResultDTO result = paymentCreateApplicationService.createPayment(
+                request.getOrderNo(),
+                request.getUserId(),
+                request.getAmount(),
+                request.getChannelCode(),
+                request.getSubject(),
+                request.getExpiredAt());
+        return PaymentFacadeResponseAssembler.fromCreateResult(result);
     }
 
     @Override
-    public PaymentCloseResultDTO closePayment(String paymentNo, String reason) {
+    public PaymentCloseFacadeResponse closePayment(PaymentCloseFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        return paymentCloseApplicationService.closePayment(paymentNo, reason);
+        PaymentCloseResultDTO result =
+                paymentCloseApplicationService.closePayment(request.getPaymentNo(), request.getReason());
+        return PaymentFacadeResponseAssembler.fromCloseResult(result);
     }
 }

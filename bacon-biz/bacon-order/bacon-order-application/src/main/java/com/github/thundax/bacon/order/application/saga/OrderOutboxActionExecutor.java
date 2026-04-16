@@ -22,8 +22,9 @@ import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
 import com.github.thundax.bacon.order.domain.repository.OrderOutboxRepository;
 import com.github.thundax.bacon.order.domain.repository.OrderRepository;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
+import com.github.thundax.bacon.payment.api.request.PaymentCreateFacadeRequest;
+import com.github.thundax.bacon.payment.api.response.PaymentCreateFacadeResponse;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -157,18 +158,15 @@ public class OrderOutboxActionExecutor {
                 findOrder(event.getOrderNo() == null ? null : event.getOrderNo().value());
         Map<String, String> payload = OrderOutboxPayloadCodec.decode(event.getPayload());
         String channelCode = payload.getOrDefault("channelCode", "MOCK");
-        PaymentCreateResultDTO paymentResult = BaconContextHolder.callWithTenantId(
+        PaymentCreateFacadeResponse paymentResult = BaconContextHolder.callWithTenantId(
                 BaconContextHolder.requireTenantId(),
-                () -> paymentCommandFacade.createPayment(
+                () -> paymentCommandFacade.createPayment(new PaymentCreateFacadeRequest(
                         order.getOrderNo() == null ? null : order.getOrderNo().value(),
                         order.getUserId() == null ? null : order.getUserId().value(),
                         order.getPayableAmount().value(),
                         channelCode,
-                        "order:"
-                                + (order.getOrderNo() == null
-                                        ? null
-                                        : order.getOrderNo().value()),
-                        order.getExpiredAt()));
+                        "order:" + (order.getOrderNo() == null ? null : order.getOrderNo().value()),
+                        order.getExpiredAt())));
         // 创建支付单失败时不只关闭订单，还要补一条释放库存事件，把前一步已预占的资源回收掉。
         if (paymentResult.getPaymentNo() == null
                 || paymentResult.getPaymentNo().isBlank()

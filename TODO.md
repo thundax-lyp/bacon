@@ -253,11 +253,6 @@
   - 验收点：命令应用服务统一使用 command 入参
   - 重要度：6/10
 
-- [ ] `inventory`：为 facade 入站场景补应用层 command，减少 application 直接吃 `api.dto`
-  - 替换对象：`InventoryApplicationService`
-  - 验收点：application 层不再直接依赖 `InventoryReservationItemDTO`
-  - 重要度：7/10
-
 ### P1 - 各模块 `api.dto` 残留治理清单
 
 - [ ] `payment-api`：盘点 facade 真正需要保留在 `api` 的返回模型

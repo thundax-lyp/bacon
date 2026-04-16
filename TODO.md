@@ -176,9 +176,10 @@
 
 ### P0 - 跨域契约先收口
 
-- [ ] `upms-api`：把 `UserReadFacade` 中直接暴露的 `UserId`、`UserIdentityType` 改成稳定 facade 入参
-  - 输出物：新的 facade method signature、对应 local impl / remote impl 调整、调用方编译通过
-  - 验收点：`api` 不再直接依赖 `upms.domain` 类型
+- [ ] `storage-api`：改造 `StoredObjectDTO.id`，去掉 `StoredObjectId`
+  - 目标文件：`StoredObjectDTO`
+  - 处理动作：把 `id` 改为稳定外部表达，并同步调整 assembler / response / provider / facade
+  - 验收点：`StoredObjectDTO` 不再依赖 `com.github.thundax.bacon.common.id.domain.StoredObjectId`
   - 重要度：9/10
 
 - [ ] `storage-api`：去掉 `StoredObjectFacade` 里对 `objectId` 的字符串魔法协议依赖
@@ -187,9 +188,10 @@
   - 验收点：facade 不再需要隐式解析 `"O123"` 这种实现细节
   - 重要度：9/10
 
-- [ ] 补一条跨域契约约束文档或检查规则：`api.facade` 不允许直接引用 domain entity / domain enum / domain VO
-  - 输出物：文档规则或 ArchUnit 检查
-  - 验收点：后续新增 facade 不再继续漂移
+- [ ] `storage-api`：清零 `api -> domain` 违规，补齐新架构规则下的剩余整改
+  - 当前状态：`api.facade` 不直接引用 domain、`api` 不直接依赖 domain 的规则和 ArchUnit 已落地；`auth/inventory/order/payment/upms` 已通过，`storage` 仍待整改
+  - 输出物：清掉 `storage-api` 中对 domain id / VO / 实现细节的直接依赖，并保持规则持续生效
+  - 验收点：`storage` 通过对应 `NamingAndPlacementArchitectureTest` / `LayeredArchitectureTest`
   - 重要度：8/10
 
 ### P0 - `upms` 先拆大类
@@ -256,8 +258,8 @@
 ### P1 - 各模块 `api.dto` 残留治理清单
 
 - [ ] `payment-api`：盘点 facade 真正需要保留在 `api` 的返回模型
-  - 当前对象：`PaymentCreateResultDTO`、`PaymentCloseResultDTO`、`PaymentDetailDTO`
-  - 处理动作：明确哪些属于 `FacadeResponse`，哪些只是应用内部读模型
+  - 当前对象：`PaymentCreateResultDTO`、`PaymentCloseResultDTO`、`PaymentDetailDTO`、`PaymentSummaryDTO`
+  - 处理动作：基于现有 `*FacadeResponse` 契约，明确哪些 DTO 只是应用内部读模型并继续下沉
   - 验收点：`payment-api` 不再继续扩大 `api.dto` 范围
   - 重要度：8/10
 
@@ -270,31 +272,6 @@
   - 影响范围：payment query/provider/assembler/tests
   - 验收点：审计读模型不再放在 `payment.api.dto`
   - 重要度：7/10
-
-- [ ] `payment-api`：把 `PaymentCreateResultDTO` / `PaymentCloseResultDTO` 改名并迁到 `api.response`
-  - 影响范围：`PaymentCommandFacade`、local impl、remote impl、`OrderOutboxActionExecutor`
-  - 验收点：facade 输出统一为 `*FacadeResponse`
-  - 重要度：8/10
-
-- [ ] `order-application`：把 `OrderSummaryDTO` 下沉到 `application.dto`
-  - 影响范围：`OrderCreateApplicationService`、`OrderQueryApplicationService`、interfaces response、controller tests
-  - 验收点：订单应用内部摘要模型不再位于 `order.api.dto`
-  - 重要度：8/10
-
-- [ ] `order-application`：把 `OrderDetailDTO` / `OrderItemDTO` 下沉到 `application.dto`
-  - 影响范围：`OrderQueryApplicationService`、`OrderReadFacadeLocalImpl`、`OrderReadFacadeRemoteImpl`、`OrderDetailResponse`、`OrderItemResponse`
-  - 验收点：详情读模型与 facade 契约脱钩
-  - 重要度：8/10
-
-- [ ] `order-application`：把 `OrderPageResultDTO` 下沉到 `application.dto`
-  - 影响范围：分页查询、provider/controller、interfaces response
-  - 验收点：分页结果不再停留在 `order.api.dto`
-  - 重要度：7/10
-
-- [ ] `order-api`：为 `OrderReadFacade` 明确 `FacadeRequest` / `FacadeResponse`
-  - 当前问题：仍直接暴露 `OrderDetailDTO`、`OrderPageResultDTO`
-  - 验收点：读取门面签名与 inventory 新规一致
-  - 重要度：8/10
 
 - [ ] `storage-api`：拆分 `api.dto` 中的 command / query / response 混放问题
   - 当前对象：`UploadObjectCommand`、`InitMultipartUploadCommand`、`CompleteMultipartUploadCommand`、`AbortMultipartUploadCommand`、`UploadMultipartPartCommand`
@@ -353,8 +330,9 @@
   - 重要度：8/10
 
 - [ ] `upms-api`：逐个 facade 补 `FacadeRequest` / `FacadeResponse` 命名规约
-  - 目标接口：`DepartmentReadFacade`、`RoleReadFacade`、`UserReadFacade`、`PermissionReadFacade`
-  - 验收点：upms facade 契约和 inventory 文档规则一致
+  - 目标接口：`DepartmentReadFacade`、`RoleReadFacade`、`UserReadFacade`、`PermissionReadFacade`、`UserPasswordFacade`
+  - 前置关系：优先完成上面的 domain 依赖清理，再统一命名
+  - 验收点：upms facade 契约和 inventory/payment/order 新规一致
   - 重要度：9/10
 
 - [ ] 形成统一约束：application 公共入口优先使用 `Command / Query / VO`，禁止新增多 primitive 长参数方法

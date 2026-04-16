@@ -4,6 +4,8 @@ import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
+import com.github.thundax.bacon.order.api.request.OrderMarkPaidFacadeRequest;
+import com.github.thundax.bacon.order.api.request.OrderMarkPaymentFailedFacadeRequest;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -105,12 +107,12 @@ public class PaymentCallbackApplicationService {
                 beforeStatus,
                 paymentOrder.getPaymentStatus().value(),
                 paidTime);
-        BaconContextHolder.runWithCurrentContext(() -> orderCommandFacade.markPaid(
+        BaconContextHolder.runWithCurrentContext(() -> orderCommandFacade.markPaid(new OrderMarkPaidFacadeRequest(
                 paymentOrder.getOrderNo().value(),
                 paymentNo,
                 channelCode,
                 paymentOrder.getAmount().value(),
-                paidTime));
+                paidTime)));
     }
 
     public void callbackFailed(
@@ -172,7 +174,8 @@ public class PaymentCallbackApplicationService {
                 paymentOrder.getPaymentStatus().value(),
                 failedTime);
         BaconContextHolder.runWithCurrentContext(() -> orderCommandFacade.markPaymentFailed(
-                paymentOrder.getOrderNo().value(), paymentNo, reason, channelStatus, failedTime));
+                new OrderMarkPaymentFailedFacadeRequest(
+                        paymentOrder.getOrderNo().value(), paymentNo, reason, channelStatus, failedTime)));
     }
 
     private void validateChannel(String channelCode) {

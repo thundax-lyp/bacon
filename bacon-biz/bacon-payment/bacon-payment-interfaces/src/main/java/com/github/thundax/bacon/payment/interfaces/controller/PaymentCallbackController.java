@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Validated
 @RestController
-@RequestMapping("/payment/callback")
+@RequestMapping("/payment/callbacks")
 @Tag(name = "Payment-Callback", description = "支付回调接口")
 public class PaymentCallbackController {
 

@@ -7,6 +7,9 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
+import com.github.thundax.bacon.order.api.request.OrderCloseExpiredFacadeRequest;
+import com.github.thundax.bacon.order.api.request.OrderMarkPaidFacadeRequest;
+import com.github.thundax.bacon.order.api.request.OrderMarkPaymentFailedFacadeRequest;
 import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
@@ -373,19 +376,17 @@ class PaymentApplicationServiceTest {
         private int markFailedCount;
 
         @Override
-        public void markPaid(
-                String orderNo, String paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
+        public void markPaid(OrderMarkPaidFacadeRequest request) {
             markPaidCount++;
         }
 
         @Override
-        public void markPaymentFailed(
-                String orderNo, String paymentNo, String reason, String channelStatus, Instant failedTime) {
+        public void markPaymentFailed(OrderMarkPaymentFailedFacadeRequest request) {
             markFailedCount++;
         }
 
         @Override
-        public void closeExpiredOrder(String orderNo, String reason) {
+        public void closeExpiredOrder(OrderCloseExpiredFacadeRequest request) {
             // not used by payment tests
         }
     }

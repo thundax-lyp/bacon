@@ -17,7 +17,7 @@ class PaymentCallbackControllerContractTest {
         MockMvc mockMvc = buildMockMvc();
 
         mockMvc.perform(
-                        post("/payment/callback/MOCK")
+                        post("/payment/callbacks/MOCK")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         """
@@ -36,7 +36,7 @@ class PaymentCallbackControllerContractTest {
         MockMvc mockMvc = buildMockMvc();
 
         mockMvc.perform(
-                        post("/payment/callback/MOCK")
+                        post("/payment/callbacks/MOCK")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         """
@@ -55,7 +55,7 @@ class PaymentCallbackControllerContractTest {
         MockMvc mockMvc = buildMockMvc();
 
         mockMvc.perform(
-                        post("/payment/callback/MOCK")
+                        post("/payment/callbacks/MOCK")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         """

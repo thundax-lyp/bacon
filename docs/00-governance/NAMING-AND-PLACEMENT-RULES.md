@@ -50,8 +50,8 @@
 
 - `LAYER_CROSS_DOMAIN_FACADE_ONLY`：跨域调用统一依赖对方域 `api.facade`，不直接依赖对方域 `application`、`infra`
 - `LAYER_FACADE_SIGNATURE_MODEL`：仅 `api.facade` 方法签名使用 `FacadeRequest` / `FacadeResponse`
-- `LAYER_FACADE_SINGLE_REQUEST`：`Facade` 方法入参固定使用单个 `XxxFacadeRequest`
-- `LAYER_FACADE_RESPONSE_ONLY`：`Facade` 方法固定返回 `XxxFacadeResponse`
+- `LAYER_FACADE_SINGLE_REQUEST`：`Facade` 方法入参固定为“无入参或单个 `XxxFacadeRequest`”
+- `LAYER_FACADE_RESPONSE_ONLY`：`Facade` 方法返回固定为 `XxxFacadeResponse` 或 `void`
 - `LAYER_PERSISTENCE_ASSEMBLER_PLACEMENT`：`*PersistenceAssembler` 必须位于 `infra.persistence.assembler..`
 - `LAYER_PERSISTENCE_ASSEMBLER_PUBLIC_METHODS`：`*PersistenceAssembler` 公开方法只允许 `toDomain(...)`、`toDataObject(...)`
 

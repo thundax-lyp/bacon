@@ -52,12 +52,6 @@
 
 ### P0 - 跨域契约先收口
 
-- [ ] `storage-api`：改造 `StoredObjectDTO.id`，去掉 `StoredObjectId`
-  - 目标文件：`StoredObjectDTO`
-  - 处理动作：把 `id` 改为稳定外部表达，并同步调整 assembler / response / provider / facade
-  - 验收点：`StoredObjectDTO` 不再依赖 `com.github.thundax.bacon.common.id.domain.StoredObjectId`
-  - 重要度：9/10
-
 - [ ] `storage-api`：去掉 `StoredObjectFacade` 里对 `objectId` 的字符串魔法协议依赖
   - 现状问题：local impl 里存在 `"O"` 前缀剥离逻辑
   - 输出物：统一的 objectId 表达方式，以及 facade/local/remote 调整

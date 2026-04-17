@@ -4,7 +4,7 @@ import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.inventory.application.codec.OrderNoCodec;
 import com.github.thundax.bacon.inventory.application.query.InventoryQueryApplicationService;
-import com.github.thundax.bacon.inventory.interfaces.dto.InventoryOrderScopedRequest;
+import com.github.thundax.bacon.inventory.interfaces.request.InventoryOrderScopedRequest;
 import com.github.thundax.bacon.inventory.interfaces.response.InventoryLedgerResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

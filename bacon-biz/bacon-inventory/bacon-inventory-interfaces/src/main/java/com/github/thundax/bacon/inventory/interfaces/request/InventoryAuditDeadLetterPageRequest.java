@@ -1,8 +1,7 @@
-package com.github.thundax.bacon.inventory.interfaces.dto;
+package com.github.thundax.bacon.inventory.interfaces.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,13 +10,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InventoryPageRequest {
+public class InventoryAuditDeadLetterPageRequest {
 
-    @Positive
-    private Long skuId;
+    @Size(max = 64)
+    private String orderNo;
 
-    @Size(max = 32)
-    private String status;
+    @Size(max = 16)
+    private String replayStatus;
 
     @Min(1)
     private Integer pageNo;

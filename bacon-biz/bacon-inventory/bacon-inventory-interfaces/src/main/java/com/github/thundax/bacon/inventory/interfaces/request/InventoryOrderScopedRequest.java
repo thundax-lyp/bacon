@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.inventory.interfaces.dto;
+package com.github.thundax.bacon.inventory.interfaces.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

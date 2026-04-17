@@ -52,16 +52,10 @@
 
 ### P0 - 跨域契约先收口
 
-- [ ] `storage-api`：去掉 `StoredObjectFacade` 里对 `objectId` 的字符串魔法协议依赖
-  - 现状问题：local impl 里存在 `"O"` 前缀剥离逻辑
-  - 输出物：统一的 objectId 表达方式，以及 facade/local/remote 调整
-  - 验收点：facade 不再需要隐式解析 `"O123"` 这种实现细节
-  - 重要度：9/10
-
 - [ ] `storage-api`：清零 `api -> domain` 违规，补齐新架构规则下的剩余整改
-  - 当前状态：`api.facade` 不直接引用 domain、`api` 不直接依赖 domain 的规则和 ArchUnit 已落地；`auth/inventory/order/payment/upms` 已通过，`storage` 仍待整改
-  - 输出物：清掉 `storage-api` 中对 domain id / VO / 实现细节的直接依赖，并保持规则持续生效
-  - 验收点：`storage` 通过对应 `NamingAndPlacementArchitectureTest` / `LayeredArchitectureTest`
+  - 当前状态：`storage-api` 已清掉 `api -> domain` 直接依赖，`objectId` 字符串魔法协议已移除；剩余失败点集中在 facade `request/response` 命名规约
+  - 输出物：在现有拆分 `StoredObjectCommandFacade` / `StoredObjectReadFacade` 基础上，补齐 `*FacadeRequest` / `*FacadeResponse`
+  - 验收点：`storage` 通过对应 `NamingAndPlacementArchitectureTest` / `LayeredArchitectureTest`（含 `shouldUseFacadeRequestAndFacadeResponse`）
   - 重要度：8/10
 
 ### P0 - `upms` 先拆大类

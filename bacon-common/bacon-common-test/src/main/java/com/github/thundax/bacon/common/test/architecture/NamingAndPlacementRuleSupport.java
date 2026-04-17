@@ -161,6 +161,44 @@ public final class NamingAndPlacementRuleSupport {
                 .because("Codec -> application.codec");
     }
 
+    public static ArchRule persistenceAssemblerShouldUsePersistenceAssemblerNameAndPackage(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .haveSimpleNameEndingWith("PersistenceAssembler")
+                .should()
+                .resideInAPackage(basePackage + ".infra.persistence.assembler..")
+                .allowEmptyShould(true)
+                .because("RULE LAYER_PERSISTENCE_ASSEMBLER_PLACEMENT: PersistenceAssembler must reside in infra.persistence.assembler");
+    }
+
+    public static ArchRule persistenceAssemblerPublicMethodsShouldUseToDomainAndToDataObject(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .haveSimpleNameEndingWith("PersistenceAssembler")
+                .and()
+                .resideInAPackage(basePackage + ".infra.persistence.assembler..")
+                .should(new ArchCondition<>("declare only toDomain/toDataObject as public methods") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (JavaMethod method : item.getMethods()) {
+                            if (!method.getOwner().equals(item)
+                                    || !method.getModifiers().contains(JavaModifier.PUBLIC)) {
+                                continue;
+                            }
+                            String methodName = method.getName();
+                            if (!"toDomain".equals(methodName) && !"toDataObject".equals(methodName)) {
+                                events.add(SimpleConditionEvent.violated(
+                                        method,
+                                        formatMethod(item, method)
+                                                + " is public but not allowed in PersistenceAssembler"));
+                            }
+                        }
+                    }
+                })
+                .allowEmptyShould(true)
+                .because("RULE LAYER_PERSISTENCE_ASSEMBLER_PUBLIC_METHODS: PersistenceAssembler public methods must be toDomain/toDataObject only");
+    }
+
     public static ArchRule facadeShouldUseFacadeNameAndPackage(String basePackage) {
         return ArchRuleDefinition.classes()
                 .that()
@@ -169,6 +207,26 @@ public final class NamingAndPlacementRuleSupport {
                 .resideInAPackage(basePackage + ".api.facade..")
                 .allowEmptyShould(true)
                 .because("Facade -> api.facade");
+    }
+
+    public static ArchRule facadeRequestShouldUseFacadeRequestNameAndPackage(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(basePackage + ".api.request..")
+                .should()
+                .haveSimpleNameEndingWith("FacadeRequest")
+                .allowEmptyShould(true)
+                .because("RULE NAME_FACADE_REQUEST: classes in api.request must end with FacadeRequest");
+    }
+
+    public static ArchRule facadeResponseShouldUseFacadeResponseNameAndPackage(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(basePackage + ".api.response..")
+                .should()
+                .haveSimpleNameEndingWith("FacadeResponse")
+                .allowEmptyShould(true)
+                .because("RULE NAME_FACADE_RESPONSE: classes in api.response must end with FacadeResponse");
     }
 
     public static ArchRule facadeMethodShouldUseFacadeRequestAndResponse(String basePackage) {
@@ -219,6 +277,72 @@ public final class NamingAndPlacementRuleSupport {
                 })
                 .allowEmptyShould(true)
                 .because("Facade methods must use zero-or-one FacadeRequest and optional FacadeResponse");
+    }
+
+    public static ArchRule facadeMethodShouldUseSingleFacadeRequest(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(basePackage + ".api.facade..")
+                .and()
+                .areInterfaces()
+                .should(new ArchCondition<>("declare Facade methods using a single FacadeRequest parameter") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        item.getMethods().stream()
+                                .filter(method -> method.getOwner().equals(item))
+                                .filter(method -> !method.getModifiers().contains(JavaModifier.STATIC))
+                                .forEach(method -> {
+                                    boolean requestMatched = method.getRawParameterTypes().isEmpty()
+                                            || (method.getRawParameterTypes().size() == 1
+                                                    && method.getRawParameterTypes().stream()
+                                                            .allMatch(parameterType -> parameterType.getSimpleName()
+                                                                            .endsWith("FacadeRequest")
+                                                                    && parameterType.getPackageName()
+                                                                            .startsWith(basePackage + ".api.request")));
+                                    String detail = requestMatched
+                                            ? formatMethod(item, method)
+                                                    + " uses empty-or-single FacadeRequest parameter"
+                                            : formatMethod(item, method)
+                                                    + " violation: parameters must be empty or use a single "
+                                                    + basePackage
+                                                    + ".api.request.*FacadeRequest";
+                                    events.add(new SimpleConditionEvent(method, requestMatched, detail));
+                                });
+                    }
+                })
+                .allowEmptyShould(true)
+                .because("Facade methods must use zero-or-one FacadeRequest parameter");
+    }
+
+    public static ArchRule facadeMethodShouldUseFacadeResponse(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .resideInAPackage(basePackage + ".api.facade..")
+                .and()
+                .areInterfaces()
+                .should(new ArchCondition<>("declare Facade methods returning FacadeResponse") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        item.getMethods().stream()
+                                .filter(method -> method.getOwner().equals(item))
+                                .filter(method -> !method.getModifiers().contains(JavaModifier.STATIC))
+                                .forEach(method -> {
+                                    JavaClass returnType = method.getRawReturnType();
+                                    boolean responseMatched = returnType.isEquivalentTo(void.class)
+                                            || (returnType.getSimpleName().endsWith("FacadeResponse")
+                                                    && returnType.getPackageName().startsWith(basePackage + ".api.response"));
+                                    String detail = responseMatched
+                                            ? formatMethod(item, method) + " returns FacadeResponse or void"
+                                            : formatMethod(item, method)
+                                                    + " violation: return type must be void or use "
+                                                    + basePackage
+                                                    + ".api.response.*FacadeResponse";
+                                    events.add(new SimpleConditionEvent(method, responseMatched, detail));
+                                });
+                    }
+                })
+                .allowEmptyShould(true)
+                .because("Facade methods must return FacadeResponse or void");
     }
 
     public static ArchRule facadeLocalImplShouldUseFacadeLocalImplNameAndPackage(String basePackage) {

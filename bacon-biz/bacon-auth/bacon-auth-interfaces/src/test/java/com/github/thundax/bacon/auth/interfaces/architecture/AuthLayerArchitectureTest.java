@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.auth.interfaces.architecture;
 
-import com.github.thundax.bacon.common.test.architecture.AbstractLayeredArchitectureTest;
+import com.github.thundax.bacon.common.test.architecture.AbstractLayerArchitectureTest;
 
-class AuthLayeredArchitectureTest extends AbstractLayeredArchitectureTest {
+class AuthLayerArchitectureTest extends AbstractLayerArchitectureTest {
 
     @Override
     protected String basePackage() {

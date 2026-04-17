@@ -2,7 +2,6 @@ package com.github.thundax.bacon.common.test.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -23,127 +22,109 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
-    @DisplayName("Controller：对外业务 HTTP 入口，命名 {业务对象}{动作}Controller，目录 interfaces/controller/")
-    void shouldFollowControllerRule() {
+    void shouldEnforceNameControllerPlacement() {
         NamingAndPlacementRuleSupport.controllerShouldUseControllerNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("Controller 路径：类级 @RequestMapping 必须以 /{domain} 开头，对外完整路径为 /api/{domain}/**")
-    void shouldFollowControllerRequestMappingPrefixRule() {
-        NamingAndPlacementRuleSupport.controllerRequestMappingShouldUseDomainPrefix(basePackage())
-                .check(classes());
-    }
-
-    @Test
-    @DisplayName("ProviderController：对内服务 HTTP 入口，命名 {业务对象}{动作}ProviderController，目录 interfaces/provider/")
-    void shouldFollowProviderControllerRule() {
+    void shouldEnforceNameProviderControllerPlacement() {
         NamingAndPlacementRuleSupport.providerControllerShouldUseProviderControllerNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("ProviderController 路径：类级 @RequestMapping 必须以 /providers/{domain} 开头")
-    void shouldFollowProviderControllerRequestMappingPrefixRule() {
-        NamingAndPlacementRuleSupport.providerControllerRequestMappingShouldUseDomainPrefix(basePackage())
-                .check(classes());
-    }
-
-    @Test
-    @DisplayName("Resolver：接口层请求解析辅助对象，命名 {业务对象}{动作}Resolver，目录 interfaces/resolver/")
-    void shouldFollowResolverRule() {
+    void shouldEnforceNameResolverPlacement() {
         NamingAndPlacementRuleSupport.resolverShouldUseResolverNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("ApplicationService：业务用例编排入口，命名以 ApplicationService 结尾，目录 application/command|query|audit")
-    void shouldFollowApplicationServiceRule() {
+    void shouldEnforceNameApplicationServicePlacement() {
         NamingAndPlacementRuleSupport.applicationServiceShouldUseApplicationServiceNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("DomainService：封装领域规则，命名 {业务对象}DomainService，目录 domain/service/")
-    void shouldFollowDomainServiceRule() {
+    void shouldEnforceNameDomainServicePlacement() {
         NamingAndPlacementRuleSupport.domainServiceShouldUseDomainServiceNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("Repository：领域仓储接口，命名 {业务对象}Repository，目录 domain/repository/")
-    void shouldFollowRepositoryRule() {
+    void shouldEnforceNameRepositoryPlacement() {
         NamingAndPlacementRuleSupport.repositoryShouldUseRepositoryNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("RepositoryImpl：仓储实现，命名 {业务对象}RepositoryImpl，目录 infra/repository/impl/")
-    void shouldFollowRepositoryImplRule() {
+    void shouldEnforceNameRepositoryImplPlacement() {
         NamingAndPlacementRuleSupport.repositoryImplShouldUseRepositoryImplNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("Mapper：持久化映射，命名 {业务对象}Mapper，目录 infra/persistence/mapper/")
-    void shouldFollowMapperRule() {
+    void shouldEnforceNameMapperPlacement() {
         NamingAndPlacementRuleSupport.mapperShouldUseMapperNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("DO：持久化对象，命名 {业务对象}DO，目录 infra/persistence/dataobject/")
-    void shouldFollowDataObjectRule() {
+    void shouldEnforceNameDataObjectPlacement() {
         NamingAndPlacementRuleSupport.dataObjectShouldUseDONameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("持久化对象不再使用 DataObject 后缀")
-    void shouldNotUseDataObjectSuffix() {
+    void shouldEnforceNameDataObjectSuffix() {
         NamingAndPlacementRuleSupport.shouldNotUseDataObjectSuffix(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("Converter：对象转换，命名 {业务对象}Converter，目录 infra/repository/converter/")
-    void shouldFollowConverterRule() {
+    void shouldEnforceNameConverterPlacement() {
         NamingAndPlacementRuleSupport.converterShouldUseConverterNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("Codec：值对象编解码，命名 {业务对象}Codec，目录 application/codec/")
-    void shouldFollowCodecRule() {
+    void shouldEnforceNameCodecPlacement() {
         NamingAndPlacementRuleSupport.codecShouldUseCodecNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("Facade：跨域调用契约，命名 {业务对象}{动作}Facade，目录 api/facade/")
-    void shouldFollowFacadeRule() {
+    void shouldEnforceNamePersistenceAssemblerPlacement() {
+        NamingAndPlacementRuleSupport.persistenceAssemblerShouldUsePersistenceAssemblerNameAndPackage(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldEnforceNameFacadePlacement() {
         NamingAndPlacementRuleSupport.facadeShouldUseFacadeNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("Facade 方法签名：统一使用单个 FacadeRequest 和 FacadeResponse")
-    void shouldUseFacadeRequestAndFacadeResponse() {
-        NamingAndPlacementRuleSupport.facadeMethodShouldUseFacadeRequestAndResponse(basePackage())
+    void shouldEnforceNameFacadeRequest() {
+        NamingAndPlacementRuleSupport.facadeRequestShouldUseFacadeRequestNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("FacadeLocalImpl：单体模式门面实现，命名 {业务对象}{动作}FacadeLocalImpl，目录 interfaces/facade/")
-    void shouldFollowFacadeLocalImplRule() {
+    void shouldEnforceNameFacadeResponse() {
+        NamingAndPlacementRuleSupport.facadeResponseShouldUseFacadeResponseNameAndPackage(basePackage())
+                .check(classes());
+    }
+
+    @Test
+    void shouldEnforceNameFacadeLocalImplPlacement() {
         NamingAndPlacementRuleSupport.facadeLocalImplShouldUseFacadeLocalImplNameAndPackage(basePackage())
                 .check(classes());
     }
 
     @Test
-    @DisplayName("FacadeRemoteImpl：微服务模式门面实现，命名 {业务对象}{动作}FacadeRemoteImpl，目录 infra/facade/remote/")
-    void shouldFollowFacadeRemoteImplRule() {
+    void shouldEnforceNameFacadeRemoteImplPlacement() {
         NamingAndPlacementRuleSupport.facadeRemoteImplShouldUseFacadeRemoteImplNameAndPackage(basePackage())
                 .check(classes());
     }

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public final class LayeredArchitectureRuleSupport {
+public final class LayerArchitectureRuleSupport {
 
     private static final String ROOT_PACKAGE = "com.github.thundax.bacon";
     private static final String SYS_LOG_ANNOTATION = "com.github.thundax.bacon.common.log.annotation.SysLog";
@@ -45,7 +45,7 @@ public final class LayeredArchitectureRuleSupport {
             "org.springframework.kafka.",
             "org.apache.rocketmq.");
 
-    private LayeredArchitectureRuleSupport() {}
+    private LayerArchitectureRuleSupport() {}
 
     public static JavaClasses importDomainClasses(String basePackage) {
         return new ClassFileImporter()
@@ -131,6 +131,26 @@ public final class LayeredArchitectureRuleSupport {
                 "interfaces 不得直接依赖其他业务域的 infra");
     }
 
+    public static ArchRule controllerAndProviderShouldNotDependOnOtherDomainApplication(String basePackage) {
+        return ArchRuleDefinition.noClasses()
+                .that()
+                .resideInAnyPackage(basePackage + ".interfaces.controller..", basePackage + ".interfaces.provider..")
+                .should(new ArchCondition<>("directly depend on other domain application") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        for (Dependency dependency : item.getDirectDependenciesFromSelf()) {
+                            String targetPackage = dependency.getTargetClass().getPackageName();
+                            if (targetPackage.startsWith(ROOT_PACKAGE + ".")
+                                    && targetPackage.contains(".application.")
+                                    && !targetPackage.startsWith(basePackage + ".")) {
+                                events.add(SimpleConditionEvent.violated(item, dependency.getDescription()));
+                            }
+                        }
+                    }
+                })
+                .because("RULE LAYER_CROSS_DOMAIN_FACADE_ONLY: controller/provider must not depend on other-domain application");
+    }
+
     public static ArchRule applicationShouldNotDependOnAnyDomainInfra(String basePackage) {
         return noDirectDependencies(
                 basePackage + ".application..",
@@ -167,7 +187,7 @@ public final class LayeredArchitectureRuleSupport {
     public static ArchRule domainShouldNotDependOnTechnicalPackages(String basePackage) {
         return noDirectDependencies(
                 basePackage + ".domain..",
-                LayeredArchitectureRuleSupport::isForbiddenDomainTechnologyPackage,
+                LayerArchitectureRuleSupport::isForbiddenDomainTechnologyPackage,
                 "Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术包",
                 "domain 不得依赖 Spring MVC、MyBatis、HTTP client、Redis、MQ 等技术包");
     }

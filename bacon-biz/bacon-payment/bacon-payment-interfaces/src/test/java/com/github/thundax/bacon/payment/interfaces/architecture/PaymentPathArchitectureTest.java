@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.payment.interfaces.architecture;
 
-import com.github.thundax.bacon.common.test.architecture.AbstractLayeredArchitectureTest;
+import com.github.thundax.bacon.common.test.architecture.AbstractPathArchitectureTest;
 
-class PaymentLayeredArchitectureTest extends AbstractLayeredArchitectureTest {
+class PaymentPathArchitectureTest extends AbstractPathArchitectureTest {
 
     @Override
     protected String basePackage() {

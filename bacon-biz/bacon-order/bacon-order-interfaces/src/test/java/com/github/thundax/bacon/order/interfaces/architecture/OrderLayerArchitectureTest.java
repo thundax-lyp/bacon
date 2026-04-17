@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.order.interfaces.architecture;
 
-import com.github.thundax.bacon.common.test.architecture.AbstractLayeredArchitectureTest;
+import com.github.thundax.bacon.common.test.architecture.AbstractLayerArchitectureTest;
 
-class OrderLayeredArchitectureTest extends AbstractLayeredArchitectureTest {
+class OrderLayerArchitectureTest extends AbstractLayerArchitectureTest {
 
     @Override
     protected String basePackage() {

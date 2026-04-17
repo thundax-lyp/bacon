@@ -92,7 +92,7 @@ class NamingAndPlacementRuleSupportTest {
                         && detail.contains("return type must be void or use")
                         && detail.contains(".api.response.*FacadeResponse"))
                 .anyMatch(detail -> detail.contains("InvalidFixtureFacade#listByKeyword(String)")
-                        && detail.contains("parameters must be empty or use")
+                        && detail.contains("parameters must be empty or use a single")
                         && detail.contains(".api.request.*FacadeRequest"))
                 .anyMatch(detail -> detail.contains("InvalidFixtureFacade#listByKeyword(String)")
                         && detail.contains("return type must be void or use")

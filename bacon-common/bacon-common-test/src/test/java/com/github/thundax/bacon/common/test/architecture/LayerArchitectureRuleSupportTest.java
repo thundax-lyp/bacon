@@ -14,7 +14,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.EvaluationResult;
 import org.junit.jupiter.api.Test;
 
-class LayeredArchitectureRuleSupportTest {
+class LayerArchitectureRuleSupportTest {
 
     @Test
     void apiShouldAcceptClassesThatDoNotDependOnDomain() {
@@ -54,13 +54,13 @@ class LayeredArchitectureRuleSupportTest {
 
     private static EvaluationResult evaluateApiDomainRule(Class<?>... targetClasses) {
         String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.layered";
-        return LayeredArchitectureRuleSupport.apiShouldNotDependOnAnyDomain(basePackage)
+        return LayerArchitectureRuleSupport.apiShouldNotDependOnAnyDomain(basePackage)
                 .evaluate(new ClassFileImporter().importClasses(targetClasses));
     }
 
     private static EvaluationResult evaluateApiOtherDomainModuleRule(Class<?>... targetClasses) {
         String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.contract.order";
-        return LayeredArchitectureRuleSupport.apiShouldNotDependOnAnyOtherDomainModules(basePackage)
+        return LayerArchitectureRuleSupport.apiShouldNotDependOnAnyOtherDomainModules(basePackage)
                 .evaluate(new ClassFileImporter().importClasses(targetClasses));
     }
 }

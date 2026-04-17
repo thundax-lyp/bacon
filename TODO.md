@@ -1,178 +1,54 @@
-## 模块结构与代码风格差异
-
-### 范围
-
-- `inventory`
-- `payment`
-- `order`
-- `storage`
-- `upms`
-
-### 总结
-
-五个模块的 Maven 分层骨架已经统一为 `api / interfaces / application / domain / infra`，但层内手法还没有完全统一。当前差异主要集中在：
-
-- `interfaces` 入口形态
-- `application` 输入边界
-- DTO 装配位置
-- 异常风格
-- 租户约束显式性
-- controller 命名与路径规则
-
----
-
-### 1. controller 命名与路径规则不一致
-
-#### 现状
-
-- `payment` 更偏用例型命名，如 `PaymentQueryController`
-- `inventory`、`storage`、`upms` 更偏聚合型命名，如 `InventoryController`、`StorageController`、`UserController`
-- `order` 当前也是聚合型 controller，但根路径仍是 `/order`
-
-路径风格也不一致：
-
-- `/payment`
-- `/order`
-- `/storage/objects`
-- `/inventory/inventories`
-- `/upms/users`
-
-#### 影响
-
-- 后续很难统一 controller 命名规范
-- 很难补稳定的 ArchUnit / lint 规则
-
----
-
-### 2. 分页与过滤入口风格未完全统一
-
-#### 现状
-
-- `inventory` 已较稳定使用 `@ModelAttribute *PageRequest`
-- `order` 已改到 `OrderPageRequest`
-- `storage` 使用 `StoredObjectPageRequest`，但过滤字段仍多是原始字符串
-- `upms` 多数分页也走 `*PageRequest`，但 `/page` 子路径使用更重
-- `payment` 查询接口较轻，仍以 `@PathVariable + @RequestParam` 为主
-
-#### 影响
-
-- 同类查询接口的入参风格不统一
-- OpenAPI 展示与校验位置不统一
-
----
-
-### 3. interfaces -> application 的输入边界强弱不一
-
-#### 现状
-
-- `inventory`、`order` 更接近 `interfaces` 做 `plain type -> codec / enum / VO`
-- `storage`、`payment` 的 application 仍吃较多稳定原始类型
-- `upms` 正在收敛，但仍是混合态
-
-#### 影响
-
-- 模块间 application contract 风格不一致
-- VO 边界和协议边界容易继续漂移
-
----
-
-### 4. DTO 装配位置不一致
-
-#### 现状
-
-- `inventory`、`payment`、`storage` 的 assembler 使用更稳定
-- `order` 仍有明显的 application service 内部本地映射
-- `upms` 已收敛一轮，但历史上 application service 内手写 DTO 较多，仍需持续清理
-
-#### 影响
-
-- application service 容易同时承担“编排 + DTO 拼装 + 协议适配”
-- 很难形成稳定的 assembler 约束
-
----
-
-### 5. application service 厚度差异明显
-
-#### 现状
-
-- `payment`、`storage` query service 较薄
-- `inventory` 中等厚度，但结构清楚
-- `order` query service 偏厚，尤其是详情与 snapshot 装配
-- `upms` command service 最厚，职责跨度最大
-
-#### 影响
-
-- 模块可维护性差异大
-- review 和架构规则难用一套标准衡量
-
----
-
-### 6. 异常风格未统一
-
-#### 现状
-
-- `inventory`、`payment` 更偏域异常或稳定异常
-- `storage` 多用 `NotFoundException`
-- `order`、`upms` 仍保留较多 `IllegalArgumentException`
-
-#### 影响
-
-- 业务错误语义表达不一致
-- 模块间 HTTP 语义和错误码治理基础不同
-
----
-
-### 7. 租户约束显式性不一致
-
-#### 现状
-
-- `inventory` 在 application/query 层显式 `BaconContextHolder.requireTenantId()`
-- `order` 只在部分方法显式体现
-- `payment`、`storage` 从表层代码上看租户语义更弱
-- `upms` 同时存在平台级和租户级能力，边界天然更复杂
-
-#### 影响
-
-- 多租户约束位置不统一
-- 很难抽出统一的租户安全基线
-
----
-
-### 8. 横切注解密度不一致
-
-#### 现状
-
-- `upms` 大量使用 `@SysLog`
-- 其他业务域多以 `@HasPermission + @Operation` 为主
-
-#### 影响
-
-- 模块在审计、日志、后台管理语义上的风格差异明显
-
----
-
-### 当前判断
-
-如果按“层次清晰、边界稳定、风格自洽”排序：
-
-- 第一梯队：`inventory`、`payment`
-- 第二梯队：`storage`
-- 第三梯队：`order`
-- 最复杂：`upms`
-
----
-
-### 后续最值得统一的方向
-
-1. 统一 controller 命名和根路径规则
-2. 统一 application 输入边界
-3. 统一 DTO 装配位置
-4. 统一异常风格
-5. 统一租户约束显式性
-
----
-
 ## TODO List
+
+### P0 - 前置问题整理（由原差异分析转 TODO）
+
+- [ ] 固化治理范围：统一按 `inventory / payment / order / storage / upms` 五个域推进
+  - 验收点：后续治理任务默认标注所属域，不再出现“跨域但无归属”条目
+  - 重要度：6/10
+
+- [ ] 统一 `controller` 命名与根路径规则并输出可执行规范
+  - 当前差异：`PaymentQueryController`（用例型）与 `InventoryController/UserController`（聚合型）并存，根路径存在 `/payment`、`/order`、`/storage/objects`、`/inventory/inventories`、`/upms/users`
+  - 验收点：新接口命名与路径有唯一规则，能支持稳定的 ArchUnit / lint 检查
+  - 重要度：8/10
+
+- [ ] 统一分页与过滤入口风格
+  - 当前差异：`@ModelAttribute *PageRequest`、`@PathVariable + @RequestParam`、`/page` 子路径策略并存
+  - 验收点：同类查询接口入参模式统一，OpenAPI 展示与校验位置统一
+  - 重要度：7/10
+
+- [ ] 统一 `interfaces -> application` 输入边界
+  - 当前差异：`inventory/order` 边界较清晰，`storage/payment` primitive 入参偏多，`upms` 处于混合态
+  - 验收点：application 合同风格一致，VO 与协议边界不再继续漂移
+  - 重要度：8/10
+
+- [ ] 统一 DTO 装配位置，收敛到 assembler
+  - 当前差异：`order/upms` 仍有 application service 内手写 DTO 映射
+  - 验收点：application service 以编排为主，不再承担大量 DTO 拼装与协议适配
+  - 重要度：8/10
+
+- [ ] 收敛 application service 厚度，优先治理 `upms` 与 `order`
+  - 当前差异：`payment/storage` 较薄，`order` 偏厚，`upms` 最复杂
+  - 验收点：各域 service 职责颗粒度接近，review 口径可统一
+  - 重要度：7/10
+
+- [ ] 统一异常风格，替换分散的 `IllegalArgumentException` 用法
+  - 当前差异：`inventory/payment` 偏稳定业务异常，`storage` 偏 `NotFoundException`，`order/upms` 仍有较多 `IllegalArgumentException`
+  - 验收点：参数错误、业务冲突、资源不存在、权限错误有明确且一致的异常语义
+  - 重要度：7/10
+
+- [ ] 统一租户约束显式性，建立多租户安全基线
+  - 当前差异：`inventory` 明确 `requireTenantId`，`order/payment/storage` 显式性不一致，`upms` 平台级与租户级边界复杂
+  - 验收点：关键写操作默认显式租户校验，平台能力与租户能力边界清晰
+  - 重要度：8/10
+
+- [ ] 统一横切注解策略（`@SysLog` / `@HasPermission` / `@Operation`）
+  - 验收点：审计与权限注解策略可落地到各域，避免“只有 upms 密集、其他域稀疏”的不一致
+  - 重要度：5/10
+
+- [ ] 固化当前复杂度分层并用作迭代优先级基线
+  - 当前分层：第一梯队 `inventory/payment`，第二梯队 `storage`，第三梯队 `order`，最复杂 `upms`
+  - 验收点：任务排序默认遵循该基线，后续可按阶段复评更新
+  - 重要度：6/10
 
 ### P0 - 跨域契约先收口
 
@@ -339,24 +215,6 @@
   - 输出物：规则文档或代码检查项
   - 重要度：6/10
 
-### P1 - `order` 先补接口层一致性
-
-- [ ] 给 `OrderController` 补 `@Validated`
-  - 验收点：controller 层参数约束与 `inventory/payment/storage` 对齐
-  - 重要度：6/10
-
-- [ ] 给 `OrderController#create` 补 `@Valid`
-  - 验收点：创建订单请求的字段校验前置到 interfaces
-  - 重要度：6/10
-
-- [ ] 给 `OrderController#cancel` 补 `@Valid`
-  - 验收点：取消原因等参数不再完全依赖 application 兜底
-  - 重要度：5/10
-
-- [ ] 逐个检查 `OrderController` 的 `@PathVariable` / `@RequestBody` 参数约束是否完整
-  - 输出物：缺失的 `@NotBlank`、`@Positive` 等补齐
-  - 重要度：5/10
-
 ### P2 - DTO 装配位置统一
 
 - [ ] `order`：把 `OrderCreateApplicationService` 中手写 `OrderSummaryDTO` 装配迁移到 assembler
@@ -432,9 +290,11 @@
 
 ### 建议执行顺序
 
-1. 先改 `upms-api` 和 `storage-api` 的 facade 契约
-2. 再拆 `upms` 的 `UserController` 和 `UserApplicationService`
-3. 然后把 `upms` 的 repository 业务逻辑上移
-4. 接着统一 `payment / inventory` 的 application 入参风格
-5. 然后补 `order` 的 interfaces 校验和 assembler 收敛
-6. 最后统一异常、租户边界、路径规范和架构检查
+1. 先做基线盘点与冻结：确认 `api.dto` 引用清单、`requireTenantId` 落点清单、`IllegalArgumentException` 清单，并在本文件勾选基线任务
+2. 优先收口 `storage-api` 契约（`StoredObjectDTO.id`、`StoredObjectFacade` objectId 表达、`api -> domain` 清零），因为影响面相对可控且能快速降低跨层耦合
+3. 再推进 `payment-api` 与 `storage-api` 的 `api.dto` 下沉和 facade `Request/Response` 命名统一，先做“契约薄化”，暂不做大规模业务拆分
+4. 然后继续处理 `order` 的 assembler 收敛，统一 interfaces/application DTO 装配边界
+5. 接着拆 `upms` 的 `UserApplicationService`（先 `UserQueryApplicationService`，再 `Profile/Password/Avatar/ImportExport`），最后再拆 `UserController`
+6. 在 `upms` 服务拆分稳定后，再把 `UserRepositoryImpl` 中的业务编排上移到 application/domain service，避免“边拆边搬”导致回归复杂度过高
+7. 再统一异常风格与租户边界（优先 `upms/order`），并同步补充规则文档，确保新代码不再回退到旧写法
+8. 最后落 ArchUnit/规则检查（`api` 依赖、application 入参边界、infra 编排约束）和 `@SysLog` 策略评估，形成持续治理闭环

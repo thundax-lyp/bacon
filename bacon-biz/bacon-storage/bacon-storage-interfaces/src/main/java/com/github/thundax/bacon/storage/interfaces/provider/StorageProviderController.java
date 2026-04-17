@@ -3,7 +3,6 @@ package com.github.thundax.bacon.storage.interfaces.provider;
 import com.github.thundax.bacon.storage.application.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.application.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.application.dto.StoredObjectPageQueryDTO;
 import com.github.thundax.bacon.storage.application.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.request.AbortMultipartUploadFacadeRequest;
@@ -20,6 +19,7 @@ import com.github.thundax.bacon.storage.application.query.StoredObjectQueryAppli
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
+import com.github.thundax.bacon.storage.interfaces.request.StoredObjectPageProviderRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
@@ -119,17 +119,17 @@ public class StorageProviderController {
 
     @Operation(summary = "分页查询存储对象")
     @GetMapping("/objects")
-    public StoredObjectPageResultDTO pageObjects(StoredObjectPageQueryDTO query) {
+    public StoredObjectPageResultDTO pageObjects(StoredObjectPageProviderRequest request) {
         return storedObjectQueryApplicationService.pageObjects(
-                query.getStorageType() == null ? null : StorageType.from(query.getStorageType()),
-                query.getObjectStatus() == null ? null : StoredObjectStatus.from(query.getObjectStatus()),
-                query.getReferenceStatus() == null
+                request.getStorageType() == null ? null : StorageType.from(request.getStorageType()),
+                request.getObjectStatus() == null ? null : StoredObjectStatus.from(request.getObjectStatus()),
+                request.getReferenceStatus() == null
                         ? null
-                        : StoredObjectReferenceStatus.from(query.getReferenceStatus()),
-                query.getOriginalFilename(),
-                query.getObjectKey(),
-                query.getPageNo(),
-                query.getPageSize());
+                        : StoredObjectReferenceStatus.from(request.getReferenceStatus()),
+                request.getOriginalFilename(),
+                request.getObjectKey(),
+                request.getPageNo(),
+                request.getPageSize());
     }
 
     @Operation(summary = "建立存储对象引用")

@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.storage.interfaces.dto;
+package com.github.thundax.bacon.storage.interfaces.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

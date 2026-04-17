@@ -7,7 +7,7 @@ import com.github.thundax.bacon.storage.application.query.StoredObjectQueryAppli
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
-import com.github.thundax.bacon.storage.interfaces.dto.StoredObjectPageRequest;
+import com.github.thundax.bacon.storage.interfaces.request.StoredObjectPageRequest;
 import com.github.thundax.bacon.storage.interfaces.response.StoredObjectPageResponse;
 import com.github.thundax.bacon.storage.interfaces.response.StoredObjectResponse;
 import io.swagger.v3.oas.annotations.Operation;

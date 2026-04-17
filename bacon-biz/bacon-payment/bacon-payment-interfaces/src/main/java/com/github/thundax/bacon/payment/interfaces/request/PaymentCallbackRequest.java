@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.payment.interfaces.dto;
+package com.github.thundax.bacon.payment.interfaces.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;

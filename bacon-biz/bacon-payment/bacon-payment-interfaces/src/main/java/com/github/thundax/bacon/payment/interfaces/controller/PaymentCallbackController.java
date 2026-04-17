@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.payment.interfaces.controller;
 
 import com.github.thundax.bacon.payment.application.command.PaymentCallbackApplicationService;
-import com.github.thundax.bacon.payment.interfaces.dto.PaymentCallbackRequest;
+import com.github.thundax.bacon.payment.interfaces.request.PaymentCallbackRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

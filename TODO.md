@@ -50,8 +50,6 @@
   - 验收点：任务排序默认遵循该基线，后续可按阶段复评更新
   - 重要度：6/10
 
-### P0 - 跨域契约先收口
-
 ### P0 - `upms` 先拆大类
 
 - [ ] 拆分 `UserController`：把用户基础信息、密码、角色、头像、导入导出拆成独立 controller
@@ -100,18 +98,6 @@
   - 目标：让 repository 返回结果，缓存失效由 application 编排
   - 验收点：infra 不再混入明显横切业务动作
   - 重要度：7/10
-
-### P1 - 统一 application 输入边界
-
-- [ ] `payment`：为创建支付引入 `CreatePaymentCommand`
-  - 替换对象：`PaymentCreateApplicationService#createPayment`
-  - 验收点：不再使用长参数列表传递 `orderNo/userId/amount/channelCode/subject/expiredAt`
-  - 重要度：7/10
-
-- [ ] `payment`：为关单引入 `ClosePaymentCommand`
-  - 替换对象：`PaymentCloseApplicationService#closePayment`
-  - 验收点：命令应用服务统一使用 command 入参
-  - 重要度：6/10
 
 ### P1 - 各模块 `api.dto` 残留治理清单
 

@@ -2,6 +2,9 @@ package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRequest;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.ConflictException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
@@ -49,11 +52,11 @@ public class TenantApplicationService {
     public TenantDTO createTenant(String name, TenantCode tenantCode, Instant expiredAt) {
         validateRequired(name, "name");
         if (tenantCode == null) {
-            throw new IllegalArgumentException("tenantCode must not be null");
+            throw new BadRequestException("tenantCode must not be null");
         }
         TenantId tenantId = TenantId.of(idGenerator.nextId(TENANT_ID_BIZ_TAG));
         tenantRepository.findTenantByCode(tenantCode).ifPresent(tenant -> {
-            throw new IllegalArgumentException("Tenant tenantCode already exists: " + tenantCode.value());
+            throw new ConflictException("Tenant tenantCode already exists: " + tenantCode.value());
         });
         return TenantAssembler.toDto(tenantRepository.insert(
                 Tenant.create(tenantId, name.trim(), tenantCode, TenantStatus.ACTIVE, expiredAt)));
@@ -63,14 +66,14 @@ public class TenantApplicationService {
     public TenantDTO updateTenant(TenantId tenantId, String name, TenantCode tenantCode, Instant expiredAt) {
         validateRequired(name, "name");
         if (tenantCode == null) {
-            throw new IllegalArgumentException("tenantCode must not be null");
+            throw new BadRequestException("tenantCode must not be null");
         }
         Tenant currentTenant = requireTenant(tenantId);
         tenantRepository
                 .findTenantByCode(tenantCode)
                 .filter(tenant -> !tenant.getId().equals(tenantId))
                 .ifPresent(tenant -> {
-                    throw new IllegalArgumentException("Tenant tenantCode already exists: " + tenantCode.value());
+                    throw new ConflictException("Tenant tenantCode already exists: " + tenantCode.value());
                 });
         return TenantAssembler.toDto(tenantRepository.save(
                 currentTenant.update(name.trim(), tenantCode, currentTenant.getStatus(), expiredAt)));
@@ -79,7 +82,7 @@ public class TenantApplicationService {
     @Transactional
     public TenantDTO updateTenantStatus(TenantId tenantId, TenantStatus status) {
         if (status == null) {
-            throw new IllegalArgumentException("status must not be null");
+            throw new BadRequestException("status must not be null");
         }
         Tenant tenant = tenantRepository.updateStatus(tenantId, status);
         // 租户停用要同步踢出该租户下所有会话，否则鉴权缓存里仍会保留已禁用租户的访问上下文。
@@ -97,12 +100,12 @@ public class TenantApplicationService {
     private Tenant requireTenant(TenantId tenantId) {
         return tenantRepository
                 .findTenantById(tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
+                .orElseThrow(() -> new NotFoundException("Tenant not found: " + tenantId.value()));
     }
 
     private void validateRequired(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
+            throw new BadRequestException(fieldName + " must not be blank");
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
@@ -77,7 +79,7 @@ public class ResourceApplicationService {
         validateRequired(code, "code");
         validateRequired(name, "name");
         if (resourceType == null) {
-            throw new IllegalArgumentException("resourceType must not be null");
+            throw new BadRequestException("resourceType must not be null");
         }
         validateRequired(uri, "uri");
         return ResourceAssembler.toDto(resourceRepository.update(currentResource.update(
@@ -98,12 +100,12 @@ public class ResourceApplicationService {
     private Resource requireResource(ResourceId resourceId) {
         return resourceRepository
                 .findById(resourceId)
-                .orElseThrow(() -> new IllegalArgumentException("Resource not found: " + resourceId));
+                .orElseThrow(() -> new NotFoundException("Resource not found: " + resourceId));
     }
 
     private void validateRequired(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
+            throw new BadRequestException(fieldName + " must not be blank");
         }
     }
 

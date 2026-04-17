@@ -5,6 +5,9 @@ import com.github.thundax.bacon.auth.api.request.SessionInvalidateUserFacadeRequ
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.ConflictException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
@@ -111,20 +114,20 @@ public class UserApplicationService {
     public UserIdentityDTO getUserIdentity(UserIdentityType identityType, String identityValue) {
         UserIdentity userIdentity = userRepository
                 .findUserIdentity(identityType, identityValue)
-                .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
+                .orElseThrow(() -> new NotFoundException("User identity not found"));
         return UserIdentityAssembler.toDto(userIdentity);
     }
 
     public UserLoginCredentialDTO getUserLoginCredential(UserIdentityType identityType, String identityValue) {
         UserIdentity userIdentity = userRepository
                 .findUserIdentity(identityType, identityValue)
-                .orElseThrow(() -> new IllegalArgumentException("User identity not found"));
+                .orElseThrow(() -> new NotFoundException("User identity not found"));
         UserCredential passwordCredential = userRepository
                 .findUserCredential(userIdentity.getUserId(), UserCredentialType.PASSWORD)
-                .orElseThrow(() -> new IllegalArgumentException("Password credential not found"));
+                .orElseThrow(() -> new NotFoundException("Password credential not found"));
         User user = userRepository
                 .findUserById(userIdentity.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userIdentity.getUserId()));
+                .orElseThrow(() -> new NotFoundException("User not found: " + userIdentity.getUserId()));
         String account = resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT);
         String phone = resolveIdentityValue(user.getId(), UserIdentityType.PHONE);
         return UserIdentityAssembler.toLoginCredentialDto(user, userIdentity, passwordCredential, account, phone);
@@ -133,7 +136,7 @@ public class UserApplicationService {
     public TenantDTO getTenantByTenantId(TenantId tenantId) {
         Tenant tenant = tenantRepository
                 .findTenantById(tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
+                .orElseThrow(() -> new NotFoundException("Tenant not found: " + tenantId.value()));
         return TenantAssembler.toDto(tenant);
     }
 
@@ -201,7 +204,7 @@ public class UserApplicationService {
     public UserDTO updateUserStatus(UserId userId, UserStatus status) {
         User currentUser = requireUser(userId);
         if (status == null) {
-            throw new IllegalArgumentException("status must not be null");
+            throw new BadRequestException("status must not be null");
         }
         User savedUser = userRepository.update(
                 currentUser.update(
@@ -284,11 +287,11 @@ public class UserApplicationService {
         requireUser(userId);
         UserCredential passwordCredential = userRepository
                 .findUserCredential(userId, UserCredentialType.PASSWORD)
-                .orElseThrow(() -> new IllegalArgumentException("Password credential not found: " + userId));
+                .orElseThrow(() -> new NotFoundException("Password credential not found: " + userId));
         validateRequired(oldPassword, "oldPassword");
         validateRequired(newPassword, "newPassword");
         if (!passwordEncoder.matches(oldPassword, passwordCredential.getCredentialValue())) {
-            throw new IllegalArgumentException("Old password invalid");
+            throw new BadRequestException("Old password invalid");
         }
         userRepository.updatePassword(
                 userId, newPassword.trim(), false, UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
@@ -376,7 +379,7 @@ public class UserApplicationService {
     private User requireUser(UserId userId) {
         return userRepository
                 .findUserById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+                .orElseThrow(() -> new NotFoundException("User not found: " + userId));
     }
 
     private void ensureAccountUnique(String account, UserId excludedUserId) {
@@ -384,7 +387,7 @@ public class UserApplicationService {
                 .findUserByAccount(account == null ? null : account.trim())
                 .filter(existingUser -> !existingUser.getId().equals(excludedUserId))
                 .ifPresent(existingUser -> {
-                    throw new IllegalArgumentException("User account already exists: " + account);
+                    throw new ConflictException("User account already exists: " + account);
                 });
     }
 
@@ -392,7 +395,7 @@ public class UserApplicationService {
         return userRepository
                 .findUserIdentityByUserId(userId, identityType)
                 .map(UserIdentity::getIdentityValue)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NotFoundException(
                         "User identity not found: " + userId + "/" + identityType.value()));
     }
 
@@ -410,56 +413,56 @@ public class UserApplicationService {
         return departmentRepository
                 .findDepartmentByCode(DepartmentCode.of(departmentCode))
                 .map(Department::getId)
-                .orElseThrow(() -> new IllegalArgumentException("Department not found by code: " + departmentCode));
+                .orElseThrow(() -> new NotFoundException("Department not found by code: " + departmentCode));
     }
 
     private AvatarImage readAndValidateAvatar(
             String originalFilename, String contentType, Long size, InputStream inputStream) {
         validateRequired(originalFilename, "originalFilename");
         if (inputStream == null) {
-            throw new IllegalArgumentException("avatar file must not be null");
+            throw new BadRequestException("avatar file must not be null");
         }
         if (size == null || size <= 0L) {
-            throw new IllegalArgumentException("avatar size must be greater than 0");
+            throw new BadRequestException("avatar size must be greater than 0");
         }
         if (size > MAX_AVATAR_SIZE) {
-            throw new IllegalArgumentException("avatar size exceeds 2MB");
+            throw new BadRequestException("avatar size exceeds 2MB");
         }
         String normalizedContentType =
                 contentType == null ? "" : contentType.trim().toLowerCase(Locale.ROOT);
         if (!ALLOWED_AVATAR_CONTENT_TYPES.contains(normalizedContentType)) {
-            throw new IllegalArgumentException("avatar contentType must be image/jpeg or image/png");
+            throw new BadRequestException("avatar contentType must be image/jpeg or image/png");
         }
         try {
             byte[] bytes = inputStream.readAllBytes();
             if (bytes.length == 0) {
-                throw new IllegalArgumentException("avatar file must not be empty");
+                throw new BadRequestException("avatar file must not be empty");
             }
             if (bytes.length > MAX_AVATAR_SIZE) {
-                throw new IllegalArgumentException("avatar size exceeds 2MB");
+                throw new BadRequestException("avatar size exceeds 2MB");
             }
             String actualContentType = detectAvatarContentType(bytes);
             if (!normalizedContentType.equals(actualContentType)) {
-                throw new IllegalArgumentException("avatar contentType does not match image data");
+                throw new BadRequestException("avatar contentType does not match image data");
             }
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(bytes));
             if (bufferedImage == null) {
-                throw new IllegalArgumentException("avatar file is not a valid image");
+                throw new BadRequestException("avatar file is not a valid image");
             }
             int width = bufferedImage.getWidth();
             int height = bufferedImage.getHeight();
             if (width != height) {
-                throw new IllegalArgumentException("avatar image must be square");
+                throw new BadRequestException("avatar image must be square");
             }
             if (width < MIN_AVATAR_PIXEL || width > MAX_AVATAR_PIXEL) {
-                throw new IllegalArgumentException("avatar image width must be between 128 and 1024");
+                throw new BadRequestException("avatar image width must be between 128 and 1024");
             }
             if (height < MIN_AVATAR_PIXEL || height > MAX_AVATAR_PIXEL) {
-                throw new IllegalArgumentException("avatar image height must be between 128 and 1024");
+                throw new BadRequestException("avatar image height must be between 128 and 1024");
             }
             return new AvatarImage(originalFilename.trim(), actualContentType, (long) bytes.length, bytes);
         } catch (IOException ex) {
-            throw new IllegalArgumentException("avatar file cannot be read", ex);
+            throw new BadRequestException("avatar file cannot be read", ex);
         }
     }
 
@@ -489,11 +492,11 @@ public class UserApplicationService {
         ImageIO.setUseCache(false);
         try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
             if (imageInputStream == null) {
-                throw new IllegalArgumentException("avatar file is not a valid image");
+                throw new BadRequestException("avatar file is not a valid image");
             }
             Iterator<ImageReader> readers = ImageIO.getImageReaders(imageInputStream);
             if (!readers.hasNext()) {
-                throw new IllegalArgumentException("avatar file is not a supported image");
+                throw new BadRequestException("avatar file is not a supported image");
             }
             ImageReader reader = readers.next();
             try {
@@ -504,7 +507,7 @@ public class UserApplicationService {
                 if ("png".equals(formatName)) {
                     return "image/png";
                 }
-                throw new IllegalArgumentException("avatar image format must be jpeg or png");
+                throw new BadRequestException("avatar image format must be jpeg or png");
             } finally {
                 reader.dispose();
             }
@@ -513,7 +516,7 @@ public class UserApplicationService {
 
     private void validateRequired(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
+            throw new BadRequestException(fieldName + " must not be blank");
         }
     }
 

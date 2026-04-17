@@ -1,6 +1,9 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.ConflictException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.upms.api.dto.MenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.application.assembler.MenuAssembler;
@@ -79,10 +82,10 @@ public class MenuApplicationService {
             String permissionCode) {
         Menu currentMenu = menuRepository
                 .findMenuById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
+                .orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
         validateParent(parentId);
         if (menuId.equals(parentId)) {
-            throw new IllegalArgumentException("Menu parent cannot be self");
+            throw new ConflictException("Menu parent cannot be self");
         }
         return toTreeDto(menuRepository.update(currentMenu.update(
                 menuType.value(),
@@ -100,9 +103,9 @@ public class MenuApplicationService {
     public void deleteMenu(MenuId menuId) {
         menuRepository
                 .findMenuById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
+                .orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
         if (menuRepository.existsChildMenu(menuId)) {
-            throw new IllegalArgumentException("Menu has child menus: " + menuId);
+            throw new ConflictException("Menu has child menus: " + menuId);
         }
         menuRepository.deleteMenu(menuId);
     }
@@ -110,7 +113,7 @@ public class MenuApplicationService {
     @Transactional
     public MenuTreeDTO updateMenuSort(MenuId menuId, Integer sort) {
         if (sort == null) {
-            throw new IllegalArgumentException("sort must not be null");
+            throw new BadRequestException("sort must not be null");
         }
         return toTreeDto(menuRepository.updateSort(menuId, sort));
     }
@@ -126,6 +129,6 @@ public class MenuApplicationService {
         }
         menuRepository
                 .findMenuById(parentId)
-                .orElseThrow(() -> new IllegalArgumentException("Parent menu not found: " + parentId));
+                .orElseThrow(() -> new NotFoundException("Parent menu not found: " + parentId));
     }
 }

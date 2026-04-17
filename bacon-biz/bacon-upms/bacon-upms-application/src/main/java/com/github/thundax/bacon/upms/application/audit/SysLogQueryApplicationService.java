@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.application.audit;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.SysLogDTO;
 import com.github.thundax.bacon.upms.application.assembler.SysLogAssembler;
@@ -36,6 +37,6 @@ public class SysLogQueryApplicationService {
     public SysLogDTO getLogById(SysLogId logId) {
         return SysLogAssembler.toDto(sysLogRepository
                 .findById(logId)
-                .orElseThrow(() -> new IllegalArgumentException("Sys log not found: " + logId.value())));
+                .orElseThrow(() -> new NotFoundException("Sys log not found: " + logId.value())));
     }
 }

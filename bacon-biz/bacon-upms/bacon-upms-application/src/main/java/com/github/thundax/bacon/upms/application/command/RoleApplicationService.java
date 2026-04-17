@@ -1,6 +1,8 @@
 package com.github.thundax.bacon.upms.application.command;
 
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
@@ -39,7 +41,7 @@ public class RoleApplicationService {
     public RoleDTO getRoleById(RoleId roleId) {
         return RoleAssembler.toDto(roleRepository
                 .findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value())));
+                .orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value())));
     }
 
     public List<RoleDTO> getRolesByUserId(UserId userId) {
@@ -79,7 +81,7 @@ public class RoleApplicationService {
             RoleId roleId, String code, String name, RoleType roleType, RoleDataScopeType dataScopeType) {
         Role currentRole = roleRepository
                 .findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
+                .orElseThrow(() -> new NotFoundException("Role not found: " + roleId));
         validateRequired(code, "code");
         validateRequired(name, "name");
         return RoleAssembler.toDto(roleRepository.update(currentRole.update(
@@ -95,7 +97,7 @@ public class RoleApplicationService {
     public void deleteRole(RoleId roleId) {
         roleRepository
                 .findRoleById(roleId)
-                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId));
+                .orElseThrow(() -> new NotFoundException("Role not found: " + roleId));
         roleRepository.deleteRole(roleId);
     }
 
@@ -139,7 +141,7 @@ public class RoleApplicationService {
 
     private void validateRequired(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
+            throw new BadRequestException(fieldName + " must not be blank");
         }
     }
 

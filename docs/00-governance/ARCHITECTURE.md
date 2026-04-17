@@ -117,6 +117,14 @@
 - `infra` 如需 `offset` / `limit`，固定在实现层内部换算，不向 `application` 或 `domain.repository` 暴露
 - 缓存只能保存数据库结果的派生读模型，不能替代数据库
 
+## Exception Convention
+
+- 参数错误（空值、格式非法、状态前置条件不满足）统一抛 `BadRequestException`
+- 资源不存在（按 ID / 编码未查到）统一抛 `NotFoundException`
+- 业务冲突（重复创建、父子约束冲突、被引用不可删）统一抛 `ConflictException`
+- 领域规则错误优先使用各域 `*DomainException`，避免在 `application` / `infra` 直接抛 `IllegalArgumentException`
+- `application` 与 `infra.repository.impl` 禁止新增 `IllegalArgumentException` 作为业务异常出口
+
 ## ID And Number Generation
 
 - 统一 ID 走统一 ID 设计

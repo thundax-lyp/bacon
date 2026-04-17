@@ -2,12 +2,6 @@
 
 ### P0 - 2026-04-17 跨域扫描新增（统一性优先）
 
-- [ ] 路径规范“文档-测试-代码”三方对齐
-  - 现状：`NAMING-AND-PLACEMENT-RULES` 要求 `/api/{domain}`，但 ArchUnit 仍校验 `/{domain}`，代码也以 `/{domain}` 为主
-  - 处理动作：先定唯一口径（推荐 `/api/**`），再同步 `NamingAndPlacementRuleSupport`、各域 controller/provider 路径与网关路由
-  - 验收点：规则文档、ArchUnit、实际 `@RequestMapping` 前缀一致，无双标准
-  - 重要度：10/10
-
 - [ ] 统一 controller 校验基线：全域 `@Validated` + `@Valid`
   - 现状对比：`inventory/payment/order/storage` 多数已有 `@Validated`；`upms/auth` controller 基本缺失；`upms` 大量 `@RequestBody` 未加 `@Valid`
   - 处理动作：按域补齐类级 `@Validated`、方法参数 `@Valid`，优先 `upms`（`User/Role/Tenant/Post/Resource/Department`）
@@ -225,17 +219,6 @@
 
 ### P3 - 持续治理
 
-- [ ] 对齐 RequestMapping 规则：ArchUnit 从 `/{domain}` 迁移到 `/api/{domain}` 与 `/api/providers/{domain}`
-  - 当前状态：规则文档与 `NamingAndPlacementRuleSupport` 校验口径不一致
-  - 验收点：规则、测试、代码统一后，新增 controller 路径可自动守卫
-  - 重要度：9/10
-
-- [ ] 增加 ArchUnit 或同类检查：`api` 不直接依赖 domain
-  - 重要度：5/10
-
-- [ ] 增加 ArchUnit 或同类检查：`application` 不直接接收 `interfaces.request.*Request` / `interfaces.response.*Response`
-  - 重要度：5/10
-
 - [ ] 增加 ArchUnit 或同类检查：`infra.repository.impl` 不承载明显业务编排
   - 重要度：5/10
 
@@ -249,11 +232,10 @@
 
 ### 建议执行顺序
 
-1. 先统一“规则底座”：确定 `/api/**` 路径口径，并同步文档、ArchUnit、网关配置
-2. 紧接着处理高风险输入面：补齐 `upms/auth` 的 `@Validated`、`@Valid`、PathVariable 约束和 request Bean Validation
-3. 再处理命名语义冲突：`storage objectId -> storedObjectNo`、`order ReadProvider` 读写拆分
-4. 然后统一 `interfaces -> application` 合同（Command/Query/VO），优先 `upms/auth/storage/payment`
-5. 并行推进 `api.dto` 契约薄化（`upms` 优先、`auth` 次之）和 facade `Request/Response` 规约
-6. 继续做 DTO 装配收口（`upms/order` application service -> assembler）
-7. 再统一异常语义（`auth/storage/payment` 优先清理 `IllegalArgumentException`）
-8. 最后收敛横切策略与持续治理（`@SysLog/@HasPermission` 矩阵、ArchUnit 增量规则、空目录清理）
+1. 先处理高风险输入面：补齐 `upms/auth` 的 `@Validated`、`@Valid`、PathVariable 约束和 request Bean Validation
+2. 再处理命名语义冲突：`storage objectId -> storedObjectNo`、`order ReadProvider` 读写拆分
+3. 然后统一 `interfaces -> application` 合同（Command/Query/VO），优先 `upms/auth/storage/payment`
+4. 并行推进 `api.dto` 契约薄化（`upms` 优先、`auth` 次之）和 facade `Request/Response` 规约
+5. 继续做 DTO 装配收口（`upms/order` application service -> assembler）
+6. 再统一异常语义（`auth/storage/payment` 优先清理 `IllegalArgumentException`）
+7. 最后收敛横切策略与持续治理（`@SysLog/@HasPermission` 矩阵、ArchUnit 增量规则、空目录清理）

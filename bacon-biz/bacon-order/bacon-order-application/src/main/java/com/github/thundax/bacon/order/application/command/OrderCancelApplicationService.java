@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
 import com.github.thundax.bacon.inventory.api.response.InventoryReservationFacadeResponse;
@@ -57,7 +58,7 @@ public class OrderCancelApplicationService {
     private void doCancel(OrderNo orderNo, String reason) {
         Order order = orderRepository
                 .findByOrderNo(OrderNoCodec.toValue(orderNo))
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+                .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.cancel(reason);
         // 同步主流程里先改订单主状态，再尝试释放库存和关闭支付；即使后续远程动作部分失败，主单也已明确进入取消态。

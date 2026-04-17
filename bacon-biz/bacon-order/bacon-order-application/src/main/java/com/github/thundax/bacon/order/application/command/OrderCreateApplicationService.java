@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.commerce.enums.CurrencyCode;
 import com.github.thundax.bacon.common.commerce.valueobject.Money;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
@@ -48,11 +49,11 @@ public class OrderCreateApplicationService {
 
     public OrderSummaryDTO create(CreateOrderCommand command) {
         if (command.userId() == null) {
-            throw new IllegalArgumentException("userId is required");
+            throw new BadRequestException("userId is required");
         }
         List<CreateOrderItemCommand> items = command.items() == null ? List.of() : command.items();
         if (items.isEmpty()) {
-            throw new IllegalArgumentException("items must not be empty");
+            throw new BadRequestException("items must not be empty");
         }
         BaconContextHolder.requireTenantId();
         BigDecimal totalAmount = items.stream().map(this::calculateLineAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -120,7 +121,7 @@ public class OrderCreateApplicationService {
 
     private BigDecimal calculateLineAmount(CreateOrderItemCommand item) {
         if (item == null || item.quantity() == null || item.salePrice() == null) {
-            throw new IllegalArgumentException("order item quantity and salePrice are required");
+            throw new BadRequestException("order item quantity and salePrice are required");
         }
         return item.salePrice().multiply(BigDecimal.valueOf(item.quantity()));
     }

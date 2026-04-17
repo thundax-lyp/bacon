@@ -3,6 +3,7 @@ package com.github.thundax.bacon.order.application.saga;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
 import com.github.thundax.bacon.inventory.api.request.InventoryReservationItemFacadeRequest;
@@ -236,6 +237,6 @@ public class OrderOutboxActionExecutor {
     private Order findOrder(String orderNo) {
         return orderRepository
                 .findByOrderNo(orderNo)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+                .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
     }
 }

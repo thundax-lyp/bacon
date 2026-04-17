@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.inventory.api.facade.InventoryCommandFacade;
 import com.github.thundax.bacon.inventory.api.request.InventoryDeductFacadeRequest;
 import com.github.thundax.bacon.inventory.api.request.InventoryReleaseFacadeRequest;
@@ -72,7 +73,7 @@ public class OrderPaymentResultApplicationService {
             OrderNo orderNo, PaymentNo paymentNo, String channelCode, BigDecimal paidAmount, Instant paidTime) {
         Order order = orderRepository
                 .findByOrderNo(OrderNoCodec.toValue(orderNo))
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+                .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaid(paymentNo, channelCode, Money.of(paidAmount, order.getCurrencyCode()), paidTime);
         // 支付成功后库存扣减是硬前置条件；如果扣减失败，直接抛错让幂等和重试链路接管，避免订单看起来已完成但库存未落账。
@@ -102,7 +103,7 @@ public class OrderPaymentResultApplicationService {
             OrderNo orderNo, PaymentNo paymentNo, String reason, String channelStatus, Instant failedTime) {
         Order order = orderRepository
                 .findByOrderNo(OrderNoCodec.toValue(orderNo))
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+                .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
         OrderStatus beforeStatus = order.getOrderStatus();
         order.markPaymentFailed(paymentNo, reason, channelStatus, failedTime);
         // 支付失败后的主目标是回收预占库存，因此这里固定走 releaseReservedStock，而不是尝试别的库存路径。

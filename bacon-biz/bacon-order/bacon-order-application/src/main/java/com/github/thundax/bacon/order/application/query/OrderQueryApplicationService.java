@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.commerce.codec.OrderNoCodec;
 import com.github.thundax.bacon.common.commerce.codec.PaymentNoCodec;
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.domain.UserId;
@@ -41,7 +42,7 @@ public class OrderQueryApplicationService {
         return orderRepository
                 .findById(OrderIdCodec.toValue(orderId))
                 .map(this::toDetail)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
     }
 
     public OrderDetailDTO getByOrderNo(OrderNo orderNo) {
@@ -49,7 +50,7 @@ public class OrderQueryApplicationService {
         return orderRepository
                 .findByOrderNo(OrderNoCodec.toValue(orderNo))
                 .map(this::toDetail)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNo));
+                .orElseThrow(() -> new NotFoundException("Order not found: " + orderNo));
     }
 
     public OrderPageResult pageOrders(

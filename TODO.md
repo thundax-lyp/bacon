@@ -6,9 +6,9 @@
   - 验收点：后续治理任务默认标注所属域，不再出现“跨域但无归属”条目
   - 重要度：6/10
 
-- [ ] 统一 `controller` 命名与根路径规则并输出可执行规范
-  - 当前差异：`PaymentQueryController`（用例型）与 `InventoryController/UserController`（聚合型）并存，根路径存在 `/payment`、`/order`、`/storage/objects`、`/inventory/inventories`、`/upms/users`
-  - 验收点：新接口命名与路径有唯一规则，能支持稳定的 ArchUnit / lint 检查
+- [ ] 落地 `controller` 命名与根路径规则（规范已输出）
+  - 当前状态：规则文档已定义，但存量仍有 `/order`、`/payment`、`/storage/objects` 等未按 `/api/{bounded-context}/...` 收口，且聚合型/用例型命名并存
+  - 验收点：存量接口完成收口，新增接口由 ArchUnit / lint 规则兜底
   - 重要度：8/10
 
 - [ ] 统一分页与过滤入口风格
@@ -17,7 +17,7 @@
   - 重要度：7/10
 
 - [ ] 统一 `interfaces -> application` 输入边界
-  - 当前差异：`inventory/order` 边界较清晰，`storage/payment` primitive 入参偏多，`upms` 处于混合态
+  - 当前差异：`interfaces.request` 包已完成统一，但 application 入参仍存在 primitive / 协议对象 / command-query 混用
   - 验收点：application 合同风格一致，VO 与协议边界不再继续漂移
   - 重要度：8/10
 
@@ -101,7 +101,7 @@
 
 ### P1 - 各模块 `api.dto` 残留治理清单
 
-- [ ] `storage-api`：把 `StoredObjectPageQueryDTO` 改为 `query/StoredObjectPageQuery`
+- [ ] `storage-application`：把 `StoredObjectPageQueryDTO` 改为 `query/StoredObjectPageQuery`
   - 影响范围：provider/controller/facade
   - 验收点：查询对象命名与 inventory/order 新规一致
   - 重要度：7/10
@@ -160,22 +160,6 @@
   - 验收点：统一回收进 assembler
   - 重要度：5/10
 
-### P2 - controller 与路径规范
-
-- [ ] 定一版 controller 命名规范
-  - 需要决策：采用“聚合型 controller”还是“用例型 controller”
-  - 验收点：新代码命名不再摇摆
-  - 重要度：5/10
-
-- [ ] 定一版根路径规范
-  - 需要决策：是否统一复数资源路径、是否统一 `/page`
-  - 验收点：后续新增接口按统一规则落地
-  - 重要度：5/10
-
-- [ ] 先列出现有不一致路径清单，再决定是否批量重构
-  - 范围：`/payment`、`/order`、`/storage/objects`、`/inventory/inventories`、`/upms/users`
-  - 重要度：4/10
-
 ### P2 - 租户边界统一
 
 - [ ] 梳理五个域 application 层中 `requireTenantId` 的落点
@@ -206,7 +190,7 @@
 
 ### 建议执行顺序
 
-1. 先做基线盘点与冻结：确认 `api.dto` 引用清单、`requireTenantId` 落点清单、`IllegalArgumentException` 清单，并在本文件勾选基线任务
+1. 先做基线盘点与冻结：确认 `api.dto` 引用清单、`requireTenantId` 落点清单、`IllegalArgumentException` 清单，并在本文件记录结论后删除已完成项
 2. 继续推进 `payment-api` 与 `upms-api` 的 `api.dto` 下沉和 facade `Request/Response` 命名统一，先做“契约薄化”，暂不做大规模业务拆分
 3. 收口 `storage` 剩余查询模型命名（`StoredObjectPageQueryDTO` -> `StoredObjectPageQuery`）并补齐相关规则检查
 4. 然后继续处理 `order` 的 assembler 收敛，统一 interfaces/application DTO 装配边界

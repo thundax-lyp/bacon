@@ -20,6 +20,9 @@ import com.github.thundax.bacon.order.interfaces.response.OrderSummaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Validated
 @WrappedApiController
 @RequestMapping("/order")
 @Tag(name = "Order-Management", description = "订单创建、查询与取消接口")
@@ -50,14 +54,14 @@ public class OrderController {
     @Operation(summary = "创建订单")
     @HasPermission("order:order:create")
     @PostMapping
-    public OrderSummaryResponse create(@RequestBody CreateOrderRequest request) {
+    public OrderSummaryResponse create(@Valid @RequestBody CreateOrderRequest request) {
         return OrderSummaryResponse.from(orderCreateApplicationService.create(request.toCommand()));
     }
 
     @Operation(summary = "按 ID 查询订单")
     @HasPermission("order:order:view")
     @GetMapping("/{orderId}")
-    public OrderDetailResponse getById(@PathVariable Long orderId) {
+    public OrderDetailResponse getById(@PathVariable @Positive Long orderId) {
         return OrderDetailResponse.from(orderQueryService.getById(OrderIdCodec.toDomain(orderId)));
     }
 
@@ -80,7 +84,7 @@ public class OrderController {
     @Operation(summary = "取消订单")
     @HasPermission("order:order:cancel")
     @PostMapping("/{orderNo}/cancel")
-    public void cancel(@PathVariable String orderNo, @RequestBody CancelOrderRequest request) {
+    public void cancel(@PathVariable @NotBlank String orderNo, @Valid @RequestBody CancelOrderRequest request) {
         orderCancelApplicationService.cancel(OrderNoCodec.toDomain(orderNo), request.reason());
     }
 }

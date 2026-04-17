@@ -194,7 +194,7 @@
 - [ ] 增加 ArchUnit 或同类检查：`api` 不直接依赖 domain
   - 重要度：5/10
 
-- [ ] 增加 ArchUnit 或同类检查：`application` 不直接接收 `interfaces.dto.request/response`
+- [ ] 增加 ArchUnit 或同类检查：`application` 不直接接收 `interfaces.request.*Request` / `interfaces.response.*Response`
   - 重要度：5/10
 
 - [ ] 增加 ArchUnit 或同类检查：`infra.repository.impl` 不承载明显业务编排

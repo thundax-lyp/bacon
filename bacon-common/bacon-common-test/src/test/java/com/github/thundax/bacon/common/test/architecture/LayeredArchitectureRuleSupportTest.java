@@ -2,6 +2,10 @@ package com.github.thundax.bacon.common.test.architecture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.thundax.bacon.common.test.architecture.fixture.contract.common.support.CommonSupport;
+import com.github.thundax.bacon.common.test.architecture.fixture.contract.order.api.facade.InvalidOrderFacadeDependsOnPaymentApplication;
+import com.github.thundax.bacon.common.test.architecture.fixture.contract.order.api.facade.ValidOrderFacadeDependsOnCommon;
+import com.github.thundax.bacon.common.test.architecture.fixture.contract.payment.application.service.PaymentApplicationService;
 import com.github.thundax.bacon.common.test.architecture.fixture.layered.api.facade.InvalidDomainDependentFacade;
 import com.github.thundax.bacon.common.test.architecture.fixture.layered.api.facade.ValidFixtureFacade;
 import com.github.thundax.bacon.common.test.architecture.fixture.layered.api.request.ValidFixtureRequest;
@@ -29,9 +33,34 @@ class LayeredArchitectureRuleSupportTest {
                         && detail.contains(InvalidFixtureId.class.getName()));
     }
 
+    @Test
+    void apiShouldAcceptDependenciesOnCommonPackage() {
+        EvaluationResult result =
+                evaluateApiOtherDomainModuleRule(ValidOrderFacadeDependsOnCommon.class, CommonSupport.class);
+
+        assertThat(result.hasViolation()).isFalse();
+    }
+
+    @Test
+    void apiShouldRejectDependenciesOnOtherDomainModules() {
+        EvaluationResult result = evaluateApiOtherDomainModuleRule(
+                InvalidOrderFacadeDependsOnPaymentApplication.class, PaymentApplicationService.class);
+
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(result.getFailureReport().getDetails())
+                .anyMatch(detail -> detail.contains(InvalidOrderFacadeDependsOnPaymentApplication.class.getName())
+                        && detail.contains(PaymentApplicationService.class.getName()));
+    }
+
     private static EvaluationResult evaluateApiDomainRule(Class<?>... targetClasses) {
         String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.layered";
         return LayeredArchitectureRuleSupport.apiShouldNotDependOnAnyDomain(basePackage)
+                .evaluate(new ClassFileImporter().importClasses(targetClasses));
+    }
+
+    private static EvaluationResult evaluateApiOtherDomainModuleRule(Class<?>... targetClasses) {
+        String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.contract.order";
+        return LayeredArchitectureRuleSupport.apiShouldNotDependOnAnyOtherDomainModules(basePackage)
                 .evaluate(new ClassFileImporter().importClasses(targetClasses));
     }
 }

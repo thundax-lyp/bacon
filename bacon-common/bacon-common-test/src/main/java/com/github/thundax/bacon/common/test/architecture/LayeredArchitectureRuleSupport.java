@@ -11,12 +11,14 @@ import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public final class LayeredArchitectureRuleSupport {
@@ -25,6 +27,9 @@ public final class LayeredArchitectureRuleSupport {
     private static final String SYS_LOG_ANNOTATION = "com.github.thundax.bacon.common.log.annotation.SysLog";
     private static final List<String> TRANSACTIONAL_ANNOTATIONS =
             List.of("org.springframework.transaction.annotation.Transactional", "jakarta.transaction.Transactional");
+    private static final Set<String> BUSINESS_DOMAINS =
+            Set.of("auth", "inventory", "order", "payment", "storage", "upms");
+    private static final Set<String> BUSINESS_LAYERS = Set.of("api", "interfaces", "application", "domain", "infra");
     private static final List<String> DOMAIN_FORBIDDEN_TECH_PACKAGES = List.of(
             "org.springframework.web.",
             "org.springframework.http.",
@@ -62,9 +67,12 @@ public final class LayeredArchitectureRuleSupport {
 
         // 基础设施层：只承接落库、远程调用等实现，不反向依赖 application、interfaces。
         infraShouldNotDependOnApplicationOrInterfaces(basePackage).check(classes);
+
+        // 契约层：api 只承载本域契约，不反向耦合其他业务域实现。
+        apiShouldNotDependOnAnyOtherDomainModules(basePackage).check(classes);
     }
 
-    public static ArchRule domainShouldNotDependOnOuterLayers(String basePackage) {
+    private static ArchRule domainShouldNotDependOnOuterLayers(String basePackage) {
         return ArchRuleDefinition.noClasses()
                 .that()
                 .resideInAPackage(basePackage + ".domain..")
@@ -75,7 +83,7 @@ public final class LayeredArchitectureRuleSupport {
                 .because("domain 不依赖 application、interfaces、infra");
     }
 
-    public static ArchRule applicationShouldNotDependOnInterfacesOrOwnInfra(String basePackage) {
+    private static ArchRule applicationShouldNotDependOnInterfacesOrOwnInfra(String basePackage) {
         return ArchRuleDefinition.noClasses()
                 .that()
                 .resideInAPackage(basePackage + ".application..")
@@ -85,7 +93,7 @@ public final class LayeredArchitectureRuleSupport {
                 .because("application 不依赖 interfaces、infra");
     }
 
-    public static ArchRule interfacesShouldNotDependOnOwnInfra(String basePackage) {
+    private static ArchRule interfacesShouldNotDependOnOwnInfra(String basePackage) {
         return ArchRuleDefinition.noClasses()
                 .that()
                 .resideInAPackage(basePackage + ".interfaces..")
@@ -95,7 +103,7 @@ public final class LayeredArchitectureRuleSupport {
                 .because("interfaces 可以使用 domain 类型，但不依赖 infra");
     }
 
-    public static ArchRule infraShouldNotDependOnApplicationOrInterfaces(String basePackage) {
+    private static ArchRule infraShouldNotDependOnApplicationOrInterfaces(String basePackage) {
         return ArchRuleDefinition.noClasses()
                 .that()
                 .resideInAPackage(basePackage + ".infra..")
@@ -139,6 +147,21 @@ public final class LayeredArchitectureRuleSupport {
                 .dependOnClassesThat()
                 .resideInAPackage(ROOT_PACKAGE + "..domain..")
                 .because("api 不得依赖本域或他域的 domain");
+    }
+
+    public static ArchRule apiShouldNotDependOnAnyOtherDomainModules(String basePackage) {
+        String sourceDomain = extractDomainSegment(basePackage);
+        return ArchRuleDefinition.noClasses()
+                .that()
+                .resideInAPackage(basePackage + ".api..")
+                .should()
+                .dependOnClassesThat(new DescribedPredicate<>("reside in other domain modules") {
+                    @Override
+                    public boolean test(JavaClass input) {
+                        return isOtherDomainBusinessModulePackage(sourceDomain, input.getPackageName());
+                    }
+                })
+                .because("api is contract base and must not depend on other domain modules");
     }
 
     public static ArchRule domainShouldNotDependOnTechnicalPackages(String basePackage) {
@@ -347,5 +370,34 @@ public final class LayeredArchitectureRuleSupport {
         }
         return packageName.startsWith(basePackage + ".api.dto.")
                 && (simpleName.endsWith("QueryDTO") || simpleName.endsWith("PageQueryDTO"));
+    }
+
+    private static boolean isOtherDomainBusinessModulePackage(String sourceDomain, String targetPackage) {
+        if (!targetPackage.startsWith(ROOT_PACKAGE + ".")) {
+            return false;
+        }
+        String relativePackage = targetPackage.substring((ROOT_PACKAGE + ".").length());
+        String[] segments = relativePackage.split("\\.");
+        if (segments.length < 2) {
+            return false;
+        }
+        for (int i = 1; i < segments.length; i++) {
+            String targetLayer = segments[i];
+            String targetDomain = segments[i - 1];
+            if (BUSINESS_LAYERS.contains(targetLayer) && BUSINESS_DOMAINS.contains(targetDomain)) {
+                return !targetDomain.equals(sourceDomain);
+            }
+        }
+        return false;
+    }
+
+    private static String extractDomainSegment(String basePackage) {
+        String[] segments = basePackage.split("\\.");
+        for (int i = segments.length - 1; i >= 0; i--) {
+            if (BUSINESS_DOMAINS.contains(segments[i])) {
+                return segments[i];
+            }
+        }
+        return "";
     }
 }

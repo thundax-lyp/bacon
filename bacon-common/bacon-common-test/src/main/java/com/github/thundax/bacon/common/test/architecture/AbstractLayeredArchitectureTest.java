@@ -25,14 +25,7 @@ public abstract class AbstractLayeredArchitectureTest {
     @Test
     @DisplayName("默认分层依赖方向：domain/application/interfaces/infra 只能沿既定方向依赖")
     void shouldFollowDefaultDirection() {
-        LayeredArchitectureRuleSupport.domainShouldNotDependOnOuterLayers(basePackage())
-                .check(classes());
-        LayeredArchitectureRuleSupport.applicationShouldNotDependOnInterfacesOrOwnInfra(basePackage())
-                .check(classes());
-        LayeredArchitectureRuleSupport.interfacesShouldNotDependOnOwnInfra(basePackage())
-                .check(classes());
-        LayeredArchitectureRuleSupport.infraShouldNotDependOnApplicationOrInterfaces(basePackage())
-                .check(classes());
+        LayeredArchitectureRuleSupport.assertDefaultDirection(basePackage());
     }
 
     @Test

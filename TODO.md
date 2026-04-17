@@ -229,21 +229,6 @@
   - 验收点：统一回收进 assembler
   - 重要度：5/10
 
-### P2 - 异常风格统一
-
-- [ ] `order`：清理 command/query/application 中直接抛出的 `IllegalArgumentException`
-  - 目标：替换成稳定业务异常或参数异常
-  - 重要度：6/10
-
-- [ ] `upms`：清理 application / repository 中直接抛出的 `IllegalArgumentException`
-  - 目标：区分“参数非法 / 资源不存在 / 业务冲突”
-  - 重要度：6/10
-
-- [ ] 补一份异常使用约定
-  - 范围：参数错误、领域错误、资源不存在、权限错误
-  - 验收点：后续新代码不再随意混用
-  - 重要度：5/10
-
 ### P2 - controller 与路径规范
 
 - [ ] 定一版 controller 命名规范

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
@@ -58,7 +59,7 @@ public class MenuRepositoryImpl implements MenuRepository {
     public Menu updateSort(MenuId menuId, Integer sort) {
         TenantId tenantId = requireTenantId();
         Menu currentMenu =
-                findMenuById(menuId).orElseThrow(() -> new IllegalArgumentException("Menu not found: " + menuId));
+                findMenuById(menuId).orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
         Menu savedMenu = support.updateMenu(currentMenu.update(
                 currentMenu.getMenuType(),
                 currentMenu.getName(),

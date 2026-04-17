@@ -3,6 +3,8 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
@@ -148,7 +150,7 @@ public class UserRepositoryImpl implements UserRepository {
             UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent) {
         TenantId tenantId = requireTenantId();
         User currentUser =
-                findUserById(userId).orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+                findUserById(userId).orElseThrow(() -> new NotFoundException("User not found: " + userId));
         User updatedUser = User.create(
                 currentUser.getId(),
                 currentUser.getName(),
@@ -174,7 +176,7 @@ public class UserRepositoryImpl implements UserRepository {
         List<Role> roles = roleIds.stream()
                 .map(roleId -> roleRepository
                         .findRoleById(roleId)
-                        .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleId.value())))
+                        .orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value())))
                 .toList();
         roleRepository.bindUserRoles(tenantId, userId, roles);
         cacheSupport.evictUserPermission(tenantId, userId);
@@ -217,13 +219,13 @@ public class UserRepositoryImpl implements UserRepository {
 
     private UserIdentity requireUserIdentity(UserId userId, UserIdentityType identityType) {
         return support.findUserIdentityByUserId(userId, identityType)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NotFoundException(
                         "User identity not found: " + userId + "/" + identityType.value()));
     }
 
     private String requireIdentityValue(String identityValue, UserIdentityType identityType) {
         if (identityValue == null || identityValue.isBlank()) {
-            throw new IllegalArgumentException(identityType.value() + " identity must not be blank");
+            throw new BadRequestException(identityType.value() + " identity must not be blank");
         }
         return identityValue.trim();
     }

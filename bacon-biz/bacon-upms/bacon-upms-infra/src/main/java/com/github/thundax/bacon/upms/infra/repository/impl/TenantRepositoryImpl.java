@@ -1,5 +1,6 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
@@ -53,7 +54,7 @@ public class TenantRepositoryImpl implements TenantRepository {
     @Override
     public Tenant updateStatus(TenantId tenantId, TenantStatus status) {
         Tenant currentTenant = findTenantById(tenantId)
-                .orElseThrow(() -> new IllegalArgumentException("Tenant not found: " + tenantId.value()));
+                .orElseThrow(() -> new NotFoundException("Tenant not found: " + tenantId.value()));
         return support.saveTenant(currentTenant.update(
                 currentTenant.getName(), currentTenant.getTenantCode(), status, currentTenant.getExpiredAt()));
     }

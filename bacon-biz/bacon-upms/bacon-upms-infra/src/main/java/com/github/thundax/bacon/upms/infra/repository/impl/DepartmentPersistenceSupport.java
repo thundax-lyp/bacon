@@ -2,6 +2,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
@@ -79,7 +80,7 @@ class DepartmentPersistenceSupport extends AbstractUpmsPersistenceSupport {
 
     Department updateDepartmentSort(DepartmentId departmentId, Integer sort) {
         Department currentDepartment = findDepartmentById(departmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Department not found: " + departmentId));
+                .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId));
         return updateDepartment(Department.create(
                 currentDepartment.getId(),
                 currentDepartment.getCode(),

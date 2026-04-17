@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.auth.interfaces.controller;
 
 import com.github.thundax.bacon.auth.application.command.OAuth2AuthorizationApplicationService;
-import com.github.thundax.bacon.auth.interfaces.dto.OAuth2DecisionRequest;
+import com.github.thundax.bacon.auth.interfaces.request.OAuth2DecisionRequest;
 import com.github.thundax.bacon.auth.interfaces.response.OAuth2AuthorizationDecisionResponse;
 import com.github.thundax.bacon.auth.interfaces.response.OAuth2AuthorizationViewResponse;
 import com.github.thundax.bacon.auth.interfaces.response.OAuth2IntrospectionResponse;

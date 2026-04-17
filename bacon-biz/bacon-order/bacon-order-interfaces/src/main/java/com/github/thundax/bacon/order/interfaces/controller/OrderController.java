@@ -11,9 +11,9 @@ import com.github.thundax.bacon.order.application.query.OrderQueryApplicationSer
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
-import com.github.thundax.bacon.order.interfaces.dto.CancelOrderRequest;
-import com.github.thundax.bacon.order.interfaces.dto.CreateOrderRequest;
-import com.github.thundax.bacon.order.interfaces.dto.OrderPageRequest;
+import com.github.thundax.bacon.order.interfaces.request.CancelOrderRequest;
+import com.github.thundax.bacon.order.interfaces.request.CreateOrderRequest;
+import com.github.thundax.bacon.order.interfaces.request.OrderPageRequest;
 import com.github.thundax.bacon.order.interfaces.response.OrderDetailResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderPageResponse;
 import com.github.thundax.bacon.order.interfaces.response.OrderSummaryResponse;

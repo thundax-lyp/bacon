@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.interfaces.dto;
+package com.github.thundax.bacon.order.interfaces.request;
 
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.order.application.command.CreateOrderCommand;

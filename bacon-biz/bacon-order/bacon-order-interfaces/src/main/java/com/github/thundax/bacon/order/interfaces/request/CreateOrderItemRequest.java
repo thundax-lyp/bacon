@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.interfaces.dto;
+package com.github.thundax.bacon.order.interfaces.request;
 
 import com.github.thundax.bacon.order.application.command.CreateOrderItemCommand;
 import io.swagger.v3.oas.annotations.media.Schema;

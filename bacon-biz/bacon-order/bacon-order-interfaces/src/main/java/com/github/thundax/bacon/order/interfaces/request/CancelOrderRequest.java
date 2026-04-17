@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.order.interfaces.dto;
+package com.github.thundax.bacon.order.interfaces.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;

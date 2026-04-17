@@ -43,6 +43,14 @@
 - 单体模式由 `interfaces.facade.*LocalImpl` 适配
 - 微服务模式由 `infra.facade.remote.*RemoteImpl` 适配
 - 业务代码不得直接依赖对方域的 `application` 实现或 `infra` 实现
+- `{module}-api` 是跨域契约基础模块，不得依赖其他业务域的任意分层模块（`{other-domain}-api/interfaces/application/domain/infra`）
+
+### Contract Base Detection Rule
+
+- 规则目标：保证每个 `{module}-api` 只承载本域稳定契约，不被其他业务域实现细节反向污染
+- 检测口径：`..{module}.api..` 禁止依赖 `..{other-domain}..`（`{other-domain} != {module}`）
+- 允许依赖：本域 `api` 包、`bacon-common`、JDK 与通用基础设施依赖
+- 推荐 because（给 AI / ArchUnit）：`{module}-api is contract base and must not depend on other domain modules`
 
 ## Layer Rules
 

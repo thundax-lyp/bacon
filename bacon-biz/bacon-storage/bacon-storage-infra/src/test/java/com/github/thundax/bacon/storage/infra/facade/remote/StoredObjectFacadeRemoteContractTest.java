@@ -118,54 +118,54 @@ class StoredObjectFacadeRemoteContractTest {
 
     @Test
     void shouldCallGetObjectProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/O100"))
+        server.expect(requestTo(BASE_URL + "/providers/storage/objects/storage-20260327100000-000100"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.getObjectById("O100");
+        facade.getObjectByNo("storage-20260327100000-000100");
 
         server.verify();
     }
 
     @Test
     void shouldCallMarkReferenceProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/O100/references"
+        server.expect(requestTo(BASE_URL + "/providers/storage/objects/storage-20260327100000-000100/references"
                         + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess());
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.markObjectReferenced("O100", "GENERIC_ATTACHMENT", "owner-1");
+        facade.markObjectReferenced("storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1");
 
         server.verify();
     }
 
     @Test
     void shouldCallClearReferenceProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/O100/references"
+        server.expect(requestTo(BASE_URL + "/providers/storage/objects/storage-20260327100000-000100/references"
                         + "?ownerType=GENERIC_ATTACHMENT&ownerId=owner-1"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess());
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.clearObjectReference("O100", "GENERIC_ATTACHMENT", "owner-1");
+        facade.clearObjectReference("storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1");
 
         server.verify();
     }
 
     @Test
     void shouldCallDeleteObjectProviderPath() {
-        server.expect(requestTo(BASE_URL + "/providers/storage/objects/O100"))
+        server.expect(requestTo(BASE_URL + "/providers/storage/objects/storage-20260327100000-000100"))
                 .andExpect(header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess());
 
         StoredObjectFacadeRemoteImpl facade = newFacade();
-        facade.deleteObject("O100");
+        facade.deleteObject("storage-20260327100000-000100");
 
         server.verify();
     }

@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `bacon_upms_user` (
     `id` varchar(64) NOT NULL,
     `tenant_id` varchar(64) NOT NULL,
     `name` varchar(128) NOT NULL,
-    `avatar_object_id` bigint DEFAULT NULL,
+    `avatar_object_id` varchar(64) DEFAULT NULL,
     `department_id` varchar(64) DEFAULT NULL,
     `status` varchar(16) NOT NULL,
     `deleted` tinyint(1) NOT NULL,

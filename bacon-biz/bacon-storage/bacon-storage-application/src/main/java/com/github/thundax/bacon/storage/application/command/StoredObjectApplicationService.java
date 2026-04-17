@@ -2,6 +2,7 @@ package com.github.thundax.bacon.storage.application.command;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
+import com.github.thundax.bacon.common.id.core.TimestampedBizCodeFormatter;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
@@ -12,6 +13,7 @@ import com.github.thundax.bacon.storage.application.support.StoredObjectDeletion
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObjectReference;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
+import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectNo;
 import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectStorageResult;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectReferenceRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -28,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class StoredObjectApplicationService {
 
     private static final String STORED_OBJECT_ID_BIZ_TAG = "stored-object-id";
+    private static final String STORED_OBJECT_NO_BIZ_TAG = "stored-object-no";
+    private static final String STORED_OBJECT_NO_DOMAIN = "storage-";
 
     private final StoredObjectRepository storedObjectRepository;
     private final StoredObjectReferenceRepository storedObjectReferenceRepository;
@@ -62,8 +66,10 @@ public class StoredObjectApplicationService {
                 command.getOriginalFilename(),
                 command.getContentType(),
                 command.getInputStream());
+        long storedObjectNoSeed = idGenerator.nextId(STORED_OBJECT_NO_BIZ_TAG);
         StoredObject storedObject = StoredObject.create(
                 StoredObjectId.of(idGenerator.nextId(STORED_OBJECT_ID_BIZ_TAG)),
+                StoredObjectNo.of(TimestampedBizCodeFormatter.format(STORED_OBJECT_NO_DOMAIN, storedObjectNoSeed)),
                 storageResult.storageType(),
                 storageResult.bucketName(),
                 storageResult.objectKey(),
@@ -84,12 +90,13 @@ public class StoredObjectApplicationService {
     }
 
     @Transactional
-    public void markObjectReferenced(Long objectId, String ownerType, String ownerId) {
-        StoredObjectId storedObjectId = StoredObjectId.of(objectId);
+    public void markObjectReferenced(String storedObjectNo, String ownerType, String ownerId) {
+        StoredObjectNo objectNo = StoredObjectNo.of(storedObjectNo);
         StoredObject storedObject = storedObjectRepository
-                .findById(storedObjectId)
-                .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
-        ensureAvailable(storedObject, objectId);
+                .findByNo(objectNo)
+                .orElseThrow(() -> new NotFoundException("Stored object not found: " + storedObjectNo));
+        StoredObjectId storedObjectId = storedObject.getId();
+        ensureAvailable(storedObject, storedObjectNo);
         String beforeStatus = storedObject.getReferenceStatus().value();
         StoredObjectReference reference = StoredObjectReference.create(storedObjectId, ownerType, ownerId);
         boolean created = storedObjectReferenceRepository.saveIfAbsent(reference);
@@ -109,11 +116,12 @@ public class StoredObjectApplicationService {
     }
 
     @Transactional
-    public void clearObjectReference(Long objectId, String ownerType, String ownerId) {
-        StoredObjectId storedObjectId = StoredObjectId.of(objectId);
+    public void clearObjectReference(String storedObjectNo, String ownerType, String ownerId) {
+        StoredObjectNo objectNo = StoredObjectNo.of(storedObjectNo);
         StoredObject storedObject = storedObjectRepository
-                .findById(storedObjectId)
-                .orElseThrow(() -> new NotFoundException("Stored object not found: " + objectId));
+                .findByNo(objectNo)
+                .orElseThrow(() -> new NotFoundException("Stored object not found: " + storedObjectNo));
+        StoredObjectId storedObjectId = storedObject.getId();
         String beforeStatus = storedObject.getReferenceStatus().value();
         boolean deleted = storedObjectReferenceRepository.deleteByObjectIdAndOwner(storedObjectId, ownerType, ownerId);
         StoredObject savedObject =
@@ -131,8 +139,12 @@ public class StoredObjectApplicationService {
                 savedObject.getReferenceStatus().value());
     }
 
-    public void deleteObject(Long objectId) {
-        StoredObjectId storedObjectId = StoredObjectId.of(objectId);
+    public void deleteObject(String storedObjectNo) {
+        StoredObjectNo objectNo = StoredObjectNo.of(storedObjectNo);
+        StoredObjectId storedObjectId = storedObjectRepository
+                .findByNo(objectNo)
+                .map(StoredObject::getId)
+                .orElseThrow(() -> new NotFoundException("Stored object not found: " + storedObjectNo));
         StoredObject storedObject = storedObjectDeletionTransactionService.markDeleting(storedObjectId);
         if (storedObject.isDeleted()) {
             return;
@@ -151,9 +163,9 @@ public class StoredObjectApplicationService {
         }
     }
 
-    private void ensureAvailable(StoredObject storedObject, Long objectId) {
+    private void ensureAvailable(StoredObject storedObject, String storedObjectNo) {
         if (storedObject.isDeleting() || storedObject.isDeleted()) {
-            throw new NotFoundException("Stored object is unavailable: " + objectId);
+            throw new NotFoundException("Stored object is unavailable: " + storedObjectNo);
         }
     }
 

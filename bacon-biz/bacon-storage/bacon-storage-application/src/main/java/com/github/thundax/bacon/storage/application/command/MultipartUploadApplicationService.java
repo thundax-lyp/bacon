@@ -21,6 +21,7 @@ import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSessi
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageAuditActionType;
 import com.github.thundax.bacon.storage.domain.model.valueobject.MultipartUploadStorageSession;
+import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectNo;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadPartRepository;
 import com.github.thundax.bacon.storage.domain.repository.MultipartUploadSessionRepository;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
@@ -40,6 +41,8 @@ public class MultipartUploadApplicationService {
     private static final String MULTIPART_UPLOAD_BIZ_TAG = "storage_multipart_upload";
     private static final String MULTIPART_UPLOAD_PART_BIZ_TAG = "storage_multipart_upload_part";
     private static final String STORED_OBJECT_ID_BIZ_TAG = "stored-object-id";
+    private static final String STORED_OBJECT_NO_BIZ_TAG = "stored-object-no";
+    private static final String STORED_OBJECT_NO_DOMAIN = "storage-";
 
     private final MultipartUploadSessionRepository multipartUploadSessionRepository;
     private final MultipartUploadPartRepository multipartUploadPartRepository;
@@ -141,8 +144,10 @@ public class MultipartUploadApplicationService {
         List<MultipartUploadPart> parts = multipartUploadPartRepository.listByUploadId(uploadId);
         session.assertCompletable(parts);
         var storageResult = storedObjectStorageRepository.completeMultipartUpload(session, parts);
+        long storedObjectNoSeed = idGenerator.nextId(STORED_OBJECT_NO_BIZ_TAG);
         StoredObject storedObject = StoredObject.create(
                 StoredObjectId.of(idGenerator.nextId(STORED_OBJECT_ID_BIZ_TAG)),
+                StoredObjectNo.of(TimestampedBizCodeFormatter.format(STORED_OBJECT_NO_DOMAIN, storedObjectNoSeed)),
                 storageResult.storageType(),
                 storageResult.bucketName(),
                 storageResult.objectKey(),

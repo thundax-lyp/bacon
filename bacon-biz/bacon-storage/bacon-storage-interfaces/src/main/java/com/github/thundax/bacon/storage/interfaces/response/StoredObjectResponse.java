@@ -4,7 +4,7 @@ import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import java.time.Instant;
 
 public record StoredObjectResponse(
-        String id,
+        String storedObjectNo,
         String storageType,
         String bucketName,
         String objectKey,
@@ -18,7 +18,7 @@ public record StoredObjectResponse(
 
     public static StoredObjectResponse from(StoredObjectDTO dto) {
         return new StoredObjectResponse(
-                dto.getId(),
+                dto.getStoredObjectNo(),
                 dto.getStorageType(),
                 dto.getBucketName(),
                 dto.getObjectKey(),

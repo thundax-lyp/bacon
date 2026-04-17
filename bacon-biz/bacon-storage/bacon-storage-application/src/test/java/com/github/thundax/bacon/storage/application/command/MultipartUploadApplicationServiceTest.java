@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.storage.application.command;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -303,6 +304,7 @@ class MultipartUploadApplicationServiceTest {
                 .thenReturn(List.of(
                         MultipartUploadPart.create(null, "6", 1, "etag-1", 512L, Instant.now()),
                         MultipartUploadPart.create(null, "6", 2, "etag-2", 512L, Instant.now())));
+        when(idGenerator.nextId("stored-object-no")).thenReturn(123456L);
         when(idGenerator.nextId("stored-object-id")).thenReturn(100L);
         when(storedObjectStorageRepository.completeMultipartUpload(eq(session), any()))
                 .thenReturn(new StoredObjectStorageResult(
@@ -311,6 +313,7 @@ class MultipartUploadApplicationServiceTest {
             StoredObject input = invocation.getArgument(0);
             return StoredObject.reconstruct(
                     StoredObjectId.of(100L),
+                    input.getStoredObjectNo(),
                     input.getStorageType(),
                     input.getBucketName(),
                     input.getObjectKey(),
@@ -327,7 +330,8 @@ class MultipartUploadApplicationServiceTest {
         var dto = service.completeMultipartUpload(
                 new CompleteMultipartUploadCommand("6", "GENERIC_ATTACHMENT", "owner-1"));
 
-        assertEquals("O100", dto.getId());
+        assertNotNull(dto.getStoredObjectNo());
+        assertTrue(dto.getStoredObjectNo().matches("^storage-\\d{14}-123456$"));
         verify(multipartUploadPartRepository).deleteByUploadId("6");
     }
 }

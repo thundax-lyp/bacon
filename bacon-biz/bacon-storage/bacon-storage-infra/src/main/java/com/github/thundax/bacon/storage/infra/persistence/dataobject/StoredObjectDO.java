@@ -19,6 +19,9 @@ public class StoredObjectDO {
 
     /** 主键。 */
     private Long id;
+    /** 存储对象外部编号。 */
+    @TableField("stored_object_no")
+    private String storedObjectNo;
     /** 所属租户业务键。 */
     @TableField("tenant_id")
     private Long tenantId;

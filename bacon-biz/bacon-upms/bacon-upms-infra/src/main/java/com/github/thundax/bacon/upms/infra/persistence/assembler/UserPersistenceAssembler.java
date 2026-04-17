@@ -3,7 +3,6 @@ package com.github.thundax.bacon.upms.infra.persistence.assembler;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
@@ -14,6 +13,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserCredentialDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
@@ -28,9 +28,9 @@ public final class UserPersistenceAssembler {
                 user.getId() == null ? null : user.getId().value(),
                 BaconContextHolder.requireTenantId(),
                 user.getName(),
-                user.getAvatarObjectId() == null
+                user.getAvatarStoredObjectNo() == null
                         ? null
-                        : user.getAvatarObjectId().value(),
+                        : user.getAvatarStoredObjectNo().value(),
                 user.getDepartmentId() == null ? null : user.getDepartmentId().value(),
                 user.getStatus().value(),
                 false);
@@ -40,7 +40,9 @@ public final class UserPersistenceAssembler {
         return User.reconstruct(
                 dataObject.getId() == null ? null : UserId.of(dataObject.getId()),
                 dataObject.getName(),
-                dataObject.getAvatarObjectId() == null ? null : StoredObjectId.of(dataObject.getAvatarObjectId()),
+                dataObject.getAvatarStoredObjectNo() == null
+                        ? null
+                        : AvatarStoredObjectNo.of(dataObject.getAvatarStoredObjectNo()),
                 dataObject.getDepartmentId() == null ? null : DepartmentId.of(dataObject.getDepartmentId()),
                 UserStatus.valueOf(dataObject.getStatus()));
     }

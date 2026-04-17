@@ -9,7 +9,7 @@ import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 
-public interface StoredObjectFacade {
+public interface StoredObjectCommandFacade {
 
     StoredObjectDTO uploadObject(UploadObjectCommand command);
 
@@ -21,11 +21,9 @@ public interface StoredObjectFacade {
 
     void abortMultipartUpload(AbortMultipartUploadCommand command);
 
-    StoredObjectDTO getObjectById(String objectId);
+    void markObjectReferenced(String storedObjectNo, String ownerType, String ownerId);
 
-    void markObjectReferenced(String objectId, String ownerType, String ownerId);
+    void clearObjectReference(String storedObjectNo, String ownerType, String ownerId);
 
-    void clearObjectReference(String objectId, String ownerType, String ownerId);
-
-    void deleteObject(String objectId);
+    void deleteObject(String storedObjectNo);
 }

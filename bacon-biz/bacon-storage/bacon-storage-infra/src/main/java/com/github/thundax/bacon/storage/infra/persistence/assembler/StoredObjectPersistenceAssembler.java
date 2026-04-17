@@ -6,6 +6,7 @@ import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
+import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectNo;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StoredObjectDO;
 import java.util.Objects;
 
@@ -20,6 +21,9 @@ public final class StoredObjectPersistenceAssembler {
         Objects.requireNonNull(storedObject.getId(), "storedObject.id must not be null");
         return new StoredObjectDO(
                 storedObject.getId() == null ? null : storedObject.getId().value(),
+                storedObject.getStoredObjectNo() == null
+                        ? null
+                        : storedObject.getStoredObjectNo().value(),
                 BaconContextHolder.requireTenantId(),
                 storedObject.getStorageType() == null
                         ? null
@@ -44,6 +48,7 @@ public final class StoredObjectPersistenceAssembler {
         }
         return StoredObject.reconstruct(
                 dataObject.getId() == null ? null : StoredObjectId.of(dataObject.getId()),
+                dataObject.getStoredObjectNo() == null ? null : StoredObjectNo.of(dataObject.getStoredObjectNo()),
                 dataObject.getStorageType() == null ? null : StorageType.from(dataObject.getStorageType()),
                 dataObject.getBucketName(),
                 dataObject.getObjectKey(),

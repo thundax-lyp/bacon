@@ -11,12 +11,12 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.core.util.PageParamNormalizer;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
-import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -35,6 +35,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
@@ -77,7 +78,8 @@ public class UserApplicationService {
     private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
     private final PasswordEncoder passwordEncoder;
-    private final StoredObjectFacade storedObjectFacade;
+    private final StoredObjectCommandFacade storedObjectCommandFacade;
+    private final StoredObjectReadFacade storedObjectReadFacade;
     private final Ids ids;
     private final IdGenerator idGenerator;
 
@@ -88,7 +90,8 @@ public class UserApplicationService {
             TenantRepository tenantRepository,
             SessionCommandFacade sessionCommandFacade,
             PasswordEncoder passwordEncoder,
-            StoredObjectFacade storedObjectFacade,
+            StoredObjectCommandFacade storedObjectCommandFacade,
+            StoredObjectReadFacade storedObjectReadFacade,
             Ids ids,
             IdGenerator idGenerator) {
         this.departmentRepository = departmentRepository;
@@ -97,7 +100,8 @@ public class UserApplicationService {
         this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
         this.passwordEncoder = passwordEncoder;
-        this.storedObjectFacade = storedObjectFacade;
+        this.storedObjectCommandFacade = storedObjectCommandFacade;
+        this.storedObjectReadFacade = storedObjectReadFacade;
         this.ids = ids;
         this.idGenerator = idGenerator;
     }
@@ -108,7 +112,7 @@ public class UserApplicationService {
                 user,
                 resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(user.getId(), UserIdentityType.PHONE),
-                resolveAvatarUrl(user.getAvatarObjectId()));
+                resolveAvatarUrl(user.getAvatarStoredObjectNo()));
     }
 
     public UserIdentityDTO getUserIdentity(UserIdentityType identityType, String identityValue) {
@@ -175,7 +179,7 @@ public class UserApplicationService {
                 savedUser,
                 resolveIdentityValue(savedUser.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(savedUser.getId(), UserIdentityType.PHONE),
-                resolveAvatarUrl(savedUser.getAvatarObjectId()));
+                resolveAvatarUrl(savedUser.getAvatarStoredObjectNo()));
     }
 
     @Transactional
@@ -187,7 +191,8 @@ public class UserApplicationService {
         String normalizedAccount = account.trim();
         String normalizedPhone = phone == null ? null : phone.trim();
         User savedUser = userRepository.update(
-                currentUser.update(name.trim(), currentUser.getAvatarObjectId(), departmentId, currentUser.getStatus()),
+                currentUser.update(
+                        name.trim(), currentUser.getAvatarStoredObjectNo(), departmentId, currentUser.getStatus()),
                 normalizedAccount,
                 normalizedPhone,
                 UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
@@ -197,7 +202,7 @@ public class UserApplicationService {
                 savedUser,
                 resolveIdentityValue(savedUser.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(savedUser.getId(), UserIdentityType.PHONE),
-                resolveAvatarUrl(savedUser.getAvatarObjectId()));
+                resolveAvatarUrl(savedUser.getAvatarStoredObjectNo()));
     }
 
     @Transactional
@@ -208,7 +213,10 @@ public class UserApplicationService {
         }
         User savedUser = userRepository.update(
                 currentUser.update(
-                        currentUser.getName(), currentUser.getAvatarObjectId(), currentUser.getDepartmentId(), status),
+                        currentUser.getName(),
+                        currentUser.getAvatarStoredObjectNo(),
+                        currentUser.getDepartmentId(),
+                        status),
                 requireIdentityValue(currentUser.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE),
                 UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
@@ -225,24 +233,24 @@ public class UserApplicationService {
                 savedUser,
                 resolveIdentityValue(savedUser.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(savedUser.getId(), UserIdentityType.PHONE),
-                resolveAvatarUrl(savedUser.getAvatarObjectId()));
+                resolveAvatarUrl(savedUser.getAvatarStoredObjectNo()));
     }
 
     public Optional<String> getAvatarAccessUrl(UserId userId) {
         User user = requireUser(userId);
-        if (user.getAvatarObjectId() == null) {
+        if (user.getAvatarStoredObjectNo() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(resolveAvatarUrl(user.getAvatarObjectId()));
+        return Optional.ofNullable(resolveAvatarUrl(user.getAvatarStoredObjectNo()));
     }
 
     @Transactional
     public void deleteUser(UserId userId) {
         User currentUser = requireUser(userId);
         userRepository.deleteUser(userId);
-        if (currentUser.getAvatarObjectId() != null) {
-            storedObjectFacade.clearObjectReference(
-                    currentUser.getAvatarObjectId().externalValue(),
+        if (currentUser.getAvatarStoredObjectNo() != null) {
+            storedObjectCommandFacade.clearObjectReference(
+                    currentUser.getAvatarStoredObjectNo().value(),
                     USER_AVATAR_OWNER_TYPE,
                     String.valueOf(userId.value()));
         }
@@ -263,7 +271,7 @@ public class UserApplicationService {
                 user,
                 resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(user.getId(), UserIdentityType.PHONE),
-                resolveAvatarUrl(user.getAvatarObjectId()));
+                resolveAvatarUrl(user.getAvatarStoredObjectNo()));
     }
 
     @Transactional
@@ -279,7 +287,7 @@ public class UserApplicationService {
                 user,
                 resolveIdentityValue(user.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(user.getId(), UserIdentityType.PHONE),
-                resolveAvatarUrl(user.getAvatarObjectId()));
+                resolveAvatarUrl(user.getAvatarStoredObjectNo()));
     }
 
     @Transactional
@@ -342,15 +350,15 @@ public class UserApplicationService {
         User currentUser = requireUser(userId);
         AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
         StoredObjectDTO storedObject = uploadAvatarObject(avatarImage);
-        StoredObjectId storedObjectId = storedObject.getId();
-        storedObjectFacade.markObjectReferenced(
-                storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value()));
-        StoredObjectId previousAvatarObjectId = currentUser.getAvatarObjectId();
+        AvatarStoredObjectNo avatarStoredObjectNo = AvatarStoredObjectNo.of(storedObject.getStoredObjectNo());
+        storedObjectCommandFacade.markObjectReferenced(
+                avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value()));
+        AvatarStoredObjectNo previousAvatarStoredObjectNo = currentUser.getAvatarStoredObjectNo();
         try {
             User savedUser = userRepository.update(
                     currentUser.update(
                             currentUser.getName(),
-                            storedObjectId,
+                            avatarStoredObjectNo,
                             currentUser.getDepartmentId(),
                             currentUser.getStatus()),
                     requireIdentityValue(currentUser.getId(), UserIdentityType.ACCOUNT),
@@ -360,9 +368,9 @@ public class UserApplicationService {
                             ? null
                             : UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
                     UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
-            if (previousAvatarObjectId != null && !previousAvatarObjectId.equals(storedObjectId)) {
-                storedObjectFacade.clearObjectReference(
-                        previousAvatarObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value()));
+            if (previousAvatarStoredObjectNo != null && !previousAvatarStoredObjectNo.equals(avatarStoredObjectNo)) {
+                storedObjectCommandFacade.clearObjectReference(
+                        previousAvatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value()));
             }
             return UserAssembler.toDto(
                     savedUser,
@@ -370,8 +378,8 @@ public class UserApplicationService {
                     resolveIdentityValue(savedUser.getId(), UserIdentityType.PHONE),
                     storedObject.getAccessEndpoint());
         } catch (RuntimeException ex) {
-            storedObjectFacade.clearObjectReference(
-                    storedObjectId.externalValue(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value()));
+            storedObjectCommandFacade.clearObjectReference(
+                    avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value()));
             throw ex;
         }
     }
@@ -468,7 +476,7 @@ public class UserApplicationService {
 
     private StoredObjectDTO uploadAvatarObject(AvatarImage avatarImage) {
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(avatarImage.bytes())) {
-            return storedObjectFacade.uploadObject(new UploadObjectCommand(
+            return storedObjectCommandFacade.uploadObject(new UploadObjectCommand(
                     USER_AVATAR_OWNER_TYPE,
                     USER_AVATAR_CATEGORY,
                     avatarImage.originalFilename(),
@@ -480,11 +488,11 @@ public class UserApplicationService {
         }
     }
 
-    private String resolveAvatarUrl(StoredObjectId avatarObjectId) {
-        if (avatarObjectId == null) {
+    private String resolveAvatarUrl(AvatarStoredObjectNo avatarStoredObjectNo) {
+        if (avatarStoredObjectNo == null) {
             return null;
         }
-        StoredObjectDTO storedObject = storedObjectFacade.getObjectById(avatarObjectId.externalValue());
+        StoredObjectDTO storedObject = storedObjectReadFacade.getObjectByNo(avatarStoredObjectNo.value());
         return storedObject == null ? null : storedObject.getAccessEndpoint();
     }
 

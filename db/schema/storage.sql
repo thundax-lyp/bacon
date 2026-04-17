@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS `bacon_storage_object` (
     `id` VARCHAR(64) NOT NULL COMMENT '存储对象业务主键',
+    `stored_object_no` VARCHAR(64) NOT NULL COMMENT '存储对象外部编号',
     `tenant_id` VARCHAR(64) DEFAULT NULL COMMENT '所属租户业务键',
     `storage_type` VARCHAR(32) NOT NULL COMMENT '底层存储类型',
     `bucket_name` VARCHAR(128) DEFAULT NULL COMMENT '存储桶或本地逻辑目录',
@@ -15,6 +16,7 @@ CREATE TABLE IF NOT EXISTS `bacon_storage_object` (
     `updated_by` VARCHAR(64) DEFAULT NULL COMMENT '更新人',
     `updated_at` DATETIME(3) NOT NULL COMMENT '更新时间',
     PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_stored_object_no` (`stored_object_no`),
     UNIQUE KEY `uk_object_key` (`object_key`),
     KEY `idx_tenant_status` (`tenant_id`, `object_status`, `reference_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='统一存储对象主数据表';

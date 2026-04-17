@@ -17,7 +17,6 @@ import com.github.thundax.bacon.common.id.core.DefaultIds;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.ResourceId;
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
@@ -35,6 +34,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
@@ -341,7 +341,7 @@ class UpmsRepositoryIntegrationTest {
                 User.create(
                         UserId.of(2201L),
                         "Alice",
-                        StoredObjectId.of(901L),
+                        AvatarStoredObjectNo.of("storage-20260327100000-000901"),
                         childDepartment.getId(),
                         UserStatus.ENABLED),
                 "alice",
@@ -361,7 +361,8 @@ class UpmsRepositoryIntegrationTest {
         User persistedUser = userRepository.findUserByAccount("alice").orElseThrow();
         assertNotNull(persistedUser.getId());
         assertTrue(persistedUser.getId().value() > 0);
-        assertEquals(StoredObjectId.of(901L), persistedUser.getAvatarObjectId());
+        assertEquals(
+                AvatarStoredObjectNo.of("storage-20260327100000-000901"), persistedUser.getAvatarStoredObjectNo());
         assertTrue(userRepository
                 .findUserIdentity(UserIdentityType.ACCOUNT, "alice")
                 .isPresent());
@@ -406,7 +407,12 @@ class UpmsRepositoryIntegrationTest {
                 RoleDataScopeType.SELF,
                 RoleStatus.ENABLED));
         User createdUser = userRepository.insert(
-                User.create(UserId.of(2202L), "Bob", StoredObjectId.of(1001L), department.getId(), UserStatus.ENABLED),
+                User.create(
+                        UserId.of(2202L),
+                        "Bob",
+                        AvatarStoredObjectNo.of("storage-20260327100000-001001"),
+                        department.getId(),
+                        UserStatus.ENABLED),
                 "bob",
                 "13800000002",
                 UserIdentityId.of(3101L),
@@ -416,7 +422,11 @@ class UpmsRepositoryIntegrationTest {
         userRepository.assignRoles(createdUser.getId(), List.of(role.getId()));
         User updatedUser = userRepository.update(
                 User.create(
-                        createdUser.getId(), "Bob", StoredObjectId.of(1002L), department.getId(), UserStatus.ENABLED),
+                        createdUser.getId(),
+                        "Bob",
+                        AvatarStoredObjectNo.of("storage-20260327100000-001002"),
+                        department.getId(),
+                        UserStatus.ENABLED),
                 "bob",
                 "13900000003",
                 UserIdentityId.of(3201L),
@@ -434,8 +444,8 @@ class UpmsRepositoryIntegrationTest {
                 .orElseThrow()
                 .getCredentialValue());
         assertEquals(
-                StoredObjectId.of(1002L),
-                userRepository.findUserById(updatedUser.getId()).orElseThrow().getAvatarObjectId());
+                AvatarStoredObjectNo.of("storage-20260327100000-001002"),
+                userRepository.findUserById(updatedUser.getId()).orElseThrow().getAvatarStoredObjectNo());
         assertTrue(departmentRepository.existsUserInDepartment(department.getId()));
 
         userRepository.deleteUser(updatedUser.getId());

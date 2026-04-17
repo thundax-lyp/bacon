@@ -15,7 +15,7 @@ import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
-import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import java.time.Instant;
 import java.util.List;
@@ -32,15 +32,15 @@ class StorageProviderControllerContractTest {
     private static final String PROVIDER_TOKEN = "storage-token";
 
     private MockMvc mockMvc;
-    private StoredObjectFacade storedObjectFacade;
+    private StoredObjectCommandFacade storedObjectCommandFacade;
 
     @BeforeEach
     void setUp() {
-        storedObjectFacade = Mockito.mock(StoredObjectFacade.class);
+        storedObjectCommandFacade = Mockito.mock(StoredObjectCommandFacade.class);
         StoredObjectQueryApplicationService storedObjectQueryApplicationService =
                 Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller =
-                new StorageProviderController(storedObjectFacade, storedObjectQueryApplicationService);
+                new StorageProviderController(storedObjectCommandFacade, storedObjectQueryApplicationService);
         InternalApiGuardProperties guardProperties = new InternalApiGuardProperties();
         guardProperties.setEnabled(true);
         guardProperties.setToken(PROVIDER_TOKEN);
@@ -53,7 +53,7 @@ class StorageProviderControllerContractTest {
     @Test
     void shouldExposeUploadProviderPath() throws Exception {
         StoredObjectDTO dto = new StoredObjectDTO(
-                "O1",
+                "storage-20260327100000-000001",
                 "LOCAL_FILE",
                 "default",
                 "attachment/a.txt",
@@ -64,7 +64,7 @@ class StorageProviderControllerContractTest {
                 "ACTIVE",
                 "UNREFERENCED",
                 Instant.parse("2026-03-27T10:00:00Z"));
-        when(storedObjectFacade.uploadObject(any())).thenReturn(dto);
+        when(storedObjectCommandFacade.uploadObject(any())).thenReturn(dto);
 
         MockMultipartFile file = new MockMultipartFile("file", "a.txt", "text/plain", new byte[] {1, 2, 3});
 
@@ -74,13 +74,13 @@ class StorageProviderControllerContractTest {
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("category", "attachment"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("O1"))
+                .andExpect(jsonPath("$.storedObjectNo").value("storage-20260327100000-000001"))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
     @Test
     void shouldExposeMultipartInitPath() throws Exception {
-        when(storedObjectFacade.initMultipartUpload(any()))
+        when(storedObjectCommandFacade.initMultipartUpload(any()))
                 .thenReturn(new MultipartUploadSessionDTO(
                         "storage20260327100000-001001",
                         "GENERIC_ATTACHMENT",
@@ -109,7 +109,8 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartPartUploadPath() throws Exception {
-        when(storedObjectFacade.uploadMultipartPart(any())).thenReturn(new MultipartUploadPartDTO("1", 1, "etag-1"));
+        when(storedObjectCommandFacade.uploadMultipartPart(any()))
+                .thenReturn(new MultipartUploadPartDTO("1", 1, "etag-1"));
         MockMultipartFile file =
                 new MockMultipartFile("file", "part-1.bin", "application/octet-stream", new byte[] {1, 2, 3});
 
@@ -127,9 +128,9 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeMultipartCompletePath() throws Exception {
-        when(storedObjectFacade.completeMultipartUpload(any()))
+        when(storedObjectCommandFacade.completeMultipartUpload(any()))
                 .thenReturn(new StoredObjectDTO(
-                        "O2",
+                        "storage-20260327100000-000002",
                         "OSS",
                         "bucket",
                         "attachment/a.txt",
@@ -146,13 +147,13 @@ class StorageProviderControllerContractTest {
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("O2"))
+                .andExpect(jsonPath("$.storedObjectNo").value("storage-20260327100000-000002"))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
     @Test
     void shouldExposeMultipartAbortPath() throws Exception {
-        doNothing().when(storedObjectFacade).abortMultipartUpload(any());
+        doNothing().when(storedObjectCommandFacade).abortMultipartUpload(any());
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/multipart/{uploadId}", "1")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
@@ -166,13 +167,13 @@ class StorageProviderControllerContractTest {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService =
                 Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller =
-                new StorageProviderController(storedObjectFacade, storedObjectQueryApplicationService);
+                new StorageProviderController(storedObjectCommandFacade, storedObjectQueryApplicationService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
-        when(storedObjectQueryApplicationService.getObjectById(100L))
+        when(storedObjectQueryApplicationService.getObjectByNo("storage-20260327100000-000100"))
                 .thenReturn(new StoredObjectDTO(
-                        "O100",
+                        "storage-20260327100000-000100",
                         "LOCAL_FILE",
                         "default",
                         "attachment/a.txt",
@@ -184,10 +185,10 @@ class StorageProviderControllerContractTest {
                         "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(get("/providers/storage/objects/{objectId}", "100")
+        mockMvc.perform(get("/providers/storage/objects/{objectId}", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("O100"))
+                .andExpect(jsonPath("$.storedObjectNo").value("storage-20260327100000-000100"))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -196,14 +197,14 @@ class StorageProviderControllerContractTest {
         StoredObjectQueryApplicationService storedObjectQueryApplicationService =
                 Mockito.mock(StoredObjectQueryApplicationService.class);
         StorageProviderController controller =
-                new StorageProviderController(storedObjectFacade, storedObjectQueryApplicationService);
+                new StorageProviderController(storedObjectCommandFacade, storedObjectQueryApplicationService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(providerGuardInterceptor())
                 .build();
         when(storedObjectQueryApplicationService.pageObjects(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new StoredObjectPageResultDTO(
                         java.util.List.of(new StoredObjectDTO(
-                                "O101",
+                                "storage-20260327100000-000101",
                                 "LOCAL_FILE",
                                 "default",
                                 "attachment/e.txt",
@@ -226,15 +227,17 @@ class StorageProviderControllerContractTest {
                         .param("pageSize", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1))
-                .andExpect(jsonPath("$.records[0].id").value("O101"))
+                .andExpect(jsonPath("$.records[0].storedObjectNo").value("storage-20260327100000-000101"))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
     @Test
     void shouldExposeMarkReferencePath() throws Exception {
-        doNothing().when(storedObjectFacade).markObjectReferenced("O100", "GENERIC_ATTACHMENT", "owner-1");
+        doNothing()
+                .when(storedObjectCommandFacade)
+                .markObjectReferenced("storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1");
 
-        mockMvc.perform(post("/providers/storage/objects/{objectId}/references", "O100")
+        mockMvc.perform(post("/providers/storage/objects/{objectId}/references", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
@@ -243,9 +246,12 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeClearReferencePath() throws Exception {
-        doNothing().when(storedObjectFacade).clearObjectReference("O100", "GENERIC_ATTACHMENT", "owner-1");
+        doNothing()
+                .when(storedObjectCommandFacade)
+                .clearObjectReference("storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1");
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}/references", "O100")
+        mockMvc.perform(MockMvcRequestBuilders.delete(
+                                "/providers/storage/objects/{objectId}/references", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
@@ -254,21 +260,22 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeDeleteObjectPath() throws Exception {
-        doNothing().when(storedObjectFacade).deleteObject("O100");
+        doNothing().when(storedObjectCommandFacade).deleteObject("storage-20260327100000-000100");
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}", "O100")
+        mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldRejectProviderRequestWhenTokenMissing() throws Exception {
-        mockMvc.perform(get("/providers/storage/objects/{objectId}", "O100")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/providers/storage/objects/{objectId}", "storage-20260327100000-000100"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldRejectProviderRequestWhenTokenInvalid() throws Exception {
-        mockMvc.perform(get("/providers/storage/objects/{objectId}", "O100")
+        mockMvc.perform(get("/providers/storage/objects/{objectId}", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", "wrong-token"))
                 .andExpect(status().isForbidden());
     }

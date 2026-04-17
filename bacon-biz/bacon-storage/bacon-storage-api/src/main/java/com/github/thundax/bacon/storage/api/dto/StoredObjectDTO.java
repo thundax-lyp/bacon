@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StoredObjectDTO {
 
-    /** 主键。 */
-    private String id;
+    /** 存储对象外部编号。 */
+    private String storedObjectNo;
     /** 底层存储类型。 */
     private String storageType;
     /** 存储桶或本地逻辑目录。 */
@@ -35,7 +35,7 @@ public class StoredObjectDTO {
     private Instant createdAt;
 
     public StoredObjectDTO(
-            String id,
+            String storedObjectNo,
             String storageType,
             String bucketName,
             String objectKey,
@@ -46,7 +46,7 @@ public class StoredObjectDTO {
             String objectStatus,
             String referenceStatus,
             Instant createdAt) {
-        this.id = id;
+        this.storedObjectNo = storedObjectNo;
         this.storageType = storageType;
         this.bucketName = bucketName;
         this.objectKey = objectKey;

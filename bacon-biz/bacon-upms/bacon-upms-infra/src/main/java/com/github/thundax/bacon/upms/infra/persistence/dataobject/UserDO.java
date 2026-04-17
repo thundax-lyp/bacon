@@ -26,7 +26,7 @@ public class UserDO {
     private String name;
 
     @TableField("avatar_object_id")
-    private Long avatarObjectId;
+    private String avatarStoredObjectNo;
 
     @TableField("department_id")
     private Long departmentId;

@@ -57,14 +57,14 @@ public class StorageController {
     @Operation(summary = "查询存储对象详情")
     @HasPermission("storage:object:view")
     @GetMapping("/{objectId}")
-    public StoredObjectResponse getObjectById(@PathVariable("objectId") Long objectId) {
-        return StoredObjectResponse.from(storedObjectQueryApplicationService.getObjectById(objectId));
+    public StoredObjectResponse getObjectById(@PathVariable("objectId") String objectId) {
+        return StoredObjectResponse.from(storedObjectQueryApplicationService.getObjectByNo(objectId));
     }
 
     @Operation(summary = "删除存储对象")
     @HasPermission("storage:object:delete")
     @DeleteMapping("/{objectId}")
-    public void deleteObject(@PathVariable("objectId") Long objectId) {
+    public void deleteObject(@PathVariable("objectId") String objectId) {
         storedObjectApplicationService.deleteObject(objectId);
     }
 }

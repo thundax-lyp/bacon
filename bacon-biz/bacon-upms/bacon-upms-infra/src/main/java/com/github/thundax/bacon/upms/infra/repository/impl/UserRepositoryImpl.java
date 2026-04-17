@@ -154,7 +154,7 @@ public class UserRepositoryImpl implements UserRepository {
         User updatedUser = User.create(
                 currentUser.getId(),
                 currentUser.getName(),
-                currentUser.getAvatarObjectId(),
+                currentUser.getAvatarStoredObjectNo(),
                 currentUser.getDepartmentId(),
                 currentUser.getStatus());
         User savedUser = support.updateUser(updatedUser);
@@ -195,7 +195,11 @@ public class UserRepositoryImpl implements UserRepository {
 
     private User copyUser(User user) {
         return User.create(
-                user.getId(), user.getName(), user.getAvatarObjectId(), user.getDepartmentId(), user.getStatus());
+                user.getId(),
+                user.getName(),
+                user.getAvatarStoredObjectNo(),
+                user.getDepartmentId(),
+                user.getStatus());
     }
 
     private UserIdentity replaceAccountIdentity(

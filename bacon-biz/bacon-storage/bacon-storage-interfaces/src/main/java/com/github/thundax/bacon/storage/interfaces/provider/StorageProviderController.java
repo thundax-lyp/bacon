@@ -10,7 +10,7 @@ import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
-import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
@@ -32,13 +32,13 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Inner-Storage-Management", description = "Storage 域内部 Provider 接口")
 public class StorageProviderController {
 
-    private final StoredObjectFacade storedObjectFacade;
+    private final StoredObjectCommandFacade storedObjectCommandFacade;
     private final StoredObjectQueryApplicationService storedObjectQueryApplicationService;
 
     public StorageProviderController(
-            StoredObjectFacade storedObjectFacade,
+            StoredObjectCommandFacade storedObjectCommandFacade,
             StoredObjectQueryApplicationService storedObjectQueryApplicationService) {
-        this.storedObjectFacade = storedObjectFacade;
+        this.storedObjectCommandFacade = storedObjectCommandFacade;
         this.storedObjectQueryApplicationService = storedObjectQueryApplicationService;
     }
 
@@ -56,7 +56,7 @@ public class StorageProviderController {
                 file.getContentType(),
                 file.getSize(),
                 file.getInputStream());
-        return storedObjectFacade.uploadObject(command);
+        return storedObjectCommandFacade.uploadObject(command);
     }
 
     @Operation(summary = "初始化大文件分段上传")
@@ -69,7 +69,7 @@ public class StorageProviderController {
             @RequestParam("contentType") String contentType,
             @RequestParam("totalSize") Long totalSize,
             @RequestParam("partSize") Long partSize) {
-        return storedObjectFacade.initMultipartUpload(new InitMultipartUploadCommand(
+        return storedObjectCommandFacade.initMultipartUpload(new InitMultipartUploadCommand(
                 ownerType, ownerId, category, originalFilename, contentType, totalSize, partSize));
     }
 
@@ -82,7 +82,7 @@ public class StorageProviderController {
             @RequestParam("partNumber") Integer partNumber,
             @RequestParam("file") MultipartFile file)
             throws IOException {
-        return storedObjectFacade.uploadMultipartPart(new UploadMultipartPartCommand(
+        return storedObjectCommandFacade.uploadMultipartPart(new UploadMultipartPartCommand(
                 uploadId, ownerType, ownerId, partNumber, file.getSize(), file.getInputStream()));
     }
 
@@ -92,7 +92,7 @@ public class StorageProviderController {
             @PathVariable("uploadId") String uploadId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId) {
-        return storedObjectFacade.completeMultipartUpload(
+        return storedObjectCommandFacade.completeMultipartUpload(
                 new CompleteMultipartUploadCommand(uploadId, ownerType, ownerId));
     }
 
@@ -102,13 +102,13 @@ public class StorageProviderController {
             @PathVariable("uploadId") String uploadId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId) {
-        storedObjectFacade.abortMultipartUpload(new AbortMultipartUploadCommand(uploadId, ownerType, ownerId));
+        storedObjectCommandFacade.abortMultipartUpload(new AbortMultipartUploadCommand(uploadId, ownerType, ownerId));
     }
 
     @Operation(summary = "查询存储对象")
     @GetMapping("/objects/{objectId}")
-    public StoredObjectDTO getObjectById(@PathVariable("objectId") Long objectId) {
-        return storedObjectQueryApplicationService.getObjectById(objectId);
+    public StoredObjectDTO getObjectById(@PathVariable("objectId") String objectId) {
+        return storedObjectQueryApplicationService.getObjectByNo(objectId);
     }
 
     @Operation(summary = "分页查询存储对象")
@@ -132,7 +132,7 @@ public class StorageProviderController {
             @PathVariable("objectId") String objectId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId) {
-        storedObjectFacade.markObjectReferenced(objectId, ownerType, ownerId);
+        storedObjectCommandFacade.markObjectReferenced(objectId, ownerType, ownerId);
     }
 
     @Operation(summary = "清理存储对象引用")
@@ -141,12 +141,12 @@ public class StorageProviderController {
             @PathVariable("objectId") String objectId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId) {
-        storedObjectFacade.clearObjectReference(objectId, ownerType, ownerId);
+        storedObjectCommandFacade.clearObjectReference(objectId, ownerType, ownerId);
     }
 
     @Operation(summary = "删除存储对象")
     @DeleteMapping("/objects/{objectId}")
     public void deleteObject(@PathVariable("objectId") String objectId) {
-        storedObjectFacade.deleteObject(objectId);
+        storedObjectCommandFacade.deleteObject(objectId);
     }
 }

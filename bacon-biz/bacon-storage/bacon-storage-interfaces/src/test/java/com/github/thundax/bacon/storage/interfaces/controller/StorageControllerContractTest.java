@@ -49,7 +49,7 @@ class StorageControllerContractTest {
         when(storedObjectQueryApplicationService.pageObjects(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new StoredObjectPageResultDTO(
                         List.of(new StoredObjectDTO(
-                                "O101",
+                                "storage-20260327100000-000101",
                                 "LOCAL_FILE",
                                 "default",
                                 "attachment/e.txt",
@@ -72,14 +72,14 @@ class StorageControllerContractTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data.total").value(1))
-                .andExpect(jsonPath("$.data.records[0].id").value("O101"));
+                .andExpect(jsonPath("$.data.records[0].storedObjectNo").value("storage-20260327100000-000101"));
     }
 
     @Test
     void shouldWrapGetObjectForAdminFrontend() throws Exception {
-        when(storedObjectQueryApplicationService.getObjectById(100L))
+        when(storedObjectQueryApplicationService.getObjectByNo("storage-20260327100000-000100"))
                 .thenReturn(new StoredObjectDTO(
-                        "O100",
+                        "storage-20260327100000-000100",
                         "LOCAL_FILE",
                         "default",
                         "attachment/a.txt",
@@ -91,17 +91,17 @@ class StorageControllerContractTest {
                         "UNREFERENCED",
                         Instant.parse("2026-03-27T10:00:00Z")));
 
-        mockMvc.perform(get("/storage/objects/{objectId}", "100"))
+        mockMvc.perform(get("/storage/objects/{objectId}", "storage-20260327100000-000100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.id").value("O100"));
+                .andExpect(jsonPath("$.data.storedObjectNo").value("storage-20260327100000-000100"));
     }
 
     @Test
     void shouldWrapDeleteForAdminFrontend() throws Exception {
-        doNothing().when(storedObjectApplicationService).deleteObject(100L);
+        doNothing().when(storedObjectApplicationService).deleteObject("storage-20260327100000-000100");
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/storage/objects/{objectId}", "100"))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/storage/objects/{objectId}", "storage-20260327100000-000100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"))
                 .andExpect(jsonPath("$.data").doesNotExist());

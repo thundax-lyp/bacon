@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
+import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectNo;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,6 +20,8 @@ public class StoredObject {
 
     /** 主键。 */
     private StoredObjectId id;
+    /** 存储对象外部编号。 */
+    private StoredObjectNo storedObjectNo;
     /** 底层存储类型。 */
     private StorageType storageType;
     /** 存储桶或本地逻辑目录。 */
@@ -40,6 +43,7 @@ public class StoredObject {
 
     public static StoredObject create(
             StoredObjectId id,
+            StoredObjectNo storedObjectNo,
             StorageType storageType,
             String bucketName,
             String objectKey,
@@ -49,6 +53,7 @@ public class StoredObject {
             String accessEndpoint) {
         return new StoredObject(
                 id,
+                storedObjectNo,
                 storageType,
                 bucketName,
                 objectKey,
@@ -62,6 +67,7 @@ public class StoredObject {
 
     public static StoredObject reconstruct(
             StoredObjectId id,
+            StoredObjectNo storedObjectNo,
             StorageType storageType,
             String bucketName,
             String objectKey,
@@ -73,6 +79,44 @@ public class StoredObject {
             StoredObjectReferenceStatus referenceStatus) {
         return new StoredObject(
                 id,
+                storedObjectNo,
+                storageType,
+                bucketName,
+                objectKey,
+                originalFilename,
+                contentType,
+                size,
+                accessEndpoint,
+                objectStatus,
+                referenceStatus);
+    }
+
+    public static StoredObject create(
+            StoredObjectId id,
+            StorageType storageType,
+            String bucketName,
+            String objectKey,
+            String originalFilename,
+            String contentType,
+            Long size,
+            String accessEndpoint) {
+        return create(id, null, storageType, bucketName, objectKey, originalFilename, contentType, size, accessEndpoint);
+    }
+
+    public static StoredObject reconstruct(
+            StoredObjectId id,
+            StorageType storageType,
+            String bucketName,
+            String objectKey,
+            String originalFilename,
+            String contentType,
+            Long size,
+            String accessEndpoint,
+            StoredObjectStatus objectStatus,
+            StoredObjectReferenceStatus referenceStatus) {
+        return reconstruct(
+                id,
+                null,
                 storageType,
                 bucketName,
                 objectKey,

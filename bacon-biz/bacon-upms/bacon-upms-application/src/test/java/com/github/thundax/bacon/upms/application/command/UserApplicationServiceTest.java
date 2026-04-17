@@ -16,11 +16,11 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
@@ -35,6 +35,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
@@ -83,7 +84,10 @@ class UserApplicationServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private StoredObjectFacade storedObjectFacade;
+    private StoredObjectCommandFacade storedObjectCommandFacade;
+
+    @Mock
+    private StoredObjectReadFacade storedObjectReadFacade;
 
     @Mock
     private Ids ids;
@@ -103,7 +107,8 @@ class UserApplicationServiceTest {
                 tenantRepository,
                 sessionCommandFacade,
                 passwordEncoder,
-                storedObjectFacade,
+                storedObjectCommandFacade,
+                storedObjectReadFacade,
                 ids,
                 idGenerator);
         lenient().when(idGenerator.nextId("user-identity-id")).thenReturn(10001L, 10002L, 10011L, 10012L);
@@ -117,16 +122,18 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldUploadAvatarToStorageAndReplaceOldReference() throws Exception {
-        User currentUser = user(101L, "Alice", StoredObjectId.of(301L), DEPARTMENT_ID, UserStatus.ENABLED);
-        User savedUser = user(101L, "Alice", StoredObjectId.of(401L), DEPARTMENT_ID, UserStatus.ENABLED);
+        User currentUser = user(
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000301"), DEPARTMENT_ID, UserStatus.ENABLED);
+        User savedUser = user(
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000401"), DEPARTMENT_ID, UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
-        storedObject.setId(StoredObjectId.of(401L));
+        storedObject.setStoredObjectNo("storage-20260327100000-000401");
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
 
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
         mockIdentity(UserId.of(101L), UserIdentityType.PHONE, "13800000001");
-        when(storedObjectFacade.uploadObject(any())).thenReturn(storedObject);
+        when(storedObjectCommandFacade.uploadObject(any())).thenReturn(storedObject);
         when(userRepository.update(any(User.class), any(), any(), any(), any(), any()))
                 .thenReturn(savedUser);
 
@@ -146,10 +153,13 @@ class UserApplicationServiceTest {
                         any(),
                         any(),
                         any());
-        verify(storedObjectFacade).markObjectReferenced("O401", "UPMS_USER_AVATAR", "101");
-        verify(storedObjectFacade).clearObjectReference("O301", "UPMS_USER_AVATAR", "101");
-        assertThat(userCaptor.getValue().getAvatarObjectId()).isEqualTo(StoredObjectId.of(401L));
-        assertThat(result.getAvatarObjectId()).isEqualTo(401L);
+        verify(storedObjectCommandFacade)
+                .markObjectReferenced("storage-20260327100000-000401", "UPMS_USER_AVATAR", "101");
+        verify(storedObjectCommandFacade)
+                .clearObjectReference("storage-20260327100000-000301", "UPMS_USER_AVATAR", "101");
+        assertThat(userCaptor.getValue().getAvatarStoredObjectNo())
+                .isEqualTo(AvatarStoredObjectNo.of("storage-20260327100000-000401"));
+        assertThat(result.getAvatarStoredObjectNo()).isEqualTo("storage-20260327100000-000401");
         assertThat(result.getId()).isEqualTo(101L);
         assertThat(result.getAvatarUrl()).isEqualTo("https://cdn.example.com/avatar/401.png");
     }
@@ -184,7 +194,8 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
-        User user = user(101L, "Alice", StoredObjectId.of(501L), DEPARTMENT_ID, UserStatus.ENABLED);
+        User user = user(
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ENABLED);
         when(userRepository.pageUsers(null, null, null, null, 1, 20)).thenReturn(List.of(user));
         when(userRepository.countUsers(null, null, null, null)).thenReturn(1L);
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
@@ -193,31 +204,34 @@ class UserApplicationServiceTest {
         PageResultDTO<UserDTO> result = service.pageUsers(null, null, null, null, 1, 20);
 
         assertThat(result.getRecords()).hasSize(1);
-        assertThat(result.getRecords().get(0).getAvatarObjectId()).isEqualTo(501L);
+        assertThat(result.getRecords().get(0).getAvatarStoredObjectNo()).isEqualTo("storage-20260327100000-000501");
         assertThat(result.getRecords().get(0).getAvatarUrl()).isNull();
-        verify(storedObjectFacade, never()).getObjectById(any());
+        verify(storedObjectReadFacade, never()).getObjectByNo(any());
     }
 
     @Test
     void shouldClearAvatarReferenceWhenDeletingUser() {
-        User user = user(101L, "Alice", StoredObjectId.of(501L), DEPARTMENT_ID, UserStatus.ENABLED);
+        User user = user(
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ENABLED);
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
 
         service.deleteUser(UserId.of(101L));
 
         verify(userRepository).deleteUser(UserId.of(101L));
-        verify(storedObjectFacade).clearObjectReference("O501", "UPMS_USER_AVATAR", "101");
+        verify(storedObjectCommandFacade)
+                .clearObjectReference("storage-20260327100000-000501", "UPMS_USER_AVATAR", "101");
         verify(sessionCommandFacade)
                 .invalidateUserSessions(new SessionInvalidateUserFacadeRequest(1001L, 101L, "USER_DELETED"));
     }
 
     @Test
     void shouldResolveAvatarAccessUrl() {
-        User user = user(101L, "Alice", StoredObjectId.of(501L), DEPARTMENT_ID, UserStatus.ENABLED);
+        User user = user(
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ENABLED);
         StoredObjectDTO storedObject = new StoredObjectDTO();
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
-        when(storedObjectFacade.getObjectById("O501")).thenReturn(storedObject);
+        when(storedObjectReadFacade.getObjectByNo("storage-20260327100000-000501")).thenReturn(storedObject);
 
         assertThat(service.getAvatarAccessUrl(UserId.of(101L))).contains("https://cdn.example.com/avatar/501.png");
     }
@@ -274,8 +288,12 @@ class UserApplicationServiceTest {
     }
 
     private static User user(
-            Long id, String name, StoredObjectId avatarObjectId, DepartmentId departmentId, UserStatus status) {
-        return User.create(UserId.of(id), name, avatarObjectId, departmentId, status);
+            Long id,
+            String name,
+            AvatarStoredObjectNo avatarStoredObjectNo,
+            DepartmentId departmentId,
+            UserStatus status) {
+        return User.create(UserId.of(id), name, avatarStoredObjectNo, departmentId, status);
     }
 
     private static UserIdentity identity(Long id, Long userId, UserIdentityType type, String value) {

@@ -13,9 +13,9 @@ public final class UserAssembler {
                 user.getId().value(),
                 account,
                 user.getName(),
-                user.getAvatarObjectId() == null
+                user.getAvatarStoredObjectNo() == null
                         ? null
-                        : user.getAvatarObjectId().value(),
+                        : user.getAvatarStoredObjectNo().value(),
                 phone,
                 DepartmentIdCodec.toValue(user.getDepartmentId()),
                 avatarUrl,

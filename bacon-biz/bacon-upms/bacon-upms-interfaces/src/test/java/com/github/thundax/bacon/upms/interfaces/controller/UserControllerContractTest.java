@@ -64,10 +64,10 @@ class UserControllerContractTest {
                         101L,
                         "alice",
                         "Alice",
-                        9001L,
+                        "storage-20260327100000-000901",
                         "13800000001",
                         11L,
-                        "https://cdn.example.com/avatar/9001.png",
+                        "https://cdn.example.com/avatar/901.png",
                         "ENABLED"));
 
         MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[] {1, 2, 3, 4});
@@ -80,8 +80,8 @@ class UserControllerContractTest {
                         }))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(101))
-                .andExpect(jsonPath("$.avatarObjectId").value(9001))
-                .andExpect(jsonPath("$.avatarUrl").value("https://cdn.example.com/avatar/9001.png"));
+                .andExpect(jsonPath("$.avatarStoredObjectNo").value("storage-20260327100000-000901"))
+                .andExpect(jsonPath("$.avatarUrl").value("https://cdn.example.com/avatar/901.png"));
     }
 
     @Test

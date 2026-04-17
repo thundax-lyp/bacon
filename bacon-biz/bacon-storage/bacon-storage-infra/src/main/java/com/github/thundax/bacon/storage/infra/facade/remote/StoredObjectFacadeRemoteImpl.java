@@ -9,7 +9,8 @@ import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
-import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
 import com.github.thundax.bacon.storage.infra.config.StorageRemoteClientProperties;
 import java.io.InputStream;
 import java.time.Duration;
@@ -24,7 +25,7 @@ import org.springframework.web.client.RestClient;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "micro")
-public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
+public class StoredObjectFacadeRemoteImpl implements StoredObjectCommandFacade, StoredObjectReadFacade {
 
     private static final String PROVIDER_TOKEN_HEADER = "X-Bacon-Provider-Token";
 
@@ -122,19 +123,19 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     }
 
     @Override
-    public StoredObjectDTO getObjectById(String objectId) {
+    public StoredObjectDTO getObjectByNo(String storedObjectNo) {
         return request(restClient.get())
-                .uri("/providers/storage/objects/{objectId}", objectId)
+                .uri("/providers/storage/objects/{storedObjectNo}", storedObjectNo)
                 .retrieve()
                 .body(StoredObjectDTO.class);
     }
 
     @Override
-    public void markObjectReferenced(String objectId, String ownerType, String ownerId) {
+    public void markObjectReferenced(String storedObjectNo, String ownerType, String ownerId) {
         request(restClient.post())
                 .uri(
-                        "/providers/storage/objects/{objectId}/references?ownerType={ownerType}&ownerId={ownerId}",
-                        objectId,
+                        "/providers/storage/objects/{storedObjectNo}/references?ownerType={ownerType}&ownerId={ownerId}",
+                        storedObjectNo,
                         ownerType,
                         ownerId)
                 .retrieve()
@@ -142,11 +143,11 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     }
 
     @Override
-    public void clearObjectReference(String objectId, String ownerType, String ownerId) {
+    public void clearObjectReference(String storedObjectNo, String ownerType, String ownerId) {
         request(restClient.delete())
                 .uri(
-                        "/providers/storage/objects/{objectId}/references?ownerType={ownerType}&ownerId={ownerId}",
-                        objectId,
+                        "/providers/storage/objects/{storedObjectNo}/references?ownerType={ownerType}&ownerId={ownerId}",
+                        storedObjectNo,
                         ownerType,
                         ownerId)
                 .retrieve()
@@ -154,9 +155,9 @@ public class StoredObjectFacadeRemoteImpl implements StoredObjectFacade {
     }
 
     @Override
-    public void deleteObject(String objectId) {
+    public void deleteObject(String storedObjectNo) {
         request(restClient.delete())
-                .uri("/providers/storage/objects/{objectId}", objectId)
+                .uri("/providers/storage/objects/{storedObjectNo}", storedObjectNo)
                 .retrieve()
                 .toBodilessEntity();
     }

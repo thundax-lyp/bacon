@@ -6,10 +6,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.UserDO;
 import com.github.thundax.bacon.upms.infra.persistence.mapper.UserCredentialMapper;
@@ -52,7 +52,11 @@ class UserPersistenceSupportTest {
     void shouldInsertUserAndMapGeneratedId() {
         ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
         User newUser = User.create(
-                UserId.of(101L), "Alice", StoredObjectId.of(9001L), DepartmentId.of(11L), UserStatus.ENABLED);
+                UserId.of(101L),
+                "Alice",
+                AvatarStoredObjectNo.of("storage-20260327100000-000901"),
+                DepartmentId.of(11L),
+                UserStatus.ENABLED);
         UserId generatedId = UserId.of(101L);
 
         when(userMapper.insert(any(UserDO.class))).thenAnswer(invocation -> {
@@ -65,9 +69,9 @@ class UserPersistenceSupportTest {
 
         verify(userMapper).insert(captor.capture());
         assertThat(captor.getValue().getDeleted()).isFalse();
-        assertThat(captor.getValue().getAvatarObjectId()).isEqualTo(9001L);
+        assertThat(captor.getValue().getAvatarStoredObjectNo()).isEqualTo("storage-20260327100000-000901");
         assertThat(savedUser.getId()).isEqualTo(generatedId);
         assertThat(savedUser.getName()).isEqualTo("Alice");
-        assertThat(savedUser.getAvatarObjectId()).isEqualTo(StoredObjectId.of(9001L));
+        assertThat(savedUser.getAvatarStoredObjectNo()).isEqualTo(AvatarStoredObjectNo.of("storage-20260327100000-000901"));
     }
 }

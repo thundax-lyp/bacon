@@ -12,8 +12,8 @@ public record UserResponse(
         String account,
         /** 用户名称。 */
         String name,
-        /** 头像对象主键。 */
-        Long avatarObjectId,
+        /** 头像存储对象编号。 */
+        String avatarStoredObjectNo,
         /** 手机号。 */
         String phone,
         /** 所属部门主键。 */
@@ -28,7 +28,7 @@ public record UserResponse(
                 dto.getId(),
                 dto.getAccount(),
                 dto.getName(),
-                dto.getAvatarObjectId(),
+                dto.getAvatarStoredObjectNo(),
                 dto.getPhone(),
                 dto.getDepartmentId(),
                 dto.getAvatarUrl(),

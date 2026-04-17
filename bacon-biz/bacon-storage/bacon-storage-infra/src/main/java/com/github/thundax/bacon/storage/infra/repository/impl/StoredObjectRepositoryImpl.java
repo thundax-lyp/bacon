@@ -7,6 +7,7 @@ import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
+import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectNo;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import com.github.thundax.bacon.storage.infra.persistence.assembler.StoredObjectPersistenceAssembler;
 import com.github.thundax.bacon.storage.infra.persistence.dataobject.StoredObjectDO;
@@ -41,6 +42,13 @@ public class StoredObjectRepositoryImpl implements StoredObjectRepository {
     @Override
     public Optional<StoredObject> findById(StoredObjectId objectId) {
         return Optional.ofNullable(storedObjectMapper.selectById(objectId == null ? null : objectId.value()))
+                .map(StoredObjectPersistenceAssembler::toDomain);
+    }
+
+    @Override
+    public Optional<StoredObject> findByNo(StoredObjectNo storedObjectNo) {
+        return Optional.ofNullable(storedObjectMapper.selectOne(Wrappers.<StoredObjectDO>lambdaQuery()
+                        .eq(StoredObjectDO::getStoredObjectNo, storedObjectNo == null ? null : storedObjectNo.value())))
                 .map(StoredObjectPersistenceAssembler::toDomain);
     }
 

@@ -6,12 +6,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.core.exception.NotFoundException;
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectStatus;
+import com.github.thundax.bacon.storage.domain.model.valueobject.StoredObjectNo;
 import com.github.thundax.bacon.storage.domain.repository.StoredObjectRepository;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +38,7 @@ class StoredObjectQueryApplicationServiceTest {
     void shouldRejectQueryForDeletedObject() {
         StoredObject storedObject = StoredObject.create(
                 null,
+                StoredObjectNo.of("storage-20260327100000-000103"),
                 StorageType.LOCAL_FILE,
                 "default",
                 "attachment/object-d.bin",
@@ -47,15 +48,17 @@ class StoredObjectQueryApplicationServiceTest {
                 "/files/d.bin");
         storedObject.markDeleting();
         storedObject.markDeleted();
-        when(storedObjectRepository.findById(StoredObjectId.of(103L))).thenReturn(Optional.of(storedObject));
+        when(storedObjectRepository.findByNo(StoredObjectNo.of("storage-20260327100000-000103")))
+                .thenReturn(Optional.of(storedObject));
 
-        assertThrows(NotFoundException.class, () -> service.getObjectById(103L));
+        assertThrows(NotFoundException.class, () -> service.getObjectByNo("storage-20260327100000-000103"));
     }
 
     @Test
     void shouldPageObjectsForAdminManagement() {
         StoredObject storedObject = StoredObject.create(
                 null,
+                StoredObjectNo.of("storage-20260327100000-000105"),
                 StorageType.LOCAL_FILE,
                 "default",
                 "attachment/object-e.bin",

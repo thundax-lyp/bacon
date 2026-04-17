@@ -18,8 +18,8 @@ public class UserDTO {
     private String account;
     /** 用户名称。 */
     private String name;
-    /** 头像对象主键。 */
-    private Long avatarObjectId;
+    /** 头像存储对象编号。 */
+    private String avatarStoredObjectNo;
     /** 手机号。 */
     private String phone;
     /** 所属部门主键。 */

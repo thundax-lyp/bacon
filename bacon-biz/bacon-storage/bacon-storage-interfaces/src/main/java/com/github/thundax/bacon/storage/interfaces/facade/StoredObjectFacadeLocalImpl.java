@@ -8,7 +8,8 @@ import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
-import com.github.thundax.bacon.storage.api.facade.StoredObjectFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
+import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
 import com.github.thundax.bacon.storage.application.command.MultipartUploadApplicationService;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnProperty(name = "bacon.runtime.mode", havingValue = "mono", matchIfMissing = true)
-public class StoredObjectFacadeLocalImpl implements StoredObjectFacade {
+public class StoredObjectFacadeLocalImpl implements StoredObjectCommandFacade, StoredObjectReadFacade {
 
     private final StoredObjectApplicationService storedObjectApplicationService;
     private final MultipartUploadApplicationService multipartUploadApplicationService;
@@ -58,30 +59,22 @@ public class StoredObjectFacadeLocalImpl implements StoredObjectFacade {
     }
 
     @Override
-    public StoredObjectDTO getObjectById(String objectId) {
-        return storedObjectQueryApplicationService.getObjectById(toObjectId(objectId));
+    public StoredObjectDTO getObjectByNo(String storedObjectNo) {
+        return storedObjectQueryApplicationService.getObjectByNo(storedObjectNo);
     }
 
     @Override
-    public void markObjectReferenced(String objectId, String ownerType, String ownerId) {
-        storedObjectApplicationService.markObjectReferenced(toObjectId(objectId), ownerType, ownerId);
+    public void markObjectReferenced(String storedObjectNo, String ownerType, String ownerId) {
+        storedObjectApplicationService.markObjectReferenced(storedObjectNo, ownerType, ownerId);
     }
 
     @Override
-    public void clearObjectReference(String objectId, String ownerType, String ownerId) {
-        storedObjectApplicationService.clearObjectReference(toObjectId(objectId), ownerType, ownerId);
+    public void clearObjectReference(String storedObjectNo, String ownerType, String ownerId) {
+        storedObjectApplicationService.clearObjectReference(storedObjectNo, ownerType, ownerId);
     }
 
     @Override
-    public void deleteObject(String objectId) {
-        storedObjectApplicationService.deleteObject(toObjectId(objectId));
-    }
-
-    private Long toObjectId(String objectId) {
-        if (objectId == null || objectId.isBlank()) {
-            return null;
-        }
-        String normalized = objectId.startsWith("O") ? objectId.substring(1) : objectId;
-        return Long.valueOf(normalized);
+    public void deleteObject(String storedObjectNo) {
+        storedObjectApplicationService.deleteObject(storedObjectNo);
     }
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.upms.domain.model.enums.MenuType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
@@ -41,7 +42,7 @@ class MenuApplicationServiceTest {
         when(menuRepository.findMenuById(parentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.createMenu(MenuType.CATALOG, "Catalog", parentId, null, null, null, 1, null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage("Parent menu not found: " + parentId);
         verifyNoInteractions(permissionRepository);
     }

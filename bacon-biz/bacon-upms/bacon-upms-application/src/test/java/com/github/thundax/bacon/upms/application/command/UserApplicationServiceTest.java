@@ -13,6 +13,7 @@ import com.github.thundax.bacon.auth.api.request.SessionInvalidateUserFacadeRequ
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
+import com.github.thundax.bacon.common.core.exception.BadRequestException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
@@ -161,7 +162,7 @@ class UserApplicationServiceTest {
         assertThatThrownBy(() -> service.updateAvatar(
                         UserId.of(101L), "avatar.gif", "image/gif", 12L, new ByteArrayInputStream(new byte[] {1, 2, 3
                         })))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BadRequestException.class)
                 .hasMessage("avatar contentType must be image/jpeg or image/png");
     }
 
@@ -177,7 +178,7 @@ class UserApplicationServiceTest {
                         "image/png",
                         (long) bytes.length,
                         new ByteArrayInputStream(bytes)))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BadRequestException.class)
                 .hasMessage("avatar image must be square");
     }
 

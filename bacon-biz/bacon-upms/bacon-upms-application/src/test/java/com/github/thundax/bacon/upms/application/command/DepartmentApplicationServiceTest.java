@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
@@ -44,7 +45,7 @@ class DepartmentApplicationServiceTest {
         when(departmentRepository.findDepartmentById(parentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.createDepartment(DepartmentCode.of("OPS"), "Operations", parentId, null, 1))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage("Parent department not found: " + parentId);
         verifyNoInteractions(userRepository);
     }
@@ -55,7 +56,7 @@ class DepartmentApplicationServiceTest {
 
         assertThatThrownBy(() ->
                         service.createDepartment(DepartmentCode.of("OPS"), "Operations", null, UserId.of(2001L), 1))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage("Leader user not found: 2001");
     }
 
@@ -68,7 +69,7 @@ class DepartmentApplicationServiceTest {
 
         assertThatThrownBy(() -> service.updateDepartment(
                         departmentId, DepartmentCode.of("OPS"), "Operations", null, UserId.of(2002L), 2))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage("Leader user not found: 2002");
     }
 

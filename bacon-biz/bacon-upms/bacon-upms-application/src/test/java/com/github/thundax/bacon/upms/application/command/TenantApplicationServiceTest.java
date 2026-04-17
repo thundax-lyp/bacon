@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.auth.api.facade.SessionCommandFacade;
 import com.github.thundax.bacon.auth.api.request.SessionInvalidateTenantFacadeRequest;
+import com.github.thundax.bacon.common.core.exception.ConflictException;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -75,7 +76,7 @@ class TenantApplicationServiceTest {
                         Instant.parse("2099-01-01T00:00:00Z"))));
 
         assertThatThrownBy(() -> service.createTenant("Other", TenantCode.of("TENANT_DEMO"), null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ConflictException.class)
                 .hasMessage("Tenant tenantCode already exists: TENANT_DEMO");
     }
 

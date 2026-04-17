@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.storage.application.assembler;
 
-import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;

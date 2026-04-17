@@ -1,29 +1,31 @@
 package com.github.thundax.bacon.storage.api.facade;
 
-import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
-import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.api.request.AbortMultipartUploadFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.CompleteMultipartUploadFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.InitMultipartUploadFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectDeleteFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.UploadMultipartPartFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.UploadObjectFacadeRequest;
+import com.github.thundax.bacon.storage.api.response.MultipartUploadPartFacadeResponse;
+import com.github.thundax.bacon.storage.api.response.MultipartUploadSessionFacadeResponse;
+import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 
 public interface StoredObjectCommandFacade {
 
-    StoredObjectDTO uploadObject(UploadObjectCommand command);
+    StoredObjectFacadeResponse uploadObject(UploadObjectFacadeRequest request);
 
-    MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command);
+    MultipartUploadSessionFacadeResponse initMultipartUpload(InitMultipartUploadFacadeRequest request);
 
-    MultipartUploadPartDTO uploadMultipartPart(UploadMultipartPartCommand command);
+    MultipartUploadPartFacadeResponse uploadMultipartPart(UploadMultipartPartFacadeRequest request);
 
-    StoredObjectDTO completeMultipartUpload(CompleteMultipartUploadCommand command);
+    StoredObjectFacadeResponse completeMultipartUpload(CompleteMultipartUploadFacadeRequest request);
 
-    void abortMultipartUpload(AbortMultipartUploadCommand command);
+    void abortMultipartUpload(AbortMultipartUploadFacadeRequest request);
 
-    void markObjectReferenced(String storedObjectNo, String ownerType, String ownerId);
+    void markObjectReferenced(StoredObjectReferenceFacadeRequest request);
 
-    void clearObjectReference(String storedObjectNo, String ownerType, String ownerId);
+    void clearObjectReference(StoredObjectReferenceFacadeRequest request);
 
-    void deleteObject(String storedObjectNo);
+    void deleteObject(StoredObjectDeleteFacadeRequest request);
 }

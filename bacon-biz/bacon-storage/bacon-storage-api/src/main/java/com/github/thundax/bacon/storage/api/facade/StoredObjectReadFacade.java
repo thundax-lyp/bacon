@@ -1,8 +1,9 @@
 package com.github.thundax.bacon.storage.api.facade;
 
-import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.api.request.StoredObjectGetFacadeRequest;
+import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 
 public interface StoredObjectReadFacade {
 
-    StoredObjectDTO getObjectByNo(String storedObjectNo);
+    StoredObjectFacadeResponse getObjectByNo(StoredObjectGetFacadeRequest request);
 }

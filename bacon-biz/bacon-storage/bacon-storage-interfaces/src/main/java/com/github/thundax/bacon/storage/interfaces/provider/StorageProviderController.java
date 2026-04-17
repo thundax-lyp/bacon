@@ -1,16 +1,21 @@
 package com.github.thundax.bacon.storage.interfaces.provider;
 
-import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectPageQueryDTO;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
-import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
-import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.application.dto.MultipartUploadPartDTO;
+import com.github.thundax.bacon.storage.application.dto.MultipartUploadSessionDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectPageQueryDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
+import com.github.thundax.bacon.storage.api.request.AbortMultipartUploadFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.CompleteMultipartUploadFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.InitMultipartUploadFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectDeleteFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.UploadMultipartPartFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.UploadObjectFacadeRequest;
+import com.github.thundax.bacon.storage.api.response.MultipartUploadPartFacadeResponse;
+import com.github.thundax.bacon.storage.api.response.MultipartUploadSessionFacadeResponse;
+import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
@@ -49,14 +54,14 @@ public class StorageProviderController {
             @RequestParam(value = "category", required = false) String category,
             @RequestParam("file") MultipartFile file)
             throws IOException {
-        UploadObjectCommand command = new UploadObjectCommand(
+        UploadObjectFacadeRequest command = new UploadObjectFacadeRequest(
                 ownerType,
                 category,
                 file.getOriginalFilename(),
                 file.getContentType(),
                 file.getSize(),
                 file.getInputStream());
-        return storedObjectCommandFacade.uploadObject(command);
+        return toStoredObjectDto(storedObjectCommandFacade.uploadObject(command));
     }
 
     @Operation(summary = "初始化大文件分段上传")
@@ -69,8 +74,8 @@ public class StorageProviderController {
             @RequestParam("contentType") String contentType,
             @RequestParam("totalSize") Long totalSize,
             @RequestParam("partSize") Long partSize) {
-        return storedObjectCommandFacade.initMultipartUpload(new InitMultipartUploadCommand(
-                ownerType, ownerId, category, originalFilename, contentType, totalSize, partSize));
+        return toMultipartSessionDto(storedObjectCommandFacade.initMultipartUpload(new InitMultipartUploadFacadeRequest(
+                ownerType, ownerId, category, originalFilename, contentType, totalSize, partSize)));
     }
 
     @Operation(summary = "上传大文件分段")
@@ -82,8 +87,8 @@ public class StorageProviderController {
             @RequestParam("partNumber") Integer partNumber,
             @RequestParam("file") MultipartFile file)
             throws IOException {
-        return storedObjectCommandFacade.uploadMultipartPart(new UploadMultipartPartCommand(
-                uploadId, ownerType, ownerId, partNumber, file.getSize(), file.getInputStream()));
+        return toMultipartPartDto(storedObjectCommandFacade.uploadMultipartPart(new UploadMultipartPartFacadeRequest(
+                uploadId, ownerType, ownerId, partNumber, file.getSize(), file.getInputStream())));
     }
 
     @Operation(summary = "完成大文件分段上传")
@@ -92,8 +97,8 @@ public class StorageProviderController {
             @PathVariable("uploadId") String uploadId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId) {
-        return storedObjectCommandFacade.completeMultipartUpload(
-                new CompleteMultipartUploadCommand(uploadId, ownerType, ownerId));
+        return toStoredObjectDto(storedObjectCommandFacade.completeMultipartUpload(
+                new CompleteMultipartUploadFacadeRequest(uploadId, ownerType, ownerId)));
     }
 
     @Operation(summary = "取消大文件分段上传")
@@ -102,7 +107,8 @@ public class StorageProviderController {
             @PathVariable("uploadId") String uploadId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId) {
-        storedObjectCommandFacade.abortMultipartUpload(new AbortMultipartUploadCommand(uploadId, ownerType, ownerId));
+        storedObjectCommandFacade.abortMultipartUpload(
+                new AbortMultipartUploadFacadeRequest(uploadId, ownerType, ownerId));
     }
 
     @Operation(summary = "查询存储对象")
@@ -132,7 +138,7 @@ public class StorageProviderController {
             @PathVariable("objectId") String objectId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId) {
-        storedObjectCommandFacade.markObjectReferenced(objectId, ownerType, ownerId);
+        storedObjectCommandFacade.markObjectReferenced(new StoredObjectReferenceFacadeRequest(objectId, ownerType, ownerId));
     }
 
     @Operation(summary = "清理存储对象引用")
@@ -141,12 +147,54 @@ public class StorageProviderController {
             @PathVariable("objectId") String objectId,
             @RequestParam("ownerType") String ownerType,
             @RequestParam("ownerId") String ownerId) {
-        storedObjectCommandFacade.clearObjectReference(objectId, ownerType, ownerId);
+        storedObjectCommandFacade.clearObjectReference(new StoredObjectReferenceFacadeRequest(objectId, ownerType, ownerId));
     }
 
     @Operation(summary = "删除存储对象")
     @DeleteMapping("/objects/{objectId}")
     public void deleteObject(@PathVariable("objectId") String objectId) {
-        storedObjectCommandFacade.deleteObject(objectId);
+        storedObjectCommandFacade.deleteObject(new StoredObjectDeleteFacadeRequest(objectId));
+    }
+
+    private StoredObjectDTO toStoredObjectDto(StoredObjectFacadeResponse response) {
+        if (response == null) {
+            return null;
+        }
+        return new StoredObjectDTO(
+                response.getStoredObjectNo(),
+                response.getStorageType(),
+                response.getBucketName(),
+                response.getObjectKey(),
+                response.getOriginalFilename(),
+                response.getContentType(),
+                response.getSize(),
+                response.getAccessEndpoint(),
+                response.getObjectStatus(),
+                response.getReferenceStatus(),
+                response.getCreatedAt());
+    }
+
+    private MultipartUploadSessionDTO toMultipartSessionDto(MultipartUploadSessionFacadeResponse response) {
+        if (response == null) {
+            return null;
+        }
+        return new MultipartUploadSessionDTO(
+                response.getUploadId(),
+                response.getOwnerType(),
+                response.getOwnerId(),
+                response.getCategory(),
+                response.getOriginalFilename(),
+                response.getContentType(),
+                response.getTotalSize(),
+                response.getPartSize(),
+                response.getUploadedPartCount(),
+                response.getUploadStatus());
+    }
+
+    private MultipartUploadPartDTO toMultipartPartDto(MultipartUploadPartFacadeResponse response) {
+        if (response == null) {
+            return null;
+        }
+        return new MultipartUploadPartDTO(response.getUploadId(), response.getPartNumber(), response.getEtag());
     }
 }

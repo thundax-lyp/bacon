@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.storage.api.dto;
+package com.github.thundax.bacon.storage.application.dto;
 
 import java.util.List;
 import lombok.AllArgsConstructor;

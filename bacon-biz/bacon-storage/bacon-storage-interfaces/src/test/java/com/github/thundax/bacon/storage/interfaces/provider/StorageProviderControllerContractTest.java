@@ -11,11 +11,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectPageResultDTO;
+import com.github.thundax.bacon.storage.application.dto.MultipartUploadPartDTO;
+import com.github.thundax.bacon.storage.application.dto.MultipartUploadSessionDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectPageResultDTO;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
+import com.github.thundax.bacon.storage.api.request.StoredObjectDeleteFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
+import com.github.thundax.bacon.storage.api.response.MultipartUploadPartFacadeResponse;
+import com.github.thundax.bacon.storage.api.response.MultipartUploadSessionFacadeResponse;
+import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
 import java.time.Instant;
 import java.util.List;
@@ -52,7 +57,7 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeUploadProviderPath() throws Exception {
-        StoredObjectDTO dto = new StoredObjectDTO(
+        StoredObjectFacadeResponse dto = new StoredObjectFacadeResponse(
                 "storage-20260327100000-000001",
                 "LOCAL_FILE",
                 "default",
@@ -81,7 +86,7 @@ class StorageProviderControllerContractTest {
     @Test
     void shouldExposeMultipartInitPath() throws Exception {
         when(storedObjectCommandFacade.initMultipartUpload(any()))
-                .thenReturn(new MultipartUploadSessionDTO(
+                .thenReturn(new MultipartUploadSessionFacadeResponse(
                         "storage20260327100000-001001",
                         "GENERIC_ATTACHMENT",
                         "owner-1",
@@ -110,7 +115,7 @@ class StorageProviderControllerContractTest {
     @Test
     void shouldExposeMultipartPartUploadPath() throws Exception {
         when(storedObjectCommandFacade.uploadMultipartPart(any()))
-                .thenReturn(new MultipartUploadPartDTO("1", 1, "etag-1"));
+                .thenReturn(new MultipartUploadPartFacadeResponse("1", 1, "etag-1"));
         MockMultipartFile file =
                 new MockMultipartFile("file", "part-1.bin", "application/octet-stream", new byte[] {1, 2, 3});
 
@@ -129,7 +134,7 @@ class StorageProviderControllerContractTest {
     @Test
     void shouldExposeMultipartCompletePath() throws Exception {
         when(storedObjectCommandFacade.completeMultipartUpload(any()))
-                .thenReturn(new StoredObjectDTO(
+                .thenReturn(new StoredObjectFacadeResponse(
                         "storage-20260327100000-000002",
                         "OSS",
                         "bucket",
@@ -235,7 +240,9 @@ class StorageProviderControllerContractTest {
     void shouldExposeMarkReferencePath() throws Exception {
         doNothing()
                 .when(storedObjectCommandFacade)
-                .markObjectReferenced("storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1");
+                .markObjectReferenced(
+                        new StoredObjectReferenceFacadeRequest(
+                                "storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1"));
 
         mockMvc.perform(post("/providers/storage/objects/{objectId}/references", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN)
@@ -248,7 +255,9 @@ class StorageProviderControllerContractTest {
     void shouldExposeClearReferencePath() throws Exception {
         doNothing()
                 .when(storedObjectCommandFacade)
-                .clearObjectReference("storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1");
+                .clearObjectReference(
+                        new StoredObjectReferenceFacadeRequest(
+                                "storage-20260327100000-000100", "GENERIC_ATTACHMENT", "owner-1"));
 
         mockMvc.perform(MockMvcRequestBuilders.delete(
                                 "/providers/storage/objects/{objectId}/references", "storage-20260327100000-000100")
@@ -260,7 +269,9 @@ class StorageProviderControllerContractTest {
 
     @Test
     void shouldExposeDeleteObjectPath() throws Exception {
-        doNothing().when(storedObjectCommandFacade).deleteObject("storage-20260327100000-000100");
+        doNothing()
+                .when(storedObjectCommandFacade)
+                .deleteObject(new StoredObjectDeleteFacadeRequest("storage-20260327100000-000100"));
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/providers/storage/objects/{objectId}", "storage-20260327100000-000100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))

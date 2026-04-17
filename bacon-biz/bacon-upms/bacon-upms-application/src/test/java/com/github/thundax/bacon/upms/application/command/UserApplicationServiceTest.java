@@ -18,9 +18,11 @@ import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
+import com.github.thundax.bacon.storage.api.request.StoredObjectGetFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
+import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
@@ -126,7 +128,7 @@ class UserApplicationServiceTest {
                 101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000301"), DEPARTMENT_ID, UserStatus.ENABLED);
         User savedUser = user(
                 101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000401"), DEPARTMENT_ID, UserStatus.ENABLED);
-        StoredObjectDTO storedObject = new StoredObjectDTO();
+        StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse();
         storedObject.setStoredObjectNo("storage-20260327100000-000401");
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
 
@@ -154,9 +156,13 @@ class UserApplicationServiceTest {
                         any(),
                         any());
         verify(storedObjectCommandFacade)
-                .markObjectReferenced("storage-20260327100000-000401", "UPMS_USER_AVATAR", "101");
+                .markObjectReferenced(
+                        new StoredObjectReferenceFacadeRequest(
+                                "storage-20260327100000-000401", "UPMS_USER_AVATAR", "101"));
         verify(storedObjectCommandFacade)
-                .clearObjectReference("storage-20260327100000-000301", "UPMS_USER_AVATAR", "101");
+                .clearObjectReference(
+                        new StoredObjectReferenceFacadeRequest(
+                                "storage-20260327100000-000301", "UPMS_USER_AVATAR", "101"));
         assertThat(userCaptor.getValue().getAvatarStoredObjectNo())
                 .isEqualTo(AvatarStoredObjectNo.of("storage-20260327100000-000401"));
         assertThat(result.getAvatarStoredObjectNo()).isEqualTo("storage-20260327100000-000401");
@@ -219,7 +225,9 @@ class UserApplicationServiceTest {
 
         verify(userRepository).deleteUser(UserId.of(101L));
         verify(storedObjectCommandFacade)
-                .clearObjectReference("storage-20260327100000-000501", "UPMS_USER_AVATAR", "101");
+                .clearObjectReference(
+                        new StoredObjectReferenceFacadeRequest(
+                                "storage-20260327100000-000501", "UPMS_USER_AVATAR", "101"));
         verify(sessionCommandFacade)
                 .invalidateUserSessions(new SessionInvalidateUserFacadeRequest(1001L, 101L, "USER_DELETED"));
     }
@@ -228,10 +236,11 @@ class UserApplicationServiceTest {
     void shouldResolveAvatarAccessUrl() {
         User user = user(
                 101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ENABLED);
-        StoredObjectDTO storedObject = new StoredObjectDTO();
+        StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse();
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
-        when(storedObjectReadFacade.getObjectByNo("storage-20260327100000-000501")).thenReturn(storedObject);
+        when(storedObjectReadFacade.getObjectByNo(new StoredObjectGetFacadeRequest("storage-20260327100000-000501")))
+                .thenReturn(storedObject);
 
         assertThat(service.getAvatarAccessUrl(UserId.of(101L))).contains("https://cdn.example.com/avatar/501.png");
     }

@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.storage.application.assembler;
 
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
+import com.github.thundax.bacon.storage.application.dto.MultipartUploadPartDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;
 
 public final class MultipartUploadPartAssembler {

@@ -13,10 +13,10 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.domain.StoredObjectId;
-import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
+import com.github.thundax.bacon.storage.application.dto.AbortMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.dto.CompleteMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.dto.InitMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.dto.UploadMultipartPartCommand;
 import com.github.thundax.bacon.storage.application.support.StorageAuditApplicationService;
 import com.github.thundax.bacon.storage.application.support.StorageUploadLimitValidator;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadPart;

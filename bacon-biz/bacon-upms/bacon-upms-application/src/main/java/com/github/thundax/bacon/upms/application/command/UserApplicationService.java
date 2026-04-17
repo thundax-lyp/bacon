@@ -13,10 +13,12 @@ import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.common.id.core.Ids;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
+import com.github.thundax.bacon.storage.api.request.StoredObjectGetFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.UploadObjectFacadeRequest;
+import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.api.dto.TenantDTO;
@@ -250,9 +252,10 @@ public class UserApplicationService {
         userRepository.deleteUser(userId);
         if (currentUser.getAvatarStoredObjectNo() != null) {
             storedObjectCommandFacade.clearObjectReference(
-                    currentUser.getAvatarStoredObjectNo().value(),
-                    USER_AVATAR_OWNER_TYPE,
-                    String.valueOf(userId.value()));
+                    new StoredObjectReferenceFacadeRequest(
+                            currentUser.getAvatarStoredObjectNo().value(),
+                            USER_AVATAR_OWNER_TYPE,
+                            String.valueOf(userId.value())));
         }
         sessionCommandFacade.invalidateUserSessions(
                 new SessionInvalidateUserFacadeRequest(
@@ -349,10 +352,11 @@ public class UserApplicationService {
             UserId userId, String originalFilename, String contentType, Long size, InputStream inputStream) {
         User currentUser = requireUser(userId);
         AvatarImage avatarImage = readAndValidateAvatar(originalFilename, contentType, size, inputStream);
-        StoredObjectDTO storedObject = uploadAvatarObject(avatarImage);
+        StoredObjectFacadeResponse storedObject = uploadAvatarObject(avatarImage);
         AvatarStoredObjectNo avatarStoredObjectNo = AvatarStoredObjectNo.of(storedObject.getStoredObjectNo());
         storedObjectCommandFacade.markObjectReferenced(
-                avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value()));
+                new StoredObjectReferenceFacadeRequest(
+                        avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value())));
         AvatarStoredObjectNo previousAvatarStoredObjectNo = currentUser.getAvatarStoredObjectNo();
         try {
             User savedUser = userRepository.update(
@@ -370,7 +374,10 @@ public class UserApplicationService {
                     UserCredentialId.of(idGenerator.nextId(USER_CREDENTIAL_ID_BIZ_TAG)));
             if (previousAvatarStoredObjectNo != null && !previousAvatarStoredObjectNo.equals(avatarStoredObjectNo)) {
                 storedObjectCommandFacade.clearObjectReference(
-                        previousAvatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value()));
+                        new StoredObjectReferenceFacadeRequest(
+                                previousAvatarStoredObjectNo.value(),
+                                USER_AVATAR_OWNER_TYPE,
+                                String.valueOf(userId.value())));
             }
             return UserAssembler.toDto(
                     savedUser,
@@ -379,7 +386,8 @@ public class UserApplicationService {
                     storedObject.getAccessEndpoint());
         } catch (RuntimeException ex) {
             storedObjectCommandFacade.clearObjectReference(
-                    avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value()));
+                    new StoredObjectReferenceFacadeRequest(
+                            avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value())));
             throw ex;
         }
     }
@@ -474,9 +482,9 @@ public class UserApplicationService {
         }
     }
 
-    private StoredObjectDTO uploadAvatarObject(AvatarImage avatarImage) {
+    private StoredObjectFacadeResponse uploadAvatarObject(AvatarImage avatarImage) {
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(avatarImage.bytes())) {
-            return storedObjectCommandFacade.uploadObject(new UploadObjectCommand(
+            return storedObjectCommandFacade.uploadObject(new UploadObjectFacadeRequest(
                     USER_AVATAR_OWNER_TYPE,
                     USER_AVATAR_CATEGORY,
                     avatarImage.originalFilename(),
@@ -492,7 +500,8 @@ public class UserApplicationService {
         if (avatarStoredObjectNo == null) {
             return null;
         }
-        StoredObjectDTO storedObject = storedObjectReadFacade.getObjectByNo(avatarStoredObjectNo.value());
+        StoredObjectFacadeResponse storedObject =
+                storedObjectReadFacade.getObjectByNo(new StoredObjectGetFacadeRequest(avatarStoredObjectNo.value()));
         return storedObject == null ? null : storedObject.getAccessEndpoint();
     }
 

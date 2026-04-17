@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.storage.application.assembler;
 
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
+import com.github.thundax.bacon.storage.application.dto.MultipartUploadSessionDTO;
 import com.github.thundax.bacon.storage.domain.model.entity.MultipartUploadSession;
 import com.github.thundax.bacon.storage.domain.model.enums.UploadStatus;
 

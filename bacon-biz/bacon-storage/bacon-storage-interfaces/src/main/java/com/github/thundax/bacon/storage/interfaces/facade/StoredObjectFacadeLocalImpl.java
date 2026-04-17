@@ -1,15 +1,26 @@
 package com.github.thundax.bacon.storage.interfaces.facade;
 
-import com.github.thundax.bacon.storage.api.dto.AbortMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.CompleteMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.InitMultipartUploadCommand;
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
-import com.github.thundax.bacon.storage.api.dto.MultipartUploadSessionDTO;
-import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
-import com.github.thundax.bacon.storage.api.dto.UploadMultipartPartCommand;
-import com.github.thundax.bacon.storage.api.dto.UploadObjectCommand;
+import com.github.thundax.bacon.storage.application.dto.AbortMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.dto.CompleteMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.dto.InitMultipartUploadCommand;
+import com.github.thundax.bacon.storage.application.dto.MultipartUploadPartDTO;
+import com.github.thundax.bacon.storage.application.dto.MultipartUploadSessionDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.application.dto.UploadMultipartPartCommand;
+import com.github.thundax.bacon.storage.application.dto.UploadObjectCommand;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectCommandFacade;
 import com.github.thundax.bacon.storage.api.facade.StoredObjectReadFacade;
+import com.github.thundax.bacon.storage.api.request.AbortMultipartUploadFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.CompleteMultipartUploadFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.InitMultipartUploadFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectDeleteFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectGetFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.StoredObjectReferenceFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.UploadMultipartPartFacadeRequest;
+import com.github.thundax.bacon.storage.api.request.UploadObjectFacadeRequest;
+import com.github.thundax.bacon.storage.api.response.MultipartUploadPartFacadeResponse;
+import com.github.thundax.bacon.storage.api.response.MultipartUploadSessionFacadeResponse;
+import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.storage.application.command.MultipartUploadApplicationService;
 import com.github.thundax.bacon.storage.application.command.StoredObjectApplicationService;
 import com.github.thundax.bacon.storage.application.query.StoredObjectQueryApplicationService;
@@ -34,47 +45,117 @@ public class StoredObjectFacadeLocalImpl implements StoredObjectCommandFacade, S
     }
 
     @Override
-    public StoredObjectDTO uploadObject(UploadObjectCommand command) {
-        return storedObjectApplicationService.uploadObject(command);
+    public StoredObjectFacadeResponse uploadObject(UploadObjectFacadeRequest request) {
+        StoredObjectDTO dto = storedObjectApplicationService.uploadObject(new UploadObjectCommand(
+                request.getOwnerType(),
+                request.getCategory(),
+                request.getOriginalFilename(),
+                request.getContentType(),
+                request.getSize(),
+                request.getInputStream()));
+        return toStoredObjectFacadeResponse(dto);
     }
 
     @Override
-    public MultipartUploadSessionDTO initMultipartUpload(InitMultipartUploadCommand command) {
-        return multipartUploadApplicationService.initMultipartUpload(command);
+    public MultipartUploadSessionFacadeResponse initMultipartUpload(InitMultipartUploadFacadeRequest request) {
+        return toMultipartUploadSessionFacadeResponse(
+                multipartUploadApplicationService.initMultipartUpload(new InitMultipartUploadCommand(
+                        request.getOwnerType(),
+                        request.getOwnerId(),
+                        request.getCategory(),
+                        request.getOriginalFilename(),
+                        request.getContentType(),
+                        request.getTotalSize(),
+                        request.getPartSize())));
     }
 
     @Override
-    public MultipartUploadPartDTO uploadMultipartPart(UploadMultipartPartCommand command) {
-        return multipartUploadApplicationService.uploadMultipartPart(command);
+    public MultipartUploadPartFacadeResponse uploadMultipartPart(UploadMultipartPartFacadeRequest request) {
+        return toMultipartUploadPartFacadeResponse(
+                multipartUploadApplicationService.uploadMultipartPart(new UploadMultipartPartCommand(
+                        request.getUploadId(),
+                        request.getOwnerType(),
+                        request.getOwnerId(),
+                        request.getPartNumber(),
+                        request.getSize(),
+                        request.getInputStream())));
     }
 
     @Override
-    public StoredObjectDTO completeMultipartUpload(CompleteMultipartUploadCommand command) {
-        return multipartUploadApplicationService.completeMultipartUpload(command);
+    public StoredObjectFacadeResponse completeMultipartUpload(CompleteMultipartUploadFacadeRequest request) {
+        return toStoredObjectFacadeResponse(multipartUploadApplicationService.completeMultipartUpload(
+                new CompleteMultipartUploadCommand(request.getUploadId(), request.getOwnerType(), request.getOwnerId())));
     }
 
     @Override
-    public void abortMultipartUpload(AbortMultipartUploadCommand command) {
-        multipartUploadApplicationService.abortMultipartUpload(command);
+    public void abortMultipartUpload(AbortMultipartUploadFacadeRequest request) {
+        multipartUploadApplicationService.abortMultipartUpload(
+                new AbortMultipartUploadCommand(request.getUploadId(), request.getOwnerType(), request.getOwnerId()));
     }
 
     @Override
-    public StoredObjectDTO getObjectByNo(String storedObjectNo) {
-        return storedObjectQueryApplicationService.getObjectByNo(storedObjectNo);
+    public StoredObjectFacadeResponse getObjectByNo(StoredObjectGetFacadeRequest request) {
+        return toStoredObjectFacadeResponse(storedObjectQueryApplicationService.getObjectByNo(request.getStoredObjectNo()));
     }
 
     @Override
-    public void markObjectReferenced(String storedObjectNo, String ownerType, String ownerId) {
-        storedObjectApplicationService.markObjectReferenced(storedObjectNo, ownerType, ownerId);
+    public void markObjectReferenced(StoredObjectReferenceFacadeRequest request) {
+        storedObjectApplicationService.markObjectReferenced(
+                request.getStoredObjectNo(), request.getOwnerType(), request.getOwnerId());
     }
 
     @Override
-    public void clearObjectReference(String storedObjectNo, String ownerType, String ownerId) {
-        storedObjectApplicationService.clearObjectReference(storedObjectNo, ownerType, ownerId);
+    public void clearObjectReference(StoredObjectReferenceFacadeRequest request) {
+        storedObjectApplicationService.clearObjectReference(
+                request.getStoredObjectNo(), request.getOwnerType(), request.getOwnerId());
     }
 
     @Override
-    public void deleteObject(String storedObjectNo) {
-        storedObjectApplicationService.deleteObject(storedObjectNo);
+    public void deleteObject(StoredObjectDeleteFacadeRequest request) {
+        storedObjectApplicationService.deleteObject(request.getStoredObjectNo());
+    }
+
+    private StoredObjectFacadeResponse toStoredObjectFacadeResponse(StoredObjectDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        return new StoredObjectFacadeResponse(
+                dto.getStoredObjectNo(),
+                dto.getStorageType(),
+                dto.getBucketName(),
+                dto.getObjectKey(),
+                dto.getOriginalFilename(),
+                dto.getContentType(),
+                dto.getSize(),
+                dto.getAccessEndpoint(),
+                dto.getObjectStatus(),
+                dto.getReferenceStatus(),
+                dto.getCreatedAt());
+    }
+
+    private MultipartUploadSessionFacadeResponse toMultipartUploadSessionFacadeResponse(
+            MultipartUploadSessionDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        return new MultipartUploadSessionFacadeResponse(
+                dto.getUploadId(),
+                dto.getOwnerType(),
+                dto.getOwnerId(),
+                dto.getCategory(),
+                dto.getOriginalFilename(),
+                dto.getContentType(),
+                dto.getTotalSize(),
+                dto.getPartSize(),
+                dto.getUploadedPartCount(),
+                dto.getUploadStatus());
+    }
+
+    private MultipartUploadPartFacadeResponse toMultipartUploadPartFacadeResponse(
+            MultipartUploadPartDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        return new MultipartUploadPartFacadeResponse(dto.getUploadId(), dto.getPartNumber(), dto.getEtag());
     }
 }

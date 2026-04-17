@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.storage.interfaces.response;
 
-import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
+import com.github.thundax.bacon.storage.application.dto.StoredObjectDTO;
 import java.time.Instant;
 
 public record StoredObjectResponse(

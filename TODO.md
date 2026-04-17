@@ -1,54 +1,91 @@
 ## TODO List
 
-### P0 - 前置问题整理（由原差异分析转 TODO）
+### P0 - 2026-04-17 跨域扫描新增（统一性优先）
 
-- [ ] 固化治理范围：统一按 `inventory / payment / order / storage / upms` 五个域推进
-  - 验收点：后续治理任务默认标注所属域，不再出现“跨域但无归属”条目
+- [ ] 路径规范“文档-测试-代码”三方对齐
+  - 现状：`NAMING-AND-PLACEMENT-RULES` 要求 `/api/{domain}`，但 ArchUnit 仍校验 `/{domain}`，代码也以 `/{domain}` 为主
+  - 处理动作：先定唯一口径（推荐 `/api/**`），再同步 `NamingAndPlacementRuleSupport`、各域 controller/provider 路径与网关路由
+  - 验收点：规则文档、ArchUnit、实际 `@RequestMapping` 前缀一致，无双标准
+  - 重要度：10/10
+
+- [ ] 统一 controller 校验基线：全域 `@Validated` + `@Valid`
+  - 现状对比：`inventory/payment/order/storage` 多数已有 `@Validated`；`upms/auth` controller 基本缺失；`upms` 大量 `@RequestBody` 未加 `@Valid`
+  - 处理动作：按域补齐类级 `@Validated`、方法参数 `@Valid`，优先 `upms`（`User/Role/Tenant/Post/Resource/Department`）
+  - 验收点：外部 controller 与 provider 入口参数统一在 interfaces 层拦截
+  - 重要度：9/10
+
+- [ ] 统一 request Bean Validation 完整度（按域补齐）
+  - 现状对比：`inventory/order/payment/auth` 相对完整；`storage` 基本空白；`upms` 35 个 request 中大量无约束
+  - 处理动作：分域建立最小约束模板（ID: `@Positive`，编码/名称: `@NotBlank+@Size`，列表: `@NotEmpty`）
+  - 验收点：`storage` 的分页/provider 请求和 `upms` 的用户/角色/租户关键写请求均具备基础约束
+  - 重要度：9/10
+
+- [ ] 统一 PathVariable / RequestParam 约束显式性
+  - 现状：`upms/storage/auth` 仍有大量 `@PathVariable Long/String` 无 `@Positive/@NotBlank`
+  - 处理动作：按 controller 清单补齐路径参数约束；字符串 ID/编码补 `@NotBlank + @Size`
+  - 验收点：接口层不再把明显非法路径参数下沉到 application
+  - 重要度：8/10
+
+- [ ] `interfaces -> application` 合同统一为 Command/Query/VO
+  - 现状对比：`inventory/order` 相对稳定；`payment/storage/auth/upms` 仍有较多 primitive 参数方法
+  - 处理动作：分域消减长参数方法，优先改 `upms User/Tenant/Role/Post`、`auth OAuth2/Session/Password`、`storage StoredObject*`
+  - 验收点：application 公共方法不再新增多 primitive 入参，接口签名可预测
+  - 重要度：9/10
+
+- [ ] 统一 DTO 装配职责，禁止 ApplicationService 内“就地拼装”
+  - 现状：`upms/order` 仍有 service 层直接 `new DTO` / 拼 response 数据
+  - 处理动作：继续下沉到 `application.assembler`，service 仅编排事务与流程
+  - 验收点：application service 代码审阅聚焦业务流程而非映射细节
+  - 重要度：8/10
+
+- [ ] 统一异常语义，清理 application/infra 的 `IllegalArgumentException`
+  - 现状对比：`auth`（OAuth/Session/Password）和 `storage`（upload limit）仍大量抛 `IllegalArgumentException`；`payment` 在 infra support 仍有
+  - 处理动作：按“参数错误/不存在/冲突/权限”映射到稳定异常类型，并补单测
+  - 验收点：业务链路不再把 `IllegalArgumentException` 作为对外异常出口
+  - 重要度：9/10
+
+- [ ] 统一横切注解策略（`@SysLog/@HasPermission/@Operation`）
+  - 现状对比：`upms` 注解密度远高于其他域；`auth` 基本无权限与审计注解
+  - 处理动作：定义“后台管理接口必备注解矩阵”，区分 BFF/回调/provider 的最小集合
+  - 验收点：各域注解策略可解释、可检查，不再出现风格割裂
+  - 重要度：7/10
+
+- [ ] 固化五域统一治理看板（inventory/payment/order/storage/upms）
+  - 处理动作：每条治理任务必须标记所属域、层级、优先级、验收点
+  - 验收点：后续任务默认可分派、可并行、可追踪
   - 重要度：6/10
 
-- [ ] 落地 `controller` 命名与根路径规则（规范已输出）
-  - 当前状态：规则文档已定义，但存量仍有 `/order`、`/payment`、`/storage/objects` 等未按 `/api/{bounded-context}/...` 收口，且聚合型/用例型命名并存
-  - 验收点：存量接口完成收口，新增接口由 ArchUnit / lint 规则兜底
-  - 重要度：8/10
+### P0 - 五域风格/手法/功能对齐（inventory/payment/order/storage/upms）
 
-- [ ] 统一分页与过滤入口风格
-  - 当前差异：`@ModelAttribute *PageRequest`、`@PathVariable + @RequestParam`、`/page` 子路径策略并存
-  - 验收点：同类查询接口入参模式统一，OpenAPI 展示与校验位置统一
+- [ ] `inventory`：固化为“接口层校验基准域”
+  - 当前状态：`@Validated`、`@Valid`、`@HasPermission` 覆盖度高，可作为模板
+  - 处理动作：沉淀 inventory controller/request 模板并迁移到脚手架或示例代码
+  - 验收点：新接口默认复用同等约束粒度，不再回退到“裸参数”
   - 重要度：7/10
 
-- [ ] 统一 `interfaces -> application` 输入边界
-  - 当前差异：`interfaces.request` 包已完成统一，但 application 入参仍存在 primitive / 协议对象 / command-query 混用
-  - 验收点：application 合同风格一致，VO 与协议边界不再继续漂移
-  - 重要度：8/10
-
-- [ ] 统一 DTO 装配位置，收敛到 assembler
-  - 当前差异：`order/upms` 仍有 application service 内手写 DTO 映射
-  - 验收点：application service 以编排为主，不再承担大量 DTO 拼装与协议适配
-  - 重要度：8/10
-
-- [ ] 收敛 application service 厚度，优先治理 `upms` 与 `order`
-  - 当前差异：`payment/storage` 较薄，`order` 偏厚，`upms` 最复杂
-  - 验收点：各域 service 职责颗粒度接近，review 口径可统一
-  - 重要度：7/10
-
-- [ ] 统一异常风格，替换分散的 `IllegalArgumentException` 用法
-  - 当前差异：`inventory/payment` 偏稳定业务异常，`storage` 偏 `NotFoundException`，`order/upms` 仍有较多 `IllegalArgumentException`
-  - 验收点：参数错误、业务冲突、资源不存在、权限错误有明确且一致的异常语义
-  - 重要度：7/10
-
-- [ ] 统一租户约束显式性，建立多租户安全基线
-  - 当前差异：`inventory` 明确 `requireTenantId`，`order/payment/storage` 显式性不一致，`upms` 平台级与租户级边界复杂
-  - 验收点：关键写操作默认显式租户校验，平台能力与租户能力边界清晰
-  - 重要度：8/10
-
-- [ ] 统一横切注解策略（`@SysLog` / `@HasPermission` / `@Operation`）
-  - 验收点：审计与权限注解策略可落地到各域，避免“只有 upms 密集、其他域稀疏”的不一致
-  - 重要度：5/10
-
-- [ ] 固化当前复杂度分层并用作迭代优先级基线
-  - 当前分层：第一梯队 `inventory/payment`，第二梯队 `storage`，第三梯队 `order`，最复杂 `upms`
-  - 验收点：任务排序默认遵循该基线，后续可按阶段复评更新
+- [ ] `payment`：收口 `/payment` 根路径下的查询/审计/回调分组语义
+  - 当前状态：`PaymentQueryController`、`PaymentAuditLogController` 共用 `/payment`，`callback` 独立为 `/payment/callbacks`
+  - 处理动作：统一资源名与动作语义（按支付单、审计日志、回调）并同步 OpenAPI tag 命名
+  - 验收点：支付域路由和 controller 命名一一对应，便于 AI 稳定路由推断
   - 重要度：6/10
+
+- [ ] `order`：拆分 `OrderReadProviderController` 的读写混合职责
+  - 当前状态：类名为 `Read`，但包含 `markPaid/markPaymentFailed/closeExpired` 写操作
+  - 处理动作：拆成 `OrderReadProviderController` 与 `OrderCommandProviderController`（或等价命名）
+  - 验收点：provider 命名语义与行为一致，AI 不会因命名误导调用写接口
+  - 重要度：8/10
+
+- [ ] `storage`：统一 `objectId` 与 `storedObjectNo` 命名语义
+  - 当前状态：provider URI 参数名为 `objectId`，实际传递 `storedObjectNo`
+  - 处理动作：controller/provider/facade/request 全链路统一为 `storedObjectNo`
+  - 验收点：接口契约不再混淆“主键ID”和“业务No”，避免跨域调用误用
+  - 重要度：9/10
+
+- [ ] `upms`：补齐 interfaces 层参数校验后再推进服务拆分
+  - 当前状态：request 校验与 `@Valid` 缺口最多，且 `UserApplicationService` 复杂度最高
+  - 处理动作：先做输入校验收口，再做 `UserApplicationService/UserController` 拆分
+  - 验收点：拆分前后行为一致且异常语义稳定，回归风险可控
+  - 重要度：9/10
 
 ### P0 - `upms` 先拆大类
 
@@ -106,6 +143,11 @@
   - 验收点：查询对象命名与 inventory/order 新规一致
   - 重要度：7/10
 
+- [ ] `auth-api`：盘点 `api.dto` 是否属于稳定跨域契约，非契约模型下沉到 application
+  - 当前对象：`UserLoginDTO`、`CurrentSessionDTO`、`OAuth2TokenDTO`、`OAuth2IntrospectionDTO`、`OAuth2UserinfoDTO` 等
+  - 验收点：auth facade 仅保留跨域必要返回模型，避免 `api.dto` 扩散成应用内部模型
+  - 重要度：7/10
+
 - [ ] `upms-application`：把通用分页 `PageResultDTO` 下沉到 `application.dto`
   - 影响范围：租户、用户、角色、岗位、资源、日志等分页查询
   - 验收点：分页结果不再作为跨模块通用 `api.dto`
@@ -160,6 +202,14 @@
   - 验收点：统一回收进 assembler
   - 重要度：5/10
 
+### P2 - 测试覆盖对齐
+
+- [ ] 对齐五域测试深度（重点补 `auth/upms` 的复杂流程用例）
+  - 当前对比：`inventory` 测试数量与场景深度领先；`auth/upms` 在复杂路径（鉴权、导入、密码、回调异常分支）覆盖偏薄
+  - 处理动作：按“成功路径 + 参数非法 + 状态冲突 + 资源不存在”补最小闭环测试集
+  - 验收点：五域关键业务链路均具备可回归的正反用例，AI 改动后能快速自检
+  - 重要度：7/10
+
 ### P2 - 租户边界统一
 
 - [ ] 梳理五个域 application 层中 `requireTenantId` 的落点
@@ -175,6 +225,11 @@
 
 ### P3 - 持续治理
 
+- [ ] 对齐 RequestMapping 规则：ArchUnit 从 `/{domain}` 迁移到 `/api/{domain}` 与 `/api/providers/{domain}`
+  - 当前状态：规则文档与 `NamingAndPlacementRuleSupport` 校验口径不一致
+  - 验收点：规则、测试、代码统一后，新增 controller 路径可自动守卫
+  - 重要度：9/10
+
 - [ ] 增加 ArchUnit 或同类检查：`api` 不直接依赖 domain
   - 重要度：5/10
 
@@ -188,13 +243,17 @@
   - 需要决策：仅后台管理域保留，还是其他核心域也补齐
   - 重要度：4/10
 
+- [ ] 清理迁移遗留空目录：`order/interfaces/dto`
+  - 验收点：`interfaces` 目录下不再残留空 `dto` 目录，避免 AI/开发者误判仍在使用旧包
+  - 重要度：3/10
+
 ### 建议执行顺序
 
-1. 先做基线盘点与冻结：确认 `api.dto` 引用清单、`requireTenantId` 落点清单、`IllegalArgumentException` 清单，并在本文件记录结论后删除已完成项
-2. 继续推进 `payment-api` 与 `upms-api` 的 `api.dto` 下沉和 facade `Request/Response` 命名统一，先做“契约薄化”，暂不做大规模业务拆分
-3. 收口 `storage` 剩余查询模型命名（`StoredObjectPageQueryDTO` -> `StoredObjectPageQuery`）并补齐相关规则检查
-4. 然后继续处理 `order` 的 assembler 收敛，统一 interfaces/application DTO 装配边界
-5. 接着拆 `upms` 的 `UserApplicationService`（先 `UserQueryApplicationService`，再 `Profile/Password/Avatar/ImportExport`），最后再拆 `UserController`
-6. 在 `upms` 服务拆分稳定后，再把 `UserRepositoryImpl` 中的业务编排上移到 application/domain service，避免“边拆边搬”导致回归复杂度过高
-7. 再统一异常风格与租户边界（优先 `upms/order`），并同步补充规则文档，确保新代码不再回退到旧写法
-8. 最后落 ArchUnit/规则检查（`api` 依赖、application 入参边界、infra 编排约束）和 `@SysLog` 策略评估，形成持续治理闭环
+1. 先统一“规则底座”：确定 `/api/**` 路径口径，并同步文档、ArchUnit、网关配置
+2. 紧接着处理高风险输入面：补齐 `upms/auth` 的 `@Validated`、`@Valid`、PathVariable 约束和 request Bean Validation
+3. 再处理命名语义冲突：`storage objectId -> storedObjectNo`、`order ReadProvider` 读写拆分
+4. 然后统一 `interfaces -> application` 合同（Command/Query/VO），优先 `upms/auth/storage/payment`
+5. 并行推进 `api.dto` 契约薄化（`upms` 优先、`auth` 次之）和 facade `Request/Response` 规约
+6. 继续做 DTO 装配收口（`upms/order` application service -> assembler）
+7. 再统一异常语义（`auth/storage/payment` 优先清理 `IllegalArgumentException`）
+8. 最后收敛横切策略与持续治理（`@SysLog/@HasPermission` 矩阵、ArchUnit 增量规则、空目录清理）

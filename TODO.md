@@ -115,22 +115,6 @@
 
 ### P1 - 各模块 `api.dto` 残留治理清单
 
-- [ ] `payment-api`：盘点 facade 真正需要保留在 `api` 的返回模型
-  - 当前对象：`PaymentCreateResultDTO`、`PaymentCloseResultDTO`、`PaymentDetailDTO`、`PaymentSummaryDTO`
-  - 处理动作：基于现有 `*FacadeResponse` 契约，明确哪些 DTO 只是应用内部读模型并继续下沉
-  - 验收点：`payment-api` 不再继续扩大 `api.dto` 范围
-  - 重要度：8/10
-
-- [ ] `payment-application`：把 `PaymentDetailDTO` 下沉到 `application.dto`
-  - 影响范围：`PaymentQueryApplicationService`、`PaymentReadFacadeLocalImpl`、`PaymentReadFacadeRemoteImpl`、`PaymentDetailResponseAssembler`、provider/controller contract tests
-  - 验收点：查询读模型不再放在 `payment.api.dto`
-  - 重要度：8/10
-
-- [ ] `payment-application`：把 `PaymentAuditLogDTO` 下沉到 `application.dto`
-  - 影响范围：payment query/provider/assembler/tests
-  - 验收点：审计读模型不再放在 `payment.api.dto`
-  - 重要度：7/10
-
 - [ ] `storage-api`：把 `StoredObjectPageQueryDTO` 改为 `query/StoredObjectPageQuery`
   - 影响范围：provider/controller/facade
   - 验收点：查询对象命名与 inventory/order 新规一致

@@ -52,12 +52,6 @@
 
 ### P0 - 跨域契约先收口
 
-- [ ] `storage-api`：清零 `api -> domain` 违规，补齐新架构规则下的剩余整改
-  - 当前状态：`storage-api` 已清掉 `api -> domain` 直接依赖，`objectId` 字符串魔法协议已移除；剩余失败点集中在 facade `request/response` 命名规约
-  - 输出物：在现有拆分 `StoredObjectCommandFacade` / `StoredObjectReadFacade` 基础上，补齐 `*FacadeRequest` / `*FacadeResponse`
-  - 验收点：`storage` 通过对应 `NamingAndPlacementArchitectureTest` / `LayeredArchitectureTest`（含 `shouldUseFacadeRequestAndFacadeResponse`）
-  - 重要度：8/10
-
 ### P0 - `upms` 先拆大类
 
 - [ ] 拆分 `UserController`：把用户基础信息、密码、角色、头像、导入导出拆成独立 controller
@@ -137,31 +131,10 @@
   - 验收点：审计读模型不再放在 `payment.api.dto`
   - 重要度：7/10
 
-- [ ] `storage-api`：拆分 `api.dto` 中的 command / query / response 混放问题
-  - 当前对象：`UploadObjectCommand`、`InitMultipartUploadCommand`、`CompleteMultipartUploadCommand`、`AbortMultipartUploadCommand`、`UploadMultipartPartCommand`
-  - 处理动作：迁到 `api.request`
-  - 验收点：`storage.api.dto` 不再承载写入类入参
-  - 重要度：9/10
-
-- [ ] `storage-application`：把 `StoredObjectDTO` / `MultipartUploadSessionDTO` / `MultipartUploadPartDTO` 下沉到 `application.dto`
-  - 影响范围：application services、assemblers、interfaces response、provider tests
-  - 验收点：对象存储内部读模型与 facade 契约分离
-  - 重要度：8/10
-
-- [ ] `storage-application`：把 `StoredObjectPageResultDTO` 下沉到 `application.dto`
-  - 影响范围：`StoredObjectQueryApplicationService`、`StoredObjectPageResponse`
-  - 验收点：分页结果不再留在 `storage.api.dto`
-  - 重要度：7/10
-
 - [ ] `storage-api`：把 `StoredObjectPageQueryDTO` 改为 `query/StoredObjectPageQuery`
   - 影响范围：provider/controller/facade
   - 验收点：查询对象命名与 inventory/order 新规一致
   - 重要度：7/10
-
-- [ ] `storage-api`：重写 `StoredObjectFacade` 的输入输出命名
-  - 目标：输入统一 `*FacadeRequest`，输出统一 `*FacadeResponse`
-  - 验收点：不再通过 `api.dto` 暴露 facade 契约
-  - 重要度：9/10
 
 - [ ] `upms-application`：把通用分页 `PageResultDTO` 下沉到 `application.dto`
   - 影响范围：租户、用户、角色、岗位、资源、日志等分页查询
@@ -264,8 +237,8 @@
 ### 建议执行顺序
 
 1. 先做基线盘点与冻结：确认 `api.dto` 引用清单、`requireTenantId` 落点清单、`IllegalArgumentException` 清单，并在本文件勾选基线任务
-2. 优先收口 `storage-api` 契约（`StoredObjectDTO.id`、`StoredObjectFacade` objectId 表达、`api -> domain` 清零），因为影响面相对可控且能快速降低跨层耦合
-3. 再推进 `payment-api` 与 `storage-api` 的 `api.dto` 下沉和 facade `Request/Response` 命名统一，先做“契约薄化”，暂不做大规模业务拆分
+2. 继续推进 `payment-api` 与 `upms-api` 的 `api.dto` 下沉和 facade `Request/Response` 命名统一，先做“契约薄化”，暂不做大规模业务拆分
+3. 收口 `storage` 剩余查询模型命名（`StoredObjectPageQueryDTO` -> `StoredObjectPageQuery`）并补齐相关规则检查
 4. 然后继续处理 `order` 的 assembler 收敛，统一 interfaces/application DTO 装配边界
 5. 接着拆 `upms` 的 `UserApplicationService`（先 `UserQueryApplicationService`，再 `Profile/Password/Avatar/ImportExport`），最后再拆 `UserController`
 6. 在 `upms` 服务拆分稳定后，再把 `UserRepositoryImpl` 中的业务编排上移到 application/domain service，避免“边拆边搬”导致回归复杂度过高

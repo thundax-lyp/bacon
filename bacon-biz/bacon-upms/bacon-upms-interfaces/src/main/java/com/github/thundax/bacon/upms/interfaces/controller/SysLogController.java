@@ -6,7 +6,7 @@ import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
 import com.github.thundax.bacon.upms.application.audit.SysLogQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.valueobject.SysLogId;
-import com.github.thundax.bacon.upms.interfaces.dto.SysLogPageRequest;
+import com.github.thundax.bacon.upms.interfaces.request.SysLogPageRequest;
 import com.github.thundax.bacon.upms.interfaces.response.SysLogPageResponse;
 import com.github.thundax.bacon.upms.interfaces.response.SysLogResponse;
 import io.swagger.v3.oas.annotations.Operation;

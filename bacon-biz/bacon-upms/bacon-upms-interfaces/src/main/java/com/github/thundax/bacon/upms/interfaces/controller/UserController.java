@@ -11,15 +11,15 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
-import com.github.thundax.bacon.upms.interfaces.dto.UserCreateRequest;
-import com.github.thundax.bacon.upms.interfaces.dto.UserIdentityQueryRequest;
-import com.github.thundax.bacon.upms.interfaces.dto.UserImportItem;
-import com.github.thundax.bacon.upms.interfaces.dto.UserImportRequest;
-import com.github.thundax.bacon.upms.interfaces.dto.UserPageRequest;
-import com.github.thundax.bacon.upms.interfaces.dto.UserPasswordResetRequest;
-import com.github.thundax.bacon.upms.interfaces.dto.UserRoleAssignRequest;
-import com.github.thundax.bacon.upms.interfaces.dto.UserStatusUpdateRequest;
-import com.github.thundax.bacon.upms.interfaces.dto.UserUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserCreateRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserIdentityQueryRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserImportItemRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserImportRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserPageRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserPasswordResetRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserRoleAssignRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserStatusUpdateRequest;
+import com.github.thundax.bacon.upms.interfaces.request.UserUpdateRequest;
 import com.github.thundax.bacon.upms.interfaces.response.RoleResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserIdentityResponse;
 import com.github.thundax.bacon.upms.interfaces.response.UserPageResponse;
@@ -206,7 +206,7 @@ public class UserController {
     @SysLog(module = "UPMS", action = "导入用户", eventType = LogEventType.IMPORT)
     @PostMapping("/import")
     public List<UserResponse> importUsers(@RequestBody UserImportRequest request) {
-        List<UserImportItem> items = request.items() == null ? List.of() : request.items();
+        List<UserImportItemRequest> items = request.items() == null ? List.of() : request.items();
         return userApplicationService
                 .importUsers(items.stream()
                         .map(item ->

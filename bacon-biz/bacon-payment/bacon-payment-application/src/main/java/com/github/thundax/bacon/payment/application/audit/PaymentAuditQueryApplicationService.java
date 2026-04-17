@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.payment.application.audit;
 
-import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
+import com.github.thundax.bacon.payment.application.dto.PaymentAuditLogDTO;
 import com.github.thundax.bacon.payment.domain.model.enums.PaymentStatus;
 import com.github.thundax.bacon.payment.domain.repository.PaymentAuditLogRepository;
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.payment.application.assembler;
 
-import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentCallbackRecord;
 import com.github.thundax.bacon.payment.domain.model.entity.PaymentOrder;
 

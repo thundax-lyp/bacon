@@ -1,9 +1,9 @@
 package com.github.thundax.bacon.payment.interfaces.provider;
 
-import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.dto.PaymentAuditLogDTO;
+import com.github.thundax.bacon.payment.application.command.PaymentCloseResult;
+import com.github.thundax.bacon.payment.application.command.PaymentCreateResult;
+import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentAuditQueryApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCreateApplicationService;
@@ -66,7 +66,7 @@ public class PaymentProviderController {
 
     @Operation(summary = "创建支付单")
     @PostMapping("/create")
-    public PaymentCreateResultDTO createPayment(
+    public PaymentCreateResult createPayment(
             @RequestParam("orderNo") @NotBlank String orderNo,
             @RequestParam("userId") @NotNull @Positive Long userId,
             @RequestParam("amount") @NotNull BigDecimal amount,
@@ -78,7 +78,7 @@ public class PaymentProviderController {
 
     @Operation(summary = "关闭支付单")
     @PostMapping("/close")
-    public PaymentCloseResultDTO closePayment(
+    public PaymentCloseResult closePayment(
             @RequestParam("paymentNo") @NotBlank String paymentNo, @RequestParam("reason") @NotBlank String reason) {
         return paymentCloseApplicationService.closePayment(paymentNo, reason);
     }

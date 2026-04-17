@@ -6,7 +6,6 @@ import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -42,7 +41,7 @@ public class PaymentCreateApplicationService {
         this.idGenerator = idGenerator;
     }
 
-    public PaymentCreateResultDTO createPayment(
+    public PaymentCreateResult createPayment(
             String orderNo, Long userId, BigDecimal amount, String channelCode, String subject, Instant expiredAt) {
         BaconContextHolder.requireTenantId();
         validateCreateRequest(amount, channelCode, expiredAt);
@@ -92,13 +91,13 @@ public class PaymentCreateApplicationService {
                 "mock://pay/" + paymentOrder.getPaymentNo().value());
     }
 
-    private PaymentCreateResultDTO toCreateResult(
+    private PaymentCreateResult toCreateResult(
             PaymentOrder paymentOrder, PaymentChannelPayload channelPayload, String failureReason) {
         // 只有处于 PAYING 的支付单才继续暴露 payPayload 和过期时间；终态单查询时不再返回重新拉起信息。
         String payPayload = PaymentStatus.PAYING == paymentOrder.getPaymentStatus() ? channelPayload.getPayUrl() : null;
         Instant dtoExpiredAt =
                 PaymentStatus.PAYING == paymentOrder.getPaymentStatus() ? paymentOrder.getExpiredAt() : null;
-        return new PaymentCreateResultDTO(
+        return new PaymentCreateResult(
                 paymentOrder.getPaymentNo().value(),
                 paymentOrder.getOrderNo().value(),
                 paymentOrder.getChannelCode().value(),

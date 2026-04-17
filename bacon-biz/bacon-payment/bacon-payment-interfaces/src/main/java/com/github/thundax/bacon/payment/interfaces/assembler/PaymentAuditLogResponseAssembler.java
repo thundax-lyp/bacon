@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.payment.interfaces.assembler;
 
-import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
+import com.github.thundax.bacon.payment.application.dto.PaymentAuditLogDTO;
 import com.github.thundax.bacon.payment.interfaces.response.PaymentAuditLogResponse;
 import java.util.List;
 

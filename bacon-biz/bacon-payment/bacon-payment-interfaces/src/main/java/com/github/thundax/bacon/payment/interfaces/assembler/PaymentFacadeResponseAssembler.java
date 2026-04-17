@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.payment.interfaces.assembler;
 
-import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.command.PaymentCloseResult;
+import com.github.thundax.bacon.payment.application.command.PaymentCreateResult;
+import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.api.response.PaymentCloseFacadeResponse;
 import com.github.thundax.bacon.payment.api.response.PaymentCreateFacadeResponse;
 import com.github.thundax.bacon.payment.api.response.PaymentDetailFacadeResponse;
@@ -11,7 +11,7 @@ public final class PaymentFacadeResponseAssembler {
 
     private PaymentFacadeResponseAssembler() {}
 
-    public static PaymentCreateFacadeResponse fromCreateResult(PaymentCreateResultDTO dto) {
+    public static PaymentCreateFacadeResponse fromCreateResult(PaymentCreateResult dto) {
         if (dto == null) {
             return null;
         }
@@ -25,7 +25,7 @@ public final class PaymentFacadeResponseAssembler {
                 dto.getFailureReason());
     }
 
-    public static PaymentCloseFacadeResponse fromCloseResult(PaymentCloseResultDTO dto) {
+    public static PaymentCloseFacadeResponse fromCloseResult(PaymentCloseResult dto) {
         if (dto == null) {
             return null;
         }

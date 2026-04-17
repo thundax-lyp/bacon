@@ -8,9 +8,9 @@ import static org.mockito.Mockito.when;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.core.context.BaconContextHolder.BaconContext;
-import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.command.PaymentCloseResult;
+import com.github.thundax.bacon.payment.application.command.PaymentCreateResult;
+import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.api.request.PaymentCloseFacadeRequest;
 import com.github.thundax.bacon.payment.api.request.PaymentCreateFacadeRequest;
 import com.github.thundax.bacon.payment.api.request.PaymentGetByOrderNoFacadeRequest;
@@ -54,7 +54,7 @@ class PaymentFacadeLocalImplTest {
                         request.getChannelCode(),
                         request.getSubject(),
                         request.getExpiredAt()))
-                .thenReturn(new PaymentCreateResultDTO(
+                .thenReturn(new PaymentCreateResult(
                         "PAY-10001", "ORD-10001", "MOCK", "PAYING", "mock://pay/PAY-10001", request.getExpiredAt(), null));
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
@@ -92,7 +92,7 @@ class PaymentFacadeLocalImplTest {
         PaymentCommandFacadeLocalImpl facade = new PaymentCommandFacadeLocalImpl(createService, closeService);
         PaymentCloseFacadeRequest request = new PaymentCloseFacadeRequest("PAY-10001", "SYSTEM_CANCELLED");
         when(closeService.closePayment(request.getPaymentNo(), request.getReason()))
-                .thenReturn(new PaymentCloseResultDTO("PAY-10001", "ORD-10001", "CLOSED", "SUCCESS", "SYSTEM_CANCELLED", null));
+                .thenReturn(new PaymentCloseResult("PAY-10001", "ORD-10001", "CLOSED", "SUCCESS", "SYSTEM_CANCELLED", null));
         BaconContextHolder.set(new BaconContext(1001L, 2001L));
 
         PaymentCloseFacadeResponse response = facade.closePayment(request);

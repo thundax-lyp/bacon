@@ -1,6 +1,6 @@
 package com.github.thundax.bacon.payment.interfaces.assembler;
 
-import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.interfaces.response.PaymentDetailResponse;
 
 public final class PaymentDetailResponseAssembler {

@@ -10,9 +10,9 @@ import com.github.thundax.bacon.order.api.facade.OrderCommandFacade;
 import com.github.thundax.bacon.order.api.request.OrderCloseExpiredFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderMarkPaidFacadeRequest;
 import com.github.thundax.bacon.order.api.request.OrderMarkPaymentFailedFacadeRequest;
-import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.command.PaymentCloseResult;
+import com.github.thundax.bacon.payment.application.command.PaymentCreateResult;
+import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.application.command.PaymentCallbackApplicationService;
 import com.github.thundax.bacon.payment.application.command.PaymentCloseApplicationService;
@@ -60,7 +60,7 @@ class PaymentApplicationServiceTest {
         PaymentCreateApplicationService service = new PaymentCreateApplicationService(
                 repository, paymentOperationLogSupport(repository), () -> "PAY-20001", idGenerator());
 
-        PaymentCreateResultDTO result = service.createPayment(
+        PaymentCreateResult result = service.createPayment(
                 "ORD-10001",
                 2001L,
                 BigDecimal.TEN,
@@ -81,14 +81,14 @@ class PaymentApplicationServiceTest {
         PaymentCreateApplicationService service = new PaymentCreateApplicationService(
                 repository, paymentOperationLogSupport(repository), new SequencePaymentNoGenerator(), idGenerator());
 
-        PaymentCreateResultDTO first = service.createPayment(
+        PaymentCreateResult first = service.createPayment(
                 "ORD-10002",
                 2001L,
                 BigDecimal.ONE,
                 "MOCK",
                 "test",
                 Instant.now().plusSeconds(1800));
-        PaymentCreateResultDTO second = service.createPayment(
+        PaymentCreateResult second = service.createPayment(
                 "ORD-10002",
                 2001L,
                 BigDecimal.ONE,
@@ -114,7 +114,7 @@ class PaymentApplicationServiceTest {
         PaymentCloseApplicationService closeService =
                 new PaymentCloseApplicationService(repository, paymentOperationLogSupport(repository));
 
-        PaymentCreateResultDTO created = createService.createPayment(
+        PaymentCreateResult created = createService.createPayment(
                 "ORD-10003",
                 2003L,
                 new BigDecimal("18.80"),
@@ -150,7 +150,7 @@ class PaymentApplicationServiceTest {
         PaymentCallbackApplicationService callbackService = new PaymentCallbackApplicationService(
                 repository, repository, paymentOperationLogSupport(repository), orderCommandFacade, idGenerator());
 
-        PaymentCreateResultDTO created = createService.createPayment(
+        PaymentCreateResult created = createService.createPayment(
                 "ORD-10007",
                 2007L,
                 new BigDecimal("20.00"),
@@ -188,15 +188,15 @@ class PaymentApplicationServiceTest {
         PaymentCloseApplicationService closeService =
                 new PaymentCloseApplicationService(repository, paymentOperationLogSupport(repository));
 
-        PaymentCreateResultDTO created = createService.createPayment(
+        PaymentCreateResult created = createService.createPayment(
                 "ORD-10004",
                 2004L,
                 new BigDecimal("28.00"),
                 "MOCK",
                 "close",
                 Instant.now().plusSeconds(1800));
-        PaymentCloseResultDTO first = closeService.closePayment(created.getPaymentNo(), "SYSTEM_CANCELLED");
-        PaymentCloseResultDTO second = closeService.closePayment(created.getPaymentNo(), "SYSTEM_CANCELLED");
+        PaymentCloseResult first = closeService.closePayment(created.getPaymentNo(), "SYSTEM_CANCELLED");
+        PaymentCloseResult second = closeService.closePayment(created.getPaymentNo(), "SYSTEM_CANCELLED");
 
         assertEquals("SUCCESS", first.getCloseResult());
         assertEquals("SUCCESS", second.getCloseResult());
@@ -213,7 +213,7 @@ class PaymentApplicationServiceTest {
         PaymentCreateApplicationService service = new PaymentCreateApplicationService(
                 repository, paymentOperationLogSupport(repository), () -> "PAY-20005", idGenerator());
 
-        PaymentCreateResultDTO result = assertDoesNotThrow(() -> service.createPayment(
+        PaymentCreateResult result = assertDoesNotThrow(() -> service.createPayment(
                 "ORD-10005",
                 2005L,
                 BigDecimal.ONE,

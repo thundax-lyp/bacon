@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
-import com.github.thundax.bacon.payment.api.dto.PaymentAuditLogDTO;
+import com.github.thundax.bacon.payment.application.dto.PaymentAuditLogDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentAuditQueryApplicationService;
 import java.time.Instant;
 import java.util.List;

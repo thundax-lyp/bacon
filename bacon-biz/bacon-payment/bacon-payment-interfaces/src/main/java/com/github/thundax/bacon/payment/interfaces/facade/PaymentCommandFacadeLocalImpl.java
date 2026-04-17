@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.payment.interfaces.facade;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
-import com.github.thundax.bacon.payment.api.dto.PaymentCreateResultDTO;
+import com.github.thundax.bacon.payment.application.command.PaymentCloseResult;
+import com.github.thundax.bacon.payment.application.command.PaymentCreateResult;
 import com.github.thundax.bacon.payment.api.facade.PaymentCommandFacade;
 import com.github.thundax.bacon.payment.api.request.PaymentCloseFacadeRequest;
 import com.github.thundax.bacon.payment.api.request.PaymentCreateFacadeRequest;
@@ -31,7 +31,7 @@ public class PaymentCommandFacadeLocalImpl implements PaymentCommandFacade {
     @Override
     public PaymentCreateFacadeResponse createPayment(PaymentCreateFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        PaymentCreateResultDTO result = paymentCreateApplicationService.createPayment(
+        PaymentCreateResult result = paymentCreateApplicationService.createPayment(
                 request.getOrderNo(),
                 request.getUserId(),
                 request.getAmount(),
@@ -44,7 +44,7 @@ public class PaymentCommandFacadeLocalImpl implements PaymentCommandFacade {
     @Override
     public PaymentCloseFacadeResponse closePayment(PaymentCloseFacadeRequest request) {
         BaconContextHolder.requireTenantId();
-        PaymentCloseResultDTO result =
+        PaymentCloseResult result =
                 paymentCloseApplicationService.closePayment(request.getPaymentNo(), request.getReason());
         return PaymentFacadeResponseAssembler.fromCloseResult(result);
     }

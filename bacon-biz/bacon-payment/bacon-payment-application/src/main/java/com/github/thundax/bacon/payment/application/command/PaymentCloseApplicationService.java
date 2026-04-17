@@ -1,7 +1,6 @@
 package com.github.thundax.bacon.payment.application.command;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.payment.api.dto.PaymentCloseResultDTO;
 import com.github.thundax.bacon.payment.application.audit.PaymentOperationLogSupport;
 import com.github.thundax.bacon.payment.domain.exception.PaymentDomainException;
 import com.github.thundax.bacon.payment.domain.exception.PaymentErrorCode;
@@ -25,7 +24,7 @@ public class PaymentCloseApplicationService {
         this.paymentOperationLogSupport = paymentOperationLogSupport;
     }
 
-    public PaymentCloseResultDTO closePayment(String paymentNo, String reason) {
+    public PaymentCloseResult closePayment(String paymentNo, String reason) {
         BaconContextHolder.requireTenantId();
         if (!VALID_REASONS.contains(reason)) {
             throw new PaymentDomainException(PaymentErrorCode.INVALID_CLOSE_REASON, reason);
@@ -35,7 +34,7 @@ public class PaymentCloseApplicationService {
                 .orElseThrow(() -> new PaymentDomainException(PaymentErrorCode.PAYMENT_NOT_FOUND, paymentNo));
         // 已关闭视为幂等成功；已支付和已失败则显式拒绝关闭，避免把终态单误判成可关闭状态。
         if (PaymentStatus.CLOSED == paymentOrder.getPaymentStatus()) {
-            return new PaymentCloseResultDTO(
+            return new PaymentCloseResult(
                     paymentNo,
                     paymentOrder.getOrderNo().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -44,7 +43,7 @@ public class PaymentCloseApplicationService {
                     null);
         }
         if (PaymentStatus.PAID == paymentOrder.getPaymentStatus()) {
-            return new PaymentCloseResultDTO(
+            return new PaymentCloseResult(
                     paymentNo,
                     paymentOrder.getOrderNo().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -53,7 +52,7 @@ public class PaymentCloseApplicationService {
                     "Paid payment cannot be closed");
         }
         if (PaymentStatus.FAILED == paymentOrder.getPaymentStatus()) {
-            return new PaymentCloseResultDTO(
+            return new PaymentCloseResult(
                     paymentNo,
                     paymentOrder.getOrderNo().value(),
                     paymentOrder.getPaymentStatus().value(),
@@ -67,7 +66,7 @@ public class PaymentCloseApplicationService {
         paymentOrderRepository.save(paymentOrder);
         paymentOperationLogSupport.recordClose(
                 paymentNo, beforeStatus, paymentOrder.getPaymentStatus().value(), closedAt);
-        return new PaymentCloseResultDTO(
+        return new PaymentCloseResult(
                 paymentNo,
                 paymentOrder.getOrderNo().value(),
                 paymentOrder.getPaymentStatus().value(),

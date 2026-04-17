@@ -1,4 +1,4 @@
-package com.github.thundax.bacon.payment.api.dto;
+package com.github.thundax.bacon.payment.application.dto;
 
 import java.time.Instant;
 

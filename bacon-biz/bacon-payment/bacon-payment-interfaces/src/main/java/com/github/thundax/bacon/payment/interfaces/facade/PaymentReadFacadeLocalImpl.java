@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.payment.interfaces.facade;
 
 import com.github.thundax.bacon.common.core.context.BaconContextHolder;
-import com.github.thundax.bacon.payment.api.dto.PaymentDetailDTO;
+import com.github.thundax.bacon.payment.application.dto.PaymentDetailDTO;
 import com.github.thundax.bacon.payment.api.facade.PaymentReadFacade;
 import com.github.thundax.bacon.payment.api.request.PaymentGetByOrderNoFacadeRequest;
 import com.github.thundax.bacon.payment.api.request.PaymentGetByPaymentNoFacadeRequest;

@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.storage.api.dto;
 
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import java.time.Instant;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class StoredObjectDTO {
 
     /** 主键。 */
-    private StoredObjectId id;
+    private String id;
     /** 底层存储类型。 */
     private String storageType;
     /** 存储桶或本地逻辑目录。 */
@@ -36,7 +35,7 @@ public class StoredObjectDTO {
     private Instant createdAt;
 
     public StoredObjectDTO(
-            StoredObjectId id,
+            String id,
             String storageType,
             String bucketName,
             String objectKey,

@@ -18,7 +18,7 @@ public record StoredObjectResponse(
 
     public static StoredObjectResponse from(StoredObjectDTO dto) {
         return new StoredObjectResponse(
-                dto.getId() == null ? null : dto.getId().externalValue(),
+                dto.getId(),
                 dto.getStorageType(),
                 dto.getBucketName(),
                 dto.getObjectKey(),

@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.storage.application.assembler;
 
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
+import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.storage.domain.model.entity.StoredObject;
 import com.github.thundax.bacon.storage.domain.model.enums.StorageType;
 import com.github.thundax.bacon.storage.domain.model.enums.StoredObjectReferenceStatus;
@@ -15,7 +16,7 @@ public final class StoredObjectAssembler {
             return null;
         }
         return new StoredObjectDTO(
-                storedObject.getId(),
+                storedObject.getId() == null ? null : storedObject.getId().externalValue(),
                 storedObject.getStorageType() == null
                         ? null
                         : storedObject.getStorageType().value(),
@@ -39,7 +40,7 @@ public final class StoredObjectAssembler {
             return null;
         }
         return StoredObject.reconstruct(
-                storedObjectDTO.getId(),
+                toStoredObjectId(storedObjectDTO.getId()),
                 storedObjectDTO.getStorageType() == null ? null : StorageType.from(storedObjectDTO.getStorageType()),
                 storedObjectDTO.getBucketName(),
                 storedObjectDTO.getObjectKey(),
@@ -53,5 +54,13 @@ public final class StoredObjectAssembler {
                 storedObjectDTO.getReferenceStatus() == null
                         ? null
                         : StoredObjectReferenceStatus.from(storedObjectDTO.getReferenceStatus()));
+    }
+
+    private static StoredObjectId toStoredObjectId(String id) {
+        if (id == null || id.isBlank()) {
+            return null;
+        }
+        String normalized = id.startsWith("O") ? id.substring(1) : id;
+        return StoredObjectId.of(Long.valueOf(normalized));
     }
 }

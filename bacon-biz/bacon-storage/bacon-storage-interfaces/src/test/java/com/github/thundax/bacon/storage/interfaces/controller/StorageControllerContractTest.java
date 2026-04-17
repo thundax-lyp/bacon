@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.web.advice.ApiResponseBodyAdvice;
 import com.github.thundax.bacon.common.web.advice.GlobalExceptionHandler;
 import com.github.thundax.bacon.storage.api.dto.StoredObjectDTO;
@@ -50,7 +49,7 @@ class StorageControllerContractTest {
         when(storedObjectQueryApplicationService.pageObjects(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new StoredObjectPageResultDTO(
                         List.of(new StoredObjectDTO(
-                                StoredObjectId.of(101L),
+                                "O101",
                                 "LOCAL_FILE",
                                 "default",
                                 "attachment/e.txt",
@@ -80,7 +79,7 @@ class StorageControllerContractTest {
     void shouldWrapGetObjectForAdminFrontend() throws Exception {
         when(storedObjectQueryApplicationService.getObjectById(100L))
                 .thenReturn(new StoredObjectDTO(
-                        StoredObjectId.of(100L),
+                        "O100",
                         "LOCAL_FILE",
                         "default",
                         "attachment/a.txt",

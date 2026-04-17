@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.github.thundax.bacon.common.id.domain.StoredObjectId;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardInterceptor;
 import com.github.thundax.bacon.common.web.config.InternalApiGuardProperties;
 import com.github.thundax.bacon.storage.api.dto.MultipartUploadPartDTO;
@@ -54,7 +53,7 @@ class StorageProviderControllerContractTest {
     @Test
     void shouldExposeUploadProviderPath() throws Exception {
         StoredObjectDTO dto = new StoredObjectDTO(
-                StoredObjectId.of(1L),
+                "O1",
                 "LOCAL_FILE",
                 "default",
                 "attachment/a.txt",
@@ -75,7 +74,7 @@ class StorageProviderControllerContractTest {
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("category", "attachment"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.id").value("O1"))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -130,7 +129,7 @@ class StorageProviderControllerContractTest {
     void shouldExposeMultipartCompletePath() throws Exception {
         when(storedObjectFacade.completeMultipartUpload(any()))
                 .thenReturn(new StoredObjectDTO(
-                        StoredObjectId.of(2L),
+                        "O2",
                         "OSS",
                         "bucket",
                         "attachment/a.txt",
@@ -147,7 +146,7 @@ class StorageProviderControllerContractTest {
                         .param("ownerType", "GENERIC_ATTACHMENT")
                         .param("ownerId", "owner-1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(2))
+                .andExpect(jsonPath("$.id").value("O2"))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -173,7 +172,7 @@ class StorageProviderControllerContractTest {
                 .build();
         when(storedObjectQueryApplicationService.getObjectById(100L))
                 .thenReturn(new StoredObjectDTO(
-                        StoredObjectId.of(100L),
+                        "O100",
                         "LOCAL_FILE",
                         "default",
                         "attachment/a.txt",
@@ -188,7 +187,7 @@ class StorageProviderControllerContractTest {
         mockMvc.perform(get("/providers/storage/objects/{objectId}", "100")
                         .header("X-Bacon-Provider-Token", PROVIDER_TOKEN))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(100))
+                .andExpect(jsonPath("$.id").value("O100"))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 
@@ -204,7 +203,7 @@ class StorageProviderControllerContractTest {
         when(storedObjectQueryApplicationService.pageObjects(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new StoredObjectPageResultDTO(
                         java.util.List.of(new StoredObjectDTO(
-                                StoredObjectId.of(101L),
+                                "O101",
                                 "LOCAL_FILE",
                                 "default",
                                 "attachment/e.txt",
@@ -227,7 +226,7 @@ class StorageProviderControllerContractTest {
                         .param("pageSize", "20"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1))
-                .andExpect(jsonPath("$.records[0].id").value(101))
+                .andExpect(jsonPath("$.records[0].id").value("O101"))
                 .andExpect(jsonPath("$.code").doesNotExist());
     }
 

@@ -83,7 +83,7 @@ public class InventoryReleaseApplicationService {
             releaseStockOnce(item.getSkuId(), item.getQuantity(), releasedAt);
         });
         reservation.release(reason, releasedAt);
-        inventoryReservationRepository.saveReservation(reservation);
+        inventoryReservationRepository.upsertReservation(reservation);
         inventoryOperationLogService.recordReleaseSuccess(reservation, releasedAt);
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
@@ -94,6 +94,6 @@ public class InventoryReleaseApplicationService {
                 .orElseThrow(() ->
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
         inventory.release(quantity);
-        inventoryStockRepository.saveInventory(inventory);
+        inventoryStockRepository.upsertInventory(inventory);
     }
 }

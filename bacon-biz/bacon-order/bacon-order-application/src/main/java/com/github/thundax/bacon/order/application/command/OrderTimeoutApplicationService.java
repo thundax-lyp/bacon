@@ -67,7 +67,7 @@ public class OrderTimeoutApplicationService {
         InventoryReservationFacadeResponse releaseResult = inventoryCommandFacade.releaseReservedStock(
                 new InventoryReleaseFacadeRequest(OrderNoCodec.toValue(orderNo), reason));
         applyReleaseResult(order, releaseResult, reason);
-        orderRepository.save(order);
+        orderRepository.upsertOrder(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CLOSE_EXPIRED, beforeStatus);
     }
 

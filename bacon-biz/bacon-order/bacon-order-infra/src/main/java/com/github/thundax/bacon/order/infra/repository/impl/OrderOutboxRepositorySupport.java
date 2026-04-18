@@ -53,7 +53,7 @@ public class OrderOutboxRepositorySupport {
         this.orderOutboxDeadLetterPersistenceAssembler = orderOutboxDeadLetterPersistenceAssembler;
     }
 
-    public void saveOutboxEvent(OrderOutboxEvent event) {
+    public void insertOutboxEvent(OrderOutboxEvent event) {
         OrderOutboxEventDO dataObject = orderOutboxEventPersistenceAssembler.toDataObject(event);
         Instant now = Instant.now();
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());
@@ -199,7 +199,7 @@ public class OrderOutboxRepositorySupport {
                 > 0;
     }
 
-    public void saveDeadLetter(OrderOutboxDeadLetter deadLetter) {
+    public void insertDeadLetter(OrderOutboxDeadLetter deadLetter) {
         OrderOutboxDeadLetterDO dataObject = orderOutboxDeadLetterPersistenceAssembler.toDataObject(deadLetter);
         Instant now = Instant.now();
         dataObject.setCreatedAt(dataObject.getCreatedAt() == null ? now : dataObject.getCreatedAt());

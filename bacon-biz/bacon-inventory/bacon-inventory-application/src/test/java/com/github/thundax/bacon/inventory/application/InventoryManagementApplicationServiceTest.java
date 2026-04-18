@@ -124,7 +124,7 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public Inventory saveInventory(Inventory inventory) {
+        public Inventory upsertInventory(Inventory inventory) {
             Version version = inventory.getVersion() == null
                     ? new Version(0L)
                     : inventory.getVersion().next();
@@ -140,7 +140,7 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public InventoryReservation saveReservation(InventoryReservation reservation) {
+        public InventoryReservation upsertReservation(InventoryReservation reservation) {
             throw new UnsupportedOperationException();
         }
 
@@ -150,7 +150,7 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public void saveLedger(InventoryLedger ledger) {}
+        public void insertLedger(InventoryLedger ledger) {}
 
         @Override
         public List<InventoryLedger> findLedgers(OrderNo orderNo) {
@@ -158,7 +158,7 @@ class InventoryManagementApplicationServiceTest {
         }
 
         @Override
-        public void saveAuditLog(InventoryAuditLog auditLog) {}
+        public void insertAuditLog(InventoryAuditLog auditLog) {}
 
         @Override
         public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {

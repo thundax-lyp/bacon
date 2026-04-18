@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface OrderIdempotencyRepository {
 
-    default boolean createProcessing(OrderIdempotencyRecord record) {
+    default boolean insertProcessing(OrderIdempotencyRecord record) {
         return false;
     }
 
@@ -32,11 +32,11 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
-    default boolean retryFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
+    default boolean recoverFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
         return false;
     }
 
-    default boolean retryFromFailed(
+    default boolean recoverFromFailed(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,

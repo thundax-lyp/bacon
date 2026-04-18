@@ -45,7 +45,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         TestLogRepository repository = new TestLogRepository();
         BaconContextHolder.runWithTenantId(
                 3001L,
-                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                () -> repository.insertAuditDeadLetter(InventoryAuditDeadLetter.create(
                         DeadLetterId.of(101L),
                         com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(101L),
                         EventCode.of("EVT20260326000000-000101"),
@@ -96,12 +96,12 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         private final List<InventoryAuditLog> auditLogs = new ArrayList<>();
 
         @Override
-        public void saveAuditLog(InventoryAuditLog auditLog) {
+        public void insertAuditLog(InventoryAuditLog auditLog) {
             auditLogs.add(auditLog);
         }
 
         @Override
-        public void saveLedger(InventoryLedger ledger) {}
+        public void insertLedger(InventoryLedger ledger) {}
 
         @Override
         public List<InventoryLedger> findLedgers(OrderNo orderNo) {
@@ -114,7 +114,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+        public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
             deadLetters.put(OutboxIdCodec.toValue(deadLetter.getOutboxId()), deadLetter);
         }
 
@@ -169,7 +169,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+        public InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
             assertNotNull(task.getId());
             Long taskId = task.getId() == null ? null : task.getId().value();
             tasks.put(taskId, task);
@@ -181,7 +181,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+        public void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
             if (items == null || items.isEmpty()) {
                 return;
             }
@@ -256,7 +256,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void incrementAuditReplayTaskProgress(
+        public void updateAuditReplayTaskProgress(
                 TaskId taskId,
                 String processingOwner,
                 int processedDelta,
@@ -271,7 +271,7 @@ class InventoryAuditReplayTaskApplicationServiceTest {
         }
 
         @Override
-        public void finishAuditReplayTask(
+        public void markAuditReplayTaskFinished(
                 TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {
             InventoryAuditReplayTask task = tasks.get(taskId == null ? null : taskId.value());
             if (task == null || !processingOwner.equals(task.getProcessingOwner())) {

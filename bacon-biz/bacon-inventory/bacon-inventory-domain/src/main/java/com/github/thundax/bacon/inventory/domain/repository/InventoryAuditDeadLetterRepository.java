@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public interface InventoryAuditDeadLetterRepository {
 
-    default void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
+    default void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
 
     default List<InventoryAuditDeadLetter> pageAuditDeadLetters(
             OrderNo orderNo, InventoryAuditReplayStatus replayStatus, int pageNo, int pageSize) {

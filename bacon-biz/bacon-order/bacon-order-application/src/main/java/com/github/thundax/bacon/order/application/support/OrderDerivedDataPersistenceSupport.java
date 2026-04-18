@@ -31,7 +31,7 @@ public class OrderDerivedDataPersistenceSupport {
     public void persist(Order order, OrderAuditActionType actionType, OrderStatus beforeStatus) {
         Instant now = Instant.now();
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
-            orderRepository.savePaymentSnapshot(OrderPaymentSnapshot.create(
+            orderRepository.upsertPaymentSnapshot(OrderPaymentSnapshot.create(
                     order.getId(),
                     order.getPaymentNo(),
                     order.getPaymentChannelCode(),
@@ -49,7 +49,7 @@ public class OrderDerivedDataPersistenceSupport {
         }
         if (order.getReservationNo() != null
                 && !order.getReservationNo().value().isBlank()) {
-            orderRepository.saveInventorySnapshot(OrderInventorySnapshot.create(
+            orderRepository.upsertInventorySnapshot(OrderInventorySnapshot.create(
                     idGenerator.nextId(INVENTORY_SNAPSHOT_ID_BIZ_TAG),
                     order.getOrderNo(),
                     order.getReservationNo(),
@@ -58,7 +58,7 @@ public class OrderDerivedDataPersistenceSupport {
                     order.getInventoryFailureReason(),
                     now));
         }
-        orderRepository.saveAuditLog(OrderAuditLog.create(
+        orderRepository.insertAuditLog(OrderAuditLog.create(
                 order.getOrderNo(),
                 actionType,
                 beforeStatus,

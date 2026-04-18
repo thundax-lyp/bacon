@@ -46,7 +46,7 @@ public class InventoryStockRepositoryImpl implements InventoryStockRepository {
     }
 
     @Override
-    public Inventory saveInventory(Inventory inventory) {
-        return support.saveInventory(inventory);
+    public Inventory upsertInventory(Inventory inventory) {
+        return support.upsertInventory(inventory);
     }
 }

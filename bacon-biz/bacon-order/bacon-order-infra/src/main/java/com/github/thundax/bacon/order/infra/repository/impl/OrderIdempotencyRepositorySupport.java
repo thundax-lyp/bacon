@@ -30,7 +30,7 @@ public class OrderIdempotencyRepositorySupport {
         this.orderIdempotencyRecordPersistenceAssembler = orderIdempotencyRecordPersistenceAssembler;
     }
 
-    public boolean createProcessing(OrderIdempotencyRecord record) {
+    public boolean insertProcessing(OrderIdempotencyRecord record) {
         OrderIdempotencyRecordDO dataObject = orderIdempotencyRecordPersistenceAssembler.toDataObject(record);
         Instant now = Instant.now();
         dataObject.setStatus(OrderIdempotencyStatus.PROCESSING.value());
@@ -136,11 +136,11 @@ public class OrderIdempotencyRepositorySupport {
                 > 0;
     }
 
-    public boolean retryFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
-        return retryFromFailed(key, null, null, null, updatedAt);
+    public boolean recoverFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
+        return recoverFromFailed(key, null, null, null, updatedAt);
     }
 
-    public boolean retryFromFailed(
+    public boolean recoverFromFailed(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface OrderOutboxRepository {
 
-    default void saveOutboxEvent(OrderOutboxEvent event) {}
+    default void insertOutboxEvent(OrderOutboxEvent event) {}
 
     default List<OrderOutboxEvent> claimRetryableOutbox(
             Instant now, int limit, String processingOwner, Instant leaseUntil) {

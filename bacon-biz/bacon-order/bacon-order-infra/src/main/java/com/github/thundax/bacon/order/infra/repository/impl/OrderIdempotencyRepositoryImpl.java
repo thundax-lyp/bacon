@@ -19,8 +19,8 @@ public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepositor
     }
 
     @Override
-    public boolean createProcessing(OrderIdempotencyRecord record) {
-        return support.createProcessing(record);
+    public boolean insertProcessing(OrderIdempotencyRecord record) {
+        return support.insertProcessing(record);
     }
 
     @Override
@@ -49,18 +49,18 @@ public class OrderIdempotencyRepositoryImpl implements OrderIdempotencyRepositor
     }
 
     @Override
-    public boolean retryFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
-        return support.retryFromFailed(key, updatedAt);
+    public boolean recoverFromFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
+        return support.recoverFromFailed(key, updatedAt);
     }
 
     @Override
-    public boolean retryFromFailed(
+    public boolean recoverFromFailed(
             OrderIdempotencyRecordKey key,
             String processingOwner,
             Instant leaseUntil,
             Instant claimedAt,
             Instant updatedAt) {
-        return support.retryFromFailed(key, processingOwner, leaseUntil, claimedAt, updatedAt);
+        return support.recoverFromFailed(key, processingOwner, leaseUntil, claimedAt, updatedAt);
     }
 
     @Override

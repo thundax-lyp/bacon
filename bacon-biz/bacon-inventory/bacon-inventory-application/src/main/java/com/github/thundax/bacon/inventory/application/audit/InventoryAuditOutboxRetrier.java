@@ -95,7 +95,7 @@ public class InventoryAuditOutboxRetrier {
         InventoryAuditOutbox item = scopedItem.outbox();
         try {
             // outbox 重试的目标很单一：把原始审计事件补写回正式审计表，成功后立即删除 outbox。
-            inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
+            inventoryAuditRecordRepository.insertAuditLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     item.getOrderNo(),
                     item.getReservationNo(),
@@ -140,7 +140,7 @@ public class InventoryAuditOutboxRetrier {
                         owner);
                 return;
             }
-            inventoryAuditDeadLetterRepository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+            inventoryAuditDeadLetterRepository.insertAuditDeadLetter(InventoryAuditDeadLetter.create(
                     DeadLetterId.of(idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG)),
                     item.getId(),
                     item.getEventCode(),

@@ -78,7 +78,7 @@ public class InventoryDeductionApplicationService {
             deductStockOnce(item.getSkuId(), item.getQuantity(), deductedAt);
         });
         reservation.deduct(deductedAt);
-        inventoryReservationRepository.saveReservation(reservation);
+        inventoryReservationRepository.upsertReservation(reservation);
         inventoryOperationLogService.recordDeductSuccess(reservation, deductedAt);
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
@@ -89,6 +89,6 @@ public class InventoryDeductionApplicationService {
                 .orElseThrow(() ->
                         new InventoryDomainException(InventoryErrorCode.INVENTORY_NOT_FOUND, String.valueOf(skuId)));
         inventory.deduct(quantity);
-        inventoryStockRepository.saveInventory(inventory);
+        inventoryStockRepository.upsertInventory(inventory);
     }
 }

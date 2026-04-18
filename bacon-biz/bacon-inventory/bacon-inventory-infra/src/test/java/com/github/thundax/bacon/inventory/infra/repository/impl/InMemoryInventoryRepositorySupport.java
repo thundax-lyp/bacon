@@ -111,7 +111,7 @@ public class InMemoryInventoryRepositorySupport {
                 .count();
     }
 
-    public Inventory saveInventory(Inventory inventory) {
+    public Inventory upsertInventory(Inventory inventory) {
         Long tenantId = BaconContextHolder.currentTenantId();
         if (inventory.getId() == null) {
             inventory = Inventory.reconstruct(
@@ -138,7 +138,7 @@ public class InMemoryInventoryRepositorySupport {
         return inventory;
     }
 
-    public InventoryReservation saveReservation(InventoryReservation reservation) {
+    public InventoryReservation upsertReservation(InventoryReservation reservation) {
         Long tenantId = BaconContextHolder.currentTenantId();
         java.util.Objects.requireNonNull(reservation.getId(), "reservation.id must not be null");
         reservation
@@ -159,7 +159,7 @@ public class InMemoryInventoryRepositorySupport {
                 reservationKey(BaconContextHolder.currentTenantId(), orderNo == null ? null : orderNo.value())));
     }
 
-    public void saveLedger(InventoryLedger ledger) {
+    public void insertLedger(InventoryLedger ledger) {
         java.util.Objects.requireNonNull(ledger.getId(), "ledger.id must not be null");
         ledgers.computeIfAbsent(
                         reservationKey(
@@ -177,7 +177,7 @@ public class InMemoryInventoryRepositorySupport {
                 List.of()));
     }
 
-    public void saveAuditLog(InventoryAuditLog auditLog) {
+    public void insertAuditLog(InventoryAuditLog auditLog) {
         java.util.Objects.requireNonNull(auditLog.getId(), "auditLog.id must not be null");
         auditLogs
                 .computeIfAbsent(
@@ -196,7 +196,7 @@ public class InMemoryInventoryRepositorySupport {
                 List.of()));
     }
 
-    public void saveAuditOutbox(InventoryAuditOutbox outbox) {
+    public void insertAuditOutbox(InventoryAuditOutbox outbox) {
         String eventCode =
                 outbox.getEventCode() == null ? null : outbox.getEventCode().value();
         if (eventCode == null) {
@@ -331,7 +331,7 @@ public class InMemoryInventoryRepositorySupport {
         return false;
     }
 
-    public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+    public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
         Long tenantId = BaconContextHolder.currentTenantId();
         auditDeadLetters
                 .computeIfAbsent(
@@ -427,7 +427,7 @@ public class InMemoryInventoryRepositorySupport {
         });
     }
 
-    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+    public InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
         java.util.Objects.requireNonNull(task.getId(), "replayTask.id must not be null");
         Long taskId = task.getId() == null ? null : task.getId().value();
         auditReplayTasks.put(taskId, task);
@@ -435,7 +435,7 @@ public class InMemoryInventoryRepositorySupport {
         return task;
     }
 
-    public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+    public void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
         if (items == null || items.isEmpty()) {
             return;
         }
@@ -506,7 +506,7 @@ public class InMemoryInventoryRepositorySupport {
                 }));
     }
 
-    public void incrementAuditReplayTaskProgress(
+    public void updateAuditReplayTaskProgress(
             TaskId taskId,
             String processingOwner,
             int processedDelta,
@@ -519,7 +519,7 @@ public class InMemoryInventoryRepositorySupport {
                 .ifPresent(task -> task.markItemProgress(processedDelta, successDelta, failedDelta, updatedAt));
     }
 
-    public void finishAuditReplayTask(
+    public void markAuditReplayTaskFinished(
             TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {
         findAuditReplayTaskById(taskId)
                 .filter(task -> InventoryAuditReplayTaskStatus.RUNNING.equals(task.getStatus()))

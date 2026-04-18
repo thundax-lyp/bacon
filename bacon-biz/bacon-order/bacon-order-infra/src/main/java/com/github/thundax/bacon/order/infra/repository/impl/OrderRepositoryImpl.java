@@ -23,7 +23,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public Order save(Order order) {
+    public Order upsertOrder(Order order) {
         return support.saveOrder(order);
     }
 
@@ -38,8 +38,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void saveItems(Long orderId, List<OrderItem> items) {
-        support.saveItems(orderId, items);
+    public void updateItems(Long orderId, List<OrderItem> items) {
+        support.updateItems(orderId, items);
     }
 
     @Override
@@ -48,8 +48,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
-        support.savePaymentSnapshot(snapshot);
+    public void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        support.upsertPaymentSnapshot(snapshot);
     }
 
     @Override
@@ -58,8 +58,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
-        support.saveInventorySnapshot(snapshot);
+    public void upsertInventorySnapshot(OrderInventorySnapshot snapshot) {
+        support.upsertInventorySnapshot(snapshot);
     }
 
     @Override
@@ -68,8 +68,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void saveAuditLog(OrderAuditLog auditLog) {
-        support.saveAuditLog(auditLog);
+    public void insertAuditLog(OrderAuditLog auditLog) {
+        support.insertAuditLog(auditLog);
     }
 
     @Override

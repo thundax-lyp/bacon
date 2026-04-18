@@ -138,7 +138,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.saveAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
                         OutboxId.of(1001L),
                         null,
                         OrderNo.of("ORDER-DEAD"),
@@ -180,7 +180,7 @@ class InventoryWorkflowIntegrationTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.saveAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
                         OutboxId.of(1002L),
                         null,
                         OrderNo.of("ORDER-OK"),
@@ -292,7 +292,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public synchronized Inventory saveInventory(Inventory inventory) {
+        public synchronized Inventory upsertInventory(Inventory inventory) {
             Inventory current = inventories.get(key(
                     1001L,
                     inventory.getSkuId() == null ? null : inventory.getSkuId().value()));
@@ -325,7 +325,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public InventoryReservation saveReservation(InventoryReservation reservation) {
+        public InventoryReservation upsertReservation(InventoryReservation reservation) {
             String key = reservationKey(
                     BaconContextHolder.currentTenantId(),
                     reservation.getOrderNo() == null
@@ -346,7 +346,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void saveLedger(InventoryLedger ledger) {
+        public void insertLedger(InventoryLedger ledger) {
             ledgers.computeIfAbsent(
                             reservationKey(
                                     BaconContextHolder.currentTenantId(),
@@ -365,7 +365,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void saveAuditLog(InventoryAuditLog auditLog) {
+        public void insertAuditLog(InventoryAuditLog auditLog) {
             if (failAuditPersist) {
                 throw new RuntimeException("force-fail-audit");
             }
@@ -388,7 +388,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void saveAuditOutbox(InventoryAuditOutbox outbox) {
+        public void insertAuditOutbox(InventoryAuditOutbox outbox) {
             if (outbox.getId() == null) {
                 throw new IllegalArgumentException("outbox.id must not be null");
             }
@@ -517,7 +517,7 @@ class InventoryWorkflowIntegrationTest {
         }
 
         @Override
-        public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+        public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
             deadLetterMap.put(deadLetter.getOutboxId(), deadLetter);
         }
 

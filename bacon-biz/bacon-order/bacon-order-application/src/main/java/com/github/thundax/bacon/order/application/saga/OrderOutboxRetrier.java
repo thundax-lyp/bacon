@@ -95,7 +95,7 @@ public class OrderOutboxRetrier {
         if (nextRetryCount > maxRetries) {
             String deadReason = "MAX_RETRIES_EXCEEDED";
             if (orderOutboxRepository.markDeadClaimed(event.getId(), owner, nextRetryCount, deadReason, message, now)) {
-                orderOutboxDeadLetterRepository.saveDeadLetter(OrderOutboxDeadLetter.create(
+                orderOutboxDeadLetterRepository.insertDeadLetter(OrderOutboxDeadLetter.create(
                         idGenerator.nextId(DEAD_LETTER_ID_BIZ_TAG),
                         event.getId() == null ? null : event.getId().value(),
                         event.getEventCode() == null

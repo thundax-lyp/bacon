@@ -10,7 +10,7 @@ public interface InventoryAuditOutboxRepository {
 
     record TenantScopedAuditOutbox(TenantId tenantId, InventoryAuditOutbox outbox) {}
 
-    default void saveAuditOutbox(InventoryAuditOutbox outbox) {}
+    default void insertAuditOutbox(InventoryAuditOutbox outbox) {}
 
     default List<InventoryAuditOutbox> findRetryableAuditOutbox(Instant now, int limit) {
         return List.of();

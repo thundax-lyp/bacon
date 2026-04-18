@@ -107,7 +107,7 @@ public class OrderRepositorySupport {
                 .map(this::toDomainWithSnapshots);
     }
 
-    public void saveItems(Long orderId, List<OrderItem> items) {
+    public void updateItems(Long orderId, List<OrderItem> items) {
         BaconContextHolder.requireTenantId();
         // 订单项采用“先删后插”的整包替换策略，保持应用层传入的 items 列表就是该订单的权威快照。
         orderItemMapper.delete(Wrappers.<OrderItemDO>lambdaQuery().eq(OrderItemDO::getOrderId, orderId));
@@ -130,7 +130,7 @@ public class OrderRepositorySupport {
                 .toList();
     }
 
-    public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
+    public void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
         BaconContextHolder.requireTenantId();
         OrderPaymentSnapshotDO existing =
                 orderPaymentSnapshotMapper.selectOne(Wrappers.<OrderPaymentSnapshotDO>lambdaQuery()
@@ -158,7 +158,7 @@ public class OrderRepositorySupport {
                 .map(orderPaymentSnapshotPersistenceAssembler::toDomain);
     }
 
-    public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
+    public void upsertInventorySnapshot(OrderInventorySnapshot snapshot) {
         BaconContextHolder.requireTenantId();
         OrderInventorySnapshotDO existing =
                 orderInventorySnapshotMapper.selectOne(Wrappers.<OrderInventorySnapshotDO>lambdaQuery()
@@ -186,7 +186,7 @@ public class OrderRepositorySupport {
                 .map(orderInventorySnapshotPersistenceAssembler::toDomain);
     }
 
-    public void saveAuditLog(OrderAuditLog auditLog) {
+    public void insertAuditLog(OrderAuditLog auditLog) {
         OrderAuditLogDO dataObject = orderAuditLogPersistenceAssembler.toDataObject(auditLog);
         if (dataObject.getId() == null) {
             dataObject.setId(idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG));

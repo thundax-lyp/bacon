@@ -166,12 +166,12 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public Inventory saveInventory(Inventory inventory) {
+        public Inventory upsertInventory(Inventory inventory) {
             return inventory;
         }
 
         @Override
-        public InventoryReservation saveReservation(InventoryReservation reservation) {
+        public InventoryReservation upsertReservation(InventoryReservation reservation) {
             throw new UnsupportedOperationException();
         }
 
@@ -182,7 +182,7 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public void saveLedger(InventoryLedger ledger) {}
+        public void insertLedger(InventoryLedger ledger) {}
 
         @Override
         public List<InventoryLedger> findLedgers(OrderNo orderNo) {
@@ -191,7 +191,7 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public void saveAuditLog(InventoryAuditLog auditLog) {}
+        public void insertAuditLog(InventoryAuditLog auditLog) {}
 
         @Override
         public List<InventoryAuditLog> findAuditLogs(OrderNo orderNo) {
@@ -200,10 +200,10 @@ class InventoryControllerContractTest {
         }
 
         @Override
-        public void saveAuditOutbox(InventoryAuditOutbox outbox) {}
+        public void insertAuditOutbox(InventoryAuditOutbox outbox) {}
 
         @Override
-        public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
+        public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {}
 
         private void captureContext() {
             capturedTenantId = BaconContextHolder.currentTenantId();

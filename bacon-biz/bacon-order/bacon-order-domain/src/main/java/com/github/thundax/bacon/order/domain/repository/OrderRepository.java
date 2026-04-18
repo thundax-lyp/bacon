@@ -11,25 +11,25 @@ import java.util.Optional;
 
 public interface OrderRepository {
 
-    Order save(Order order);
+    Order upsertOrder(Order order);
 
     Optional<Order> findById(Long id);
 
     Optional<Order> findByOrderNo(String orderNo);
 
-    void saveItems(Long orderId, List<OrderItem> items);
+    void updateItems(Long orderId, List<OrderItem> items);
 
     List<OrderItem> findItemsByOrderId(Long orderId);
 
-    void savePaymentSnapshot(OrderPaymentSnapshot snapshot);
+    void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot);
 
     Optional<OrderPaymentSnapshot> findPaymentSnapshotByOrderId(Long orderId);
 
-    void saveInventorySnapshot(OrderInventorySnapshot snapshot);
+    void upsertInventorySnapshot(OrderInventorySnapshot snapshot);
 
     Optional<OrderInventorySnapshot> findInventorySnapshotByOrderNo(String orderNo);
 
-    void saveAuditLog(OrderAuditLog auditLog);
+    void insertAuditLog(OrderAuditLog auditLog);
 
     List<OrderAuditLog> findAuditLogs(String orderNo);
 

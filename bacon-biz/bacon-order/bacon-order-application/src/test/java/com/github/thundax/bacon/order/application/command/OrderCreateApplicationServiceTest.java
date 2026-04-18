@@ -148,7 +148,7 @@ class OrderCreateApplicationServiceTest {
             Order paidOrder = repository.findByOrderNo(paid.getOrderNo()).orElseThrow();
             paidOrder.markInventoryReserved(ReservationNo.of("RSV-" + paid.getOrderNo()), WarehouseCode.of("1"));
             paidOrder.markPendingPayment(PaymentNo.of("PAY-" + paid.getOrderNo()), "MOCK");
-            repository.save(paidOrder);
+            repository.upsertOrder(paidOrder);
             paymentResultService.markPaid(
                     OrderNo.of(paid.getOrderNo()),
                     PaymentNo.of("PAY-1"),
@@ -280,7 +280,7 @@ class OrderCreateApplicationServiceTest {
     private static final class TestOrderOutboxRepository implements OrderOutboxRepository {
 
         @Override
-        public void saveOutboxEvent(OrderOutboxEvent event) {
+        public void insertOutboxEvent(OrderOutboxEvent event) {
             // no-op for unit tests
         }
     }
@@ -290,7 +290,7 @@ class OrderCreateApplicationServiceTest {
         private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();
 
         @Override
-        public boolean createProcessing(OrderIdempotencyRecord record) {
+        public boolean insertProcessing(OrderIdempotencyRecord record) {
             String key = keyOf(valueOf(record.getOrderNo()), record.getEventType());
             OrderIdempotencyRecord value = OrderIdempotencyRecord.reconstruct(
                     com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey.of(
@@ -358,7 +358,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public boolean retryFromFailed(
+        public boolean recoverFromFailed(
                 com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey key,
                 String processingOwner,
                 Instant leaseUntil,
@@ -453,7 +453,7 @@ class OrderCreateApplicationServiceTest {
         private final AtomicLong idGenerator = new AtomicLong(1000L);
 
         @Override
-        public Order save(Order order) {
+        public Order upsertOrder(Order order) {
             if (order.getId() == null) {
                 order.setId(OrderId.of(idGenerator.getAndIncrement()));
             }
@@ -479,7 +479,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void saveItems(Long orderId, List<OrderItem> items) {
+        public void updateItems(Long orderId, List<OrderItem> items) {
             itemStorage.put(orderId, items == null ? List.of() : List.copyOf(items));
             itemTenantStorage.put(orderId, currentTenantId());
         }
@@ -493,7 +493,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
+        public void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
             Long orderId = toOrderIdValue(snapshot.getOrderId());
             paymentSnapshots.put(orderId, snapshot);
             paymentSnapshotTenantStorage.put(orderId, currentTenantId());
@@ -509,7 +509,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
+        public void upsertInventorySnapshot(OrderInventorySnapshot snapshot) {
             String orderNo = toOrderNoValue(snapshot.getOrderNo());
             inventorySnapshots.put(orderNo, snapshot);
             inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
@@ -525,7 +525,7 @@ class OrderCreateApplicationServiceTest {
         }
 
         @Override
-        public void saveAuditLog(OrderAuditLog auditLog) {
+        public void insertAuditLog(OrderAuditLog auditLog) {
             String key = currentTenantId() + ":" + toOrderNoValue(auditLog.getOrderNo());
             auditLogs
                     .computeIfAbsent(key, unused -> new java.util.ArrayList<>())

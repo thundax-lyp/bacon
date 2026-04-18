@@ -18,8 +18,8 @@ public class InventoryReservationRepositoryImpl implements InventoryReservationR
     }
 
     @Override
-    public InventoryReservation saveReservation(InventoryReservation reservation) {
-        return support.saveReservation(reservation);
+    public InventoryReservation upsertReservation(InventoryReservation reservation) {
+        return support.upsertReservation(reservation);
     }
 
     @Override

@@ -12,11 +12,11 @@ import java.util.Optional;
 
 public interface InventoryAuditReplayTaskRepository {
 
-    default InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+    default InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
         return task;
     }
 
-    default void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {}
+    default void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {}
 
     default Optional<InventoryAuditReplayTask> findAuditReplayTaskById(TaskId taskId) {
         return Optional.empty();
@@ -47,7 +47,7 @@ public interface InventoryAuditReplayTaskRepository {
             Instant startedAt,
             Instant finishedAt) {}
 
-    default void incrementAuditReplayTaskProgress(
+    default void updateAuditReplayTaskProgress(
             TaskId taskId,
             String processingOwner,
             int processedDelta,
@@ -55,7 +55,7 @@ public interface InventoryAuditReplayTaskRepository {
             int failedDelta,
             Instant updatedAt) {}
 
-    default void finishAuditReplayTask(
+    default void markAuditReplayTaskFinished(
             TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {}
 
     default boolean pauseAuditReplayTask(TaskId taskId, OperatorId operatorId, Instant pausedAt) {

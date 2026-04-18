@@ -31,7 +31,7 @@ class InMemoryOrderOutboxSupportTest {
                 Instant.now(),
                 Instant.now());
 
-        support.saveOutboxEvent(event);
+        support.insertOutboxEvent(event);
         List<OrderOutboxEvent> claimed = support.claimRetryableOutbox(
                 Instant.now(), 10, "test-owner", Instant.now().plusSeconds(60));
 

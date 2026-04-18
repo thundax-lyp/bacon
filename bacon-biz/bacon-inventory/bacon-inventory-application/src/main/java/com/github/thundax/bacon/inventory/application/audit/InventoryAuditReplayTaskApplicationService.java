@@ -73,8 +73,8 @@ public class InventoryAuditReplayTaskApplicationService {
                 null,
                 null,
                 now);
-        InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.saveAuditReplayTask(task);
-        inventoryAuditReplayTaskRepository.batchSaveAuditReplayTaskItems(deadLetterIds.stream()
+        InventoryAuditReplayTask saved = inventoryAuditReplayTaskRepository.insertAuditReplayTask(task);
+        inventoryAuditReplayTaskRepository.insertAuditReplayTaskItems(deadLetterIds.stream()
                 .map(DeadLetterIdCodec::toDomain)
                 .map(deadLetterId -> InventoryAuditReplayTaskItem.create(
                         idGenerator.nextId(REPLAY_TASK_ITEM_ID_BIZ_TAG), saved.getId(), deadLetterId, now))
@@ -188,7 +188,7 @@ public class InventoryAuditReplayTaskApplicationService {
             }
             processedDelta++;
         }
-        inventoryAuditReplayTaskRepository.incrementAuditReplayTaskProgress(
+        inventoryAuditReplayTaskRepository.updateAuditReplayTaskProgress(
                 task.getId(), processingOwner, processedDelta, successDelta, failedDelta, Instant.now());
         if (lastError != null) {
             Metrics.counter("bacon.inventory.audit.replay.task.item.failed.total")
@@ -208,7 +208,7 @@ public class InventoryAuditReplayTaskApplicationService {
         InventoryAuditReplayTaskStatus status = Integer.valueOf(0).equals(latest.getFailedCount())
                 ? InventoryAuditReplayTaskStatus.SUCCEEDED
                 : InventoryAuditReplayTaskStatus.FAILED;
-        inventoryAuditReplayTaskRepository.finishAuditReplayTask(
+        inventoryAuditReplayTaskRepository.markAuditReplayTaskFinished(
                 taskId, processingOwner, status.value(), latest.getLastError(), Instant.now());
         Metrics.counter("bacon.inventory.audit.replay.task.finished.total", "status", status.value())
                 .increment();

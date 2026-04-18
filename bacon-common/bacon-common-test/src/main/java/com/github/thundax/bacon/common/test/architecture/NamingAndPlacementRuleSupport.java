@@ -27,6 +27,24 @@ import java.util.stream.Stream;
 
 public final class NamingAndPlacementRuleSupport {
 
+    private static final Set<String> REPOSITORY_METHOD_PREFIX_WHITELIST = Set.of(
+            "find",
+            "list",
+            "page",
+            "count",
+            "exists",
+            "claim",
+            "release",
+            "renew",
+            "mark",
+            "pause",
+            "resume",
+            "recover",
+            "delete",
+            "insert",
+            "update",
+            "upsert");
+
     private NamingAndPlacementRuleSupport() {}
 
     public static JavaClasses importDomainClasses(String basePackage) {
@@ -110,6 +128,38 @@ public final class NamingAndPlacementRuleSupport {
                 .resideInAPackage(basePackage + ".infra.repository.impl..")
                 .allowEmptyShould(true)
                 .because("RepositoryImpl -> infra.repository.impl");
+    }
+
+    public static ArchRule repositoryMethodShouldUseWhitelistedPrefix(String basePackage) {
+        return ArchRuleDefinition.classes()
+                .that()
+                .haveSimpleNameEndingWith("Repository")
+                .and()
+                .resideInAPackage(basePackage + ".domain.repository..")
+                .should(new ArchCondition<>("declare repository methods using whitelisted prefixes only") {
+                    @Override
+                    public void check(JavaClass item, ConditionEvents events) {
+                        item.getMethods().stream()
+                                .filter(method -> method.getOwner().equals(item))
+                                .filter(method -> !method.getModifiers().contains(JavaModifier.STATIC))
+                                .filter(method -> !method.getModifiers().contains(JavaModifier.SYNTHETIC))
+                                .filter(method -> !method.getModifiers().contains(JavaModifier.BRIDGE))
+                                .forEach(method -> {
+                                    String methodName = method.getName();
+                                    boolean matched = REPOSITORY_METHOD_PREFIX_WHITELIST.stream()
+                                            .anyMatch(methodName::startsWith);
+                                    String detail = matched
+                                            ? formatMethod(item, method) + " uses whitelisted repository prefix"
+                                            : formatMethod(item, method)
+                                                    + " violation: repository method prefix must be one of "
+                                                    + REPOSITORY_METHOD_PREFIX_WHITELIST;
+                                    events.add(new SimpleConditionEvent(method, matched, detail));
+                                });
+                    }
+                })
+                .allowEmptyShould(true)
+                .because(
+                        "RULE NAME_REPOSITORY_METHOD_PREFIX: Repository method prefixes must use the whitelist only");
     }
 
     public static ArchRule mapperShouldUseMapperNameAndPackage(String basePackage) {

@@ -19,8 +19,8 @@ public class InventoryAuditOutboxRepositoryImpl implements InventoryAuditOutboxR
     }
 
     @Override
-    public void saveAuditOutbox(InventoryAuditOutbox outbox) {
-        support.saveAuditOutbox(outbox);
+    public void insertAuditOutbox(InventoryAuditOutbox outbox) {
+        support.insertAuditOutbox(outbox);
     }
 
     @Override

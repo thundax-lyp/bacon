@@ -28,7 +28,7 @@ class InMemoryInventoryRepositorySupportTest {
 
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.saveAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
                         OutboxId.of(3001L),
                         null,
                         OrderNo.of("ORDER-1"),
@@ -64,7 +64,7 @@ class InMemoryInventoryRepositorySupportTest {
 
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                () -> repository.insertAuditDeadLetter(InventoryAuditDeadLetter.create(
                         DeadLetterId.of(2001L),
                         outboxId,
                         retryable.get(0).getEventCode(),
@@ -90,7 +90,7 @@ class InMemoryInventoryRepositorySupportTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.saveAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
                         OutboxId.of(3002L),
                         null,
                         OrderNo.of("ORDER-2"),
@@ -129,7 +129,7 @@ class InMemoryInventoryRepositorySupportTest {
         Instant now = Instant.parse("2026-03-26T10:00:00Z");
         BaconContextHolder.runWithTenantId(
                 1001L,
-                () -> repository.saveAuditOutbox(InventoryAuditOutbox.create(
+                () -> repository.insertAuditOutbox(InventoryAuditOutbox.create(
                         OutboxId.of(3003L),
                         null,
                         OrderNo.of("ORDER-3"),

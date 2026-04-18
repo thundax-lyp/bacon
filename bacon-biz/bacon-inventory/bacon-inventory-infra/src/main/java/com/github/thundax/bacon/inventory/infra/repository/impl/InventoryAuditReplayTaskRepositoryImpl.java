@@ -24,13 +24,13 @@ public class InventoryAuditReplayTaskRepositoryImpl implements InventoryAuditRep
     }
 
     @Override
-    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
-        return support.saveAuditReplayTask(task);
+    public InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
+        return support.insertAuditReplayTask(task);
     }
 
     @Override
-    public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
-        support.batchSaveAuditReplayTaskItems(items);
+    public void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+        support.insertAuditReplayTaskItems(items);
     }
 
     @Override
@@ -74,21 +74,21 @@ public class InventoryAuditReplayTaskRepositoryImpl implements InventoryAuditRep
     }
 
     @Override
-    public void incrementAuditReplayTaskProgress(
+    public void updateAuditReplayTaskProgress(
             TaskId taskId,
             String processingOwner,
             int processedDelta,
             int successDelta,
             int failedDelta,
             Instant updatedAt) {
-        support.incrementAuditReplayTaskProgress(
+        support.updateAuditReplayTaskProgress(
                 taskId, processingOwner, processedDelta, successDelta, failedDelta, updatedAt);
     }
 
     @Override
-    public void finishAuditReplayTask(
+    public void markAuditReplayTaskFinished(
             TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {
-        support.finishAuditReplayTask(taskId, processingOwner, status, lastError, finishedAt);
+        support.markAuditReplayTaskFinished(taskId, processingOwner, status, lastError, finishedAt);
     }
 
     @Override

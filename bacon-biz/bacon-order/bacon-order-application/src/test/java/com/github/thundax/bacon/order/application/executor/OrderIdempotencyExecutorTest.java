@@ -113,7 +113,7 @@ class OrderIdempotencyExecutorTest {
         private final Map<String, OrderIdempotencyRecord> storage = new ConcurrentHashMap<>();
 
         @Override
-        public boolean createProcessing(OrderIdempotencyRecord record) {
+        public boolean insertProcessing(OrderIdempotencyRecord record) {
             String key = keyOf(valueOf(record.getOrderNo()), record.getEventType());
             OrderIdempotencyRecord value = OrderIdempotencyRecord.reconstruct(
                     OrderIdempotencyRecordKey.of(record.getOrderNo(), record.getEventType()),
@@ -172,7 +172,7 @@ class OrderIdempotencyExecutorTest {
         }
 
         @Override
-        public boolean retryFromFailed(
+        public boolean recoverFromFailed(
                 OrderIdempotencyRecordKey key,
                 String processingOwner,
                 Instant leaseUntil,

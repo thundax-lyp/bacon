@@ -284,7 +284,7 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public Inventory saveInventory(Inventory inventory) {
+        public Inventory upsertInventory(Inventory inventory) {
             Version version = inventory.getVersion() == null
                     ? new Version(0L)
                     : inventory.getVersion().next();
@@ -300,7 +300,7 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public InventoryReservation saveReservation(InventoryReservation reservation) {
+        public InventoryReservation upsertReservation(InventoryReservation reservation) {
             reservations.put(
                     reservationKey(
                             BaconContextHolder.currentTenantId(),
@@ -318,7 +318,7 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public void saveLedger(InventoryLedger ledger) {
+        public void insertLedger(InventoryLedger ledger) {
             ledgers.computeIfAbsent(
                             reservationKey(
                                     BaconContextHolder.currentTenantId(),
@@ -337,7 +337,7 @@ class InventoryApplicationServiceTest {
         }
 
         @Override
-        public void saveAuditLog(InventoryAuditLog auditLog) {
+        public void insertAuditLog(InventoryAuditLog auditLog) {
             auditLogs
                     .computeIfAbsent(
                             reservationKey(

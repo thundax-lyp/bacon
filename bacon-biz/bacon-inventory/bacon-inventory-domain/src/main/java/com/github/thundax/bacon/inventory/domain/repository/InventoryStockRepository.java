@@ -19,5 +19,5 @@ public interface InventoryStockRepository {
 
     long countInventories(SkuId skuId, InventoryStatus status);
 
-    Inventory saveInventory(Inventory inventory);
+    Inventory upsertInventory(Inventory inventory);
 }

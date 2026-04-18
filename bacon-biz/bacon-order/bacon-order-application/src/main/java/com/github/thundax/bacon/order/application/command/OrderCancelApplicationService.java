@@ -68,7 +68,7 @@ public class OrderCancelApplicationService {
         if (order.getPaymentNo() != null && !order.getPaymentNo().value().isBlank()) {
             paymentCommandFacade.closePayment(new PaymentCloseFacadeRequest(order.getPaymentNo().value(), reason));
         }
-        orderRepository.save(order);
+        orderRepository.upsertOrder(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_CANCEL, beforeStatus);
     }
 

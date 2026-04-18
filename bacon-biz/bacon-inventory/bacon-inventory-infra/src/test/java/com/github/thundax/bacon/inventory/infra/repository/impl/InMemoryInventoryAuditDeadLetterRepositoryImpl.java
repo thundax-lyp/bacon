@@ -26,8 +26,8 @@ public class InMemoryInventoryAuditDeadLetterRepositoryImpl implements Inventory
     }
 
     @Override
-    public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
-        support.saveAuditDeadLetter(deadLetter);
+    public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+        support.insertAuditDeadLetter(deadLetter);
     }
 
     @Override

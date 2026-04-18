@@ -167,7 +167,7 @@ class InventoryAuditCompensationControllerContractTest {
         private final Map<Long, List<InventoryAuditReplayTaskItem>> taskItems = new ConcurrentHashMap<>();
 
         @Override
-        public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+        public InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
             Long taskId = task.getId() == null ? null : task.getId().value();
             tasks.put(taskId, task);
             taskTenants.put(taskId, BaconContextHolder.requireTenantId());
@@ -175,7 +175,7 @@ class InventoryAuditCompensationControllerContractTest {
         }
 
         @Override
-        public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+        public void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
             if (items == null || items.isEmpty()) {
                 return;
             }

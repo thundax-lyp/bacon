@@ -88,14 +88,14 @@ public class OrderPaymentResultApplicationService {
                     ReservationNoCodec.toDomain(deductResult.getReservationNo()),
                     deductResult.getWarehouseCode() == null ? null : WarehouseCode.of(deductResult.getWarehouseCode()),
                     reason);
-            orderRepository.save(order);
+            orderRepository.upsertOrder(order);
             throw new IllegalStateException(reason);
         }
         order.markInventoryDeducted(
                 ReservationNoCodec.toDomain(deductResult.getReservationNo()),
                 deductResult.getWarehouseCode() == null ? null : WarehouseCode.of(deductResult.getWarehouseCode()),
                 deductResult.getDeductedAt());
-        orderRepository.save(order);
+        orderRepository.upsertOrder(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAID, beforeStatus);
     }
 
@@ -110,7 +110,7 @@ public class OrderPaymentResultApplicationService {
         InventoryReservationFacadeResponse releaseResult = inventoryCommandFacade.releaseReservedStock(
                 new InventoryReleaseFacadeRequest(OrderNoCodec.toValue(orderNo), "PAYMENT_FAILED"));
         applyReleaseResult(order, releaseResult, "PAYMENT_FAILED");
-        orderRepository.save(order);
+        orderRepository.upsertOrder(order);
         orderDerivedDataPersistenceSupport.persist(order, ACTION_MARK_PAYMENT_FAILED, beforeStatus);
     }
 

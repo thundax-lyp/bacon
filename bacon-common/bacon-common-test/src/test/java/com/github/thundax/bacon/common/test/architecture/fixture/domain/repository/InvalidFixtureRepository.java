@@ -1,0 +1,6 @@
+package com.github.thundax.bacon.common.test.architecture.fixture.domain.repository;
+
+public interface InvalidFixtureRepository {
+
+    void saveFixture();
+}

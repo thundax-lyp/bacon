@@ -36,7 +36,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     private final AtomicLong idGenerator = new AtomicLong(1000L);
 
     @Override
-    public Order save(Order order) {
+    public Order upsertOrder(Order order) {
         if (order.getId() == null) {
             order.setId(OrderId.of(idGenerator.getAndIncrement()));
         }
@@ -62,7 +62,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void saveItems(Long orderId, List<OrderItem> items) {
+    public void updateItems(Long orderId, List<OrderItem> items) {
         itemsStorage.put(orderId, items == null ? List.of() : List.copyOf(items));
         itemTenantStorage.put(orderId, currentTenantId());
     }
@@ -76,7 +76,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void savePaymentSnapshot(OrderPaymentSnapshot snapshot) {
+    public void upsertPaymentSnapshot(OrderPaymentSnapshot snapshot) {
         Long orderId = toOrderIdValue(snapshot.getOrderId());
         paymentSnapshotStorage.put(orderId, snapshot);
         paymentSnapshotTenantStorage.put(orderId, currentTenantId());
@@ -92,7 +92,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void saveInventorySnapshot(OrderInventorySnapshot snapshot) {
+    public void upsertInventorySnapshot(OrderInventorySnapshot snapshot) {
         String orderNo = toOrderNoValue(snapshot.getOrderNo());
         inventorySnapshotStorage.put(orderNo, snapshot);
         inventorySnapshotTenantStorage.put(orderNo, currentTenantId());
@@ -108,7 +108,7 @@ public class InMemoryOrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public void saveAuditLog(OrderAuditLog auditLog) {
+    public void insertAuditLog(OrderAuditLog auditLog) {
         String key = currentTenantId() + ":" + toOrderNoValue(auditLog.getOrderNo());
         auditLogStorage
                 .computeIfAbsent(key, unused -> new java.util.ArrayList<>())

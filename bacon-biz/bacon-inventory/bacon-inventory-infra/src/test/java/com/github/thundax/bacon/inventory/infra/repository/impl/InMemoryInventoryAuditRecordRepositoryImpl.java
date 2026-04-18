@@ -21,8 +21,8 @@ public class InMemoryInventoryAuditRecordRepositoryImpl implements InventoryAudi
     }
 
     @Override
-    public void saveLedger(InventoryLedger ledger) {
-        support.saveLedger(ledger);
+    public void insertLedger(InventoryLedger ledger) {
+        support.insertLedger(ledger);
     }
 
     @Override
@@ -31,8 +31,8 @@ public class InMemoryInventoryAuditRecordRepositoryImpl implements InventoryAudi
     }
 
     @Override
-    public void saveAuditLog(InventoryAuditLog auditLog) {
-        support.saveAuditLog(auditLog);
+    public void insertAuditLog(InventoryAuditLog auditLog) {
+        support.insertAuditLog(auditLog);
     }
 
     @Override

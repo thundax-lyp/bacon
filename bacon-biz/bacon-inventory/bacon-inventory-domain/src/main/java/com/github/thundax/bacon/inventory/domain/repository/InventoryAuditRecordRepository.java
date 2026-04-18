@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface InventoryAuditRecordRepository {
 
-    void saveLedger(InventoryLedger ledger);
+    void insertLedger(InventoryLedger ledger);
 
     List<InventoryLedger> findLedgers(OrderNo orderNo);
 
-    void saveAuditLog(InventoryAuditLog auditLog);
+    void insertAuditLog(InventoryAuditLog auditLog);
 
     List<InventoryAuditLog> findAuditLogs(OrderNo orderNo);
 }

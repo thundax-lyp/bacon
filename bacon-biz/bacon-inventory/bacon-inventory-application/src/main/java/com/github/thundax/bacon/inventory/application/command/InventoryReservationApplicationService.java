@@ -153,7 +153,7 @@ public class InventoryReservationApplicationService {
             reserveStockOnce(item, operatedAt, inventoryBySku);
         }
         reservation.reserve();
-        reservation = inventoryReservationRepository.saveReservation(reservation);
+        reservation = inventoryReservationRepository.upsertReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(reservation, operatedAt);
         return InventoryReservationResultAssembler.fromReservation(reservation);
     }
@@ -216,7 +216,7 @@ public class InventoryReservationApplicationService {
 
     private InventoryReservation saveReservationWithIdempotentFallback(InventoryReservation reservation) {
         try {
-            return inventoryReservationRepository.saveReservation(reservation);
+            return inventoryReservationRepository.upsertReservation(reservation);
         } catch (DuplicateKeyException ex) {
             return inventoryReservationRepository
                     .findReservation(reservation.getOrderNo())
@@ -237,7 +237,7 @@ public class InventoryReservationApplicationService {
             inventoryBySku.put(skuId, inventory);
         }
         inventory.reserve(item.getQuantity());
-        Inventory persistedInventory = inventoryStockRepository.saveInventory(inventory);
+        Inventory persistedInventory = inventoryStockRepository.upsertInventory(inventory);
         inventoryBySku.put(skuId, persistedInventory);
     }
 
@@ -247,7 +247,7 @@ public class InventoryReservationApplicationService {
         String failureReason = validationResult.failureReason();
         if (failureReason != null) {
             reservation.fail(failureReason);
-            InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);
+            InventoryReservation persisted = inventoryReservationRepository.upsertReservation(reservation);
             inventoryOperationLogService.recordReserveFailed(persisted, Instant.now());
             return InventoryReservationResultAssembler.fromReservation(persisted);
         }
@@ -257,7 +257,7 @@ public class InventoryReservationApplicationService {
             reserveStockOnce(item, operatedAt, inventoryBySku);
         }
         reservation.reserve();
-        InventoryReservation persisted = inventoryReservationRepository.saveReservation(reservation);
+        InventoryReservation persisted = inventoryReservationRepository.upsertReservation(reservation);
         inventoryOperationLogService.recordReserveSuccess(persisted, operatedAt);
         return InventoryReservationResultAssembler.fromReservation(persisted);
     }

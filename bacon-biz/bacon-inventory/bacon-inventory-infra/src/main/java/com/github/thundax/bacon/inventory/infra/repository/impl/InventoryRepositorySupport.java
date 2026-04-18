@@ -160,7 +160,7 @@ public class InventoryRepositorySupport {
                 skuId == null ? null : skuId.value(), status == null ? null : status.value());
     }
 
-    public Inventory saveInventory(Inventory inventory) {
+    public Inventory upsertInventory(Inventory inventory) {
         InventoryDO dataObject = InventoryPersistenceAssembler.toDataObject(inventory);
         if (dataObject.getId() == null) {
             inventoryMapper.insert(dataObject);
@@ -173,7 +173,7 @@ public class InventoryRepositorySupport {
         return InventoryPersistenceAssembler.toDomain(dataObject);
     }
 
-    public InventoryReservation saveReservation(InventoryReservation reservation) {
+    public InventoryReservation upsertReservation(InventoryReservation reservation) {
         BaconContextHolder.requireTenantId();
         InventoryReservationDO reservationDataObject =
                 InventoryReservationPersistenceAssembler.toDataObject(reservation);
@@ -206,7 +206,7 @@ public class InventoryRepositorySupport {
         return Optional.of(InventoryReservationPersistenceAssembler.toDomain(reservation, items));
     }
 
-    public void saveLedger(InventoryLedger ledger) {
+    public void insertLedger(InventoryLedger ledger) {
         java.util.Objects.requireNonNull(ledger.getId(), "ledger.id must not be null");
         ledgerMapper.insert(InventoryLedgerPersistenceAssembler.toDataObject(ledger));
     }
@@ -222,7 +222,7 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public void saveAuditLog(InventoryAuditLog auditLog) {
+    public void insertAuditLog(InventoryAuditLog auditLog) {
         auditLogMapper.insert(InventoryAuditLogPersistenceAssembler.toDataObject(auditLog));
     }
 
@@ -237,7 +237,7 @@ public class InventoryRepositorySupport {
                 .toList();
     }
 
-    public void saveAuditOutbox(InventoryAuditOutbox outbox) {
+    public void insertAuditOutbox(InventoryAuditOutbox outbox) {
         InventoryAuditOutboxDO dataObject = InventoryAuditOutboxPersistenceAssembler.toDataObject(outbox);
         java.util.Objects.requireNonNull(dataObject.getId(), "outbox.id must not be null");
         if (dataObject.getEventCode() == null || dataObject.getEventCode().isBlank()) {
@@ -407,7 +407,7 @@ public class InventoryRepositorySupport {
                 > 0;
     }
 
-    public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+    public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
         auditDeadLetterMapper.insert(InventoryAuditDeadLetterPersistenceAssembler.toDataObject(deadLetter));
     }
 
@@ -530,7 +530,7 @@ public class InventoryRepositorySupport {
                         .set(InventoryAuditDeadLetterDO::getLastReplayError, replayError));
     }
 
-    public InventoryAuditReplayTask saveAuditReplayTask(InventoryAuditReplayTask task) {
+    public InventoryAuditReplayTask insertAuditReplayTask(InventoryAuditReplayTask task) {
         InventoryAuditReplayTaskDO dataObject = InventoryAuditReplayTaskPersistenceAssembler.toDataObject(task);
         java.util.Objects.requireNonNull(dataObject.getId(), "replayTask.id must not be null");
         if (dataObject.getId() == null) {
@@ -541,7 +541,7 @@ public class InventoryRepositorySupport {
         return InventoryAuditReplayTaskPersistenceAssembler.toDomain(dataObject);
     }
 
-    public void batchSaveAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
+    public void insertAuditReplayTaskItems(List<InventoryAuditReplayTaskItem> items) {
         BaconContextHolder.requireTenantId();
         if (items == null || items.isEmpty()) {
             return;
@@ -664,7 +664,7 @@ public class InventoryRepositorySupport {
                         .set(InventoryAuditReplayTaskItemDO::getUpdatedAt, finishedAt));
     }
 
-    public void incrementAuditReplayTaskProgress(
+    public void updateAuditReplayTaskProgress(
             TaskId taskId,
             String processingOwner,
             int processedDelta,
@@ -683,7 +683,7 @@ public class InventoryRepositorySupport {
                         .set(InventoryAuditReplayTaskDO::getUpdatedAt, updatedAt));
     }
 
-    public void finishAuditReplayTask(
+    public void markAuditReplayTaskFinished(
             TaskId taskId, String processingOwner, String status, String lastError, Instant finishedAt) {
         auditReplayTaskMapper.update(
                 null,

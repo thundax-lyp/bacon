@@ -58,6 +58,12 @@ public abstract class AbstractNamingAndPlacementArchitectureTest {
     }
 
     @Test
+    void shouldEnforceNameRepositoryMethodPrefix() {
+        NamingAndPlacementRuleSupport.repositoryMethodShouldUseWhitelistedPrefix(basePackage())
+                .check(classes());
+    }
+
+    @Test
     void shouldEnforceNameRepositoryImplPlacement() {
         NamingAndPlacementRuleSupport.repositoryImplShouldUseRepositoryImplNameAndPackage(basePackage())
                 .check(classes());

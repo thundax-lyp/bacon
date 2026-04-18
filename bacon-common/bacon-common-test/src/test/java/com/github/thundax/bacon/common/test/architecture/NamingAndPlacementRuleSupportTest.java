@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.EnumFieldFixture;
 import com.github.thundax.bacon.common.test.architecture.fixture.domain.model.enums.InvalidSimpleEnumFixture;
+import com.github.thundax.bacon.common.test.architecture.fixture.domain.repository.InvalidFixtureRepository;
+import com.github.thundax.bacon.common.test.architecture.fixture.domain.repository.ValidFixtureRepository;
 import com.github.thundax.bacon.common.test.architecture.fixture.facade.api.dto.InvalidFixtureDTO;
 import com.github.thundax.bacon.common.test.architecture.fixture.facade.api.facade.InvalidFixtureFacade;
 import com.github.thundax.bacon.common.test.architecture.fixture.facade.api.facade.ValidFixtureFacade;
@@ -99,6 +101,23 @@ class NamingAndPlacementRuleSupportTest {
                         && detail.contains(".api.response.*FacadeResponse"));
     }
 
+    @Test
+    void repositoryMethodPrefixShouldAcceptWhitelistedPrefixes() {
+        EvaluationResult result = evaluateRepositoryMethodPrefix(ValidFixtureRepository.class);
+
+        assertThat(result.hasViolation()).isFalse();
+    }
+
+    @Test
+    void repositoryMethodPrefixShouldRejectNonWhitelistedPrefix() {
+        EvaluationResult result = evaluateRepositoryMethodPrefix(InvalidFixtureRepository.class);
+
+        assertThat(result.hasViolation()).isTrue();
+        assertThat(result.getFailureReport().getDetails())
+                .anyMatch(detail -> detail.contains("InvalidFixtureRepository#saveFixture()")
+                        && detail.contains("repository method prefix must be one of"));
+    }
+
     private static EvaluationResult evaluateSimpleEnum(Class<?> targetClass) {
         return NamingAndPlacementRuleSupport.simpleEnumShouldUseNameAndFromConvention(targetClass.getName())
                 .evaluate(new ClassFileImporter().importPackages(targetClass.getPackageName()));
@@ -107,6 +126,12 @@ class NamingAndPlacementRuleSupportTest {
     private static EvaluationResult evaluateFacadeContract(Class<?>... targetClasses) {
         String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture.facade";
         return NamingAndPlacementRuleSupport.facadeMethodShouldUseFacadeRequestAndResponse(basePackage)
+                .evaluate(new ClassFileImporter().importClasses(targetClasses));
+    }
+
+    private static EvaluationResult evaluateRepositoryMethodPrefix(Class<?>... targetClasses) {
+        String basePackage = "com.github.thundax.bacon.common.test.architecture.fixture";
+        return NamingAndPlacementRuleSupport.repositoryMethodShouldUseWhitelistedPrefix(basePackage)
                 .evaluate(new ClassFileImporter().importClasses(targetClasses));
     }
 

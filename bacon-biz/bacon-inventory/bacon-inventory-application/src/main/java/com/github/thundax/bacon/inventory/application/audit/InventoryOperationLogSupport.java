@@ -69,7 +69,7 @@ public class InventoryOperationLogSupport {
             InventoryLedgerType ledgerType,
             Instant occurredAt) {
         for (InventoryReservationItem item : items) {
-            inventoryAuditRecordRepository.saveLedger(InventoryLedger.create(
+            inventoryAuditRecordRepository.insertLedger(InventoryLedger.create(
                     idGenerator.nextId(LEDGER_ID_BIZ_TAG),
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
@@ -99,7 +99,7 @@ public class InventoryOperationLogSupport {
     private void saveAuditSafely(
             InventoryReservation reservation, InventoryAuditActionType actionType, Instant occurredAt) {
         try {
-            inventoryAuditRecordRepository.saveAuditLog(InventoryAuditLog.create(
+            inventoryAuditRecordRepository.insertAuditLog(InventoryAuditLog.create(
                     idGenerator.nextId(AUDIT_LOG_ID_BIZ_TAG),
                     reservation.getOrderNo(),
                     reservation.getReservationNo(),
@@ -128,7 +128,7 @@ public class InventoryOperationLogSupport {
             Instant occurredAt,
             RuntimeException ex) {
         try {
-            inventoryAuditOutboxRepository.saveAuditOutbox(InventoryAuditOutbox.create(
+            inventoryAuditOutboxRepository.insertAuditOutbox(InventoryAuditOutbox.create(
                     OutboxId.of(idGenerator.nextId(AUDIT_OUTBOX_ID_BIZ_TAG)),
                     null,
                     reservation.getOrderNo(),

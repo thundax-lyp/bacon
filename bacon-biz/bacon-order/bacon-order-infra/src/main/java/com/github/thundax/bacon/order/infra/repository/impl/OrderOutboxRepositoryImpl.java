@@ -19,8 +19,8 @@ public class OrderOutboxRepositoryImpl implements OrderOutboxRepository {
     }
 
     @Override
-    public void saveOutboxEvent(OrderOutboxEvent event) {
-        support.saveOutboxEvent(event);
+    public void insertOutboxEvent(OrderOutboxEvent event) {
+        support.insertOutboxEvent(event);
     }
 
     @Override

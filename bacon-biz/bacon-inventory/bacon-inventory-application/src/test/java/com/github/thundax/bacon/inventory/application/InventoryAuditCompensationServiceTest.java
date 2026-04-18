@@ -41,7 +41,7 @@ class InventoryAuditCompensationApplicationServiceTest {
         InventoryAuditCompensationApplicationService service = createService(repository);
         BaconContextHolder.runWithTenantId(
                 3001L,
-                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                () -> repository.insertAuditDeadLetter(InventoryAuditDeadLetter.create(
                         DeadLetterId.of(1001L),
                         com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1001L),
                         EventCode.of("EVT20260326000000-001001"),
@@ -77,7 +77,7 @@ class InventoryAuditCompensationApplicationServiceTest {
         InventoryAuditCompensationApplicationService service = createService(repository);
         BaconContextHolder.runWithTenantId(
                 3001L,
-                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                () -> repository.insertAuditDeadLetter(InventoryAuditDeadLetter.create(
                         DeadLetterId.of(1002L),
                         com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1002L),
                         EventCode.of("EVT20260326000000-001002"),
@@ -93,7 +93,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                         Instant.parse("2026-03-26T00:01:00Z"))));
         BaconContextHolder.runWithTenantId(
                 3001L,
-                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                () -> repository.insertAuditDeadLetter(InventoryAuditDeadLetter.create(
                         DeadLetterId.of(1003L),
                         com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1003L),
                         EventCode.of("EVT20260326000000-001003"),
@@ -131,7 +131,7 @@ class InventoryAuditCompensationApplicationServiceTest {
                 createService(repository, new FailingOnceTransactionExecutor());
         BaconContextHolder.runWithTenantId(
                 3001L,
-                () -> repository.saveAuditDeadLetter(InventoryAuditDeadLetter.create(
+                () -> repository.insertAuditDeadLetter(InventoryAuditDeadLetter.create(
                         DeadLetterId.of(1004L),
                         com.github.thundax.bacon.inventory.domain.model.valueobject.OutboxId.of(1004L),
                         EventCode.of("EVT20260326000000-001004"),
@@ -195,12 +195,12 @@ class InventoryAuditCompensationApplicationServiceTest {
         private final List<InventoryAuditLog> auditLogs = new ArrayList<>();
 
         @Override
-        public void saveAuditLog(InventoryAuditLog auditLog) {
+        public void insertAuditLog(InventoryAuditLog auditLog) {
             auditLogs.add(auditLog);
         }
 
         @Override
-        public void saveLedger(InventoryLedger ledger) {}
+        public void insertLedger(InventoryLedger ledger) {}
 
         @Override
         public List<InventoryLedger> findLedgers(OrderNo orderNo) {
@@ -213,7 +213,7 @@ class InventoryAuditCompensationApplicationServiceTest {
         }
 
         @Override
-        public void saveAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
+        public void insertAuditDeadLetter(InventoryAuditDeadLetter deadLetter) {
             deadLetters.put(OutboxIdCodec.toValue(deadLetter.getOutboxId()), deadLetter);
         }
 

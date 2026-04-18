@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.upms.domain.exception.TenantDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import java.time.Instant;
@@ -41,7 +41,7 @@ class TenantTest {
         Tenant tenant = Tenant.create(TenantId.of(101L), "Demo Tenant", TenantCode.of("TENANT_DEMO"), TenantStatus.DISABLED, null);
 
         assertThatThrownBy(() -> tenant.assertActive(Instant.parse("2026-01-01T00:00:00Z")))
-                .isInstanceOf(TenantDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("Tenant is not active");
     }
 
@@ -55,7 +55,7 @@ class TenantTest {
                 Instant.parse("2025-12-31T23:59:59Z"));
 
         assertThatThrownBy(() -> tenant.assertActive(Instant.parse("2026-01-01T00:00:00Z")))
-                .isInstanceOf(TenantDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("Tenant is expired");
     }
 
@@ -126,7 +126,7 @@ class TenantTest {
                 Instant.parse("2026-01-01T00:00:00Z"));
 
         tenant.rename("Demo Tenant New");
-        tenant.changeCode(TenantCode.of("TENANT_NEW"));
+        tenant.recodeAs(TenantCode.of("TENANT_NEW"));
         tenant.clearExpiry();
 
         assertThat(tenant.getName()).isEqualTo("Demo Tenant New");
@@ -145,7 +145,7 @@ class TenantTest {
                 Instant.parse("2026-01-01T00:00:00Z"));
 
         assertThatThrownBy(() -> tenant.renewTo(now.minusSeconds(1), now))
-                .isInstanceOf(TenantDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("Tenant expiredAt must be in future");
     }
 }

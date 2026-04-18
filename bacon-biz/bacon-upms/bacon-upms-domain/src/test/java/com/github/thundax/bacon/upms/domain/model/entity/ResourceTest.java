@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class ResourceTest {
 
     @Test
-    void shouldUpdateResourceFields() {
+    void shouldChangeResourceFields() {
         Resource resource = Resource.create(
                 ResourceId.of(101L),
                 ResourceCode.of("user:read"),
@@ -21,7 +21,10 @@ class ResourceTest {
                 "/sys/users/{id}",
                 ResourceStatus.ENABLED);
 
-        resource.update(ResourceCode.of("user:write"), "Write User", ResourceType.API, "POST", "/sys/users");
+        resource.recodeAs(ResourceCode.of("user:write"));
+        resource.rename("Write User");
+        resource.classifyAs(ResourceType.API);
+        resource.exposeEndpoint("POST", "/sys/users");
 
         assertThat(resource.getCode()).isEqualTo(ResourceCode.of("user:write"));
         assertThat(resource.getName()).isEqualTo("Write User");
@@ -59,7 +62,7 @@ class ResourceTest {
                 "/sys/users/{id}",
                 ResourceStatus.ENABLED);
 
-        resource.changeCode(ResourceCode.of("user:write"));
+        resource.recodeAs(ResourceCode.of("user:write"));
 
         assertThat(resource.getCode()).isEqualTo(ResourceCode.of("user:write"));
     }

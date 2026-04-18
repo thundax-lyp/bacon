@@ -1,6 +1,5 @@
 package com.github.thundax.bacon.upms.infra.repository.impl;
 
-import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
@@ -22,13 +21,13 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public Optional<Tenant> findTenantById(TenantId tenantId) {
-        return support.findTenantById(tenantId);
+    public Optional<Tenant> findById(TenantId tenantId) {
+        return support.findById(tenantId);
     }
 
     @Override
-    public Optional<Tenant> findTenantByCode(TenantCode tenantCode) {
-        return Optional.ofNullable(tenantCode).flatMap(code -> support.findTenantByCode(code.value()));
+    public Optional<Tenant> findByCode(TenantCode code) {
+        return Optional.ofNullable(code).flatMap(item -> support.findByCode(item.value()));
     }
 
     @Override
@@ -47,15 +46,8 @@ public class TenantRepositoryImpl implements TenantRepository {
     }
 
     @Override
-    public Tenant save(Tenant tenant) {
+    public Tenant update(Tenant tenant) {
         return support.saveTenant(tenant);
     }
 
-    @Override
-    public Tenant updateStatus(TenantId tenantId, TenantStatus status) {
-        Tenant currentTenant = findTenantById(tenantId)
-                .orElseThrow(() -> new NotFoundException("Tenant not found: " + tenantId.value()));
-        return support.saveTenant(currentTenant.update(
-                currentTenant.getName(), currentTenant.getTenantCode(), status, currentTenant.getExpiredAt()));
-    }
 }

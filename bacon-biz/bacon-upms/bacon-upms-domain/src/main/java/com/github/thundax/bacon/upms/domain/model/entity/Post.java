@@ -41,11 +41,17 @@ public class Post {
         return new Post(id, code, name, departmentId, status);
     }
 
-    public void update(PostCode code, String name, DepartmentId departmentId) {
+    public void recodeAs(PostCode code) {
         Objects.requireNonNull(code, "code must not be null");
-        Objects.requireNonNull(name, "name must not be null");
         this.code = code;
+    }
+
+    public void rename(String name) {
+        Objects.requireNonNull(name, "name must not be null");
         this.name = name;
+    }
+
+    public void assignDepartment(DepartmentId departmentId) {
         this.departmentId = departmentId;
     }
 
@@ -55,10 +61,5 @@ public class Post {
 
     public void disable() {
         this.status = PostStatus.DISABLED;
-    }
-
-    public void changeCode(PostCode code) {
-        Objects.requireNonNull(code, "code must not be null");
-        this.code = code;
     }
 }

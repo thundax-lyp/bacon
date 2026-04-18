@@ -5,6 +5,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleDO;
 
@@ -16,7 +17,7 @@ public final class RolePersistenceAssembler {
         return new RoleDO(
                 role.getId() == null ? null : role.getId().value(),
                 BaconContextHolder.requireTenantId(),
-                role.getCode(),
+                role.getCode() == null ? null : role.getCode().value(),
                 role.getName(),
                 role.getRoleType() == null ? null : role.getRoleType().value(),
                 role.getDataScopeType() == null ? null : role.getDataScopeType().value(),
@@ -26,7 +27,7 @@ public final class RolePersistenceAssembler {
     public static Role toDomain(RoleDO dataObject) {
         return Role.reconstruct(
                 dataObject.getId() == null ? null : RoleId.of(dataObject.getId()),
-                dataObject.getCode(),
+                dataObject.getCode() == null ? null : RoleCode.of(dataObject.getCode()),
                 dataObject.getName(),
                 RoleType.from(dataObject.getRoleType()),
                 RoleDataScopeType.from(dataObject.getDataScopeType()),

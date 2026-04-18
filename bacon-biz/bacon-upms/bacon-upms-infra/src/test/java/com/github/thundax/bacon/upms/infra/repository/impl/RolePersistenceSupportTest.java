@@ -10,6 +10,7 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
@@ -114,9 +115,10 @@ class RolePersistenceSupportTest {
                         new ResourceDO(21L, 1001L, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE"),
                         new ResourceDO(22L, 1001L, "upms:user:edit", "User Edit", "API", "POST", "/users", "ACTIVE")));
 
-        Set<String> assignedResourceCodes = support.getAssignedResourceCodes(RoleId.of(9L));
+        Set<ResourceCode> assignedResourceCodes = support.getAssignedResourceCodes(RoleId.of(9L));
 
-        assertThat(assignedResourceCodes).containsExactlyInAnyOrder("upms:user:view", "upms:user:edit");
+        assertThat(assignedResourceCodes).containsExactlyInAnyOrder(
+                ResourceCode.of("upms:user:view"), ResourceCode.of("upms:user:edit"));
     }
 
     @Test
@@ -126,7 +128,7 @@ class RolePersistenceSupportTest {
                 .thenReturn(List.of(
                         new ResourceDO(21L, 1001L, "upms:user:view", "User View", "API", "GET", "/users", "ACTIVE")));
 
-        support.replaceRoleResources(RoleId.of(9L), Set.of("upms:user:view"));
+        support.replaceRoleResources(RoleId.of(9L), Set.of(ResourceCode.of("upms:user:view")));
 
         verify(roleResourceRelMapper).insert(captor.capture());
         assertThat(captor.getValue().getTenantId()).isEqualTo(1001L);

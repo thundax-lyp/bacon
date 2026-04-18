@@ -11,11 +11,13 @@ import org.junit.jupiter.api.Test;
 class PostTest {
 
     @Test
-    void shouldUpdatePostFields() {
+    void shouldChangePostFields() {
         Post post = Post.create(
                 PostId.of(101L), PostCode.of("OPS_LEADER"), "Ops Leader", DepartmentId.of(201L), PostStatus.ENABLED);
 
-        post.update(PostCode.of("OPS_MANAGER"), "Ops Manager", DepartmentId.of(202L));
+        post.recodeAs(PostCode.of("OPS_MANAGER"));
+        post.rename("Ops Manager");
+        post.assignDepartment(DepartmentId.of(202L));
 
         assertThat(post.getCode()).isEqualTo(PostCode.of("OPS_MANAGER"));
         assertThat(post.getName()).isEqualTo("Ops Manager");
@@ -39,7 +41,7 @@ class PostTest {
         Post post = Post.create(
                 PostId.of(101L), PostCode.of("OPS_LEADER"), "Ops Leader", DepartmentId.of(201L), PostStatus.ENABLED);
 
-        post.changeCode(PostCode.of("OPS_MANAGER"));
+        post.recodeAs(PostCode.of("OPS_MANAGER"));
 
         assertThat(post.getCode()).isEqualTo(PostCode.of("OPS_MANAGER"));
     }

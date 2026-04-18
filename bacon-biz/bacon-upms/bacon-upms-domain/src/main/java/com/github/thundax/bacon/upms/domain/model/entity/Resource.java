@@ -60,13 +60,22 @@ public class Resource {
         return new Resource(id, code, name, resourceType, httpMethod, uri, status);
     }
 
-    public void update(ResourceCode code, String name, ResourceType resourceType, String httpMethod, String uri) {
+    public void recodeAs(ResourceCode code) {
         Objects.requireNonNull(code, "code must not be null");
-        Objects.requireNonNull(name, "name must not be null");
-        Objects.requireNonNull(resourceType, "resourceType must not be null");
         this.code = code;
+    }
+
+    public void rename(String name) {
+        Objects.requireNonNull(name, "name must not be null");
         this.name = name;
+    }
+
+    public void classifyAs(ResourceType resourceType) {
+        Objects.requireNonNull(resourceType, "resourceType must not be null");
         this.resourceType = resourceType;
+    }
+
+    public void exposeEndpoint(String httpMethod, String uri) {
         this.httpMethod = httpMethod;
         this.uri = uri;
     }
@@ -77,10 +86,5 @@ public class Resource {
 
     public void disable() {
         this.status = ResourceStatus.DISABLED;
-    }
-
-    public void changeCode(ResourceCode code) {
-        Objects.requireNonNull(code, "code must not be null");
-        this.code = code;
     }
 }

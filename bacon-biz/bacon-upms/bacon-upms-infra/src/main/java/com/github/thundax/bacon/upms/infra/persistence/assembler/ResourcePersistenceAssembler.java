@@ -5,6 +5,7 @@ import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 
 public final class ResourcePersistenceAssembler {
@@ -15,7 +16,7 @@ public final class ResourcePersistenceAssembler {
         return new ResourceDO(
                 resource.getId() == null ? null : resource.getId().value(),
                 BaconContextHolder.requireTenantId(),
-                resource.getCode(),
+                resource.getCode() == null ? null : resource.getCode().value(),
                 resource.getName(),
                 resource.getResourceType() == null
                         ? null
@@ -29,7 +30,7 @@ public final class ResourcePersistenceAssembler {
         ResourceId resourceId = dataObject.getId() == null ? null : ResourceId.of(dataObject.getId());
         return Resource.reconstruct(
                 resourceId,
-                dataObject.getCode(),
+                dataObject.getCode() == null ? null : ResourceCode.of(dataObject.getCode()),
                 dataObject.getName(),
                 ResourceType.from(dataObject.getResourceType()),
                 dataObject.getHttpMethod(),

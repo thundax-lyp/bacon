@@ -58,7 +58,6 @@ public class MenuController {
                 trimPreservingNull(request.routePath()),
                 trimPreservingNull(request.componentName()),
                 trimPreservingNull(request.icon()),
-                request.sort(),
                 trimPreservingNull(request.permissionCode())));
     }
 

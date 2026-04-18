@@ -11,6 +11,9 @@ import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleCode;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.RolePersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DataPermissionRuleDO;
@@ -111,10 +114,10 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    List<Role> listRoles(String code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
+    List<Role> listRoles(RoleCode code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
         return roleMapper
                 .selectList(Wrappers.<RoleDO>lambdaQuery()
-                        .like(hasText(code), RoleDO::getCode, code)
+                        .like(code != null, RoleDO::getCode, code == null ? null : code.value())
                         .like(hasText(name), RoleDO::getName, name)
                         .eq(roleType != null, RoleDO::getRoleType, roleType.value())
                         .eq(status != null, RoleDO::getStatus, status.value())
@@ -125,9 +128,9 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countRoles(String code, String name, RoleType roleType, RoleStatus status) {
+    long countRoles(RoleCode code, String name, RoleType roleType, RoleStatus status) {
         return Optional.ofNullable(roleMapper.selectCount(Wrappers.<RoleDO>lambdaQuery()
-                        .like(hasText(code), RoleDO::getCode, code)
+                        .like(code != null, RoleDO::getCode, code == null ? null : code.value())
                         .like(hasText(name), RoleDO::getName, name)
                         .eq(roleType != null, RoleDO::getRoleType, roleType.value())
                         .eq(status != null, RoleDO::getStatus, status.value())))
@@ -206,7 +209,7 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
     }
 
-    Set<String> getAssignedResourceCodes(RoleId roleId) {
+    Set<ResourceCode> getAssignedResourceCodes(RoleId roleId) {
         requireTenantId();
         List<Long> resourceIds = roleResourceRelMapper
                 .selectList(Wrappers.<RoleResourceRelDO>lambdaQuery().eq(RoleResourceRelDO::getRoleId, roleId.value()))
@@ -218,10 +221,11 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
         return resourceMapper.selectList(Wrappers.<ResourceDO>lambdaQuery().in(ResourceDO::getId, resourceIds)).stream()
                 .map(ResourceDO::getCode)
+                .map(ResourceCode::of)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    void replaceRoleResources(RoleId roleId, Collection<String> resourceCodes) {
+    void replaceRoleResources(RoleId roleId, Collection<ResourceCode> resourceCodes) {
         TenantId tenantId = requireTenantId();
         roleResourceRelMapper.delete(
                 Wrappers.<RoleResourceRelDO>lambdaQuery().eq(RoleResourceRelDO::getRoleId, roleId.value()));
@@ -229,7 +233,9 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
             return;
         }
         List<ResourceDO> resources = resourceMapper.selectList(
-                Wrappers.<ResourceDO>lambdaQuery().in(ResourceDO::getCode, new LinkedHashSet<>(resourceCodes)));
+                Wrappers.<ResourceDO>lambdaQuery().in(
+                        ResourceDO::getCode,
+                        new LinkedHashSet<>(resourceCodes).stream().map(ResourceCode::value).toList()));
         for (ResourceDO resource : resources) {
             roleResourceRelMapper.insert(new RoleResourceRelDO(
                     idGenerator.nextId(ROLE_RESOURCE_REL_ID_BIZ_TAG),
@@ -239,24 +245,21 @@ class RolePersistenceSupport extends AbstractUpmsPersistenceSupport {
         }
     }
 
-    RoleDataScopeType getAssignedDataScopeType(RoleId roleId) {
+    RoleDataScopeAssignment findAssignedDataScope(RoleId roleId) {
         requireTenantId();
-        return Optional.ofNullable(dataPermissionRuleMapper.selectOne(Wrappers.<DataPermissionRuleDO>lambdaQuery()
-                        .eq(DataPermissionRuleDO::getRoleId, roleId.value())))
+        RoleDataScopeType dataScopeType = Optional.ofNullable(dataPermissionRuleMapper.selectOne(
+                        Wrappers.<DataPermissionRuleDO>lambdaQuery().eq(DataPermissionRuleDO::getRoleId, roleId.value())))
                 .map(DataPermissionRuleDO::getDataScopeType)
                 .map(RoleDataScopeType::from)
                 .orElse(RoleDataScopeType.SELF);
-    }
-
-    Set<DepartmentId> getAssignedDataScopeDepartments(RoleId roleId) {
-        requireTenantId();
-        return roleDataScopeRelMapper
+        Set<DepartmentId> departmentIds = roleDataScopeRelMapper
                 .selectList(
                         Wrappers.<RoleDataScopeRelDO>lambdaQuery().eq(RoleDataScopeRelDO::getRoleId, roleId.value()))
                 .stream()
                 .map(RoleDataScopeRelDO::getDepartmentId)
                 .map(DepartmentId::of)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+        return RoleDataScopeAssignment.of(dataScopeType, departmentIds);
     }
 
     void replaceRoleDataScope(RoleId roleId, RoleDataScopeType dataScopeType, Collection<DepartmentId> departmentIds) {

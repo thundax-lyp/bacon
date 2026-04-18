@@ -9,9 +9,9 @@ import java.util.Optional;
 
 public interface TenantRepository {
 
-    Optional<Tenant> findTenantById(TenantId tenantId);
+    Optional<Tenant> findById(TenantId tenantId);
 
-    Optional<Tenant> findTenantByCode(TenantCode tenantCode);
+    Optional<Tenant> findByCode(TenantCode tenantCode);
 
     List<Tenant> pageTenants(String name, TenantStatus status, int pageNo, int pageSize);
 
@@ -19,7 +19,6 @@ public interface TenantRepository {
 
     Tenant insert(Tenant tenant);
 
-    Tenant save(Tenant tenant);
+    Tenant update(Tenant tenant);
 
-    Tenant updateStatus(TenantId tenantId, TenantStatus status);
 }

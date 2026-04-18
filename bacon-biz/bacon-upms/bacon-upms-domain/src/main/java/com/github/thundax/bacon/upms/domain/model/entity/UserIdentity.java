@@ -2,8 +2,8 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.domain.exception.UserIdentityDomainException;
 import com.github.thundax.bacon.upms.domain.exception.UserIdentityErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import java.util.Objects;
@@ -56,25 +56,18 @@ public class UserIdentity {
 
     public void assertUsable() {
         if (status != UserIdentityStatus.ACTIVE) {
-            throw new UserIdentityDomainException(UserIdentityErrorCode.USER_IDENTITY_NOT_USABLE);
+            throw new UpmsDomainException(UserIdentityErrorCode.USER_IDENTITY_NOT_USABLE);
         }
     }
 
-    public void activate() {
-        this.status = UserIdentityStatus.ACTIVE;
+    public void assertLoginAllowed() {
+        if (!canLogin()) {
+            throw new UpmsDomainException(UserIdentityErrorCode.USER_IDENTITY_LOGIN_NOT_ALLOWED);
+        }
     }
 
-    public void disable() {
-        this.status = UserIdentityStatus.DISABLED;
-    }
-
-    public void revoke() {
-        this.status = UserIdentityStatus.DISABLED;
-    }
-
-    public void changeIdentityValue(String newValue) {
-        Objects.requireNonNull(newValue, "newValue must not be null");
-        this.identityValue = newValue;
+    public boolean canLogin() {
+        return status == UserIdentityStatus.ACTIVE;
     }
 
     public boolean matches(String value) {
@@ -94,13 +87,25 @@ public class UserIdentity {
         return identityType == UserIdentityType.ACCOUNT;
     }
 
-    public boolean canLogin() {
-        return status == UserIdentityStatus.ACTIVE;
+    public void changeAccount(String account) {
+        Objects.requireNonNull(account, "account must not be null");
+        this.identityValue = account;
     }
 
-    public void assertLoginAllowed() {
-        if (!canLogin()) {
-            throw new UserIdentityDomainException(UserIdentityErrorCode.USER_IDENTITY_LOGIN_NOT_ALLOWED);
-        }
+    public void changePhone(String phone) {
+        Objects.requireNonNull(phone, "phone must not be null");
+        this.identityValue = phone;
+    }
+
+    public void activate() {
+        this.status = UserIdentityStatus.ACTIVE;
+    }
+
+    public void disable() {
+        this.status = UserIdentityStatus.DISABLED;
+    }
+
+    public void revoke() {
+        this.status = UserIdentityStatus.DISABLED;
     }
 }

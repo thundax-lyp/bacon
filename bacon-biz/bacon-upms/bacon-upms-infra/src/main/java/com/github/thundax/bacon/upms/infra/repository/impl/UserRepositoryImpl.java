@@ -134,7 +134,6 @@ public class UserRepositoryImpl implements UserRepository {
         savedUser = newUser ? support.insertUser(savedUser) : support.updateUser(savedUser);
         UserIdentity accountIdentity = replaceAccountIdentity(tenantId, savedUser, account, accountIdentityId);
         upsertPasswordCredential(
-                tenantId,
                 savedUser,
                 accountIdentity,
                 resolvePasswordHash(tenantId, savedUser, newUser),
@@ -151,16 +150,9 @@ public class UserRepositoryImpl implements UserRepository {
         TenantId tenantId = requireTenantId();
         User currentUser =
                 findUserById(userId).orElseThrow(() -> new NotFoundException("User not found: " + userId));
-        User updatedUser = User.create(
-                currentUser.getId(),
-                currentUser.getName(),
-                currentUser.getAvatarStoredObjectNo(),
-                currentUser.getDepartmentId(),
-                currentUser.getStatus());
-        User savedUser = support.updateUser(updatedUser);
+        User savedUser = support.updateUser(copyUser(currentUser));
         UserIdentity accountIdentity = requireUserIdentity(userId, UserIdentityType.ACCOUNT);
         upsertPasswordCredential(
-                tenantId,
                 savedUser,
                 accountIdentity,
                 passwordEncoder.encode(password),
@@ -171,7 +163,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<Role> assignRoles(UserId userId, List<RoleId> roleIds) {
+    public List<Role> updateRoleIds(UserId userId, List<RoleId> roleIds) {
         TenantId tenantId = requireTenantId();
         List<Role> roles = roleIds.stream()
                 .map(roleId -> roleRepository
@@ -194,9 +186,9 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private User copyUser(User user) {
-        return User.create(
+        return User.reconstruct(
                 user.getId(),
-                user.getName(),
+                user.getNickname(),
                 user.getAvatarStoredObjectNo(),
                 user.getDepartmentId(),
                 user.getStatus());
@@ -204,21 +196,32 @@ public class UserRepositoryImpl implements UserRepository {
 
     private UserIdentity replaceAccountIdentity(
             TenantId tenantId, User user, String account, UserIdentityId accountIdentityId) {
-        support.deleteUserIdentitiesByUserAndType(tenantId, user.getId(), UserIdentityType.ACCOUNT);
-        return support.saveUserIdentity(UserIdentity.create(
-                accountIdentityId,
-                user.getId(),
-                UserIdentityType.ACCOUNT,
-                requireIdentityValue(account, UserIdentityType.ACCOUNT),
-                ACTIVE_IDENTITY_STATUS));
+        String normalizedAccount = requireIdentityValue(account, UserIdentityType.ACCOUNT);
+        UserIdentity currentIdentity = support.findUserIdentityByUserId(user.getId(), UserIdentityType.ACCOUNT)
+                .orElse(null);
+        if (currentIdentity == null) {
+            return support.saveUserIdentity(UserIdentity.create(
+                    accountIdentityId, user.getId(), UserIdentityType.ACCOUNT, normalizedAccount, ACTIVE_IDENTITY_STATUS));
+        }
+        currentIdentity.changeAccount(normalizedAccount);
+        return support.saveUserIdentity(currentIdentity);
     }
 
     private void replacePhoneIdentity(TenantId tenantId, User user, String phone, UserIdentityId phoneIdentityId) {
-        support.deleteUserIdentitiesByUserAndType(tenantId, user.getId(), UserIdentityType.PHONE);
-        if (phone != null && !phone.isBlank()) {
-            support.saveUserIdentity(UserIdentity.create(
-                    phoneIdentityId, user.getId(), UserIdentityType.PHONE, phone.trim(), ACTIVE_IDENTITY_STATUS));
+        if (phone == null || phone.isBlank()) {
+            support.deleteUserIdentitiesByUserAndType(tenantId, user.getId(), UserIdentityType.PHONE);
+            return;
         }
+        String normalizedPhone = phone.trim();
+        UserIdentity currentIdentity = support.findUserIdentityByUserId(user.getId(), UserIdentityType.PHONE)
+                .orElse(null);
+        if (currentIdentity == null) {
+            support.saveUserIdentity(UserIdentity.create(
+                    phoneIdentityId, user.getId(), UserIdentityType.PHONE, normalizedPhone, ACTIVE_IDENTITY_STATUS));
+            return;
+        }
+        currentIdentity.changePhone(normalizedPhone);
+        support.saveUserIdentity(currentIdentity);
     }
 
     private UserIdentity requireUserIdentity(UserId userId, UserIdentityType identityType) {
@@ -244,7 +247,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private void upsertPasswordCredential(
-            TenantId tenantId,
             User user,
             UserIdentity accountIdentity,
             String passwordHash,
@@ -253,21 +255,28 @@ public class UserRepositoryImpl implements UserRepository {
             UserCredentialId passwordCredentialIdIfAbsent) {
         UserCredential currentCredential = support.findUserCredential(user.getId(), PASSWORD_CREDENTIAL_TYPE)
                 .orElse(null);
-        support.saveUserCredential(UserCredential.create(
-                currentCredential == null ? passwordCredentialIdIfAbsent : currentCredential.getId(),
-                user.getId(),
-                accountIdentity.getId(),
-                PASSWORD_CREDENTIAL_TYPE,
-                PRIMARY_FACTOR_LEVEL,
-                passwordHash,
-                UserCredentialStatus.ACTIVE,
-                newUser || needChangePassword,
-                0,
-                PASSWORD_FAILED_LIMIT,
-                null,
-                null,
-                Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS),
-                currentCredential == null ? null : currentCredential.getLastVerifiedAt()));
+        Instant passwordExpiresAt = Instant.now().plus(PASSWORD_EXPIRE_DAYS, ChronoUnit.DAYS);
+        if (currentCredential == null) {
+            support.saveUserCredential(UserCredential.create(
+                    passwordCredentialIdIfAbsent,
+                    user.getId(),
+                    accountIdentity.getId(),
+                    PASSWORD_CREDENTIAL_TYPE,
+                    PRIMARY_FACTOR_LEVEL,
+                    passwordHash,
+                    UserCredentialStatus.ACTIVE,
+                    newUser || needChangePassword,
+                    0,
+                    PASSWORD_FAILED_LIMIT,
+                    null,
+                    null,
+                    passwordExpiresAt,
+                    null));
+            return;
+        }
+        currentCredential.bindIdentity(accountIdentity.getId());
+        currentCredential.replacePassword(passwordHash, newUser || needChangePassword, passwordExpiresAt);
+        support.saveUserCredential(currentCredential);
     }
 
     boolean hasActiveUserInDepartment(TenantId tenantId, DepartmentId departmentId) {

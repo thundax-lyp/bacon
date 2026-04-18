@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
 import com.github.thundax.bacon.upms.domain.repository.ResourceRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.List;
@@ -32,12 +33,12 @@ public class ResourceRepositoryImpl implements ResourceRepository {
 
     @Override
     public List<Resource> pageResources(
-            String code, String name, ResourceType resourceType, ResourceStatus status, int pageNo, int pageSize) {
+            ResourceCode code, String name, ResourceType resourceType, ResourceStatus status, int pageNo, int pageSize) {
         return support.listResources(code, name, resourceType, status, pageNo, pageSize);
     }
 
     @Override
-    public long countResources(String code, String name, ResourceType resourceType, ResourceStatus status) {
+    public long countResources(ResourceCode code, String name, ResourceType resourceType, ResourceStatus status) {
         return support.countResources(code, name, resourceType, status);
     }
 

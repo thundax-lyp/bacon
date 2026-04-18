@@ -5,11 +5,13 @@ import com.github.thundax.bacon.common.core.exception.NotFoundException;
 import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
-import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleCode;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
@@ -43,12 +45,12 @@ public class RoleRepositoryImpl implements RoleRepository {
 
     @Override
     public List<Role> pageRoles(
-            String code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
+            RoleCode code, String name, RoleType roleType, RoleStatus status, int pageNo, int pageSize) {
         return support.listRoles(code, name, roleType, status, pageNo, pageSize);
     }
 
     @Override
-    public long countRoles(String code, String name, RoleType roleType, RoleStatus status) {
+    public long countRoles(RoleCode code, String name, RoleType roleType, RoleStatus status) {
         return support.countRoles(code, name, roleType, status);
     }
 
@@ -69,23 +71,6 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public Role updateStatus(RoleId roleId, RoleStatus status) {
-        TenantId tenantId = requireTenantId();
-        List<UserId> assignedUserIds = support.findAssignedUserIds(tenantId, roleId);
-        Role currentRole = findRoleById(roleId)
-                .orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value()));
-        Role savedRole = support.updateRole(Role.create(
-                currentRole.getId(),
-                currentRole.getCode(),
-                currentRole.getName(),
-                currentRole.getRoleType(),
-                currentRole.getDataScopeType(),
-                status));
-        cacheSupport.evictUsersPermission(tenantId, assignedUserIds);
-        return savedRole;
-    }
-
-    @Override
     public void deleteRole(RoleId roleId) {
         TenantId tenantId = requireTenantId();
         List<UserId> assignedUserIds = support.findAssignedUserIds(tenantId, roleId);
@@ -94,13 +79,13 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public Set<MenuId> getAssignedMenus(RoleId roleId) {
+    public Set<MenuId> findMenuIds(RoleId roleId) {
         findRoleById(roleId).orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value()));
         return support.getAssignedMenuIds(roleId);
     }
 
     @Override
-    public Set<MenuId> assignMenus(RoleId roleId, Set<MenuId> menuIds) {
+    public Set<MenuId> updateMenuIds(RoleId roleId, Set<MenuId> menuIds) {
         TenantId tenantId = requireTenantId();
         findRoleById(roleId).orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value()));
         Set<MenuId> safeMenuIds = menuIds == null ? Set.of() : Set.copyOf(menuIds);
@@ -110,50 +95,41 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public Set<String> getAssignedResources(RoleId roleId) {
+    public Set<ResourceCode> findResourceCodes(RoleId roleId) {
         findRoleById(roleId).orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value()));
         return support.getAssignedResourceCodes(roleId);
     }
 
     @Override
-    public Set<String> assignResources(RoleId roleId, Set<String> resourceCodes) {
+    public Set<ResourceCode> updateResourceCodes(RoleId roleId, Set<ResourceCode> resourceCodes) {
         TenantId tenantId = requireTenantId();
         findRoleById(roleId).orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value()));
-        Set<String> safeResourceCodes = resourceCodes == null ? Set.of() : Set.copyOf(resourceCodes);
+        Set<ResourceCode> safeResourceCodes = resourceCodes == null ? Set.of() : Set.copyOf(resourceCodes);
         support.replaceRoleResources(roleId, safeResourceCodes);
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
         return safeResourceCodes;
     }
 
     @Override
-    public RoleDataScopeType getAssignedDataScopeType(RoleId roleId) {
+    public RoleDataScopeAssignment findDataScope(RoleId roleId) {
         findRoleById(roleId).orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value()));
-        return support.getAssignedDataScopeType(roleId);
+        return support.findAssignedDataScope(roleId);
     }
 
     @Override
-    public Set<DepartmentId> getAssignedDataScopeDepartments(RoleId roleId) {
-        findRoleById(roleId).orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value()));
-        return support.getAssignedDataScopeDepartments(roleId);
-    }
-
-    @Override
-    public Set<DepartmentId> assignDataScope(
-            RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
+    public RoleDataScopeAssignment updateDataScope(RoleId roleId, RoleDataScopeAssignment assignment) {
         TenantId tenantId = requireTenantId();
-        findRoleById(roleId).orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value()));
-        Set<DepartmentId> safeDepartmentIds = departmentIds == null ? Set.of() : Set.copyOf(departmentIds);
-        support.replaceRoleDataScope(roleId, dataScopeType, safeDepartmentIds);
-        Role currentRole = findRoleById(roleId).orElseThrow();
-        support.updateRole(Role.create(
-                currentRole.getId(),
-                currentRole.getCode(),
-                currentRole.getName(),
-                currentRole.getRoleType(),
-                dataScopeType,
-                currentRole.getStatus()));
+        Role currentRole = findRoleById(roleId)
+                .orElseThrow(() -> new NotFoundException("Role not found: " + roleId.value()));
+        Set<DepartmentId> assignedDepartmentIds =
+                currentRole.assignDataScope(assignment.dataScopeType(), assignment.departmentIds());
+        RoleDataScopeAssignment normalizedAssignment =
+                RoleDataScopeAssignment.of(currentRole.getDataScopeType(), assignedDepartmentIds);
+        support.replaceRoleDataScope(
+                roleId, normalizedAssignment.dataScopeType(), normalizedAssignment.departmentIds());
+        support.updateRole(currentRole);
         cacheSupport.evictUsersPermission(tenantId, support.findAssignedUserIds(tenantId, roleId));
-        return safeDepartmentIds;
+        return normalizedAssignment;
     }
 
     void bindUserRoles(TenantId tenantId, UserId userId, List<Role> assignedRoles) {

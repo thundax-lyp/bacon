@@ -1,7 +1,7 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.upms.domain.exception.MenuDomainException;
 import com.github.thundax.bacon.upms.domain.exception.MenuErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,29 +94,40 @@ public class Menu {
                 new ArrayList<>(Objects.requireNonNull(children, "children must not be null")));
     }
 
-    public void update(
-            String menuType,
-            String name,
-            MenuId parentId,
-            String routePath,
-            String componentName,
-            String icon,
-            String permissionCode) {
+    public void retypeAs(String menuType) {
         Objects.requireNonNull(menuType, "menuType must not be null");
-        Objects.requireNonNull(name, "name must not be null");
-        validateParentId(id, parentId);
         this.menuType = menuType;
+    }
+
+    public void rename(String name) {
+        Objects.requireNonNull(name, "name must not be null");
         this.name = name;
+    }
+
+    public void moveUnder(MenuId parentId) {
+        validateParentId(id, parentId);
         this.parentId = parentId;
+    }
+
+    public void routeTo(String routePath) {
         this.routePath = routePath;
+    }
+
+    public void renderWith(String componentName) {
         this.componentName = componentName;
+    }
+
+    public void showIcon(String icon) {
         this.icon = icon;
+    }
+
+    public void bindPermission(String permissionCode) {
         this.permissionCode = permissionCode;
     }
 
     public void sort(Integer sort) {
         if (sort == null || sort < 0) {
-            throw new MenuDomainException(MenuErrorCode.INVALID_MENU_SORT);
+            throw new UpmsDomainException(MenuErrorCode.INVALID_MENU_SORT);
         }
         this.sort = sort;
     }
@@ -133,7 +144,7 @@ public class Menu {
 
     private static void validateParentId(MenuId id, MenuId parentId) {
         if (Objects.equals(id, parentId)) {
-            throw new MenuDomainException(MenuErrorCode.MENU_PARENT_CANNOT_BE_SELF);
+            throw new UpmsDomainException(MenuErrorCode.MENU_PARENT_CANNOT_BE_SELF);
         }
     }
 }

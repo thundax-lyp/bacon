@@ -10,13 +10,13 @@ public interface PermissionRepository {
 
     List<Menu> listMenus();
 
-    List<Menu> getUserMenuTree(UserId userId);
+    List<Menu> listUserMenuTree(UserId userId);
 
-    Set<String> getUserPermissionCodes(UserId userId);
+    Set<String> findUserPermissionCodes(UserId userId);
 
-    Set<DepartmentId> getUserDepartmentIds(UserId userId);
+    Set<DepartmentId> findUserDepartmentIds(UserId userId);
 
-    Set<String> getUserScopeTypes(UserId userId);
+    Set<String> findUserScopeTypes(UserId userId);
 
-    boolean hasAllAccess(UserId userId);
+    boolean existsUserAllAccess(UserId userId);
 }

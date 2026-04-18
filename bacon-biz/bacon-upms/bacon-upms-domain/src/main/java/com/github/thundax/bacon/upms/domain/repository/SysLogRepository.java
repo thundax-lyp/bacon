@@ -7,9 +7,9 @@ import java.util.Optional;
 
 public interface SysLogRepository {
 
-    void saveToDatabase(SysLogRecord sysLogRecord);
+    void insertToDatabase(SysLogRecord sysLogRecord);
 
-    void saveToFile(SysLogRecord sysLogRecord);
+    void insertToFile(SysLogRecord sysLogRecord);
 
     Optional<SysLogRecord> findById(SysLogId logId);
 

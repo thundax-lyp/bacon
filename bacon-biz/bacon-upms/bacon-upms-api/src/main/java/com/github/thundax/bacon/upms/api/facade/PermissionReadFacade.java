@@ -7,9 +7,9 @@ import com.github.thundax.bacon.upms.api.response.UserPermissionCodeFacadeRespon
 
 public interface PermissionReadFacade {
 
-    UserMenuTreeFacadeResponse getUserMenuTree(UserPermissionGetFacadeRequest request);
+    UserMenuTreeFacadeResponse listUserMenuTree(UserPermissionGetFacadeRequest request);
 
-    UserPermissionCodeFacadeResponse getUserPermissionCodes(UserPermissionGetFacadeRequest request);
+    UserPermissionCodeFacadeResponse findUserPermissionCodes(UserPermissionGetFacadeRequest request);
 
     UserDataScopeFacadeResponse getUserDataScope(UserPermissionGetFacadeRequest request);
 }

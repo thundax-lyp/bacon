@@ -12,7 +12,7 @@ public final class UserAssembler {
         return new UserDTO(
                 user.getId().value(),
                 account,
-                user.getName(),
+                user.getNickname(),
                 user.getAvatarStoredObjectNo() == null
                         ? null
                         : user.getAvatarStoredObjectNo().value(),

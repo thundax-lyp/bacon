@@ -51,7 +51,7 @@ public interface UserRepository {
     User updatePassword(
             UserId userId, String password, boolean needChangePassword, UserCredentialId passwordCredentialIdIfAbsent);
 
-    List<Role> assignRoles(UserId userId, List<RoleId> roleIds);
+    List<Role> updateRoleIds(UserId userId, List<RoleId> roleIds);
 
     void deleteUser(UserId userId);
 }

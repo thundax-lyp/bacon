@@ -43,7 +43,7 @@ class MenuControllerContractTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         """
-                                {"menuType":" ","name":"Catalog","parentId":1,"routePath":"/catalog","componentName":"CatalogPage","icon":"catalog","sort":1,"permissionCode":"upms:menu:view"}
+                                {"menuType":" ","name":"Catalog","parentId":1,"routePath":"/catalog","componentName":"CatalogPage","icon":"catalog","permissionCode":"upms:menu:view"}
                                 """))
                 .andExpect(status().isBadRequest());
 
@@ -59,7 +59,6 @@ class MenuControllerContractTest {
                         eq("/catalog"),
                         eq("CatalogPage"),
                         eq("catalog"),
-                        eq(1),
                         eq("upms:menu:view")))
                 .thenReturn(new MenuTreeDTO(
                         101L,
@@ -78,7 +77,7 @@ class MenuControllerContractTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         """
-                                {"menuType":" CATALOG ","name":" Catalog ","parentId":1,"routePath":" /catalog ","componentName":" CatalogPage ","icon":" catalog ","sort":1,"permissionCode":" upms:menu:view "}
+                                {"menuType":" CATALOG ","name":" Catalog ","parentId":1,"routePath":" /catalog ","componentName":" CatalogPage ","icon":" catalog ","permissionCode":" upms:menu:view "}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.menuType").value("CATALOG"))

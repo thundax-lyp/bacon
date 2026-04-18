@@ -25,6 +25,7 @@ import com.github.thundax.bacon.upms.api.dto.TenantDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
+import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
 import com.github.thundax.bacon.upms.application.assembler.TenantAssembler;
 import com.github.thundax.bacon.upms.application.assembler.UserAssembler;
@@ -38,7 +39,6 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
@@ -49,6 +49,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -131,6 +132,7 @@ public class UserApplicationService {
         UserCredential passwordCredential = userRepository
                 .findUserCredential(userIdentity.getUserId(), UserCredentialType.PASSWORD)
                 .orElseThrow(() -> new NotFoundException("Password credential not found"));
+        passwordCredential.assertVerifiable(Instant.now());
         User user = userRepository
                 .findUserById(userIdentity.getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found: " + userIdentity.getUserId()));
@@ -141,7 +143,7 @@ public class UserApplicationService {
 
     public TenantDTO getTenantByTenantId(TenantId tenantId) {
         Tenant tenant = tenantRepository
-                .findTenantById(tenantId)
+                .findById(tenantId)
                 .orElseThrow(() -> new NotFoundException("Tenant not found: " + tenantId.value()));
         return TenantAssembler.toDto(tenant);
     }
@@ -171,7 +173,7 @@ public class UserApplicationService {
         String normalizedAccount = account.trim();
         String normalizedPhone = phone == null ? null : phone.trim();
         User savedUser = userRepository.insert(
-                User.create(ids.userId(), name.trim(), null, departmentId, UserStatus.ENABLED),
+                User.create(ids.userId(), name.trim(), null, departmentId, UserStatus.ACTIVE),
                 normalizedAccount,
                 normalizedPhone,
                 UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
@@ -192,9 +194,14 @@ public class UserApplicationService {
         ensureAccountUnique(account, userId);
         String normalizedAccount = account.trim();
         String normalizedPhone = phone == null ? null : phone.trim();
+        currentUser.rename(name.trim());
+        if (departmentId == null) {
+            currentUser.clearDepartment();
+        } else {
+            currentUser.assignDepartment(departmentId);
+        }
         User savedUser = userRepository.update(
-                currentUser.update(
-                        name.trim(), currentUser.getAvatarStoredObjectNo(), departmentId, currentUser.getStatus()),
+                currentUser,
                 normalizedAccount,
                 normalizedPhone,
                 UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
@@ -213,12 +220,13 @@ public class UserApplicationService {
         if (status == null) {
             throw new BadRequestException("status must not be null");
         }
+        if (UserStatus.ACTIVE == status) {
+            currentUser.activate();
+        } else {
+            currentUser.disable();
+        }
         User savedUser = userRepository.update(
-                currentUser.update(
-                        currentUser.getName(),
-                        currentUser.getAvatarStoredObjectNo(),
-                        currentUser.getDepartmentId(),
-                        status),
+                currentUser,
                 requireIdentityValue(currentUser.getId(), UserIdentityType.ACCOUNT),
                 resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE),
                 UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
@@ -309,10 +317,10 @@ public class UserApplicationService {
     }
 
     @Transactional
-    public List<RoleDTO> assignRoles(UserId userId, List<RoleId> roleIds) {
+    public List<RoleDTO> updateRoleIds(UserId userId, List<RoleId> roleIds) {
         requireUser(userId);
         List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds;
-        return userRepository.assignRoles(userId, domainRoleIds).stream()
+        return userRepository.updateRoleIds(userId, domainRoleIds).stream()
                 .map(RoleAssembler::toDto)
                 .toList();
     }
@@ -359,12 +367,9 @@ public class UserApplicationService {
                         avatarStoredObjectNo.value(), USER_AVATAR_OWNER_TYPE, String.valueOf(userId.value())));
         AvatarStoredObjectNo previousAvatarStoredObjectNo = currentUser.getAvatarStoredObjectNo();
         try {
+            currentUser.useAvatar(avatarStoredObjectNo);
             User savedUser = userRepository.update(
-                    currentUser.update(
-                            currentUser.getName(),
-                            avatarStoredObjectNo,
-                            currentUser.getDepartmentId(),
-                            currentUser.getStatus()),
+                    currentUser,
                     requireIdentityValue(currentUser.getId(), UserIdentityType.ACCOUNT),
                     resolveIdentityValue(currentUser.getId(), UserIdentityType.PHONE),
                     UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
@@ -427,7 +432,7 @@ public class UserApplicationService {
             return null;
         }
         return departmentRepository
-                .findDepartmentByCode(DepartmentCode.of(departmentCode))
+                .findDepartmentByCode(DepartmentCodeCodec.toDomain(departmentCode))
                 .map(Department::getId)
                 .orElseThrow(() -> new NotFoundException("Department not found by code: " + departmentCode));
     }

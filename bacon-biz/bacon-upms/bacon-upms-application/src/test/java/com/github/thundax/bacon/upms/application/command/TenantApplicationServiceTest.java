@@ -46,7 +46,7 @@ class TenantApplicationServiceTest {
     @Test
     void shouldCreateTenantWithTenantId() {
         when(idGenerator.nextId("tenant-id")).thenReturn(1001L);
-        when(tenantRepository.findTenantByCode(TenantCode.of("TENANT_DEMO"))).thenReturn(Optional.empty());
+        when(tenantRepository.findByCode(TenantCode.of("TENANT_DEMO"))).thenReturn(Optional.empty());
         when(tenantRepository.insert(any(Tenant.class)))
                 .thenReturn(tenant(
                         1001L,
@@ -60,14 +60,14 @@ class TenantApplicationServiceTest {
 
         assertThat(result.getId()).isEqualTo(1001L);
         assertThat(result.getName()).isEqualTo("Demo Tenant");
-        assertThat(result.getTenantCode()).isEqualTo("TENANT_DEMO");
+        assertThat(result.getCode()).isEqualTo("TENANT_DEMO");
         assertThat(result.getStatus()).isEqualTo("ACTIVE");
     }
 
     @Test
     void shouldRejectDuplicateTenantCode() {
         when(idGenerator.nextId("tenant-id")).thenReturn(1001L);
-        when(tenantRepository.findTenantByCode(TenantCode.of("TENANT_DEMO")))
+        when(tenantRepository.findByCode(TenantCode.of("TENANT_DEMO")))
                 .thenReturn(Optional.of(tenant(
                         1001L,
                         "Demo Tenant",
@@ -77,7 +77,7 @@ class TenantApplicationServiceTest {
 
         assertThatThrownBy(() -> service.createTenant("Other", TenantCode.of("TENANT_DEMO"), null))
                 .isInstanceOf(ConflictException.class)
-                .hasMessage("Tenant tenantCode already exists: TENANT_DEMO");
+                .hasMessage("Tenant code already exists: TENANT_DEMO");
     }
 
     @Test
@@ -89,8 +89,10 @@ class TenantApplicationServiceTest {
 
     @Test
     void shouldInvalidateTenantSessionsWhenTenantDisabled() {
-        when(tenantRepository.updateStatus(TenantId.of(1001L), TenantStatus.DISABLED))
-                .thenReturn(tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.DISABLED, null));
+        when(tenantRepository.findById(TenantId.of(1001L)))
+                .thenReturn(Optional.of(tenant(1001L, "Demo Tenant", "TENANT_DEMO", TenantStatus.ACTIVE, null)));
+        when(tenantRepository.update(any(Tenant.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         TenantDTO result = service.updateTenantStatus(TenantId.of(1001L), TenantStatus.DISABLED);
 

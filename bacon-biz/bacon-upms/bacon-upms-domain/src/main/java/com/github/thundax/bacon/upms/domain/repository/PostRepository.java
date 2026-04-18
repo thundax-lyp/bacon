@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.domain.repository;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.PostCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import java.util.List;
 import java.util.Optional;
@@ -12,9 +13,9 @@ public interface PostRepository {
     Optional<Post> findById(PostId postId);
 
     List<Post> pagePosts(
-            String code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize);
+            PostCode code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize);
 
-    long countPosts(String code, String name, DepartmentId departmentId, PostStatus status);
+    long countPosts(PostCode code, String name, DepartmentId departmentId, PostStatus status);
 
     Post insert(Post post);
 

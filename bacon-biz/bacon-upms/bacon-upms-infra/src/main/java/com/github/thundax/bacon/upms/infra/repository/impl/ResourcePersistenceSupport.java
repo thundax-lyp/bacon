@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.ResourcePersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.ResourceDO;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.RoleResourceRelDO;
@@ -37,10 +38,10 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     List<Resource> listResources(
-            String code, String name, ResourceType resourceType, ResourceStatus status, int pageNo, int pageSize) {
+            ResourceCode code, String name, ResourceType resourceType, ResourceStatus status, int pageNo, int pageSize) {
         return resourceMapper
                 .selectList(Wrappers.<ResourceDO>lambdaQuery()
-                        .like(hasText(code), ResourceDO::getCode, code)
+                        .like(code != null, ResourceDO::getCode, code == null ? null : code.value())
                         .like(hasText(name), ResourceDO::getName, name)
                         .eq(resourceType != null, ResourceDO::getResourceType, resourceType.value())
                         .eq(status != null, ResourceDO::getStatus, status.value())
@@ -51,9 +52,9 @@ class ResourcePersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countResources(String code, String name, ResourceType resourceType, ResourceStatus status) {
+    long countResources(ResourceCode code, String name, ResourceType resourceType, ResourceStatus status) {
         return Optional.ofNullable(resourceMapper.selectCount(Wrappers.<ResourceDO>lambdaQuery()
-                        .like(hasText(code), ResourceDO::getCode, code)
+                        .like(code != null, ResourceDO::getCode, code == null ? null : code.value())
                         .like(hasText(name), ResourceDO::getName, name)
                         .eq(resourceType != null, ResourceDO::getResourceType, resourceType.value())
                         .eq(status != null, ResourceDO::getStatus, status.value())))

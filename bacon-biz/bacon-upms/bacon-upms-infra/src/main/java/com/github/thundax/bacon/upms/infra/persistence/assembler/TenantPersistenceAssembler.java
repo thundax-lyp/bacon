@@ -13,7 +13,7 @@ public final class TenantPersistenceAssembler {
     public static TenantDO toDataObject(Tenant tenant) {
         return new TenantDO(
                 tenant.getId() == null ? null : tenant.getId().value(),
-                tenant.getTenantCode().value(),
+                tenant.getCode().value(),
                 tenant.getName(),
                 tenant.getStatus().value(),
                 tenant.getExpiredAt());

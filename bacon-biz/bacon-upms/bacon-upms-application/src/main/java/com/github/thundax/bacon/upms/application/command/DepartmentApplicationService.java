@@ -10,7 +10,6 @@ import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
 import com.github.thundax.bacon.upms.application.assembler.DepartmentAssembler;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
-import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
@@ -84,17 +83,15 @@ public class DepartmentApplicationService {
 
     @Transactional
     public DepartmentDTO createDepartment(
-            DepartmentCode code, String name, DepartmentId parentId, UserId leaderUserId, Integer sort) {
+            DepartmentCode code, String name, DepartmentId parentId, UserId leaderUserId) {
         validateParent(parentId);
         validateLeaderUser(leaderUserId);
         return DepartmentAssembler.toDto(departmentRepository.insert(Department.create(
                 DepartmentIdCodec.toDomain(idGenerator.nextId(DEPARTMENT_ID_BIZ_TAG)),
-                code.value(),
+                code,
                 name,
                 parentId,
-                leaderUserId,
-                defaultSort(sort),
-                DepartmentStatus.ENABLED)));
+                leaderUserId)));
     }
 
     @Transactional
@@ -110,16 +107,14 @@ public class DepartmentApplicationService {
                 .orElseThrow(() -> new NotFoundException("Department not found: " + departmentId));
         validateParent(parentId);
         validateLeaderUser(leaderUserId);
-        if (departmentId.equals(parentId)) {
-            throw new ConflictException("Department parent cannot be self");
+        currentDepartment.recodeAs(code);
+        currentDepartment.rename(name);
+        currentDepartment.moveUnder(parentId);
+        currentDepartment.appointLeader(leaderUserId);
+        if (sort != null) {
+            currentDepartment.sort(sort);
         }
-        return DepartmentAssembler.toDto(departmentRepository.update(currentDepartment.update(
-                code.value(),
-                name,
-                parentId,
-                leaderUserId,
-                sort == null ? currentDepartment.getSort() : sort,
-                currentDepartment.getStatus())));
+        return DepartmentAssembler.toDto(departmentRepository.update(currentDepartment));
     }
 
     @Transactional
@@ -147,10 +142,6 @@ public class DepartmentApplicationService {
     private Comparator<DepartmentTreeDTO> treeComparator() {
         return Comparator.comparing(DepartmentTreeDTO::getSort, Comparator.nullsLast(Integer::compareTo))
                 .thenComparing(DepartmentTreeDTO::getId);
-    }
-
-    private Integer defaultSort(Integer sort) {
-        return sort == null ? 0 : sort;
     }
 
     private void validateParent(DepartmentId parentId) {

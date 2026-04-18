@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.application.assembler;
 import com.github.thundax.bacon.common.id.codec.UserIdCodec;
 import com.github.thundax.bacon.upms.api.dto.DepartmentDTO;
 import com.github.thundax.bacon.upms.api.dto.DepartmentTreeDTO;
+import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
@@ -15,7 +16,7 @@ public final class DepartmentAssembler {
     public static DepartmentDTO toDto(Department department) {
         return new DepartmentDTO(
                 DepartmentIdCodec.toValue(department.getId()),
-                department.getCode(),
+                DepartmentCodeCodec.toValue(department.getCode()),
                 department.getName(),
                 DepartmentIdCodec.toValue(department.getParentId()),
                 UserIdCodec.toValue(department.getLeaderUserId()),
@@ -26,7 +27,7 @@ public final class DepartmentAssembler {
     public static DepartmentTreeDTO toTreeDto(Department department) {
         return new DepartmentTreeDTO(
                 DepartmentIdCodec.toValue(department.getId()),
-                department.getCode(),
+                DepartmentCodeCodec.toValue(department.getCode()),
                 department.getName(),
                 DepartmentIdCodec.toValue(department.getParentId()),
                 UserIdCodec.toValue(department.getLeaderUserId()),

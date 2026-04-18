@@ -22,20 +22,20 @@ public class PermissionQueryApplicationService {
         this.menuApplicationService = menuApplicationService;
     }
 
-    public List<UserMenuTreeDTO> getUserMenuTree(UserId userId) {
+    public List<UserMenuTreeDTO> listUserMenuTree(UserId userId) {
         // 菜单树的最终组装仍由 MenuApplicationService 负责，这里只聚合权限仓储结果，不重复实现树构建规则。
-        return menuApplicationService.toMenuTree(permissionRepository.getUserMenuTree(userId));
+        return menuApplicationService.toMenuTree(permissionRepository.listUserMenuTree(userId));
     }
 
-    public Set<String> getUserPermissionCodes(UserId userId) {
-        return permissionRepository.getUserPermissionCodes(userId);
+    public Set<String> findUserPermissionCodes(UserId userId) {
+        return permissionRepository.findUserPermissionCodes(userId);
     }
 
     public UserDataScopeDTO getUserDataScope(UserId userId) {
         // 数据权限由多个维度组合而成：是否全量、范围类型集合、部门集合；查询层只做聚合，不引入额外推导。
         return UserDataScopeAssembler.toDto(
-                permissionRepository.hasAllAccess(userId),
-                permissionRepository.getUserScopeTypes(userId),
-                permissionRepository.getUserDepartmentIds(userId));
+                permissionRepository.existsUserAllAccess(userId),
+                permissionRepository.findUserScopeTypes(userId),
+                permissionRepository.findUserDepartmentIds(userId));
     }
 }

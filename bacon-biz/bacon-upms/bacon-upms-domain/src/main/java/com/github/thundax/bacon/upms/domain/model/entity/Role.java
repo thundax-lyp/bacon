@@ -1,13 +1,15 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
-import com.github.thundax.bacon.upms.domain.exception.RoleDomainException;
 import com.github.thundax.bacon.upms.domain.exception.RoleErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import java.util.Objects;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -59,39 +61,14 @@ public class Role {
         return new Role(id, code, name, roleType, dataScopeType, status);
     }
 
-    public void rename(String name) {
-        if (name == null || name.isBlank()) {
-            throw new RoleDomainException(RoleErrorCode.INVALID_ROLE_NAME);
+    public void assertActive() {
+        if (status != RoleStatus.ACTIVE) {
+            throw new UpmsDomainException(RoleErrorCode.ROLE_NOT_ACTIVE);
         }
-        this.name = name.trim();
-    }
-
-    public void changeDataScope(RoleDataScopeType dataScopeType) {
-        Objects.requireNonNull(dataScopeType, "dataScopeType must not be null");
-        this.dataScopeType = dataScopeType;
-    }
-
-    public void changeCode(RoleCode code) {
-        Objects.requireNonNull(code, "code must not be null");
-        this.code = code;
     }
 
     public boolean isSystemRole() {
         return roleType == RoleType.SYSTEM_ROLE;
-    }
-
-    public void assertActive() {
-        if (status != RoleStatus.ACTIVE) {
-            throw new RoleDomainException(RoleErrorCode.ROLE_NOT_ACTIVE);
-        }
-    }
-
-    public void activate() {
-        this.status = RoleStatus.ACTIVE;
-    }
-
-    public void disable() {
-        this.status = RoleStatus.DISABLED;
     }
 
     public boolean hasAllDataAccess() {
@@ -104,5 +81,43 @@ public class Role {
 
     public boolean hasSelfDataAccess() {
         return dataScopeType == RoleDataScopeType.SELF;
+    }
+
+    public void recodeAs(RoleCode code) {
+        Objects.requireNonNull(code, "code must not be null");
+        this.code = code;
+    }
+
+    public void rename(String name) {
+        if (name == null || name.isBlank()) {
+            throw new UpmsDomainException(RoleErrorCode.INVALID_ROLE_NAME);
+        }
+        this.name = name.trim();
+    }
+
+    public void retypeAs(RoleType roleType) {
+        Objects.requireNonNull(roleType, "roleType must not be null");
+        this.roleType = roleType;
+    }
+
+    public Set<DepartmentId> assignDataScope(RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
+        Objects.requireNonNull(dataScopeType, "dataScopeType must not be null");
+        Set<DepartmentId> safeDepartmentIds = departmentIds == null ? Set.of() : Set.copyOf(departmentIds);
+        if (dataScopeType == RoleDataScopeType.CUSTOM && safeDepartmentIds.isEmpty()) {
+            throw new UpmsDomainException(RoleErrorCode.INVALID_ROLE_CUSTOM_DATA_SCOPE);
+        }
+        this.dataScopeType = dataScopeType;
+        if (dataScopeType == RoleDataScopeType.CUSTOM) {
+            return safeDepartmentIds;
+        }
+        return Set.of();
+    }
+
+    public void activate() {
+        this.status = RoleStatus.ACTIVE;
+    }
+
+    public void disable() {
+        this.status = RoleStatus.DISABLED;
     }
 }

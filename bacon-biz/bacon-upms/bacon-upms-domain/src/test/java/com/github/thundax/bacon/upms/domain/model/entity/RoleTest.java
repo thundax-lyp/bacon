@@ -4,12 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.github.thundax.bacon.upms.domain.exception.RoleDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class RoleTest {
@@ -40,7 +42,7 @@ class RoleTest {
                 RoleStatus.ACTIVE);
 
         assertThatThrownBy(() -> role.rename("   "))
-                .isInstanceOf(RoleDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("Role name must not be blank");
     }
 
@@ -57,12 +59,60 @@ class RoleTest {
         assertThat(role.isSystemRole()).isTrue();
         assertThat(role.hasAllDataAccess()).isTrue();
 
-        role.changeDataScope(RoleDataScopeType.DEPARTMENT);
+        role.assignDataScope(RoleDataScopeType.DEPARTMENT, Set.of());
         assertThat(role.hasDepartmentDataAccess()).isTrue();
         assertThat(role.hasAllDataAccess()).isFalse();
 
-        role.changeDataScope(RoleDataScopeType.SELF);
+        role.assignDataScope(RoleDataScopeType.SELF, Set.of());
         assertThat(role.hasSelfDataAccess()).isTrue();
+    }
+
+    @Test
+    void shouldAssignCustomDataScopeWithDepartments() {
+        Role role = Role.create(
+                RoleId.of(101L),
+                RoleCode.of("ADMIN"),
+                "Admin",
+                RoleType.SYSTEM_ROLE,
+                RoleDataScopeType.ALL,
+                RoleStatus.ACTIVE);
+
+        Set<DepartmentId> assignedDepartments =
+                role.assignDataScope(RoleDataScopeType.CUSTOM, Set.of(DepartmentId.of(11L), DepartmentId.of(12L)));
+
+        assertThat(role.getDataScopeType()).isEqualTo(RoleDataScopeType.CUSTOM);
+        assertThat(assignedDepartments).containsExactlyInAnyOrder(DepartmentId.of(11L), DepartmentId.of(12L));
+    }
+
+    @Test
+    void shouldClearDepartmentsForNonCustomDataScope() {
+        Role role = Role.create(
+                RoleId.of(101L),
+                RoleCode.of("ADMIN"),
+                "Admin",
+                RoleType.SYSTEM_ROLE,
+                RoleDataScopeType.CUSTOM,
+                RoleStatus.ACTIVE);
+
+        Set<DepartmentId> assignedDepartments = role.assignDataScope(RoleDataScopeType.ALL, Set.of(DepartmentId.of(11L)));
+
+        assertThat(role.getDataScopeType()).isEqualTo(RoleDataScopeType.ALL);
+        assertThat(assignedDepartments).isEmpty();
+    }
+
+    @Test
+    void shouldRejectEmptyDepartmentsForCustomDataScope() {
+        Role role = Role.create(
+                RoleId.of(101L),
+                RoleCode.of("ADMIN"),
+                "Admin",
+                RoleType.SYSTEM_ROLE,
+                RoleDataScopeType.ALL,
+                RoleStatus.ACTIVE);
+
+        assertThatThrownBy(() -> role.assignDataScope(RoleDataScopeType.CUSTOM, Set.of()))
+                .isInstanceOf(UpmsDomainException.class)
+                .hasMessage("Custom role data scope departments must not be empty");
     }
 
     @Test
@@ -76,7 +126,7 @@ class RoleTest {
                 RoleStatus.DISABLED);
 
         assertThatThrownBy(role::assertActive)
-                .isInstanceOf(RoleDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("Role is not active");
 
         role.activate();
@@ -96,7 +146,7 @@ class RoleTest {
                 RoleDataScopeType.ALL,
                 RoleStatus.ACTIVE);
 
-        role.changeCode(RoleCode.of("PLATFORM_ADMIN"));
+        role.recodeAs(RoleCode.of("PLATFORM_ADMIN"));
 
         assertThat(role.getCode()).isEqualTo(RoleCode.of("PLATFORM_ADMIN"));
     }

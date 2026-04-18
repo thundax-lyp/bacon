@@ -164,10 +164,10 @@ public class UserController {
     @HasPermission("sys:user:update")
     @SysLog(module = "UPMS", action = "分配用户角色", eventType = LogEventType.GRANT)
     @PutMapping("/{userId}/roles")
-    public List<RoleResponse> assignRoles(
+    public List<RoleResponse> updateRoleIds(
             @PathVariable("userId") Long userId, @RequestBody UserRoleAssignRequest request) {
         return userApplicationService
-                .assignRoles(
+                .updateRoleIds(
                         UserIdCodec.toDomain(userId),
                         request.roleIds() == null
                                 ? List.of()

@@ -12,6 +12,7 @@ import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.interfaces.request.RoleCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.RoleDataScopeAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.request.RoleMenuAssignRequest;
@@ -119,7 +120,7 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @GetMapping("/{roleId}/menus")
     public Set<String> getAssignedMenus(@PathVariable("roleId") Long roleId) {
-        return roleApplicationService.getAssignedMenus(RoleIdCodec.toDomain(roleId));
+        return roleApplicationService.getMenuIds(RoleIdCodec.toDomain(roleId));
     }
 
     @Operation(summary = "分配角色菜单")
@@ -127,7 +128,7 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "分配角色菜单", eventType = LogEventType.GRANT)
     @PutMapping("/{roleId}/menus")
     public Set<String> assignMenus(@PathVariable("roleId") Long roleId, @RequestBody RoleMenuAssignRequest request) {
-        return roleApplicationService.assignMenus(
+        return roleApplicationService.updateMenuIds(
                 RoleIdCodec.toDomain(roleId),
                 request.menuIds() == null
                         ? Set.of()
@@ -139,7 +140,7 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "查询角色资源授权", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}/resources")
     public Set<String> getAssignedResources(@PathVariable("roleId") Long roleId) {
-        return roleApplicationService.getAssignedResources(RoleIdCodec.toDomain(roleId));
+        return roleApplicationService.getResourceCodes(RoleIdCodec.toDomain(roleId));
     }
 
     @Operation(summary = "分配角色资源")
@@ -148,7 +149,7 @@ public class RoleController {
     @PutMapping("/{roleId}/resources")
     public Set<String> assignResources(
             @PathVariable("roleId") Long roleId, @RequestBody RoleResourceAssignRequest request) {
-        return roleApplicationService.assignResources(RoleIdCodec.toDomain(roleId), request.resourceCodes());
+        return roleApplicationService.updateResourceCodes(RoleIdCodec.toDomain(roleId), request.resourceCodes());
     }
 
     @Operation(summary = "查询角色数据权限配置")
@@ -156,11 +157,10 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "查询角色数据权限配置", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}/data-scope")
     public RoleDataScopeResponse getAssignedDataScope(@PathVariable("roleId") Long roleId) {
+        RoleDataScopeAssignment assignment = roleApplicationService.getDataScope(RoleIdCodec.toDomain(roleId));
         return new RoleDataScopeResponse(
-                roleApplicationService
-                        .getAssignedDataScopeType(RoleIdCodec.toDomain(roleId))
-                        .value(),
-                roleApplicationService.getAssignedDataScopeDepartments(RoleIdCodec.toDomain(roleId)).stream()
+                assignment.dataScopeType().value(),
+                assignment.departmentIds().stream()
                         .map(DepartmentId::value)
                         .collect(Collectors.toSet()));
     }
@@ -172,7 +172,7 @@ public class RoleController {
     public Set<Long> assignDataScope(
             @PathVariable("roleId") Long roleId, @RequestBody RoleDataScopeAssignRequest request) {
         return roleApplicationService
-                .assignDataScope(
+                .updateDataScope(
                         RoleIdCodec.toDomain(roleId),
                         request.dataScopeType() == null ? null : RoleDataScopeType.from(request.dataScopeType()),
                         request.departmentIds() == null
@@ -180,7 +180,7 @@ public class RoleController {
                                 : request.departmentIds().stream()
                                         .map(DepartmentIdCodec::toDomain)
                                         .collect(Collectors.toSet()))
-                .stream()
+                .departmentIds().stream()
                 .map(DepartmentId::value)
                 .collect(Collectors.toSet());
     }

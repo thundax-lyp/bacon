@@ -3,7 +3,7 @@ package com.github.thundax.bacon.upms.domain.model.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.github.thundax.bacon.upms.domain.exception.MenuDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +20,7 @@ class MenuTest {
                         "CatalogPage",
                         "catalog",
                         null))
-                .isInstanceOf(MenuDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("Menu parent cannot be self");
     }
 
@@ -28,15 +28,8 @@ class MenuTest {
     void shouldRejectSelfAsParentWhenUpdatingMenu() {
         Menu menu = Menu.create(MenuId.of(101L), "CATALOG", "Catalog", null, "/catalog", "CatalogPage", "catalog", null);
 
-        assertThatThrownBy(() -> menu.update(
-                        "CATALOG",
-                        "Catalog",
-                        MenuId.of(101L),
-                        "/catalog",
-                        "CatalogPage",
-                        "catalog",
-                        null))
-                .isInstanceOf(MenuDomainException.class)
+        assertThatThrownBy(() -> menu.moveUnder(MenuId.of(101L)))
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("Menu parent cannot be self");
     }
 
@@ -52,7 +45,7 @@ class MenuTest {
         Menu menu = Menu.create(MenuId.of(101L), "CATALOG", "Catalog", null, "/catalog", "CatalogPage", "catalog", null);
 
         assertThatThrownBy(() -> menu.sort(-1))
-                .isInstanceOf(MenuDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("Menu sort must be greater than or equal to 0");
     }
 

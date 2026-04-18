@@ -60,16 +60,8 @@ public class MenuRepositoryImpl implements MenuRepository {
         TenantId tenantId = requireTenantId();
         Menu currentMenu =
                 findMenuById(menuId).orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
-        Menu savedMenu = support.updateMenu(currentMenu.update(
-                currentMenu.getMenuType(),
-                currentMenu.getName(),
-                currentMenu.getParentId(),
-                currentMenu.getRoutePath(),
-                currentMenu.getComponentName(),
-                currentMenu.getIcon(),
-                sort,
-                currentMenu.getPermissionCode(),
-                List.of()));
+        currentMenu.sort(sort);
+        Menu savedMenu = support.updateMenu(currentMenu);
         cacheSupport.evictTenantPermission(tenantId);
         return savedMenu;
     }

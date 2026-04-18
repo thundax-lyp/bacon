@@ -12,7 +12,7 @@ public final class TenantAssembler {
         return new TenantDTO(
                 tenant.getId() == null ? null : tenant.getId().value(),
                 tenant.getName(),
-                TenantCodeCodec.toValue(tenant.getTenantCode()),
+                TenantCodeCodec.toValue(tenant.getCode()),
                 tenant.getStatus().value(),
                 tenant.getExpiredAt());
     }

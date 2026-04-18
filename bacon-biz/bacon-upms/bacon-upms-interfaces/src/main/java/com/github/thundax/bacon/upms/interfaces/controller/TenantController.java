@@ -56,7 +56,7 @@ public class TenantController {
     @PostMapping
     public TenantResponse createTenant(@RequestBody TenantCreateRequest request) {
         return TenantResponse.from(tenantApplicationService.createTenant(
-                request.name(), TenantCodeCodec.toDomain(request.tenantCode()), request.expiredAt()));
+                request.name(), TenantCodeCodec.toDomain(request.code()), request.expiredAt()));
     }
 
     @Operation(summary = "修改租户")
@@ -68,7 +68,7 @@ public class TenantController {
         return TenantResponse.from(tenantApplicationService.updateTenant(
                 TenantId.of(tenantId),
                 request.name(),
-                TenantCodeCodec.toDomain(request.tenantCode()),
+                TenantCodeCodec.toDomain(request.code()),
                 request.expiredAt()));
     }
 

@@ -24,6 +24,7 @@ import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
+import com.github.thundax.bacon.upms.domain.model.entity.UserIdentity;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
@@ -35,9 +36,13 @@ import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleCode;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.MenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
@@ -299,18 +304,21 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldPersistUserRoleAndPermissionGraph() {
-        Department rootDepartment = departmentRepository.insert(Department.create(
-                HEADQUARTERS_DEPARTMENT_ID, "ROOT", "Headquarters", null, null, 1, DepartmentStatus.ENABLED));
-        Department childDepartment = departmentRepository.insert(Department.create(
-                OPERATIONS_DEPARTMENT_ID,
-                "OPS",
-                "Operations",
-                rootDepartment.getId(),
-                null,
-                2,
-                DepartmentStatus.ENABLED));
+        Department rootDepartment = Department.create(
+                HEADQUARTERS_DEPARTMENT_ID, DepartmentCode.of("ROOT"), "Headquarters", null, null);
+        rootDepartment.sort(1);
+        rootDepartment = departmentRepository.insert(rootDepartment);
+        Department childDepartment =
+                Department.create(
+                        OPERATIONS_DEPARTMENT_ID,
+                        DepartmentCode.of("OPS"),
+                        "Operations",
+                        rootDepartment.getId(),
+                        null);
+        childDepartment.sort(2);
+        childDepartment = departmentRepository.insert(childDepartment);
         Menu rootMenu = menuRepository.insert(Menu.create(
-                MenuId.of(2001L), "MENU", "System", null, "/system", "SystemPage", "shield", 1, null, List.of()));
+                MenuId.of(2001L), "MENU", "System", null, "/system", "SystemPage", "shield", null));
         Menu childMenu = menuRepository.insert(Menu.create(
                 MenuId.of(2002L),
                 "MENU",
@@ -319,12 +327,10 @@ class UpmsRepositoryIntegrationTest {
                 "/system/users",
                 "UserPage",
                 "user",
-                2,
-                "upms:user:view",
-                List.of()));
+                "upms:user:view"));
         Resource resource = resourceRepository.insert(Resource.create(
                 ResourceId.of(2301L),
-                "upms:user:edit",
+                ResourceCode.of("upms:user:edit"),
                 "Edit User",
                 ResourceType.API,
                 "POST",
@@ -332,29 +338,31 @@ class UpmsRepositoryIntegrationTest {
                 ResourceStatus.ENABLED));
         Role role = roleRepository.insert(Role.create(
                 RoleId.of(2101L),
-                "ADMIN",
+                RoleCode.of("ADMIN"),
                 "Administrator",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
-                RoleStatus.ENABLED));
+                RoleStatus.ACTIVE));
         User user = userRepository.insert(
                 User.create(
                         UserId.of(2201L),
                         "Alice",
                         AvatarStoredObjectNo.of("storage-20260327100000-000901"),
                         childDepartment.getId(),
-                        UserStatus.ENABLED),
+                        UserStatus.ACTIVE),
                 "alice",
                 "13800000001",
                 UserIdentityId.of(3001L),
                 UserIdentityId.of(3002L),
                 UserCredentialId.of(3003L));
 
-        roleRepository.assignMenus(role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
-        roleRepository.assignResources(role.getId(), Set.of(resource.getCode()));
-        roleRepository.assignDataScope(
-                role.getId(), RoleDataScopeType.CUSTOM, Set.of(rootDepartment.getId(), childDepartment.getId()));
-        userRepository.assignRoles(user.getId(), List.of(role.getId()));
+        roleRepository.updateMenuIds(role.getId(), Set.of(rootMenu.getId(), childMenu.getId()));
+        roleRepository.updateResourceCodes(role.getId(), Set.of(resource.getCode()));
+        roleRepository.updateDataScope(
+                role.getId(),
+                RoleDataScopeAssignment.of(
+                        RoleDataScopeType.CUSTOM, Set.of(rootDepartment.getId(), childDepartment.getId())));
+        userRepository.updateRoleIds(user.getId(), List.of(role.getId()));
 
         assertEquals(1, permissionRepository.listMenus().size());
 
@@ -377,56 +385,64 @@ class UpmsRepositoryIntegrationTest {
         assertTrue(userRepository
                 .findUserIdentity(UserIdentityType.PHONE, "13800000001")
                 .isPresent());
-        assertEquals(1L, userRepository.countUsers("ali", null, null, UserStatus.ENABLED));
+        assertEquals(1L, userRepository.countUsers("ali", null, null, UserStatus.ACTIVE));
 
-        List<Menu> menuTree = permissionRepository.getUserMenuTree(user.getId());
+        List<Menu> menuTree = permissionRepository.listUserMenuTree(user.getId());
         assertEquals(1, menuTree.size());
         assertEquals(rootMenu.getId(), menuTree.get(0).getId());
         assertEquals(1, menuTree.get(0).getChildren().size());
         assertEquals(childMenu.getId(), menuTree.get(0).getChildren().get(0).getId());
 
-        Set<String> permissionCodes = permissionRepository.getUserPermissionCodes(user.getId());
+        Set<String> permissionCodes = permissionRepository.findUserPermissionCodes(user.getId());
         assertTrue(permissionCodes.contains("upms:user:view"));
         assertTrue(permissionCodes.contains("upms:user:edit"));
-        assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(user.getId()));
+        assertEquals(Set.of("CUSTOM"), permissionRepository.findUserScopeTypes(user.getId()));
         assertEquals(
                 Set.of(rootDepartment.getId(), childDepartment.getId()),
-                permissionRepository.getUserDepartmentIds(user.getId()));
-        assertFalse(permissionRepository.hasAllAccess(user.getId()));
+                permissionRepository.findUserDepartmentIds(user.getId()));
+        assertFalse(permissionRepository.existsUserAllAccess(user.getId()));
     }
 
     @Test
     void shouldReplacePhoneIdentityAndClearUserAssignmentsOnDelete() {
-        Department department = departmentRepository.insert(Department.create(
-                OPERATIONS_DEPARTMENT_ID, "OPS", "Operations", null, null, 1, DepartmentStatus.ENABLED));
+        Department department = Department.create(
+                OPERATIONS_DEPARTMENT_ID, DepartmentCode.of("OPS"), "Operations", null, null);
+        department.sort(1);
+        department = departmentRepository.insert(department);
         Role role = roleRepository.insert(Role.create(
                 RoleId.of(2102L),
-                "OPS_ADMIN",
+                RoleCode.of("OPS_ADMIN"),
                 "Ops Admin",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
-                RoleStatus.ENABLED));
+                RoleStatus.ACTIVE));
         User createdUser = userRepository.insert(
                 User.create(
                         UserId.of(2202L),
                         "Bob",
                         AvatarStoredObjectNo.of("storage-20260327100000-001001"),
                         department.getId(),
-                        UserStatus.ENABLED),
+                        UserStatus.ACTIVE),
                 "bob",
                 "13800000002",
                 UserIdentityId.of(3101L),
                 UserIdentityId.of(3102L),
                 UserCredentialId.of(3103L));
 
-        userRepository.assignRoles(createdUser.getId(), List.of(role.getId()));
+        userRepository.updateRoleIds(createdUser.getId(), List.of(role.getId()));
+        UserIdentity originalAccountIdentity = userRepository
+                .findUserIdentityByUserId(createdUser.getId(), UserIdentityType.ACCOUNT)
+                .orElseThrow();
+        UserIdentity originalPhoneIdentity = userRepository
+                .findUserIdentityByUserId(createdUser.getId(), UserIdentityType.PHONE)
+                .orElseThrow();
         User updatedUser = userRepository.update(
                 User.create(
                         createdUser.getId(),
                         "Bob",
                         AvatarStoredObjectNo.of("storage-20260327100000-001002"),
                         department.getId(),
-                        UserStatus.ENABLED),
+                        UserStatus.ACTIVE),
                 "bob",
                 "13900000003",
                 UserIdentityId.of(3201L),
@@ -439,6 +455,18 @@ class UpmsRepositoryIntegrationTest {
         assertTrue(userRepository
                 .findUserIdentity(UserIdentityType.PHONE, "13900000003")
                 .isPresent());
+        assertEquals(
+                originalAccountIdentity.getId(),
+                userRepository
+                        .findUserIdentityByUserId(updatedUser.getId(), UserIdentityType.ACCOUNT)
+                        .orElseThrow()
+                        .getId());
+        assertEquals(
+                originalPhoneIdentity.getId(),
+                userRepository
+                        .findUserIdentityByUserId(updatedUser.getId(), UserIdentityType.PHONE)
+                        .orElseThrow()
+                        .getId());
         assertNotNull(userRepository
                 .findUserCredential(updatedUser.getId(), UserCredentialType.PASSWORD)
                 .orElseThrow()
@@ -460,10 +488,12 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldSyncAccountIdentityPasswordWhenUpdatingPassword() {
-        Department department = departmentRepository.insert(Department.create(
-                OPERATIONS_DEPARTMENT_ID, "OPS", "Operations", null, null, 1, DepartmentStatus.ENABLED));
+        Department department = Department.create(
+                OPERATIONS_DEPARTMENT_ID, DepartmentCode.of("OPS"), "Operations", null, null);
+        department.sort(1);
+        department = departmentRepository.insert(department);
         User createdUser = userRepository.insert(
-                User.create(UserId.of(2203L), "Carol", null, department.getId(), UserStatus.ENABLED),
+                User.create(UserId.of(2203L), "Carol", null, department.getId(), UserStatus.ACTIVE),
                 "carol",
                 "13600000001",
                 UserIdentityId.of(3301L),
@@ -491,17 +521,21 @@ class UpmsRepositoryIntegrationTest {
 
     @Test
     void shouldReplaceRoleRelationsAndSupportDepartmentHierarchyQueries() {
-        Department root = departmentRepository.insert(
-                Department.create(HEADQUARTERS_DEPARTMENT_ID, "ROOT", "Root", null, null, 1, DepartmentStatus.ENABLED));
-        Department child = departmentRepository.insert(Department.create(
-                CHILD_DEPARTMENT_ID, "CHILD", "Child", root.getId(), null, 2, DepartmentStatus.ENABLED));
+        Department root = Department.create(
+                HEADQUARTERS_DEPARTMENT_ID, DepartmentCode.of("ROOT"), "Root", null, null);
+        root.sort(1);
+        root = departmentRepository.insert(root);
+        Department child = Department.create(
+                CHILD_DEPARTMENT_ID, DepartmentCode.of("CHILD"), "Child", root.getId(), null);
+        child.sort(2);
+        child = departmentRepository.insert(child);
         Menu oldMenu = menuRepository.insert(Menu.create(
-                MenuId.of(2003L), "MENU", "Old", null, "/old", "OldPage", "archive", 1, "upms:old:view", List.of()));
+                MenuId.of(2003L), "MENU", "Old", null, "/old", "OldPage", "archive", "upms:old:view"));
         Menu newMenu = menuRepository.insert(Menu.create(
-                MenuId.of(2004L), "MENU", "New", null, "/new", "NewPage", "star", 2, "upms:new:view", List.of()));
+                MenuId.of(2004L), "MENU", "New", null, "/new", "NewPage", "star", "upms:new:view"));
         Resource oldResource = resourceRepository.insert(Resource.create(
                 ResourceId.of(2302L),
-                "upms:old:edit",
+                ResourceCode.of("upms:old:edit"),
                 "Old Edit",
                 ResourceType.API,
                 "POST",
@@ -509,7 +543,7 @@ class UpmsRepositoryIntegrationTest {
                 ResourceStatus.ENABLED));
         Resource newResource = resourceRepository.insert(Resource.create(
                 ResourceId.of(2303L),
-                "upms:new:edit",
+                ResourceCode.of("upms:new:edit"),
                 "New Edit",
                 ResourceType.API,
                 "PUT",
@@ -517,41 +551,44 @@ class UpmsRepositoryIntegrationTest {
                 ResourceStatus.ENABLED));
         Role role = roleRepository.insert(Role.create(
                 RoleId.of(2103L),
-                "MANAGER",
+                RoleCode.of("MANAGER"),
                 "Manager",
                 RoleType.SYSTEM_ROLE,
                 RoleDataScopeType.SELF,
-                RoleStatus.ENABLED));
+                RoleStatus.ACTIVE));
 
-        roleRepository.assignMenus(role.getId(), Set.of(oldMenu.getId()));
-        roleRepository.assignResources(role.getId(), Set.of(oldResource.getCode()));
-        roleRepository.assignDataScope(role.getId(), RoleDataScopeType.CUSTOM, Set.of(root.getId()));
+        roleRepository.updateMenuIds(role.getId(), Set.of(oldMenu.getId()));
+        roleRepository.updateResourceCodes(role.getId(), Set.of(oldResource.getCode()));
+        roleRepository.updateDataScope(
+                role.getId(), RoleDataScopeAssignment.of(RoleDataScopeType.CUSTOM, Set.of(root.getId())));
 
         User user = userRepository.insert(
-                User.create(UserId.of(2204L), "Manager", null, child.getId(), UserStatus.ENABLED),
+                User.create(UserId.of(2204L), "Manager", null, child.getId(), UserStatus.ACTIVE),
                 "manager",
                 "13700000001",
                 UserIdentityId.of(3401L),
                 UserIdentityId.of(3402L),
                 UserCredentialId.of(3403L));
-        userRepository.assignRoles(user.getId(), List.of(role.getId()));
+        userRepository.updateRoleIds(user.getId(), List.of(role.getId()));
 
         assertEquals(
-                Set.of("upms:old:view", "upms:old:edit"), permissionRepository.getUserPermissionCodes(user.getId()));
-        assertEquals(Set.of("CUSTOM"), permissionRepository.getUserScopeTypes(user.getId()));
-        assertEquals(1, permissionRepository.getUserMenuTree(user.getId()).size());
+                Set.of("upms:old:view", "upms:old:edit"), permissionRepository.findUserPermissionCodes(user.getId()));
+        assertEquals(Set.of("CUSTOM"), permissionRepository.findUserScopeTypes(user.getId()));
+        assertEquals(1, permissionRepository.listUserMenuTree(user.getId()).size());
 
-        roleRepository.assignMenus(role.getId(), Set.of(newMenu.getId()));
-        roleRepository.assignResources(role.getId(), Set.of(newResource.getCode()));
-        roleRepository.assignDataScope(role.getId(), RoleDataScopeType.ALL, Set.of(child.getId()));
+        roleRepository.updateMenuIds(role.getId(), Set.of(newMenu.getId()));
+        roleRepository.updateResourceCodes(role.getId(), Set.of(newResource.getCode()));
+        roleRepository.updateDataScope(
+                role.getId(), RoleDataScopeAssignment.of(RoleDataScopeType.ALL, Set.of(child.getId())));
 
-        assertEquals(Set.of(newMenu.getId()), roleRepository.getAssignedMenus(role.getId()));
-        assertEquals(Set.of(newResource.getCode()), roleRepository.getAssignedResources(role.getId()));
-        assertEquals(RoleDataScopeType.ALL, roleRepository.getAssignedDataScopeType(role.getId()));
-        assertEquals(Set.of(child.getId()), roleRepository.getAssignedDataScopeDepartments(role.getId()));
+        assertEquals(Set.of(newMenu.getId()), roleRepository.findMenuIds(role.getId()));
+        assertEquals(Set.of(newResource.getCode()), roleRepository.findResourceCodes(role.getId()));
         assertEquals(
-                Set.of("upms:new:view", "upms:new:edit"), permissionRepository.getUserPermissionCodes(user.getId()));
-        assertEquals(Set.of("ALL"), permissionRepository.getUserScopeTypes(user.getId()));
+                RoleDataScopeAssignment.of(RoleDataScopeType.ALL, Set.of()),
+                roleRepository.findDataScope(role.getId()));
+        assertEquals(
+                Set.of("upms:new:view", "upms:new:edit"), permissionRepository.findUserPermissionCodes(user.getId()));
+        assertEquals(Set.of("ALL"), permissionRepository.findUserScopeTypes(user.getId()));
         assertTrue(departmentRepository.existsChildDepartment(root.getId()));
         assertEquals(
                 Set.of(root.getId(), child.getId()),
@@ -562,9 +599,9 @@ class UpmsRepositoryIntegrationTest {
         menuRepository.deleteMenu(newMenu.getId());
         resourceRepository.delete(newResource.getId());
 
-        assertTrue(roleRepository.getAssignedMenus(role.getId()).isEmpty());
-        assertTrue(roleRepository.getAssignedResources(role.getId()).isEmpty());
-        assertTrue(permissionRepository.getUserPermissionCodes(user.getId()).isEmpty());
+        assertTrue(roleRepository.findMenuIds(role.getId()).isEmpty());
+        assertTrue(roleRepository.findResourceCodes(role.getId()).isEmpty());
+        assertTrue(permissionRepository.findUserPermissionCodes(user.getId()).isEmpty());
         assertNotEquals(oldMenu.getId(), newMenu.getId());
         assertNotEquals(oldResource.getId(), newResource.getId());
     }

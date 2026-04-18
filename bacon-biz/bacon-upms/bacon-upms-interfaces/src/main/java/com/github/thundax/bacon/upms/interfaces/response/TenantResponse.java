@@ -12,13 +12,13 @@ public record TenantResponse(
         /** 租户名称。 */
         String name,
         /** 稳定业务编码。 */
-        String tenantCode,
+        String code,
         /** 租户状态。 */
         String status,
         /** 过期时间。 */
         Instant expiredAt) {
 
     public static TenantResponse from(TenantDTO dto) {
-        return new TenantResponse(dto.getId(), dto.getName(), dto.getTenantCode(), dto.getStatus(), dto.getExpiredAt());
+        return new TenantResponse(dto.getId(), dto.getName(), dto.getCode(), dto.getStatus(), dto.getExpiredAt());
     }
 }

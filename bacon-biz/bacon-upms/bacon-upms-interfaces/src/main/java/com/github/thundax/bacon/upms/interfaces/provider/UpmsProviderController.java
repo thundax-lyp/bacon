@@ -11,12 +11,12 @@ import com.github.thundax.bacon.upms.api.dto.UserIdentityDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
 import com.github.thundax.bacon.upms.api.dto.UserMenuTreeDTO;
 import com.github.thundax.bacon.upms.api.dto.UserPasswordChangeDTO;
+import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
 import com.github.thundax.bacon.upms.application.command.RoleApplicationService;
 import com.github.thundax.bacon.upms.application.command.UserApplicationService;
 import com.github.thundax.bacon.upms.application.query.PermissionQueryApplicationService;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -95,7 +95,7 @@ public class UpmsProviderController {
     @Operation(summary = "按部门编码查询部门")
     @GetMapping("/departments/code/{departmentCode}")
     public DepartmentDTO getDepartmentByCode(@PathVariable String departmentCode) {
-        return departmentApplicationService.getDepartmentByCode(DepartmentCode.of(departmentCode));
+        return departmentApplicationService.getDepartmentByCode(DepartmentCodeCodec.toDomain(departmentCode));
     }
 
     @Operation(summary = "批量查询部门")
@@ -126,14 +126,14 @@ public class UpmsProviderController {
 
     @Operation(summary = "查询用户菜单树")
     @GetMapping("/permissions/menus")
-    public List<UserMenuTreeDTO> getUserMenuTree(@RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserMenuTree(UserIdCodec.toDomain(userId));
+    public List<UserMenuTreeDTO> listUserMenuTree(@RequestParam("userId") Long userId) {
+        return permissionQueryService.listUserMenuTree(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "查询用户权限码")
     @GetMapping("/permissions/codes")
-    public Set<String> getUserPermissionCodes(@RequestParam("userId") Long userId) {
-        return permissionQueryService.getUserPermissionCodes(UserIdCodec.toDomain(userId));
+    public Set<String> findUserPermissionCodes(@RequestParam("userId") Long userId) {
+        return permissionQueryService.findUserPermissionCodes(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")

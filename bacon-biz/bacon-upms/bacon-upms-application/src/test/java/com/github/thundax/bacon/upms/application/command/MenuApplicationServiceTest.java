@@ -41,7 +41,7 @@ class MenuApplicationServiceTest {
         MenuId parentId = MenuId.of(11L);
         when(menuRepository.findMenuById(parentId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.createMenu(MenuType.CATALOG, "Catalog", parentId, null, null, null, 1, null))
+        assertThatThrownBy(() -> service.createMenu(MenuType.CATALOG, "Catalog", parentId, null, null, null, null))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Parent menu not found: " + parentId);
         verifyNoInteractions(permissionRepository);

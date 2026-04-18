@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserCredentialId;
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.domain.exception.UserCredentialDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialFactorLevel;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserCredentialType;
@@ -28,7 +28,7 @@ class UserCredentialTest {
         UserCredential credential = credential(UserCredentialStatus.DISABLED, null, null);
 
         assertThatThrownBy(() -> credential.assertVerifiable(Instant.parse("2026-01-01T00:00:00Z")))
-                .isInstanceOf(UserCredentialDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User credential is not active");
     }
 
@@ -40,7 +40,7 @@ class UserCredentialTest {
                 Instant.parse("2099-01-01T00:00:00Z"));
 
         assertThatThrownBy(() -> credential.assertVerifiable(Instant.parse("2026-01-01T00:00:00Z")))
-                .isInstanceOf(UserCredentialDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User credential is locked");
     }
 
@@ -63,7 +63,7 @@ class UserCredentialTest {
                 null);
 
         assertThatThrownBy(() -> credential.assertVerifiable(Instant.parse("2026-01-01T00:00:00Z")))
-                .isInstanceOf(UserCredentialDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User credential is locked");
     }
 
@@ -73,7 +73,7 @@ class UserCredentialTest {
                 UserCredentialStatus.ACTIVE, null, Instant.parse("2025-12-31T23:59:59Z"));
 
         assertThatThrownBy(() -> credential.assertVerifiable(Instant.parse("2026-01-01T00:00:00Z")))
-                .isInstanceOf(UserCredentialDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User credential is expired");
     }
 
@@ -222,10 +222,10 @@ class UserCredentialTest {
                 null);
 
         assertThatThrownBy(() -> credential.requirePasswordChange())
-                .isInstanceOf(UserCredentialDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User credential password change requirement is only supported for password credentials");
         assertThatThrownBy(() -> credential.clearPasswordChangeRequirement())
-                .isInstanceOf(UserCredentialDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User credential password change requirement is only supported for password credentials");
     }
 
@@ -236,6 +236,45 @@ class UserCredentialTest {
         credential.replaceCredentialValue("{noop}new-secret");
 
         assertThat(credential.getCredentialValue()).isEqualTo("{noop}new-secret");
+    }
+
+    @Test
+    void shouldBindIdentity() {
+        UserCredential credential = credential(UserCredentialStatus.ACTIVE, null, null);
+
+        credential.bindIdentity(UserIdentityId.of(302L));
+
+        assertThat(credential.getIdentityId()).isEqualTo(UserIdentityId.of(302L));
+    }
+
+    @Test
+    void shouldReplacePasswordAndResetCredentialState() {
+        UserCredential credential = UserCredential.create(
+                UserCredentialId.of(101L),
+                UserId.of(201L),
+                UserIdentityId.of(301L),
+                UserCredentialType.PASSWORD,
+                UserCredentialFactorLevel.PRIMARY,
+                "{noop}old-secret",
+                UserCredentialStatus.LOCKED,
+                false,
+                4,
+                5,
+                "bad password",
+                Instant.parse("2026-01-02T00:00:00Z"),
+                Instant.parse("2026-03-01T00:00:00Z"),
+                Instant.parse("2025-12-31T00:00:00Z"));
+
+        credential.replacePassword("{noop}new-secret", true, Instant.parse("2026-06-01T00:00:00Z"));
+
+        assertThat(credential.getCredentialValue()).isEqualTo("{noop}new-secret");
+        assertThat(credential.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+        assertThat(credential.isNeedChangePassword()).isTrue();
+        assertThat(credential.getFailedCount()).isZero();
+        assertThat(credential.getLockReason()).isNull();
+        assertThat(credential.getLockedUntil()).isNull();
+        assertThat(credential.getExpiresAt()).isEqualTo(Instant.parse("2026-06-01T00:00:00Z"));
+        assertThat(credential.getLastVerifiedAt()).isEqualTo(Instant.parse("2025-12-31T00:00:00Z"));
     }
 
     @Test

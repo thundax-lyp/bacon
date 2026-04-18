@@ -53,7 +53,6 @@ public class MenuApplicationService {
             String routePath,
             String componentName,
             String icon,
-            Integer sort,
             String permissionCode) {
         validateParent(parentId);
         return toTreeDto(menuRepository.insert(Menu.create(
@@ -64,9 +63,7 @@ public class MenuApplicationService {
                 routePath,
                 componentName,
                 icon,
-                sort == null ? 0 : sort,
-                permissionCode,
-                List.<Menu>of())));
+                permissionCode)));
     }
 
     @Transactional
@@ -84,19 +81,17 @@ public class MenuApplicationService {
                 .findMenuById(menuId)
                 .orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
         validateParent(parentId);
-        if (menuId.equals(parentId)) {
-            throw new ConflictException("Menu parent cannot be self");
+        currentMenu.retypeAs(menuType.value());
+        currentMenu.rename(name);
+        currentMenu.moveUnder(parentId);
+        currentMenu.routeTo(routePath);
+        currentMenu.renderWith(componentName);
+        currentMenu.showIcon(icon);
+        currentMenu.bindPermission(permissionCode);
+        if (sort != null) {
+            currentMenu.sort(sort);
         }
-        return toTreeDto(menuRepository.update(currentMenu.update(
-                menuType.value(),
-                name,
-                parentId,
-                routePath,
-                componentName,
-                icon,
-                sort == null ? currentMenu.getSort() : sort,
-                permissionCode,
-                List.<Menu>of())));
+        return toTreeDto(menuRepository.update(currentMenu));
     }
 
     @Transactional

@@ -9,6 +9,8 @@ import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.RoleDTO;
 import com.github.thundax.bacon.upms.application.assembler.RoleAssembler;
 import com.github.thundax.bacon.upms.application.codec.MenuIdCodec;
+import com.github.thundax.bacon.upms.application.codec.ResourceCodeCodec;
+import com.github.thundax.bacon.upms.application.codec.RoleCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.RoleIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
@@ -16,6 +18,8 @@ import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import java.util.LinkedHashSet;
@@ -55,10 +59,18 @@ public class RoleApplicationService {
         int normalizedPageNo = PageParamNormalizer.normalizePageNo(pageNo);
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
-                roleRepository.pageRoles(code, name, roleType, status, normalizedPageNo, normalizedPageSize).stream()
+                roleRepository
+                        .pageRoles(
+                                RoleCodeCodec.toDomain(code),
+                                name,
+                                roleType,
+                                status,
+                                normalizedPageNo,
+                                normalizedPageSize)
+                        .stream()
                         .map(RoleAssembler::toDto)
                         .toList(),
-                roleRepository.countRoles(code, name, roleType, status),
+                roleRepository.countRoles(RoleCodeCodec.toDomain(code), name, roleType, status),
                 normalizedPageNo,
                 normalizedPageSize);
     }
@@ -69,11 +81,11 @@ public class RoleApplicationService {
         validateRequired(name, "name");
         return RoleAssembler.toDto(roleRepository.insert(Role.create(
                 RoleIdCodec.toDomain(idGenerator.nextId(ROLE_ID_BIZ_TAG)),
-                trimPreservingNull(code),
+                RoleCodeCodec.toDomain(code),
                 trimPreservingNull(name),
                 roleType,
                 dataScopeType,
-                RoleStatus.ENABLED)));
+                RoleStatus.ACTIVE)));
     }
 
     @Transactional
@@ -84,13 +96,28 @@ public class RoleApplicationService {
                 .orElseThrow(() -> new NotFoundException("Role not found: " + roleId));
         validateRequired(code, "code");
         validateRequired(name, "name");
-        return RoleAssembler.toDto(roleRepository.update(currentRole.update(
-                trimPreservingNull(code), trimPreservingNull(name), roleType, dataScopeType, currentRole.getStatus())));
+        currentRole.recodeAs(RoleCodeCodec.toDomain(code));
+        currentRole.rename(trimPreservingNull(name));
+        if (roleType != null) {
+            currentRole.retypeAs(roleType);
+        }
+        if (dataScopeType != null) {
+            currentRole.assignDataScope(dataScopeType, Set.of());
+        }
+        return RoleAssembler.toDto(roleRepository.update(currentRole));
     }
 
     @Transactional
     public RoleDTO updateRoleStatus(RoleId roleId, RoleStatus status) {
-        return RoleAssembler.toDto(roleRepository.updateStatus(roleId, status));
+        Role role = roleRepository
+                .findRoleById(roleId)
+                .orElseThrow(() -> new NotFoundException("Role not found: " + roleId));
+        if (RoleStatus.ACTIVE == status) {
+            role.activate();
+        } else {
+            role.disable();
+        }
+        return RoleAssembler.toDto(roleRepository.update(role));
     }
 
     @Transactional
@@ -101,42 +128,48 @@ public class RoleApplicationService {
         roleRepository.deleteRole(roleId);
     }
 
-    public Set<String> getAssignedMenus(RoleId roleId) {
-        return roleRepository.getAssignedMenus(roleId).stream()
+    public Set<String> getMenuIds(RoleId roleId) {
+        return roleRepository.findMenuIds(roleId).stream()
                 .map(MenuIdCodec::toValue)
                 .map(String::valueOf)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Transactional
-    public Set<String> assignMenus(RoleId roleId, Set<MenuId> menuIds) {
-        return roleRepository.assignMenus(roleId, menuIds).stream()
+    public Set<String> updateMenuIds(RoleId roleId, Set<MenuId> menuIds) {
+        return roleRepository.updateMenuIds(roleId, menuIds).stream()
                 .map(MenuIdCodec::toValue)
                 .map(String::valueOf)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public Set<String> getAssignedResources(RoleId roleId) {
-        return roleRepository.getAssignedResources(roleId);
+    public Set<String> getResourceCodes(RoleId roleId) {
+        return roleRepository.findResourceCodes(roleId).stream()
+                .map(ResourceCodeCodec::toValue)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Transactional
-    public Set<String> assignResources(RoleId roleId, Set<String> resourceCodes) {
-        return roleRepository.assignResources(roleId, resourceCodes);
+    public Set<String> updateResourceCodes(RoleId roleId, Set<String> resourceCodes) {
+        Set<ResourceCode> safeResourceCodes =
+                resourceCodes == null
+                        ? Set.of()
+                        : resourceCodes.stream()
+                                .map(ResourceCodeCodec::toDomain)
+                                .collect(Collectors.toCollection(LinkedHashSet::new));
+        return roleRepository.updateResourceCodes(roleId, safeResourceCodes).stream()
+                .map(ResourceCodeCodec::toValue)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public RoleDataScopeType getAssignedDataScopeType(RoleId roleId) {
-        return roleRepository.getAssignedDataScopeType(roleId);
-    }
-
-    public Set<DepartmentId> getAssignedDataScopeDepartments(RoleId roleId) {
-        return roleRepository.getAssignedDataScopeDepartments(roleId);
+    public RoleDataScopeAssignment getDataScope(RoleId roleId) {
+        return roleRepository.findDataScope(roleId);
     }
 
     @Transactional
-    public Set<DepartmentId> assignDataScope(
+    public RoleDataScopeAssignment updateDataScope(
             RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
-        return roleRepository.assignDataScope(roleId, dataScopeType, departmentIds);
+        return roleRepository.updateDataScope(roleId, RoleDataScopeAssignment.of(dataScopeType, departmentIds));
     }
 
     private void validateRequired(String value, String fieldName) {

@@ -18,7 +18,7 @@ public class TenantDTO {
     /** 租户名称。 */
     private String name;
     /** 稳定业务编码。 */
-    private String tenantCode;
+    private String code;
     /** 租户状态。 */
     private String status;
     /** 过期时间。 */

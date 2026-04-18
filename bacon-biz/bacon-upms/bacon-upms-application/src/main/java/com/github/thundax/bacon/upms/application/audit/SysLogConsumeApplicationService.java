@@ -38,7 +38,7 @@ public class SysLogConsumeApplicationService {
                 sysLogDTO.getErrorMessage(),
                 sysLogDTO.getOccurredAt());
         // 系统日志同时落数据库和文件：数据库用于检索聚合，文件用于本地排障和最低成本保留。
-        sysLogRepository.saveToDatabase(sysLogRecord);
-        sysLogRepository.saveToFile(sysLogRecord);
+        sysLogRepository.insertToDatabase(sysLogRecord);
+        sysLogRepository.insertToFile(sysLogRecord);
     }
 }

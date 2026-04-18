@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.domain.exception.UserDomainException;
 import com.github.thundax.bacon.upms.domain.exception.UserErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -52,12 +52,22 @@ public class User {
         return new User(id, nickname, avatarStoredObjectNo, departmentId, status);
     }
 
+    public void assertActive() {
+        if (!isActive()) {
+            throw new UpmsDomainException(UserErrorCode.USER_NOT_ACTIVE);
+        }
+    }
+
+    public boolean isActive() {
+        return status == UserStatus.ACTIVE;
+    }
+
     public void rename(String nickname) {
         Objects.requireNonNull(nickname, "nickname must not be null");
         this.nickname = nickname;
     }
 
-    public void changeAvatar(AvatarStoredObjectNo avatarStoredObjectNo) {
+    public void useAvatar(AvatarStoredObjectNo avatarStoredObjectNo) {
         Objects.requireNonNull(avatarStoredObjectNo, "avatarStoredObjectNo must not be null");
         this.avatarStoredObjectNo = avatarStoredObjectNo;
     }
@@ -66,7 +76,7 @@ public class User {
         this.avatarStoredObjectNo = null;
     }
 
-    public void changeDepartment(DepartmentId departmentId) {
+    public void assignDepartment(DepartmentId departmentId) {
         Objects.requireNonNull(departmentId, "departmentId must not be null");
         this.departmentId = departmentId;
     }
@@ -81,15 +91,5 @@ public class User {
 
     public void disable() {
         this.status = UserStatus.DISABLED;
-    }
-
-    public void assertActive() {
-        if (!isActive()) {
-            throw new UserDomainException(UserErrorCode.USER_NOT_ACTIVE);
-        }
-    }
-
-    public boolean isActive() {
-        return status == UserStatus.ACTIVE;
     }
 }

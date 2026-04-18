@@ -7,8 +7,8 @@ import com.github.thundax.bacon.upms.api.request.DepartmentGetFacadeRequest;
 import com.github.thundax.bacon.upms.api.request.DepartmentListFacadeRequest;
 import com.github.thundax.bacon.upms.api.response.DepartmentFacadeResponse;
 import com.github.thundax.bacon.upms.api.response.DepartmentListFacadeResponse;
+import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,7 +36,8 @@ public class DepartmentReadFacadeLocalImpl implements DepartmentReadFacade {
     public DepartmentFacadeResponse getDepartmentByCode(DepartmentCodeGetFacadeRequest request) {
         requireContext();
         return DepartmentFacadeResponse.from(
-                departmentApplicationService.getDepartmentByCode(DepartmentCode.of(request.getDepartmentCode())));
+                departmentApplicationService.getDepartmentByCode(
+                        DepartmentCodeCodec.toDomain(request.getDepartmentCode())));
     }
 
     @Override

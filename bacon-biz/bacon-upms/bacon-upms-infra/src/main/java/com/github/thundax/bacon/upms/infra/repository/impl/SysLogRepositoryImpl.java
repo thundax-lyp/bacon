@@ -28,12 +28,12 @@ public class SysLogRepositoryImpl implements SysLogRepository {
     }
 
     @Override
-    public void saveToDatabase(SysLogRecord sysLogRecord) {
+    public void insertToDatabase(SysLogRecord sysLogRecord) {
         support.saveSysLog(sysLogRecord);
     }
 
     @Override
-    public void saveToFile(SysLogRecord sysLogRecord) {
+    public void insertToFile(SysLogRecord sysLogRecord) {
         try {
             Path parent = SYS_LOG_FILE.getParent();
             if (parent != null) {

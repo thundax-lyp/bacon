@@ -4,6 +4,7 @@ import com.github.thundax.bacon.common.core.context.BaconContextHolder;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Department;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
+import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.DepartmentDO;
 
@@ -15,7 +16,7 @@ public final class DepartmentPersistenceAssembler {
         return new DepartmentDO(
                 department.getId() == null ? null : department.getId().value(),
                 BaconContextHolder.requireTenantId(),
-                department.getCode(),
+                department.getCode() == null ? null : department.getCode().value(),
                 department.getName(),
                 department.getParentId() == null
                         ? null
@@ -30,7 +31,7 @@ public final class DepartmentPersistenceAssembler {
     public static Department toDomain(DepartmentDO dataObject) {
         return Department.reconstruct(
                 dataObject.getId() == null ? null : DepartmentId.of(dataObject.getId()),
-                dataObject.getCode(),
+                dataObject.getCode() == null ? null : DepartmentCode.of(dataObject.getCode()),
                 dataObject.getName(),
                 dataObject.getParentId() == null ? null : DepartmentId.of(dataObject.getParentId()),
                 dataObject.getLeaderUserId() == null ? null : UserId.of(dataObject.getLeaderUserId()),

@@ -7,6 +7,7 @@ import com.github.thundax.bacon.common.id.core.IdGenerator;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.PostDTO;
 import com.github.thundax.bacon.upms.application.assembler.PostAssembler;
+import com.github.thundax.bacon.upms.application.codec.PostCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.PostIdCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
@@ -35,11 +36,17 @@ public class PostApplicationService {
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
                 postRepository
-                        .pagePosts(code, name, departmentId, status, normalizedPageNo, normalizedPageSize)
+                        .pagePosts(
+                                PostCodeCodec.toDomain(code),
+                                name,
+                                departmentId,
+                                status,
+                                normalizedPageNo,
+                                normalizedPageSize)
                         .stream()
                         .map(PostAssembler::toDto)
                         .toList(),
-                postRepository.countPosts(code, name, departmentId, status),
+                postRepository.countPosts(PostCodeCodec.toDomain(code), name, departmentId, status),
                 normalizedPageNo,
                 normalizedPageSize);
     }
@@ -54,7 +61,7 @@ public class PostApplicationService {
         validateRequired(name, "name");
         return PostAssembler.toDto(postRepository.insert(Post.create(
                 PostIdCodec.toDomain(idGenerator.nextId(POST_ID_BIZ_TAG)),
-                trimPreservingNull(code),
+                PostCodeCodec.toDomain(code),
                 trimPreservingNull(name),
                 departmentId,
                 PostStatus.ENABLED)));
@@ -65,11 +72,17 @@ public class PostApplicationService {
         Post currentPost = requirePost(postId);
         validateRequired(code, "code");
         validateRequired(name, "name");
-        return PostAssembler.toDto(postRepository.update(currentPost.update(
-                trimPreservingNull(code),
-                trimPreservingNull(name),
-                departmentId,
-                status == null ? currentPost.getStatus() : status)));
+        currentPost.recodeAs(PostCodeCodec.toDomain(code));
+        currentPost.rename(trimPreservingNull(name));
+        currentPost.assignDepartment(departmentId);
+        if (status != null) {
+            if (status == PostStatus.ENABLED) {
+                currentPost.enable();
+            } else {
+                currentPost.disable();
+            }
+        }
+        return PostAssembler.toDto(postRepository.update(currentPost));
     }
 
     @Transactional

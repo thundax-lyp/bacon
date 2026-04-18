@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.TenantId;
-import com.github.thundax.bacon.upms.domain.exception.TenantDomainException;
 import com.github.thundax.bacon.upms.domain.exception.TenantErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.TenantStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import java.time.Instant;
@@ -45,21 +45,13 @@ public class Tenant {
         return new Tenant(id, name, code, status, expiredAt);
     }
 
-    public void activate() {
-        this.status = TenantStatus.ACTIVE;
-    }
-
-    public void disable() {
-        this.status = TenantStatus.DISABLED;
-    }
-
     public void assertActive(Instant now) {
         Objects.requireNonNull(now, "now must not be null");
         if (status != TenantStatus.ACTIVE) {
-            throw new TenantDomainException(TenantErrorCode.TENANT_NOT_ACTIVE);
+            throw new UpmsDomainException(TenantErrorCode.TENANT_NOT_ACTIVE);
         }
         if (isExpired(now)) {
-            throw new TenantDomainException(TenantErrorCode.TENANT_EXPIRED);
+            throw new UpmsDomainException(TenantErrorCode.TENANT_EXPIRED);
         }
     }
 
@@ -78,7 +70,7 @@ public class Tenant {
         this.name = name;
     }
 
-    public void changeCode(TenantCode code) {
+    public void recodeAs(TenantCode code) {
         Objects.requireNonNull(code, "code must not be null");
         this.code = code;
     }
@@ -91,12 +83,20 @@ public class Tenant {
         Objects.requireNonNull(newExpiredAt, "newExpiredAt must not be null");
         Objects.requireNonNull(now, "now must not be null");
         if (newExpiredAt.isBefore(now)) {
-            throw new TenantDomainException(TenantErrorCode.TENANT_INVALID_EXPIRED_AT);
+            throw new UpmsDomainException(TenantErrorCode.TENANT_INVALID_EXPIRED_AT);
         }
         this.expiredAt = newExpiredAt;
     }
 
     public void clearExpiry() {
         this.expiredAt = null;
+    }
+
+    public void activate() {
+        this.status = TenantStatus.ACTIVE;
+    }
+
+    public void disable() {
+        this.status = TenantStatus.DISABLED;
     }
 }

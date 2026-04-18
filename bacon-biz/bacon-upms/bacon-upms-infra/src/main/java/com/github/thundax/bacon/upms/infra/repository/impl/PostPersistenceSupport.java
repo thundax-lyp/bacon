@@ -6,6 +6,7 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.PostCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.infra.persistence.assembler.PostPersistenceAssembler;
 import com.github.thundax.bacon.upms.infra.persistence.dataobject.PostDO;
@@ -33,12 +34,12 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
     }
 
     List<Post> listPosts(
-            String code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize) {
+            PostCode code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize) {
         return postMapper
                 .selectList(Wrappers.<PostDO>lambdaQuery()
-                        .like(hasText(code), PostDO::getCode, code)
+                        .like(code != null, PostDO::getCode, code == null ? null : code.value())
                         .like(hasText(name), PostDO::getName, name)
-                        .eq(departmentId != null, PostDO::getDepartmentId, departmentId)
+                        .eq(departmentId != null, PostDO::getDepartmentId, departmentId == null ? null : departmentId.value())
                         .eq(status != null, PostDO::getStatus, status.value())
                         .orderByAsc(PostDO::getId)
                         .last(limit(pageNo, pageSize)))
@@ -47,11 +48,11 @@ class PostPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .toList();
     }
 
-    long countPosts(String code, String name, DepartmentId departmentId, PostStatus status) {
+    long countPosts(PostCode code, String name, DepartmentId departmentId, PostStatus status) {
         return Optional.ofNullable(postMapper.selectCount(Wrappers.<PostDO>lambdaQuery()
-                        .like(hasText(code), PostDO::getCode, code)
+                        .like(code != null, PostDO::getCode, code == null ? null : code.value())
                         .like(hasText(name), PostDO::getName, name)
-                        .eq(departmentId != null, PostDO::getDepartmentId, departmentId)
+                        .eq(departmentId != null, PostDO::getDepartmentId, departmentId == null ? null : departmentId.value())
                         .eq(status != null, PostDO::getStatus, status.value())))
                 .orElse(0L);
     }

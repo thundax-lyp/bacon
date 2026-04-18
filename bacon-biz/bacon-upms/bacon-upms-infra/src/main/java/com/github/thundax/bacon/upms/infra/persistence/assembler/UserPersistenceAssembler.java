@@ -27,7 +27,7 @@ public final class UserPersistenceAssembler {
         return new UserDO(
                 user.getId() == null ? null : user.getId().value(),
                 BaconContextHolder.requireTenantId(),
-                user.getName(),
+                user.getNickname(),
                 user.getAvatarStoredObjectNo() == null
                         ? null
                         : user.getAvatarStoredObjectNo().value(),

@@ -9,5 +9,4 @@ public record DepartmentCreateRequest(
         @NotBlank(message = "name must not be blank") @Size(max = 128, message = "name length must be <= 128")
                 String name,
         Long parentId,
-        Long leaderUserId,
-        Integer sort) {}
+        Long leaderUserId) {}

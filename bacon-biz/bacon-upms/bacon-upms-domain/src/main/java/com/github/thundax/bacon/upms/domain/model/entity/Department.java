@@ -1,8 +1,8 @@
 package com.github.thundax.bacon.upms.domain.model.entity;
 
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.domain.exception.DepartmentDomainException;
 import com.github.thundax.bacon.upms.domain.exception.DepartmentErrorCode;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.DepartmentStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -55,19 +55,28 @@ public class Department {
         return new Department(id, code, name, parentId, leaderUserId, sort, status);
     }
 
-    public void update(DepartmentCode code, String name, DepartmentId parentId, UserId leaderUserId) {
+    public void recodeAs(DepartmentCode code) {
         Objects.requireNonNull(code, "code must not be null");
-        Objects.requireNonNull(name, "name must not be null");
-        validateParentId(id, parentId);
         this.code = code;
+    }
+
+    public void rename(String name) {
+        Objects.requireNonNull(name, "name must not be null");
         this.name = name;
+    }
+
+    public void moveUnder(DepartmentId parentId) {
+        validateParentId(id, parentId);
         this.parentId = parentId;
+    }
+
+    public void appointLeader(UserId leaderUserId) {
         this.leaderUserId = leaderUserId;
     }
 
     public void sort(Integer sort) {
         if (sort == null || sort < 0) {
-            throw new DepartmentDomainException(DepartmentErrorCode.INVALID_DEPARTMENT_SORT);
+            throw new UpmsDomainException(DepartmentErrorCode.INVALID_DEPARTMENT_SORT);
         }
         this.sort = sort;
     }
@@ -80,14 +89,9 @@ public class Department {
         this.status = DepartmentStatus.DISABLED;
     }
 
-    public void changeCode(DepartmentCode code) {
-        Objects.requireNonNull(code, "code must not be null");
-        this.code = code;
-    }
-
     private static void validateParentId(DepartmentId id, DepartmentId parentId) {
         if (Objects.equals(id, parentId)) {
-            throw new DepartmentDomainException(DepartmentErrorCode.DEPARTMENT_PARENT_CANNOT_BE_SELF);
+            throw new UpmsDomainException(DepartmentErrorCode.DEPARTMENT_PARENT_CANNOT_BE_SELF);
         }
     }
 }

@@ -33,8 +33,8 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户菜单树", eventType = LogEventType.QUERY)
     @GetMapping("/menu-tree")
-    public List<UserMenuTreeResponse> getUserMenuTree(@PathVariable("userId") Long userId) {
-        return permissionQueryService.getUserMenuTree(UserIdCodec.toDomain(userId)).stream()
+    public List<UserMenuTreeResponse> listUserMenuTree(@PathVariable("userId") Long userId) {
+        return permissionQueryService.listUserMenuTree(UserIdCodec.toDomain(userId)).stream()
                 .map(UserMenuTreeResponse::from)
                 .toList();
     }
@@ -43,8 +43,8 @@ public class PermissionController {
     @HasPermission("sys:permission:view")
     @SysLog(module = "UPMS", action = "查询用户权限码", eventType = LogEventType.QUERY)
     @GetMapping("/permission-codes")
-    public Set<String> getUserPermissionCodes(@PathVariable("userId") Long userId) {
-        return permissionQueryService.getUserPermissionCodes(UserIdCodec.toDomain(userId));
+    public Set<String> findUserPermissionCodes(@PathVariable("userId") Long userId) {
+        return permissionQueryService.findUserPermissionCodes(UserIdCodec.toDomain(userId));
     }
 
     @Operation(summary = "查询用户数据权限范围")

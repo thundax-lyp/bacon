@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 
 public enum RoleErrorCode implements ErrorCode {
     INVALID_ROLE_NAME("UPMS-ROLE-400001", "Role name must not be blank", HttpStatus.BAD_REQUEST),
+    INVALID_ROLE_CUSTOM_DATA_SCOPE("UPMS-ROLE-400002", "Custom role data scope departments must not be empty", HttpStatus.BAD_REQUEST),
     ROLE_NOT_ACTIVE("UPMS-ROLE-409001", "Role is not active", HttpStatus.CONFLICT);
 
     private final String code;

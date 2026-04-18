@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.thundax.bacon.auth.domain.model.valueobject.UserIdentityId;
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.domain.exception.UserIdentityDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.UserIdentityType;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ class UserIdentityTest {
                 UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.DISABLED);
 
         assertThatThrownBy(identity::assertUsable)
-                .isInstanceOf(UserIdentityDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User identity is not usable");
     }
 
@@ -43,13 +43,23 @@ class UserIdentityTest {
     }
 
     @Test
-    void shouldChangeIdentityValue() {
+    void shouldChangeAccount() {
         UserIdentity identity = UserIdentity.create(
                 UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.ACTIVE);
 
-        identity.changeIdentityValue("alice.new");
+        identity.changeAccount("alice.new");
 
         org.assertj.core.api.Assertions.assertThat(identity.getIdentityValue()).isEqualTo("alice.new");
+    }
+
+    @Test
+    void shouldChangePhone() {
+        UserIdentity identity = UserIdentity.create(
+                UserIdentityId.of(102L), UserId.of(201L), UserIdentityType.PHONE, "13800000001", UserIdentityStatus.ACTIVE);
+
+        identity.changePhone("13900000002");
+
+        org.assertj.core.api.Assertions.assertThat(identity.getIdentityValue()).isEqualTo("13900000002");
     }
 
     @Test
@@ -110,7 +120,7 @@ class UserIdentityTest {
                 UserIdentityId.of(101L), UserId.of(201L), UserIdentityType.ACCOUNT, "alice", UserIdentityStatus.DISABLED);
 
         assertThatThrownBy(identity::assertLoginAllowed)
-                .isInstanceOf(UserIdentityDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User identity login is not allowed");
     }
 }

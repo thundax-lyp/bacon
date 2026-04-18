@@ -5,9 +5,9 @@ import com.github.thundax.bacon.common.log.LogEventType;
 import com.github.thundax.bacon.common.log.annotation.SysLog;
 import com.github.thundax.bacon.common.security.annotation.HasPermission;
 import com.github.thundax.bacon.common.web.annotation.WrappedApiController;
+import com.github.thundax.bacon.upms.application.codec.DepartmentCodeCodec;
 import com.github.thundax.bacon.upms.application.codec.DepartmentIdCodec;
 import com.github.thundax.bacon.upms.application.command.DepartmentApplicationService;
-import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.interfaces.request.DepartmentBatchQueryRequest;
 import com.github.thundax.bacon.upms.interfaces.request.DepartmentCreateRequest;
@@ -59,11 +59,10 @@ public class DepartmentController {
     @PostMapping
     public DepartmentResponse createDepartment(@Valid @RequestBody DepartmentCreateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.createDepartment(
-                DepartmentCode.of(trimPreservingNull(request.code())),
+                DepartmentCodeCodec.toDomain(request.code()),
                 trimPreservingNull(request.name()),
                 DepartmentIdCodec.toDomain(request.parentId()),
-                request.leaderUserId() == null ? null : UserId.of(request.leaderUserId()),
-                request.sort()));
+                request.leaderUserId() == null ? null : UserId.of(request.leaderUserId())));
     }
 
     @Operation(summary = "按部门 ID 查询部门")
@@ -80,7 +79,7 @@ public class DepartmentController {
     @GetMapping("/code/{departmentCode}")
     public DepartmentResponse getDepartmentByCode(@PathVariable("departmentCode") String departmentCode) {
         return DepartmentResponse.from(departmentApplicationService.getDepartmentByCode(
-                DepartmentCode.of(trimPreservingNull(departmentCode))));
+                DepartmentCodeCodec.toDomain(departmentCode)));
     }
 
     @Operation(summary = "批量查询部门")
@@ -104,7 +103,7 @@ public class DepartmentController {
             @PathVariable("departmentId") Long departmentId, @Valid @RequestBody DepartmentUpdateRequest request) {
         return DepartmentResponse.from(departmentApplicationService.updateDepartment(
                 DepartmentId.of(departmentId),
-                DepartmentCode.of(trimPreservingNull(request.code())),
+                DepartmentCodeCodec.toDomain(request.code()),
                 trimPreservingNull(request.name()),
                 DepartmentIdCodec.toDomain(request.parentId()),
                 request.leaderUserId() == null ? null : UserId.of(request.leaderUserId()),

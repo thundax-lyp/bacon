@@ -21,7 +21,7 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
         this.tenantMapper = tenantMapper;
     }
 
-    Optional<Tenant> findTenantById(TenantId tenantId) {
+    Optional<Tenant> findById(TenantId tenantId) {
         return Optional.ofNullable(tenantId).map(tenantMapper::selectById).map(TenantPersistenceAssembler::toDomain);
     }
 
@@ -31,9 +31,9 @@ class TenantPersistenceSupport extends AbstractUpmsPersistenceSupport {
                 .map(TenantPersistenceAssembler::toDomain);
     }
 
-    Optional<Tenant> findTenantByCode(String tenantCode) {
+    Optional<Tenant> findByCode(String code) {
         return Optional.ofNullable(tenantMapper.selectOne(
-                        Wrappers.<TenantDO>lambdaQuery().eq(TenantDO::getCode, trim(tenantCode))))
+                        Wrappers.<TenantDO>lambdaQuery().eq(TenantDO::getCode, trim(code))))
                 .map(TenantPersistenceAssembler::toDomain);
     }
 

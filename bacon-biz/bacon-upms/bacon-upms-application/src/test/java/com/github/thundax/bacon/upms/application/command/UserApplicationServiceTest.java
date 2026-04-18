@@ -26,6 +26,7 @@ import com.github.thundax.bacon.storage.api.response.StoredObjectFacadeResponse;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.UserDTO;
 import com.github.thundax.bacon.upms.api.dto.UserLoginCredentialDTO;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.entity.Tenant;
 import com.github.thundax.bacon.upms.domain.model.entity.User;
 import com.github.thundax.bacon.upms.domain.model.entity.UserCredential;
@@ -125,9 +126,9 @@ class UserApplicationServiceTest {
     @Test
     void shouldUploadAvatarToStorageAndReplaceOldReference() throws Exception {
         User currentUser = user(
-                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000301"), DEPARTMENT_ID, UserStatus.ENABLED);
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000301"), DEPARTMENT_ID, UserStatus.ACTIVE);
         User savedUser = user(
-                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000401"), DEPARTMENT_ID, UserStatus.ENABLED);
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000401"), DEPARTMENT_ID, UserStatus.ACTIVE);
         StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse();
         storedObject.setStoredObjectNo("storage-20260327100000-000401");
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/401.png");
@@ -172,7 +173,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldRejectUnsupportedAvatarContentType() {
-        User currentUser = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ENABLED);
+        User currentUser = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
         assertThatThrownBy(() -> service.updateAvatar(
@@ -184,7 +185,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldRejectNonSquareAvatarImage() throws Exception {
-        User currentUser = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ENABLED);
+        User currentUser = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         byte[] bytes = createImageBytes("png", 256, 180);
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(currentUser));
 
@@ -201,7 +202,7 @@ class UserApplicationServiceTest {
     @Test
     void shouldNotResolveAvatarUrlWhenPagingUsers() {
         User user = user(
-                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ENABLED);
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
         when(userRepository.pageUsers(null, null, null, null, 1, 20)).thenReturn(List.of(user));
         when(userRepository.countUsers(null, null, null, null)).thenReturn(1L);
         mockIdentity(UserId.of(101L), UserIdentityType.ACCOUNT, "alice");
@@ -218,7 +219,7 @@ class UserApplicationServiceTest {
     @Test
     void shouldClearAvatarReferenceWhenDeletingUser() {
         User user = user(
-                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ENABLED);
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
 
         service.deleteUser(UserId.of(101L));
@@ -235,7 +236,7 @@ class UserApplicationServiceTest {
     @Test
     void shouldResolveAvatarAccessUrl() {
         User user = user(
-                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ENABLED);
+                101L, "Alice", AvatarStoredObjectNo.of("storage-20260327100000-000501"), DEPARTMENT_ID, UserStatus.ACTIVE);
         StoredObjectFacadeResponse storedObject = new StoredObjectFacadeResponse();
         storedObject.setAccessEndpoint("https://cdn.example.com/avatar/501.png");
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
@@ -247,7 +248,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldReturnLoginCredentialPasswordFromAccountIdentity() {
-        User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ENABLED);
+        User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         UserIdentity accountIdentity = identity(201L, 101L, UserIdentityType.ACCOUNT, "alice");
         UserIdentity phoneIdentity = identity(202L, 101L, UserIdentityType.PHONE, "13800000001");
         UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", true);
@@ -272,7 +273,7 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldValidateOldPasswordAgainstAccountIdentity() {
-        User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ENABLED);
+        User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", false);
         when(userRepository.findUserById(UserId.of(101L))).thenReturn(Optional.of(user));
         when(userRepository.findUserCredential(UserId.of(101L), UserCredentialType.PASSWORD))
@@ -281,6 +282,34 @@ class UserApplicationServiceTest {
         service.changePassword(UserId.of(101L), "old-password", "new-password");
 
         verify(userRepository).updatePassword(UserId.of(101L), "new-password", false, UserCredentialId.of(10003L));
+    }
+
+    @Test
+    void shouldRejectExpiredLoginCredential() {
+        UserIdentity accountIdentity = identity(201L, 101L, UserIdentityType.ACCOUNT, "alice");
+        UserCredential passwordCredential = UserCredential.create(
+                UserCredentialId.of(301L),
+                UserId.of(101L),
+                UserIdentityId.of(201L),
+                UserCredentialType.PASSWORD,
+                UserCredentialFactorLevel.PRIMARY,
+                "{noop}identity",
+                UserCredentialStatus.ACTIVE,
+                false,
+                0,
+                5,
+                null,
+                null,
+                Instant.parse("2000-01-01T00:00:00Z"),
+                null);
+        when(userRepository.findUserIdentity(UserIdentityType.ACCOUNT, "alice"))
+                .thenReturn(Optional.of(accountIdentity));
+        when(userRepository.findUserCredential(UserId.of(101L), UserCredentialType.PASSWORD))
+                .thenReturn(Optional.of(passwordCredential));
+
+        assertThatThrownBy(() -> service.getUserLoginCredential(UserIdentityType.ACCOUNT, "alice"))
+                .isInstanceOf(UpmsDomainException.class)
+                .hasMessage("User credential is expired");
     }
 
     private void mockIdentity(UserId userId, UserIdentityType identityType, String identityValue) {

@@ -5,8 +5,11 @@ import com.github.thundax.bacon.common.id.domain.TenantId;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.upms.domain.model.entity.Menu;
 import com.github.thundax.bacon.upms.domain.model.entity.Role;
+import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
+import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.domain.repository.PermissionRepository;
 import com.github.thundax.bacon.upms.infra.cache.UpmsPermissionCacheSupport;
 import java.util.ArrayList;
@@ -44,32 +47,32 @@ public class PermissionRepositoryImpl implements PermissionRepository {
     }
 
     @Override
-    public List<Menu> getUserMenuTree(UserId userId) {
+    public List<Menu> listUserMenuTree(UserId userId) {
         TenantId tenantId = requireTenantId();
-        return cacheSupport.getUserMenuTree(tenantId, userId, () -> loadUserMenuTree(userId));
+        return cacheSupport.listUserMenuTree(tenantId, userId, () -> loadUserMenuTree(userId));
     }
 
     @Override
-    public Set<String> getUserPermissionCodes(UserId userId) {
+    public Set<String> findUserPermissionCodes(UserId userId) {
         TenantId tenantId = requireTenantId();
-        return cacheSupport.getUserPermissionCodes(tenantId, userId, () -> loadUserPermissionCodes(userId));
+        return cacheSupport.findUserPermissionCodes(tenantId, userId, () -> loadUserPermissionCodes(userId));
     }
 
     @Override
-    public Set<DepartmentId> getUserDepartmentIds(UserId userId) {
+    public Set<DepartmentId> findUserDepartmentIds(UserId userId) {
         TenantId tenantId = requireTenantId();
-        return cacheSupport.getUserDepartmentIds(tenantId, userId, () -> loadUserDepartmentIds(userId));
+        return cacheSupport.findUserDepartmentIds(tenantId, userId, () -> loadUserDepartmentIds(userId));
     }
 
     @Override
-    public Set<String> getUserScopeTypes(UserId userId) {
+    public Set<String> findUserScopeTypes(UserId userId) {
         TenantId tenantId = requireTenantId();
-        return cacheSupport.getUserScopeTypes(tenantId, userId, () -> loadUserScopeTypes(userId));
+        return cacheSupport.findUserScopeTypes(tenantId, userId, () -> loadUserScopeTypes(userId));
     }
 
     @Override
-    public boolean hasAllAccess(UserId userId) {
-        return getUserScopeTypes(userId).contains("ALL");
+    public boolean existsUserAllAccess(UserId userId) {
+        return findUserScopeTypes(userId).contains("ALL");
     }
 
     private List<Menu> loadUserMenuTree(UserId userId) {
@@ -78,7 +81,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
             return List.of();
         }
         Set<MenuId> menuIds = new HashSet<>();
-        roles.forEach(role -> menuIds.addAll(roleRepository.getAssignedMenus(role.getId())));
+        roles.forEach(role -> menuIds.addAll(roleRepository.findMenuIds(role.getId())));
         if (menuIds.isEmpty()) {
             return List.of();
         }
@@ -97,7 +100,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                 menuRepository.listMenus().stream().collect(Collectors.toMap(Menu::getId, menu -> menu));
         Set<String> permissionCodes = new HashSet<>();
         roles.forEach(role -> {
-            roleRepository.getAssignedMenus(role.getId()).forEach(menuId -> {
+            roleRepository.findMenuIds(role.getId()).forEach(menuId -> {
                 Menu menu = menuMap.get(menuId);
                 if (menu != null
                         && menu.getPermissionCode() != null
@@ -105,25 +108,28 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                     permissionCodes.add(menu.getPermissionCode());
                 }
             });
-            permissionCodes.addAll(roleRepository.getAssignedResources(role.getId()));
+            roleRepository.findResourceCodes(role.getId()).stream()
+                    .map(ResourceCode::value)
+                    .forEach(permissionCodes::add);
         });
         return Set.copyOf(permissionCodes);
     }
 
     private Set<DepartmentId> loadUserDepartmentIds(UserId userId) {
         Set<DepartmentId> departmentIds = new HashSet<>();
-        roleRepository
-                .findRolesByUserId(userId)
-                .forEach(role -> departmentIds.addAll(roleRepository.getAssignedDataScopeDepartments(role.getId())));
+        roleRepository.findRolesByUserId(userId).forEach(role -> departmentIds.addAll(
+                roleRepository.findDataScope(role.getId()).departmentIds()));
         return Set.copyOf(departmentIds);
     }
 
     private Set<String> loadUserScopeTypes(UserId userId) {
         Set<String> scopeTypes = new HashSet<>();
-        roleRepository
-                .findRolesByUserId(userId)
-                .forEach(role -> scopeTypes.add(
-                        roleRepository.getAssignedDataScopeType(role.getId()).value()));
+        roleRepository.findRolesByUserId(userId).stream()
+                .map(Role::getId)
+                .map(roleRepository::findDataScope)
+                .map(RoleDataScopeAssignment::dataScopeType)
+                .map(RoleDataScopeType::value)
+                .forEach(scopeTypes::add);
         return Set.copyOf(scopeTypes);
     }
 
@@ -134,7 +140,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                         .thenComparing(menu -> menu.getId().value()))
                 .forEach(menu -> menuMap.put(
                         menu.getId(),
-                        Menu.create(
+                        Menu.reconstruct(
                                 menu.getId(),
                                 menu.getMenuType(),
                                 menu.getName(),
@@ -154,7 +160,7 @@ public class PermissionRepositoryImpl implements PermissionRepository {
                     if (menu.getParentId() == null || !menuMap.containsKey(menu.getParentId())) {
                         roots.add(menu);
                     } else {
-                        menuMap.get(menu.getParentId()).getChildren().add(menu);
+                        menuMap.get(menu.getParentId()).addChild(menu);
                     }
                 });
         return roots;

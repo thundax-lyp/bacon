@@ -12,5 +12,4 @@ public record MenuCreateRequest(
         @Size(max = 255, message = "routePath length must be <= 255") String routePath,
         @Size(max = 255, message = "componentName length must be <= 255") String componentName,
         @Size(max = 128, message = "icon length must be <= 128") String icon,
-        Integer sort,
         @Size(max = 128, message = "permissionCode length must be <= 128") String permissionCode) {}

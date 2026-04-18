@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.thundax.bacon.common.id.domain.UserId;
-import com.github.thundax.bacon.upms.domain.exception.UserDomainException;
+import com.github.thundax.bacon.upms.domain.exception.UpmsDomainException;
 import com.github.thundax.bacon.upms.domain.model.enums.UserStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.AvatarStoredObjectNo;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
@@ -26,7 +26,7 @@ class UserTest {
     void shouldChangeAndRemoveAvatar() {
         User user = User.create(UserId.of(101L), "Alice", null, null, UserStatus.ACTIVE);
 
-        user.changeAvatar(AvatarStoredObjectNo.of("storage-20260327100000-000001"));
+        user.useAvatar(AvatarStoredObjectNo.of("storage-20260327100000-000001"));
         assertThat(user.getAvatarStoredObjectNo()).isEqualTo(AvatarStoredObjectNo.of("storage-20260327100000-000001"));
 
         user.removeAvatar();
@@ -37,7 +37,7 @@ class UserTest {
     void shouldChangeAndClearDepartment() {
         User user = User.create(UserId.of(101L), "Alice", null, null, UserStatus.ACTIVE);
 
-        user.changeDepartment(DepartmentId.of(201L));
+        user.assignDepartment(DepartmentId.of(201L));
         assertThat(user.getDepartmentId()).isEqualTo(DepartmentId.of(201L));
 
         user.clearDepartment();
@@ -53,7 +53,7 @@ class UserTest {
         assertThat(disabledUser.isActive()).isFalse();
         assertThatCode(activeUser::assertActive).doesNotThrowAnyException();
         assertThatThrownBy(disabledUser::assertActive)
-                .isInstanceOf(UserDomainException.class)
+                .isInstanceOf(UpmsDomainException.class)
                 .hasMessage("User is not active");
     }
 }

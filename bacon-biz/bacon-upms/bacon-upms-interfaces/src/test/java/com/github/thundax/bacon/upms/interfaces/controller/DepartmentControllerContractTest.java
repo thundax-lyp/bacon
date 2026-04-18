@@ -42,7 +42,7 @@ class DepartmentControllerContractTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         """
-                                {"code":" ","name":"Operations","parentId":1,"leaderUserId":2001,"sort":1}
+                                {"code":" ","name":"Operations","parentId":1,"leaderUserId":2001}
                                 """))
                 .andExpect(status().isBadRequest());
 
@@ -66,7 +66,7 @@ class DepartmentControllerContractTest {
     @Test
     void shouldTrimCodeAndNameBeforeCallingApplicationService() throws Exception {
         when(departmentApplicationService.createDepartment(
-                        eq(DepartmentCode.of("OPS")), eq("Operations"), eq(null), eq(UserId.of(2001L)), eq(1)))
+                        eq(DepartmentCode.of("OPS")), eq("Operations"), eq(null), eq(UserId.of(2001L))))
                 .thenReturn(new DepartmentDTO(101L, "OPS", "Operations", null, 2001L, 1, "ENABLED"));
 
         mockMvc.perform(
@@ -74,7 +74,7 @@ class DepartmentControllerContractTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         """
-                                {"code":" OPS ","name":" Operations ","parentId":null,"leaderUserId":2001,"sort":1}
+                                {"code":" OPS ","name":" Operations ","parentId":null,"leaderUserId":2001}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("OPS"))

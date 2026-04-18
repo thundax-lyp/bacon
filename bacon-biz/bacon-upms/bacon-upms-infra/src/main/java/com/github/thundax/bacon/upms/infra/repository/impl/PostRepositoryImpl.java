@@ -3,6 +3,7 @@ package com.github.thundax.bacon.upms.infra.repository.impl;
 import com.github.thundax.bacon.upms.domain.model.entity.Post;
 import com.github.thundax.bacon.upms.domain.model.enums.PostStatus;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
+import com.github.thundax.bacon.upms.domain.model.valueobject.PostCode;
 import com.github.thundax.bacon.upms.domain.model.valueobject.PostId;
 import com.github.thundax.bacon.upms.domain.repository.PostRepository;
 import java.util.List;
@@ -27,12 +28,12 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public List<Post> pagePosts(
-            String code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize) {
+            PostCode code, String name, DepartmentId departmentId, PostStatus status, int pageNo, int pageSize) {
         return support.listPosts(code, name, departmentId, status, pageNo, pageSize);
     }
 
     @Override
-    public long countPosts(String code, String name, DepartmentId departmentId, PostStatus status) {
+    public long countPosts(PostCode code, String name, DepartmentId departmentId, PostStatus status) {
         return support.countPosts(code, name, departmentId, status);
     }
 

@@ -8,6 +8,7 @@ import com.github.thundax.bacon.common.id.domain.ResourceId;
 import com.github.thundax.bacon.upms.api.dto.PageResultDTO;
 import com.github.thundax.bacon.upms.api.dto.ResourceDTO;
 import com.github.thundax.bacon.upms.application.assembler.ResourceAssembler;
+import com.github.thundax.bacon.upms.application.codec.ResourceCodeCodec;
 import com.github.thundax.bacon.upms.domain.model.entity.Resource;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.ResourceType;
@@ -37,11 +38,17 @@ public class ResourceApplicationService {
         int normalizedPageSize = PageParamNormalizer.normalizePageSize(pageSize);
         return new PageResultDTO<>(
                 resourceRepository
-                        .pageResources(code, name, resourceType, status, normalizedPageNo, normalizedPageSize)
+                        .pageResources(
+                                ResourceCodeCodec.toDomain(code),
+                                name,
+                                resourceType,
+                                status,
+                                normalizedPageNo,
+                                normalizedPageSize)
                         .stream()
                         .map(ResourceAssembler::toDto)
                         .toList(),
-                resourceRepository.countResources(code, name, resourceType, status),
+                resourceRepository.countResources(ResourceCodeCodec.toDomain(code), name, resourceType, status),
                 normalizedPageNo,
                 normalizedPageSize);
     }
@@ -58,7 +65,7 @@ public class ResourceApplicationService {
         validateRequired(uri, "uri");
         return ResourceAssembler.toDto(resourceRepository.insert(Resource.create(
                 ids.resourceId(),
-                trimPreservingNull(code),
+                ResourceCodeCodec.toDomain(code),
                 trimPreservingNull(name),
                 resourceType,
                 trimPreservingNull(httpMethod),
@@ -82,13 +89,18 @@ public class ResourceApplicationService {
             throw new BadRequestException("resourceType must not be null");
         }
         validateRequired(uri, "uri");
-        return ResourceAssembler.toDto(resourceRepository.update(currentResource.update(
-                trimPreservingNull(code),
-                trimPreservingNull(name),
-                resourceType,
-                trimPreservingNull(httpMethod),
-                trimPreservingNull(uri),
-                status == null ? currentResource.getStatus() : status)));
+        currentResource.recodeAs(ResourceCodeCodec.toDomain(code));
+        currentResource.rename(trimPreservingNull(name));
+        currentResource.classifyAs(resourceType);
+        currentResource.exposeEndpoint(trimPreservingNull(httpMethod), trimPreservingNull(uri));
+        if (status != null) {
+            if (status == ResourceStatus.ENABLED) {
+                currentResource.enable();
+            } else {
+                currentResource.disable();
+            }
+        }
+        return ResourceAssembler.toDto(resourceRepository.update(currentResource));
     }
 
     @Transactional

@@ -94,7 +94,7 @@ class BaconMonoTenantConfiguration {
                 return cachedTenantId;
             }
             Long tenantId = tenantRepository
-                    .findTenantByCode(normalizedCode)
+                    .findByCode(normalizedCode)
                     .map(tenant -> tenant.getId().value())
                     .orElseThrow(() -> new IllegalArgumentException("Tenant not found by tenantCode: " + cacheKey));
             tenantCodeToIdCache.put(cacheKey, tenantId);

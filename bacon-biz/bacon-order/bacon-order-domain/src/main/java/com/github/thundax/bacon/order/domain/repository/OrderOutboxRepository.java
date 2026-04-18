@@ -9,16 +9,15 @@ public interface OrderOutboxRepository {
 
     default void insert(OrderOutboxEvent event) {}
 
-    default List<OrderOutboxEvent> claimRetryable(
-            Instant now, int limit, String processingOwner, Instant leaseUntil) {
+    default List<OrderOutboxEvent> claim(Instant now, int limit, String processingOwner, Instant leaseUntil) {
         return List.of();
     }
 
-    default int releaseExpiredLease(Instant now) {
+    default int releaseExpired(Instant now) {
         return 0;
     }
 
-    default boolean markRetryingClaimed(
+    default boolean markRetryClaimed(
             OutboxId outboxId,
             String processingOwner,
             int retryCount,

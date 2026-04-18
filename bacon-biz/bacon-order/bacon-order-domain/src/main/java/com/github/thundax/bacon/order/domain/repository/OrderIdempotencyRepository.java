@@ -1,8 +1,10 @@
 package com.github.thundax.bacon.order.domain.repository;
 
 import com.github.thundax.bacon.order.domain.model.entity.OrderIdempotencyRecord;
+import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 public interface OrderIdempotencyRepository {
@@ -11,12 +13,7 @@ public interface OrderIdempotencyRepository {
         return false;
     }
 
-    default boolean claimExpired(
-            OrderIdempotencyRecordKey key,
-            String processingOwner,
-            Instant leaseUntil,
-            Instant claimedAt,
-            Instant updatedAt) {
+    default boolean updateStatus(OrderIdempotencyRecord record, OrderIdempotencyStatus currentStatus) {
         return false;
     }
 
@@ -24,28 +21,14 @@ public interface OrderIdempotencyRepository {
         return Optional.empty();
     }
 
-    default boolean markSuccess(OrderIdempotencyRecordKey key, Instant updatedAt) {
+    default boolean updateStatus(
+            OrderIdempotencyRecord record,
+            OrderIdempotencyStatus currentStatus,
+            Instant leaseExpiredBefore) {
         return false;
     }
 
-    default boolean markFailed(OrderIdempotencyRecordKey key, String lastError, Instant updatedAt) {
-        return false;
-    }
-
-    default boolean recoverFailed(OrderIdempotencyRecordKey key, Instant updatedAt) {
-        return false;
-    }
-
-    default boolean recoverFailed(
-            OrderIdempotencyRecordKey key,
-            String processingOwner,
-            Instant leaseUntil,
-            Instant claimedAt,
-            Instant updatedAt) {
-        return false;
-    }
-
-    default int recoverExpired(Instant now, String recoverMessage) {
-        return 0;
+    default List<OrderIdempotencyRecord> listExpiredProcessing(Instant now) {
+        return List.of();
     }
 }

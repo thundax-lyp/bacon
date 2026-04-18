@@ -6,6 +6,7 @@ import java.util.Arrays;
  * 订单幂等处理状态。
  */
 public enum OrderIdempotencyStatus {
+    READY,
     PROCESSING,
     SUCCESS,
     FAILED;

@@ -33,12 +33,29 @@ public final class Money implements Comparable<Money> {
         return ZERO;
     }
 
+    public static Money resolve(Money money, CurrencyCode currencyCode) {
+        if (money == null) {
+            return null;
+        }
+        return Money.of(money.value(), Objects.requireNonNull(currencyCode, "money currencyCode must not be null"));
+    }
+
     public BigDecimal value() {
         return value;
     }
 
     public CurrencyCode currencyCode() {
         return currencyCode;
+    }
+
+    public Money multiply(BigDecimal multiplier) {
+        return Money.of(
+                value.multiply(Objects.requireNonNull(multiplier, "money multiplier must not be null")),
+                currencyCode);
+    }
+
+    public Money multiply(Integer multiplier) {
+        return multiply(BigDecimal.valueOf(Objects.requireNonNull(multiplier, "money multiplier must not be null")));
     }
 
     @Override

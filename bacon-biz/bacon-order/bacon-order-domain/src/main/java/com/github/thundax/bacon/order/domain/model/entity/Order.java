@@ -7,6 +7,8 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.commerce.valueobject.PaymentNo;
 import com.github.thundax.bacon.common.commerce.valueobject.WarehouseCode;
 import com.github.thundax.bacon.common.id.domain.UserId;
+import com.github.thundax.bacon.order.domain.exception.OrderDomainException;
+import com.github.thundax.bacon.order.domain.exception.OrderErrorCode;
 import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
 import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
 import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
@@ -15,11 +17,11 @@ import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import com.github.thundax.bacon.order.domain.model.valueobject.ReservationNo;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * 订单主单领域实体。
@@ -30,7 +32,6 @@ import lombok.Setter;
 public class Order {
 
     /** 订单主键。 */
-    @Setter
     private OrderId id;
     /** 订单号。 */
     private OrderNo orderNo;
@@ -88,27 +89,31 @@ public class Order {
     private Instant closedAt;
 
     public static Order create(
-            Long id,
-            String orderNo,
+            OrderId id,
+            OrderNo orderNo,
             UserId userId,
             CurrencyCode currencyCode,
-            String totalAmount,
-            String payableAmount,
+            List<OrderItem> items,
             String remark,
             Instant expiredAt) {
-        BoundaryInit init = buildBoundaryInit(currencyCode, totalAmount, payableAmount, expiredAt);
+        CurrencyCode resolvedCurrencyCode = resolveCurrencyCode(currencyCode);
+        Money resolvedTotalAmount = sumLineAmounts(items, resolvedCurrencyCode);
+        MoneyValidator.ensureSameCurrency(resolvedCurrencyCode, resolvedTotalAmount, resolvedTotalAmount, null);
+        MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedTotalAmount, null);
+        Instant createdAt = Instant.now();
+        Instant resolvedExpiredAt = expiredAt == null ? createdAt.plusSeconds(1800) : expiredAt;
         return new Order(
-                id == null ? null : OrderId.of(id),
-                orderNo == null ? null : OrderNo.of(orderNo),
+                id,
+                orderNo,
                 userId,
                 OrderStatus.CREATED,
                 PayStatus.UNPAID,
                 InventoryStatus.UNRESERVED,
                 null,
                 null,
-                currencyCode,
-                init.totalAmount(),
-                init.payableAmount(),
+                resolvedCurrencyCode,
+                resolvedTotalAmount,
+                resolvedTotalAmount,
                 remark,
                 null,
                 null,
@@ -120,8 +125,8 @@ public class Order {
                 null,
                 null,
                 null,
-                init.createdAt(),
-                init.expiredAt(),
+                createdAt,
+                resolvedExpiredAt,
                 null,
                 null,
                 null,
@@ -158,12 +163,7 @@ public class Order {
             Instant inventoryReleasedAt,
             Instant inventoryDeductedAt) {
         Instant resolvedCreatedAt = createdAt == null ? Instant.now() : createdAt;
-        Instant resolvedExpiredAt = resolveExpiredAt(resolvedCreatedAt, expiredAt);
-        Money resolvedTotalAmount = toMoney(totalAmount, currencyCode);
-        Money resolvedPayableAmount = toMoney(payableAmount, currencyCode);
-        Money resolvedPaidAmount = toMoney(paidAmount, currencyCode);
-        MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
-        MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, resolvedPaidAmount);
+        Instant resolvedExpiredAt = expiredAt == null ? resolvedCreatedAt.plusSeconds(1800) : expiredAt;
         // 持久化重建必须保留主单与支付/库存派生状态，避免查询和回写时把终态信息重置成初始值。
         return new Order(
                 id,
@@ -175,11 +175,11 @@ public class Order {
                 paymentNo,
                 reservationNo,
                 currencyCode,
-                resolvedTotalAmount,
-                resolvedPayableAmount,
+                Money.resolve(totalAmount, currencyCode),
+                Money.resolve(payableAmount, currencyCode),
                 remark,
                 paymentChannelCode,
-                resolvedPaidAmount,
+                Money.resolve(paidAmount, currencyCode),
                 paymentChannelStatus,
                 paymentFailureReason,
                 paymentFailedAt,
@@ -196,31 +196,6 @@ public class Order {
                 closedAt);
     }
 
-    private static Instant resolveExpiredAt(Instant createdAt, Instant expiredAt) {
-        return expiredAt == null ? createdAt.plusSeconds(1800) : expiredAt;
-    }
-
-    private static BoundaryInit buildBoundaryInit(
-            CurrencyCode currencyCode, String totalAmount, String payableAmount, Instant expiredAt) {
-        Money resolvedTotalAmount = toMoney(totalAmount, currencyCode);
-        Money resolvedPayableAmount = toMoney(payableAmount, currencyCode);
-        MoneyValidator.ensureSameCurrency(currencyCode, resolvedTotalAmount, resolvedPayableAmount, null);
-        MoneyValidator.ensureSameCurrency(resolvedTotalAmount, resolvedPayableAmount, null);
-        Instant createdAt = Instant.now();
-        return new BoundaryInit(
-                resolvedTotalAmount, resolvedPayableAmount, createdAt, resolveExpiredAt(createdAt, expiredAt));
-    }
-
-    private static Money toMoney(String amount, CurrencyCode currencyCode) {
-        return amount == null ? null : Money.of(new BigDecimal(amount), currencyCode);
-    }
-
-    private static Money toMoney(Money amount, CurrencyCode currencyCode) {
-        return amount == null ? null : Money.of(amount.value(), currencyCode);
-    }
-
-    private record BoundaryInit(Money totalAmount, Money payableAmount, Instant createdAt, Instant expiredAt) {}
-
     public void markReservingStock() {
         // 只有新建订单才能进入预占库存阶段，避免取消/关闭后的订单再次触发库存链路。
         ensureOrderStatus(OrderStatus.CREATED);
@@ -229,16 +204,30 @@ public class Order {
     }
 
     public void markInventoryReserved(ReservationNo reservationNo, WarehouseCode warehouseCode) {
-        // 预占成功只更新库存侧派生状态，主单仍停留在 RESERVING_STOCK，等待创建支付单后再切到待支付。
         ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.reservationNo = reservationNo;
         this.warehouseCode = warehouseCode;
         this.inventoryStatus = InventoryStatus.RESERVED;
     }
 
+    public boolean recordInventoryReservationResult(
+            InventoryStatus inventoryStatus,
+            ReservationNo reservationNo,
+            WarehouseCode warehouseCode,
+            String failureReason,
+            String closeReason) {
+        // 预占结果先收口为库存派生状态，再决定主单是继续创建支付还是立即关单。
+        if (isInventoryReserved(inventoryStatus)) {
+            markInventoryReserved(reservationNo, warehouseCode);
+            return true;
+        }
+        markInventoryFailed(reservationNo, warehouseCode, failureReason);
+        closeByInventoryReserveFailed(closeReason);
+        return false;
+    }
+
     public void markInventoryReleased(
             ReservationNo reservationNo, WarehouseCode warehouseCode, String releaseReason, Instant releasedAt) {
-        // 释放库存可能发生在取消、超时或支付失败之后，因此这里不再约束主单状态，只回写库存派生结果。
         this.reservationNo = reservationNo;
         this.warehouseCode = warehouseCode;
         this.inventoryReleaseReason = releaseReason;
@@ -246,16 +235,44 @@ public class Order {
         this.inventoryStatus = InventoryStatus.RELEASED;
     }
 
+    public void recordInventoryReleaseResult(
+            InventoryStatus inventoryStatus,
+            ReservationNo reservationNo,
+            WarehouseCode warehouseCode,
+            String releaseReason,
+            Instant releasedAt,
+            String failureReason) {
+        // 释放结果只回写库存侧事实，不反向改变已经确定的取消/关闭主状态。
+        if (isInventoryReleased(inventoryStatus)) {
+            markInventoryReleased(reservationNo, warehouseCode, releaseReason, releasedAt);
+        } else {
+            markInventoryFailed(reservationNo, warehouseCode, failureReason);
+        }
+    }
+
     public void markInventoryDeducted(ReservationNo reservationNo, WarehouseCode warehouseCode, Instant deductedAt) {
-        // 扣减库存同样属于支付成功后的派生结果回写，不反向改变订单主状态。
         this.reservationNo = reservationNo;
         this.warehouseCode = warehouseCode;
         this.inventoryDeductedAt = deductedAt;
         this.inventoryStatus = InventoryStatus.DEDUCTED;
     }
 
+    public boolean recordInventoryDeductionResult(
+            InventoryStatus inventoryStatus,
+            ReservationNo reservationNo,
+            WarehouseCode warehouseCode,
+            Instant deductedAt,
+            String failureReason) {
+        // 扣减结果发生在支付成功之后，这里只沉淀库存侧结果，由调用方决定是否重试或报错。
+        if (isInventoryDeducted(inventoryStatus)) {
+            markInventoryDeducted(reservationNo, warehouseCode, deductedAt);
+            return true;
+        }
+        markInventoryFailed(reservationNo, warehouseCode, failureReason);
+        return false;
+    }
+
     public void markInventoryFailed(ReservationNo reservationNo, WarehouseCode warehouseCode, String failureReason) {
-        // 这里记录的是库存侧最终失败事实，调用方会基于该结果决定是否补偿，不在实体内隐式关闭订单。
         this.reservationNo = reservationNo;
         this.warehouseCode = warehouseCode;
         this.inventoryFailureReason = failureReason;
@@ -263,7 +280,6 @@ public class Order {
     }
 
     public void markPendingPayment(PaymentNo paymentNo, String channelCode) {
-        // 订单只有完成库存预占后才能进入待支付，避免出现未锁库存就暴露支付入口。
         ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.orderStatus = OrderStatus.PENDING_PAYMENT;
         this.payStatus = PayStatus.PAYING;
@@ -271,8 +287,18 @@ public class Order {
         this.paymentChannelCode = PaymentChannel.from(channelCode);
     }
 
+    public boolean recordPaymentCreationResult(
+            PaymentNo paymentNo, PayStatus payStatus, String channelCode, String closeReason) {
+        // 支付单创建成功才允许主单进入待支付；否则直接在创建支付阶段关单。
+        if (canEnterPendingPayment(paymentNo, payStatus)) {
+            markPendingPayment(paymentNo, channelCode);
+            return true;
+        }
+        closeByPaymentCreateFailed(closeReason);
+        return false;
+    }
+
     public void markPaid(PaymentNo paymentNo, String channelCode, Money paidAmount, Instant paidTime) {
-        // 订单支付成功是主状态终局之一，只允许从待支付进入，避免重复回调覆盖终态。
         ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
         MoneyValidator.ensureSameCurrency(totalAmount, paidAmount);
         this.orderStatus = OrderStatus.PAID;
@@ -284,7 +310,6 @@ public class Order {
     }
 
     public void markPaymentFailed(PaymentNo paymentNo, String reason, String channelStatus, Instant failedAt) {
-        // 支付失败会把主单直接收口为 CLOSED；后续库存释放只是派生补偿，不再改变主单终态。
         ensureOrderStatus(OrderStatus.PENDING_PAYMENT);
         this.orderStatus = OrderStatus.CLOSED;
         this.payStatus = PayStatus.FAILED;
@@ -297,7 +322,6 @@ public class Order {
     }
 
     public void closeByInventoryReserveFailed(String reason) {
-        // 库存预占失败发生在支付创建之前，因此直接关闭订单，不保留待支付状态。
         ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.orderStatus = OrderStatus.CLOSED;
         this.closeReason = reason;
@@ -305,7 +329,6 @@ public class Order {
     }
 
     public void closeByPaymentCreateFailed(String reason) {
-        // 创建支付单失败时主单仍在 RESERVING_STOCK；这里直接关单，后续由外部补偿释放已预占的库存。
         ensureOrderStatus(OrderStatus.RESERVING_STOCK);
         this.orderStatus = OrderStatus.CLOSED;
         this.closeReason = reason;
@@ -313,7 +336,6 @@ public class Order {
     }
 
     public void closeExpired(String reason) {
-        // 超时关闭允许覆盖“未开始预占”和“已生成支付单但未支付”两种场景，统一收口为 CLOSED/CLOSED。
         ensureOrderStatus(OrderStatus.CREATED, OrderStatus.PENDING_PAYMENT);
         this.orderStatus = OrderStatus.CLOSED;
         this.payStatus = PayStatus.CLOSED;
@@ -322,7 +344,6 @@ public class Order {
     }
 
     public void cancel(String reason) {
-        // 用户取消比超时更宽松，允许在库存预占中止损；库存释放由调用方根据当前派生状态决定是否执行。
         ensureOrderStatus(OrderStatus.CREATED, OrderStatus.PENDING_PAYMENT, OrderStatus.RESERVING_STOCK);
         this.orderStatus = OrderStatus.CANCELLED;
         this.payStatus = PayStatus.CLOSED;
@@ -331,12 +352,45 @@ public class Order {
     }
 
     private void ensureOrderStatus(OrderStatus... expectedStatuses) {
-        // 订单实体只负责守住主状态机，不在这里做幂等静默；上层应用服务应先决定是否短路。
         for (OrderStatus expectedStatus : expectedStatuses) {
             if (expectedStatus == orderStatus) {
                 return;
             }
         }
-        throw new IllegalStateException("Invalid order status: " + (orderStatus == null ? null : orderStatus.value()));
+        throw new OrderDomainException(
+                OrderErrorCode.INVALID_ORDER_STATUS,
+                orderStatus == null ? null : orderStatus.value());
+    }
+
+    private boolean isInventoryReserved(InventoryStatus inventoryStatus) {
+        return InventoryStatus.RESERVED == inventoryStatus;
+    }
+
+    private boolean isInventoryReleased(InventoryStatus inventoryStatus) {
+        return InventoryStatus.RELEASED == inventoryStatus;
+    }
+
+    private boolean isInventoryDeducted(InventoryStatus inventoryStatus) {
+        return InventoryStatus.DEDUCTED == inventoryStatus;
+    }
+
+    private boolean canEnterPendingPayment(PaymentNo paymentNo, PayStatus payStatus) {
+        return paymentNo != null && PayStatus.PAYING == payStatus;
+    }
+
+    private static CurrencyCode resolveCurrencyCode(CurrencyCode currencyCode) {
+        return currencyCode == null ? CurrencyCode.RMB : currencyCode;
+    }
+
+    private static Money sumLineAmounts(List<OrderItem> items, CurrencyCode currencyCode) {
+        Money totalAmount = Money.of(BigDecimal.ZERO, currencyCode);
+        if (items == null || items.isEmpty()) {
+            return totalAmount;
+        }
+        for (OrderItem item : items) {
+            MoneyValidator.ensureSameCurrency(totalAmount, item.getLineAmount());
+            totalAmount = Money.of(totalAmount.value().add(item.getLineAmount().value()), currencyCode);
+        }
+        return totalAmount;
     }
 }

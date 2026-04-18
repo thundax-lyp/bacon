@@ -25,6 +25,16 @@ class MoneyTest {
     }
 
     @Test
+    void shouldMultiplyAndKeepCurrency() {
+        Money money = Money.of(new BigDecimal("10.50"), CurrencyCode.USD);
+
+        Money result = money.multiply(new BigDecimal("3"));
+
+        assertEquals(CurrencyCode.USD, result.currencyCode());
+        assertEquals(new BigDecimal("31.50"), result.value());
+    }
+
+    @Test
     void shouldRejectCrossCurrencyComparison() {
         assertThrows(IllegalArgumentException.class, () -> Money.of(new BigDecimal("10"), CurrencyCode.RMB)
                 .compareTo(Money.of(new BigDecimal("10"), CurrencyCode.USD)));

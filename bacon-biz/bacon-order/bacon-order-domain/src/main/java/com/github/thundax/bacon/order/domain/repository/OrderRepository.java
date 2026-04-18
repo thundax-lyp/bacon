@@ -4,9 +4,12 @@ import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
 import com.github.thundax.bacon.common.id.domain.UserId;
 import com.github.thundax.bacon.order.domain.model.entity.Order;
 import com.github.thundax.bacon.order.domain.model.entity.OrderAuditLog;
-import com.github.thundax.bacon.order.domain.model.entity.OrderInventorySnapshot;
 import com.github.thundax.bacon.order.domain.model.entity.OrderItem;
-import com.github.thundax.bacon.order.domain.model.entity.OrderPaymentSnapshot;
+import com.github.thundax.bacon.order.domain.model.enums.InventoryStatus;
+import com.github.thundax.bacon.order.domain.model.enums.OrderStatus;
+import com.github.thundax.bacon.order.domain.model.enums.PayStatus;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderInventorySnapshot;
+import com.github.thundax.bacon.order.domain.model.snapshot.OrderPaymentSnapshot;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderId;
 import java.time.Instant;
 import java.util.List;
@@ -45,18 +48,18 @@ public interface OrderRepository {
     long count(
             UserId userId,
             OrderNo orderNo,
-            String orderStatus,
-            String payStatus,
-            String inventoryStatus,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo);
 
     List<Order> page(
             UserId userId,
             OrderNo orderNo,
-            String orderStatus,
-            String payStatus,
-            String inventoryStatus,
+            OrderStatus orderStatus,
+            PayStatus payStatus,
+            InventoryStatus inventoryStatus,
             Instant createdAtFrom,
             Instant createdAtTo,
             int pageNo,

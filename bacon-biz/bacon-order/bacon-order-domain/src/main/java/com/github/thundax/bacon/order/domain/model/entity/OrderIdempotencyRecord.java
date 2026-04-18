@@ -1,6 +1,7 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
-import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.order.domain.exception.OrderDomainException;
+import com.github.thundax.bacon.order.domain.exception.OrderErrorCode;
 import com.github.thundax.bacon.order.domain.model.enums.OrderIdempotencyStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.OrderIdempotencyRecordKey;
 import java.time.Instant;
@@ -8,13 +9,11 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * 订单幂等处理记录。
  */
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderIdempotencyRecord {
@@ -40,7 +39,17 @@ public class OrderIdempotencyRecord {
 
     public static OrderIdempotencyRecord create(
             OrderIdempotencyRecordKey key, String processingOwner, Instant leaseUntil, Instant claimedAt) {
-        return new OrderIdempotencyRecord(key, null, null, null, processingOwner, leaseUntil, claimedAt, null, null);
+        Instant createdAt = claimedAt == null ? Instant.now() : claimedAt;
+        return new OrderIdempotencyRecord(
+                key,
+                OrderIdempotencyStatus.READY,
+                0,
+                null,
+                processingOwner,
+                leaseUntil,
+                claimedAt,
+                createdAt,
+                createdAt);
     }
 
     public static OrderIdempotencyRecord reconstruct(
@@ -53,15 +62,108 @@ public class OrderIdempotencyRecord {
             Instant claimedAt,
             Instant createdAt,
             Instant updatedAt) {
+        Instant resolvedCreatedAt = createdAt == null ? Instant.now() : createdAt;
         return new OrderIdempotencyRecord(
-                key, status, attemptCount, lastError, processingOwner, leaseUntil, claimedAt, createdAt, updatedAt);
+                key,
+                status == null ? OrderIdempotencyStatus.READY : status,
+                attemptCount == null ? 0 : attemptCount,
+                lastError,
+                processingOwner,
+                leaseUntil,
+                claimedAt,
+                resolvedCreatedAt,
+                updatedAt == null ? resolvedCreatedAt : updatedAt);
     }
 
-    public OrderNo getOrderNo() {
-        return key == null ? null : key.orderNo();
+    public void startProcessing(Instant now) {
+        if (this.status != OrderIdempotencyStatus.READY) {
+            throw new OrderDomainException(OrderErrorCode.INVALID_IDEMPOTENCY_STATUS, String.valueOf(this.status));
+        }
+        this.status = OrderIdempotencyStatus.PROCESSING;
+        this.attemptCount = this.attemptCount <= 0 ? 1 : this.attemptCount;
+        this.lastError = null;
+        this.updatedAt = now;
     }
 
-    public String getEventType() {
-        return key == null ? null : key.eventType();
+    public void claim(String processingOwner, Instant leaseUntil, Instant claimedAt, Instant updatedAt) {
+        ensureStatus(OrderIdempotencyStatus.PROCESSING);
+        this.processingOwner = processingOwner;
+        this.leaseUntil = leaseUntil;
+        this.claimedAt = claimedAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public void markSuccess(Instant updatedAt) {
+        ensureStatus(OrderIdempotencyStatus.PROCESSING);
+        this.status = OrderIdempotencyStatus.SUCCESS;
+        this.lastError = null;
+        this.processingOwner = null;
+        this.leaseUntil = null;
+        this.claimedAt = null;
+        this.updatedAt = updatedAt;
+    }
+
+    public void markFailed(String lastError, Instant updatedAt) {
+        ensureStatus(OrderIdempotencyStatus.PROCESSING);
+        this.status = OrderIdempotencyStatus.FAILED;
+        this.lastError = lastError;
+        this.processingOwner = null;
+        this.leaseUntil = null;
+        this.claimedAt = null;
+        this.updatedAt = updatedAt;
+    }
+
+    public void expire(String lastError, Instant now) {
+        if (!isProcessingAndLeaseExpired(now)) {
+            throw new OrderDomainException(OrderErrorCode.INVALID_IDEMPOTENCY_STATUS, String.valueOf(this.status));
+        }
+        this.status = OrderIdempotencyStatus.FAILED;
+        this.lastError = lastError;
+        this.processingOwner = null;
+        this.leaseUntil = null;
+        this.claimedAt = null;
+        this.updatedAt = now;
+    }
+
+    public void recover(String processingOwner, Instant leaseUntil, Instant claimedAt, Instant updatedAt) {
+        ensureStatus(OrderIdempotencyStatus.FAILED);
+        this.status = OrderIdempotencyStatus.PROCESSING;
+        this.attemptCount = (this.attemptCount == null ? 0 : this.attemptCount) + 1;
+        this.lastError = null;
+        this.processingOwner = processingOwner;
+        this.leaseUntil = leaseUntil;
+        this.claimedAt = claimedAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isSuccess() {
+        return this.status == OrderIdempotencyStatus.SUCCESS;
+    }
+
+    public boolean isFailed() {
+        return this.status == OrderIdempotencyStatus.FAILED;
+    }
+
+    public boolean isProcessing() {
+        return this.status == OrderIdempotencyStatus.PROCESSING;
+    }
+
+    public boolean isLeaseExpired(Instant now) {
+        return this.leaseUntil == null || !this.leaseUntil.isAfter(now);
+    }
+
+    public boolean isProcessingAndLeaseExpired(Instant now) {
+        return isProcessing() && isLeaseExpired(now);
+    }
+
+    public boolean isProcessingAndLeaseActive(Instant now) {
+        return isProcessing() && !isLeaseExpired(now);
+    }
+
+    private void ensureStatus(OrderIdempotencyStatus expectedStatus) {
+        if (this.status == expectedStatus) {
+            return;
+        }
+        throw new OrderDomainException(OrderErrorCode.INVALID_IDEMPOTENCY_STATUS, String.valueOf(this.status));
     }
 }

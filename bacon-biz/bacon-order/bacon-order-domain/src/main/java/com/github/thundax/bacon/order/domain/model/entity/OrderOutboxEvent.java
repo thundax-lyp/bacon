@@ -1,25 +1,29 @@
 package com.github.thundax.bacon.order.domain.model.entity;
 
 import com.github.thundax.bacon.common.commerce.valueobject.OrderNo;
+import com.github.thundax.bacon.order.domain.exception.OrderDomainException;
+import com.github.thundax.bacon.order.domain.exception.OrderErrorCode;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxEventType;
 import com.github.thundax.bacon.order.domain.model.enums.OrderOutboxStatus;
 import com.github.thundax.bacon.order.domain.model.valueobject.EventCode;
 import com.github.thundax.bacon.order.domain.model.valueobject.OutboxId;
 import java.time.Instant;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * 订单出站事件。
  */
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderOutboxEvent {
+
+    private static final int MESSAGE_MAX_LENGTH = 512;
+
     /** 出站事件主键。 */
     private OutboxId id;
     /** 出站事件业务标识。 */
@@ -68,6 +72,7 @@ public class OrderOutboxEvent {
             String deadReason,
             Instant createdAt,
             Instant updatedAt) {
+        Instant now = createdAt == null ? Instant.now() : createdAt;
         return new OrderOutboxEvent(
                 null,
                 null,
@@ -75,16 +80,16 @@ public class OrderOutboxEvent {
                 eventType,
                 businessKey,
                 payload,
-                status,
-                retryCount,
+                status == null ? OrderOutboxStatus.NEW : status,
+                retryCount == null ? 0 : retryCount,
                 nextRetryAt,
                 processingOwner,
                 leaseUntil,
                 claimedAt,
-                errorMessage,
+                normalizeMessage(errorMessage),
                 deadReason,
-                createdAt,
-                updatedAt);
+                now,
+                updatedAt == null ? now : updatedAt);
     }
 
     public static OrderOutboxEvent reconstruct(
@@ -104,6 +109,7 @@ public class OrderOutboxEvent {
             String deadReason,
             Instant createdAt,
             Instant updatedAt) {
+        Instant resolvedCreatedAt = createdAt == null ? Instant.now() : createdAt;
         return new OrderOutboxEvent(
                 id,
                 eventCode,
@@ -111,15 +117,99 @@ public class OrderOutboxEvent {
                 eventType,
                 businessKey,
                 payload,
-                status,
-                retryCount,
+                status == null ? OrderOutboxStatus.NEW : status,
+                retryCount == null ? 0 : retryCount,
                 nextRetryAt,
                 processingOwner,
                 leaseUntil,
                 claimedAt,
-                errorMessage,
+                normalizeMessage(errorMessage),
                 deadReason,
-                createdAt,
-                updatedAt);
+                resolvedCreatedAt,
+                updatedAt == null ? resolvedCreatedAt : updatedAt);
+    }
+
+    public boolean isClaimable(Instant now) {
+        return isNewOrRetrying() && (this.nextRetryAt == null || !this.nextRetryAt.isAfter(now));
+    }
+
+    public boolean isClaimedBy(String owner) {
+        return this.status == OrderOutboxStatus.PROCESSING && Objects.equals(this.processingOwner, owner);
+    }
+
+    public boolean isLeaseExpired(Instant now) {
+        return this.leaseUntil != null && !this.leaseUntil.isAfter(now);
+    }
+
+    public int nextRetryCount() {
+        return (this.retryCount == null ? 0 : this.retryCount) + 1;
+    }
+
+    public void claim(String owner, Instant leaseUntil, Instant claimedAt) {
+        if (!isNewOrRetrying()) {
+            throw new OrderDomainException(
+                    OrderErrorCode.INVALID_OUTBOX_EVENT,
+                    this.status == null ? null : this.status.value());
+        }
+        if (this.nextRetryAt != null && claimedAt != null && this.nextRetryAt.isAfter(claimedAt)) {
+            throw new OrderDomainException(OrderErrorCode.INVALID_OUTBOX_EVENT, "nextRetryAt");
+        }
+        this.status = OrderOutboxStatus.PROCESSING;
+        this.processingOwner = owner;
+        this.leaseUntil = leaseUntil;
+        this.claimedAt = claimedAt;
+        this.updatedAt = claimedAt == null ? Instant.now() : claimedAt;
+    }
+
+    public void releaseExpiredLease(Instant now) {
+        if (this.status != OrderOutboxStatus.PROCESSING || !isLeaseExpired(now)) {
+            throw new OrderDomainException(
+                    OrderErrorCode.INVALID_OUTBOX_EVENT,
+                    this.status == null ? null : this.status.value());
+        }
+        this.status = OrderOutboxStatus.RETRYING;
+        this.processingOwner = null;
+        this.leaseUntil = null;
+        this.claimedAt = null;
+        this.updatedAt = now;
+    }
+
+    public void markRetrying(String owner, Instant nextRetryAt, String errorMessage, Instant updatedAt) {
+        if (!isClaimedBy(owner)) {
+            throw new OrderDomainException(OrderErrorCode.INVALID_OUTBOX_EVENT, owner);
+        }
+        this.status = OrderOutboxStatus.RETRYING;
+        this.retryCount = nextRetryCount();
+        this.nextRetryAt = nextRetryAt;
+        this.errorMessage = normalizeMessage(errorMessage);
+        this.processingOwner = null;
+        this.leaseUntil = null;
+        this.claimedAt = null;
+        this.updatedAt = updatedAt == null ? Instant.now() : updatedAt;
+    }
+
+    public void markDead(String owner, String deadReason, String errorMessage, Instant updatedAt) {
+        if (!isClaimedBy(owner)) {
+            throw new OrderDomainException(OrderErrorCode.INVALID_OUTBOX_EVENT, owner);
+        }
+        this.status = OrderOutboxStatus.DEAD;
+        this.retryCount = nextRetryCount();
+        this.deadReason = deadReason;
+        this.errorMessage = normalizeMessage(errorMessage);
+        this.processingOwner = null;
+        this.leaseUntil = null;
+        this.claimedAt = null;
+        this.updatedAt = updatedAt == null ? Instant.now() : updatedAt;
+    }
+
+    private boolean isNewOrRetrying() {
+        return this.status == OrderOutboxStatus.NEW || this.status == OrderOutboxStatus.RETRYING;
+    }
+
+    private static String normalizeMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return null;
+        }
+        return message.length() <= MESSAGE_MAX_LENGTH ? message : message.substring(0, MESSAGE_MAX_LENGTH);
     }
 }

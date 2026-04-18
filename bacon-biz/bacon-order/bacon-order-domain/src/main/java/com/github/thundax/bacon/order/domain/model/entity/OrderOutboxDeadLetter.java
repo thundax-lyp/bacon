@@ -130,33 +130,6 @@ public class OrderOutboxDeadLetter {
                 updatedAt == null ? resolvedCreatedAt : updatedAt);
     }
 
-    public void markReplaySucceeded(Instant replayedAt, String message) {
-        this.replayStatus = OrderOutboxReplayStatus.SUCCESS;
-        this.replayCount = increaseReplayCount();
-        this.lastReplayAt = replayedAt == null ? Instant.now() : replayedAt;
-        this.lastReplayMessage = normalizeReplayMessage(message);
-        this.updatedAt = this.lastReplayAt;
-    }
-
-    public void markReplayFailed(Instant replayedAt, String message) {
-        this.replayStatus = OrderOutboxReplayStatus.FAILED;
-        this.replayCount = increaseReplayCount();
-        this.lastReplayAt = replayedAt == null ? Instant.now() : replayedAt;
-        this.lastReplayMessage = normalizeReplayMessage(message);
-        this.updatedAt = this.lastReplayAt;
-    }
-
-    public void markReplayPending(String message, Instant updatedAt) {
-        if (this.replayStatus != OrderOutboxReplayStatus.FAILED) {
-            throw new OrderDomainException(
-                    OrderErrorCode.INVALID_OUTBOX_DEAD_LETTER,
-                    this.replayStatus == null ? null : this.replayStatus.value());
-        }
-        this.replayStatus = OrderOutboxReplayStatus.PENDING;
-        this.lastReplayMessage = normalizeReplayMessage(message);
-        this.updatedAt = updatedAt == null ? Instant.now() : updatedAt;
-    }
-
     public boolean isReplaySucceeded() {
         return this.replayStatus == OrderOutboxReplayStatus.SUCCESS;
     }
@@ -183,6 +156,33 @@ public class OrderOutboxDeadLetter {
                 this.deadReason,
                 this.createdAt,
                 this.updatedAt);
+    }
+
+    public void markReplayPending(String message, Instant updatedAt) {
+        if (this.replayStatus != OrderOutboxReplayStatus.FAILED) {
+            throw new OrderDomainException(
+                    OrderErrorCode.INVALID_OUTBOX_DEAD_LETTER,
+                    this.replayStatus == null ? null : this.replayStatus.value());
+        }
+        this.replayStatus = OrderOutboxReplayStatus.PENDING;
+        this.lastReplayMessage = normalizeReplayMessage(message);
+        this.updatedAt = updatedAt == null ? Instant.now() : updatedAt;
+    }
+
+    public void markReplaySucceeded(Instant replayedAt, String message) {
+        this.replayStatus = OrderOutboxReplayStatus.SUCCESS;
+        this.replayCount = increaseReplayCount();
+        this.lastReplayAt = replayedAt == null ? Instant.now() : replayedAt;
+        this.lastReplayMessage = normalizeReplayMessage(message);
+        this.updatedAt = this.lastReplayAt;
+    }
+
+    public void markReplayFailed(Instant replayedAt, String message) {
+        this.replayStatus = OrderOutboxReplayStatus.FAILED;
+        this.replayCount = increaseReplayCount();
+        this.lastReplayAt = replayedAt == null ? Instant.now() : replayedAt;
+        this.lastReplayMessage = normalizeReplayMessage(message);
+        this.updatedAt = this.lastReplayAt;
     }
 
     private static String normalizeMessage(String message) {

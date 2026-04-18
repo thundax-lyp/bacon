@@ -59,7 +59,7 @@
   - 重要度：6/10
 
 - [ ] `order`：拆分 `OrderReadProviderController` 的读写混合职责
-  - 当前状态：类名为 `Read`，但包含 `markPaid/markPaymentFailed/closeExpired` 写操作
+  - 当前状态：类名为 `Read`，但包含 `markPaid/markPaymentFailed/closeExpired` 写操作；支付快照/库存快照/审计日志已从主仓储拆出，剩余问题集中在 provider 命名与职责边界
   - 处理动作：拆成 `OrderReadProviderController` 与 `OrderCommandProviderController`（或等价命名）
   - 验收点：provider 命名语义与行为一致，AI 不会因命名误导调用写接口
   - 重要度：8/10
@@ -206,8 +206,8 @@
 ### P2 - 测试覆盖对齐
 
 - [ ] 对齐五域测试深度（重点补 `auth/upms` 的复杂流程用例）
-  - 当前对比：`inventory` 测试数量与场景深度领先；`auth/upms` 在复杂路径（鉴权、导入、密码、回调异常分支）覆盖偏薄
-  - 处理动作：按“成功路径 + 参数非法 + 状态冲突 + 资源不存在”补最小闭环测试集
+  - 当前对比：`inventory` 测试数量与场景深度领先；`order-domain` 已补最小但关键的领域单测闭环；`auth/upms` 在复杂路径（鉴权、导入、密码、回调异常分支）覆盖仍偏薄
+  - 处理动作：后续重点转到 `auth/upms`，按“成功路径 + 参数非法 + 状态冲突 + 资源不存在”补最小闭环测试集
   - 验收点：五域关键业务链路均具备可回归的正反用例，AI 改动后能快速自检
   - 重要度：7/10
 
@@ -233,8 +233,8 @@
   - 重要度：9/10
 
 - [ ] 增加 ArchUnit 规则：`RepositoryImpl` 必须且只实现本域 `Repository`
-  - 现状：当前只限制了 `infra.repository.impl` 之外不得依赖 `domain.repository`，但尚未门禁实现关系本身
-  - 处理动作：限制 `*RepositoryImpl` 必须实现一个且仅一个本域 `domain.repository.*Repository`，并禁止实现外域 `Repository`
+  - 现状：当前已落地 `RepositoryImpl` 不得依赖其他 `RepositoryImpl`、不得依赖其他聚合 `PersistenceSupport` 的硬规则，但尚未门禁实现关系本身
+  - 处理动作：在现有硬规则基础上，继续限制 `*RepositoryImpl` 必须实现一个且仅一个本域 `domain.repository.*Repository`，并禁止实现外域 `Repository`
   - 验收点：仓储实现和领域仓储契约一一对应，避免“工具类伪装成 RepositoryImpl”或“一类多仓储”漂移
   - 重要度：9/10
 

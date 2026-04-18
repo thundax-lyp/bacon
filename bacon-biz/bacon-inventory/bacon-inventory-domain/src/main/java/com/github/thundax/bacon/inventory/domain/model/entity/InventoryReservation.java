@@ -100,6 +100,26 @@ public class InventoryReservation {
                 deductedAt);
     }
 
+    public boolean isReserved() {
+        return InventoryReservationStatus.RESERVED.equals(reservationStatus);
+    }
+
+    public boolean isProcessing() {
+        return InventoryReservationStatus.CREATED.equals(reservationStatus);
+    }
+
+    public boolean isReleased() {
+        return InventoryReservationStatus.RELEASED.equals(reservationStatus);
+    }
+
+    public boolean isDeducted() {
+        return InventoryReservationStatus.DEDUCTED.equals(reservationStatus);
+    }
+
+    public boolean isFailed() {
+        return InventoryReservationStatus.FAILED.equals(reservationStatus);
+    }
+
     public void reserve() {
         // 预占单只允许从 CREATED 进入 RESERVED；一旦失败或终结，就不能再次复用同一预占单。
         ensureStatus(InventoryReservationStatus.CREATED);
@@ -126,26 +146,6 @@ public class InventoryReservation {
         ensureStatus(InventoryReservationStatus.RESERVED);
         this.reservationStatus = InventoryReservationStatus.DEDUCTED;
         this.deductedAt = deductedTime;
-    }
-
-    public boolean isReserved() {
-        return InventoryReservationStatus.RESERVED.equals(reservationStatus);
-    }
-
-    public boolean isProcessing() {
-        return InventoryReservationStatus.CREATED.equals(reservationStatus);
-    }
-
-    public boolean isReleased() {
-        return InventoryReservationStatus.RELEASED.equals(reservationStatus);
-    }
-
-    public boolean isDeducted() {
-        return InventoryReservationStatus.DEDUCTED.equals(reservationStatus);
-    }
-
-    public boolean isFailed() {
-        return InventoryReservationStatus.FAILED.equals(reservationStatus);
     }
 
     private void ensureStatus(InventoryReservationStatus... expectedStatuses) {

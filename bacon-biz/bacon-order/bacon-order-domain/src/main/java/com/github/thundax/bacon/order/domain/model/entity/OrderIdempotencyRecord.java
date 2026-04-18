@@ -75,6 +75,30 @@ public class OrderIdempotencyRecord {
                 updatedAt == null ? resolvedCreatedAt : updatedAt);
     }
 
+    public boolean isSuccess() {
+        return this.status == OrderIdempotencyStatus.SUCCESS;
+    }
+
+    public boolean isFailed() {
+        return this.status == OrderIdempotencyStatus.FAILED;
+    }
+
+    public boolean isProcessing() {
+        return this.status == OrderIdempotencyStatus.PROCESSING;
+    }
+
+    public boolean isLeaseExpired(Instant now) {
+        return this.leaseUntil == null || !this.leaseUntil.isAfter(now);
+    }
+
+    public boolean isProcessingAndLeaseExpired(Instant now) {
+        return isProcessing() && isLeaseExpired(now);
+    }
+
+    public boolean isProcessingAndLeaseActive(Instant now) {
+        return isProcessing() && !isLeaseExpired(now);
+    }
+
     public void startProcessing(Instant now) {
         if (this.status != OrderIdempotencyStatus.READY) {
             throw new OrderDomainException(OrderErrorCode.INVALID_IDEMPOTENCY_STATUS, String.valueOf(this.status));
@@ -134,30 +158,6 @@ public class OrderIdempotencyRecord {
         this.leaseUntil = leaseUntil;
         this.claimedAt = claimedAt;
         this.updatedAt = updatedAt;
-    }
-
-    public boolean isSuccess() {
-        return this.status == OrderIdempotencyStatus.SUCCESS;
-    }
-
-    public boolean isFailed() {
-        return this.status == OrderIdempotencyStatus.FAILED;
-    }
-
-    public boolean isProcessing() {
-        return this.status == OrderIdempotencyStatus.PROCESSING;
-    }
-
-    public boolean isLeaseExpired(Instant now) {
-        return this.leaseUntil == null || !this.leaseUntil.isAfter(now);
-    }
-
-    public boolean isProcessingAndLeaseExpired(Instant now) {
-        return isProcessing() && isLeaseExpired(now);
-    }
-
-    public boolean isProcessingAndLeaseActive(Instant now) {
-        return isProcessing() && !isLeaseExpired(now);
     }
 
     private void ensureStatus(OrderIdempotencyStatus expectedStatus) {

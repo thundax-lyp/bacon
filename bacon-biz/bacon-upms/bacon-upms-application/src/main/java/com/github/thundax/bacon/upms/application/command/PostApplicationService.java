@@ -63,8 +63,7 @@ public class PostApplicationService {
                 PostIdCodec.toDomain(idGenerator.nextId(POST_ID_BIZ_TAG)),
                 PostCodeCodec.toDomain(code),
                 trimPreservingNull(name),
-                departmentId,
-                PostStatus.ENABLED)));
+                departmentId)));
     }
 
     @Transactional

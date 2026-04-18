@@ -57,7 +57,7 @@ public class MenuApplicationService {
         validateParent(parentId);
         return toTreeDto(menuRepository.insert(Menu.create(
                 MenuIdCodec.toDomain(idGenerator.nextId(MENU_ID_BIZ_TAG)),
-                menuType.value(),
+                menuType,
                 name,
                 parentId,
                 routePath,
@@ -81,7 +81,7 @@ public class MenuApplicationService {
                 .findById(menuId)
                 .orElseThrow(() -> new NotFoundException("Menu not found: " + menuId));
         validateParent(parentId);
-        currentMenu.retypeAs(menuType.value());
+        currentMenu.retypeAs(menuType);
         currentMenu.rename(name);
         currentMenu.moveUnder(parentId);
         currentMenu.routeTo(routePath);

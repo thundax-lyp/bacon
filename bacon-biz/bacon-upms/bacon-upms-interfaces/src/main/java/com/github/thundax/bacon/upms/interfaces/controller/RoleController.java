@@ -12,7 +12,6 @@ import com.github.thundax.bacon.upms.domain.model.enums.RoleDataScopeType;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleStatus;
 import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.interfaces.request.RoleCreateRequest;
 import com.github.thundax.bacon.upms.interfaces.request.RoleDataScopeAssignRequest;
 import com.github.thundax.bacon.upms.interfaces.request.RoleMenuAssignRequest;
@@ -157,10 +156,9 @@ public class RoleController {
     @SysLog(module = "UPMS", action = "查询角色数据权限配置", eventType = LogEventType.QUERY)
     @GetMapping("/{roleId}/data-scope")
     public RoleDataScopeResponse getAssignedDataScope(@PathVariable("roleId") Long roleId) {
-        RoleDataScopeAssignment assignment = roleApplicationService.getDataScope(RoleIdCodec.toDomain(roleId));
         return new RoleDataScopeResponse(
-                assignment.dataScopeType().value(),
-                assignment.departmentIds().stream()
+                roleApplicationService.getDataScopeType(RoleIdCodec.toDomain(roleId)).value(),
+                roleApplicationService.getDataScopeDepartmentIds(RoleIdCodec.toDomain(roleId)).stream()
                         .map(DepartmentId::value)
                         .collect(Collectors.toSet()));
     }
@@ -180,7 +178,7 @@ public class RoleController {
                                 : request.departmentIds().stream()
                                         .map(DepartmentIdCodec::toDomain)
                                         .collect(Collectors.toSet()))
-                .departmentIds().stream()
+                .stream()
                 .map(DepartmentId::value)
                 .collect(Collectors.toSet());
     }

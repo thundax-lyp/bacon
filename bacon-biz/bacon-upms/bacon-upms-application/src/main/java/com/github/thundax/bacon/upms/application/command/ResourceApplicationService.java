@@ -69,8 +69,7 @@ public class ResourceApplicationService {
                 trimPreservingNull(name),
                 resourceType,
                 trimPreservingNull(httpMethod),
-                trimPreservingNull(uri),
-                ResourceStatus.ENABLED)));
+                trimPreservingNull(uri))));
     }
 
     @Transactional

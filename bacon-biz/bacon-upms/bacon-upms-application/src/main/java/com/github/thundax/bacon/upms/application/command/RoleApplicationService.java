@@ -19,9 +19,11 @@ import com.github.thundax.bacon.upms.domain.model.enums.RoleType;
 import com.github.thundax.bacon.upms.domain.model.valueobject.DepartmentId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.MenuId;
 import com.github.thundax.bacon.upms.domain.model.valueobject.ResourceCode;
-import com.github.thundax.bacon.upms.domain.model.valueobject.RoleDataScopeAssignment;
 import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
+import com.github.thundax.bacon.upms.domain.repository.RoleDataScopeRepository;
+import com.github.thundax.bacon.upms.domain.repository.RoleMenuRepository;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
+import com.github.thundax.bacon.upms.domain.repository.RoleResourceRepository;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,10 +37,21 @@ public class RoleApplicationService {
     private static final String ROLE_ID_BIZ_TAG = "role-id";
 
     private final RoleRepository roleRepository;
+    private final RoleMenuRepository roleMenuRepository;
+    private final RoleResourceRepository roleResourceRepository;
+    private final RoleDataScopeRepository roleDataScopeRepository;
     private final IdGenerator idGenerator;
 
-    public RoleApplicationService(RoleRepository roleRepository, IdGenerator idGenerator) {
+    public RoleApplicationService(
+            RoleRepository roleRepository,
+            RoleMenuRepository roleMenuRepository,
+            RoleResourceRepository roleResourceRepository,
+            RoleDataScopeRepository roleDataScopeRepository,
+            IdGenerator idGenerator) {
         this.roleRepository = roleRepository;
+        this.roleMenuRepository = roleMenuRepository;
+        this.roleResourceRepository = roleResourceRepository;
+        this.roleDataScopeRepository = roleDataScopeRepository;
         this.idGenerator = idGenerator;
     }
 
@@ -84,8 +97,7 @@ public class RoleApplicationService {
                 RoleCodeCodec.toDomain(code),
                 trimPreservingNull(name),
                 roleType,
-                dataScopeType,
-                RoleStatus.ACTIVE)));
+                dataScopeType)));
     }
 
     @Transactional
@@ -129,7 +141,7 @@ public class RoleApplicationService {
     }
 
     public Set<String> getMenuIds(RoleId roleId) {
-        return roleRepository.findMenuIds(roleId).stream()
+        return roleMenuRepository.findMenuIds(roleId).stream()
                 .map(MenuIdCodec::toValue)
                 .map(String::valueOf)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -137,14 +149,14 @@ public class RoleApplicationService {
 
     @Transactional
     public Set<String> updateMenuIds(RoleId roleId, Set<MenuId> menuIds) {
-        return roleRepository.updateMenuIds(roleId, menuIds).stream()
+        return roleMenuRepository.updateMenuIds(roleId, menuIds).stream()
                 .map(MenuIdCodec::toValue)
                 .map(String::valueOf)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public Set<String> getResourceCodes(RoleId roleId) {
-        return roleRepository.findResourceCodes(roleId).stream()
+        return roleResourceRepository.findResourceCodes(roleId).stream()
                 .map(ResourceCodeCodec::toValue)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -157,19 +169,23 @@ public class RoleApplicationService {
                         : resourceCodes.stream()
                                 .map(ResourceCodeCodec::toDomain)
                                 .collect(Collectors.toCollection(LinkedHashSet::new));
-        return roleRepository.updateResourceCodes(roleId, safeResourceCodes).stream()
+        return roleResourceRepository.updateResourceCodes(roleId, safeResourceCodes).stream()
                 .map(ResourceCodeCodec::toValue)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public RoleDataScopeAssignment getDataScope(RoleId roleId) {
-        return roleRepository.findDataScope(roleId);
+    public RoleDataScopeType getDataScopeType(RoleId roleId) {
+        return roleDataScopeRepository.findDataScopeType(roleId);
+    }
+
+    public Set<DepartmentId> getDataScopeDepartmentIds(RoleId roleId) {
+        return roleDataScopeRepository.findDataScopeDepartmentIds(roleId);
     }
 
     @Transactional
-    public RoleDataScopeAssignment updateDataScope(
+    public Set<DepartmentId> updateDataScope(
             RoleId roleId, RoleDataScopeType dataScopeType, Set<DepartmentId> departmentIds) {
-        return roleRepository.updateDataScope(roleId, RoleDataScopeAssignment.of(dataScopeType, departmentIds));
+        return roleDataScopeRepository.updateDataScope(roleId, dataScopeType, departmentIds);
     }
 
     private void validateRequired(String value, String fieldName) {

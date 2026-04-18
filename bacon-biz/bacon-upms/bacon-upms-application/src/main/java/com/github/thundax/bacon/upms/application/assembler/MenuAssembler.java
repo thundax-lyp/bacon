@@ -14,7 +14,7 @@ public final class MenuAssembler {
         return new UserMenuTreeDTO(
                 MenuIdCodec.toValue(menu.getId()),
                 menu.getName(),
-                menu.getMenuType(),
+                menu.getMenuType() == null ? null : menu.getMenuType().value(),
                 MenuIdCodec.toValue(menu.getParentId()),
                 menu.getRoutePath(),
                 menu.getComponentName(),
@@ -30,7 +30,7 @@ public final class MenuAssembler {
     public static MenuTreeDTO toTreeDto(Menu menu) {
         return new MenuTreeDTO(
                 MenuIdCodec.toValue(menu.getId()),
-                menu.getMenuType(),
+                menu.getMenuType() == null ? null : menu.getMenuType().value(),
                 menu.getName(),
                 MenuIdCodec.toValue(menu.getParentId()),
                 menu.getRoutePath(),

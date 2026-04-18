@@ -44,7 +44,10 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.TenantCode;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserCredentialRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserIdentityRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserRoleRepository;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -70,6 +73,12 @@ class UserApplicationServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private UserIdentityRepository userIdentityRepository;
+    @Mock
+    private UserCredentialRepository userCredentialRepository;
+    @Mock
+    private UserRoleRepository userRoleRepository;
 
     @Mock
     private DepartmentRepository departmentRepository;
@@ -106,6 +115,9 @@ class UserApplicationServiceTest {
         service = new UserApplicationService(
                 departmentRepository,
                 userRepository,
+                userIdentityRepository,
+                userCredentialRepository,
+                userRoleRepository,
                 roleRepository,
                 tenantRepository,
                 sessionCommandFacade,
@@ -252,13 +264,13 @@ class UserApplicationServiceTest {
         UserIdentity accountIdentity = identity(201L, 101L, UserIdentityType.ACCOUNT, "alice");
         UserIdentity phoneIdentity = identity(202L, 101L, UserIdentityType.PHONE, "13800000001");
         UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", true);
-        when(userRepository.findIdentity(UserIdentityType.ACCOUNT, "alice"))
+        when(userIdentityRepository.findIdentity(UserIdentityType.ACCOUNT, "alice"))
                 .thenReturn(Optional.of(accountIdentity));
-        when(userRepository.findIdentityByUserId(UserId.of(101L), UserIdentityType.ACCOUNT))
+        when(userIdentityRepository.findIdentityByUserId(UserId.of(101L), UserIdentityType.ACCOUNT))
                 .thenReturn(Optional.of(accountIdentity));
-        when(userRepository.findIdentityByUserId(UserId.of(101L), UserIdentityType.PHONE))
+        when(userIdentityRepository.findIdentityByUserId(UserId.of(101L), UserIdentityType.PHONE))
                 .thenReturn(Optional.of(phoneIdentity));
-        when(userRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
+        when(userCredentialRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
 
@@ -276,7 +288,7 @@ class UserApplicationServiceTest {
         User user = user(101L, "Alice", null, DEPARTMENT_ID, UserStatus.ACTIVE);
         UserCredential passwordCredential = credential(301L, 101L, 201L, "{noop}identity", false);
         when(userRepository.findById(UserId.of(101L))).thenReturn(Optional.of(user));
-        when(userRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
+        when(userCredentialRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
         when(passwordEncoder.matches("old-password", "{noop}identity")).thenReturn(true);
         service.changePassword(UserId.of(101L), "old-password", "new-password");
@@ -287,24 +299,17 @@ class UserApplicationServiceTest {
     @Test
     void shouldRejectExpiredLoginCredential() {
         UserIdentity accountIdentity = identity(201L, 101L, UserIdentityType.ACCOUNT, "alice");
-        UserCredential passwordCredential = UserCredential.create(
+        UserCredential passwordCredential = UserCredential.createPassword(
                 UserCredentialId.of(301L),
                 UserId.of(101L),
                 UserIdentityId.of(201L),
-                UserCredentialType.PASSWORD,
-                UserCredentialFactorLevel.PRIMARY,
                 "{noop}identity",
-                UserCredentialStatus.ACTIVE,
                 false,
-                0,
                 5,
-                null,
-                null,
-                Instant.parse("2000-01-01T00:00:00Z"),
-                null);
-        when(userRepository.findIdentity(UserIdentityType.ACCOUNT, "alice"))
+                Instant.parse("2000-01-01T00:00:00Z"));
+        when(userIdentityRepository.findIdentity(UserIdentityType.ACCOUNT, "alice"))
                 .thenReturn(Optional.of(accountIdentity));
-        when(userRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
+        when(userCredentialRepository.findCredentialByUserId(UserId.of(101L), UserCredentialType.PASSWORD))
                 .thenReturn(Optional.of(passwordCredential));
 
         assertThatThrownBy(() -> service.getUserLoginCredential(UserIdentityType.ACCOUNT, "alice"))
@@ -313,7 +318,7 @@ class UserApplicationServiceTest {
     }
 
     private void mockIdentity(UserId userId, UserIdentityType identityType, String identityValue) {
-        when(userRepository.findIdentityByUserId(userId, identityType))
+        when(userIdentityRepository.findIdentityByUserId(userId, identityType))
                 .thenReturn(Optional.of(identity(
                         identityType == UserIdentityType.ACCOUNT ? 10001L : 10002L,
                         userId.value(),
@@ -322,7 +327,7 @@ class UserApplicationServiceTest {
     }
 
     private static Tenant tenant(Long id, String name, String code, TenantStatus status, Instant expiredAt) {
-        return Tenant.create(TenantId.of(id), name, TenantCode.of(code), status, expiredAt);
+        return Tenant.reconstruct(TenantId.of(id), name, TenantCode.of(code), status, expiredAt);
     }
 
     private static User user(
@@ -331,29 +336,22 @@ class UserApplicationServiceTest {
             AvatarStoredObjectNo avatarStoredObjectNo,
             DepartmentId departmentId,
             UserStatus status) {
-        return User.create(UserId.of(id), name, avatarStoredObjectNo, departmentId, status);
+        return User.reconstruct(UserId.of(id), name, avatarStoredObjectNo, departmentId, status);
     }
 
     private static UserIdentity identity(Long id, Long userId, UserIdentityType type, String value) {
-        return UserIdentity.create(UserIdentityId.of(id), UserId.of(userId), type, value, UserIdentityStatus.ACTIVE);
+        return UserIdentity.create(UserIdentityId.of(id), UserId.of(userId), type, value);
     }
 
     private static UserCredential credential(
             Long id, Long userId, Long identityId, String credentialValue, boolean needChangePassword) {
-        return UserCredential.create(
+        return UserCredential.createPassword(
                 UserCredentialId.of(id),
                 UserId.of(userId),
                 UserIdentityId.of(identityId),
-                UserCredentialType.PASSWORD,
-                UserCredentialFactorLevel.PRIMARY,
                 credentialValue,
-                UserCredentialStatus.ACTIVE,
                 needChangePassword,
-                0,
                 5,
-                (String) null,
-                (Instant) null,
-                (Instant) null,
                 (Instant) null);
     }
 

@@ -87,7 +87,7 @@ class DepartmentApplicationServiceTest {
         when(departmentRepository.findById(parentId)).thenReturn(Optional.of(department(
                 parentId, "PARENT", "Parent Department", null, null, 0)));
         when(userRepository.findById(leaderUserId))
-                .thenReturn(Optional.of(User.create(leaderUserId, "Leader", null, null, UserStatus.ACTIVE)));
+                .thenReturn(Optional.of(User.create(leaderUserId, "Leader", null, null)));
         when(departmentRepository.update(any(Department.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.updateDepartment(departmentId, DepartmentCode.of("OPS-NEW"), "Operations New", parentId, leaderUserId, 2);

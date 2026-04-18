@@ -44,7 +44,10 @@ import com.github.thundax.bacon.upms.domain.model.valueobject.RoleId;
 import com.github.thundax.bacon.upms.domain.repository.DepartmentRepository;
 import com.github.thundax.bacon.upms.domain.repository.RoleRepository;
 import com.github.thundax.bacon.upms.domain.repository.TenantRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserCredentialRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserIdentityRepository;
 import com.github.thundax.bacon.upms.domain.repository.UserRepository;
+import com.github.thundax.bacon.upms.domain.repository.UserRoleRepository;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -77,6 +80,9 @@ public class UserApplicationService {
 
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
+    private final UserIdentityRepository userIdentityRepository;
+    private final UserCredentialRepository userCredentialRepository;
+    private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;
     private final TenantRepository tenantRepository;
     private final SessionCommandFacade sessionCommandFacade;
@@ -89,6 +95,9 @@ public class UserApplicationService {
     public UserApplicationService(
             DepartmentRepository departmentRepository,
             UserRepository userRepository,
+            UserIdentityRepository userIdentityRepository,
+            UserCredentialRepository userCredentialRepository,
+            UserRoleRepository userRoleRepository,
             RoleRepository roleRepository,
             TenantRepository tenantRepository,
             SessionCommandFacade sessionCommandFacade,
@@ -99,6 +108,9 @@ public class UserApplicationService {
             IdGenerator idGenerator) {
         this.departmentRepository = departmentRepository;
         this.userRepository = userRepository;
+        this.userIdentityRepository = userIdentityRepository;
+        this.userCredentialRepository = userCredentialRepository;
+        this.userRoleRepository = userRoleRepository;
         this.roleRepository = roleRepository;
         this.tenantRepository = tenantRepository;
         this.sessionCommandFacade = sessionCommandFacade;
@@ -119,17 +131,17 @@ public class UserApplicationService {
     }
 
     public UserIdentityDTO getUserIdentity(UserIdentityType identityType, String identityValue) {
-        UserIdentity userIdentity = userRepository
+        UserIdentity userIdentity = userIdentityRepository
                 .findIdentity(identityType, identityValue)
                 .orElseThrow(() -> new NotFoundException("User identity not found"));
         return UserIdentityAssembler.toDto(userIdentity);
     }
 
     public UserLoginCredentialDTO getUserLoginCredential(UserIdentityType identityType, String identityValue) {
-        UserIdentity userIdentity = userRepository
+        UserIdentity userIdentity = userIdentityRepository
                 .findIdentity(identityType, identityValue)
                 .orElseThrow(() -> new NotFoundException("User identity not found"));
-        UserCredential passwordCredential = userRepository
+        UserCredential passwordCredential = userCredentialRepository
                 .findCredentialByUserId(userIdentity.getUserId(), UserCredentialType.PASSWORD)
                 .orElseThrow(() -> new NotFoundException("Password credential not found"));
         passwordCredential.assertVerifiable(Instant.now());
@@ -173,7 +185,7 @@ public class UserApplicationService {
         String normalizedAccount = account.trim();
         String normalizedPhone = phone == null ? null : phone.trim();
         User savedUser = userRepository.insert(
-                User.create(ids.userId(), name.trim(), null, departmentId, UserStatus.ACTIVE),
+                User.create(ids.userId(), name.trim(), null, departmentId),
                 normalizedAccount,
                 normalizedPhone,
                 UserIdentityId.of(idGenerator.nextId(USER_IDENTITY_ID_BIZ_TAG)),
@@ -304,7 +316,7 @@ public class UserApplicationService {
     @Transactional
     public void changePassword(UserId userId, String oldPassword, String newPassword) {
         requireUser(userId);
-        UserCredential passwordCredential = userRepository
+        UserCredential passwordCredential = userCredentialRepository
                 .findCredentialByUserId(userId, UserCredentialType.PASSWORD)
                 .orElseThrow(() -> new NotFoundException("Password credential not found: " + userId));
         validateRequired(oldPassword, "oldPassword");
@@ -320,7 +332,7 @@ public class UserApplicationService {
     public List<RoleDTO> updateRoleIds(UserId userId, List<RoleId> roleIds) {
         requireUser(userId);
         List<RoleId> domainRoleIds = roleIds == null ? List.of() : roleIds;
-        return userRepository.updateRoleIds(userId, domainRoleIds).stream()
+        return userRoleRepository.updateRoleIds(userId, domainRoleIds).stream()
                 .map(RoleAssembler::toDto)
                 .toList();
     }
@@ -413,7 +425,7 @@ public class UserApplicationService {
     }
 
     private String requireIdentityValue(UserId userId, UserIdentityType identityType) {
-        return userRepository
+        return userIdentityRepository
                 .findIdentityByUserId(userId, identityType)
                 .map(UserIdentity::getIdentityValue)
                 .orElseThrow(() -> new NotFoundException(
@@ -421,7 +433,7 @@ public class UserApplicationService {
     }
 
     private String resolveIdentityValue(UserId userId, UserIdentityType identityType) {
-        return userRepository
+        return userIdentityRepository
                 .findIdentityByUserId(userId, identityType)
                 .map(UserIdentity::getIdentityValue)
                 .orElse(null);

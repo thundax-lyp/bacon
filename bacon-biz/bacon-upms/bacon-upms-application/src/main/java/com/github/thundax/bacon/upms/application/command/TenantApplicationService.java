@@ -58,8 +58,7 @@ public class TenantApplicationService {
         tenantRepository.findByCode(code).ifPresent(tenant -> {
             throw new ConflictException("Tenant code already exists: " + code.value());
         });
-        return TenantAssembler.toDto(tenantRepository.insert(
-                Tenant.create(tenantId, name.trim(), code, TenantStatus.ACTIVE, expiredAt)));
+        return TenantAssembler.toDto(tenantRepository.insert(Tenant.create(tenantId, name.trim(), code, expiredAt)));
     }
 
     @Transactional

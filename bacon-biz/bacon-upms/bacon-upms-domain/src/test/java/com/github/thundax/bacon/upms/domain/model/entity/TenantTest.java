@@ -130,7 +130,7 @@ class TenantTest {
         tenant.clearExpiry();
 
         assertThat(tenant.getName()).isEqualTo("Demo Tenant New");
-        assertThat(tenant.getTenantCode()).isEqualTo(TenantCode.of("TENANT_NEW"));
+        assertThat(tenant.getCode()).isEqualTo(TenantCode.of("TENANT_NEW"));
         assertThat(tenant.getExpiredAt()).isNull();
     }
 

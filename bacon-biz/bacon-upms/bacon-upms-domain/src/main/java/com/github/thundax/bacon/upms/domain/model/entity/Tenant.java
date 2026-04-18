@@ -25,24 +25,24 @@ public class Tenant {
     /** 租户名称。 */
     private String name;
     /** 稳定业务编码。 */
-    private TenantCode tenantCode;
+    private TenantCode code;
     /** 租户状态。 */
     private TenantStatus status;
     /** 过期时间。 */
     private Instant expiredAt;
 
     public static Tenant create(
-            TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
+            TenantId id, String name, TenantCode code, TenantStatus status, Instant expiredAt) {
         Objects.requireNonNull(id, "id must not be null");
         Objects.requireNonNull(name, "name must not be null");
-        Objects.requireNonNull(tenantCode, "tenantCode must not be null");
+        Objects.requireNonNull(code, "code must not be null");
         Objects.requireNonNull(status, "status must not be null");
-        return new Tenant(id, name, tenantCode, status, expiredAt);
+        return new Tenant(id, name, code, status, expiredAt);
     }
 
     public static Tenant reconstruct(
-            TenantId id, String name, TenantCode tenantCode, TenantStatus status, Instant expiredAt) {
-        return new Tenant(id, name, tenantCode, status, expiredAt);
+            TenantId id, String name, TenantCode code, TenantStatus status, Instant expiredAt) {
+        return new Tenant(id, name, code, status, expiredAt);
     }
 
     public void activate() {
@@ -78,13 +78,9 @@ public class Tenant {
         this.name = name;
     }
 
-    public void changeTenantCode(TenantCode tenantCode) {
-        changeCode(tenantCode);
-    }
-
-    public void changeCode(TenantCode tenantCode) {
-        Objects.requireNonNull(tenantCode, "tenantCode must not be null");
-        this.tenantCode = tenantCode;
+    public void changeCode(TenantCode code) {
+        Objects.requireNonNull(code, "code must not be null");
+        this.code = code;
     }
 
     public void renewTo(Instant newExpiredAt) {
